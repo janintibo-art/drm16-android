@@ -148,6 +148,11 @@ body.m32 .read{color:#8fe8d8}
 #note{position:fixed;inset:0;background:#000000e8;color:#e7e3d8;padding:26px;overflow:auto;display:none;
   font:14px/1.6 system-ui;z-index:9}
 #note.show{display:block}
+#signal{position:fixed;left:8px;right:8px;bottom:14px;z-index:20;padding:11px 14px;border-radius:7px;
+  background:#b3260f;color:#fff3ee;font:700 12px/1.35 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:1.2px;text-align:center;box-shadow:0 6px 18px #000a;opacity:0;transform:translateY(14px);
+  transition:opacity .25s,transform .25s;pointer-events:none}
+#signal.vu{opacity:1;transform:translateY(0)}
 #note-em,#note-er,#note-ea,#note-es,#note-mx,#note-sx,.mk2-seul{display:none}
 body.emx #note-ehx,body.esx #note-ehx{display:none}
 body.esx #note-sx{display:block}
@@ -1845,8 +1850,9 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   sélecteur de fichiers et prend n'importe quel fichier audio lisible par le téléphone. Enfin le mode
   <b>SAMPLE</b>, ou la rangée <b>Sample</b> de l'afficheur, fait défiler à la molette la banque interne de
   quatorze sons calculés à la volée et tous les sons que vous avez enregistrés.</p>
-  <p>Les sons enregistrés sont ramenés en mono à 22 kHz, normalisés, et écrits dans le dossier privé de
-  l'application : ils reviennent au lancement suivant.</p>
+  <p>Les sons enregistrés sont ramenés en mono à 32 kHz, normalisés, et écrits dans le dossier privé de
+  l'application : ils reviennent au lancement suivant. Si l'écriture échoue, un bandeau rouge le dit —
+  le son reste jouable jusqu'à la fermeture mais ne reviendra pas.</p>
   <p><b>PITCH/SPEED</b> transpose en changeant la vitesse de lecture, <b>FILTER</b> ouvre ou ferme,
   <b>LEVEL</b> et <b>PAN</b> placent le son. <b>REVERSE</b> lit à l'envers, <b>ROLL</b> répète, <b>EFFECT</b>
   envoie vers l'effet, <b>SLICE</b> découpe le son en seize tranches, une par pas — la tranche jouée suit
@@ -1965,6 +1971,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <p><button class="sec" id="b-midi-clk"></button>
      <button class="sec" id="b-midi-ch"></button></p>
 
+  <p><button id="b-panique">PANIQUE · TOUT COUPER</button></p>
   <p><button class="sec" id="b-haptic">RETOUR HAPTIQUE</button></p>
   <p><button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
   <p><button class="sec" id="b-modele">CHANGER DE MODÈLE</button></p>
@@ -1991,8 +1998,14 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
     if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
-    if(m.em1) memoire.em1 = m.em1;
-    ["er1","er2","ea1","ea2","es1","es2","emx","esx"].forEach(function(c){ if(m[c]) memoire[c] = m[c]; });
+    if(m.midi) memoire.midi = m.midi;
+    /* ancien format : les machines vivaient dans le blob global, on les répartit une fois */
+    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx"].forEach(function(c){
+      if(m[c]){
+        memoire[c] = m[c];
+        try{ localStorage.setItem(MEM + "." + c, JSON.stringify(m[c])); }catch(e){}
+      }
+    });
     if(typeof m.vol === "number") memoire.vol = Math.min(1, Math.max(0, m.vol));
     if(typeof m.bpm === "number") memoire.bpm = Math.min(220, Math.max(40, m.bpm|0));
     if(typeof m.haptic === "boolean") memoire.haptic = m.haptic;
@@ -2011,19 +2024,71 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
   S.vol = memoire.vol; S.bpm = memoire.bpm;
   S.haptic = memoire.haptic; S.bg = memoire.bg; S.bass = memoire.bass;
 })();
-var saveTmr = null;
+var saveTmr = null, machineTmr = {}, memEchec = false;
+
+/* chaque machine a sa propre clé : écrire un motif ne réécrit plus les onze */
+function cleMachine(id){ return MEM + "." + id; }
+function memLire(id){
+  if(memoire[id] === undefined){
+    try{ memoire[id] = JSON.parse(localStorage.getItem(cleMachine(id)) || "null") || undefined; }
+    catch(e){ memoire[id] = undefined; }
+  }
+  return memoire[id];
+}
+function ecrireMachine(id){
+  if(!memoire[id]) return;
+  try{
+    localStorage.setItem(cleMachine(id), JSON.stringify(memoire[id]));
+    memEchec = false;
+  }catch(e){
+    if(!memEchec){ memEchec = true; signal("MÉMOIRE PLEINE · MOTIFS NON ENREGISTRÉS"); }
+  }
+}
+function sauverMachine(id){
+  clearTimeout(machineTmr[id]);
+  machineTmr[id] = setTimeout(function(){ ecrireMachine(id); delete machineTmr[id]; }, 250);
+}
+function viderMachines(){
+  for(var id in machineTmr){ clearTimeout(machineTmr[id]); ecrireMachine(id); }
+  machineTmr = {};
+}
 function writeMem(){
   clearTimeout(saveTmr); saveTmr = null;
+  viderMachines();
   try{
     memoire.modele = S.modele;
     memoire.vol = S.vol; memoire.bpm = S.bpm;
     memoire.haptic = S.haptic; memoire.bg = S.bg; memoire.bass = S.bass;
-    if(S.modele === "16" || S.modele === "32") memoire[S.modele] = {style:S.style, col:S.col, del:S.del, space:S.space, bank:S.bank};
-    localStorage.setItem(MEM, JSON.stringify(memoire));
-  }catch(e){}
+    if(S.modele === "16" || S.modele === "32")
+      memoire[S.modele] = {style:S.style, col:S.col, del:S.del, space:S.space, bank:S.bank};
+    localStorage.setItem(MEM, JSON.stringify({
+      modele:memoire.modele, vol:memoire.vol, bpm:memoire.bpm, haptic:memoire.haptic,
+      bg:memoire.bg, bass:memoire.bass, midi:memoire.midi,
+      "16":memoire["16"], "32":memoire["32"]
+    }));
+    memEchec = false;
+  }catch(e){
+    if(!memEchec){ memEchec = true; signal("MÉMOIRE PLEINE · RÉGLAGES NON ENREGISTRÉS"); }
+  }
 }
-function save(){ writeMem(); }
+/* toutes les écritures sont différées : la saisie d'un motif ne bloque plus l'affichage */
+function save(){ clearTimeout(saveTmr); saveTmr = setTimeout(writeMem, 250); }
 function saveSoon(){ clearTimeout(saveTmr); saveTmr = setTimeout(writeMem, 300); }
+
+/* ================= bandeau de signalement ================= */
+var signalEl = null, signalTmr = null;
+function signal(txt){
+  if(!signalEl){
+    signalEl = document.createElement("div");
+    signalEl.id = "signal";
+    document.body.appendChild(signalEl);
+  }
+  signalEl.textContent = txt;
+  signalEl.classList.add("vu");
+  clearTimeout(signalTmr);
+  signalTmr = setTimeout(function(){ signalEl.classList.remove("vu"); }, 3500);
+}
+window.__drmSignal = signal;
 
 /* ================= pont vers Android ================= */
 function host(on){
@@ -2161,11 +2226,48 @@ function audioInit(){
     outBd.connect(master); outMix.connect(master);
   }
   applyBass();
+  pisterSources();
   var len = Math.floor(ctx.sampleRate*2);
   noiseBuf = ctx.createBuffer(1,len,ctx.sampleRate);
   var d = noiseBuf.getChannelData(0);
   for(var j=0;j<len;j++) d[j]=Math.random()*2-1;
 }
+/* toute source créée retient son heure de départ : Stop peut annuler celles à venir */
+var SOURCES = [];
+function pisterSources(){
+  if(ctx.__piste) return;
+  ctx.__piste = true;
+  ["createOscillator","createBufferSource","createConstantSource"].forEach(function(nom){
+    if(!ctx[nom]) return;
+    var brut = ctx[nom].bind(ctx);
+    ctx[nom] = function(){
+      var n = brut();
+      var depart = n.start.bind(n);
+      n.start = function(t){
+        SOURCES.push({n:n, t:(t === undefined ? ctx.currentTime : t)});
+        return depart.apply(n, arguments);
+      };
+      return n;
+    };
+  });
+}
+function couperSourcesFutures(){
+  if(!ctx) return;
+  var now = ctx.currentTime, reste = [];
+  for(var i=0;i<SOURCES.length;i++){
+    var s = SOURCES[i];
+    if(s.t > now + 0.002){ try{ s.n.stop(now); }catch(e){} }
+    else if(s.t > now - 4) reste.push(s);
+  }
+  SOURCES = reste;
+}
+function purgerSources(){
+  if(!ctx || SOURCES.length < 400) return;
+  var now = ctx.currentTime, reste = [];
+  for(var i=0;i<SOURCES.length;i++) if(SOURCES[i].t > now - 4) reste.push(SOURCES[i]);
+  SOURCES = reste;
+}
+
 function env(g,t,peak,dec,atk){
   atk = atk||0.002;
   g.gain.setValueAtTime(0.0001,t);
@@ -2280,7 +2382,7 @@ function scheduleEhx(i,t){
 }
 function tick(){
   if(!ctx) return;
-  midiSuivreTempo();
+  midiSuivreTempo(); purgerSources();
   if(nextT < ctx.currentTime - 0.4){ nextT = ctx.currentTime + 0.08; queue=[]; }
   while(nextT < ctx.currentTime + look()){
     MACHINE.schedule(step, nextT);
@@ -2301,6 +2403,8 @@ function start(){
 }
 function stop(){
   S.run=false; clearInterval(timer); timer=null; queue=[];
+  couperSourcesFutures();
+  midiSilence();
   if(MACHINE && MACHINE.arret) MACHINE.arret();
   host(false);
   midiHorloge(false);
@@ -2494,6 +2598,21 @@ fsw.addEventListener("click", function(){
 });
 
 /* ================= réglages de la notice ================= */
+document.getElementById("b-panique").addEventListener("click", function(){
+  stop();
+  midiPanique();
+  if(master && ctx){
+    var now = ctx.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setTargetAtTime(0.0001, now, 0.008);
+    master.gain.setValueAtTime(0.0001, now+0.25);
+    master.gain.linearRampToValueAtTime(S.vol, now+0.35);
+  }
+  couperSourcesFutures();
+  signal("TOUT COUPÉ");
+  H.stop();
+});
+
 var bHaptic = document.getElementById("b-haptic");
 function labelHaptic(){
   bHaptic.textContent = "RETOUR HAPTIQUE : " + (S.haptic ? "ACTIVÉ" : "DÉSACTIVÉ");
@@ -3530,10 +3649,10 @@ function memEm(){
                  drv:EM.drv, egT:EM.egT, sel:EM.sel,
                  slots:EM.slots.map(serialiser)};
   memoire.em1.slots[EM.cur] = serialiser(EM.pat);
-  saveSoon();
+  sauverMachine("em1");
 }
 function chargerEm(){
-  var m = memoire.em1;
+  var m = memLire("em1");
   if(!m) return;
   if(m.slots && m.slots.length===16) EM.slots = m.slots.map(deserialiser);
   if(m.song && m.song.length) EM.song = m.song.slice();
@@ -4241,13 +4360,13 @@ function memEr(){
                  })};
   memoire["er"+ER.v].slots[ER.cur] = {sw:ER.pat.sw, len:ER.pat.len, son:ER.pat.son, mot:ER.pat.mot,
                                st:ER.pat.st.map(function(l){ return l.join(""); })};
-  saveSoon();
+  sauverMachine("er"+ER.v);
 }
 function chargerEr(){
   ER.slots = [];
   for(var z=0; z<16; z++) ER.slots.push(motifEr(z<3?z:9));
   ER.cur = 0; ER.sel = 0; ER.song = []; ER.pat = ER.slots[0];
-  var m = memoire["er"+ER.v];
+  var m = memLire("er"+ER.v);
   if(!m) return;
   if(m.slots && m.slots.length===16){
     ER.slots = m.slots.map(function(o){
@@ -4887,7 +5006,7 @@ function memEa(){
                  fxType:EA.fxType, fDep:EA.fDep, fTime:EA.fTime, oct:EA.oct,
                  slots:EA.slots.map(serEa)};
   memoire["ea"+EA.v].slots[EA.cur] = serEa(EA.pat);
-  saveSoon();
+  sauverMachine("ea"+EA.v);
 }
 function serEa(p){
   return {sw:p.sw, len:p.len, gamme:p.gamme, son:p.son, mot:p.mot,
@@ -4899,7 +5018,7 @@ function chargerEa(){
   EA.slots = [];
   for(var z=0; z<16; z++) EA.slots.push(motifEa(z<3?z:9));
   EA.cur = 0; EA.sel = 0; EA.song = []; EA.pat = EA.slots[0];
-  var m = memoire["ea"+EA.v];
+  var m = memLire("ea"+EA.v);
   if(!m) return;
   if(m.slots && m.slots.length===16){
     EA.slots = m.slots.map(function(o){
@@ -5489,8 +5608,11 @@ function b64De(ab){
 }
 function sauverEch(id, buf){
   var p = window.DRM16;
-  if(!p || !p.echSauver) return;
-  try{ p.echSauver(id, b64De(wavDe(buf))); }catch(e){}
+  if(!p || !p.echSauver) return false;
+  var ok = false;
+  try{ ok = !!p.echSauver(id, b64De(wavDe(buf))); }catch(e){ ok = false; }
+  if(!ok) signal("ÉCHEC D'ÉCRITURE · SON PERDU AU REDÉMARRAGE");
+  return ok;
 }
 function chargerEchs(){
   var p = window.DRM16;
@@ -5511,7 +5633,34 @@ function chargerEchs(){
     }, function(){});
   });
 }
+/* un son peut servir dans plusieurs motifs et sur les trois échantillonneurs */
+function usagesEch(id){
+  var n = 0;
+  function compter(slots){
+    if(!slots) return;
+    slots.forEach(function(p){
+      var sons = p.son || [];
+      sons.forEach(function(so){ if(so && so.ech === id) n++; });
+    });
+  }
+  if(S.modele === "es1" || S.modele === "es2") compter(ES.slots);
+  if(S.modele === "esx") compter(SX.slots);
+  ["es1","es2","esx"].forEach(function(k){
+    if(k === S.modele) return;
+    var m = memLire(k);
+    if(m && m.slots) compter(m.slots);
+  });
+  return n;
+}
+function supprimerEch(id){
+  var p = window.DRM16;
+  if(p && p.echSupprimer) try{ p.echSupprimer(id); }catch(e){}
+  delete ES.buf[id]; delete ES.inv[id]; delete ES.noms[id];
+}
+
 function poserEch(k, buf, quoi){
+  if(ES.protect){ lcdEs("PRT","PROTECT",true); return; }
+  if(S.modele !== "es1" && S.modele !== "es2"){ signal("MACHINE CHANGÉE · SON NON AFFECTÉ"); return; }
   var court = reduireEch(buf, 32000, 6);
   var id = "u" + Date.now().toString(36);
   ES.buf[id] = court; ES.noms[id] = quoi;
@@ -5532,21 +5681,25 @@ function echantillonner(){
     if(!ok){ lcdEs("MIC","AUTORISEZ PUIS RETOUCHEZ",true); return; }
   }
   if(!navigator.mediaDevices || !window.MediaRecorder){ lcdEs("ERR","MICRO INDISPONIBLE",true); return; }
+  var cible = ES.sel;                      /* la destination est figée au départ */
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(flux){
-    var morceaux = [], mr = new MediaRecorder(flux);
+    var morceaux = [], mr = new MediaRecorder(flux), minuteur = null;
     ES_REC.mr = mr; majSampling();
     lcdEs("REC","SAMPLING",false);
     mr.ondataavailable = function(e){ if(e.data && e.data.size) morceaux.push(e.data); };
     mr.onstop = function(){
+      clearTimeout(minuteur);
       flux.getTracks().forEach(function(t){ t.stop(); });
-      ES_REC.mr = null; majSampling();
+      if(ES_REC.mr === mr) ES_REC.mr = null;
+      majSampling();
       new Blob(morceaux).arrayBuffer().then(function(ab){
         return new Promise(function(res, rej){ ctx.decodeAudioData(ab, res, rej); });
-      }).then(function(buf){ poserEch(ES.sel, buf, "mic"); })
-        .catch(function(){ lcdEs("ERR","DECODAGE",true); });
+      }).then(function(buf){ poserEch(cible, buf, "mic"); })
+        .catch(function(){ lcdEs("ERR","DÉCODAGE",true); });
     };
     mr.start();
-    setTimeout(function(){ if(ES_REC.mr) try{ ES_REC.mr.stop(); }catch(e){} }, 6000);
+    /* le minuteur ne peut arrêter que sa propre prise */
+    minuteur = setTimeout(function(){ if(ES_REC.mr === mr) try{ mr.stop(); }catch(e){} }, 6000);
   }).catch(function(){ lcdEs("ERR","MICRO REFUSE",true); });
 }
 
@@ -5705,13 +5858,13 @@ function memEs(){
                  dDep:ES.dDep, dTime:ES.dTime, bpmSync:ES.bpmSync,
                  slots:ES.slots.map(serEs)};
   memoire["es"+ES.v].slots[ES.cur] = serEs(ES.pat);
-  saveSoon();
+  sauverMachine("es"+ES.v);
 }
 function chargerEs(){
   ES.slots = [];
   for(var z=0; z<16; z++) ES.slots.push(motifEs(z<3?z:9));
   ES.cur=0; ES.sel=0; ES.song=[]; ES.mute=[]; ES.solo=[]; ES.pat=ES.slots[0];
-  var m=memoire["es"+ES.v];
+  var m=memLire("es"+ES.v);
   if(!m) return;
   if(m.slots && m.slots.length===16){
     ES.slots = m.slots.map(function(o){
@@ -5838,10 +5991,12 @@ document.getElementById("es-import").addEventListener("click", function(){
 });
 document.getElementById("es-fichier").addEventListener("change", function(){
   var f=this.files && this.files[0]; if(!f) return;
+  if(f.size > 40*1024*1024){ signal("FICHIER TROP GROS · 40 Mo AU PLUS"); this.value=""; return; }
+  var cible = ES.sel;
   lcdEs("...","IMPORT",false);
   f.arrayBuffer().then(function(ab){
     return new Promise(function(res,rej){ ctx.decodeAudioData(ab,res,rej); });
-  }).then(function(buf){ poserEch(ES.sel, buf, "fichier"); })
+  }).then(function(buf){ poserEch(cible, buf, "fichier"); })
     .catch(function(){ lcdEs("ERR","FICHIER ILLISIBLE",true); });
   this.value="";
 });
@@ -5969,11 +6124,19 @@ function shiftEs(i){
   }
   else if(i===12){ son.slice=!son.slice; majLedsEs(); memEs(); lcdEs(son.slice?"ON":"OFF","TIME SLICE",true); }
   else if(i===13){                                  /* Delete Sample */
-    if(son.ech.charAt(0)!=="b"){
-      var p2=window.DRM16; if(p2 && p2.echSupprimer) try{ p2.echSupprimer(son.ech); }catch(e){}
-      delete ES.buf[son.ech]; delete ES.inv[son.ech];
-    }
-    son.ech="b0"; majLedsEs(); memEs(); lcdEs("DEL","DELETE SAMPLE",true);
+    var idEs = son.ech;
+    son.ech = "b0";
+    if(idEs.charAt(0) !== "b"){
+      var nEs = usagesEch(idEs);
+      if(nEs > 0){
+        signal("SON ENCORE UTILISÉ " + nEs + " FOIS · RETIRÉ DE CETTE PARTIE SEULEMENT");
+        lcdEs("KEEP","DELETE SAMPLE",true);
+      } else {
+        supprimerEch(idEs);
+        lcdEs("DEL","DELETE SAMPLE",true);
+      }
+    } else lcdEs("DEL","DELETE SAMPLE",true);
+    majLedsEs(); memEs();
   }
   else if(i===14){ lcdEs("---","CARD : À VENIR",true); }
   else { ES.protect=!ES.protect; lcdEs(ES.protect?"ON":"OFF","PROTECT",true); }
@@ -6664,13 +6827,13 @@ function memMx(){
                  fx:MX.fx, chaine:MX.chaine, slot:MX.slot, gamme:MX.gamme, oct:MX.oct,
                  slots:MX.slots.map(serMx)};
   memoire.emx.slots[MX.cur]=serMx(MX.pat);
-  saveSoon();
+  sauverMachine("emx");
 }
 function chargerMx(){
   MX.slots=[];
   for(var z=0;z<16;z++) MX.slots.push(motifMx(z<3?z:9));
   MX.cur=0; MX.sel=0; MX.song=[]; MX.mute=[]; MX.solo=[]; MX.pat=MX.slots[0];
-  var m=memoire.emx;
+  var m=memLire("emx");
   if(!m) return;
   if(m.slots && m.slots.length===16){
     MX.slots=m.slots.map(function(o){
@@ -7533,17 +7696,17 @@ function serSx(p){
           nt:p.nt.map(function(l){ return l.join(","); })};
 }
 function memSx(){
-  memoire.esx = {cur:SX.cur, song:SX.song.slice(), sel:SX.sel, tube:SX.tube,
+  memoire.esx = {cur:SX.cur, song:SX.song.slice(), sel:SX.sel, tube:SX.tube, noms:ES.noms,
                  fx:SX.fx, chaine:SX.chaine, slot:SX.slot, gamme:SX.gamme, oct:SX.oct,
                  slots:SX.slots.map(serSx)};
   memoire.esx.slots[SX.cur]=serSx(SX.pat);
-  saveSoon();
+  sauverMachine("esx");
 }
 function chargerSx(){
   SX.slots=[];
   for(var z=0;z<16;z++) SX.slots.push(motifSx(z<3?z:9));
   SX.cur=0; SX.sel=0; SX.song=[]; SX.mute=[]; SX.solo=[]; SX.pat=SX.slots[0];
-  var m=memoire.esx;
+  var m=memLire("esx");
   if(!m) return;
   if(m.slots && m.slots.length===16){
     SX.slots=m.slots.map(function(o){
@@ -7557,6 +7720,7 @@ function chargerSx(){
     });
   }
   if(m.song && m.song.length) SX.song=m.song.slice();
+  if(m.noms) for(var nk in m.noms) if(ES.noms[nk]===undefined) ES.noms[nk]=m.noms[nk];
   if(m.fx && m.fx.length===3) SX.fx=m.fx;
   ["cur","sel","tube","slot","gamme","oct"].forEach(function(c){ if(typeof m[c]==="number") SX[c]=m[c]; });
   SX.chaine=!!m.chaine;
@@ -7799,30 +7963,35 @@ function echantillonnerSx(){
     if(!ok){ lcdSx("MIC","AUTORISEZ PUIS RETOUCHEZ",true); return; }
   }
   if(!navigator.mediaDevices || !window.MediaRecorder){ lcdSx("ERR","MICRO INDISPONIBLE",true); return; }
+  var cibleSx = SX.sel;
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(flux){
-    var morceaux=[], mr=new MediaRecorder(flux);
+    var morceaux=[], mr=new MediaRecorder(flux), minuteur=null;
     ES_REC.mr=mr;
     document.getElementById("sx-sampling").classList.add("on");
     lcdSx("REC","SAMPLING",false);
     mr.ondataavailable=function(e){ if(e.data && e.data.size) morceaux.push(e.data); };
     mr.onstop=function(){
+      clearTimeout(minuteur);
       flux.getTracks().forEach(function(t){ t.stop(); });
-      ES_REC.mr=null;
+      if(ES_REC.mr===mr) ES_REC.mr=null;
       document.getElementById("sx-sampling").classList.remove("on");
       new Blob(morceaux).arrayBuffer().then(function(ab){
         return new Promise(function(res,rej){ ctx.decodeAudioData(ab,res,rej); });
-      }).then(function(buf){ poserEchSx(buf,"mic"); })
+      }).then(function(buf){ poserEchSx(buf,"mic",cibleSx); })
         .catch(function(){ lcdSx("ERR","DÉCODAGE",true); });
     };
     mr.start();
-    setTimeout(function(){ if(ES_REC.mr) try{ ES_REC.mr.stop(); }catch(e){} }, 8000);
+    minuteur = setTimeout(function(){ if(ES_REC.mr===mr) try{ mr.stop(); }catch(e){} }, 8000);
   }).catch(function(){ lcdSx("ERR","MICRO REFUSÉ",true); });
 }
-function poserEchSx(buf, quoi){
+function poserEchSx(buf, quoi, cible){
+  if(SX.protect){ lcdSx("PROTECT","ÉCRITURE BLOQUÉE",true); return; }
+  if(S.modele !== "esx"){ signal("MACHINE CHANGÉE · SON NON AFFECTÉ"); return; }
+  var k = (cible === undefined) ? SX.sel : cible;
   var court = reduireEch(buf, 32000, 8);
   var id = "u" + Date.now().toString(36);
   ES.buf[id]=court; ES.noms[id]=quoi;
-  SX.pat.son[SX.sel].ech=id;
+  SX.pat.son[k].ech=id;
   delete ES.inv[id];
   sauverEch(id, court);
   majLedsSx(); memSx();
@@ -7835,10 +8004,12 @@ document.getElementById("sx-import").addEventListener("click", function(){
 });
 document.getElementById("sx-fichier").addEventListener("change", function(){
   var f=this.files && this.files[0]; if(!f) return;
+  if(f.size > 40*1024*1024){ signal("FICHIER TROP GROS · 40 Mo AU PLUS"); this.value=""; return; }
+  var cible = SX.sel;
   lcdSx("...","IMPORT",false);
   f.arrayBuffer().then(function(ab){
     return new Promise(function(res,rej){ ctx.decodeAudioData(ab,res,rej); });
-  }).then(function(buf){ poserEchSx(buf,"fichier"); })
+  }).then(function(buf){ poserEchSx(buf,"fichier",cible); })
     .catch(function(){ lcdSx("ERR","FICHIER ILLISIBLE",true); });
   this.value="";
 });
@@ -7944,11 +8115,19 @@ function shiftSx(i){
   }
   else if(i===12){ son.slice=!son.slice; majLedsSx(); memSx(); lcdSx(son.slice?"ON":"OFF","TIME SLICE",true); }
   else if(i===13){
-    if(son.ech.charAt(0)!=="b"){
-      var p2=window.DRM16; if(p2 && p2.echSupprimer) try{ p2.echSupprimer(son.ech); }catch(e){}
-      delete ES.buf[son.ech]; delete ES.inv[son.ech];
-    }
-    son.ech="b0"; majLedsSx(); memSx(); lcdSx("DELETE","SAMPLE",true);
+    var idSx = son.ech;
+    son.ech = "b0";
+    if(idSx.charAt(0) !== "b"){
+      var nSx = usagesEch(idSx);
+      if(nSx > 0){
+        signal("SON ENCORE UTILISÉ " + nSx + " FOIS · RETIRÉ DE CETTE PARTIE SEULEMENT");
+        lcdSx("KEEP","DELETE SAMPLE",true);
+      } else {
+        supprimerEch(idSx);
+        lcdSx("DELETE","SAMPLE",true);
+      }
+    } else lcdSx("DELETE","SAMPLE",true);
+    majLedsSx(); memSx();
   }
   else if(i===14){ document.getElementById("note").classList.add("show"); lcdSx("UTILITY","RÉGLAGES",true); }
   else { SX.protect=!SX.protect; lcdSx(SX.protect?"ON":"OFF","PROTECT",true); }
@@ -7996,20 +8175,43 @@ function midiBrut(a,b,c){
   try{ p.midiEnvoyer(a,b,c); }catch(e){}
 }
 /* une note posée à l'heure du pas, l'ordonnanceur travaillant en avance */
-function midiNoteA(note, t, vel, canal){
+var midiAttente = [], midiOuvertes = [];
+function midiNoteA(note, t, vel, canal, duree){
   if(!midiPret() || !MIDI.out || note === undefined) return;
   var d = Math.max(0, (t - ctx.currentTime)*1000);
-  setTimeout(function(){
+  var ms = Math.max(40, Math.min(4000, (duree !== undefined ? duree*1000 : 90)));
+  var id = setTimeout(function(){
+    retirer(midiAttente, id);
     midiBrut(0x90|canal, note, Math.max(1, Math.min(127, Math.round(vel*100)+27)));
-    setTimeout(function(){ midiBrut(0x80|canal, note, 0); }, 90);
+    var cle = {c:canal, n:note};
+    midiOuvertes.push(cle);
+    var id2 = setTimeout(function(){
+      retirer(midiAttente, id2); retirer(midiOuvertes, cle);
+      midiBrut(0x80|canal, note, 0);
+    }, ms);
+    midiAttente.push(id2);
   }, d);
+  midiAttente.push(id);
+}
+function retirer(tab, v){ var i = tab.indexOf(v); if(i >= 0) tab.splice(i, 1); }
+/* Stop : plus aucun départ à venir, et on referme ce qui est ouvert */
+function midiSilence(){
+  midiAttente.forEach(function(id){ clearTimeout(id); });
+  midiAttente = [];
+  midiOuvertes.forEach(function(k){ midiBrut(0x80|k.c, k.n, 0); });
+  midiOuvertes = [];
+}
+function midiPanique(){
+  midiSilence();
+  for(var c=0;c<16;c++){ midiBrut(0xB0|c, 123, 0); midiBrut(0xB0|c, 120, 0); }
 }
 function midiVoix(voix, t, vel){ midiNoteA(GM[voix], t, vel, MIDI.canal); }
 
 /* horloge : le fil Java tient la cadence, on lui donne le tempo */
 var bpmEnvoye = 0;
 function midiHorloge(on){
-  var p = pont(); if(!p || !MIDI.dispo || MIDI.ouvert < 0 || !MIDI.clock) return;
+  var p = pont(); if(!p || !MIDI.dispo || MIDI.ouvert < 0) return;
+  if(on && !MIDI.clock) return;      /* seul le démarrage dépend de l'option */
   try{ p.midiHorloge(!!on, S.bpm); }catch(e){}
   bpmEnvoye = S.bpm;
 }

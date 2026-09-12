@@ -105,13 +105,20 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         }
 
         /** Echantillons de l'utilisateur, ecrits dans le dossier prive de l'application. */
+        @JavascriptInterface public String echDossier() {
+            return new File(getFilesDir(), "ech").getAbsolutePath();
+        }
         @JavascriptInterface public boolean echSauver(String nom, String b64) {
             try {
                 File d = new File(getFilesDir(), "ech");
                 if (!d.exists() && !d.mkdirs()) return false;
                 byte[] o = Base64.decode(b64, Base64.DEFAULT);
-                FileOutputStream f = new FileOutputStream(new File(d, propre(nom) + ".wav"));
-                f.write(o); f.close();
+                File cible = new File(d, propre(nom) + ".wav");
+                File tmp = new File(d, propre(nom) + ".part");
+                FileOutputStream f = new FileOutputStream(tmp);
+                f.write(o); f.flush(); f.getFD().sync(); f.close();
+                if (cible.exists() && !cible.delete()) { tmp.delete(); return false; }
+                if (!tmp.renameTo(cible)) { tmp.delete(); return false; }
                 return true;
             } catch (Exception e) { return false; }
         }
@@ -171,7 +178,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         s.setDomStorageEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setAllowFileAccess(false);
-        s.setAllowContentAccess(false);
+        s.setAllowContentAccess(true);   // nécessaire aux URI content:// du sélecteur de fichiers
         s.setCacheMode(WebSettings.LOAD_NO_CACHE);
         s.setUseWideViewPort(false);
         s.setLoadWithOverviewMode(false);
@@ -237,7 +244,12 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         Intent service = new Intent(this, PlaybackService.class);
         if (actif) {
             demanderNotifications();
-            prendreFocus();
+            if (!prendreFocus()) {          // refus : on ne laisse pas la page jouer par-dessus
+                enLecture = false;
+                if (web != null) web.evaluateJavascript(
+                        "window.__drmStop&&__drmStop();window.__drmSignal&&__drmSignal('AUDIO REFUSÉ PAR LE SYSTÈME');", null);
+                return;
+            }
             try {
                 startService(service);
             } catch (Exception ignored) {
@@ -256,9 +268,10 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         majLecture(false);
     }
 
-    private void prendreFocus() {
+    private boolean prendreFocus() {
         if (audio == null) audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        if (audio == null) return;
+        if (audio == null) return true;
+        int res;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             AudioAttributes attributs = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -268,11 +281,12 @@ public class MainActivity extends Activity implements Midi.Ecoute {
                     .setAudioAttributes(attributs)
                     .setOnAudioFocusChangeListener(ecouteFocus)
                     .build();
-            audio.requestAudioFocus(demande);
+            res = audio.requestAudioFocus(demande);
         } else {
-            audio.requestAudioFocus(ecouteFocus, AudioManager.STREAM_MUSIC,
+            res = audio.requestAudioFocus(ecouteFocus, AudioManager.STREAM_MUSIC,
                     AudioManager.AUDIOFOCUS_GAIN);
         }
+        return res == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
     }
 
     private void rendreFocus() {

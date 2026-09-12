@@ -91,7 +91,7 @@ Un préréglage n'est qu'un point de départ : les boutons restent libres, et le
 3. **Banque interne** — quatorze sons calculés point par point au lancement (grosse caisse, caisse claire,
    clap, charleys, tom, cowbell, rim, zap, blip, bruit, stab, basse, voix). Aucun fichier audio dans l'APK.
 
-Les sons enregistrés sont ramenés en mono 22 kHz, normalisés, encodés en WAV et écrits dans le dossier privé
+Les sons enregistrés sont ramenés en mono 32 kHz, normalisés, encodés en WAV et écrits dans le dossier privé
 de l'application par le pont Java (`echSauver` / `echCharger` / `echListe` / `echSupprimer`) : ils reviennent au
 lancement suivant. La mémoire du navigateur n'aurait pas tenu la charge.
 
@@ -153,6 +153,39 @@ qui lisent leur son à la hauteur des notes, deux parties **STRETCH**, une piste
   sur trois chaînes simultanées, en parallèle ou en série, plus le Valve Force.
 
 Les trois nouveaux effets profitent aussi à l'EMX-1.
+
+## Corrections de fiabilité (version 21)
+
+Suite à un audit externe, vérifié point par point avec un pont Android simulé qui enregistre
+tous les appels reçus.
+
+**Mémoire.** `writeMem()` sérialisait les onze machines à chaque pas allumé : 281 ko, 5,2 ms par
+écriture. Chaque machine a maintenant sa propre clé, et toutes les écritures sont différées de
+250 ms. Mesuré : **vingt pas allumés coûtent 2,2 ms au total** au lieu de 104. L'ancien format
+est repris et réparti automatiquement au premier lancement. Un dépassement de quota, jusque-là
+avalé en silence, affiche désormais un bandeau.
+
+**Arrêt.** Stop annulait le séquenceur mais laissait partir ce qui était déjà programmé.
+Toute source audio retient maintenant son heure de départ — les méthodes de création du contexte
+sont enveloppées une fois pour toutes — et Stop annule celles qui n'ont pas commencé. Mesuré :
+crête après arrêt **0,498 → 0,007**. Les départs de notes MIDI en attente sont annulés et les
+notes ouvertes refermées par un Note Off. Un bouton **PANIQUE** dans la notice coupe tout,
+envoie All Notes Off sur les seize canaux et rétablit le volume.
+
+**MIDI.** L'arrêt de l'horloge était filtré par la même condition que son démarrage : il ne
+partait jamais. Les réglages (canal, entrée, sortie, horloge) n'étaient pas relus au lancement.
+Les deux sont corrigés. La durée des notes sortantes suit désormais la durée demandée.
+
+**Échantillons.** Le résultat de l'écriture est vérifié et signalé ; l'écriture côté Java passe
+par un fichier temporaire puis un remplacement, pour ne pas détruire l'existant en cas d'échec.
+Le minuteur d'une prise ne peut plus arrêter la suivante. La destination est figée au départ de
+la capture ou de l'import. Protect est respecté. Avant une suppression, les utilisations du son
+sont comptées sur les trois échantillonneurs : s'il sert ailleurs, il est seulement détaché de
+la partie courante. Import limité à 40 Mo avec message clair.
+
+**Android.** `setAllowContentAccess` passe à `true`, sans quoi les URI du sélecteur de fichiers
+ne sont pas lisibles. Le résultat de la demande de priorité audio est contrôlé : en cas de refus,
+la page est arrêtée et prévenue au lieu de jouer par-dessus.
 
 ## Qualité sonore
 
