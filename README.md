@@ -1,7 +1,27 @@
-# DRM16 et DRM32 — boîtes à rythmes autonomes pour Android
+# Boîtes à rythmes autonomes pour Android
 
-Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03) en application Android.
-Un menu au lancement choisit l'appareil ; on en change ensuite par la notice, derrière MODEL.
+Recréation des Electro-Harmonix DRM-16 (model 01), DRM-32 (model 03) et de la Korg Electribe EM-1
+en application Android. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
+derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
+
+## Electribe EM-1
+
+Séquenceur à pas, une autre famille de machine que les deux précédentes.
+
+- **10 parties jouables** : huit percussions (grosse caisse, caisse claire, clap, tom, charley fermé,
+  charley ouvert, crash, cowbell) et deux parties de synthé à deux oscillateurs, plus **deux pistes
+  d'accent**, une pour les percussions, une pour le synthé.
+- **16 pas**, seize motifs en mémoire, WRITE pour enregistrer, ERASE pour vider une partie,
+  SHIFT + touche 3 pour le swing.
+- **Par partie** : niveau, panoramique, hauteur, enveloppe courte, roulement de quatre coups, envoi d'effet.
+- **Filtre de synthé** : coupure, résonance, intensité d'enveloppe, saturation.
+- **Effets** : ring modulator, phaser, flanger/chorus, réverbération, compresseur, distorsion, résonateur,
+  filtre et delay modulé, plus un délai indépendant réglable en temps et en profondeur (DELAY EDIT).
+  Pitch shifter et decimator ne sont pas encore faits.
+- **REC** arme l'enregistrement au vol : pendant la lecture, toucher une partie écrit un pas.
+- La molette règle le paramètre allumé : motif, tempo, forme d'onde, hauteur.
+
+Restent à faire : Motion Seq, le clavier, le mode Song et les fonctions imprimées sous les touches.
 **Aucun accès réseau, aucun échantillon téléchargé** : la permission `INTERNET` n'est pas
 demandée et la WebView bloque toute requête qui ne vient pas de `file:///android_asset/`.
 L'application fonctionne en mode avion.
