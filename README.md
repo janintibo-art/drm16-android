@@ -1,6 +1,6 @@
 # Boîtes à rythmes autonomes pour Android
 
-Recréation des Electro-Harmonix DRM-16 (model 01), DRM-32 (model 03) et des Korg Electribe EM-1 et ER-1
+Recréation des Electro-Harmonix DRM-16 (model 01), DRM-32 (model 03) et des Korg Electribe EM-1, ER-1 et EA-1
 en application Android. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -47,6 +47,22 @@ coupent l'un l'autre, une crash, un hand clap et une piste d'accent — onze par
 - **Motion Seq**, mode **Song**, fonctions **SHIFT** imprimées sous les touches, seize motifs en mémoire.
 
 Les deux parties AUDIO IN sont des percussions de bruit filtré : le téléphone n'a pas d'entrée ligne.
+
+## Electribe EA-1
+
+Deux parties de synthé, chacune avec sa séquence de seize pas, ses notes et son propre son.
+
+- **Oscillateur** : deux oscillateurs (dent de scie, carré, triangle), équilibre entre les deux, désaccord du
+  second, portamento, et **OSC MOD** — modulation en anneau, synchronisation approchée (l'oscillateur 2 est
+  découpé par une dent de scie à la fréquence du premier, faute de vraie synchronisation dans Web Audio)
+  et décimation.
+- **Filtre** résonant avec enveloppe, **distorsion** et niveau, **effet** délai synchronisé au tempo ou
+  chorus/flanger.
+- **Clavier** sur les seize touches, les deux dernières devenant REST et TIE ; la liaison tient la note sur le
+  pas suivant. **Gate Time** règle la longueur des notes.
+- Motion Seq, mode Song, fonctions SHIFT, seize motifs en mémoire.
+
+L'entrée audio de l'appareil d'origine n'a pas d'équivalent : le téléphone n'a pas d'entrée ligne.
 
 ## MIDI
 
