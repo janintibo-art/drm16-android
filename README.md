@@ -64,6 +64,18 @@ Deux parties de synthé, chacune avec sa séquence de seize pas, ses notes et so
 
 L'entrée audio de l'appareil d'origine n'a pas d'équivalent : le téléphone n'a pas d'entrée ligne.
 
+## Choix des sons sur les Electribe
+
+- **EM-1** : la rangée **Wave** de l'afficheur choisit le timbre de la partie — forme d'onde pour les deux
+  synthés, et pour les huit percussions l'un des **vingt-neuf timbres** de la bibliothèque (grosses caisses,
+  caisses claires, rimshot, clap, toms, conga, charleys, crash, ride, cowbell, clave, wood block, shaker,
+  tambourin, zap, laser, bruit, blip, space drum). Tous sont synthétisés, aucun échantillon.
+- **ER-1** : la rangée **Sound** charge l'un des seize sons préréglés dans la partie choisie.
+- **EA-1** : la rangée **Sound**, à la place de Step Rec. (non implémenté), charge l'un des quatorze sons
+  préréglés dans la partie choisie.
+
+Un préréglage n'est qu'un point de départ : les boutons restent libres, et le choix est enregistré avec le motif.
+
 ## MIDI
 
 Le MIDI passe par l'API MIDI d'Android (`android.media.midi`, classe `Midi.java`) plutôt que par le Web MIDI,
