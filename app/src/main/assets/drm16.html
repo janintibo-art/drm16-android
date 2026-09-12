@@ -124,6 +124,8 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
 #note b{color:#fff}
 #note button{margin-top:18px;padding:12px 22px;border:0;border-radius:6px;background:#ee4d1e;color:#140f0c;
   font-weight:800;letter-spacing:1px;font-size:15px}
+#note button.sec{background:#33302b;color:#f0ece2;margin-top:6px}
+#note button[disabled]{opacity:.5}
 
 @media (max-height:560px){
   .unit{padding:18px 10px 4px}
@@ -248,15 +250,18 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
   à droite et le reste à gauche, comme la sortie séparée de l'appareil d'origine.
   <b>VOLUME</b> et <b>TEMPO</b> se règlent en glissant le doigt verticalement sur le bouton ; une série d'appuis brefs
   sur TEMPO bat la mesure. Tous les réglages sont retenus jusqu'au prochain lancement.</p>
+  <p>Chaque commande donne une courte vibration : un cran pour les boutons et les cases, une impulsion plus marquée
+  pour les interrupteurs, un départ franc et un double battement à l'arrêt sur la pédale.</p>
   <p>Recréation personnelle hommage à l'Electro-Harmonix DRM-16 ; sans lien avec le fabricant, et sans réutilisation
   de ses échantillons.</p>
+  <p><button class="sec" id="b-haptic">RETOUR HAPTIQUE</button></p>
   <button onclick="document.getElementById('note').classList.remove('show')">FERMER</button>
 </div>
 
 <script>
 "use strict";
 /* ================= état ================= */
-var S = {power:false, run:false, space:false, bass:false, style:0, col:0, del:0, vol:0.72, bpm:120};
+var S = {power:false, run:false, space:false, bass:false, haptic:true, style:0, col:0, del:0, vol:0.72, bpm:120};
 
 /* ================= memoire ================= */
 var MEM = "drm16.reglages";
@@ -270,19 +275,39 @@ var MEM = "drm16.reglages";
     if(typeof m.bpm   === "number") S.bpm   = Math.min(220, Math.max(40, m.bpm|0));
     S.space = !!m.space;
     S.bass  = !!m.bass;
+    if(typeof m.haptic === "boolean") S.haptic = m.haptic;
   }catch(e){}
 })();
 var saveTmr = null;
-function save(){
-  clearTimeout(saveTmr);
-  saveTmr = setTimeout(function(){
-    try{
-      localStorage.setItem(MEM, JSON.stringify({
-        style:S.style, col:S.col, del:S.del, vol:S.vol, bpm:S.bpm, space:S.space, bass:S.bass
-      }));
-    }catch(e){}
-  }, 400);
+function writeMem(){
+  clearTimeout(saveTmr); saveTmr = null;
+  try{
+    localStorage.setItem(MEM, JSON.stringify({
+      style:S.style, col:S.col, del:S.del, vol:S.vol, bpm:S.bpm,
+      space:S.space, bass:S.bass, haptic:S.haptic
+    }));
+  }catch(e){}
 }
+/* commandes a crans : ecriture immediate */
+function save(){ writeMem(); }
+/* boutons continus : ecriture differee, puis forcee si l'application est quittee */
+function saveSoon(){
+  clearTimeout(saveTmr);
+  saveTmr = setTimeout(writeMem, 300);
+}
+/* ================= retour haptique ================= */
+var VIB = !!(window.navigator && navigator.vibrate);
+function buzz(motif){
+  if(!S.haptic || !VIB) return;
+  try{ navigator.vibrate(motif); }catch(e){}
+}
+var H = {
+  cran:  function(){ buzz(7); },        /* cran de bouton, appui sur un libelle */
+  inter: function(){ buzz(16); },       /* interrupteur, jack */
+  start: function(){ buzz(24); },       /* pedale : depart */
+  stop:  function(){ buzz([12,55,12]); }/* pedale : arret */
+};
+
 function applyBass(){
   if(!panBd || !panMix) return;
   panBd.pan.value  = S.bass ?  1   : 0;
@@ -517,7 +542,7 @@ function knob(id, opt){
     if(opt.steps){
       var nv = Math.round(st.v0 + d/46);
       nv = Math.max(0, Math.min(opt.steps-1, nv));
-      if(nv!==st.v){ st.v=nv; render(); opt.on(st.v); }
+      if(nv!==st.v){ st.v=nv; render(); opt.on(st.v); H.cran(); }
     }else{
       var r = opt.max-opt.min;
       st.v = Math.max(opt.min, Math.min(opt.max, st.v0 + d/210*r));
@@ -528,8 +553,8 @@ function knob(id, opt){
     if(!st.drag) return;
     st.drag=false;
     if(st.moved < 6){
-      if(opt.steps){ st.v = (st.v+1)%opt.steps; render(); opt.on(st.v); }
-      else if(opt.tap){ opt.tap(); }
+      if(opt.steps){ st.v = (st.v+1)%opt.steps; render(); opt.on(st.v); H.cran(); }
+      else if(opt.tap){ opt.tap(); H.cran(); }
     }
   });
   el.addEventListener("pointercancel", function(){ st.drag=false; });
@@ -550,11 +575,11 @@ ticksFor(document.getElementById("k-tempo"),11);
 
 var kVol = knob("k-volume",{value:S.vol,min:0,max:1,on:function(v){
   S.vol=v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
-  say("VOLUME "+Math.round(v*100)); save();
+  say("VOLUME "+Math.round(v*100)); saveSoon();
 }});
 var taps = [];
 var kTempo = knob("k-tempo",{value:S.bpm,min:40,max:220,
-  on:function(v){ S.bpm=Math.round(v); say(S.bpm+" BPM"); save(); },
+  on:function(v){ S.bpm=Math.round(v); say(S.bpm+" BPM"); saveSoon(); },
   tap:function(){
     var now = Date.now();
     if(taps.length && now - taps[taps.length-1] > 2200) taps = [];
@@ -591,7 +616,7 @@ var cells = document.querySelectorAll("td.cell");
 for(var i=0;i<cells.length;i++){
   cells[i].addEventListener("click", function(){
     S.style = +this.dataset.s; S.col = +this.dataset.c;
-    kSty.set(S.style); kCol.set(S.col); paint(); save();
+    kSty.set(S.style); kCol.set(S.col); paint(); save(); H.cran();
   });
 }
 
@@ -601,6 +626,7 @@ swPower.addEventListener("click", function(){
   S.power = !S.power;
   swPower.classList.toggle("on", S.power);
   led.classList.toggle("on", S.power);
+  H.inter();
   unit.classList.toggle("off", !S.power);
   if(S.power) audioInit(); else stop();
 });
@@ -608,13 +634,13 @@ var swSpace = document.getElementById("sw-space");
 swSpace.addEventListener("click", function(){
   S.space = !S.space;
   swSpace.classList.toggle("on", S.space);
-  save();
+  save(); H.inter();
 });
 var slotBass = document.getElementById("bass-out");
 slotBass.addEventListener("click", function(){
   S.bass = !S.bass;
   slotBass.classList.toggle("on", S.bass);
-  applyBass(); save();
+  applyBass(); save(); H.inter();
   say(S.bass ? "BASS OUT" : "SORTIE MIXTE");
 });
 
@@ -627,6 +653,7 @@ for(var t=0;t<odel.length;t++){
       if(!S.power){ say("POWER OFF"); return; }
       audioInit();
       V[TRIG[i]](ctx.currentTime + 0.02, 1);
+      H.cran();
       odel[i].classList.add("hit");
       setTimeout(function(){ odel[i].classList.remove("hit"); }, 150);
     });
@@ -636,12 +663,29 @@ for(var t=0;t<odel.length;t++){
 var fsw = document.getElementById("fsw");
 fsw.addEventListener("click", function(){
   if(!S.power){ say("POWER OFF"); return; }
-  if(S.run) stop(); else start();
+  if(S.run){ stop(); H.stop(); } else { start(); H.start(); }
 });
+var bHaptic = document.getElementById("b-haptic");
+function labelHaptic(){
+  bHaptic.textContent = "RETOUR HAPTIQUE : " + (S.haptic ? "ACTIVÉ" : "DÉSACTIVÉ");
+}
+if(VIB){
+  bHaptic.addEventListener("click", function(){
+    S.haptic = !S.haptic;
+    labelHaptic(); save();
+    if(S.haptic) H.inter();
+  });
+  labelHaptic();
+} else {
+  bHaptic.textContent = "RETOUR HAPTIQUE INDISPONIBLE";
+  bHaptic.disabled = true;
+}
+
 document.querySelector(".model").addEventListener("click", function(){
   document.getElementById("note").classList.add("show");
 });
-document.addEventListener("visibilitychange", function(){ if(document.hidden) stop(); });
+document.addEventListener("visibilitychange", function(){ if(document.hidden){ stop(); writeMem(); } });
+window.addEventListener("pagehide", writeMem);
 
 /* ================= mise à l'échelle ================= */
 function fit(){
