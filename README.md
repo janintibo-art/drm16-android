@@ -15,13 +15,19 @@ Séquenceur à pas, une autre famille de machine que les deux précédentes.
   SHIFT + touche 3 pour le swing.
 - **Par partie** : niveau, panoramique, hauteur, enveloppe courte, roulement de quatre coups, envoi d'effet.
 - **Filtre de synthé** : coupure, résonance, intensité d'enveloppe, saturation.
-- **Effets** : ring modulator, phaser, flanger/chorus, réverbération, compresseur, distorsion, résonateur,
-  filtre et delay modulé, plus un délai indépendant réglable en temps et en profondeur (DELAY EDIT).
-  Pitch shifter et decimator ne sont pas encore faits.
+- **Effets** : les onze de la façade — pitch shifter, ring modulator, phaser, flanger/chorus, réverbération,
+  compresseur, distorsion, decimator, résonateur, filtre et delay modulé — plus un délai indépendant réglable
+  en temps et en profondeur (DELAY EDIT).
+- **KEYBOARD** transforme les seize touches en clavier pour la partie de synthé choisie, dans l'une des six
+  gammes (chromatique, majeure, mineure, dorienne, pentatonique, blues), avec changement d'octave par ◀ et ▶.
+  Toucher un pas le sélectionne pour lui donner sa hauteur.
+- **SHIFT** donne accès aux fonctions imprimées sous les touches : longueur du motif (1 à 16 pas), gamme,
+  swing, type de roulement, décalage, copie et échange de partie, copie de son, effacement de partie,
+  duplication et effacement de motif, protection en écriture.
 - **REC** arme l'enregistrement au vol : pendant la lecture, toucher une partie écrit un pas.
 - La molette règle le paramètre allumé : motif, tempo, forme d'onde, hauteur.
 
-Restent à faire : Motion Seq, le clavier, le mode Song et les fonctions imprimées sous les touches.
+Restent à faire : le Motion Seq et le mode Song.
 **Aucun accès réseau, aucun échantillon téléchargé** : la permission `INTERNET` n'est pas
 demandée et la WebView bloque toute requête qui ne vient pas de `file:///android_asset/`.
 L'application fonctionne en mode avion.
