@@ -147,7 +147,8 @@ body.m32 .read{color:#8fe8d8}
 #note{position:fixed;inset:0;background:#000000e8;color:#e7e3d8;padding:26px;overflow:auto;display:none;
   font:14px/1.6 system-ui;z-index:9}
 #note.show{display:block}
-#note-em,#note-er,#note-ea,#note-es{display:none}
+#note-em,#note-er,#note-ea,#note-es,.mk2-seul{display:none}
+body.mk2 .mk2-seul{display:block}
 body.em1 #note-ehx,body.er1 #note-ehx,body.ea1 #note-ehx,body.es1 #note-ehx{display:none}
 body.es1 #note-es{display:block}
 body.ea1 #note-ea{display:block}
@@ -164,18 +165,18 @@ body.er1 #note-er{display:block}
 
 /* ---------- menu de choix du modèle ---------- */
 #menu{position:fixed;inset:0;z-index:12;background:#0b0b0c;display:grid;grid-template-columns:1fr;
-  align-content:start;justify-items:center;gap:9px;padding:16px 14px 26px;overflow:auto}
+  align-content:start;justify-items:center;gap:6px;padding:12px 12px 22px;overflow:auto}
 @media (min-width:720px){ #menu{grid-template-columns:1fr 1fr} #menu h1{grid-column:1/-1} }
 #menu.hide{display:none}
 #menu h1{margin:6px 0 4px;font:700 13px/1.4 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:4px;
   color:#8b867c;text-align:center}
-.pick{width:100%;max-width:460px;border:0;border-radius:10px;padding:13px 18px;text-align:left;
+.pick{width:100%;max-width:460px;border:0;border-radius:9px;padding:9px 15px;text-align:left;
   background:linear-gradient(150deg,#26221f,#0c0b0a 55%,#151312);
   box-shadow:inset 0 1px 0 #ffffff1a,0 6px 16px #000a;color:#f0ede3;display:block}
-.pick b{display:block;font:900 32px/0.98 "Arial Black",Impact,sans-serif;letter-spacing:1px;color:#ee4d1e;
+.pick b{display:block;font:900 25px/1 "Arial Black",Impact,sans-serif;letter-spacing:.5px;color:#ee4d1e;
   text-shadow:0 2px 0 #7d1f04}
-.pick span{display:block;margin-top:4px;font:700 10px/1.4 "Roboto Condensed",sans-serif-condensed,Arial;
-  letter-spacing:1.8px;color:#b7b1a6}
+.pick span{display:block;margin-top:3px;font:700 9px/1.35 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:1.4px;color:#b7b1a6}
 .pick.p32{background:linear-gradient(150deg,#2b3542,#0d131a 55%,#18202a)}
 .pick.p32 b{color:#13b9a2;text-shadow:0 2px 0 #06564a}
 .pick.p32 span{color:#9fb0ae}
@@ -476,6 +477,45 @@ body.es1 #unit,body.es1 .em,body.es1 .er,body.es1 .ea{display:none}
 .pick.pes{background:linear-gradient(165deg,#1d5f55,#0c2a26 55%,#123a34)}
 .pick.pes b{color:#12b39a;text-shadow:0 2px 0 #05443a}
 .pick.pes span{color:#9dc4bc}
+.pick.pea2{background:linear-gradient(165deg,#2f8078,#0f3b37 55%,#175a54)}
+.pick.pea2 b{color:#5fe8da;text-shadow:0 2px 0 #06403a}
+.pick.pea2 span{color:#a9d6d0}
+.pick.per2{background:linear-gradient(165deg,#6b4a38,#2a1a12 55%,#3f291d)}
+.pick.per2 b{color:#e0a173;text-shadow:0 2px 0 #3a2114}
+.pick.per2 span{color:#cdb3a0}
+.pick.pes2{background:linear-gradient(165deg,#8f8869,#3c3828 55%,#5c563f)}
+.pick.pes2 b{color:#f0e6bd;text-shadow:0 2px 0 #33301f}
+.pick.pes2 span{color:#cbc4a8}
+/* ===== habillages mkII ===== */
+body.mk2.ea1 .ea-bleu{background:linear-gradient(165deg,#19a79d,#0c6d68 60%,#149089)}
+body.mk2.ea1 .ea-params{color:#dcfffb}
+body.mk2.ea1 .ea-params u i{background:#05403c}
+body.mk2.ea1 .ea-marque .ams b{color:#12b3a6}
+body.mk2.ea1 .lcd b{color:#ff9c8c;text-shadow:0 0 12px #ff4a3280}
+body.mk2.ea1 .lcd span{color:#ff7a66}
+body.mk2.ea1 .ea{background:linear-gradient(165deg,#3f9c95,#1d5e59 30%,#15514d 70%,#2e7d77)}
+
+body.mk2.er1 .er-rouge{background:linear-gradient(165deg,#7a5442,#43291f 60%,#5c3a2b)}
+body.mk2.er1 .er-params{color:#f4dccb}
+body.mk2.er1 .er-params u i{background:#2a160e}
+body.mk2.er1 .er-marque .rs b{color:#d08a5e}
+body.mk2.er1 .lcd b{color:#ffb48a;text-shadow:0 0 12px #ff7a3c80}
+body.mk2.er1 .lcd span{color:#e09a68}
+body.mk2.er1 .er{background:linear-gradient(165deg,#8a6a55,#4a3226 30%,#3e281e 70%,#6b4d3c)}
+
+body.mk2.es1 .es-vert{background:linear-gradient(165deg,#d8cfb0,#a99f80 60%,#c4bb9a)}
+body.mk2.es1 .es-params{color:#2b2718}
+body.mk2.es1 .es-params u i{background:#6b6146}
+body.mk2.es1 .es-params u.on{color:#000}
+body.mk2.es1 .es-marque .rps b{color:#6e5f2e}
+body.mk2.es1 .lcd{background:linear-gradient(180deg,#2a2418,#14110a)}
+body.mk2.es1 .lcd b{color:#ff8e74;text-shadow:0 0 12px #ff452080}
+body.mk2.es1 .lcd span{color:#e07a58}
+body.mk2.es1 .es{background:
+   repeating-linear-gradient(90deg,rgba(255,255,255,.10) 0 1px,rgba(0,0,0,.05) 1px 3px),
+   linear-gradient(165deg,#d9d0b2,#a89e7e 35%,#c8bf9f 70%,#9d9374)}
+body.mk2.es1 .em-jacks{color:#2b2718}
+body.mk2.es1 .em-jacks span{opacity:1}
 @media (max-height:560px){
   .unit{padding:18px 10px 4px}
   .grid{gap:6px}
@@ -834,7 +874,7 @@ body.es1 #unit,body.es1 .em,body.es1 .er,body.es1 .ea{display:none}
         <div class="er-parts" id="er-parts"></div>
         <div class="er-sous" id="er-sous"></div>
         <div class="er-groupes">
-          <b>PERCUSSION SYNTHESIZER</b><b class="deux">AUDIO IN</b><b class="deux">HI-HAT</b>
+          <b>PERCUSSION SYNTHESIZER</b><b class="deux" id="er-grp-audio">AUDIO IN</b><b class="deux">HI-HAT</b>
           <b class="deux">CRASH · CLAP</b><b class="un">ACC</b>
         </div>
       </div>
@@ -1098,6 +1138,10 @@ body.es1 #unit,body.es1 .em,body.es1 .er,body.es1 .ea{display:none}
               <button class="btn" id="es-fx" style="flex:1">EFFECT</button>
               <button class="btn" id="es-roll" style="flex:1">ROLL</button>
             </div>
+            <div style="display:flex;gap:6px;margin-top:6px">
+              <button class="btn" id="es-mute" style="flex:1">PART MUTE</button>
+              <button class="btn" id="es-solo" style="flex:1">SOLO</button>
+            </div>
           </div>
           <div class="er-grille" style="grid-template-columns:1fr 1fr">
             <div class="kn es-kn"><div class="bt" id="es-k-pitch"><i></i></div><em>PITCH/SPEED</em></div>
@@ -1127,13 +1171,16 @@ body.es1 #unit,body.es1 .em,body.es1 .er,body.es1 .ea{display:none}
 </div>
 
 <div id="menu">
-  <h1>ELECTRO ⊟ HARMONIX · DIGITAL RHYTHM MATRIX</h1>
+  <h1>CHOISIR UNE MACHINE</h1>
   <button class="pick p16" data-m="16"><b>DRM16</b><span>MODEL 01 · 16 RYTHMES · SPACE DRUM COMMUTABLE</span></button>
   <button class="pick p32" data-m="32"><b>DRM32</b><span>MODEL 03 · 32 RYTHMES · SÉLECTION A / B</span></button>
   <button class="pick pem" data-m="em1"><b>ELECTRIBE EM-1</b><span>KORG · SÉQUENCEUR À PAS · 10 PARTIES · EFFETS</span></button>
   <button class="pick per" data-m="er1"><b>ELECTRIBE ER-1</b><span>KORG · SYNTHÈSE DE PERCUSSION · 11 PARTIES</span></button>
   <button class="pick pea" data-m="ea1"><b>ELECTRIBE EA-1</b><span>KORG · SYNTHÈSE ANALOGIQUE MODÉLISÉE · 2 PARTIES</span></button>
   <button class="pick pes" data-m="es1"><b>ELECTRIBE ES-1</b><span>KORG · ÉCHANTILLONNEUR · MICRO, FICHIER, BANQUE</span></button>
+  <button class="pick pea2" data-m="ea2"><b>EA-1 mkII</b><span>KORG · SYNTHÈSE ANALOGIQUE · MODULATION CROISÉE</span></button>
+  <button class="pick per2" data-m="er2"><b>ER-1 mkII</b><span>KORG · PERCUSSION · DEUX PARTIES PCM</span></button>
+  <button class="pick pes2" data-m="es2"><b>ES-1 mkII</b><span>KORG · ÉCHANTILLONNEUR · ISOLATOR, RESO. FILT.</span></button>
 </div>
 
 <div id="note">
@@ -1167,8 +1214,13 @@ body.es1 #unit,body.es1 .em,body.es1 .er,body.es1 .ea{display:none}
   envoie vers l'effet, <b>SLICE</b> découpe le son en seize tranches, une par pas — la tranche jouée suit
   la position dans la mesure.</p>
   <p>Les onze effets et le délai sont ceux des autres Electribe, avec <b>BPM SYNC</b> pour caler le délai sur
-  le tempo. <b>SHIFT</b> donne aussi <b>Normalize</b>, <b>Truncate</b> (coupe le silence de fin),
-  <b>Time Slice</b> et <b>Delete Sample</b>. Le lecteur de carte SmartMedia n'a pas d'équivalent.</p>
+  le tempo. <b>PART MUTE</b> et <b>SOLO</b> coupent ou isolent la partie choisie. <b>SHIFT</b> donne aussi
+  <b>Normalize</b>, <b>Truncate</b> (coupe le silence de fin), <b>Time Slice</b> et <b>Delete Sample</b>.
+  Le lecteur de carte SmartMedia n'a pas d'équivalent.</p>
+  <p class="mk2-seul"><b>mkII</b> : la liste d'effets remplace Resonator et Filter par <b>ISOLATOR</b> —
+  trois bandes dont une seule reste au premier plan, EDIT 1 choisit laquelle, EDIT 2 la profondeur de la coupe —
+  et <b>RESO. FILT.</b>, un passe-bas bien plus résonant. Motifs et échantillons assignés sont gardés
+  séparément de la première version ; les sons enregistrés, eux, sont communs aux deux.</p>
   </div>
 
   <div id="note-ea">
@@ -1187,6 +1239,9 @@ body.es1 #unit,body.es1 .em,body.es1 .er,body.es1 .ea{display:none}
   bouton ensuite.</p>
   <p>L'entrée audio de l'appareil d'origine n'a pas d'équivalent ici : le téléphone n'a pas d'entrée ligne.
   <b>MOTION SEQ</b>, mode <b>SONG</b> et fonctions <b>SHIFT</b> fonctionnent comme sur les autres Electribe.</p>
+  <p class="mk2-seul"><b>mkII</b> : l'<b>OSC MOD</b> gagne la position <b>CROSS</b>, la modulation croisée —
+  l'oscillateur 2 module la fréquence du premier, d'autant plus fort que l'équilibre penche vers lui. Motifs
+  et sons sont gardés séparément de la première version.</p>
   </div>
 
   <div id="note-er">
@@ -1201,6 +1256,9 @@ body.es1 #unit,body.es1 .em,body.es1 .er,body.es1 .ea{display:none}
   <p>Les deux parties <b>AUDIO IN</b> sont ici des percussions de bruit filtré — le téléphone n'a pas d'entrée
   ligne. <b>PITCH</b> y règle la fréquence du filtre et <b>MOD DEPTH</b> sa finesse. Les deux charleys se
   coupent l'un l'autre comme sur l'appareil d'origine.</p>
+  <p class="mk2-seul"><b>mkII</b> : ces deux parties deviennent des parties <b>PCM</b>, comme sur l'appareil
+  d'origine. La rangée <b>Sound</b> y fait défiler les quatorze sons de la banque, <b>PITCH</b> change la
+  vitesse de lecture et <b>DECAY</b> la coupe. Motifs et sons sont gardés séparément de la première version.</p>
   <p><b>AMP</b> : décroissance, niveau, panoramique et <b>LOW BOOST</b>, un renfort des graves propre à l'ER-1.
   <b>DELAY</b> : profondeur et temps, avec un mode synchronisé au tempo par le bouton TYPE.</p>
   <p>La rangée <b>Sound</b> de l'afficheur charge l'un des seize sons préréglés dans la partie choisie —
@@ -1290,11 +1348,9 @@ var memoire = { modele:"16", vol:0.72, bpm:120, haptic:true, bg:true, bass:false
 (function charger(){
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
-    if(["16","32","em1","er1","ea1","es1"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
     if(m.em1) memoire.em1 = m.em1;
-    if(m.er1) memoire.er1 = m.er1;
-    if(m.ea1) memoire.ea1 = m.ea1;
-    if(m.es1) memoire.es1 = m.es1;
+    ["er1","er2","ea1","ea2","es1","es2"].forEach(function(c){ if(m[c]) memoire[c] = m[c]; });
     if(typeof m.vol === "number") memoire.vol = Math.min(1, Math.max(0, m.vol));
     if(typeof m.bpm === "number") memoire.bpm = Math.min(220, Math.max(40, m.bpm|0));
     if(typeof m.haptic === "boolean") memoire.haptic = m.haptic;
@@ -2079,7 +2135,10 @@ function irReverb(sec){
   return b;
 }
 var FX_NOMS = ["Pitch Shifter","Ring Mod","Phaser","Flg./Cho.","Reverb",
-               "Compressor","Distortion","Decimator","Resonator","Filter","Mod. Delay"];
+               "Compressor","Distortion","Decimator","Resonator","Filter","Mod. Delay",
+               "Isolator","Reso. Filt."];
+/* la mkII de l'ES-1 remplace Resonator et Filter par Isolator et Reso. Filt. */
+var FX_ES2 = [0,1,2,3,4,5,6,7,11,12,10];
 function construireFx(){
   if(!fxIn) return;
   fxChaine.forEach(function(n){
@@ -2143,6 +2202,27 @@ function construireFx(){
       fxIn.connect(bq); bq.connect(som); fxChaine.push(bq);
     });
     som.connect(fxOut); fxChaine.push(som);
+  } else if(t===11){                           /* Isolator : trois bandes */
+    var bandes = [["lowpass",260],["bandpass",900],["highpass",3800]];
+    var focus = e1*2;                           /* 0 grave, 1 medium, 2 aigu */
+    var somme = ctx.createGain(); somme.gain.value = 1;
+    bandes.forEach(function(bb,ib){
+      var bq = ctx.createBiquadFilter(); bq.type = bb[0]; bq.frequency.value = bb[1];
+      if(bb[0]==="bandpass") bq.Q.value = 0.9;
+      var gg = ctx.createGain();
+      var poids = Math.max(0, 1 - Math.abs(focus - ib));
+      gg.gain.value = poids + (1-poids)*(1-e2);
+      fxIn.connect(bq); bq.connect(gg); gg.connect(somme);
+      fxChaine.push(bq,gg);
+    });
+    somme.connect(fxOut); fxChaine.push(somme);
+  } else if(t===12){                           /* Reso. Filt. : passe-bas très résonant */
+    var rf = ctx.createBiquadFilter(); rf.type="lowpass";
+    rf.frequency.value = 90*Math.pow(140, e1);
+    rf.Q.value = 1 + e2*34;
+    var comp = ctx.createGain(); comp.gain.value = 1/(1+e2*2.2);
+    fxIn.connect(rf); rf.connect(comp); comp.connect(fxOut);
+    fxChaine.push(rf,comp);
   } else if(t===9){                            /* Filter */
     var lp = ctx.createBiquadFilter(); lp.type="lowpass";
     lp.frequency.value = 120*Math.pow(80, e1); lp.Q.value = 0.7 + e2*22;
@@ -3020,7 +3100,7 @@ function activerEm(){
   S.modele = "em1";
   MACHINE = MACHINE_EM;
   document.body.classList.add("em1");
-  document.body.classList.remove("m32","er1","ea1","es1");
+  document.body.classList.remove("m32","er1","ea1","es1","mk2");
   chargerEm();
   construireFx();
   noteTitre.textContent = "ELECTRIBE EM-1 — recréation autonome";
@@ -3043,13 +3123,13 @@ var ER_ONDES = ["SINE","TRI"];
 var ER_MODS  = ["SINE","SQR","TRI","SAW UP","SAW DN","NOISE"];
 
 function sonUsine(i){
-  var s = {pitch:0.45, modD:0, modS:0.3, wave:0, modT:4, dec:0.35, lvl:0.8, pan:0, boost:0, ring:false};
+  var s = {pitch:0.45, modD:0, modS:0.3, wave:0, modT:4, dec:0.35, lvl:0.8, pan:0, boost:0, ring:false, pcm:0};
   if(i===0){ s.pitch=0.04; s.modD=0.6; s.modS=0.1; s.modT=4; s.dec=0.4; s.lvl=0.95; s.boost=0.5; }
   else if(i===1){ s.pitch=0.3; s.modD=0.35; s.modS=0.55; s.modT=5; s.dec=0.25; s.wave=1; }
   else if(i===2){ s.pitch=0.55; s.modD=0.2; s.modS=0.75; s.modT=0; s.dec=0.2; s.pan=-0.35; }
   else if(i===3){ s.pitch=0.7; s.modD=0.5; s.modS=0.9; s.modT=1; s.dec=0.15; s.pan=0.35; }
-  else if(i===4){ s.pitch=0.7; s.dec=0.12; s.lvl=0.75; }
-  else if(i===5){ s.pitch=0.35; s.dec=0.3; s.lvl=0.55; }
+  else if(i===4){ s.pitch=0.7; s.dec=0.12; s.lvl=0.75; s.pcm=2; }
+  else if(i===5){ s.pitch=0.35; s.dec=0.3; s.lvl=0.55; s.pcm=11; }
   else if(i===6){ s.dec=0.12; s.lvl=0.85; }
   else if(i===7){ s.dec=0.5; s.lvl=0.7; }
   else if(i===8){ s.dec=0.7; s.lvl=0.5; }
@@ -3078,7 +3158,7 @@ function motifEr(n){
 var ER = {
   pat: motifEr(0), slots: [], cur:0, sel:0, param:0, mode:0,
   rec:false, shift:false, protect:false, clip:null,
-  song:[], spos:0, ssel:0, pos:-1, pasSel:-1, son:0,
+  song:[], spos:0, ssel:0, pos:-1, pasSel:-1, son:0, v:1,
   dDep:0.25, dTime:0.3, dTempo:false, dMot:false,
   noeuds:[], ohGain:null
 };
@@ -3135,6 +3215,18 @@ function voixEr(t,k,vel){
       }catch(e){}
       ER.ohGain = null;
     }
+    return;
+  }
+  if(typ === "bruit" && ER.v === 2){            /* mkII : parties PCM */
+    banqueEs();
+    var bufp = ES.buf["b"+(son.pcm||0)];
+    if(!bufp) return;
+    var sp = ctx.createBufferSource(); sp.buffer = bufp;
+    sp.playbackRate.value = Math.pow(2, (mv("pitch", son.pitch)-0.5)*2.4);
+    var gp = ctx.createGain();
+    env(gp, t, 0.7*vel, Math.max(0.05, dec), 0.002);
+    sp.connect(gp); gp.connect(dest);
+    sp.start(t); sp.stop(t + dec + 0.05);
     return;
   }
   if(typ === "bruit"){
@@ -3254,7 +3346,10 @@ function lcdEr(v,l,fugace){
   if(fugace) erTmr = setTimeout(majLcdEr, 1200);
 }
 function majLcdEr(){
-  if(ER.param===2) lcdEr(ER_SONS[ER.son||0].n, "SOUND");
+  if(ER.param===2){
+    if(ER.v===2 && ER_PARTS[ER.sel].t==="bruit") lcdEr(ES_BANQUE[ER.pat.son[ER.sel].pcm||0], "PCM");
+    else lcdEr(ER_SONS[ER.son||0].n, "SOUND");
+  }
   else if(ER.param===1) lcdEr(String(S.bpm), "TEMPO");
   else lcdEr(("00"+(ER.cur+1)).slice(-3), "PATTERN");
 }
@@ -3339,7 +3434,7 @@ function choisirEr(k){
 function nomPartieEr(k){
   var t=ER_PARTS[k].t;
   if(t==="perc") return "PERCUSSION "+ER_PARTS[k].n;
-  if(t==="bruit") return "AUDIO IN "+ER_PARTS[k].n;
+  if(t==="bruit") return (ER.v===2 ? "PCM " : "AUDIO IN ")+ER_PARTS[k].n;
   if(t==="hhc") return "HI-HAT CLOSE";
   if(t==="hho") return "HI-HAT OPEN";
   if(t==="crash") return "CRASH";
@@ -3386,18 +3481,21 @@ function majLedsEr(){
 
 /* --- mémoire --- */
 function memEr(){
-  memoire.er1 = {cur:ER.cur, song:ER.song.slice(), dDep:ER.dDep, dTime:ER.dTime,
+  memoire["er"+ER.v] = {cur:ER.cur, song:ER.song.slice(), dDep:ER.dDep, dTime:ER.dTime,
                  dTempo:ER.dTempo, dMot:ER.dMot, sel:ER.sel,
                  slots:ER.slots.map(function(p){
                    return {sw:p.sw, len:p.len, son:p.son, mot:p.mot,
                            st:p.st.map(function(l){ return l.join(""); })};
                  })};
-  memoire.er1.slots[ER.cur] = {sw:ER.pat.sw, len:ER.pat.len, son:ER.pat.son, mot:ER.pat.mot,
+  memoire["er"+ER.v].slots[ER.cur] = {sw:ER.pat.sw, len:ER.pat.len, son:ER.pat.son, mot:ER.pat.mot,
                                st:ER.pat.st.map(function(l){ return l.join(""); })};
   saveSoon();
 }
 function chargerEr(){
-  var m = memoire.er1;
+  ER.slots = [];
+  for(var z=0; z<16; z++) ER.slots.push(motifEr(z<3?z:9));
+  ER.cur = 0; ER.sel = 0; ER.song = []; ER.pat = ER.slots[0];
+  var m = memoire["er"+ER.v];
   if(!m) return;
   if(m.slots && m.slots.length===16){
     ER.slots = m.slots.map(function(o){
@@ -3480,6 +3578,12 @@ function majKnobsEr(){
       lcdEr(("00"+(ER.song[ER.ssel]+1)).slice(-3), "SONG "+(ER.ssel+1)); H.cran(); return;
     }
     if(ER.param===2){
+      if(ER.v===2 && ER_PARTS[ER.sel].t==="bruit"){
+        banqueEs();
+        var sn = ER.pat.son[ER.sel];
+        sn.pcm = ((sn.pcm||0) + d + ES_BANQUE.length) % ES_BANQUE.length;
+        memEr(); lcdEr(ES_BANQUE[sn.pcm], "PCM"); H.cran(); return;
+      }
       ER.son = ((ER.son===undefined?0:ER.son) + d + ER_SONS.length) % ER_SONS.length;
       appliquerSonEr(ER.sel, ER.son);
       majKnobsEr(); majLedsEr(); memEr();
@@ -3639,14 +3743,18 @@ function collerEr(){
 }
 
 var unitEr = document.getElementById("unit-er1");
-function activerEr(){
+function activerEr(v){
   stop();
-  S.modele = "er1";
+  ER.v = (v===2) ? 2 : 1;
+  S.modele = "er" + ER.v;
   MACHINE = MACHINE_ER;
   document.body.classList.remove("m32","em1","ea1","es1");
   document.body.classList.add("er1");
+  document.body.classList.toggle("mk2", ER.v===2);
   chargerEr();
-  noteTitre.textContent = "ELECTRIBE ER-1 — recréation autonome";
+  document.getElementById("er-notice").textContent = ER.v===2 ? "ER-1 mkII" : "ER-1";
+  document.getElementById("er-grp-audio").textContent = ER.v===2 ? "PCM" : "AUDIO IN";
+  noteTitre.textContent = (ER.v===2 ? "ELECTRIBE ER-1 mkII" : "ELECTRIBE ER-1") + " — recréation autonome";
   choisirEr(ER.sel||0);
   majTouchesEr(); majKnobsEr(); majLedsEr(); majLcdEr(); kErVol.maj();
   actif = unitEr;
@@ -3656,7 +3764,7 @@ function activerEr(){
 /* ===================== ELECTRIBE EA-1 ===================== */
 var EA_ONDES = ["SAW","SQR","TRI"];
 var EA_TYPES_ONDE = ["sawtooth","square","triangle"];
-var EA_MODS = ["OFF","RING","SYNC","DECI"];
+var EA_MODS = ["OFF","RING","SYNC","DECI","CROSS"];
 
 function sonEa(i){
   return {w1:0, w2:0, bal:0.4, ofs:0, porta:0, mod:0,
@@ -3694,7 +3802,7 @@ function motifEa(n){
 var EA = {
   pat: motifEa(0), slots: [], cur:0, sel:0, param:0, mode:0,
   rec:false, shift:false, kb:false, oct:3, pasSel:-1, protect:false, clip:null,
-  song:[], spos:0, ssel:0, pos:-1, note:48, son:0,
+  song:[], spos:0, ssel:0, pos:-1, note:48, son:0, v:1,
   fxType:0, fDep:0.3, fTime:0.35,
   noeuds:[], dernier:[0,0]
 };
@@ -3785,6 +3893,10 @@ function voixEa(t,k,note,vel,duree){
   } else {
     o1.connect(g1); g1.connect(entree);
     o2.connect(g2); g2.connect(entree);
+  }
+  if(son.mod === 4){                              /* cross : modulation de fréquence */
+    var cm = ctx.createGain(); cm.gain.value = f0*1.6*(0.2+bal);
+    o2.connect(cm); cm.connect(o1.frequency);
   }
   if(son.mod === 3){                              /* deci */
     var n2=1024, cd=new Float32Array(n2), niv2=6;
@@ -4019,10 +4131,10 @@ function majLedsEa(){
 
 /* --- mémoire --- */
 function memEa(){
-  memoire.ea1 = {cur:EA.cur, song:EA.song.slice(), sel:EA.sel,
+  memoire["ea"+EA.v] = {cur:EA.cur, song:EA.song.slice(), sel:EA.sel,
                  fxType:EA.fxType, fDep:EA.fDep, fTime:EA.fTime, oct:EA.oct,
                  slots:EA.slots.map(serEa)};
-  memoire.ea1.slots[EA.cur] = serEa(EA.pat);
+  memoire["ea"+EA.v].slots[EA.cur] = serEa(EA.pat);
   saveSoon();
 }
 function serEa(p){
@@ -4032,7 +4144,10 @@ function serEa(p){
           nt:p.nt.map(function(l){ return l.join(","); })};
 }
 function chargerEa(){
-  var m = memoire.ea1;
+  EA.slots = [];
+  for(var z=0; z<16; z++) EA.slots.push(motifEa(z<3?z:9));
+  EA.cur = 0; EA.sel = 0; EA.song = []; EA.pat = EA.slots[0];
+  var m = memoire["ea"+EA.v];
   if(!m) return;
   if(m.slots && m.slots.length===16){
     EA.slots = m.slots.map(function(o){
@@ -4150,7 +4265,7 @@ document.getElementById("ea-osc2").addEventListener("click", function(){
   lcdEa(EA_ONDES[s.w2],"OSC2",true); H.cran();
 });
 document.getElementById("ea-mod").addEventListener("click", function(){
-  var s=EA.pat.son[EA.sel]; s.mod=(s.mod+1)%4; majLedsEa(); memEa();
+  var s=EA.pat.son[EA.sel]; s.mod=(s.mod+1)%(EA.v===2?5:4); majLedsEa(); memEa();
   lcdEa(EA_MODS[s.mod],"OSC MOD",true); H.cran();
 });
 document.getElementById("ea-dist").addEventListener("click", function(){
@@ -4282,14 +4397,17 @@ function shiftEa(i){
 }
 
 var unitEa = document.getElementById("unit-ea1");
-function activerEa(){
+function activerEa(v){
   stop();
-  S.modele = "ea1";
+  EA.v = (v===2) ? 2 : 1;
+  S.modele = "ea" + EA.v;
   MACHINE = MACHINE_EA;
   document.body.classList.remove("m32","em1","er1","es1");
   document.body.classList.add("ea1");
+  document.body.classList.toggle("mk2", EA.v===2);
   chargerEa();
-  noteTitre.textContent = "ELECTRIBE EA-1 — recréation autonome";
+  document.getElementById("ea-notice").textContent = EA.v===2 ? "EA-1 mkII" : "EA-1";
+  noteTitre.textContent = (EA.v===2 ? "ELECTRIBE EA-1 mkII" : "ELECTRIBE EA-1") + " — recréation autonome";
   majTouchesEa(); majKnobsEa(); majLedsEa(); majLcdEa(); kEaVol.maj();
   actif = unitEa;
   save(); fit(); setTimeout(fit,120);
@@ -4379,7 +4497,7 @@ var ES = {
   pat: motifEs(0), slots: [], cur:0, sel:0, param:0, mode:0,
   rec:false, shift:false, protect:false, clip:null,
   song:[], spos:0, ssel:0, pos:-1,
-  dDep:0.2, dTime:0.3, bpmSync:true, ech:0,
+  dDep:0.2, dTime:0.3, bpmSync:true, ech:0, v:1, mute:[], solo:[],
   buf:{}, inv:{}, noms:{}, noeuds:[]
 };
 for(var sz=0; sz<16; sz++) ES.slots.push(motifEs(sz<3?sz:9));
@@ -4474,8 +4592,12 @@ function scheduleEs(i,t){
   var p = ES.pat;
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   var acc = p.st[9][i];
+  var soloActif = false, q;
+  for(q=0;q<9;q++) if(ES.solo[q]) soloActif = true;
   for(var k=0;k<9;k++){
     if(!p.st[k][i]) continue;
+    if(ES.mute[k]) continue;
+    if(soloActif && !ES.solo[k]) continue;
     MOT = motionEs(k,i);
     var n = p.son[k].roll ? (p.rollN||4) : 1;
     for(var j=0;j<n;j++) jouerEs(t + j*stepDur()/n, k, acc?1:0.75, i);
@@ -4655,10 +4777,7 @@ function echantillonner(){
   });
 
   var bt=document.getElementById("es-types");
-  FX_NOMS.forEach(function(nom,idx){
-    var u=document.createElement("u"); u.innerHTML='<i></i>'+nom; u.dataset.t=idx;
-    bt.appendChild(u);
-  });
+  construireTypesEs(1);
   bt.addEventListener("click", function(e){
     var u=e.target.closest("u"); if(!u) return;
     EM.fxType=+u.dataset.t; construireFx(); majLedsEs();
@@ -4708,6 +4827,16 @@ function echantillonner(){
   });
 })();
 
+function construireTypesEs(v){
+  var bt = document.getElementById("es-types");
+  bt.innerHTML = "";
+  var liste = (v===2) ? FX_ES2 : [0,1,2,3,4,5,6,7,8,9,10];
+  liste.forEach(function(idx){
+    var u=document.createElement("u"); u.innerHTML='<i></i>'+FX_NOMS[idx]; u.dataset.t=idx;
+    bt.appendChild(u);
+  });
+  if(liste.indexOf(EM.fxType) < 0){ EM.fxType = liste[0]; construireFx(); }
+}
 function choisirEs(k){
   ES.sel=k;
   var bs=document.querySelectorAll("#es-parts .btn");
@@ -4747,11 +4876,13 @@ function majLedsEs(){
   document.getElementById("es-smooth").classList.toggle("on", mode===1);
   document.getElementById("es-trig").classList.toggle("on", mode===2);
   document.getElementById("es-mseq").classList.toggle("on", mode!==0);
+  document.getElementById("es-mute").classList.toggle("on", !!ES.mute[ES.sel]);
+  document.getElementById("es-solo").classList.toggle("on", !!ES.solo[ES.sel]);
   var bs=document.querySelectorAll("#es-parts .btn");
   for(var j=0;j<bs.length;j++){
     var kk=+bs[j].dataset.k, mm=ES.pat.mot[kk];
     bs[j].classList.toggle("mot", !!(mm && mm.mode));
-    bs[j].classList.toggle("vide", kk<9 && !ES.buf[ES.pat.son[kk].ech]);
+    bs[j].classList.toggle("vide", (kk<9 && !ES.buf[ES.pat.son[kk].ech]) || !!ES.mute[kk]);
   }
   var us=document.querySelectorAll("#es-types u");
   for(var q=0;q<us.length;q++) us[q].classList.toggle("on", +us[q].dataset.t===EM.fxType);
@@ -4771,14 +4902,17 @@ function serEs(p){
           st:p.st.map(function(l){ return l.join(""); })};
 }
 function memEs(){
-  memoire.es1 = {cur:ES.cur, song:ES.song.slice(), sel:ES.sel, noms:ES.noms,
+  memoire["es"+ES.v] = {cur:ES.cur, song:ES.song.slice(), sel:ES.sel, noms:ES.noms,
                  dDep:ES.dDep, dTime:ES.dTime, bpmSync:ES.bpmSync,
                  slots:ES.slots.map(serEs)};
-  memoire.es1.slots[ES.cur] = serEs(ES.pat);
+  memoire["es"+ES.v].slots[ES.cur] = serEs(ES.pat);
   saveSoon();
 }
 function chargerEs(){
-  var m=memoire.es1;
+  ES.slots = [];
+  for(var z=0; z<16; z++) ES.slots.push(motifEs(z<3?z:9));
+  ES.cur=0; ES.sel=0; ES.song=[]; ES.mute=[]; ES.solo=[]; ES.pat=ES.slots[0];
+  var m=memoire["es"+ES.v];
   if(!m) return;
   if(m.slots && m.slots.length===16){
     ES.slots = m.slots.map(function(o){
@@ -4876,6 +5010,16 @@ basculeEs("es-slice","slice","SLICE");
 basculeEs("es-rev","rev","REVERSE");
 basculeEs("es-fx","fx","EFFECT");
 basculeEs("es-roll","roll","ROLL");
+document.getElementById("es-mute").addEventListener("click", function(){
+  var k=ES.sel; if(k>8) return;
+  ES.mute[k]=!ES.mute[k]; majLedsEs(); H.inter();
+  lcdEs(ES.mute[k]?"MUT":"ON", "PART MUTE", true);
+});
+document.getElementById("es-solo").addEventListener("click", function(){
+  var k=ES.sel; if(k>8) return;
+  ES.solo[k]=!ES.solo[k]; majLedsEs(); H.inter();
+  lcdEs(ES.solo[k]?"SOL":"OFF", "SOLO", true);
+});
 document.getElementById("es-bpmsync").addEventListener("click", function(){
   ES.bpmSync=!ES.bpmSync; majLedsEs(); majDelaiEs(); memEs(); H.inter();
   lcdEs(ES.bpmSync?"SYN":"FRE","BPM SYNC",true);
@@ -5038,15 +5182,19 @@ function shiftEs(i){
 }
 
 var unitEs = document.getElementById("unit-es1");
-function activerEs(){
+function activerEs(v){
   stop();
-  S.modele="es1";
+  ES.v = (v===2) ? 2 : 1;
+  S.modele = "es" + ES.v;
   MACHINE=MACHINE_ES;
   document.body.classList.remove("m32","em1","er1","ea1");
   document.body.classList.add("es1");
+  document.body.classList.toggle("mk2", ES.v===2);
   audioInit(); banqueEs(); busEffets(); chargerEchs();
+  construireTypesEs(ES.v);
   chargerEs();
-  noteTitre.textContent = "ELECTRIBE ES-1 — recréation autonome";
+  document.getElementById("es-notice").textContent = ES.v===2 ? "ES-1 mkII" : "ES-1";
+  noteTitre.textContent = (ES.v===2 ? "ELECTRIBE ES-1 mkII" : "ELECTRIBE ES-1") + " — recréation autonome";
   choisirEs(ES.sel||0);
   majTouchesEs(); majKnobsEs(); majLedsEs(); majLcdEs(); kEsVol.maj(); majDelaiEs();
   actif = unitEs;
@@ -5200,7 +5348,7 @@ function appliquerModele(id){
   stop();
   MACHINE = MACHINE_EHX;
   actif = unit;
-  document.body.classList.remove("em1","er1","ea1","es1");
+  document.body.classList.remove("em1","er1","ea1","es1","mk2");
   S.modele = id;
   MODELE = MODELES[id];
   var r = memoire[id];
@@ -5241,9 +5389,12 @@ for(var q=0;q<picks.length;q++){
   picks[q].addEventListener("click", function(){
     var id = this.dataset.m;
     if(id === "em1") activerEm();
-    else if(id === "er1") activerEr();
-    else if(id === "ea1") activerEa();
-    else if(id === "es1") activerEs();
+    else if(id === "er1") activerEr(1);
+    else if(id === "er2") activerEr(2);
+    else if(id === "ea1") activerEa(1);
+    else if(id === "ea2") activerEa(2);
+    else if(id === "es1") activerEs(1);
+    else if(id === "es2") activerEs(2);
     else appliquerModele(id);
     menu.classList.add("hide");
     H.inter();
@@ -5251,9 +5402,12 @@ for(var q=0;q<picks.length;q++){
 }
 
 if(memoire.modele === "em1") activerEm();
-else if(memoire.modele === "er1") activerEr();
-else if(memoire.modele === "ea1") activerEa();
-else if(memoire.modele === "es1") activerEs();
+else if(memoire.modele === "er1") activerEr(1);
+else if(memoire.modele === "er2") activerEr(2);
+else if(memoire.modele === "ea1") activerEa(1);
+else if(memoire.modele === "ea2") activerEa(2);
+else if(memoire.modele === "es1") activerEs(1);
+else if(memoire.modele === "es2") activerEs(2);
 else appliquerModele(memoire.modele);
 menu.classList.remove("hide");
 setTimeout(fit,500);

@@ -1,7 +1,7 @@
 # Boîtes à rythmes autonomes pour Android
 
-Recréation des Electro-Harmonix DRM-16 (model 01), DRM-32 (model 03) et des Korg Electribe EM-1, ER-1, EA-1
-et ES-1 en application Android. Six machines, un menu au lancement. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
+Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
+EA-1, ES-1 et de leurs versions mkII, en application Android. Neuf machines, un menu au lancement. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
 ## Electribe EM-1
@@ -98,6 +98,21 @@ Par partie : **PITCH/SPEED** (vitesse de lecture), **FILTER**, **LEVEL**, **PAN*
 **EFFECT**, et **SLICE** qui découpe le son en seize tranches jouées une par pas. Les onze effets et le délai
 sont communs aux Electribe, avec **BPM SYNC**. SHIFT donne aussi **Normalize**, **Truncate**, **Time Slice** et
 **Delete Sample**. Le lecteur de carte SmartMedia n'a pas d'équivalent.
+
+## Les versions mkII
+
+Plutôt que de dupliquer trois modules, chaque Electribe accepte une version : même code, même façade,
+habillage et différences propres. Chaque version garde **ses seize motifs et ses sons, séparément**.
+
+- **EA-1 mkII** (turquoise) : l'OSC MOD gagne la position **CROSS**, la modulation croisée — l'oscillateur 2
+  module la fréquence du premier, d'autant plus fort que l'équilibre penche vers lui.
+- **ER-1 mkII** (brun) : les deux parties AUDIO IN deviennent des parties **PCM** jouant la banque de
+  quatorze sons, avec vitesse de lecture et décroissance.
+- **ES-1 mkII** (champagne) : la liste d'effets remplace Resonator et Filter par **ISOLATOR** (trois bandes,
+  EDIT 1 choisit celle qui reste au premier plan, EDIT 2 la profondeur de la coupe) et **RESO. FILT.**
+  Les sons enregistrés restent communs aux deux versions, seules les affectations diffèrent.
+
+**PART MUTE** et **SOLO** ont été ajoutés aux deux ES-1, comme sur la sérigraphie.
 
 ## MIDI
 
