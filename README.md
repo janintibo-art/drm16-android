@@ -187,6 +187,27 @@ la partie courante. Import limité à 40 Mo avec message clair.
 ne sont pas lisibles. Le résultat de la demande de priorité audio est contrôlé : en cas de refus,
 la page est arrêtée et prévenue au lieu de jouer par-dessus.
 
+## Fin de l'audit (version 22)
+
+**Un seul fil d'horloge, garanti.** `horlogeArret()` remettait le drapeau à false et oubliait le fil
+sans attendre sa sortie de boucle : un redémarrage rapide pouvait en laisser deux tourner. Chaque session
+porte maintenant son numéro, l'ancien fil est réveillé par `unpark` au lieu d'attendre sa période, et
+joint avec une limite de 60 ms.
+
+**Départ audio et horloge alignés.** Le premier pas est programmé 120 ms dans le futur, l'horloge partait
+aussitôt. Elle est maintenant retardée de la même avance — et le calcul prend l'heure du premier pas avant
+que l'ordonnanceur ne la fasse avancer, sinon le décalage s'inversait. Mesuré sur quatre départs :
+**de −1 à −4 ms**, contre 120 auparavant.
+
+**Durée réelle des notes sortantes.** Le Note Off partait systématiquement 90 ms après le Note On.
+Il suit désormais la durée demandée à la voix, liaisons comprises. Mesuré sur l'EA-1 avec une liaison :
+244, 78, 118, 79 ms au lieu de 90 partout.
+
+**Entrée MIDI routée par machine.** Les notes n'étaient traitées que pour l'EM-1 ; ailleurs elles
+déclenchaient les voix génériques de la DRM16. Chaque machine reçoit maintenant sur ses propres parties :
+notes 36 à 44 pour les percussions, canal séparé pour les parties mélodiques, et l'enregistrement au vol
+fonctionne partout.
+
 ## Qualité sonore
 
 Mesures faites au rendu hors ligne, sinus de 220 Hz traversant la chaîne maîtresse.

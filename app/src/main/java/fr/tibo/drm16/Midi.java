@@ -34,6 +34,7 @@ public class Midi {
 
     private Thread horloge;
     private volatile boolean horlogeActive;
+    private volatile int generation = 0;
     private volatile double bpm = 120;
 
     /* état de l'analyse du flux entrant */
@@ -128,15 +129,17 @@ public class Midi {
 
     public void tempo(double b) { if (b > 20 && b < 400) bpm = b; }
 
+    /** Un seul fil peut vivre a la fois : chaque session porte son numero. */
     public void horlogeDepart(double b) {
         tempo(b);
-        if (horlogeActive) return;
+        arreterFil();                       // s'il en restait un, on l'attend
         horlogeActive = true;
+        final int mien = ++generation;
         envoyer(0xFA, 0, 0);
         horloge = new Thread(new Runnable() {
             @Override public void run() {
                 long t = System.nanoTime();
-                while (horlogeActive) {
+                while (horlogeActive && mien == generation) {
                     envoyer(0xF8, 0, 0);
                     t += (long) (60000000000.0 / (bpm * 24));
                     long d = t - System.nanoTime();
@@ -149,10 +152,20 @@ public class Midi {
         horloge.start();
     }
 
-    public void horlogeArret() {
-        if (!horlogeActive) return;
+    private void arreterFil() {
         horlogeActive = false;
+        generation++;
+        Thread t = horloge;
         horloge = null;
-        envoyer(0xFC, 0, 0);
+        if (t != null && t.isAlive()) {
+            LockSupport.unpark(t);          // on le reveille au lieu d'attendre sa periode
+            try { t.join(60); } catch (InterruptedException ignored) {}
+        }
+    }
+
+    public void horlogeArret() {
+        boolean tournait = horlogeActive;
+        arreterFil();
+        if (tournait) envoyer(0xFC, 0, 0);
     }
 }

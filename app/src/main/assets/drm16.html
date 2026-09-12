@@ -2396,10 +2396,11 @@ function start(){
   if(!ctx) return;
   S.run=true; step=0; queue=[];
   nextT = ctx.currentTime + 0.12;
+  var depart = nextT;                 /* tick() fait avancer nextT : on garde l'heure du premier pas */
   clearInterval(timer); timer = setInterval(tick, periode()); tick();
   draw();
   host(true);
-  midiHorloge(true);
+  midiHorloge(true, depart - ctx.currentTime);
 }
 function stop(){
   S.run=false; clearInterval(timer); timer=null; queue=[];
@@ -3311,8 +3312,9 @@ function scheduleEm(i,t){
     for(j=0;j<n;j++){
       var tt = t + j*stepDur()/n;
       if(part.synth){
+        var dEm = EM.pat.amp[k] ? (0.06 + EM.egTime()*1.1) : stepDur()*0.9;
         voixSynth(tt,k,p.nt[k][i],vel);
-        midiNoteA(p.nt[k][i], tt, vel, (k===9?1:0));
+        midiNoteA(p.nt[k][i], tt, vel, (k===9?1:0), dEm);
       } else {
         jouerTimbre(p.tim[k], tt, vel, sortiePartie(k,tt));
         midiVoix(part.v, tt, vel);
@@ -4825,8 +4827,9 @@ function scheduleEa(i,t){
     var prec = (i-1+ (p.len||16)) % (p.len||16);
     if(p.tie[k][prec] && p.st[k][prec]) continue;   /* tenue : pas de nouvelle attaque */
     MOT = motionEa(k,i);
-    voixEa(t, k, p.nt[k][i], 1, dureeEa(k,i));
-    midiNoteA(p.nt[k][i], t, 1, k);
+    var dEa = dureeEa(k,i);
+    voixEa(t, k, p.nt[k][i], 1, dEa);
+    midiNoteA(p.nt[k][i], t, 1, k, dEa);
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
@@ -6535,7 +6538,7 @@ function scheduleMx(i,t){
       if(synth){
         var d = p.son[k].amp ? (0.05 + p.son[k].eg*1.3) : stepDur()*0.95;
         voixMxSynth(tt, k, p.nt[k][i], vel, d);
-        midiNoteA(p.nt[k][i], tt, vel, Math.min(15, k-10));
+        midiNoteA(p.nt[k][i], tt, vel, Math.min(15, k-10), d);
       } else {
         voixMxDrum(tt, k, vel);
         midiNoteA(36+k, tt, vel, MIDI.canal);
@@ -7405,8 +7408,9 @@ function scheduleSx(i,t){
           voixSxTranche(tt, k, acc?1:0.8, i, L);
         }
       } else if(k>=10){
+        var dSx = p.son[k].amp ? (0.03 + p.son[k].eg*1.4) : stepDur()*0.95;
         voixSx(tt, k, acc?1:0.8, i, p.nt[k][i], p.son[k].amp ? null : stepDur()*0.95);
-        midiNoteA(p.nt[k][i], tt, acc?1:0.8, k-10);
+        midiNoteA(p.nt[k][i], tt, acc?1:0.8, k-10, dSx);
       } else {
         voixSx(tt, k, acc?1:0.75, i);
         midiNoteA(36+k, tt, acc?1:0.75, MIDI.canal);
@@ -8209,9 +8213,20 @@ function midiVoix(voix, t, vel){ midiNoteA(GM[voix], t, vel, MIDI.canal); }
 
 /* horloge : le fil Java tient la cadence, on lui donne le tempo */
 var bpmEnvoye = 0;
-function midiHorloge(on){
+var horlogeTmr = null;
+function midiHorloge(on, avance){
   var p = pont(); if(!p || !MIDI.dispo || MIDI.ouvert < 0) return;
+  clearTimeout(horlogeTmr); horlogeTmr = null;
   if(on && !MIDI.clock) return;      /* seul le démarrage dépend de l'option */
+  /* le premier son est programmé un peu dans le futur : l'horloge part au même instant */
+  if(on && avance > 0.002){
+    horlogeTmr = setTimeout(function(){
+      horlogeTmr = null;
+      try{ p.midiHorloge(true, S.bpm); }catch(e){}
+      bpmEnvoye = S.bpm;
+    }, Math.round(avance*1000));
+    return;
+  }
   try{ p.midiHorloge(!!on, S.bpm); }catch(e){}
   bpmEnvoye = S.bpm;
 }
@@ -8234,9 +8249,49 @@ function majPlayEm(){
   var pb = document.getElementById("em-play");
   if(pb) pb.classList.toggle("on", S.run && S.modele === "em1");
 }
+/* chaque machine reçoit les notes sur ses propres parties */
 function entreeNote(note, vel, canal){
   audioInit(); if(!ctx) return;
   var voix = GM_INV[note];
+  var m = S.modele, k, i;
+
+  if(m === "er1" || m === "er2"){
+    busEffets();
+    k = (note >= 36 && note <= 45) ? note-36 : ER.sel;
+    if(k > 9) k = ER.sel;
+    if(ER_PARTS[k].t !== "accent") voixEr(ctx.currentTime+0.01, k, vel);
+    enregistrerEntree(ER, k, note, false);
+    return;
+  }
+  if(m === "es1" || m === "es2"){
+    banqueEs(); busEffets();
+    k = (note >= 36 && note <= 44) ? note-36 : ES.sel;
+    if(k > 8) k = ES.sel;
+    jouerEs(ctx.currentTime+0.01, k, vel, ES.pos >= 0 ? ES.pos : 0);
+    enregistrerEntree(ES, k, note, false);
+    return;
+  }
+  if(m === "ea1" || m === "ea2"){
+    busEffets();
+    k = (canal === 1) ? 1 : 0;
+    voixEa(ctx.currentTime+0.01, k, note, vel, 0.4);
+    enregistrerEntree(EA, k, note, true);
+    return;
+  }
+  if(m === "emx"){
+    mxAudio();
+    if(canal !== MIDI.canal){ k = 10 + Math.min(4, canal); voixMxSynth(ctx.currentTime+0.01, k, note, vel, 0.4); }
+    else { k = (note >= 36 && note <= 44) ? note-36 : MX.sel; if(k > 8) k = 0; voixMxDrum(ctx.currentTime+0.01, k, vel); }
+    enregistrerEntree(MX, k, note, k >= 10);
+    return;
+  }
+  if(m === "esx"){
+    sxAudio(); banqueEs();
+    if(canal !== MIDI.canal){ k = 10 + Math.min(1, canal); voixSx(ctx.currentTime+0.01, k, vel, 0, note, 0.5); }
+    else { k = (note >= 36 && note <= 44) ? note-36 : SX.sel; if(k > 8) k = 0; voixSx(ctx.currentTime+0.01, k, vel, SX.pos >= 0 ? SX.pos : 0); }
+    enregistrerEntree(SX, k, note, k >= 10 && k < 12);
+    return;
+  }
   if(S.modele === "em1"){
     busEffets();
     var k = -1, i;
@@ -8256,6 +8311,25 @@ function entreeNote(note, vel, canal){
   }
   if(voix && V[voix]) V[voix](ctx.currentTime+0.01, vel);
 };
+/* enregistrement au vol, commun à toutes les machines */
+function enregistrerEntree(M, k, note, avecNote){
+  if(!M.rec || !S.run || M.pos < 0 || M.protect) return;
+  var L = (M.pat.len || 16), j = (M.pos + 1) % L;
+  M.pat.st[k][j] = 1;
+  if(avecNote && M.pat.nt) M.pat.nt[k][j] = note;
+  if(k === M.sel){
+    if(M === ER) majTouchesEr();
+    else if(M === ES) majTouchesEs();
+    else if(M === EA) majTouchesEa();
+    else if(M === MX) majTouchesMx();
+    else if(M === SX) majTouchesSx();
+  }
+  if(M === ER) memEr();
+  else if(M === ES) memEs();
+  else if(M === EA) memEa();
+  else if(M === MX) memMx();
+  else if(M === SX) memSx();
+}
 
 /* ----- réglages MIDI dans la notice ----- */
 var bScan = document.getElementById("b-midi-scan");
