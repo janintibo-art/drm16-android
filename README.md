@@ -178,6 +178,16 @@ Autres corrections :
   impaires (17 % contre 8 % à mi-course), ce qui est le comportement d'une lampe.
 - Niveaux des voix de l'ES-1 et de l'ESX-1 revus : plus aucun échantillon saturé sur une mesure dense.
 
+## Zoom
+
+Deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois ; deux doigts la déplacent ensuite.
+Un seul doigt reste réservé aux commandes : le zoom n'est pris en compte qu'à partir de deux points de
+contact, et tout geste en cours sur un bouton est gelé pendant le pincement, pour qu'un doigt posé sur un
+réglage ne le fasse pas bouger. Pincer jusqu'au bout remet à plat, changer de machine aussi.
+
+Le zoom vient s'ajouter à la mise à l'échelle automatique : `ZOOM.base` est le facteur calculé pour faire
+tenir la façade, `ZOOM.z` celui de l'utilisateur, et le déplacement est borné au débordement réel.
+
 ## MIDI
 
 Le MIDI passe par l'API MIDI d'Android (`android.media.midi`, classe `Midi.java`) plutôt que par le Web MIDI,
