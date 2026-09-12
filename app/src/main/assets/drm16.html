@@ -7,11 +7,13 @@
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 html,body{margin:0;height:100%;background:#0b0b0c;overflow:hidden;
-  font-family:"Arial Narrow","Helvetica Neue Condensed",Roboto,Arial,sans-serif}
+  font-family:"Roboto Condensed",sans-serif-condensed,"Arial Narrow",Roboto,Arial,sans-serif}
+::-webkit-scrollbar{width:0;height:0;display:none}
+*{scrollbar-width:none}
 body{display:flex;align-items:center;justify-content:center;padding:6px}
 
 /* ---------- chassis metal brossé ---------- */
-.unit{width:100%;max-width:1040px;max-height:100%;overflow:auto;border-radius:8px;padding:26px 14px 14px;
+.unit{width:100%;max-width:1040px;overflow:hidden;border-radius:8px;padding:26px 14px 14px;
   background:
     repeating-linear-gradient(90deg,rgba(255,255,255,.10) 0 1px,rgba(0,0,0,.07) 1px 3px),
     linear-gradient(160deg,#cfccc2,#8e8b82 45%,#b5b2a8 60%,#7d7a72);
@@ -22,7 +24,7 @@ body{display:flex;align-items:center;justify-content:center;padding:6px}
 
 /* ---------- rangée du haut : interrupteurs et jacks ---------- */
 .top{display:flex;align-items:flex-end;gap:4px;margin:-12px 4px 8px;position:relative;z-index:2;min-width:0}
-.top .slot{flex:1 1 0;min-width:0;text-align:center}
+.top .slot{flex:1 1 0;min-width:0;overflow:hidden;text-align:center}
 .top .cap{display:block;font-size:11px;font-weight:700;letter-spacing:1.6px;color:#2a2723;
   text-shadow:0 1px 0 #ffffff8c;white-space:nowrap}
 .toggle{width:20px;height:34px;margin:0 auto 3px;border-radius:4px;background:linear-gradient(180deg,#3a3a3c,#0d0d0e);
@@ -284,15 +286,18 @@ var P = [
 function audioInit(){
   if(ctx) { if(ctx.state==="suspended") ctx.resume(); return; }
   var AC = window.AudioContext || window.webkitAudioContext;
-  ctx = new AC();
+  try { ctx = new AC({latencyHint:"playback"}); } catch(e){ ctx = new AC(); }
   master = ctx.createGain();
   master.gain.value = S.vol;
+  var lim = ctx.createDynamicsCompressor();
+  lim.threshold.value = -7; lim.knee.value = 0; lim.ratio.value = 20;
+  lim.attack.value = 0.003; lim.release.value = 0.15;
   var sat = ctx.createWaveShaper();
   var n=1024, c=new Float32Array(n);
   for(var i=0;i<n;i++){ var x=i*2/n-1; c[i]=Math.tanh(x*1.7)/Math.tanh(1.7); }
   sat.curve=c; sat.oversample="2x";
   var hp = ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=28;
-  master.connect(sat); sat.connect(hp); hp.connect(ctx.destination);
+  master.connect(lim); lim.connect(sat); sat.connect(hp); hp.connect(ctx.destination);
   var len = Math.floor(ctx.sampleRate*2);
   noiseBuf = ctx.createBuffer(1,len,ctx.sampleRate);
   var d = noiseBuf.getChannelData(0);
@@ -403,8 +408,8 @@ function schedule(i,t){
 }
 function tick(){
   if(!ctx) return;
-  if(nextT < ctx.currentTime - 0.4){ nextT = ctx.currentTime + 0.05; queue=[]; }
-  while(nextT < ctx.currentTime + 0.12){
+  if(nextT < ctx.currentTime - 0.4){ nextT = ctx.currentTime + 0.08; queue=[]; }
+  while(nextT < ctx.currentTime + 0.22){
     schedule(step, nextT);
     nextT += stepDur();
     step = (step+1)%16;
@@ -414,8 +419,8 @@ function start(){
   audioInit();
   if(!ctx) return;
   S.run=true; step=0; queue=[];
-  nextT = ctx.currentTime + 0.06;
-  clearInterval(timer); timer = setInterval(tick,25); tick();
+  nextT = ctx.currentTime + 0.12;
+  clearInterval(timer); timer = setInterval(tick,45); tick();
   draw();
 }
 function stop(){
@@ -553,6 +558,29 @@ document.querySelector(".model").addEventListener("click", function(){
   document.getElementById("note").classList.add("show");
 });
 document.addEventListener("visibilitychange", function(){ if(document.hidden) stop(); });
+
+/* ================= mise à l'échelle ================= */
+function fit(){
+  unit.style.transform = "none";
+  unit.style.flex = "";
+  unit.style.width = "100%";
+  unit.style.maxWidth = "1040px";
+  var aw = window.innerWidth - 4, ah = window.innerHeight - 4;
+  if(!unit.offsetHeight) return;
+  var s = Math.min(1, ah/unit.offsetHeight);
+  if(s < 0.995){
+    unit.style.maxWidth = "none";
+    unit.style.flex = "0 0 auto";
+    unit.style.width = Math.floor(aw/s) + "px";
+    s = Math.min(aw/unit.offsetWidth, ah/unit.offsetHeight);
+  }
+  unit.style.transform = s < 0.995 ? "scale("+s.toFixed(4)+")" : "none";
+}
+window.addEventListener("resize", fit);
+window.addEventListener("orientationchange", function(){ setTimeout(fit,350); });
+fit();
+setTimeout(fit,120);
+setTimeout(fit,500);
 
 unit.classList.add("off");
 paint();
