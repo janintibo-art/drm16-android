@@ -32,6 +32,8 @@ body{display:flex;align-items:center;justify-content:center;padding:6px}
 .toggle b{position:absolute;left:3px;right:3px;top:3px;height:13px;border-radius:3px;
   background:linear-gradient(180deg,#6b6b6e,#2b2b2d);transition:top .12s}
 .toggle.on b{top:18px}
+.slot.on .jack{box-shadow:0 0 0 2px #e8481c,0 0 12px #e8481c90,0 2px 4px #0007,inset 0 1px 1px #fff5}
+.slot.on .cap{color:#8f2c0c}
 .jack{width:26px;height:26px;margin:0 auto 3px;border-radius:50%;
   background:radial-gradient(circle at 38% 32%,#dcd8cc,#8d8a80 58%,#4a483f 72%,#15140f 76%,#2b2924 100%);
   box-shadow:0 2px 4px #0007,inset 0 1px 1px #fff5}
@@ -93,6 +95,7 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
 .sel .opts span{font-size:12.5px;font-weight:700;letter-spacing:1.8px;color:#8e897c;text-align:right;
   transition:color .12s,text-shadow .12s;white-space:nowrap}
 .sel .opts span.on{color:#fff5e8;text-shadow:0 0 9px #ffb98a90}
+.sel .opts span.hit{color:#ffd9c0;text-shadow:0 0 14px #ff9a5e}
 .sel.left .opts span{text-align:left}
 .row-opts{display:flex;justify-content:center;gap:9px;margin-bottom:5px}
 .row-opts span{font-size:12.5px;font-weight:700;letter-spacing:1.6px;color:#8e897c}
@@ -175,7 +178,7 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
     <div class="slot"><div class="toggle" id="sw-power"><b></b></div><span class="cap">POWER · ON</span></div>
     <div class="slot"><div class="jack"></div><span class="cap">OUTPUT 1</span></div>
     <div class="slot"><div class="jack"></div><span class="cap">OUTPUT 2</span></div>
-    <div class="slot"><div class="jack"></div><span class="cap">BASS OUT</span></div>
+    <div class="slot" id="bass-out"><div class="jack"></div><span class="cap">BASS OUT</span></div>
     <div class="slot"><div class="toggle" id="sw-space"><b></b></div><span class="cap">SPACE DRUM · ON</span></div>
   </div>
 
@@ -239,9 +242,12 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
   Les seize rythmes et les neuf timbres sont <b>synthétisés en temps réel</b> par le moteur audio de l'application.</p>
   <p><b>POWER</b> met l'appareil sous tension (et débloque le son sur Android).
   <b>Pédale</b> : départ / arrêt. <b>STYLE</b> et <b>COLUMN</b> choisissent une case de la matrice ; la case peut aussi
-  être touchée directement. <b>DELETE</b> retire un timbre du rythme : wood block, cymbale longue ou cymbale courte.
-  <b>SPACE DRUM · ON</b> ajoute les accents de space drum. <b>VOLUME</b> et <b>TEMPO</b> se règlent en glissant le doigt
-  verticalement sur le bouton.</p>
+  être touchée directement. <b>DELETE</b> retire un timbre du rythme : wood block, cymbale longue ou cymbale courte —
+  et toucher le nom d'un de ces trois timbres le joue seul, même s'il est retiré.
+  <b>SPACE DRUM · ON</b> ajoute les accents de space drum. <b>BASS OUT</b> : toucher le jack envoie la grosse caisse
+  à droite et le reste à gauche, comme la sortie séparée de l'appareil d'origine.
+  <b>VOLUME</b> et <b>TEMPO</b> se règlent en glissant le doigt verticalement sur le bouton ; une série d'appuis brefs
+  sur TEMPO bat la mesure. Tous les réglages sont retenus jusqu'au prochain lancement.</p>
   <p>Recréation personnelle hommage à l'Electro-Harmonix DRM-16 ; sans lien avec le fabricant, et sans réutilisation
   de ses échantillons.</p>
   <button onclick="document.getElementById('note').classList.remove('show')">FERMER</button>
@@ -250,8 +256,39 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
 <script>
 "use strict";
 /* ================= état ================= */
-var S = {power:false, run:false, space:false, style:0, col:0, del:0, vol:0.72, bpm:120};
-var ctx=null, master=null, noiseBuf=null;
+var S = {power:false, run:false, space:false, bass:false, style:0, col:0, del:0, vol:0.72, bpm:120};
+
+/* ================= memoire ================= */
+var MEM = "drm16.reglages";
+(function load(){
+  try{
+    var m = JSON.parse(localStorage.getItem(MEM) || "{}");
+    if(typeof m.style === "number") S.style = Math.min(3, Math.max(0, m.style|0));
+    if(typeof m.col   === "number") S.col   = Math.min(3, Math.max(0, m.col|0));
+    if(typeof m.del   === "number") S.del   = Math.min(3, Math.max(0, m.del|0));
+    if(typeof m.vol   === "number") S.vol   = Math.min(1, Math.max(0, m.vol));
+    if(typeof m.bpm   === "number") S.bpm   = Math.min(220, Math.max(40, m.bpm|0));
+    S.space = !!m.space;
+    S.bass  = !!m.bass;
+  }catch(e){}
+})();
+var saveTmr = null;
+function save(){
+  clearTimeout(saveTmr);
+  saveTmr = setTimeout(function(){
+    try{
+      localStorage.setItem(MEM, JSON.stringify({
+        style:S.style, col:S.col, del:S.del, vol:S.vol, bpm:S.bpm, space:S.space, bass:S.bass
+      }));
+    }catch(e){}
+  }, 400);
+}
+function applyBass(){
+  if(!panBd || !panMix) return;
+  panBd.pan.value  = S.bass ?  1   : 0;
+  panMix.pan.value = S.bass ? -0.6 : 0;
+}
+var ctx=null, master=null, noiseBuf=null, outBd=null, outMix=null, panBd=null, panMix=null;
 
 /* ================= rythmes =================
    X fort · x normal · o fantôme · . silence  (16 doubles-croches) */
@@ -298,6 +335,15 @@ function audioInit(){
   sat.curve=c; sat.oversample="2x";
   var hp = ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=28;
   master.connect(lim); lim.connect(sat); sat.connect(hp); hp.connect(ctx.destination);
+  outBd = ctx.createGain(); outMix = ctx.createGain();
+  if(ctx.createStereoPanner){
+    panBd = ctx.createStereoPanner(); panMix = ctx.createStereoPanner();
+    outBd.connect(panBd); panBd.connect(master);
+    outMix.connect(panMix); panMix.connect(master);
+  } else {
+    outBd.connect(master); outMix.connect(master);
+  }
+  applyBass();
   var len = Math.floor(ctx.sampleRate*2);
   noiseBuf = ctx.createBuffer(1,len,ctx.sampleRate);
   var d = noiseBuf.getChannelData(0);
@@ -314,7 +360,7 @@ function noise(t,dur,type,freq,q,peak,out){
   s.loop=true; s.playbackRate.value=0.8+Math.random()*0.4;
   var f=ctx.createBiquadFilter(); f.type=type; f.frequency.value=freq; if(q) f.Q.value=q;
   var g=ctx.createGain(); env(g,t,peak,dur);
-  s.connect(f); f.connect(g); g.connect(out||master);
+  s.connect(f); f.connect(g); g.connect(out||outMix);
   s.start(t); s.stop(t+dur+0.02);
   return g;
 }
@@ -326,9 +372,9 @@ function metal(t,dur,hpf,peak,base){
     var o=ctx.createOscillator(); o.type="square"; o.frequency.value=base*ratios[i];
     o.connect(bp); o.start(t); o.stop(t+dur+0.02);
   }
-  bp.connect(hp); hp.connect(g); g.connect(master);
+  bp.connect(hp); hp.connect(g); g.connect(outMix);
   env(g,t,peak,dur,0.001);
-  noise(t,dur*0.55,"highpass",hpf*1.4,0,peak*0.35,master);
+  noise(t,dur*0.55,"highpass",hpf*1.4,0,peak*0.35,outMix);
 }
 var V = {
   bd:function(t,v){
@@ -337,18 +383,18 @@ var V = {
     o.frequency.setValueAtTime(148,t);
     o.frequency.exponentialRampToValueAtTime(46,t+0.11);
     env(g,t,0.82*v,0.42,0.004);
-    o.connect(g); g.connect(master); o.start(t); o.stop(t+0.45);
-    noise(t,0.022,"highpass",2600,0,0.20*v);
+    o.connect(g); g.connect(outBd); o.start(t); o.stop(t+0.45);
+    noise(t,0.022,"highpass",2600,0,0.20*v,outBd);
   },
   sd:function(t,v){
     var o=ctx.createOscillator(), g=ctx.createGain();
     o.type="triangle"; o.frequency.setValueAtTime(196,t);
     o.frequency.exponentialRampToValueAtTime(160,t+0.09);
     env(g,t,0.42*v,0.13,0.002);
-    o.connect(g); g.connect(master); o.start(t); o.stop(t+0.16);
+    o.connect(g); g.connect(outMix); o.start(t); o.stop(t+0.16);
     var o2=ctx.createOscillator(), g2=ctx.createGain();
     o2.type="triangle"; o2.frequency.value=331; env(g2,t,0.26*v,0.1,0.002);
-    o2.connect(g2); g2.connect(master); o2.start(t); o2.stop(t+0.13);
+    o2.connect(g2); g2.connect(outMix); o2.start(t); o2.stop(t+0.13);
     noise(t,0.17*(0.6+0.4*v),"bandpass",1750,0.7,0.62*v);
     noise(t,0.03,"highpass",5200,0,0.30*v);
   },
@@ -366,10 +412,10 @@ var V = {
     o.type="triangle"; o.frequency.setValueAtTime(1080,t);
     o.frequency.exponentialRampToValueAtTime(880,t+0.04);
     env(g,t,0.44*v,0.075,0.001);
-    o.connect(g); g.connect(master); o.start(t); o.stop(t+0.09);
+    o.connect(g); g.connect(outMix); o.start(t); o.stop(t+0.09);
     var o2=ctx.createOscillator(), g2=ctx.createGain();
     o2.type="sine"; o2.frequency.value=1680; env(g2,t,0.2*v,0.035,0.001);
-    o2.connect(g2); g2.connect(master); o2.start(t); o2.stop(t+0.05);
+    o2.connect(g2); g2.connect(outMix); o2.start(t); o2.stop(t+0.05);
     noise(t,0.012,"bandpass",2400,1.2,0.18*v);
   },
   sp:function(t,v){
@@ -379,12 +425,12 @@ var V = {
     o.frequency.setValueAtTime(920,t);
     o.frequency.exponentialRampToValueAtTime(62,t+0.55);
     env(g,t,0.46*v,0.7,0.003);
-    o.connect(f); f.connect(g); g.connect(master); o.start(t); o.stop(t+0.75);
+    o.connect(f); f.connect(g); g.connect(outMix); o.start(t); o.stop(t+0.75);
     var o2=ctx.createOscillator(), g2=ctx.createGain();
     o2.type="sine"; o2.frequency.setValueAtTime(1380,t);
     o2.frequency.exponentialRampToValueAtTime(93,t+0.5);
     env(g2,t,0.16*v,0.45,0.003);
-    o2.connect(g2); g2.connect(master); o2.start(t); o2.stop(t+0.55);
+    o2.connect(g2); g2.connect(outMix); o2.start(t); o2.stop(t+0.55);
   }
 };
 
@@ -481,8 +527,9 @@ function knob(id, opt){
   el.addEventListener("pointerup", function(e){
     if(!st.drag) return;
     st.drag=false;
-    if(st.moved < 6 && opt.steps){
-      st.v = (st.v+1)%opt.steps; render(); opt.on(st.v);
+    if(st.moved < 6){
+      if(opt.steps){ st.v = (st.v+1)%opt.steps; render(); opt.on(st.v); }
+      else if(opt.tap){ opt.tap(); }
     }
   });
   el.addEventListener("pointercancel", function(){ st.drag=false; });
@@ -503,17 +550,30 @@ ticksFor(document.getElementById("k-tempo"),11);
 
 var kVol = knob("k-volume",{value:S.vol,min:0,max:1,on:function(v){
   S.vol=v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
-  say("VOLUME "+Math.round(v*100));
+  say("VOLUME "+Math.round(v*100)); save();
 }});
-var kTempo = knob("k-tempo",{value:S.bpm,min:40,max:220,on:function(v){
-  S.bpm=Math.round(v); say(S.bpm+" BPM");
-}});
+var taps = [];
+var kTempo = knob("k-tempo",{value:S.bpm,min:40,max:220,
+  on:function(v){ S.bpm=Math.round(v); say(S.bpm+" BPM"); save(); },
+  tap:function(){
+    var now = Date.now();
+    if(taps.length && now - taps[taps.length-1] > 2200) taps = [];
+    taps.push(now);
+    if(taps.length > 5) taps.shift();
+    if(taps.length < 2){ say("TAP"); return; }
+    var sum = 0;
+    for(var i=1;i<taps.length;i++) sum += taps[i] - taps[i-1];
+    var bpm = Math.round(60000 / (sum/(taps.length-1)));
+    if(bpm < 40 || bpm > 220){ say("TAP"); return; }
+    S.bpm = bpm; kTempo.set(bpm); say(bpm + " BPM"); save();
+  }
+});
 var ANG_L = [-135,-105,-75,-45];
 var ANG_R = [45,75,105,135];
 var ANG_T = [-45,-15,15,45];
-var kDel = knob("k-delete",{value:0,steps:4,angles:ANG_L,on:function(v){ S.del=v; paint(); }});
-var kCol = knob("k-column",{value:0,steps:4,angles:ANG_T,on:function(v){ S.col=v; paint(); }});
-var kSty = knob("k-style",{value:0,steps:4,angles:ANG_R,on:function(v){ S.style=v; paint(); }});
+var kDel = knob("k-delete",{value:0,steps:4,angles:ANG_L,on:function(v){ S.del=v; paint(); save(); }});
+var kCol = knob("k-column",{value:0,steps:4,angles:ANG_T,on:function(v){ S.col=v; paint(); save(); }});
+var kSty = knob("k-style",{value:0,steps:4,angles:ANG_R,on:function(v){ S.style=v; paint(); save(); }});
 
 function marks(boxId, idx){
   var sp = document.getElementById(boxId).children;
@@ -531,7 +591,7 @@ var cells = document.querySelectorAll("td.cell");
 for(var i=0;i<cells.length;i++){
   cells[i].addEventListener("click", function(){
     S.style = +this.dataset.s; S.col = +this.dataset.c;
-    kSty.set(S.style); kCol.set(S.col); paint();
+    kSty.set(S.style); kCol.set(S.col); paint(); save();
   });
 }
 
@@ -548,7 +608,31 @@ var swSpace = document.getElementById("sw-space");
 swSpace.addEventListener("click", function(){
   S.space = !S.space;
   swSpace.classList.toggle("on", S.space);
+  save();
 });
+var slotBass = document.getElementById("bass-out");
+slotBass.addEventListener("click", function(){
+  S.bass = !S.bass;
+  slotBass.classList.toggle("on", S.bass);
+  applyBass(); save();
+  say(S.bass ? "BASS OUT" : "SORTIE MIXTE");
+});
+
+var TRIG = ["", "wb", "rd", "cy"];
+var odel = document.getElementById("opt-delete").children;
+for(var t=0;t<odel.length;t++){
+  (function(i){
+    odel[i].addEventListener("click", function(){
+      if(!TRIG[i]) return;
+      if(!S.power){ say("POWER OFF"); return; }
+      audioInit();
+      V[TRIG[i]](ctx.currentTime + 0.02, 1);
+      odel[i].classList.add("hit");
+      setTimeout(function(){ odel[i].classList.remove("hit"); }, 150);
+    });
+  })(t);
+}
+
 var fsw = document.getElementById("fsw");
 fsw.addEventListener("click", function(){
   if(!S.power){ say("POWER OFF"); return; }
@@ -583,6 +667,8 @@ setTimeout(fit,120);
 setTimeout(fit,500);
 
 unit.classList.add("off");
+swSpace.classList.toggle("on", S.space);
+slotBass.classList.toggle("on", S.bass);
 paint();
 </script>
 </body>
