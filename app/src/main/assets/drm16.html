@@ -154,7 +154,9 @@ body.em1 #note-em{display:block}
 #note b{color:#fff}
 #note button{margin-top:18px;padding:12px 22px;border:0;border-radius:6px;background:var(--accent);color:#140f0c;
   font-weight:800;letter-spacing:1px;font-size:15px}
-#note button.sec{background:#33302b;color:#f0ece2;margin-top:6px}
+#note button.sec{background:#33302b;color:#f0ece2;margin-top:6px;margin-right:6px}
+#midi-liste button{display:block;width:100%;text-align:left;margin-top:5px}
+#midi-liste button.on{background:#15625a;color:#eafffb}
 #note button[disabled]{opacity:.5}
 
 /* ---------- menu de choix du modèle ---------- */
@@ -609,8 +611,8 @@ body.em1 #unit{display:none}
   une touche vide prend le motif courant, la molette change le motif d'une position, ERASE en retire une,
   SHIFT + touche 13 vide la chanson. La lecture passe au motif suivant à chaque fin de boucle.</p>
   <p>Les onze effets sont en place, pitch shifter et decimator compris — le premier travaille par deux lignes
-  à retard modulées, son résultat est volontairement rugueux. Restent les modes STEP EDIT et GLOBAL,
-  le Bend Range et le transfert MIDI, qui n'auraient pas de sens sans port MIDI.</p>
+  à retard modulées, son résultat est volontairement rugueux. <b>GLOBAL</b> ouvre les réglages MIDI.
+  Restent le mode STEP EDIT et le bend range.</p>
   </div>
   <p>Le rythme continue quand l'application passe en arrière-plan : une notification reste affichée tant que la
   lecture dure, et la touchant ramène au panneau. Le son se coupe de lui-même si un appel ou une autre application
@@ -619,6 +621,18 @@ body.em1 #unit{display:none}
   pour les interrupteurs, un départ franc et un double battement à l'arrêt sur la pédale.</p>
   <p>Recréation personnelle hommage aux appareils d'origine ; sans lien avec le fabricant, et sans réutilisation
   de ses échantillons.</p>
+  <p style="margin-bottom:4px"><b>MIDI</b> — branchez la carte USB-C vers MIDI, puis cherchez les appareils.
+  En sortie, chaque coup part en note (percussions sur le canal choisi, notes du synthé sur les canaux 1 et 2) ;
+  l'horloge et les messages de départ et d'arrêt peuvent être envoyés pour entraîner un autre appareil.
+  En entrée, les notes déclenchent les timbres et s'enregistrent si REC est armé sur l'Electribe, et les
+  messages de départ et d'arrêt pilotent le transport.</p>
+  <p style="margin-top:4px"><button class="sec" id="b-midi-scan">CHERCHER LES APPAREILS</button></p>
+  <div id="midi-liste"></div>
+  <p><button class="sec" id="b-midi-out"></button>
+     <button class="sec" id="b-midi-in"></button></p>
+  <p><button class="sec" id="b-midi-clk"></button>
+     <button class="sec" id="b-midi-ch"></button></p>
+
   <p><button class="sec" id="b-haptic">RETOUR HAPTIQUE</button></p>
   <p><button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
   <p><button class="sec" id="b-modele">CHANGER DE MODÈLE</button></p>
@@ -920,12 +934,13 @@ function scheduleEhx(i,t){
   for(var k in pat){
     if(k==="sw" || !V[k] || muted(k)) continue;
     var ch = pat[k].charAt(i), v = VEL[ch];
-    if(v) V[k](t, v);
+    if(v){ V[k](t, v); midiVoix(k, t, v); }
   }
   if(!cache) queue.push({i:i,t:t});
 }
 function tick(){
   if(!ctx) return;
+  midiSuivreTempo();
   if(nextT < ctx.currentTime - 0.4){ nextT = ctx.currentTime + 0.08; queue=[]; }
   while(nextT < ctx.currentTime + look()){
     MACHINE.schedule(step, nextT);
@@ -942,11 +957,13 @@ function start(){
   clearInterval(timer); timer = setInterval(tick, periode()); tick();
   draw();
   host(true);
+  midiHorloge(true);
 }
 function stop(){
   S.run=false; clearInterval(timer); timer=null; queue=[];
   if(MACHINE && MACHINE.arret) MACHINE.arret();
   host(false);
+  midiHorloge(false);
 }
 window.__drmStop = stop;
 
@@ -1534,8 +1551,13 @@ function scheduleEm(i,t){
     MOT = motionAu(k,i);
     for(j=0;j<n;j++){
       var tt = t + j*stepDur()/n;
-      if(part.synth) voixSynth(tt,k,p.nt[k][i],vel);
-      else jouerVoix(part.v, tt, vel, sortiePartie(k,tt));
+      if(part.synth){
+        voixSynth(tt,k,p.nt[k][i],vel);
+        midiNoteA(p.nt[k][i], tt, vel, (k===9?1:0));
+      } else {
+        jouerVoix(part.v, tt, vel, sortiePartie(k,tt));
+        midiVoix(part.v, tt, vel);
+      }
     }
     MOT = null;
   }
@@ -2104,6 +2126,9 @@ for(var mb=0;mb<modeBtns.length;mb++){
       lcd(EM.song.length ? ("00"+(EM.cur+1)).slice(-3) : "---", "SONG", true);
     } else if(m===0){
       majTouches(); majLcd();
+    } else if(m===3){
+      document.getElementById("note").classList.add("show");
+      lcd("MIDI","GLOBAL",true);
     } else {
       lcd("---","À VENIR",true);
     }
@@ -2196,6 +2221,139 @@ function activerEm(){
   actif = unitEm;
   save(); fit(); setTimeout(fit,120);
 }
+
+/* ===================== MIDI ===================== */
+var MIDI = {dispo:false, liste:[], ouvert:-1, out:true, in:true, clock:false, canal:9, canalSy:0};
+(function chargerMidi(){
+  var m = memoire.midi;
+  if(!m) return;
+  if(typeof m.out === "boolean") MIDI.out = m.out;
+  if(typeof m.in === "boolean") MIDI.in = m.in;
+  if(typeof m.clock === "boolean") MIDI.clock = m.clock;
+  if(typeof m.canal === "number") MIDI.canal = Math.max(0, Math.min(15, m.canal|0));
+})();
+function memMidi(){
+  memoire.midi = {out:MIDI.out, in:MIDI.in, clock:MIDI.clock, canal:MIDI.canal};
+  writeMem();
+}
+var GM = {bd:36, sd:38, cp:39, lt:45, hh:42, oh:46, rd:51, cy:49, wb:76, cb:56, sp:41};
+var GM_INV = {};
+for(var gk in GM) GM_INV[GM[gk]] = gk;
+
+function pont(){ return (window.DRM16 && DRM16.midiEnvoyer) ? DRM16 : null; }
+function midiPret(){ return MIDI.dispo && MIDI.ouvert >= 0 && pont(); }
+function midiBrut(a,b,c){
+  var p = pont(); if(!p) return;
+  try{ p.midiEnvoyer(a,b,c); }catch(e){}
+}
+/* une note posée à l'heure du pas, l'ordonnanceur travaillant en avance */
+function midiNoteA(note, t, vel, canal){
+  if(!midiPret() || !MIDI.out || note === undefined) return;
+  var d = Math.max(0, (t - ctx.currentTime)*1000);
+  setTimeout(function(){
+    midiBrut(0x90|canal, note, Math.max(1, Math.min(127, Math.round(vel*100)+27)));
+    setTimeout(function(){ midiBrut(0x80|canal, note, 0); }, 90);
+  }, d);
+}
+function midiVoix(voix, t, vel){ midiNoteA(GM[voix], t, vel, MIDI.canal); }
+
+/* horloge : le fil Java tient la cadence, on lui donne le tempo */
+var bpmEnvoye = 0;
+function midiHorloge(on){
+  var p = pont(); if(!p || !MIDI.dispo || MIDI.ouvert < 0 || !MIDI.clock) return;
+  try{ p.midiHorloge(!!on, S.bpm); }catch(e){}
+  bpmEnvoye = S.bpm;
+}
+function midiSuivreTempo(){
+  if(!MIDI.clock || !midiPret() || S.bpm === bpmEnvoye) return;
+  bpmEnvoye = S.bpm;
+  try{ pont().midiTempo(S.bpm); }catch(e){}
+}
+
+/* réception */
+window.__midi = function(a,b,c){
+  if(!MIDI.in) return;
+  if(a === 0xFA){ if(!S.run){ start(); majPlayEm(); } return; }
+  if(a === 0xFC || a === 0xFF){ if(S.run){ stop(); majPlayEm(); } return; }
+  var t = a & 0xF0;
+  if(t !== 0x90 || c === 0) return;
+  entreeNote(b, c/127, a & 0x0F);
+};
+function majPlayEm(){
+  var pb = document.getElementById("em-play");
+  if(pb) pb.classList.toggle("on", S.run && S.modele === "em1");
+}
+function entreeNote(note, vel, canal){
+  audioInit(); if(!ctx) return;
+  var voix = GM_INV[note];
+  if(S.modele === "em1"){
+    busEffets();
+    var k = -1, i;
+    if(canal !== MIDI.canal){ k = (canal === 1) ? 9 : 8; }
+    else if(voix){ for(i=0;i<10;i++) if(EM_PARTS[i].v === voix){ k = i; break; } }
+    if(k < 0) k = 8;
+    if(EM_PARTS[k].synth) voixSynth(ctx.currentTime+0.01, k, note, vel);
+    else jouerVoix(EM_PARTS[k].v, ctx.currentTime+0.01, vel, sortiePartie(k, ctx.currentTime+0.01));
+    if(EM.rec && S.run && EM.pos >= 0 && !EM.protect){
+      var j = (EM.pos+1) % (EM.pat.len||16);
+      EM.pat.st[k][j] = 1;
+      if(EM_PARTS[k].synth) EM.pat.nt[k][j] = note;
+      if(k === EM.sel) majTouches();
+      memEm();
+    }
+    return;
+  }
+  if(voix && V[voix]) V[voix](ctx.currentTime+0.01, vel);
+};
+
+/* ----- réglages MIDI dans la notice ----- */
+var bScan = document.getElementById("b-midi-scan");
+var boxMidi = document.getElementById("midi-liste");
+var bOut = document.getElementById("b-midi-out"), bIn = document.getElementById("b-midi-in");
+var bClk = document.getElementById("b-midi-clk"), bCh = document.getElementById("b-midi-ch");
+function majMidiUI(){
+  bOut.textContent = "SORTIE : " + (MIDI.out ? "ACTIVE" : "COUPÉE");
+  bIn.textContent  = "ENTRÉE : " + (MIDI.in ? "ACTIVE" : "COUPÉE");
+  bClk.textContent = "HORLOGE : " + (MIDI.clock ? "ENVOYÉE" : "COUPÉE");
+  bCh.textContent  = "CANAL PERCUSSIONS : " + (MIDI.canal+1);
+  var bs = boxMidi.querySelectorAll("button");
+  for(var i=0;i<bs.length;i++) bs[i].classList.toggle("on", i === MIDI.ouvert);
+}
+function chercherMidi(){
+  var p = pont();
+  boxMidi.innerHTML = "";
+  if(!p){ boxMidi.textContent = "Pont indisponible."; return; }
+  try{ MIDI.dispo = !!p.midiDispo(); }catch(e){ MIDI.dispo = false; }
+  if(!MIDI.dispo){ boxMidi.textContent = "Ce téléphone ne déclare pas le MIDI."; return; }
+  var l = "";
+  try{ l = p.midiListe() || ""; }catch(e){}
+  MIDI.liste = l ? l.split("\n") : [];
+  if(!MIDI.liste.length){ boxMidi.textContent = "Aucun appareil MIDI trouvé. Branchez la carte puis recommencez."; return; }
+  MIDI.liste.forEach(function(nom, i){
+    var b = document.createElement("button");
+    b.className = "sec"; b.textContent = nom;
+    b.addEventListener("click", function(){
+      try{ p.midiOuvrir(i); }catch(e){}
+      MIDI.ouvert = i; majMidiUI(); H.inter();
+      if(S.run) midiHorloge(true);
+    });
+    boxMidi.appendChild(b);
+  });
+  majMidiUI();
+}
+bScan.addEventListener("click", function(){ chercherMidi(); H.cran(); });
+bOut.addEventListener("click", function(){ MIDI.out = !MIDI.out; majMidiUI(); memMidi(); H.cran(); });
+bIn.addEventListener("click",  function(){ MIDI.in  = !MIDI.in;  majMidiUI(); memMidi(); H.cran(); });
+bClk.addEventListener("click", function(){
+  MIDI.clock = !MIDI.clock; majMidiUI(); memMidi(); H.cran();
+  if(S.run) midiHorloge(MIDI.clock);
+});
+bCh.addEventListener("click", function(){ MIDI.canal = (MIDI.canal+1)%16; majMidiUI(); memMidi(); H.cran(); });
+(function initMidi(){
+  var p = pont();
+  if(p){ try{ MIDI.dispo = !!p.midiDispo(); }catch(e){} }
+  majMidiUI();
+})();
 
 /* ================= choix du modèle ================= */
 var menu = document.getElementById("menu");

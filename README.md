@@ -31,7 +31,26 @@ Séquenceur à pas, une autre famille de machine que les deux précédentes.
   ou Trig Hold (tenu) : niveau, panoramique, hauteur, temps d'enveloppe et les quatre boutons du filtre.
 - **SONG** enchaîne les motifs : seize positions, éditables aux touches et à la molette.
 
-Restent de côté les modes STEP EDIT et GLOBAL, le bend range et le transfert MIDI, sans objet sans port MIDI.
+Restent de côté le mode STEP EDIT et le bend range.
+
+## MIDI
+
+Le MIDI passe par l'API MIDI d'Android (`android.media.midi`, classe `Midi.java`) plutôt que par le Web MIDI,
+dont le support en WebView n'est pas garanti. Il fonctionne donc avec une carte USB-C vers MIDI.
+
+- **Sortie** : chaque coup part en note — percussions sur le canal réglable (canal 10 par défaut, notes General
+  MIDI), notes du synthé de l'Electribe sur les canaux 1 et 2. Les notes sont postées à l'heure du pas, pas à
+  l'heure où l'ordonnanceur les écrit.
+- **Horloge** : les 24 impulsions par noire sont produites par un fil Java dédié, cadencé au `nanoTime`, avec
+  les messages de départ et d'arrêt. La page ne fait que donner le tempo, ce qui évite la gigue des minuteurs
+  JavaScript.
+- **Entrée** : les notes déclenchent les timbres correspondants ; sur l'Electribe elles s'enregistrent au vol
+  si REC est armé, et les notes hors canal de percussions jouent les parties de synthé. Les messages de départ
+  et d'arrêt pilotent le transport.
+- Les réglages sont dans la notice, et le bouton **GLOBAL** de l'Electribe y mène directement.
+
+La permission n'est pas nécessaire : Android ouvre les ports MIDI sans demande d'accès USB. Le manifeste
+déclare `android.software.midi` en option, l'application reste installable sans.
 **Aucun accès réseau, aucun échantillon téléchargé** : la permission `INTERNET` n'est pas
 demandée et la WebView bloque toute requête qui ne vient pas de `file:///android_asset/`.
 L'application fonctionne en mode avion.

@@ -25,7 +25,7 @@ import android.webkit.WebViewClient;
  * L'appareil complet (interface et moteur audio) tient dans assets/drm16.html.
  * Aucune requete reseau n'est autorisee : tout ce qui n'est pas file:///android_asset/ est bloque.
  */
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements Midi.Ecoute {
 
     private static final String PAGE = "file:///android_asset/drm16.html";
 
@@ -34,6 +34,7 @@ public class MainActivity extends Activity {
     private AudioFocusRequest demande;
     private boolean enLecture;
     private boolean permissionDemandee;
+    private Midi midi;
 
     private final AudioManager.OnAudioFocusChangeListener ecouteFocus =
             new AudioManager.OnAudioFocusChangeListener() {
@@ -46,7 +47,7 @@ public class MainActivity extends Activity {
                 }
             };
 
-    /** Appele par la page quand la lecture demarre ou s'arrete. */
+    /** Pont appele depuis la page. */
     public class Pont {
         @JavascriptInterface
         public void playing(final boolean actif) {
@@ -57,6 +58,31 @@ public class MainActivity extends Activity {
                 }
             });
         }
+        @JavascriptInterface public boolean midiDispo() { return midi != null && midi.dispo(); }
+        @JavascriptInterface public String midiListe() { return midi == null ? "" : midi.liste(); }
+        @JavascriptInterface public void midiOuvrir(final int i) {
+            runOnUiThread(new Runnable() { @Override public void run() { if (midi != null) midi.ouvrir(i); } });
+        }
+        @JavascriptInterface public void midiFermer() {
+            runOnUiThread(new Runnable() { @Override public void run() { if (midi != null) midi.fermer(); } });
+        }
+        @JavascriptInterface public void midiEnvoyer(int a, int b, int c) {
+            if (midi != null) midi.envoyer(a, b, c);
+        }
+        @JavascriptInterface public void midiHorloge(boolean on, double bpm) {
+            if (midi == null) return;
+            if (on) midi.horlogeDepart(bpm); else midi.horlogeArret();
+        }
+        @JavascriptInterface public void midiTempo(double bpm) {
+            if (midi != null) midi.tempo(bpm);
+        }
+    }
+
+    /** Message recu d'un appareil MIDI : transmis tel quel a la page. */
+    @Override
+    public void message(int a, int b, int c) {
+        if (web == null) return;
+        web.evaluateJavascript("window.__midi&&__midi(" + a + "," + b + "," + c + ")", null);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -98,6 +124,7 @@ public class MainActivity extends Activity {
             }
         });
 
+        midi = new Midi(this, this);
         web.addJavascriptInterface(new Pont(), "DRM16");
 
         setContentView(web);
@@ -212,6 +239,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         majLecture(false);
+        if (midi != null) midi.fermer();
         web.destroy();
         super.onDestroy();
     }
