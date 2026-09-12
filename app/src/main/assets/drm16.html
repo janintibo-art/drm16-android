@@ -273,6 +273,9 @@ body.em1 #unit{display:none}
 .em-common{display:grid;grid-template-columns:1.15fr 1fr;gap:10px}
 .em-parts{display:flex;gap:5px;margin-top:8px}
 .em-parts .btn{flex:1;padding:14px 2px;font-size:9px}
+.em-parts .btn.mot::after{content:"";position:absolute;left:50%;bottom:4px;width:5px;height:5px;
+  margin-left:-2.5px;border-radius:50%;background:#3dff7a;box-shadow:0 0 6px #3dff7a}
+.em-parts .btn{position:relative}
 .em-sous{font-size:8px;font-weight:700;letter-spacing:1px;color:#c9c6be;text-align:center;margin:3px 0 0}
 .em-grp{font-size:8.5px;font-weight:700;letter-spacing:2px;color:#e7e4dc;text-align:center;margin:6px 0 2px}
 .em-tog{display:flex;flex-direction:column;gap:6px}
@@ -598,9 +601,16 @@ body.em1 #unit{display:none}
   type de roulement, décalage d'un pas, copie et échange de partie, copie de son, effacement, duplication et
   effacement de motif, protection. Clear Motion, Clear Song, Bend Range et Dump attendent les modes
   correspondants.</p>
+  <p><b>MOTION SEQ</b> enregistre le mouvement d'un bouton sur les seize pas de la partie choisie. Le bouton
+  passe de OFF à <b>Smooth</b> puis <b>Trig Hold</b> ; avec REC armé pendant la lecture, tourner LEVEL, PAN,
+  PITCH, EG TIME ou l'un des quatre boutons du filtre écrit la courbe. Smooth glisse d'un pas au suivant,
+  Trig Hold tient la valeur. Un point vert marque les parties qui ont un mouvement, SHIFT + touche 8 l'efface.</p>
+  <p>Le bouton <b>SONG</b> enchaîne les motifs : les seize touches deviennent les positions de la chanson,
+  une touche vide prend le motif courant, la molette change le motif d'une position, ERASE en retire une,
+  SHIFT + touche 13 vide la chanson. La lecture passe au motif suivant à chaque fin de boucle.</p>
   <p>Les onze effets sont en place, pitch shifter et decimator compris — le premier travaille par deux lignes
-  à retard modulées, son résultat est volontairement rugueux. Restent à faire le <b>Motion Seq</b>
-  et le mode <b>Song</b>.</p>
+  à retard modulées, son résultat est volontairement rugueux. Restent les modes STEP EDIT et GLOBAL,
+  le Bend Range et le transfert MIDI, qui n'auraient pas de sens sans port MIDI.</p>
   </div>
   <p>Le rythme continue quand l'application passe en arrière-plan : une notification reste affichée tant que la
   lecture dure, et la touchant ramène au panneau. Le son se coupe de lui-même si un appel ou une autre application
@@ -921,6 +931,7 @@ function tick(){
     MACHINE.schedule(step, nextT);
     nextT += stepDur();
     step = (step+1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
+    if(step === 0 && MACHINE.boucle) MACHINE.boucle();
   }
 }
 function start(){
@@ -1375,12 +1386,13 @@ function nomNote(n){
 /* --- motifs --- */
 function ligneVide(){ return [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]; }
 function motifVide(){
-  var p = {sw:0, len:16, rollN:4, gamme:0, st:[], nt:[], lvl:[], pan:[], pit:[], amp:[], roll:[], fx:[], onde:[]};
+  var p = {sw:0, len:16, rollN:4, gamme:0, mot:[], st:[], nt:[], lvl:[], pan:[], pit:[], amp:[], roll:[], fx:[], onde:[]};
   for(var k=0;k<12;k++){
     p.st.push(ligneVide());
     p.nt.push([36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36]);
     p.lvl.push(0.8); p.pan.push(0); p.pit.push(0);
     p.amp.push(false); p.roll.push(false); p.fx.push(false); p.onde.push(0);
+    p.mot.push(null);
   }
   p.lvl[8]=0.65; p.lvl[9]=0.55; p.onde[9]=1; p.fx[9]=true;
   return p;
@@ -1419,6 +1431,7 @@ var GAMMES = [
 ];
 var EM = {
   kb:false, oct:3, pasSel:-1, protect:false, clip:null, clipSon:null,
+  song:[], spos:0, ssel:0,
   pat: motifUsine(0), slots: [], cur: 0, sel: 0, param: 0, mode: 0,
   rec:false, shift:false, delayEdit:false, motion:false,
   fxType:9, e1:0.5, e2:0.3, dTime:0.25, dDepth:0.0,
@@ -1428,7 +1441,7 @@ var EM = {
 for(var z=0;z<16;z++) EM.slots.push(z<3 ? motifUsine(z) : motifVide());
 
 /* --- sortie d'une partie --- */
-function sortiePartie(k){
+function sortiePartie(k,t){
   if(!EM.noeuds[k]){
     var g = ctx.createGain(), pn = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     var s = ctx.createGain();
@@ -1438,9 +1451,21 @@ function sortiePartie(k){
     EM.noeuds[k] = {g:g, p:pn, s:s};
   }
   var n = EM.noeuds[k];
-  n.g.gain.value = EM.pat.lvl[k];
-  if(n.p) n.p.pan.value = EM.pat.pan[k];
-  n.s.gain.value = EM.pat.fx[k] ? 0.9 : 0;
+  var niv = mv("lvl", EM.pat.lvl[k]), pano = mv("pan", EM.pat.pan[k]);
+  /* les valeurs sont posées à l'heure du pas, pas à l'heure de l'écriture :
+     l'ordonnanceur travaille jusqu'à 1,2 s d'avance */
+  var quand = (t === undefined) ? ctx.currentTime : t;
+  var lisse = !!(MOT && MOT.lisse);
+  n.g.gain.cancelScheduledValues(quand);
+  n.g.gain.setValueAtTime(niv, quand);
+  if(lisse && MOT.p === "lvl") n.g.gain.linearRampToValueAtTime(MOT.suiv, quand + stepDur());
+  if(n.p){
+    n.p.pan.cancelScheduledValues(quand);
+    n.p.pan.setValueAtTime(pano, quand);
+    if(lisse && MOT.p === "pan") n.p.pan.linearRampToValueAtTime(MOT.suiv, quand + stepDur());
+  }
+  n.s.gain.cancelScheduledValues(quand);
+  n.s.gain.setValueAtTime(EM.pat.fx[k] ? 0.9 : 0, quand);
   return n.g;
 }
 function jouerVoix(voix,t,vel,dest){
@@ -1450,17 +1475,20 @@ function jouerVoix(voix,t,vel,dest){
   outMix = om; outBd = ob;
 }
 function voixSynth(t,k,note,vel){
-  var dest = sortiePartie(k);
-  var f0 = 440*Math.pow(2,(note + EM.pat.pit[k]*12 - 69)/12);
+  var dest = sortiePartie(k,t);
+  var cut = mv("cut", EM.cut), res = mv("res", EM.res);
+  var egi = mv("egi", EM.egi), drv = mv("drv", EM.drv);
+  var egt = 0.05 + mv("egT", EM.egT)*0.9;
+  var f0 = 440*Math.pow(2,(note + mv("pit", EM.pat.pit[k])*12 - 69)/12);
   var lp = ctx.createBiquadFilter(); lp.type="lowpass";
-  var base = 90*Math.pow(120, EM.cut);
+  var base = 90*Math.pow(120, cut);
   lp.frequency.setValueAtTime(Math.min(16000, base),t);
-  lp.frequency.linearRampToValueAtTime(Math.min(16000, base*(1+EM.egi*7)), t+0.012);
-  lp.frequency.exponentialRampToValueAtTime(Math.max(80, base), t + 0.05 + EM.egTime()*0.6);
-  lp.Q.value = 0.7 + EM.res*22;
-  var ws = ctx.createWaveShaper(); ws.curve = courbeDist(EM.drv*0.8); ws.oversample="2x";
+  lp.frequency.linearRampToValueAtTime(Math.min(16000, base*(1+egi*7)), t+0.012);
+  lp.frequency.exponentialRampToValueAtTime(Math.max(80, base), t + 0.05 + egt*0.6);
+  lp.Q.value = 0.7 + res*22;
+  var ws = ctx.createWaveShaper(); ws.curve = courbeDist(drv*0.8); ws.oversample="2x";
   var g = ctx.createGain();
-  var dur = EM.pat.amp[k] ? 0.06 + EM.egTime()*1.1 : stepDur()*0.9;
+  var dur = EM.pat.amp[k] ? 0.06 + egt*1.1 : stepDur()*0.9;
   env(g, t, 0.5*vel, Math.max(0.08,dur), 0.004);
   var o1 = ctx.createOscillator(), o2 = ctx.createOscillator();
   o1.type = TYPES_ONDE[EM.pat.onde[k]]; o1.frequency.value = f0;
@@ -1470,6 +1498,28 @@ function voixSynth(t,k,note,vel){
 }
 EM.egTime = function(){ return 0.05 + EM.egT*0.9; };
 EM.egT = 0.35;
+
+/* --- séquence de mouvement --- */
+var MOT = null;
+function mv(champ, defaut){ return (MOT && MOT.p === champ) ? MOT.v : defaut; }
+function motionAu(k,i){
+  var m = EM.pat.mot[k];
+  if(!m || !m.mode || !m.v) return null;
+  var L = EM.pat.len||16, v = m.v[i];
+  if(typeof v !== "number") return null;
+  var suiv = m.v[(i+1)%L];
+  return {p:m.p, v:v, suiv:(typeof suiv==="number"?suiv:v), lisse:m.mode===1};
+}
+function enregMotion(champ, val){
+  var k = EM.sel, m = EM.pat.mot[k];
+  if(!m || !m.mode) return;
+  if(!EM.rec || !S.run || EM.pos < 0){ m.p = champ; return; }
+  if(m.p !== champ || !m.v){
+    m.p = champ; m.v = [];
+    for(var i=0;i<16;i++) m.v.push(val);
+  }
+  m.v[EM.pos] = val;
+}
 
 /* --- séquenceur de l'EM-1 --- */
 function scheduleEm(i,t){
@@ -1481,17 +1531,26 @@ function scheduleEm(i,t){
     var part = EM_PARTS[k];
     var vel = (part.synth ? accS : accD) ? 1 : 0.7;
     var n = p.roll[k] ? (p.rollN||4) : 1, j;
+    MOT = motionAu(k,i);
     for(j=0;j<n;j++){
       var tt = t + j*stepDur()/n;
       if(part.synth) voixSynth(tt,k,p.nt[k][i],vel);
-      else jouerVoix(part.v, tt, vel, sortiePartie(k));
+      else jouerVoix(part.v, tt, vel, sortiePartie(k,tt));
     }
+    MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
 }
 var beatsEls = [], keysEls = [];
 function beatEm(i){
   EM.pos = i;
+  if(EM.mode === 2){
+    for(var q=0;q<16;q++){
+      beatsEls[q].classList.toggle("on", q===EM.spos);
+      keysEls[q].classList.remove("cur");
+    }
+    return;
+  }
   for(var j=0;j<16;j++){
     beatsEls[j].classList.toggle("on", j===i);
     keysEls[j].classList.toggle("cur", j===i);
@@ -1589,7 +1648,7 @@ EM.note = 36;
     EM.sel = k; EM.pasSel = -1;
     var bs = document.querySelectorAll("#em-drums .btn,#em-synth .btn");
     for(var j=0;j<bs.length;j++) bs[j].classList.toggle("on", +bs[j].dataset.k===k);
-    majTouches(); majBascules();
+    majTouches(); majBascules(); majMotionLeds();
     lcd(EM_PARTS[k].t, EM_PARTS[k].nom, true);
     H.cran();
   }
@@ -1613,6 +1672,7 @@ EM.note = 36;
     var b=e.target.closest(".btn"); if(!b) return;
     var i = +b.dataset.i;
     if(EM.shift){ fonctionShift(i); return; }
+    if(EM.mode === 2){ toucheSong(i); return; }
     if(EM.kb){ toucheClavier(i); return; }
     if(EM.protect){ lcd("PRT","PROTECT",true); return; }
     var k = EM.sel, p = EM.pat;
@@ -1629,6 +1689,17 @@ function noteClavier(i){
 }
 function majTouches(){
   var p = EM.pat, k = EM.sel, i;
+  if(EM.mode === 2){
+    for(i=0;i<16;i++){
+      var v = EM.song[i];
+      keysEls[i].textContent = (v===undefined) ? "–" : ("0"+(v+1)).slice(-2);
+      keysEls[i].classList.toggle("act", v!==undefined && i!==EM.spos);
+      keysEls[i].classList.toggle("sel", i===EM.ssel);
+      keysEls[i].classList.toggle("hors", v===undefined);
+      beatsEls[i].classList.toggle("hors", v===undefined);
+    }
+    return;
+  }
   if(EM.kb){
     var courante = (EM.pasSel>=0 && p.st[k][EM.pasSel]) ? p.nt[k][EM.pasSel] : EM.note;
     for(i=0;i<16;i++){
@@ -1647,12 +1718,20 @@ function majTouches(){
     beatsEls[i].classList.toggle("hors", i >= (p.len||16));
   }
 }
+function toucheSong(i){
+  if(EM.protect){ protege(); return; }
+  if(i > EM.song.length){ lcd("---","SONG",true); H.cran(); return; }
+  if(i === EM.song.length) EM.song.push(EM.cur);
+  EM.ssel = i;
+  majTouches(); memEm(); H.cran();
+  lcd(("00"+(EM.song[i]+1)).slice(-3), "SONG "+(i+1), true);
+}
 function toucheClavier(i){
   var k = EM.sel, p = EM.pat, n = noteClavier(i);
   if(!ctx) audioInit();
   busEffets();
   if(EM_PARTS[k].synth) voixSynth(ctx.currentTime+0.01, k, n, 1);
-  else jouerVoix(EM_PARTS[k].v || "bd", ctx.currentTime+0.01, 1, sortiePartie(k));
+  else jouerVoix(EM_PARTS[k].v || "bd", ctx.currentTime+0.01, 1, sortiePartie(k, ctx.currentTime+0.01));
   EM.note = n;
   if(!EM.protect && EM_PARTS[k].synth){
     if(EM.rec && S.run && EM.pos >= 0){
@@ -1713,7 +1792,9 @@ function fonctionShift(i){
                   roll:p.roll[k], fx:p.fx[k], onde:p.onde[k]};
     lcd("CPY", "COPY SOUND", true);
   } else if(i===7){                           /* Clear Motion */
-    lcd("---", "À VENIR", true);
+    if(!ecrit) return protege();
+    p.mot[k] = null; majMotionLeds(); memEm();
+    lcd("CLR", "CLEAR MOTION", true);
   } else if(i===8){                           /* Clear Part */
     if(!ecrit) return protege();
     p.st[k] = ligneVide(); majTouches(); memEm();
@@ -1747,6 +1828,12 @@ function fonctionShift(i){
     EM.pat = motifVide(); EM.slots[EM.cur] = EM.pat;
     majTouches(); majBascules(); majKnobsPartie(); memEm();
     lcd("DEL", "DELETE PATTERN", true);
+  } else if(i===12){                          /* Clear Song */
+    if(!ecrit) return protege();
+    EM.song = []; EM.spos = 0; EM.ssel = 0;
+    if(EM.mode===2) majTouches();
+    memEm();
+    lcd("CLR", "CLEAR SONG", true);
   } else if(i===15){                          /* Protect */
     EM.protect = !EM.protect;
     lcd(EM.protect?"ON":"OFF", "PROTECT", true);
@@ -1763,7 +1850,7 @@ function serialiser(p){
           st:p.st.map(function(l){ return l.join(""); }),
           nt:p.nt.map(function(l){ return l.join(","); }),
           lvl:p.lvl, pan:p.pan, pit:p.pit,
-          amp:p.amp, roll:p.roll, fx:p.fx, onde:p.onde};
+          amp:p.amp, roll:p.roll, fx:p.fx, onde:p.onde, mot:p.mot};
 }
 function deserialiser(o){
   var p = motifVide();
@@ -1772,11 +1859,11 @@ function deserialiser(o){
   p.len = o.len||16; p.rollN = o.rollN||4; p.gamme = o.gamme||0;
   if(o.st) o.st.forEach(function(s,k){ for(var i=0;i<16;i++) p.st[k][i] = s.charAt(i)==="1"?1:0; });
   if(o.nt) o.nt.forEach(function(s,k){ p.nt[k] = s.split(",").map(Number); });
-  ["lvl","pan","pit","amp","roll","fx","onde"].forEach(function(c){ if(o[c]) p[c]=o[c]; });
+  ["lvl","pan","pit","amp","roll","fx","onde","mot"].forEach(function(c){ if(o[c]) p[c]=o[c]; });
   return p;
 }
 function memEm(){
-  memoire.em1 = {cur:EM.cur, fxType:EM.fxType, e1:EM.e1, e2:EM.e2,
+  memoire.em1 = {cur:EM.cur, song:EM.song.slice(), fxType:EM.fxType, e1:EM.e1, e2:EM.e2,
                  dTime:EM.dTime, dDepth:EM.dDepth, cut:EM.cut, res:EM.res, egi:EM.egi,
                  drv:EM.drv, egT:EM.egT, sel:EM.sel,
                  slots:EM.slots.map(serialiser)};
@@ -1787,6 +1874,7 @@ function chargerEm(){
   var m = memoire.em1;
   if(!m) return;
   if(m.slots && m.slots.length===16) EM.slots = m.slots.map(deserialiser);
+  if(m.song && m.song.length) EM.song = m.song.slice();
   ["fxType","e1","e2","dTime","dDepth","cut","res","egi","drv","egT","sel","cur"].forEach(function(c){
     if(typeof m[c] === "number") EM[c] = m[c];
   });
@@ -1838,21 +1926,21 @@ var kEmE2 = knobEm("em-k-e2",{min:0,max:1,get:function(){return EM.delayEdit?EM.
     else { EM.e2=v; construireFx(); lcd(String(Math.round(v*127)),"EDIT 2",true); }
   }});
 knobEm("em-k-cut",{min:0,max:1,get:function(){return EM.cut;},
-  set:function(v){ EM.cut=v; lcd(String(Math.round(v*127)),"CUTOFF",true); }});
+  set:function(v){ EM.cut=v; enregMotion("cut",v); lcd(String(Math.round(v*127)),"CUTOFF",true); }});
 knobEm("em-k-res",{min:0,max:1,get:function(){return EM.res;},
-  set:function(v){ EM.res=v; lcd(String(Math.round(v*127)),"RESONANCE",true); }});
+  set:function(v){ EM.res=v; enregMotion("res",v); lcd(String(Math.round(v*127)),"RESONANCE",true); }});
 knobEm("em-k-egi",{min:0,max:1,get:function(){return EM.egi;},
-  set:function(v){ EM.egi=v; lcd(String(Math.round(v*127)),"EG INT",true); }});
+  set:function(v){ EM.egi=v; enregMotion("egi",v); lcd(String(Math.round(v*127)),"EG INT",true); }});
 knobEm("em-k-drv",{min:0,max:1,get:function(){return EM.drv;},
-  set:function(v){ EM.drv=v; lcd(String(Math.round(v*127)),"DRIVE",true); }});
+  set:function(v){ EM.drv=v; enregMotion("drv",v); lcd(String(Math.round(v*127)),"DRIVE",true); }});
 knobEm("em-k-eg",{min:0,max:1,get:function(){return EM.egT;},
-  set:function(v){ EM.egT=v; lcd(String(Math.round(v*127)),"EG TIME",true); }});
+  set:function(v){ EM.egT=v; enregMotion("egT",v); lcd(String(Math.round(v*127)),"EG TIME",true); }});
 var kEmPit = knobEm("em-k-pit",{min:-1,max:1,get:function(){return EM.pat.pit[EM.sel];},
-  set:function(v){ EM.pat.pit[EM.sel]=v; lcd(String(Math.round(v*12)),"PITCH",true); }});
+  set:function(v){ EM.pat.pit[EM.sel]=v; enregMotion("pit",v); lcd(String(Math.round(v*12)),"PITCH",true); }});
 var kEmLvl = knobEm("em-k-lvl",{min:0,max:1,get:function(){return EM.pat.lvl[EM.sel];},
-  set:function(v){ EM.pat.lvl[EM.sel]=v; lcd(String(Math.round(v*127)),"LEVEL",true); }});
+  set:function(v){ EM.pat.lvl[EM.sel]=v; enregMotion("lvl",v); lcd(String(Math.round(v*127)),"LEVEL",true); }});
 var kEmPan = knobEm("em-k-pan",{min:-1,max:1,get:function(){return EM.pat.pan[EM.sel];},
-  set:function(v){ EM.pat.pan[EM.sel]=v; lcd(v<-0.05?"L"+Math.round(-v*63):(v>0.05?"R"+Math.round(v*63):"CNT"),"PAN",true); }});
+  set:function(v){ EM.pat.pan[EM.sel]=v; enregMotion("pan",v); lcd(v<-0.05?"L"+Math.round(-v*63):(v>0.05?"R"+Math.round(v*63):"CNT"),"PAN",true); }});
 function majKnobsPartie(){ kEmPit.maj(); kEmLvl.maj(); kEmPan.maj(); }
 
 /* --- molette --- */
@@ -1873,6 +1961,12 @@ function majKnobsPartie(){ kEmPit.maj(); kEmLvl.maj(); kEmPan.maj(); }
   el.addEventListener("pointercancel", function(){ st.drag=false; });
   function pas(d){
     var k = EM.sel, p = EM.pat;
+    if(EM.param===0 && EM.mode===2 && EM.song.length){
+      EM.song[EM.ssel] = (EM.song[EM.ssel] + d + 16)%16;
+      majTouches(); memEm();
+      lcd(("00"+(EM.song[EM.ssel]+1)).slice(-3), "SONG "+(EM.ssel+1));
+      H.cran(); return;
+    }
     if(EM.param===0){
       memEm();
       EM.cur = (EM.cur + d + 16)%16;
@@ -1930,7 +2024,41 @@ document.getElementById("em-kb").addEventListener("click", function(){
   H.inter();
 });
 
-["em-motion","em-mseq","em-lock","em-pset"].forEach(function(id){
+function majMotionLeds(){
+  var m = EM.pat.mot[EM.sel];
+  var mode = m ? m.mode||0 : 0;
+  document.getElementById("em-smooth").classList.toggle("on", mode===1);
+  document.getElementById("em-trig").classList.toggle("on", mode===2);
+  document.getElementById("em-mseq").classList.toggle("on", mode!==0);
+  var bs = document.querySelectorAll("#em-drums .btn,#em-synth .btn");
+  for(var j=0;j<bs.length;j++){
+    var mm = EM.pat.mot[+bs[j].dataset.k];
+    bs[j].classList.toggle("mot", !!(mm && mm.mode));
+  }
+}
+document.getElementById("em-mseq").addEventListener("click", function(){
+  var k = EM.sel, m = EM.pat.mot[k];
+  if(!m){ m = EM.pat.mot[k] = {mode:0, p:"lvl", v:null}; }
+  m.mode = (m.mode+1)%3;
+  if(m.mode && !m.v){
+    m.v = [];
+    for(var i=0;i<16;i++) m.v.push(valeurCourante(m.p));
+  }
+  majMotionLeds(); memEm(); H.inter();
+  lcd(m.mode===0?"OFF":(m.mode===1?"SMTH":"HOLD"), "MOTION · "+m.p.toUpperCase(), true);
+});
+function valeurCourante(champ){
+  if(champ==="lvl") return EM.pat.lvl[EM.sel];
+  if(champ==="pan") return EM.pat.pan[EM.sel];
+  if(champ==="pit") return EM.pat.pit[EM.sel];
+  if(champ==="cut") return EM.cut;
+  if(champ==="res") return EM.res;
+  if(champ==="egi") return EM.egi;
+  if(champ==="drv") return EM.drv;
+  return EM.egT;
+}
+
+["em-motion","em-lock","em-pset"].forEach(function(id){
   document.getElementById(id).addEventListener("click", function(){
     lcd("---","À VENIR",true); H.cran();
   });
@@ -1943,6 +2071,14 @@ document.getElementById("em-shift").addEventListener("click", function(){
 });
 document.getElementById("em-erase").addEventListener("click", function(){
   if(EM.protect){ protege(); return; }
+  if(EM.mode === 2){
+    if(EM.song.length){
+      EM.song.splice(EM.ssel,1);
+      EM.ssel = Math.max(0, Math.min(EM.ssel, EM.song.length-1));
+      majTouches(); memEm(); lcd("DEL","SONG",true); H.inter();
+    }
+    return;
+  }
   EM.pat.st[EM.sel] = ligneVide();
   majTouches(); memEm();
   lcd("CLR", EM_PARTS[EM.sel].nom, true);
@@ -1961,7 +2097,16 @@ for(var mb=0;mb<modeBtns.length;mb++){
     var m = +this.dataset.mode;
     for(var j=0;j<modeBtns.length;j++) modeBtns[j].classList.toggle("on", +modeBtns[j].dataset.mode===m);
     EM.mode = m;
-    if(m!==0) lcd("---","À VENIR",true); else majLcd();
+    if(m===2){
+      EM.spos = 0; EM.ssel = 0;
+      if(EM.song.length){ EM.cur = EM.song[0]; EM.pat = EM.slots[EM.cur]; }
+      majTouches(); majBascules(); majKnobsPartie(); majMotionLeds();
+      lcd(EM.song.length ? ("00"+(EM.cur+1)).slice(-3) : "---", "SONG", true);
+    } else if(m===0){
+      majTouches(); majLcd();
+    } else {
+      lcd("---","À VENIR",true);
+    }
     H.cran();
   });
 }
@@ -2011,7 +2156,7 @@ function ecrireVol(k){
   var part = EM_PARTS[k];
   if(!part.accent){
     if(part.synth) voixSynth(ctx.currentTime+0.01, k, EM.note, 1);
-    else jouerVoix(part.v, ctx.currentTime+0.01, 1, sortiePartie(k));
+    else jouerVoix(part.v, ctx.currentTime+0.01, 1, sortiePartie(k, ctx.currentTime+0.01));
   }
   if(EM.rec && S.run && EM.pos >= 0){
     var i = (EM.pos + 1) % 16;
@@ -2026,7 +2171,16 @@ document.getElementById("em-notice").addEventListener("click", function(){
   document.getElementById("note").classList.add("show");
 });
 
-var MACHINE_EM = {schedule:scheduleEm, beat:beatEm, arret:arretEm, longueur:function(){ return EM.pat.len||16; }};
+function boucleEm(){
+  if(EM.mode !== 2 || !EM.song.length) return;
+  EM.spos = (EM.spos+1) % EM.song.length;
+  EM.cur = EM.song[EM.spos];
+  EM.pat = EM.slots[EM.cur];
+  majTouches(); majBascules(); majMotionLeds(); majKnobsPartie();
+  lcd(("00"+(EM.cur+1)).slice(-3), "SONG "+(EM.spos+1), true);
+}
+var MACHINE_EM = {schedule:scheduleEm, beat:beatEm, arret:arretEm, boucle:boucleEm,
+                  longueur:function(){ return EM.pat.len||16; }};
 function activerEm(){
   stop();
   S.modele = "em1";

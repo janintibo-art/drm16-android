@@ -27,7 +27,11 @@ Séquenceur à pas, une autre famille de machine que les deux précédentes.
 - **REC** arme l'enregistrement au vol : pendant la lecture, toucher une partie écrit un pas.
 - La molette règle le paramètre allumé : motif, tempo, forme d'onde, hauteur.
 
-Restent à faire : le Motion Seq et le mode Song.
+- **MOTION SEQ** enregistre le mouvement d'un bouton sur les seize pas d'une partie, en Smooth (glissé)
+  ou Trig Hold (tenu) : niveau, panoramique, hauteur, temps d'enveloppe et les quatre boutons du filtre.
+- **SONG** enchaîne les motifs : seize positions, éditables aux touches et à la molette.
+
+Restent de côté les modes STEP EDIT et GLOBAL, le bend range et le transfert MIDI, sans objet sans port MIDI.
 **Aucun accès réseau, aucun échantillon téléchargé** : la permission `INTERNET` n'est pas
 demandée et la WebView bloque toute requête qui ne vient pas de `file:///android_asset/`.
 L'application fonctionne en mode avion.
