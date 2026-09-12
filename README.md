@@ -154,6 +154,30 @@ qui lisent leur son à la hauteur des notes, deux parties **STRETCH**, une piste
 
 Les trois nouveaux effets profitent aussi à l'EMX-1.
 
+## Qualité sonore
+
+Mesures faites au rendu hors ligne, sinus de 220 Hz traversant la chaîne maîtresse.
+
+**Avant** : le limiteur travaillait à −7 dB avec un rapport de 20 et sans coude, suivi d'une saturation
+permanente. Résultat : **2,6 % de distorsion à niveau normal, 8,4 % un peu plus fort**, et un gain qui
+tombait de 2,07 à 1,03 — tout était écrasé en permanence, d'où un son terne et sans attaques.
+
+**Après** : limiteur à −1,2 dB avec coude, et écrêteur parfaitement droit jusqu'à 0,84 qui n'arrondit que le
+sommet. **0,00 % de distorsion jusqu'à pleine échelle**, gain constant, et moins de 1 % quand on pousse
+volontairement au-delà. Le niveau par défaut est remonté de 0,72 à 0,85, la marge le permet.
+
+Autres corrections :
+
+- **Banque d'échantillons en 44,1 kHz** au lieu de 22 kHz : la bande passante double, les charleys, crashs
+  et shakers retrouvent leur haut du spectre. Les enregistrements au micro passent de 22 à 32 kHz.
+- **Tranches sans claquement** : l'ES-1 posait le gain d'un coup au début et à la fin d'une tranche. Une
+  attaque et une chute de 3 ms suppriment le clic.
+- **Valve Force** : la courbe restait courbée même à gain zéro — l'EMX-1 et l'ESX-1 étaient distordus en
+  permanence. Elle est maintenant parfaitement droite à zéro. Et la dissymétrie, qui n'était qu'un facteur
+  d'échelle, est devenue un **décalage avant la courbe** : les harmoniques **paires** dominent enfin les
+  impaires (17 % contre 8 % à mi-course), ce qui est le comportement d'une lampe.
+- Niveaux des voix de l'ES-1 et de l'ESX-1 revus : plus aucun échantillon saturé sur une mesure dense.
+
 ## MIDI
 
 Le MIDI passe par l'API MIDI d'Android (`android.media.midi`, classe `Midi.java`) plutôt que par le Web MIDI,

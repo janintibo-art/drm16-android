@@ -1972,14 +1972,14 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 var S = {
   modele:"16", power:false, run:false,
   space:false, bank:0, bass:false, haptic:true, bg:true,
-  style:0, col:0, del:0, vol:0.72, bpm:120
+  style:0, col:0, del:0, vol:0.85, bpm:120
 };
 var ctx=null, master=null, noiseBuf=null, outBd=null, outMix=null, panBd=null, panMix=null;
 var MODELE = null;
 
 /* ================= mémoire ================= */
 var MEM = "drm.reglages";
-var memoire = { modele:"16", vol:0.72, bpm:120, haptic:true, bg:true, bass:false,
+var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false,
                 "16":{style:0,col:0,del:0,space:false,bank:0},
                 "32":{style:0,col:0,del:0,space:false,bank:0} };
 (function charger(){
@@ -2132,14 +2132,20 @@ function audioInit(){
   try { ctx = new AC({latencyHint:"playback"}); } catch(e){ ctx = new AC(); }
   master = ctx.createGain();
   master.gain.value = S.vol;
+  /* limiteur de crêtes : il ne travaille qu'en haut, il ne colore pas le reste */
   var lim = ctx.createDynamicsCompressor();
-  lim.threshold.value = -7; lim.knee.value = 0; lim.ratio.value = 20;
-  lim.attack.value = 0.003; lim.release.value = 0.15;
+  lim.threshold.value = -1.2; lim.knee.value = 1.5; lim.ratio.value = 20;
+  lim.attack.value = 0.001; lim.release.value = 0.09;
+  /* écrêteur doux : parfaitement droit jusqu'à 0,84, il n'arrondit que le sommet */
   var sat = ctx.createWaveShaper();
-  var n=1024, c=new Float32Array(n);
-  for(var i=0;i<n;i++){ var x=i*2/n-1; c[i]=Math.tanh(x*1.7)/Math.tanh(1.7); }
-  sat.curve=c; sat.oversample="2x";
-  var hp = ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=28;
+  var n=2048, c=new Float32Array(n), seuil=0.84;
+  for(var i=0;i<n;i++){
+    var x=i*2/n-1, a=Math.abs(x);
+    c[i] = (a<=seuil) ? x
+         : Math.sign(x)*(seuil + (1-seuil)*Math.tanh((a-seuil)/(1-seuil)));
+  }
+  sat.curve=c; sat.oversample="4x";
+  var hp = ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=26;
   master.connect(lim); lim.connect(sat); sat.connect(hp); hp.connect(ctx.destination);
   outBd = ctx.createGain(); outMix = ctx.createGain();
   if(ctx.createStereoPanner){
@@ -5101,7 +5107,7 @@ var ES_BANQUE = ["KICK","SNARE","CLAP","HAT","OPEN HAT","TOM","COWBELL","RIM",
 
 /* --- échantillons de fabrique, calculés point par point --- */
 function genEch(i){
-  var sr = 22050;
+  var sr = 44100;
   var durs = [0.42,0.22,0.20,0.06,0.38,0.32,0.28,0.05,0.26,0.10,0.45,0.55,0.55,0.5,
               0.26,0.17,0.05,0.06,0.10,1.20,1.00,0.30,0.26,0.80];
   var dur = durs[i] || 0.3;
@@ -5140,7 +5146,7 @@ function genEch(i){
     } else if(i===9){                            /* blip */
       x = Math.sin(2*Math.PI*1800*t)*Math.exp(-t*30);
     } else if(i===10){                           /* bruit balayé */
-      y += (0.02 + 0.5*Math.exp(-t*6))*((Math.random()*2-1) - y);
+      y += (0.01 + 0.25*Math.exp(-t*6))*((Math.random()*2-1) - y);
       x = y*Math.exp(-t*4)*1.6;
     } else if(i===11){                           /* stab : accord */
       x = (Math.sin(2*Math.PI*220*t) + Math.sin(2*Math.PI*277*t) + Math.sin(2*Math.PI*330*t))*0.28;
@@ -5149,7 +5155,7 @@ function genEch(i){
     } else if(i===12){                           /* basse */
       f = 55; ph += 2*Math.PI*f/sr;
       x = ((ph/(2*Math.PI))%1*2-1);
-      y += 0.12*(x-y); x = y*Math.exp(-t*3.2)*1.4;
+      y += 0.06*(x-y); x = y*Math.exp(-t*3.2)*1.4;
     } else if(i===14){                           /* kick 2 : plus sec */
       f = 52 + 210*Math.exp(-t*42); ph += 2*Math.PI*f/sr;
       x = Math.sin(ph)*Math.exp(-t*12) + (Math.random()*2-1)*Math.exp(-t*160)*0.35;
@@ -5281,12 +5287,20 @@ function jouerEs(t,k,vel,pas){
   src.playbackRate.value = Math.pow(2, mv("pitch", son.pitch)*2);
   var f = ctx.createBiquadFilter(); f.type="lowpass";
   f.frequency.value = Math.min(18000, 140*Math.pow(120, mv("filt", son.filt)));
-  var g = ctx.createGain(); g.gain.value = vel;
+  var g = ctx.createGain();
+  var duree = son.slice ? (buf.duration/16)/src.playbackRate.value
+                        : buf.duration/src.playbackRate.value;
+  /* petite attaque et petite chute : sans elles, une tranche claque à chaque bout */
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(0.8*vel, t+0.003);
+  g.gain.setValueAtTime(0.8*vel, t+Math.max(0.006, duree-0.006));
+  g.gain.linearRampToValueAtTime(0.0001, t+Math.max(0.008, duree));
   src.connect(f); f.connect(g); g.connect(dest);
   if(son.slice){
     var dc = buf.duration/16;
     src.start(t, (pas%16)*dc, dc*1.08);
   } else src.start(t);
+  src.stop(t + duree + 0.05);
 }
 
 /* --- séquenceur --- */
@@ -5430,7 +5444,7 @@ function chargerEchs(){
   });
 }
 function poserEch(k, buf, quoi){
-  var court = reduireEch(buf, 22050, 6);
+  var court = reduireEch(buf, 32000, 6);
   var id = "u" + Date.now().toString(36);
   ES.buf[id] = court; ES.noms[id] = quoi;
   ES.pat.son[k].ech = id;
@@ -5985,7 +5999,7 @@ function mxAudio(){
   if(MX.tubeIn || !ctx) return;
   busEffets();
   MX.tubeIn = ctx.createGain();
-  MX.tubeNode = ctx.createWaveShaper(); MX.tubeNode.oversample = "2x";
+  MX.tubeNode = ctx.createWaveShaper(); MX.tubeNode.oversample = "4x";
   MX.tubeSortie = ctx.createGain();
   MX.tubeIn.connect(MX.tubeNode); MX.tubeNode.connect(MX.tubeSortie); MX.tubeSortie.connect(master);
   majTube();
@@ -5997,11 +6011,14 @@ function mxAudio(){
   cablerFxMx();
 }
 function courbeLampe(g){
-  var n=1024, c=new Float32Array(n), k=1+g*9;
+  var n=2048, c=new Float32Array(n), k=1+g*9;
   for(var i=0;i<n;i++){
     var x=i*2/n-1;
-    var y = x>=0 ? Math.tanh(x*k) : Math.tanh(x*k*0.72)*0.86;   /* dissymétrie : harmoniques paires */
-    c[i] = y/Math.tanh(k);
+    /* décalage avant la courbe : c'est lui qui engendre les harmoniques paires,
+       comme un tube polarisé asymétriquement */
+    var biais = 0.34*g;
+    var y = (Math.tanh(k*(x + biais)) - Math.tanh(k*biais)) / Math.tanh(k*(1+biais));
+    c[i] = x*(1-g) + y*g;      /* à gain nul la courbe est parfaitement droite */
   }
   return c;
 }
@@ -6993,7 +7010,7 @@ function sxAudio(){
   if(SX.tubeIn || !ctx) return;
   busEffets();
   SX.tubeIn = ctx.createGain();
-  SX.tubeNode = ctx.createWaveShaper(); SX.tubeNode.oversample = "2x";
+  SX.tubeNode = ctx.createWaveShaper(); SX.tubeNode.oversample = "4x";
   SX.tubeSortie = ctx.createGain();
   SX.tubeIn.connect(SX.tubeNode); SX.tubeNode.connect(SX.tubeSortie); SX.tubeSortie.connect(master);
   SX.entrees = []; SX.sorties = []; SX.regFx = [[],[],[]];
@@ -7095,8 +7112,8 @@ function voixSx(t,k,vel,pas,note,duree){
   }
   dur = Math.max(0.04, dur);
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.linearRampToValueAtTime(0.85*vel, t+0.004);
-  g.gain.setValueAtTime(0.85*vel, t+dur*0.85);
+  g.gain.linearRampToValueAtTime(0.62*vel, t+0.004);
+  g.gain.setValueAtTime(0.62*vel, t+dur*0.85);
   g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
 
   var prof = mv("mdepth", son.mdepth);
@@ -7180,8 +7197,8 @@ function voixSxTranche(t,k,vel,pas,L){
   var g = ctx.createGain();
   var dur = stepDur();
   g.gain.setValueAtTime(0.0001,t);
-  g.gain.linearRampToValueAtTime(0.85*vel, t+0.004);
-  g.gain.setValueAtTime(0.85*vel, t+dur*0.9);
+  g.gain.linearRampToValueAtTime(0.62*vel, t+0.004);
+  g.gain.setValueAtTime(0.62*vel, t+dur*0.9);
   g.gain.exponentialRampToValueAtTime(0.0001, t+dur*1.02);
   var lp = ctx.createBiquadFilter(); lp.type="lowpass";
   lp.frequency.value = Math.min(18000, 120*Math.pow(140, mv("cut", son.cut)));
@@ -7734,7 +7751,7 @@ function echantillonnerSx(){
   }).catch(function(){ lcdSx("ERR","MICRO REFUSÉ",true); });
 }
 function poserEchSx(buf, quoi){
-  var court = reduireEch(buf, 22050, 8);
+  var court = reduireEch(buf, 32000, 8);
   var id = "u" + Date.now().toString(36);
   ES.buf[id]=court; ES.noms[id]=quoi;
   SX.pat.son[SX.sel].ech=id;
