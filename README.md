@@ -1,7 +1,7 @@
 # Boîtes à rythmes autonomes pour Android
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
-EA-1, ES-1 et de leurs versions mkII, en application Android. Neuf machines, un menu au lancement. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
+EA-1, ES-1, de leurs versions mkII et de l'EMX-1, en application Android. Dix machines, un menu au lancement. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
 ## Electribe EM-1
@@ -113,6 +113,28 @@ habillage et différences propres. Chaque version garde **ses seize motifs et se
   Les sons enregistrés restent communs aux deux versions, seules les affectations diffèrent.
 
 **PART MUTE** et **SOLO** ont été ajoutés aux deux ES-1, comme sur la sérigraphie.
+
+## Electribe EMX-1
+
+La plus grosse des machines : quatorze parties jouables, trois effets simultanés, un synthé à modèles
+d'oscillateurs et le Valve Force.
+
+- **Neuf parties de percussion** lisant la banque, portée pour l'occasion à **vingt-quatre sons** calculés
+  au lancement, avec vitesse de lecture, niveau, panoramique, enveloppe et roulement.
+- **Cinq parties de synthé** avec **quinze modèles d'oscillateur** : modulation croisée, synchronisation,
+  anneau, unisson, accord, double oscillateur, forme d'onde, VPM à deux opérateurs, mise en forme d'onde,
+  additif (onde périodique construite harmonique par harmonique), peigne, formants, bruit, PCM+peigne,
+  PCM+mise en forme. OSC EDIT 1 et 2 règlent les deux paramètres propres à chaque modèle.
+- **Filtre** à quatre types (LPF, HPF, BPF, BPF+) avec enveloppe et saturation.
+- **Modulation** assignable : oscillateur lent vers la hauteur, les réglages d'oscillateur, la coupure,
+  le volume ou le panoramique, cinq formes, synchronisation au tempo.
+- **Trois effets** en parallèle ou en série (FX CHAIN) ; chaque partie choisit le sien.
+- **Valve Force** : le TUBE GAIN pousse le mélange dans une saturation **dissymétrique**, qui engendre des
+  harmoniques paires — la couleur des lampes. Les deux lampes de la fenêtre s'allument avec le réglage.
+- **Arpégiateur** au ruban, clavier sur les seize touches, six gammes, mode Song, Motion Seq, mute et solo.
+
+Pour l'occasion, le constructeur d'effets a été rendu réutilisable : le même code sert maintenant à l'effet
+unique des autres Electribe et aux trois chaînes de l'EMX-1.
 
 ## MIDI
 
