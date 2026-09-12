@@ -272,6 +272,22 @@ Permissions déclarées : `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBA
 (demandée au premier départ sur Android 13 et suivants, uniquement pour afficher la notification) et `VIBRATE`.
 Toujours pas d'`INTERNET`.
 
+## Contenu du dépôt
+
+```
+drm16_android/
+  app/src/main/assets/drm16.html      toute l'application : onze façades, moteur audio, séquenceurs
+  app/src/main/java/fr/tibo/drm16/
+    MainActivity.java                 WebView, pont JavaScript, micro, fichiers, stockage des échantillons
+    Midi.java                         API MIDI d'Android : entrée, sortie, horloge
+    PlaybackService.java              service de premier plan pour la lecture en arrière-plan
+  app/src/main/AndroidManifest.xml
+  app/src/main/res/                   icône de lancement (vectorielle)
+  app/build.gradle, build.gradle, settings.gradle, gradle.properties
+  .github/workflows/android.yml       compilation de l'APK à chaque envoi
+  premier-depot.sh, suivi.sh, recup-apk.sh
+```
+
 ## Compilation
 
 `.github/workflows/android.yml` compile l'APK de debug à chaque envoi sur `main`, puis
