@@ -1,7 +1,7 @@
 # Boîtes à rythmes autonomes pour Android
 
-Recréation des Electro-Harmonix DRM-16 (model 01), DRM-32 (model 03) et des Korg Electribe EM-1, ER-1 et EA-1
-en application Android. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
+Recréation des Electro-Harmonix DRM-16 (model 01), DRM-32 (model 03) et des Korg Electribe EM-1, ER-1, EA-1
+et ES-1 en application Android. Six machines, un menu au lancement. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
 ## Electribe EM-1
@@ -75,6 +75,29 @@ L'entrée audio de l'appareil d'origine n'a pas d'équivalent : le téléphone n
   préréglés dans la partie choisie.
 
 Un préréglage n'est qu'un point de départ : les boutons restent libres, et le choix est enregistré avec le motif.
+
+## Electribe ES-1
+
+Échantillonneur : neuf parties tenant chacune un son, plus une piste d'accent.
+
+**Trois sources d'échantillons**, toutes vers la partie choisie.
+
+1. **SAMPLING** — enregistrement au micro du téléphone, six secondes au maximum. Permission `RECORD_AUDIO`
+   demandée au premier essai côté Android, et `WebChromeClient.onPermissionRequest` accorde la capture audio
+   à la page. Passe par `MediaRecorder` puis `decodeAudioData`.
+2. **IMPORT** — un `<input type="file">` que `WebChromeClient.onShowFileChooser` relie au sélecteur du système ;
+   n'importe quel format lisible par le téléphone est décodé.
+3. **Banque interne** — quatorze sons calculés point par point au lancement (grosse caisse, caisse claire,
+   clap, charleys, tom, cowbell, rim, zap, blip, bruit, stab, basse, voix). Aucun fichier audio dans l'APK.
+
+Les sons enregistrés sont ramenés en mono 22 kHz, normalisés, encodés en WAV et écrits dans le dossier privé
+de l'application par le pont Java (`echSauver` / `echCharger` / `echListe` / `echSupprimer`) : ils reviennent au
+lancement suivant. La mémoire du navigateur n'aurait pas tenu la charge.
+
+Par partie : **PITCH/SPEED** (vitesse de lecture), **FILTER**, **LEVEL**, **PAN**, **REVERSE**, **ROLL**,
+**EFFECT**, et **SLICE** qui découpe le son en seize tranches jouées une par pas. Les onze effets et le délai
+sont communs aux Electribe, avec **BPM SYNC**. SHIFT donne aussi **Normalize**, **Truncate**, **Time Slice** et
+**Delete Sample**. Le lecteur de carte SmartMedia n'a pas d'équivalent.
 
 ## MIDI
 

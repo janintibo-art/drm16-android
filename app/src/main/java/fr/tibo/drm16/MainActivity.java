@@ -13,12 +13,23 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.net.Uri;
+import android.util.Base64;
 import android.webkit.JavascriptInterface;
+import android.webkit.PermissionRequest;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * DRM16 : recreation autonome.
@@ -35,6 +46,8 @@ public class MainActivity extends Activity implements Midi.Ecoute {
     private boolean enLecture;
     private boolean permissionDemandee;
     private Midi midi;
+    private ValueCallback<Uri[]> retourFichier;
+    private static final int REQ_FICHIER = 7, REQ_MICRO = 8;
 
     private final AudioManager.OnAudioFocusChangeListener ecouteFocus =
             new AudioManager.OnAudioFocusChangeListener() {
@@ -76,6 +89,62 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         @JavascriptInterface public void midiTempo(double bpm) {
             if (midi != null) midi.tempo(bpm);
         }
+
+        /** Autorisation du micro : demande si besoin, renvoie l'etat courant. */
+        @JavascriptInterface public boolean micro() {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true;
+            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO)
+                    == PackageManager.PERMISSION_GRANTED) return true;
+            runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    try { requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_MICRO); }
+                    catch (Exception ignored) {}
+                }
+            });
+            return false;
+        }
+
+        /** Echantillons de l'utilisateur, ecrits dans le dossier prive de l'application. */
+        @JavascriptInterface public boolean echSauver(String nom, String b64) {
+            try {
+                File d = new File(getFilesDir(), "ech");
+                if (!d.exists() && !d.mkdirs()) return false;
+                byte[] o = Base64.decode(b64, Base64.DEFAULT);
+                FileOutputStream f = new FileOutputStream(new File(d, propre(nom) + ".wav"));
+                f.write(o); f.close();
+                return true;
+            } catch (Exception e) { return false; }
+        }
+        @JavascriptInterface public String echCharger(String nom) {
+            try {
+                File f = new File(new File(getFilesDir(), "ech"), propre(nom) + ".wav");
+                if (!f.exists()) return "";
+                byte[] o = new byte[(int) f.length()];
+                FileInputStream in = new FileInputStream(f);
+                int lu = in.read(o); in.close();
+                if (lu <= 0) return "";
+                return Base64.encodeToString(o, Base64.NO_WRAP);
+            } catch (Exception e) { return ""; }
+        }
+        @JavascriptInterface public String echListe() {
+            File d = new File(getFilesDir(), "ech");
+            String[] l = d.list();
+            if (l == null) return "";
+            StringBuilder sb = new StringBuilder();
+            for (String n : l) {
+                if (!n.endsWith(".wav")) continue;
+                if (sb.length() > 0) sb.append("\n");
+                sb.append(n.substring(0, n.length() - 4));
+            }
+            return sb.toString();
+        }
+        @JavascriptInterface public void echSupprimer(String nom) {
+            try { new File(new File(getFilesDir(), "ech"), propre(nom) + ".wav").delete(); } catch (Exception ignored) {}
+        }
+    }
+
+    private String propre(String n) {
+        return n == null ? "x" : n.replaceAll("[^A-Za-z0-9_-]", "_");
     }
 
     /** Message recu d'un appareil MIDI : transmis tel quel a la page. */
@@ -125,6 +194,34 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         });
 
         midi = new Midi(this, this);
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onPermissionRequest(final PermissionRequest demande) {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        List<String> ok = new ArrayList<>();
+                        for (String r : demande.getResources()) {
+                            if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r)) ok.add(r);
+                        }
+                        if (ok.isEmpty()) demande.deny();
+                        else demande.grant(ok.toArray(new String[0]));
+                    }
+                });
+            }
+            @Override
+            public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams params) {
+                if (retourFichier != null) retourFichier.onReceiveValue(null);
+                retourFichier = cb;
+                try {
+                    startActivityForResult(params.createIntent(), REQ_FICHIER);
+                } catch (Exception e) {
+                    retourFichier = null;
+                    return false;
+                }
+                return true;
+            }
+        });
+
         web.addJavascriptInterface(new Pont(), "DRM16");
 
         setContentView(web);
@@ -211,6 +308,18 @@ public class MainActivity extends Activity implements Midi.Ecoute {
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    }
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        if (req == REQ_FICHIER) {
+            if (retourFichier != null) {
+                retourFichier.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(res, data));
+                retourFichier = null;
+            }
+            return;
+        }
+        super.onActivityResult(req, res, data);
     }
 
     @Override
