@@ -1,7 +1,8 @@
 # Boîtes à rythmes autonomes pour Android
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
-EA-1, ES-1, de leurs versions mkII et de l'EMX-1, en application Android. Dix machines, un menu au lancement. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
+EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
+**Onze machines**, un menu au lancement. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
 ## Electribe EM-1
@@ -135,6 +136,23 @@ d'oscillateurs et le Valve Force.
 
 Pour l'occasion, le constructeur d'effets a été rendu réutilisable : le même code sert maintenant à l'effet
 unique des autres Electribe et aux trois chaînes de l'EMX-1.
+
+## Electribe ESX-1
+
+L'EMX-1 avec l'échantillonnage. Quatorze parties : neuf parties de percussion, deux parties **KEYBOARD**
+qui lisent leur son à la hauteur des notes, deux parties **STRETCH**, une piste d'accent.
+
+- **Sources d'échantillons** : les trois de l'ES-1, et la mémoire est partagée avec elle — micro (huit
+  secondes), import de fichier, banque de vingt-quatre sons.
+- **STRETCH** découpe l'échantillon en autant de tranches qu'il y a de pas et en joue une par pas : la boucle
+  suit le tempo **sans que la hauteur bouge**, puisque c'est la position qui avance et non la vitesse de
+  lecture. **SLICE** fait la même chose sur une partie de percussion.
+- Par partie : hauteur, point de départ, niveau, panoramique, enveloppe, lecture à l'envers, roulement,
+  filtre à quatre types, modulation assignable à la hauteur, la coupure, le volume ou le panoramique.
+- **Seize effets** — les treize précédents plus talking mod, égaliseur trois bandes et grain shifter —
+  sur trois chaînes simultanées, en parallèle ou en série, plus le Valve Force.
+
+Les trois nouveaux effets profitent aussi à l'EMX-1.
 
 ## MIDI
 
