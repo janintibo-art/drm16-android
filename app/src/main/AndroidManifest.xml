@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
-        android:label="DRM16"
+        android:label="DRM16 / 32"
         android:icon="@mipmap/ic_launcher"
         android:hardwareAccelerated="true"
         android:hasFragileUserData="false"

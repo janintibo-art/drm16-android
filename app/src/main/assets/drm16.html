@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DRM16</title>
+<title>DRM</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 html,body{margin:0;height:100%;background:#0b0b0c;overflow:hidden;
@@ -12,7 +12,23 @@ html,body{margin:0;height:100%;background:#0b0b0c;overflow:hidden;
 *{scrollbar-width:none}
 body{display:flex;align-items:center;justify-content:center;padding:6px}
 
-/* ---------- chassis metal brossé ---------- */
+/* ---------- palette : DRM16 par défaut ---------- */
+body{
+  --accent:#ee4d1e; --accent-bas:#7d1f04;
+  --pan1:#26221f; --pan2:#0c0b0a; --pan3:#151312;
+  --mat:#d8431a; --cell:#c33a14; --cell-b:#c33a14; --cell-txt:#fff6ec;
+  --head-bg:transparent; --head-txt:#fff6ec;
+  --led:#bfe9ff; --led-halo:#7fd4ff;
+}
+body.m32{
+  --accent:#13b9a2; --accent-bas:#06564a;
+  --pan1:#2b3542; --pan2:#0d131a; --pan3:#18202a;
+  --mat:#141b23; --cell:#13b9a2; --cell-b:#d9c02b; --cell-txt:#ffffff;
+  --head-bg:#cdd0ca; --head-txt:#141a21;
+  --led:#ff6a55; --led-halo:#ff3b20;
+}
+
+/* ---------- châssis metal brossé ---------- */
 .unit{width:100%;max-width:1040px;overflow:hidden;border-radius:8px;padding:26px 14px 14px;
   background:
     repeating-linear-gradient(90deg,rgba(255,255,255,.10) 0 1px,rgba(0,0,0,.07) 1px 3px),
@@ -22,7 +38,7 @@ body{display:flex;align-items:center;justify-content:center;padding:6px}
 .unit::after{content:"";position:absolute;inset:0;border-radius:8px;pointer-events:none;
   box-shadow:inset 0 0 34px rgba(0,0,0,.28)}
 
-/* ---------- rangée du haut : interrupteurs et jacks ---------- */
+/* ---------- rangée du haut ---------- */
 .top{display:flex;align-items:flex-end;gap:4px;margin:-12px 4px 8px;position:relative;z-index:2;min-width:0}
 .top .slot{flex:1 1 0;min-width:0;overflow:hidden;text-align:center}
 .top .cap{display:block;font-size:11px;font-weight:700;letter-spacing:1.6px;color:#2a2723;
@@ -32,49 +48,59 @@ body{display:flex;align-items:center;justify-content:center;padding:6px}
 .toggle b{position:absolute;left:3px;right:3px;top:3px;height:13px;border-radius:3px;
   background:linear-gradient(180deg,#6b6b6e,#2b2b2d);transition:top .12s}
 .toggle.on b{top:18px}
-.slot.on .jack{box-shadow:0 0 0 2px #e8481c,0 0 12px #e8481c90,0 2px 4px #0007,inset 0 1px 1px #fff5}
+.slot.on .jack{box-shadow:0 0 0 2px var(--accent),0 0 12px var(--accent),0 2px 4px #0007,inset 0 1px 1px #fff5}
 .slot.on .cap{color:#8f2c0c}
+body.m32 .slot.on .cap{color:#0b5d51}
 .jack{width:26px;height:26px;margin:0 auto 3px;border-radius:50%;
   background:radial-gradient(circle at 38% 32%,#dcd8cc,#8d8a80 58%,#4a483f 72%,#15140f 76%,#2b2924 100%);
   box-shadow:0 2px 4px #0007,inset 0 1px 1px #fff5}
+body.m32 #cap-right{background:#e6cd39;color:#0b6d5f;padding:1px 6px;border-radius:2px;text-shadow:none}
 
 /* ---------- grille des panneaux ---------- */
 .grid{display:grid;gap:10px;grid-template-columns:1fr 1fr}
-.pan{background:linear-gradient(150deg,#26221f,#0c0b0a 55%,#151312);border-radius:7px;padding:12px;
+.pan{background:linear-gradient(150deg,var(--pan1),var(--pan2) 55%,var(--pan3));border-radius:7px;padding:12px;
   box-shadow:inset 0 1px 0 #ffffff1a,0 3px 8px #0009;position:relative}
 .lbl{font-size:15px;font-weight:700;letter-spacing:3px;color:#e9e4d8;text-shadow:0 1px 2px #000}
 
-/* logo */
 #p-logo{display:flex;flex-direction:column;justify-content:center;padding:16px 18px}
-.logo{font:900 60px/0.9 "Arial Black",Impact,sans-serif;letter-spacing:2px;color:#ee4d1e;
-  text-shadow:0 2px 0 #7d1f04,0 0 18px #ee4d1e40}
-.logo small{display:block;font:700 17px/1.4 "Arial Narrow",Arial;letter-spacing:3.4px;color:#f0ede3;text-shadow:none}
+.logo{font:900 60px/0.9 "Arial Black",Impact,sans-serif;letter-spacing:2px;color:var(--accent);
+  text-shadow:0 2px 0 var(--accent-bas)}
+.logo small{display:block;font:700 17px/1.4 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:3.4px;color:#f0ede3;text-shadow:none}
 
-/* matrice orange */
-#p-matrix{background:#d8431a;padding:7px;border-radius:6px;
+/* ---------- matrice ---------- */
+#p-matrix{background:var(--mat);padding:7px;border-radius:6px;
   box-shadow:inset 0 0 0 1px #00000030,0 3px 8px #0009}
 table{width:100%;border-collapse:separate;border-spacing:3px;table-layout:fixed}
-td,th{text-align:center;font-weight:700;color:#fff6ec;font-size:13px;letter-spacing:1.5px;padding:7px 2px;
+td,th{text-align:center;font-weight:700;color:var(--cell-txt);font-size:13px;letter-spacing:1.5px;padding:7px 2px;
   text-shadow:0 1px 1px #00000060}
-th{font-size:13px;padding:2px;letter-spacing:2px}
-td.row{text-align:left;padding-left:6px;letter-spacing:2px}
-td.cell{background:#c33a14;border-radius:3px;box-shadow:inset 0 0 0 1px #ffffff18;transition:background .12s,box-shadow .12s}
+th{font-size:13px;padding:2px;letter-spacing:2px;background:var(--head-bg);color:var(--head-txt);border-radius:3px}
+td.row{text-align:left;padding-left:6px;letter-spacing:2px;background:var(--head-bg);color:var(--head-txt);
+  border-radius:3px}
+td.cell{background:var(--cell);border-radius:3px;box-shadow:inset 0 0 0 1px #ffffff18;
+  transition:background .12s,box-shadow .12s}
+body.m32 td.cell{background:linear-gradient(90deg,var(--cell) 0 61%,#d9c02b55 61%)}
+body.m32.bank-b td.cell{background:linear-gradient(90deg,#13b9a255 0 61%,var(--cell-b) 61%)}
 td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14px #ffb08a80}
+body.m32 td.cell.on,body.m32.bank-b td.cell.on{
+  background:#f4fbf9;color:#0a6f60;box-shadow:0 0 0 2px #bdeee4,0 0 14px #7fe0cd80}
 
-/* pied : footswitch */
+/* ---------- pied ---------- */
 #p-foot{display:flex;align-items:center;gap:14px;padding:14px 16px}
 .fsw{width:74px;height:74px;border-radius:50%;flex:none;
   background:radial-gradient(circle at 36% 30%,#fbfbfa,#bdbcb6 45%,#75746e 70%,#3a3a36);
   box-shadow:0 5px 10px #000a,inset 0 2px 4px #fff9;transition:transform .06s,box-shadow .06s}
 .fsw:active,.fsw.down{transform:translateY(3px);box-shadow:0 2px 4px #000a,inset 0 2px 5px #0006}
 .brand{margin-left:auto;text-align:right;padding-right:78px;min-width:0}
-.brand .eh{font:700 19px/1.2 "Arial Narrow",Arial;letter-spacing:2.4px;color:#efece2}
-.brand .made{font:700 10px/1.6 "Arial Narrow",Arial;letter-spacing:2px;color:#cfcabd}
+.brand .eh{font:700 19px/1.2 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:2.4px;color:#efece2}
+.brand .made{font:700 10px/1.6 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:2px;color:#cfcabd}
 .model{position:absolute;right:12px;top:6px;display:flex;align-items:flex-end;gap:4px}
-.model i{font:700 10px/1 Arial;letter-spacing:2px;color:#ee4d1e;writing-mode:vertical-rl;transform:rotate(180deg)}
-.model b{font:900 46px/0.85 "Arial Black",Impact,sans-serif;color:#ee4d1e;text-shadow:0 2px 0 #7d1f04}
+.model i{font:700 10px/1 Arial;letter-spacing:2px;color:var(--accent);writing-mode:vertical-rl;
+  transform:rotate(180deg)}
+.model b{font:900 46px/0.85 "Arial Black",Impact,sans-serif;color:var(--accent);
+  text-shadow:0 2px 0 var(--accent-bas)}
 
-/* boutons rotatifs */
+/* ---------- boutons rotatifs ---------- */
 .knobs{display:flex;align-items:center;justify-content:space-around;gap:10px}
 .kwrap{text-align:center;touch-action:none}
 .knob{width:82px;height:82px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;cursor:grab;
@@ -89,43 +115,62 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
 .ticks s{position:absolute;left:50%;top:0;width:2px;height:7px;margin-left:-1px;background:#cfcabd99;
   transform-origin:50% 50px;text-decoration:none}
 
-/* boutons à crans + libellés */
 .sel{display:flex;align-items:center;gap:10px}
 .sel .opts{flex:1;display:flex;flex-direction:column;gap:5px}
 .sel .opts span{font-size:12.5px;font-weight:700;letter-spacing:1.8px;color:#8e897c;text-align:right;
   transition:color .12s,text-shadow .12s;white-space:nowrap}
 .sel .opts span.on{color:#fff5e8;text-shadow:0 0 9px #ffb98a90}
 .sel .opts span.hit{color:#ffd9c0;text-shadow:0 0 14px #ff9a5e}
+body.m32 .sel .opts span.on{color:#eafffb;text-shadow:0 0 9px #7fe0cd}
+body.m32 .sel .opts span.hit{color:#c8fff3;text-shadow:0 0 14px #35e6c8}
 .sel.left .opts span{text-align:left}
 .row-opts{display:flex;justify-content:center;gap:9px;margin-bottom:5px}
 .row-opts span{font-size:12.5px;font-weight:700;letter-spacing:1.6px;color:#8e897c}
 .row-opts span.on{color:#fff5e8;text-shadow:0 0 9px #ffb98a90}
+body.m32 .row-opts span.on{color:#eafffb;text-shadow:0 0 9px #7fe0cd}
 
-/* LED + lecture */
 .led{width:15px;height:15px;border-radius:50%;background:#1d2a33;margin:0 auto 4px;
   box-shadow:inset 0 1px 2px #000c;transition:background .05s,box-shadow .05s}
-.led.on{background:#bfe9ff;box-shadow:0 0 13px #7fd4ff,0 0 26px #4bb8ff80}
+.led.on{background:var(--led);box-shadow:0 0 13px var(--led-halo),0 0 26px var(--led-halo)}
 .led.beat{background:#ffb48a;box-shadow:0 0 13px #ff8a4b,0 0 26px #ff6a2a80}
+body.m32 .led.beat{background:#fff0a8;box-shadow:0 0 13px #ffd84b,0 0 26px #ffc02a80}
 
-/* valeur tempo/volume discrète */
 .read{position:absolute;left:12px;top:8px;font:700 12px/1 Arial;letter-spacing:2px;color:#ffbb92;
   opacity:0;transition:opacity .25s}
+body.m32 .read{color:#8fe8d8}
 .read.show{opacity:1}
 
-/* voyant hors tension */
 .off .grid{filter:brightness(.62) saturate(.55)}
 .off .led.on,.off .led.beat{background:#1d2a33;box-shadow:inset 0 1px 2px #000c}
 
-/* note */
+/* ---------- notice ---------- */
 #note{position:fixed;inset:0;background:#000000e8;color:#e7e3d8;padding:26px;overflow:auto;display:none;
   font:14px/1.6 system-ui;z-index:9}
 #note.show{display:block}
-#note h2{color:#ee4d1e;letter-spacing:2px;margin:0 0 10px}
+#note h2{color:var(--accent);letter-spacing:2px;margin:0 0 10px}
 #note b{color:#fff}
-#note button{margin-top:18px;padding:12px 22px;border:0;border-radius:6px;background:#ee4d1e;color:#140f0c;
+#note button{margin-top:18px;padding:12px 22px;border:0;border-radius:6px;background:var(--accent);color:#140f0c;
   font-weight:800;letter-spacing:1px;font-size:15px}
 #note button.sec{background:#33302b;color:#f0ece2;margin-top:6px}
 #note button[disabled]{opacity:.5}
+
+/* ---------- menu de choix du modèle ---------- */
+#menu{position:fixed;inset:0;z-index:12;background:#0b0b0c;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;padding:24px}
+#menu.hide{display:none}
+#menu h1{margin:0 0 6px;font:700 15px/1.4 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:5px;
+  color:#8b867c;text-align:center}
+.pick{width:100%;max-width:420px;border:0;border-radius:10px;padding:20px 22px;text-align:left;
+  background:linear-gradient(150deg,#26221f,#0c0b0a 55%,#151312);
+  box-shadow:inset 0 1px 0 #ffffff1a,0 6px 16px #000a;color:#f0ede3;display:block}
+.pick b{display:block;font:900 46px/0.95 "Arial Black",Impact,sans-serif;letter-spacing:1px;color:#ee4d1e;
+  text-shadow:0 2px 0 #7d1f04}
+.pick span{display:block;margin-top:6px;font:700 12px/1.5 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:2.4px;color:#b7b1a6}
+.pick.p32{background:linear-gradient(150deg,#2b3542,#0d131a 55%,#18202a)}
+.pick.p32 b{color:#13b9a2;text-shadow:0 2px 0 #06564a}
+.pick.p32 span{color:#9fb0ae}
+.pick:active{transform:translateY(2px)}
 
 @media (max-height:560px){
   .unit{padding:18px 10px 4px}
@@ -147,6 +192,7 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
   .toggle{width:16px;height:26px} .toggle b{height:10px} .toggle.on b{top:13px}
   .jack{width:20px;height:20px}
   .top .cap{font-size:9px;letter-spacing:1px}
+  #menu{gap:10px} .pick{padding:14px 18px} .pick b{font-size:34px}
 }
 @media (max-width:700px){
   .grid{grid-template-columns:1fr}
@@ -179,16 +225,16 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
   <div class="top">
     <div class="slot"><div class="toggle" id="sw-power"><b></b></div><span class="cap">POWER · ON</span></div>
     <div class="slot"><div class="jack"></div><span class="cap">OUTPUT 1</span></div>
-    <div class="slot"><div class="jack"></div><span class="cap">OUTPUT 2</span></div>
+    <div class="slot"><div class="jack"></div><span class="cap" id="cap-out2">OUTPUT 2</span></div>
     <div class="slot" id="bass-out"><div class="jack"></div><span class="cap">BASS OUT</span></div>
-    <div class="slot"><div class="toggle" id="sw-space"><b></b></div><span class="cap">SPACE DRUM · ON</span></div>
+    <div class="slot"><div class="toggle" id="sw-right"><b></b></div><span class="cap" id="cap-right">SPACE DRUM · ON</span></div>
   </div>
 
   <div class="grid">
 
     <div class="pan" id="p-logo">
       <div class="led" id="led-power"></div>
-      <div class="logo">DRM16<small>DIGITAL RHYTHM MATRIX</small></div>
+      <div class="logo" id="logo">DRM16<small>DIGITAL RHYTHM MATRIX</small></div>
     </div>
 
     <div class="pan" id="p-vt">
@@ -205,7 +251,7 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
         <tr><td class="row">FUNK</td><td class="cell" data-s="0" data-c="0">1</td><td class="cell" data-s="0" data-c="1">2</td><td class="cell" data-s="0" data-c="2">3</td><td class="cell" data-s="0" data-c="3">4</td></tr>
         <tr><td class="row">DISCO</td><td class="cell" data-s="1" data-c="0">1</td><td class="cell" data-s="1" data-c="1">2</td><td class="cell" data-s="1" data-c="2">3</td><td class="cell" data-s="1" data-c="3">4</td></tr>
         <tr><td class="row">ROCK</td><td class="cell" data-s="2" data-c="0">HARD</td><td class="cell" data-s="2" data-c="1">BOOGIE</td><td class="cell" data-s="2" data-c="2">SOFT</td><td class="cell" data-s="2" data-c="3">SLOW</td></tr>
-        <tr><td class="row">MISC</td><td class="cell" data-s="3" data-c="0">LATIN</td><td class="cell" data-s="3" data-c="1">REGGAE</td><td class="cell" data-s="3" data-c="2">CNTRY</td><td class="cell" data-s="3" data-c="3">SHUFFLE</td></tr>
+        <tr><td class="row">MISC</td><td class="cell" data-s="3" data-c="0">LATIN</td><td class="cell" data-s="3" data-c="1">REGGAE</td><td class="cell" data-s="3" data-c="2">CNTRY</td><td class="cell" id="misc4" data-s="3" data-c="3">SHUFFLE</td></tr>
       </table>
     </div>
 
@@ -220,7 +266,7 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
 
     <div class="pan" id="p-foot">
       <div class="fsw" id="fsw"></div>
-      <div class="model"><i>MODEL</i><b>01</b></div>
+      <div class="model"><i>MODEL</i><b id="model-num">01</b></div>
       <div class="brand"><div class="eh">ELECTRO ⊟ HARMONIX</div><div class="made">MADE IN NEW YORK CITY, U.S.A.</div></div>
     </div>
 
@@ -238,68 +284,89 @@ td.cell.on{background:#fff1e3;color:#a8300f;box-shadow:0 0 0 2px #ffd9c4,0 0 14p
   </div>
 </div>
 
+<div id="menu">
+  <h1>ELECTRO ⊟ HARMONIX · DIGITAL RHYTHM MATRIX</h1>
+  <button class="pick p16" data-m="16"><b>DRM16</b><span>MODEL 01 · 16 RYTHMES · SPACE DRUM COMMUTABLE</span></button>
+  <button class="pick p32" data-m="32"><b>DRM32</b><span>MODEL 03 · 32 RYTHMES · SÉLECTION A / B</span></button>
+</div>
+
 <div id="note">
-  <h2>DRM16 — recréation autonome</h2>
+  <h2 id="note-titre">DRM16 — recréation autonome</h2>
   <p>Application <b>entièrement hors ligne</b> : aucun accès réseau, aucun échantillon téléchargé.
-  Les seize rythmes et les neuf timbres sont <b>synthétisés en temps réel</b> par le moteur audio de l'application.</p>
+  Les rythmes et les neuf timbres sont <b>synthétisés en temps réel</b> par le moteur audio de l'application.</p>
   <p><b>POWER</b> met l'appareil sous tension (et débloque le son sur Android).
   <b>Pédale</b> : départ / arrêt. <b>STYLE</b> et <b>COLUMN</b> choisissent une case de la matrice ; la case peut aussi
-  être touchée directement. <b>DELETE</b> retire un timbre du rythme : wood block, cymbale longue ou cymbale courte —
-  et toucher le nom d'un de ces trois timbres le joue seul, même s'il est retiré.
-  <b>SPACE DRUM · ON</b> ajoute les accents de space drum. <b>BASS OUT</b> : toucher le jack envoie la grosse caisse
-  à droite et le reste à gauche, comme la sortie séparée de l'appareil d'origine.
+  être touchée directement. <b>DELETE</b> retire un timbre du rythme, et toucher le nom d'un timbre dans cette liste
+  le joue seul, même s'il est retiré.
   <b>VOLUME</b> et <b>TEMPO</b> se règlent en glissant le doigt verticalement sur le bouton ; une série d'appuis brefs
-  sur TEMPO bat la mesure. Tous les réglages sont retenus jusqu'au prochain lancement.</p>
+  sur TEMPO bat la mesure. <b>BASS OUT</b> : toucher le jack envoie la grosse caisse à droite et le reste à gauche.
+  Tous les réglages sont retenus, séparément pour chaque modèle.</p>
+  <p id="note-modele"></p>
   <p>Le rythme continue quand l'application passe en arrière-plan : une notification reste affichée tant que la
   lecture dure, et la touchant ramène au panneau. Le son se coupe de lui-même si un appel ou une autre application
-  prend la main. Cette option se désactive ci-dessous, la lecture s'arrête alors dès que l'application est quittée.</p>
+  prend la main.</p>
   <p>Chaque commande donne une courte vibration : un cran pour les boutons et les cases, une impulsion plus marquée
   pour les interrupteurs, un départ franc et un double battement à l'arrêt sur la pédale.</p>
-  <p>Recréation personnelle hommage à l'Electro-Harmonix DRM-16 ; sans lien avec le fabricant, et sans réutilisation
+  <p>Recréation personnelle hommage aux appareils d'origine ; sans lien avec le fabricant, et sans réutilisation
   de ses échantillons.</p>
   <p><button class="sec" id="b-haptic">RETOUR HAPTIQUE</button></p>
   <p><button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
+  <p><button class="sec" id="b-modele">CHANGER DE MODÈLE</button></p>
   <button onclick="document.getElementById('note').classList.remove('show')">FERMER</button>
 </div>
 
 <script>
 "use strict";
 /* ================= état ================= */
-var S = {power:false, run:false, space:false, bass:false, haptic:true, bg:true, style:0, col:0, del:0, vol:0.72, bpm:120};
+var S = {
+  modele:"16", power:false, run:false,
+  space:false, bank:0, bass:false, haptic:true, bg:true,
+  style:0, col:0, del:0, vol:0.72, bpm:120
+};
+var ctx=null, master=null, noiseBuf=null, outBd=null, outMix=null, panBd=null, panMix=null;
+var MODELE = null;
 
-/* ================= memoire ================= */
-var MEM = "drm16.reglages";
-(function load(){
+/* ================= mémoire ================= */
+var MEM = "drm.reglages";
+var memoire = { modele:"16", vol:0.72, bpm:120, haptic:true, bg:true, bass:false,
+                "16":{style:0,col:0,del:0,space:false,bank:0},
+                "32":{style:0,col:0,del:0,space:false,bank:0} };
+(function charger(){
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
-    if(typeof m.style === "number") S.style = Math.min(3, Math.max(0, m.style|0));
-    if(typeof m.col   === "number") S.col   = Math.min(3, Math.max(0, m.col|0));
-    if(typeof m.del   === "number") S.del   = Math.min(3, Math.max(0, m.del|0));
-    if(typeof m.vol   === "number") S.vol   = Math.min(1, Math.max(0, m.vol));
-    if(typeof m.bpm   === "number") S.bpm   = Math.min(220, Math.max(40, m.bpm|0));
-    S.space = !!m.space;
-    S.bass  = !!m.bass;
-    if(typeof m.haptic === "boolean") S.haptic = m.haptic;
-    if(typeof m.bg     === "boolean") S.bg     = m.bg;
+    if(m.modele === "16" || m.modele === "32") memoire.modele = m.modele;
+    if(typeof m.vol === "number") memoire.vol = Math.min(1, Math.max(0, m.vol));
+    if(typeof m.bpm === "number") memoire.bpm = Math.min(220, Math.max(40, m.bpm|0));
+    if(typeof m.haptic === "boolean") memoire.haptic = m.haptic;
+    if(typeof m.bg === "boolean") memoire.bg = m.bg;
+    if(typeof m.bass === "boolean") memoire.bass = m.bass;
+    ["16","32"].forEach(function(k){
+      var r = m[k]; if(!r) return;
+      var d = memoire[k];
+      if(typeof r.style === "number") d.style = Math.min(3, Math.max(0, r.style|0));
+      if(typeof r.col   === "number") d.col   = Math.min(3, Math.max(0, r.col|0));
+      if(typeof r.del   === "number") d.del   = Math.min(3, Math.max(0, r.del|0));
+      if(typeof r.bank  === "number") d.bank  = r.bank ? 1 : 0;
+      d.space = !!r.space;
+    });
   }catch(e){}
+  S.vol = memoire.vol; S.bpm = memoire.bpm;
+  S.haptic = memoire.haptic; S.bg = memoire.bg; S.bass = memoire.bass;
 })();
 var saveTmr = null;
 function writeMem(){
   clearTimeout(saveTmr); saveTmr = null;
   try{
-    localStorage.setItem(MEM, JSON.stringify({
-      style:S.style, col:S.col, del:S.del, vol:S.vol, bpm:S.bpm,
-      space:S.space, bass:S.bass, haptic:S.haptic, bg:S.bg
-    }));
+    memoire.modele = S.modele;
+    memoire.vol = S.vol; memoire.bpm = S.bpm;
+    memoire.haptic = S.haptic; memoire.bg = S.bg; memoire.bass = S.bass;
+    memoire[S.modele] = {style:S.style, col:S.col, del:S.del, space:S.space, bank:S.bank};
+    localStorage.setItem(MEM, JSON.stringify(memoire));
   }catch(e){}
 }
-/* commandes a crans : ecriture immediate */
 function save(){ writeMem(); }
-/* boutons continus : ecriture differee, puis forcee si l'application est quittee */
-function saveSoon(){
-  clearTimeout(saveTmr);
-  saveTmr = setTimeout(writeMem, 300);
-}
+function saveSoon(){ clearTimeout(saveTmr); saveTmr = setTimeout(writeMem, 300); }
+
 /* ================= pont vers Android ================= */
 function host(on){
   try{ if(window.DRM16 && DRM16.playing) DRM16.playing(!!on); }catch(e){}
@@ -312,10 +379,10 @@ function buzz(motif){
   try{ navigator.vibrate(motif); }catch(e){}
 }
 var H = {
-  cran:  function(){ buzz(7); },        /* cran de bouton, appui sur un libelle */
-  inter: function(){ buzz(16); },       /* interrupteur, jack */
-  start: function(){ buzz(24); },       /* pedale : depart */
-  stop:  function(){ buzz([12,55,12]); }/* pedale : arret */
+  cran:  function(){ buzz(7); },
+  inter: function(){ buzz(16); },
+  start: function(){ buzz(24); },
+  stop:  function(){ buzz([12,55,12]); }
 };
 
 function applyBass(){
@@ -323,11 +390,10 @@ function applyBass(){
   panBd.pan.value  = S.bass ?  1   : 0;
   panMix.pan.value = S.bass ? -0.6 : 0;
 }
-var ctx=null, master=null, noiseBuf=null, outBd=null, outMix=null, panBd=null, panMix=null;
 
 /* ================= rythmes =================
    X fort · x normal · o fantôme · . silence  (16 doubles-croches) */
-var P = [
+var BANQUE_A = [
  [ /* FUNK */
   {sw:0,   bd:"X..x..X.....X...", sd:"....X.......X...", hh:"xoxoxoxoxoxoxoxo", cy:"X...............", wb:"......x.........", sp:"..............x."},
   {sw:0,   bd:"X...X..x..X.....", sd:"....X....o..X..x", hh:"x.x.x.xox.x.x.x.", oh:"......x.......x.", cy:"X..............."},
@@ -346,13 +412,65 @@ var P = [
   {sw:0,   bd:"X.......X.......", sd:"....o.......o...", hh:"o.o.o.o.o.o.o.o.", wb:"............x..."},
   {sw:0,   bd:"X.......x.......", sd:"........X.......", rd:"x...x...x...x...", cy:"X..............."}
  ],
- [ /* MISC : LATIN REGGAE CNTRY SHUFFLE */
+ [ /* MISC : LATIN REGGAE CNTRY SHUFFLE / SWING */
   {sw:0,   bd:"X.....X...X.....", wb:"x..x..x...x.x...", hh:"xoxoxoxoxoxoxoxo", cp:"............x...", sp:"......x........."},
   {sw:.08, bd:"........X.......", sd:"........X.......", hh:"x.o.x.o.x.o.x.o.", wb:"....x.......x...", sp:"..............x."},
   {sw:0,   bd:"X.......X.......", sd:"....X.......X...", hh:"xoxoxoxoxoxoxoxo", wb:"..............x."},
   {sw:.64, bd:"X.....X.....X...", sd:"....X.......X...", hh:"x..x..x..x..x..x", rd:"x..x..x..x..x..x"}
  ]
 ];
+
+/* seconde sélection, propre à la DRM32 */
+var BANQUE_B = [
+ [ /* FUNK */
+  {sw:0,   bd:"X..x..X...x.X..x", sd:"....X.......X...", hh:"xoxoxoxoxoxoxoxo", cp:"....X.......X...", sp:"..............x."},
+  {sw:0,   bd:"X...X..x..X...x.", sd:"..o.X..o..o.X..o", hh:"x.x.x.xox.x.x.x.", oh:"......x.......x.", wb:"..........x....."},
+  {sw:.12, bd:"X.......X.....x.", sd:"........X.......", hh:"x.x.x.x.x.x.x.x.", wb:"..x...x...x...x.", sp:".......x........"},
+  {sw:0,   bd:"X..x..X...X...x.", sd:"....X.......X..x", hh:"xxxxxxxxxxxxxxxx", rd:"x...x...x...x...", sp:"..........x....."}
+ ],
+ [ /* DISCO */
+  {sw:0,   bd:"X...X...X...X...", cp:"....X.......X...", hh:"x.x.x.x.x.x.x.x.", oh:"..x...x...x...x.", sp:"..............x."},
+  {sw:0,   bd:"X...X...X...X...", sd:"....X.......X...", rd:"x.x.x.x.x.x.x.x.", cp:"............x...", wb:"..x.......x....."},
+  {sw:0,   bd:"X...X..xX...X..x", sd:"....X.......X...", hh:"xxxxxxxxxxxxxxxx", oh:"......x.......x.", cy:"X..............."},
+  {sw:0,   bd:"X...X...X...X...", sd:"....X.......X...", hh:"x.xxx.xxx.xxx.xx", cp:"....X.......X...", sp:".......x........"}
+ ],
+ [ /* ROCK */
+  {sw:0,   bd:"X.X...X.X.X...X.", sd:"....X.......X...", hh:"x.x.x.x.x.x.x.x.", cy:"X..............."},
+  {sw:.62, bd:"X.....X..x..X...", sd:"....X.......X...", rd:"x..x..x..x..x..x", wb:"............x..."},
+  {sw:0,   bd:"X.......X.......", sd:"....o.......X...", hh:"o.o.o.o.o.o.o.o.", wb:"......x........."},
+  {sw:0,   bd:"X.......X......x", sd:"........X.......", rd:"x...x...x...x...", cy:"X...............", sp:"............x..."}
+ ],
+ [ /* MISC */
+  {sw:0,   bd:"X.....X...X.....", wb:"..x.x...x..x..x.", hh:"xoxoxoxoxoxoxoxo", cp:"............x...", sp:"......x........."},
+  {sw:.08, bd:"X...X...X...X...", sd:"........X.......", hh:"x.o.x.o.x.o.x.o.", wb:"....x.......x..."},
+  {sw:0,   bd:"X.......X.......", sd:"..x.X..x..x.X..x", hh:"xxxxxxxxxxxxxxxx", cy:"X..............."},
+  {sw:.64, bd:"X.....X.....X...", sd:"....o.......X...", rd:"x..xx.x..xx.x..x", wb:"......x........."}
+ ]
+];
+
+/* ================= les deux appareils ================= */
+var MODELES = {
+  "16":{
+    logo:"DRM16", numero:"01", out2:"OUTPUT 2",
+    droite:"SPACE DRUM · ON", modeDroite:"space",
+    misc4:"SHUFFLE",
+    del:["STANDARD MODE","WOOD BLOCK","LONG CYMBAL","SHORT CYMBAL"],
+    coupe:[[], ["wb"], ["rd"], ["cy"]],
+    frappe:[null,"wb","rd","cy"],
+    banques:1,
+    note:"Sur la DRM16, l'interrupteur SPACE DRUM ajoute ou retire les accents de space drum, et DELETE retire le wood block, la cymbale longue ou la cymbale courte. Seize rythmes."
+  },
+  "32":{
+    logo:"DRM32", numero:"03", out2:"CLOCK OUT",
+    droite:"SELECTION", modeDroite:"bank",
+    misc4:"SWING",
+    del:["STANDARD","SPACE DRUM","WOOD BLOCK","CYMBALS"],
+    coupe:[[], ["sp"], ["wb"], ["rd","cy"]],
+    frappe:[null,"sp","wb","cy"],
+    banques:2,
+    note:"Sur la DRM32, l'interrupteur SELECTION passe d'une sélection à l'autre : chaque case de la matrice porte deux rythmes, le vert et le jaune, soit trente-deux en tout. La moitié allumée de la case indique la sélection en cours. DELETE retire ici le space drum, le wood block ou les deux cymbales."
+  }
+};
 
 /* ================= moteur audio ================= */
 function audioInit(){
@@ -469,18 +587,24 @@ var V = {
   }
 };
 
+
 /* ================= séquenceur ================= */
 var step=0, nextT=0, timer=null, queue=[], cache=false;
 function look(){ return cache ? 1.2 : 0.22; }
 function periode(){ return cache ? 150 : 45; }
 var VEL = {X:1.0, x:0.72, o:0.38};
+function rythme(){
+  var b = MODELE.banques > 1 ? (S.bank ? BANQUE_B : BANQUE_A) : BANQUE_A;
+  return b[S.style][S.col];
+}
 function muted(k){
-  return (S.del===1 && k==="wb") || (S.del===2 && k==="rd") || (S.del===3 && k==="cy")
-      || (k==="sp" && !S.space);
+  if(MODELE.coupe[S.del].indexOf(k) >= 0) return true;
+  if(k === "sp" && MODELE.modeDroite === "space" && !S.space) return true;
+  return false;
 }
 function stepDur(){ return 60/S.bpm/4; }
 function schedule(i,t){
-  var pat = P[S.style][S.col], sw = pat.sw||0;
+  var pat = rythme(), sw = pat.sw||0;
   if(sw && i%2===1) t += stepDur()*sw*0.55;
   for(var k in pat){
     if(k==="sw" || !V[k] || muted(k)) continue;
@@ -576,7 +700,7 @@ function knob(id, opt){
   return {set:function(v){ st.v=v; render(); }, get:function(){ return st.v; }};
 }
 
-/* ================= lecture de l'affichage ================= */
+/* ================= petit afficheur ================= */
 var readEl = document.getElementById("read"), readTmr=null;
 function say(txt){
   readEl.textContent = txt; readEl.classList.add("show");
@@ -618,15 +742,14 @@ function marks(boxId, idx){
   var sp = document.getElementById(boxId).children;
   for(var i=0;i<sp.length;i++) sp[i].classList.toggle("on", i===idx);
 }
+var cells = document.querySelectorAll("td.cell");
 function paint(){
   marks("opt-delete", S.del); marks("opt-style", S.style); marks("opt-column", S.col);
-  var cells = document.querySelectorAll("td.cell");
   for(var i=0;i<cells.length;i++){
     var c=cells[i];
     c.classList.toggle("on", +c.dataset.s===S.style && +c.dataset.c===S.col);
   }
 }
-var cells = document.querySelectorAll("td.cell");
 for(var i=0;i<cells.length;i++){
   cells[i].addEventListener("click", function(){
     S.style = +this.dataset.s; S.col = +this.dataset.c;
@@ -640,16 +763,26 @@ swPower.addEventListener("click", function(){
   S.power = !S.power;
   swPower.classList.toggle("on", S.power);
   led.classList.toggle("on", S.power);
-  H.inter();
   unit.classList.toggle("off", !S.power);
+  H.inter();
   if(S.power) audioInit(); else stop();
 });
-var swSpace = document.getElementById("sw-space");
-swSpace.addEventListener("click", function(){
-  S.space = !S.space;
-  swSpace.classList.toggle("on", S.space);
+
+/* interrupteur de droite : SPACE DRUM sur la 16, SELECTION sur la 32 */
+var swRight = document.getElementById("sw-right");
+swRight.addEventListener("click", function(){
+  if(MODELE.modeDroite === "bank"){
+    S.bank = S.bank ? 0 : 1;
+    document.body.classList.toggle("bank-b", S.bank === 1);
+    swRight.classList.toggle("on", S.bank === 1);
+    say(S.bank ? "SELECTION B" : "SELECTION A");
+  } else {
+    S.space = !S.space;
+    swRight.classList.toggle("on", S.space);
+  }
   save(); H.inter();
 });
+
 var slotBass = document.getElementById("bass-out");
 slotBass.addEventListener("click", function(){
   S.bass = !S.bass;
@@ -658,15 +791,15 @@ slotBass.addEventListener("click", function(){
   say(S.bass ? "BASS OUT" : "SORTIE MIXTE");
 });
 
-var TRIG = ["", "wb", "rd", "cy"];
 var odel = document.getElementById("opt-delete").children;
 for(var t=0;t<odel.length;t++){
   (function(i){
     odel[i].addEventListener("click", function(){
-      if(!TRIG[i]) return;
+      var voix = MODELE.frappe[i];
+      if(!voix) return;
       if(!S.power){ say("POWER OFF"); return; }
       audioInit();
-      V[TRIG[i]](ctx.currentTime + 0.02, 1);
+      V[voix](ctx.currentTime + 0.02, 1);
       H.cran();
       odel[i].classList.add("hit");
       setTimeout(function(){ odel[i].classList.remove("hit"); }, 150);
@@ -679,6 +812,8 @@ fsw.addEventListener("click", function(){
   if(!S.power){ say("POWER OFF"); return; }
   if(S.run){ stop(); H.stop(); } else { start(); H.start(); }
 });
+
+/* ================= réglages de la notice ================= */
 var bHaptic = document.getElementById("b-haptic");
 function labelHaptic(){
   bHaptic.textContent = "RETOUR HAPTIQUE : " + (S.haptic ? "ACTIVÉ" : "DÉSACTIVÉ");
@@ -705,9 +840,15 @@ bBg.addEventListener("click", function(){
 });
 labelBg();
 
-document.querySelector(".model").addEventListener("click", function(){
-  document.getElementById("note").classList.add("show");
+var note = document.getElementById("note");
+document.getElementById("b-modele").addEventListener("click", function(){
+  note.classList.remove("show");
+  ouvrirMenu();
 });
+document.querySelector(".model").addEventListener("click", function(){
+  note.classList.add("show");
+});
+
 document.addEventListener("visibilitychange", function(){
   cache = document.hidden;
   if(cache){
@@ -744,14 +885,66 @@ function fit(){
 }
 window.addEventListener("resize", fit);
 window.addEventListener("orientationchange", function(){ setTimeout(fit,350); });
-fit();
-setTimeout(fit,120);
-setTimeout(fit,500);
 
-unit.classList.add("off");
-swSpace.classList.toggle("on", S.space);
-slotBass.classList.toggle("on", S.bass);
-paint();
+/* ================= choix du modèle ================= */
+var menu = document.getElementById("menu");
+var logoEl = document.getElementById("logo");
+var numEl = document.getElementById("model-num");
+var capOut2 = document.getElementById("cap-out2");
+var capRight = document.getElementById("cap-right");
+var misc4 = document.getElementById("misc4");
+var noteTitre = document.getElementById("note-titre");
+var noteModele = document.getElementById("note-modele");
+
+function appliquerModele(id){
+  stop();
+  S.modele = id;
+  MODELE = MODELES[id];
+  var r = memoire[id];
+  S.style = r.style; S.col = r.col; S.del = r.del; S.space = r.space; S.bank = r.bank;
+
+  document.body.classList.toggle("m32", id === "32");
+  document.body.classList.toggle("bank-b", MODELE.banques > 1 && S.bank === 1);
+
+  logoEl.innerHTML = MODELE.logo + '<small>DIGITAL RHYTHM MATRIX</small>';
+  numEl.textContent = MODELE.numero;
+  capOut2.textContent = MODELE.out2;
+  capRight.textContent = MODELE.droite;
+  misc4.textContent = MODELE.misc4;
+  for(var i=0;i<odel.length;i++) odel[i].textContent = MODELE.del[i];
+  noteTitre.textContent = MODELE.logo + " — recréation autonome";
+  noteModele.textContent = MODELE.note;
+
+  swRight.classList.toggle("on",
+      MODELE.modeDroite === "bank" ? S.bank === 1 : S.space);
+  slotBass.classList.toggle("on", S.bass);
+  kSty.set(S.style); kCol.set(S.col); kDel.set(S.del);
+  kVol.set(S.vol); kTempo.set(S.bpm);
+
+  S.power = false;
+  swPower.classList.remove("on");
+  led.classList.remove("on");
+  unit.classList.add("off");
+
+  paint(); applyBass(); save();
+  fit(); setTimeout(fit,120);
+}
+function ouvrirMenu(){
+  stop();
+  menu.classList.remove("hide");
+}
+var picks = document.querySelectorAll(".pick");
+for(var q=0;q<picks.length;q++){
+  picks[q].addEventListener("click", function(){
+    appliquerModele(this.dataset.m);
+    menu.classList.add("hide");
+    H.inter();
+  });
+}
+
+appliquerModele(memoire.modele);
+menu.classList.remove("hide");
+setTimeout(fit,500);
 </script>
 </body>
 </html>

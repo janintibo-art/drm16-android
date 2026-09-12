@@ -1,6 +1,7 @@
-# DRM16 — boîte à rythmes autonome pour Android
+# DRM16 et DRM32 — boîtes à rythmes autonomes pour Android
 
-Recréation de l'Electro-Harmonix DRM-16 en application Android.
+Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03) en application Android.
+Un menu au lancement choisit l'appareil ; on en change ensuite par la notice, derrière MODEL.
 **Aucun accès réseau, aucun échantillon téléchargé** : la permission `INTERNET` n'est pas
 demandée et la WebView bloque toute requête qui ne vient pas de `file:///android_asset/`.
 L'application fonctionne en mode avion.
@@ -16,11 +17,25 @@ Tout tient dans `app/src/main/assets/drm16.html` : le panneau et le moteur audio
   grosse caisse, caisse claire, clap, charley fermé, charley ouvert, cymbale longue,
   cymbale courte, wood block, space drum. Aucun fichier audio n'est embarqué : tout est
   construit à partir d'oscillateurs, de bruit filtré et d'enveloppes.
-- **Séquenceur** : 16 rythmes (4 styles × 4 colonnes), 16 doubles-croches par mesure,
+- **Séquenceur** : 16 rythmes sur la DRM16, 32 sur la DRM32 (deux sélections de 4 styles × 4 colonnes),
+  16 doubles-croches par mesure,
   ordonnancement par anticipation de 120 ms sur l'horloge audio, donc sans dérive.
   ROCK BOOGIE, MISC SHUFFLE, REGGAE et FUNK III ont leur propre swing.
 
 ## Commandes
+
+### Ce qui distingue les deux appareils
+
+| | DRM16 | DRM32 |
+|---|---|---|
+| Interrupteur de droite | SPACE DRUM · ON | SELECTION, passe d'une sélection de 16 rythmes à l'autre |
+| Troisième jack | OUTPUT 2 | CLOCK OUT |
+| DELETE | standard, wood block, cymbale longue, cymbale courte | standard, space drum, wood block, cymbales |
+| MISC IV | SHUFFLE | SWING |
+| Panneau | noir et orange, LED bleue | bleu nuit, vert d'eau et jaune, LED rouge |
+
+Sur la DRM32, chaque case de la matrice porte deux rythmes : la moitié allumée indique la sélection en cours.
+Les réglages sont mémorisés séparément pour chaque appareil.
 
 | Commande | Effet |
 |---|---|
