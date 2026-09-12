@@ -32,7 +32,26 @@ Tout tient dans `app/src/main/assets/drm16.html` : le panneau et le moteur audio
 | VOLUME / TEMPO | glisser le doigt vers le haut ou le bas sur le bouton (40 à 220 BPM) |
 | MODEL 01 | affiche la notice |
 
-La LED clignote sur les temps. Quitter l'application arrête la lecture.
+La LED clignote sur les temps. Un appui bref sur TEMPO bat la mesure, une série d'appuis en donne la moyenne.
+Toucher le nom d'un timbre dans la liste DELETE le joue seul. Tous les réglages sont retenus d'un lancement
+à l'autre, sauf la mise sous tension : l'appareil démarre toujours éteint.
+
+Trois réglages se trouvent derrière MODEL 01 : le retour haptique, la lecture en arrière-plan, et la notice.
+
+## Lecture en arrière-plan
+
+Quand la lecture démarre, la page prévient l'application par `window.DRM16.playing(true)`, qui lance
+`PlaybackService`, un service de premier plan. Tant qu'il tourne, le processus reste vivant et la WebView
+continue de jouer, application quittée ; une notification permanente ramène au panneau. Le service ne produit
+aucun son lui-même. Le focus audio est demandé au démarrage et rendu à l'arrêt : un appel entrant ou une autre
+application coupe le rythme au lieu de se superposer.
+
+En arrière-plan, l'anticipation de l'ordonnanceur passe de 0,22 à 1,2 s, par sécurité si le système ralentit
+les minuteurs de la page.
+
+Permissions déclarées : `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, `POST_NOTIFICATIONS`
+(demandée au premier départ sur Android 13 et suivants, uniquement pour afficher la notification) et `VIBRATE`.
+Toujours pas d'`INTERNET`.
 
 ## Compilation
 
