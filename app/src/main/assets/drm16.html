@@ -2708,6 +2708,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <div class="eur-bkn" id="eur-k-tempo"><div class="bt"><i></i></div><em>TEMPO</em></div>
     <div class="eur-lcd"><b id="eur-val">RACK VIDE</b><u id="eur-lab">AJOUTEZ UN MODULE</u></div>
     <button id="eur-ptn">RACK 1</button>
+    <button id="eur-nom">NOMMER</button>
     <button id="eur-ajout">AJOUTER</button>
     <button id="eur-mont">MONTAGES</button>
     <button id="eur-hasard">RACK AU SORT</button>
@@ -3561,9 +3562,13 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <li><b>START</b> lance et arrête l'horloge. Sans elle, rien ne se déclenche.</li>
   <li><b>TEMPO</b>, le petit potard juste à côté, règle la vitesse de 40 à 220 à la noire. Il commande le
   tempo général de l'application : le changer ici le change partout.</li>
-  <li><b>RACK 1</b> passe au rack suivant. Il y en a <b>huit</b>, gardés séparément : le rack qu'on quitte
-  est enregistré tel quel, câbles et potards compris. C'est le seul moyen d'essayer un patch sans perdre
-  celui d'avant — un vrai modulaire ne garde rien, on le photographie avant de le défaire.</li>
+  <li><b>RACK 1</b> ouvre la liste des <b>huit racks</b>, avec pour chacun son nom, son nombre de modules
+  et de câbles. On y va directement. Le rack qu'on quitte est enregistré tel quel — un vrai modulaire ne
+  garde rien, on le photographie avant de le défaire.</li>
+  <li><b>NOMMER</b> donne un nom au rack courant, jusqu'à vingt-deux caractères. Le bouton et l'afficheur
+  montrent alors ce nom à la place du numéro, et les demandes de confirmation aussi : on sait ce qu'on
+  s'apprête à écraser. Un nom vide remet le numéro. Un montage pris dans <b>MONTAGES</b> nomme le rack
+  tout seul.</li>
   <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : soixante-sept modules en vrac seraient
   illisibles sur un téléphone.</li>
   <li><b>MONTAGES</b> ouvre vingt patchs tout faits, rangés par genre. Voir plus bas.</li>
@@ -3665,7 +3670,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   </ol>
 
   <h3>Ce qui est gardé</h3>
-  <p><b>Huit racks</b>, gardés séparément, avec leurs câbles et la position de chaque potard. Tout est
+  <p><b>Huit racks nommés</b>, gardés séparément, avec leurs câbles et la position de chaque potard. Tout est
   enregistré en continu, comme les motifs des autres machines : on retrouve ses patchs en revenant, et le
   rack affiché à la sortie est celui qui revient.</p>
   <p>Avant d'appuyer sur <b>RACK AU SORT</b>, passez donc au rack suivant : le tirage écrase le rack
@@ -4975,7 +4980,7 @@ function refaireAudio(){
   var reprendre = S.run, m = S.modele;
   stop();
   try{ if(ctx && ctx.close) ctx.close(); }catch(e){}
-  ctx = null; master = null;
+  ctx = null; master = null; metalBuf = null;
   SOURCES = []; COLLECTE = null; queue = [];
   /* Ces deux machines gardent des nœuds que razNoeudsMachines ne touche pas :
      TD3.noeuds doit redevenir null et non {}, sinon batirTd3 croit son moteur
@@ -5034,6 +5039,7 @@ function batirAudio(){
   }
   applyBass();
   pisterSources();
+  construireMetal();
   var len = Math.floor(ctx.sampleRate*2);
   noiseBuf = ctx.createBuffer(1,len,ctx.sampleRate);
   var d = noiseBuf.getChannelData(0);
@@ -13405,16 +13411,55 @@ function trBruit(t, dur){
   return s;
 }
 var TR_METAL = [1, 1.342, 1.2312, 1.6532, 1.9523, 2.1523];
+/* Le banc métallique des charleys et cymbales : six carrés à des rapports qui
+   ne tombent sur aucun harmonique. Six OscillatorNode par frappe, c'est ce qui
+   faisait décrocher le moteur sur un motif dense — un réglage CR-5000 avec
+   charley aux doubles-croches, cymbale et charley ouvert en crée soixante-douze
+   par seconde, et un carré à bande limitée coûte cher.
+
+   On rend le banc une fois pour toutes dans un tampon, en additif : même
+   contenu, même niveau (RMS mesuré à 2,41 contre 2,45 pour six carrés), mais
+   une seule source par frappe au lieu de six. La hauteur se retrouve en jouant
+   le tampon plus ou moins vite, et un départ pris au hasard dans le tampon rend
+   la variation d'une frappe à l'autre que donnaient les oscillateurs libres. */
+var METAL_BASE = 880, METAL_DUREE = 2;
+var metalBuf = null;
+function construireMetal(){
+  var n = Math.floor(ctx.sampleRate * METAL_DUREE);
+  var b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
+  var k = 4 / Math.PI;
+  TR_METAL.forEach(function(r){
+    var f = METAL_BASE * r;
+    /* Treize harmoniques : au-delà on gagne moins d'un demi-décibel au-dessus
+       de 8,2 kHz, la seule bande que le passe-haut du charley laisse passer. */
+    for(var h=1; h<=13; h+=2){
+      var fh = f * h;
+      if(fh > ctx.sampleRate * 0.45) break;
+      var a = k / h, w = 2 * Math.PI * fh / ctx.sampleRate;
+      /* On fait tourner un vecteur au lieu d'appeler Math.sin à chaque
+         échantillon : deux fois plus rapide, pour un écart de 5·10⁻⁷. */
+      var cw = Math.cos(w), sw = Math.sin(w), cr = 1, ci = 0, nr;
+      for(var i=0;i<n;i++){
+        d[i] += a * ci;
+        nr = cr * cw - ci * sw; ci = cr * sw + ci * cw; cr = nr;
+      }
+    }
+  });
+  metalBuf = b;
+}
 function trMetal(t, dur, base, gain){
   var som = ctx.createGain();
   som.gain.value = gain === undefined ? 0.38 : gain;
-  TR_METAL.forEach(function(r){
-    var o = ctx.createOscillator();
-    o.type = "square";
-    o.frequency.value = base * r;
-    o.connect(som);
-    o.start(t); o.stop(t + dur + 0.02);
-  });
+  if(!metalBuf) construireMetal();
+  var s = ctx.createBufferSource();
+  s.buffer = metalBuf;
+  s.playbackRate.value = base / METAL_BASE;
+  s.loop = true;
+  s.connect(som);
+  /* départ au hasard dans les quatre premiers dixièmes : la suite du tampon
+     couvre largement la plus longue cymbale, on ne boucle jamais en pratique */
+  s.start(t, Math.random() * 0.4);
+  s.stop(t + dur + 0.02);
   return som;
 }
 
@@ -14330,7 +14375,7 @@ function activerTr(modele){
    peut en émettre à son tour, ce qui permet d'enchaîner horloge, diviseur,
    générateur euclidien et séquenceur. */
 var EUR = {mods:[], cables:[], sel:-1, attente:null, prochain:1, famille:"", noeuds:[],
-           bus:null, sources:null, cur:0, montFam:""};
+           bus:null, sources:null, cur:0, nom:"", montFam:""};
 var EUR_RACKS = 8;
 
 function eurGain(v){ var g = ctx.createGain(); g.gain.value = v; return g; }
@@ -15832,9 +15877,14 @@ function eurCatalogue(){
    son patch avant de le défaire. Ici RACK AU SORT et VIDER effaçaient le
    travail en cours sans retour possible, ce qui décourageait d'essayer. */
 function rackCourant(){
-  return {prochain:EUR.prochain, sel:EUR.sel,
+  return {prochain:EUR.prochain, sel:EUR.sel, nom:EUR.nom || "",
     mods:EUR.mods.map(function(m){ return {id:m.id, type:m.type, p:m.p}; }),
     cables:EUR.cables};
+}
+/* Un rack sans nom se présente par son numéro. Dès qu'il porte un nom, c'est
+   le nom qui s'affiche : huit numéros ne disent rien, huit noms disent tout. */
+function nomRack(n, o){
+  return (o && o.nom) ? o.nom : ("RACK " + (n + 1));
 }
 function memEur(){
   var m = memoire.eur;
@@ -15868,6 +15918,7 @@ function poserRack(o){
     if(typeof o.prochain === "number") EUR.prochain = o.prochain;
     if(typeof o.sel === "number") EUR.sel = o.sel;
   }
+  EUR.nom = (o && typeof o.nom === "string") ? o.nom : "";
 }
 function changerRack(n){
   memEur();                                   /* on garde celui qu'on quitte */
@@ -15875,11 +15926,47 @@ function changerRack(n){
   poserRack(memEurNormalise().racks[EUR.cur]);
   eurBatir(); eurDessiner(); memEur();
   majRackEur();
-  lcdEur("RACK " + (EUR.cur + 1), EUR.mods.length ? (EUR.mods.length + " MODULES") : "VIDE", true);
+  lcdEur(EUR.nom || ("RACK " + (EUR.cur + 1)),
+         EUR.mods.length ? (EUR.mods.length + " MODULES") : "VIDE", true);
 }
 function majRackEur(){
   var b = document.getElementById("eur-ptn");
-  if(b) b.textContent = "RACK " + (EUR.cur + 1);
+  if(b) b.textContent = EUR.nom || ("RACK " + (EUR.cur + 1));
+}
+/* Nommer sert à deux choses : retrouver un montage, et savoir ce qu'on va
+   écraser. Le nom vide remet le numéro. */
+function nommerRack(){
+  var n = window.prompt("Nom du rack " + (EUR.cur + 1) + " :", EUR.nom || "");
+  if(n === null) return;
+  EUR.nom = n.trim().slice(0, 22);
+  memEur(); majRackEur();
+  lcdEur(EUR.nom || ("RACK " + (EUR.cur + 1)), EUR.nom ? "RACK NOMMÉ" : "NOM EFFACÉ", true);
+}
+/* La liste des huit, pour choisir sans les faire défiler un par un. */
+function listeRacks(){
+  var c = document.getElementById("eur-cat");
+  if(c.style.display !== "none" && c.dataset.vue === "rack"){ c.style.display = "none"; return; }
+  c.innerHTML = ""; c.dataset.vue = "rack";
+  var m = memEurNormalise();
+  for(var i=0;i<EUR_RACKS;i++){
+    (function(n){
+      var o = (n === EUR.cur) ? rackCourant() : m.racks[n];
+      var b = document.createElement("button");
+      var nb = (o && o.mods) ? o.mods.length : 0;
+      b.innerHTML = nomRack(n, o) + "<span>" +
+        (nb ? (nb + " modules" + ((o.cables || []).length ? " · " + o.cables.length + " câbles" : ""))
+            : "vide") +
+        (n === EUR.cur ? " · EN COURS" : "") + "</span>";
+      if(n === EUR.cur) b.className = "on";
+      b.addEventListener("click", function(){
+        c.style.display = "none";
+        if(n !== EUR.cur) changerRack(n);
+        H.inter();
+      });
+      c.appendChild(b);
+    })(i);
+  }
+  c.style.display = "grid";
 }
 function chargerEur(){
   var m = memEurNormalise();
@@ -16176,7 +16263,8 @@ function eurMonter(P){
     EUR.cables.push({de:[rangs[c[0]], c[1]], vers:[rangs[c[2]], c[3]]});
   });
   if(P.bpm){ S.bpm = P.bpm; kEurTempo.maj(); saveSoon(); }
-  eurBatir(); eurDessiner(); memEur();
+  EUR.nom = P.nom;                    /* le rack prend le nom du montage */
+  eurBatir(); eurDessiner(); memEur(); majRackEur();
   lcdEur(P.nom, EUR.mods.length + " MODULES · RACK " + (EUR.cur + 1), true);
   signal(P.nom + " · " + P.res);
 }
@@ -16203,7 +16291,8 @@ function eurMontages(){
     b.innerHTML = P.nom + "<span>" + P.res + "</span>";
     b.addEventListener("click", function(){
       if(EUR.mods.length &&
-         !window.confirm("Monter « " + P.nom + " » dans le rack " + (EUR.cur + 1) + " ?\n\n" +
+         !window.confirm("Monter « " + P.nom + " » à la place de « " +
+                         (EUR.nom || ("RACK " + (EUR.cur + 1))) + " » ?\n\n" +
                          "Ce rack sera remplacé. Les sept autres ne sont pas touchés."))
         return;
       c.style.display = "none";
@@ -16238,13 +16327,20 @@ function eurHasard(){
   signal(EUR.mods.length + " MODULES TIRÉS AU SORT");
 }
 document.getElementById("eur-vider").addEventListener("click", function(){
-  if(!window.confirm("Vider le rack " + (EUR.cur + 1) + " ?\n\nLes sept autres racks ne sont pas touchés.")) return;
-  EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.attente = null;
-  eurBatir(); eurDessiner(); memEur(); H.inter();
+  if(!window.confirm("Vider « " + (EUR.nom || ("RACK " + (EUR.cur + 1))) +
+                     " » ?\n\nLes sept autres racks ne sont pas touchés.")) return;
+  EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.attente = null; EUR.nom = "";
+  eurBatir(); eurDessiner(); memEur(); majRackEur(); H.inter();
 });
 document.getElementById("eur-mont").addEventListener("click", function(){ eurMontages(); H.cran(); });
+/* Le bouton ouvre la liste des huit. Passer au suivant reste possible d'un
+   seul geste depuis la liste, mais choisir directement vaut mieux quand ils
+   portent des noms. */
 document.getElementById("eur-ptn").addEventListener("click", function(){
-  changerRack(EUR.cur + 1); H.inter();
+  listeRacks(); H.cran();
+});
+document.getElementById("eur-nom").addEventListener("click", function(){
+  nommerRack(); H.cran();
 });
 document.getElementById("eur-notice").addEventListener("click", function(){ ouvrirNotice(); });
 

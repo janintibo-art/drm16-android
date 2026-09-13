@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **71**.
+La version actuelle est la **72**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,40 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Banc métallique pré-calculé — v72**
+
+Cause trouvée pour le décrochage de la CR-5000 sur motif dense. `trMetal()` créait **six OscillatorNode
+carrés par frappe**, et il sert aux charleys, charleys ouverts et cymbales de **toutes** les machines. Un
+réglage CR-5000 avec HH-16", CY-4" et OPEN HH en fait cent quarante-quatre par mesure, soit soixante-douze
+oscillateurs à bande limitée créés par seconde. Le fil audio ne suivait plus.
+
+Le banc est maintenant rendu **une fois** dans un tampon de 2 s (`construireMetal`, appelé par
+`batirAudio`), lu par un seul `BufferSource` dont la vitesse de lecture donne la hauteur
+(`playbackRate = base / 880`). Vingt-quatre lecteurs par mesure au lieu de cent quarante-quatre.
+
+Trois points à ne pas défaire :
+- **Synthèse additive, pas des carrés naïfs.** Un carré échantillonné bêtement replie tout son spectre ;
+  les partiels montent à 1,9 kHz et le charley est passe-haut à 8,2 kHz, on entendrait le repli.
+- **Treize harmoniques.** Au-delà on gagne moins d'un demi-décibel au-dessus de 8,2 kHz — mesuré.
+- **Rotation de vecteur au lieu de `Math.sin`** par échantillon : 28 ms au lieu de 79, écart 5·10⁻⁷.
+  C'est ce qui rend la construction supportable au démarrage sur un téléphone.
+
+Niveau vérifié : RMS 2,41 contre 2,45 pour six carrés, soit 0,15 dB. Le départ est pris au hasard dans les
+quatre premiers dixièmes du tampon, ce qui rend la variation d'une frappe à l'autre que donnaient les
+oscillateurs libres. `metalBuf` est remis à `null` par `refaireAudio` : il appartient au contexte.
+
+**Racks nommés — v72**
+
+- Le nom entre dans le rack enregistré (`rackCourant().nom`). Les sauvegardes v68–v71 sans nom se
+  rechargent sans rien casser : `poserRack` met `""` si le champ manque.
+- `eur-ptn` n'enchaîne plus les racks un par un, il ouvre **la liste des huit** (`listeRacks`), avec nom,
+  nombre de modules et de câbles. Le panneau `eur-cat` a donc une troisième vue : `dataset.vue` vaut
+  `"mod"`, `"mont"` ou `"rack"`.
+- La liste montre le rack courant via `rackCourant()` et non la mémoire : sinon les modifications non
+  encore enregistrées n'y apparaîtraient pas.
+- Les confirmations de VIDER et de MONTAGES nomment ce qu'elles vont écraser.
+- Un montage nomme le rack de son propre nom.
 
 **Poignées et grésillements — v71**
 
