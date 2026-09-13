@@ -8,8 +8,8 @@ android {
         applicationId 'fr.tibo.drm16'
         minSdk 24
         targetSdk 34
-        versionCode 51
-        versionName '51'
+        versionCode 52
+        versionName '52'
     }
 
     buildTypes {

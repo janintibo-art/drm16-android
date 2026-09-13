@@ -244,6 +244,30 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Décalage humain et tirage au sort (version 52)
+
+Deux idées reprises du manuel de **SEQ-16**, dans l'onglet Général de la notice.
+
+**Le décalage humain** déplace chaque pas d'un peu de hasard — 0, 4, 8, 15, 25 ou 40 ms. Le tirage se fait
+une fois par pas : tous les instruments d'un même pas bougent ensemble, comme une main qui arrive un peu
+tôt. Mesuré : réglé à 40 ms, l'écart maximum observé est de 19,9 ms et l'écart moyen de 10,3 ms, ce qui est
+la bonne répartition pour un tirage centré. Un coup ne recule jamais avant l'instant présent — vérifié sur
+quarante cycles d'ordonnancement, l'avance minimale reste de 11,4 ms.
+
+**Le tirage au sort des sons** rebat les réglages de la machine affichée **sans toucher au motif** :
+on garde son rythme et on cherche un autre son. Les champs sont donnés machine par machine — un niveau
+n'est pas un accord, et il ne faut pas mettre le volume à zéro par surprise. Les champs bipolaires restent
+centrés. Vérifié sur neuf machines : sons changés, motif intact à chaque fois. La DMX et la CR-5000 le
+disent au lieu de faire semblant.
+
+**Une bévue attrapée au test** : le tirage ne changeait rien, parce que je rechargeais la machine depuis
+la mémoire juste après — la mémoire écrasait le tirage. Il fallait garder d'abord, recharger ensuite.
+
+**Et la même erreur pour la quatrième fois** : `HUM` et `WAVX` déclarés après le code qui les lit au
+démarrage, script arrêté net. Le garde-fou du chargement contrôle maintenant aussi la **présence des
+définitions attendues** — dix-neuf objets vérifiés une seconde après le démarrage — et le dit à l'écran au
+lieu de laisser une page muette.
+
 ## Export audio (version 51)
 
 Le manque le plus criant est comblé : le motif de la machine affichée se rend **hors ligne, plus vite que

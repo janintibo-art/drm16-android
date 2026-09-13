@@ -2975,6 +2975,17 @@ body.arcm .t1kb{display:none}
   <p>Dans les deux sens, <b>ENTRÉE</b> active permet aussi de jouer les parties de l'application depuis les
   touches de la Korg, et d'enregistrer au vol avec REC.</p>
 
+  <h3>Décalage humain</h3>
+  <p>Un séquenceur tombe exactement sur la grille ; un batteur non. Ce réglage déplace chaque pas d'un peu
+  de hasard, tiré une fois par pas : tous les instruments d'un même pas bougent ensemble, comme une main
+  qui arrive un peu tôt ou un peu trop tard.</p>
+  <p>Quelques millisecondes suffisent pour un groove ; au-delà de trente, c'est un batteur fatigué. Zéro
+  rend la machine parfaitement droite, ce qui est juste pour une 808 et mortel pour un hip-hop.</p>
+  <p><button class="sec" id="b-hum">DÉCALAGE : 0 ms</button>
+     <button class="sec" id="b-hasard">TIRER LES SONS AU SORT</button></p>
+  <p style="opacity:.75;font-size:13px">Le tirage au sort ne touche <b>que les réglages de sons</b> de la
+  machine affichée : le motif reste intact. C'est fait pour trouver, pas pour ranger.</p>
+
   <h3>Exporter le motif en WAV</h3>
   <p>Le motif de la machine affichée est rendu <b>hors ligne, plus vite que le temps réel</b>, avec toute
   sa chaîne d'effets et le limiteur de sortie, puis écrit en WAV stéréo seize bits dans le dossier
@@ -3595,6 +3606,11 @@ body.arcm .t1kb{display:none}
 "use strict";
 /* ================= état ================= */
 var BIB = {noms:{}, onglet:0, cible:{machine:"es1", partie:0}, preset:"punch"};
+/* Réglages lus par charger() au démarrage : ils doivent exister avant lui.
+   Quatre fois j'ai déclaré un objet après le code qui s'en sert, et quatre fois
+   le script s'est arrêté net au chargement. */
+var HUM = {temps:0};
+var WAVX = {occupe:false, mesures:2};
 /* déclarés dès le début : le câblage de l'interface s'en sert bien avant
    d'arriver aux modules qui les remplissent */
 var PR = {prise:-1, notes:[], pistes:[], sel:-1, grille:4, zoom:0.10, defil:0,
@@ -3618,6 +3634,8 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
     if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5","dbi","t1k","arcm"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    if(typeof m.hum === "number"){ memoire.hum = m.hum; HUM.temps = m.hum; }
+    if(typeof m.wav === "number"){ memoire.wav = m.wav; WAVX.mesures = m.wav; }
     if(m.midi) memoire.midi = m.midi;
     /* ancien format : les machines vivaient dans le blob global, on les répartit une fois */
     ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5","dbi","t1k","arcm"].forEach(function(c){
@@ -3685,6 +3703,7 @@ function writeMem(){
     localStorage.setItem(MEM, JSON.stringify({
       modele:memoire.modele, vol:memoire.vol, bpm:memoire.bpm, haptic:memoire.haptic,
       bg:memoire.bg, bass:memoire.bass, midi:memoire.midi, metro:memoire.metro,
+      hum:memoire.hum, wav:memoire.wav,
       "16":memoire["16"], "32":memoire["32"]
     }));
     memEchec = false;
@@ -4073,12 +4092,23 @@ function scheduleEhx(i,t){
   }
   if(!cache) queue.push({i:i,t:t});
 }
+/* ================= décalage humain =================
+   Un séquenceur tombe exactement sur la grille ; un batteur non. HUM.temps
+   déplace chaque pas d'un peu de hasard, en millisecondes. Le décalage est
+   tiré une fois par pas : tous les instruments d'un même pas bougent ensemble,
+   comme une main qui arrive un peu tôt ou un peu tard. */
+function decalageHumain(){
+  if(!HUM.temps) return 0;
+  return (Math.random() - 0.5) * (HUM.temps / 1000);
+}
 function tick(){
   if(!ctx) return;
   midiSuivreTempo(); purgerSources();
   if(nextT < ctx.currentTime - 0.4){ nextT = ctx.currentTime + 0.08; queue=[]; }
   while(nextT < ctx.currentTime + look()){
-    MACHINE.schedule(step, nextT);
+    var dh = decalageHumain();
+    /* on ne recule jamais avant l'instant présent : le coup serait perdu */
+    MACHINE.schedule(step, Math.max(ctx.currentTime + 0.005, nextT + dh));
     if(METRO && step % 4 === 0) clicMetro(nextT, step === 0);
     nextT += stepDur();
     step = (step+1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
@@ -4559,6 +4589,21 @@ window.addEventListener("pagehide", writeMem);
     console.error("Collision de classes corps/châssis : " + mauvaises.join(", "));
     setTimeout(function(){ signal("COLLISION DE CLASSES : " + mauvaises.join(", ")); }, 900);
   }
+  /* Second contrôle : tout ce que le script attend doit exister à la fin du
+     chargement. Un objet déclaré trop tard arrête tout sans un mot ; autant
+     que la page le dise. */
+  setTimeout(function(){
+    var requis = ["S","HUM","WAVX","BIB","ENR","PR","TELE","EXC","ARC","ARCM",
+                  "TR_MODELES","MACHINE_TR","MACHINE_MPC","MACHINE_DMX","MACHINE_VLC",
+                  "MACHINE_CR","MACHINE_DBI","MACHINE_T1K","MACHINE_ARCM"];
+    var absents = requis.filter(function(n){
+      try{ return typeof window[n] === "undefined"; }catch(e){ return true; }
+    });
+    if(absents.length){
+      console.error("Définitions manquantes : " + absents.join(", "));
+      signal("DÉFINITIONS MANQUANTES : " + absents.slice(0, 3).join(", "));
+    }
+  }, 1200);
 })();
 
 /* ================= mise à l'échelle ================= */
@@ -10572,7 +10617,7 @@ function ticExterne(){
   if(SYNC.ticks % 6 === 0){
     if(SYNC.attente){ SYNC.attente = false; signal("HORLOGE REÇUE"); }
     var t = ctx.currentTime + 0.03;      /* petite avance : elle absorbe la gigue du pont */
-    MACHINE.schedule(step, t);
+    MACHINE.schedule(step, Math.max(ctx.currentTime + 0.005, t + decalageHumain()));
     if(METRO && step % 4 === 0) clicMetro(t, step === 0);
     step = (step+1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
     if(step === 0 && MACHINE.boucle) MACHINE.boucle();
@@ -10688,14 +10733,25 @@ var bScan = document.getElementById("b-midi-scan");
 var boxMidi = document.getElementById("midi-liste");
 var bOut = document.getElementById("b-midi-out"), bIn = document.getElementById("b-midi-in");
 var bClk = document.getElementById("b-midi-clk"), bCh = document.getElementById("b-midi-ch");
+var bHum = document.getElementById("b-hum");
+bHum.addEventListener("click", function(){
+  var v = [0, 4, 8, 15, 25, 40];
+  HUM.temps = v[(v.indexOf(HUM.temps) + 1) % v.length];
+  this.textContent = "DÉCALAGE : " + HUM.temps + " ms";
+  memoire.hum = HUM.temps; save(); H.cran();
+});
+document.getElementById("b-hasard").addEventListener("click", function(){ sonsHasard(); });
+bHum.textContent = "DÉCALAGE : " + HUM.temps + " ms";
+
 var bWavMes = document.getElementById("b-wav-mes");
 bWavMes.addEventListener("click", function(){
   var v = [1, 2, 4, 8, 16];
   WAVX.mesures = v[(v.indexOf(WAVX.mesures) + 1) % v.length];
   this.textContent = "MESURES : " + WAVX.mesures;
-  H.cran();
+  memoire.wav = WAVX.mesures; save(); H.cran();
 });
 document.getElementById("b-wav").addEventListener("click", function(){ exporterWav(); });
+bWavMes.textContent = "MESURES : " + WAVX.mesures;
 
 var bTele = document.getElementById("b-tele");
 function labelTele(){ bTele.textContent = "PILOTER LA MACHINE : " + (TELE.actif ? "OUI" : "NON"); }
@@ -15552,12 +15608,73 @@ function reechantillonner(buf, taux){
   return out;
 }
 
+/* ================= hasard sur les sons =================
+   Le bouton tire au sort les réglages de la machine affichée sans toucher au
+   motif : on garde son rythme et on cherche un autre son. Les champs modifiés
+   sont donnés machine par machine, parce qu'un « niveau » n'est pas un
+   « accord » et qu'il ne faut pas mettre le volume à zéro par surprise. */
+/* chaque machine a sa propre fonction d'enregistrement : on appelle la bonne */
+function memMachineCourante(){
+  var t = {em1:"memEm", er1:"memEr", er2:"memEr", ea1:"memEa", ea2:"memEa",
+           es1:"memEs", es2:"memEs", emx:"memMx", esx:"memSx",
+           mpc3000:"memMpc", mpc2000:"memMpc", tr808:"memTr", tr909:"memTr", tr707:"memTr",
+           dmx:"memDmx", vlc:"memVlc", cr5:"memCr", dbi:"memDbi", t1k:"memT1k", arcm:"memArcm"};
+  var f = t[S.modele];
+  try{ if(f && typeof window[f] === "function") window[f](); }catch(e){}
+}
+function sonsHasard(){
+  var m = S.modele, l = [], champs = null, i;
+  function pousse(tab, n, c){ for(i=0;i<n;i++) if(tab[i]) l.push({o:tab[i], c:c}); }
+  var doux = ["ton","dec","snap","acc","filt","pan","tune","pitch","debut","res","cut","egi","drv"];
+  if(m === "es1" || m === "es2") pousse(ES.pat.son, 9, ["filt","pan","pitch"]);
+  else if(m === "esx") pousse(SX.pat.son, 14, ["filt","pan","pitch"]);
+  else if(m === "emx") pousse(MX.pat.son, 16, ["pitch","eg","cut","res","egi","drv","mdepth","mspeed"]);
+  else if(m === "er1" || m === "er2") pousse(ER.pat.son, 11, ["pitch","modD","modS","dec","pan"]);
+  else if(m === "ea1" || m === "ea2") pousse(EA.pat.son, 2, ["cut","res","egi","mdepth","mspeed","drv"]);
+  else if(m === "tr808" || m === "tr909" || m === "tr707") pousse(TR.pat.son, TR.def.instr.length, ["ton","dec","snap","acc"]);
+  else if(m === "dbi") pousse(motifDbiCur().pistes.map(function(p){ return p.p; }), 8,
+                              ["dec","pit","ton","body","clap","harm","mpit","fmamt","penv"]);
+  else if(m === "t1k") pousse(motifT1kCur().instr, 10, ["tune","dec","c1","c2"]);
+  else if(m === "vlc") pousse(motifVlcCur().parties.map(function(p){ return p.par; }), 10, null);
+  else if(m === "mpc3000" || m === "mpc2000") pousse(MPC.pads, 64, ["pan","tune","dec","filt","debut"]);
+  else if(m === "arcm") pousse(motifArcmCur().pistes, 16, ["pan","tune","dec","debut","filt"]);
+  else if(m === "dmx"){ signal("LA DMX N'A PAS DE RÉGLAGES DE SONS"); return; }
+  else if(m === "cr5"){ signal("LA CR-5000 N'A QUE DES NIVEAUX"); return; }
+  if(!l.length){ signal("RIEN À TIRER AU SORT ICI"); return; }
+  var n2 = 0;
+  l.forEach(function(x){
+    var cs = x.c;
+    if(!cs){                                   /* volca : valeurs de 0 à 127 */
+      ["speed","ampeg_decay","pitcheg_int","start_point","hicut","pan"].forEach(function(c){
+        if(typeof x.o[c] === "number"){ x.o[c] = Math.round(Math.random() * 127); n2++; }
+      });
+      return;
+    }
+    cs.forEach(function(c){
+      if(typeof x.o[c] !== "number") return;
+      /* les champs bipolaires restent centrés, les autres couvrent tout */
+      x.o[c] = (c === "pan" || c === "pitch" || c === "tune" || c === "egi" || c === "mdepth")
+             ? (Math.random() * 2 - 1) * 0.8
+             : Math.random();
+      if(c === "tune" && (m === "arcm" || m === "mpc3000" || m === "mpc2000" || m === "t1k"))
+        x.o[c] = 0.3 + Math.random() * 0.4;
+      n2++;
+    });
+  });
+  /* d'abord garder le tirage, ensuite recharger : dans l'autre sens, la
+     mémoire écrase ce qu'on vient de tirer et rien ne change. */
+  memMachineCourante();
+  writeMem();
+  allerMachine(m);                             /* la façade se remet à jour d'un bloc */
+  signal(n2 + " RÉGLAGES TIRÉS AU SORT · LE MOTIF EST INTACT");
+  H.inter();
+}
+
 /* ================= export audio =================
    Le motif de la machine affichée est rendu hors ligne, plus vite que le
    temps réel, puis écrit en WAV stéréo. On bascule le contexte audio sur un
    contexte de rendu, on rebâtit la machine dedans — c'est le seul moyen sûr
    d'avoir tous ses nœuds au bon endroit — et on remet tout en place après. */
-var WAVX = {occupe:false, mesures:2};
 
 function chaineMaitresseHorsLigne(off){
   var m = off.createGain();
