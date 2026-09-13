@@ -226,7 +226,7 @@ body.m32 .read{color:#8fe8d8}
   color:#140f0c;font-weight:800;letter-spacing:1px;font-size:14px}
 #note button.sec{background:#2f2f35;color:#eceae4;margin-top:6px;margin-right:6px}
 #note button[disabled]{opacity:.5}
-/* la notice de l'Eurorack decrit soixante-sept modules : sans mise en forme
+/* la notice de l'Eurorack decrit soixante-quinze modules : sans mise en forme
    propre, la liste devient un mur de texte illisible sur un telephone */
 #note ol,#note ul{margin:0 0 10px;padding-left:20px}
 #note li{margin:0 0 5px}
@@ -1477,7 +1477,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 .eur-rack{position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
   background:linear-gradient(180deg,#2a2d33 0 7px,#0e1013 7px calc(100% - 7px),#2a2d33 calc(100% - 7px));
   border-radius:4px;padding:9px 8px 44px;min-height:250px}
-.eur-piste{display:flex;gap:5px;align-items:stretch;min-width:min-content;position:relative;z-index:1}
+/* Une seule rangee obligeait a defiler sans fin des qu'un patch depassait
+   huit modules. La piste empile maintenant deux rangees ; la seconde reste a
+   hauteur nulle tant qu'elle est vide, donc rien ne change pour un petit rack. */
+.eur-piste{display:flex;flex-direction:column;gap:7px;min-width:min-content;position:relative;z-index:1}
+.eur-rangee{display:flex;gap:5px;align-items:stretch;min-width:min-content}
 .eur-mod{flex:none;border-radius:3px;padding:6px 5px;position:relative;
   background:linear-gradient(180deg,#e8eaee,#cfd3d9);box-shadow:0 2px 6px #0008,inset 0 1px 0 #fff;
   display:flex;flex-direction:column}
@@ -2713,6 +2717,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="eur-mont">MONTAGES</button>
     <button id="eur-hasard">RACK AU SORT</button>
     <button id="eur-suppr">RETIRER</button>
+    <button id="eur-rangee">RANGÉE</button>
     <button id="eur-decable">DÉCÂBLER</button>
     <button id="eur-exemple">EXEMPLE</button>
     <button id="eur-vider">VIDER</button>
@@ -3531,7 +3536,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>soixante-sept modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>soixante-quinze modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
@@ -3575,15 +3580,22 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   montrent alors ce nom à la place du numéro, et les demandes de confirmation aussi : on sait ce qu'on
   s'apprête à écraser. Un nom vide remet le numéro. Un montage pris dans <b>MONTAGES</b> nomme le rack
   tout seul.</li>
-  <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : soixante-sept modules en vrac seraient
+  <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : soixante-quinze modules en vrac seraient
   illisibles sur un téléphone.</li>
   <li><b>MONTAGES</b> ouvre vingt patchs tout faits, rangés par genre. Voir plus bas.</li>
   <li><b>RACK AU SORT</b> monte un ensemble complet et cohérent, décrit plus bas.</li>
   <li><b>RETIRER</b> enlève le module choisi, et avec lui tous ses câbles.</li>
+  <li><b>RANGÉE</b> fait passer le module choisi sur l'autre rangée.</li>
   <li><b>DÉCÂBLER</b> retire tous les câbles mais garde les modules en place.</li>
   <li><b>EXEMPLE</b> remonte le patch de démonstration.</li>
   <li><b>VIDER</b> repart d'un rack nu, après confirmation. Seul le rack courant est touché.</li>
   </ul>
+
+  <h3>Deux rangées</h3>
+  <p>Le rack tient sur <b>deux rangées</b>. Choisissez un module et appuyez sur <b>RANGÉE</b> pour le faire
+  passer de l'une à l'autre ; les câbles suivent. Au-delà de huit modules, <b>MONTAGES</b> et <b>RACK AU
+  SORT</b> répartissent d'eux-mêmes, en coupant la chaîne en deux : le signal se lit de gauche à droite,
+  puis en dessous. La seconde rangée reste invisible tant qu'elle est vide.</p>
 
   <h3>Quand la façade est trop haute</h3>
   <p>Le SEQ 16 porte dix-sept potards : même rangés sur <b>deux colonnes</b>, comme le fait la machine dès
@@ -3591,7 +3603,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   rétrécir la façade, puis déplacez-la d'un doigt posé sur le châssis.</p>
 
   <h3>Vingt montages tout faits</h3>
-  <p>Un rack vide décourage : il faut connaître soixante-sept modules et savoir lesquels vont ensemble avant
+  <p>Un rack vide décourage : il faut connaître soixante-quinze modules et savoir lesquels vont ensemble avant
   d'entendre quoi que ce soit. <b>MONTAGES</b> donne des points de départ qui sonnent, rangés en cinq
   genres. Ils remplacent le rack courant — passez au rack suivant d'abord si vous tenez au vôtre.</p>
   <ul>
@@ -3685,10 +3697,10 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>L'<b>export WAV</b> fonctionne aussi, et enregistre ce qui sort de l'OUTPUT du rack affiché.</p>
   </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
-  <p>Les soixante-sept modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
+  <p>Les soixante-quinze modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
   potards, ses entrées et ses sorties. Les <b>sorties</b> sont les prises cerclées d'or.</p>
 
-  <h3>Horloges · 7 modules</h3>
+  <h3>Horloges · 9 modules</h3>
   <p>Elles fabriquent le temps. Aucune ne produit de son : elles envoient des impulsions.</p>
   <div class="fmod"><b>CLOCK</b>
   <p>L'horloge maîtresse. Elle bat une fois par pas, au tempo général de l'application, et donne en plus la
@@ -3726,7 +3738,19 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   toucher : en câblant les deux vers la même voix, on obtient un écho de frappe, un coup et sa réplique.</p>
   <span>Potard TIME · Entrée IN · Sorties OUT, THRU</span></div>
 
-  <h3>Séquenceurs · 5 modules</h3>
+  <div class="fmod"><b>SWING</b>
+  <p>Retarde un pas sur deux. Rien ne change dans la partition, tout change dans la démarche : c'est le
+  ternaire des vieilles boîtes à rythmes, et il suffit à faire respirer un motif droit.</p>
+  <span>Potard AMOUNT · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod"><b>LOGIC</b>
+  <p>Trois rythmes tirés de deux. <b>AND</b> ne garde que les coups communs, <b>OR</b> les réunit tous,
+  <b>XOR</b> ne garde que ceux qui tombent d'un seul côté. Deux générateurs euclidiens branchés là donnent
+  des motifs qu'on n'écrirait jamais à la main. Le résultat ne dépend pas de l'ordre dans lequel on a posé
+  les câbles : la machine attend que toutes les portes du pas soient arrivées avant de conclure.</p>
+  <span>Aucun potard · Entrées A, B · Sorties AND, OR, XOR</span></div>
+
+  <h3>Séquenceurs · 6 modules</h3>
   <p>Ils transforment le temps en notes. Tous sortent deux choses : une <b>hauteur</b> par CV et une
   <b>porte</b> qui dit quand jouer. Les deux se câblent séparément, souvent vers deux modules différents.</p>
   <div class="fmod"><b>SEQ 8</b>
@@ -3755,6 +3779,12 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   typiquement la sortie GATE du même séquenceur. Placé après un TURING ou un S &amp; H, il transforme une
   suite de notes au hasard en mélodie qui tombe juste.</p>
   <span>Potards SCALE, OCT · Entrées IN, CLK · Sortie OUT</span></div>
+
+  <div class="fmod"><b>ARP</b>
+  <p>Égrène un accord note à note, au rythme de l'horloge. TYPE choisit l'accord parmi les cinq du module
+  CHORD, MODE le parcours : montant, descendant, aller-retour, ou au hasard. Une seule voix suffit alors
+  à faire entendre une harmonie.</p>
+  <span>Potards TYPE, MODE, OCT · Entrée CLK · Sorties CV, GATE</span></div>
 
   <h3>Oscillateurs · 7 modules</h3>
   <p>Les sources de son. Tous sauf NOISE ont une entrée <b>V/OCT</b> : un volt de plus, une octave de plus.
@@ -3793,7 +3823,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   percussions à main, et matière première du S &amp; H.</p>
   <span>Aucun potard · Sorties WHITE, PINK</span></div>
 
-  <h3>Filtres · 8 modules</h3>
+  <h3>Filtres · 10 modules</h3>
   <p>Ils retirent. Un filtre ne crée jamais rien : il enlève des fréquences à ce qu'on lui donne, et c'est
   pour cela qu'on attaque avec une forme d'onde riche. FREQ règle le point de coupure, Q la résonance — une
   bosse juste avant la coupure, qui siffle quand on la pousse. CV AMT dose l'effet de l'entrée CV.</p>
@@ -3816,6 +3846,21 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <div class="fmod"><b>PEAK</b>
   <p>Une cloche qui accentue autour de FREQ sans rien couper. C'est l'égaliseur du rack.</p>
   <span>Potards FREQ, Q, CV AMT · Entrées IN, CV · Sortie OUT</span></div>
+  <div class="fmod"><b>LPG</b>
+  <p>La porte passe-bas de Buchla, restée rare en Eurorack et pourtant irremplaçable. Un filtre et un ampli
+  commandés <b>ensemble</b> par la même chute : le son ne se contente pas de baisser, il s'assombrit en
+  même temps. C'est ce que fait tout ce qui résonne dans le monde réel, et c'est ce qu'aucune enveloppe
+  branchée sur un VCA ne donne. Une impulsion transforme n'importe quelle source continue — un VCO, du
+  bruit, une nappe — en note pincée.</p>
+  <span>Potards DECAY, TONE, LEVEL · Entrées IN, TRIG · Sortie OUT</span></div>
+
+  <div class="fmod"><b>RESONATE</b>
+  <p>Trois résonateurs très pointus, frappés par ce qu'on leur envoie. Ils ne produisent rien par eux-mêmes :
+  ils chantent de ce qu'on leur donne, comme le corps d'un instrument. Envoyez-leur une percussion sèche et
+  vous entendrez une corde ou une cloche selon STRUCT, qui écarte les trois résonances. L'entrée V/OCT les
+  accorde au volt par octave, donc un séquenceur les joue comme un instrument.</p>
+  <span>Potards DECAY, STRUCT, MIX · Entrées IN, V/OCT · Sortie OUT</span></div>
+
   <div class="fmod"><b>SVF</b>
   <p>Filtre à variable d'état : les trois réponses sortent <b>en même temps</b> sur trois prises. On peut
   envoyer le grave dans un ampli et l'aigu dans un autre, ou mélanger les trois pour fabriquer sa propre
@@ -3831,7 +3876,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   dent de scie, on entend une voyelle chantée ; balayé par un LFO lent, le rack se met à parler.</p>
   <span>Potards VOWEL, Q · Entrée IN · Sortie OUT</span></div>
 
-  <h3>Modulation · 7 modules</h3>
+  <h3>Modulation · 8 modules</h3>
   <p>Ils ne font pas de son : ils fabriquent des tensions qui bougent, à envoyer dans les entrées CV des
   autres. C'est ce qui empêche un patch de rester figé.</p>
   <div class="fmod"><b>ENVELOPE</b>
@@ -3850,6 +3895,13 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   le sinus ondule, le carré bascule, le triangle monte et descend droit. AMT règle la profondeur. Dans un
   CV de filtre, c'est un balayage ; dans un V/OCT, un vibrato ; dans un PAN, un va-et-vient.</p>
   <span>Potards RATE, AMT · Sorties SINE, SQR, TRI</span></div>
+  <div class="fmod"><b>RUNGLER</b>
+  <p>Le cœur du Benjolin de Rob Hordijk. Ce n'est <b>pas du hasard</b> : c'est une suite déterministe qui
+  frôle sans cesse la répétition sans jamais s'y installer. À CHAOS bas elle tourne en boucle courte, à
+  CHAOS haut elle part complètement ; c'est entre les deux qu'elle fait de la musique. Branchez sa sortie
+  CV sur une hauteur et sa GATE sur une percussion : le patch s'organise tout seul, puis se défait.</p>
+  <span>Potards CHAOS, RANGE · Entrée CLK · Sorties CV, GATE</span></div>
+
   <div class="fmod"><b>S &amp; H</b>
   <p>À chaque impulsion sur TRIG, il regarde la tension présente sur IN et la <b>garde</b> jusqu'à la
   suivante. Un LFO lent branché sur IN devient ainsi un escalier. Si <b>rien n'est branché sur IN</b>, il
@@ -3922,7 +3974,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   CLK. Une seule séquence peut ainsi nourrir quatre voix à tour de rôle.</p>
   <span>Aucun potard · Entrées IN, CLK · Sorties 1, 2, 3, 4</span></div>
 
-  <h3>Traitements · 12 modules</h3>
+  <h3>Traitements · 14 modules</h3>
   <p>Ils se placent après les voix, en général entre le mélangeur et la sortie. Tous ont une entrée IN et
   une sortie OUT, sauf RING qui a une entrée de modulation en plus. MIX dose le mélange entre le signal
   d'origine et le signal traité.</p>
@@ -3962,6 +4014,19 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   n'est pas un vrai granulateur — c'est un délai dont le temps saute sans arrêt —, mais le nuage y ressemble
   beaucoup.</p>
   <span>Potards SIZE, DENSITY, MIX · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod"><b>BBD</b>
+  <p>Avant les mémoires numériques, un écho se fabriquait en passant le signal de godet en godet. Chaque
+  passage perdait de l'aigu et prenait du souffle : les reprises <b>s'enfoncent</b> au lieu de se répéter à
+  l'identique. Le passe-bas est dans la boucle, c'est tout le secret — et un léger tangage rappelle que
+  rien n'était stable dans ces circuits.</p>
+  <span>Potards TIME, FEED, MIX · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod"><b>SPRING</b>
+  <p>Trois ressorts de longueurs premières entre elles, comme dans le bac d'un ampli de guitare. On
+  n'entend pas une salle mais un métal : ça tinte, ça traîne, et si on frappe fort ça fait <i>boing</i>.
+  TENSION règle à la fois la brillance et la longueur.</p>
+  <span>Potards TENSION, MIX · Entrée IN · Sortie OUT</span></div>
+
   <div class="fmod"><b>LIMIT</b>
   <p>Un compresseur de crêtes, à placer juste avant l'OUTPUT quand plusieurs voix se cumulent et saturent.
   THRESH fixe le seuil, RATIO la fermeté.</p>
@@ -14602,6 +14667,50 @@ trigdly: {nom:"TRIG DLY", hp:52, sombre:true, res:"Repousse l'impulsion", fam:"h
     return {e:{in:eurGain(1)}, s:{out:o, thru:th}};
   }},
 
+swing: {nom:"SWING", hp:52, sombre:true, res:"Retarde un pas sur deux", fam:"horloge",
+  kns:[["amt","AMOUNT",0,1,0.3]],
+  jacks:[["in","IN",0],["out","OUT",1]],
+  creer:function(m){
+    /* Le ternaire des boîtes à rythmes : un pas sur deux arrive en retard.
+       Rien ne bouge dans la partition, tout change dans la démarche. */
+    var o = eurConst(0);
+    m.n = 0;
+    m.recevoir = function(t){
+      var dt = ((m.n++ % 2) === 1) ? m.p.amt * 0.45 * stepDur() : 0;
+      eurPorte(o, t + dt);
+      return [["out", t + dt]];
+    };
+    return {e:{in:eurGain(1)}, s:{out:o}};
+  }},
+
+logic: {nom:"LOGIC", hp:60, sombre:true, res:"ET, OU, OU exclusif sur deux rythmes", fam:"horloge",
+  kns:[],
+  jacks:[["a","A",0],["b","B",0],["et","AND",1],["ou","OR",1],["xou","XOR",1]],
+  creer:function(m){
+    /* Trois rythmes tirés de deux : les coups communs, tous les coups, et ceux
+       qui ne tombent que d'un côté. Deux générateurs euclidiens branchés là
+       donnent des motifs qu'on n'écrirait jamais à la main.
+
+       L'évaluation se fait en fin de pas et non à l'arrivée d'une porte :
+       autrement l'ordre des câbles déciderait du résultat. */
+    var o = {et:eurConst(0), ou:eurConst(0), xou:eurConst(0)};
+    m.ta = false; m.tb = false;
+    m.recevoir = function(t, entree){
+      if(entree === "a") m.ta = true;
+      else if(entree === "b") m.tb = true;
+      return null;
+    };
+    m.finPas = function(t){
+      var a = m.ta, b = m.tb, f = [];
+      m.ta = false; m.tb = false;
+      if(a && b){ eurPorte(o.et, t); f.push("et"); }
+      if(a || b){ eurPorte(o.ou, t); f.push("ou"); }
+      if(a !== b){ eurPorte(o.xou, t); f.push("xou"); }
+      return f;
+    };
+    return {e:{a:eurGain(1), b:eurGain(1)}, s:o};
+  }},
+
 /* ================= séquenceurs ================= */
 seq8: {nom:"SEQ 8", hp:92, res:"Huit pas de hauteur et de porte", fam:"seq",
   kns:[["n1","1",0,1,0.25],["n2","2",0,1,0.4],["n3","3",0,1,0.25],["n4","4",0,1,0.58],
@@ -14709,6 +14818,31 @@ quant: {nom:"QUANT", hp:56, res:"Quantifie vers une gamme", fam:"seq",
       return null;
     };
     return {e:{in:e, clk:eurGain(1)}, s:{out:out}};
+  }},
+
+arp: {nom:"ARP", hp:56, sombre:true, res:"Égrène un accord, note à note", fam:"seq",
+  kns:[["type","TYPE",0,1,0],["mode","MODE",0,1,0],["oct","OCT",0,1,0.5]],
+  jacks:[["clk","CLK",0],["cv","CV",1],["gate","GATE",1]],
+  creer:function(m){
+    var ACC = [[0,4,7,12],[0,3,7,10],[0,5,7,12],[0,4,7,11],[0,2,7,9]];
+    var out = eurConst(0), g = eurConst(0);
+    m.i = 0; m.sens = 1;
+    m.recevoir = function(t, entree){
+      if(entree !== "clk") return null;
+      var acc = ACC[Math.min(4, Math.round(m.p.type * 4))];
+      var mode = Math.min(3, Math.round(m.p.mode * 3));
+      if(mode === 0) m.i = (m.i + 1) % acc.length;                    /* montant */
+      else if(mode === 1) m.i = (m.i - 1 + acc.length) % acc.length;  /* descendant */
+      else if(mode === 2){                                            /* aller-retour */
+        m.i += m.sens;
+        if(m.i >= acc.length - 1){ m.i = acc.length - 1; m.sens = -1; }
+        else if(m.i <= 0){ m.i = 0; m.sens = 1; }
+      } else m.i = Math.floor(Math.random() * acc.length);            /* au hasard */
+      out.offset.setValueAtTime(acc[m.i] / 12 + Math.round((m.p.oct - 0.5) * 4), t);
+      eurPorte(g, t);
+      return ["gate"];
+    };
+    return {e:{clk:eurGain(1)}, s:{cv:out, gate:g}};
   }},
 
 /* ================= oscillateurs ================= */
@@ -14881,6 +15015,71 @@ hpf: eurFiltre("HPF", "highpass", "Passe-haut résonant", true),
 bpf: eurFiltre("BPF", "bandpass", "Passe-bande", false),
 notch: eurFiltre("NOTCH", "notch", "Réjecteur de bande", false),
 peak: eurFiltre("PEAK", "peaking", "Cloche accentuée", false),
+
+lpg: {nom:"LPG", hp:56, res:"Porte passe-bas : le timbre s'éteint avec le volume", fam:"filtre",
+  kns:[["dec","DECAY",0,1,0.35],["ton","TONE",0,1,0.55],["niv","LEVEL",0,1,0.8]],
+  jacks:[["in","IN",0],["trig","TRIG",0],["out","OUT",1]],
+  creer:function(m){
+    /* L'invention de Buchla, restée rare en Eurorack. Un filtre et un ampli
+       commandés ensemble par une même chute : le son ne se contente pas de
+       baisser, il s'assombrit en même temps — comme tout ce qui résonne dans
+       le monde réel. Une impulsion suffit à transformer n'importe quelle
+       source continue en note pincée. */
+    var e = eurGain(1), lp = ctx.createBiquadFilter(), g = eurGain(0.0001);
+    lp.type = "lowpass"; lp.Q.value = 0.8;
+    lp.frequency.value = 300;
+    e.connect(lp); lp.connect(g);
+    m.recevoir = function(t, entree){
+      if(entree !== "trig") return null;
+      var d = 0.05 + m.p.dec * 1.4;
+      g.gain.cancelScheduledValues(t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(m.p.niv, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      lp.frequency.cancelScheduledValues(t);
+      lp.frequency.setValueAtTime(280 + m.p.ton * 9000, t);
+      lp.frequency.exponentialRampToValueAtTime(160, t + d * 0.85);
+      return null;
+    };
+    return {e:{in:e, trig:eurGain(1)}, s:{out:g}};
+  }},
+
+reson: {nom:"RESONATE", hp:60, res:"Trois résonateurs accordés, frappés par l'entrée", fam:"filtre",
+  kns:[["q","DECAY",0,1,0.6],["str","STRUCT",0,1,0.4],["mix","MIX",0,1,0.7]],
+  jacks:[["in","IN",0],["voct","V/OCT",0],["out","OUT",1]],
+  creer:function(m){
+    /* Frappez-les avec un bruit bref et ils chantent : c'est le principe du
+       corps d'un instrument, qui ne produit rien mais résonne de ce qu'on lui
+       donne. STRUCT écarte les trois résonances — serrées, c'est une corde ;
+       écartées, c'est une cloche.
+
+       L'entrée de hauteur passe par le désaccord des filtres, en cents : on
+       retrouve le volt par octave sans le moindre calcul. */
+    var e = eurGain(1), som = eurGain(0.34), sec = eurGain(0), cv = eurGain(1200);
+    var f = [];
+    for(var i=0;i<3;i++){
+      var b = ctx.createBiquadFilter();
+      b.type = "bandpass";
+      e.connect(b); b.connect(som);
+      cv.connect(b.detune);
+      f.push(b);
+    }
+    e.connect(sec);
+    var out = eurGain(1);
+    som.connect(out); sec.connect(out);
+    m.maj = function(){
+      var base = 110 * Math.pow(2, m.p.str * 0.2);
+      var ecart = 1.2 + m.p.str * 2.4;
+      [1, ecart, ecart * ecart].forEach(function(r, i){
+        f[i].frequency.value = Math.min(12000, base * r);
+        f[i].Q.value = 3 + m.p.q * 140;
+      });
+      som.gain.value = 0.34 * m.p.mix;
+      sec.gain.value = 1 - m.p.mix;
+    };
+    m.maj();
+    return {e:{in:e, voct:cv}, s:{out:out}};
+  }},
 
 svf: {nom:"SVF", hp:64, res:"Trois sorties simultanées", fam:"filtre",
   kns:[["cut","FREQ",0,1,0.5],["q","Q",0,1,0.4],["mod","CV AMT",0,1,0.5]],
@@ -15085,6 +15284,30 @@ clklfo: {nom:"CLK LFO", hp:56, sombre:true, res:"Oscillateur lent calé sur le t
     /* le tempo peut changer pendant que ça tourne : on se recale à chaque pas */
     m.tic = function(){ m.maj(); return null; };
     return {e:{}, s:{sine:gs, tri:gt, ramp:gr}};
+  }},
+
+rungler: {nom:"RUNGLER", hp:56, sombre:true, res:"Chaos qui se répète sans jamais boucler", fam:"mod",
+  kns:[["chaos","CHAOS",0,1,0.6],["amp","RANGE",0,1,0.5]],
+  jacks:[["clk","CLK",0],["cv","CV",1],["gate","GATE",1]],
+  creer:function(m){
+    /* Le cœur du Benjolin de Rob Hordijk. Ce n'est pas du hasard : c'est une
+       suite déterministe qui frôle la répétition sans jamais s'y installer.
+       À CHAOS bas elle tourne en boucle courte, à CHAOS haut elle part ;
+       entre les deux, elle fait de la musique. */
+    var out = eurConst(0), g = eurConst(0);
+    m.x = 0.41; m.reg = 0;
+    m.recevoir = function(t, entree){
+      if(entree !== "clk") return null;
+      var r = 3.5 + m.p.chaos * 0.4999;          /* suite logistique */
+      m.x = r * m.x * (1 - m.x);
+      if(m.x < 1e-6 || m.x > 1 - 1e-6) m.x = 0.41;   /* on ne se laisse pas piéger sur un point fixe */
+      var bit = (m.x > 0.5) ? 1 : 0;
+      m.reg = ((m.reg << 1) | bit) & 255;
+      out.offset.setValueAtTime(((m.reg & 7) / 7 - 0.5) * 2 * m.p.amp, t);
+      if(bit){ eurPorte(g, t); return ["gate"]; }
+      return null;
+    };
+    return {e:{clk:eurGain(1)}, s:{cv:out, gate:g}};
   }},
 
 sh: {nom:"S & H", hp:56, sombre:true, res:"Prélève et bloque une tension", fam:"mod",
@@ -15361,6 +15584,60 @@ grain: eurEffet("GRAIN", 64, "Texture par nuage de grains",
     m.maj();
   }),
 
+bbd: eurEffet("BBD", 64, "Écho à seaux : chaque reprise s'assombrit",
+  [["time","TIME",0,1,0.35],["fb","FEED",0,1,0.45],["mix","MIX",0,1,0.4]],
+  function(m, e, out){
+    /* Avant les mémoires numériques, un écho se faisait en passant le signal
+       de godet en godet. Chaque passage perdait de l'aigu et prenait du
+       souffle : les reprises s'enfoncent au lieu de se répéter à l'identique.
+       Le passe-bas est DANS la boucle, c'est tout le secret. */
+    var d = ctx.createDelay(1.2), fb = eurGain(0);
+    var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2600;
+    var hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 180;
+    var sec = eurGain(1), hum = eurGain(0);
+    var lfo = ctx.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 0.7; lfo.start();
+    var lg = eurGain(0.0014);                 /* le léger tangage des vieux circuits */
+    lfo.connect(lg); lg.connect(d.delayTime);
+    e.connect(sec); sec.connect(out);
+    e.connect(d); d.connect(lp); lp.connect(hp); hp.connect(fb); fb.connect(d);
+    hp.connect(hum); hum.connect(out);
+    m.maj = function(){
+      d.delayTime.value = 0.03 + m.p.time * 0.55;
+      fb.gain.value = m.p.fb * 0.85;
+      sec.gain.value = 1 - m.p.mix * 0.6;
+      hum.gain.value = m.p.mix * 1.1;
+    };
+    m.maj();
+  }),
+
+spring: eurEffet("SPRING", 64, "Réverbération à ressort",
+  [["ten","TENSION",0,1,0.5],["mix","MIX",0,1,0.35]],
+  function(m, e, out){
+    /* Trois ressorts de longueurs premières entre elles, comme dans le bac
+       d'un ampli de guitare. On n'entend pas une salle mais un métal : ça
+       tinte, ça traîne, et si on frappe fort ça fait « boing ». */
+    var sec = eurGain(1), hum = eurGain(0), noeud = eurGain(0.34);
+    var bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = 1.2;
+    var gains = [];
+    e.connect(sec); sec.connect(out);
+    e.connect(bp);
+    [0.0231, 0.0331, 0.0411].forEach(function(dt){
+      var dl = ctx.createDelay(0.2); dl.delayTime.value = dt;
+      var g = eurGain(0.6);
+      bp.connect(dl); dl.connect(g); g.connect(dl); dl.connect(noeud);
+      gains.push(g);
+    });
+    noeud.connect(hum); hum.connect(out);
+    m.maj = function(){
+      bp.frequency.value = 1200 + m.p.ten * 2600;
+      /* jamais au-delà de 0,88 : la boucle doit s'éteindre */
+      gains.forEach(function(g){ g.gain.value = 0.55 + m.p.ten * 0.33; });
+      sec.gain.value = 1 - m.p.mix * 0.6;
+      hum.gain.value = m.p.mix * 0.9;
+    };
+    m.maj();
+  }),
+
 limit: eurEffet("LIMIT", 52, "Compresseur de crêtes",
   [["seuil","THRESH",0,1,0.6],["rap","RATIO",0,1,0.5]],
   function(m, e, out){
@@ -15610,7 +15887,7 @@ var EUR_ORDRE = Object.keys(EUR_CAT);
 function eurAjouter(type, silencieux){
   var d = EUR_CAT[type];
   if(!d) return null;
-  var m = {id:EUR.prochain++, type:type, p:{}};
+  var m = {id:EUR.prochain++, type:type, p:{}, r:0};
   d.kns.forEach(function(k){ m.p[k[0]] = k[4]; });
   EUR.mods.push(m);
   if(!silencieux){ eurBatir(); eurDessiner(); memEur(); }
@@ -15696,17 +15973,30 @@ function scheduleEur(i, t){
     if(f) f.forEach(function(o){ file.push(eurSortie(m.id, o, t)); });
   });
   var garde = 0;
-  while(file.length && garde++ < 900){
-    var x = file.shift();
-    for(var k=0;k<EUR.cables.length;k++){
-      var c = EUR.cables[k];
-      if(c.de[0] !== x[0] || c.de[1] !== x[1]) continue;
-      var d = eurMod(c.vers[0]);
-      if(!d || !d.recevoir) continue;
-      var sorties = d.recevoir(x[2], c.vers[1]);
-      if(sorties) sorties.forEach(function(o){ file.push(eurSortie(d.id, o, x[2])); });
+  function vider(){
+    while(file.length && garde++ < 900){
+      var x = file.shift();
+      for(var k=0;k<EUR.cables.length;k++){
+        var c = EUR.cables[k];
+        if(c.de[0] !== x[0] || c.de[1] !== x[1]) continue;
+        var d = eurMod(c.vers[0]);
+        if(!d || !d.recevoir) continue;
+        var sorties = d.recevoir(x[2], c.vers[1]);
+        if(sorties) sorties.forEach(function(o){ file.push(eurSortie(d.id, o, x[2])); });
+      }
     }
   }
+  vider();
+  /* Second tour, pour les modules qui ne peuvent conclure qu'une fois TOUTES
+     les portes du pas arrivées. La logique combinatoire en est : évaluer dès
+     l'arrivée de A laisserait l'ordre des câbles décider du résultat, et une
+     sortie déjà partie ne se rattrape pas. */
+  EUR.mods.forEach(function(m){
+    if(!m.finPas) return;
+    var f = m.finPas(t);
+    if(f) f.forEach(function(o){ file.push(eurSortie(m.id, o, t)); });
+  });
+  if(file.length) vider();
   if(!cache) queue.push({i:i, t:t});
 }
 function eurSortie(id, o, t){
@@ -15728,6 +16018,8 @@ function eurDessiner(){
   if(!p) return;
   p.innerHTML = "";
   EUR_KNOBS = [];
+  var rangees = [document.createElement("div"), document.createElement("div")];
+  rangees.forEach(function(r){ r.className = "eur-rangee"; p.appendChild(r); });
   EUR.mods.forEach(function(m, i){
     var d = EUR_CAT[m.type];
     var e = document.createElement("div");
@@ -15753,7 +16045,7 @@ function eurDessiner(){
     });
     h += "</div>";
     e.innerHTML = h;
-    p.appendChild(e);
+    rangees[m.r === 1 ? 1 : 0].appendChild(e);
   });
   EUR.mods.forEach(function(m){
     var d = EUR_CAT[m.type];
@@ -15871,7 +16163,7 @@ function eurCatalogue(){
   var c = document.getElementById("eur-cat");
   if(c.style.display !== "none" && c.dataset.vue === "mod"){ c.style.display = "none"; return; }
   c.innerHTML = ""; c.dataset.vue = "mod";
-  /* soixante-sept modules en vrac seraient illisibles : on les range par
+  /* soixante-quinze modules en vrac seraient illisibles : on les range par
      familles, et l'onglet choisi décide de ce qu'on voit */
   var onglets = document.createElement("div");
   onglets.className = "eur-fam";
@@ -15905,7 +16197,7 @@ function eurCatalogue(){
    travail en cours sans retour possible, ce qui décourageait d'essayer. */
 function rackCourant(){
   return {prochain:EUR.prochain, sel:EUR.sel, nom:EUR.nom || "",
-    mods:EUR.mods.map(function(m){ return {id:m.id, type:m.type, p:m.p}; }),
+    mods:EUR.mods.map(function(m){ return {id:m.id, type:m.type, p:m.p, r:m.r || 0}; }),
     cables:EUR.cables};
 }
 /* Un rack sans nom se présente par son numéro. Dès qu'il porte un nom, c'est
@@ -15935,7 +16227,7 @@ function poserRack(o){
   if(o && o.mods){
     o.mods.forEach(function(x){
       if(!EUR_CAT[x.type]) return;
-      var y = {id:x.id, type:x.type, p:{}};
+      var y = {id:x.id, type:x.type, p:{}, r:(x.r === 1 ? 1 : 0)};
       EUR_CAT[x.type].kns.forEach(function(k){
         y.p[k[0]] = (x.p && typeof x.p[k[0]] === "number") ? x.p[k[0]] : k[4];
       });
@@ -16033,6 +16325,13 @@ document.getElementById("eur-suppr").addEventListener("click", function(){
   eurRetirer(EUR.sel);
   signal("MODULE RETIRÉ");
 });
+document.getElementById("eur-rangee").addEventListener("click", function(){
+  if(EUR.sel < 0){ signal("CHOISISSEZ UN MODULE"); return; }
+  var m = EUR.mods[EUR.sel];
+  m.r = (m.r === 1) ? 0 : 1;
+  eurDessiner(); memEur(); H.inter();
+  signal(EUR_CAT[m.type].nom + " : RANGÉE " + (m.r + 1));
+});
 document.getElementById("eur-decable").addEventListener("click", function(){
   EUR.cables = []; EUR.attente = null;
   eurBatir(); eurDessiner(); memEur(); H.inter();
@@ -16044,7 +16343,7 @@ document.getElementById("eur-hasard").addEventListener("click", function(){ eurH
    de rythme, deux ou trois voix, un traitement et une sortie. Sans cette
    ossature on obtient un tas de modules qui ne sonne pas. */
 /* ================= montages tout faits =================
-   Un rack vide décourage : il faut connaître soixante-sept modules et savoir
+   Un rack vide décourage : il faut connaître soixante-quinze modules et savoir
    lesquels vont ensemble avant d'entendre quoi que ce soit. Ces montages
    donnent un point de départ qui sonne, à défaire ensuite câble par câble —
    c'est la façon la plus rapide d'apprendre ce que fait chaque module.
@@ -16276,6 +16575,16 @@ var EUR_MONTAGES = [
          [7,"out",8,"in"], [8,"out",9,"in"]]}
 ];
 
+/* Au-delà de huit modules, une seule rangée oblige à défiler sans arrêt : on
+   coupe en deux en gardant l'ordre, si bien que le signal continue de se lire
+   de gauche à droite puis en dessous. */
+function repartirRangees(seuil){
+  var n = EUR.mods.length;
+  if(n <= (seuil || 8)){ EUR.mods.forEach(function(m){ m.r = 0; }); return; }
+  var moitie = Math.ceil(n / 2);
+  EUR.mods.forEach(function(m, i){ m.r = (i < moitie) ? 0 : 1; });
+}
+
 /* Monte un patch complet d'un coup. On garde la même mécanique que partout :
    tout est reconstruit, ce qui est plus court et plus sûr que de rapiécer. */
 function eurMonter(P){
@@ -16291,6 +16600,7 @@ function eurMonter(P){
   });
   if(P.bpm){ S.bpm = P.bpm; kEurTempo.maj(); saveSoon(); }
   EUR.nom = P.nom;                    /* le rack prend le nom du montage */
+  repartirRangees();
   eurBatir(); eurDessiner(); memEur(); majRackEur();
   lcdEur(P.nom, EUR.mods.length + " MODULES · RACK " + (EUR.cur + 1), true);
   signal(P.nom + " · " + P.res);
@@ -16350,6 +16660,7 @@ function eurHasard(){
   });
   EUR.cables.push({de:[mix.id,"out"], vers:[eff.id,"in"]});
   EUR.cables.push({de:[eff.id,"out"], vers:[so.id,"in"]});
+  repartirRangees();
   eurBatir(); eurDessiner(); memEur();
   signal(EUR.mods.length + " MODULES TIRÉS AU SORT");
 }

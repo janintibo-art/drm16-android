@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **73**.
+La version actuelle est la **74**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -40,7 +40,7 @@ sont sans accents (Termux).
 
 La notice est découpée en **onglets `.doc`** dans `#note-corps` ; la barre de navigation est construite
 toute seule à partir de leur `data-titre`. L'Eurorack en occupe trois : `note-eur` (les principes),
-`note-eurmod` (les 67 fiches), `note-eurpat` (huit patchs et le glossaire).
+`note-eurmod` (les 75 fiches), `note-eurpat` (huit patchs et le glossaire).
 
 Une seule page HTML porte toute l'application : `app/src/main/assets/drm16.html`, environ **890 ko**.
 Le Java ne sert que de pont vers Android.
@@ -59,8 +59,8 @@ Le Java ne sert que de pont vers Android.
 **Electro-Harmonix** DRM16, DRM32 · **Korg** Electribe EM-1, ER-1, EA-1, ES-1, ER-1 mkII, ES-1 mkII,
 EA-1 mkII, EMX-1, ESX-1, volca sample · **Akai** MPC3000, MPC2000 · **Roland** TR-808, TR-909, TR-707,
 CR-5000, TR-1000 · **Oberheim** DMX · **Arturia** DrumBrute Impact · **Behringer** RD-6, TD-3 ·
-**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (67 modules :
-7 horloges, 5 séquenceurs, 7 oscillateurs, 8 filtres, 7 modulations, 10 utilitaires, 12 traitements,
+**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (75 modules, deux rangées :
+9 horloges, 6 séquenceurs, 7 oscillateurs, 10 filtres, 8 modulations, 10 utilitaires, 14 traitements,
 11 percussions).
 
 ### Les outils
@@ -116,6 +116,33 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Deux rangées et huit modules rares — v74**
+
+*Deux rangées.* `#eur-piste` passe en colonne et contient deux `.eur-rangee`. Chaque module porte `m.r`
+(0 ou 1), enregistré dans le rack. Bouton `RANGÉE` pour déplacer le module choisi ; `repartirRangees()`
+coupe la chaîne en deux au-delà de huit modules et est appelée par `eurMonter` et `eurHasard`.
+**`eurCables()` n'a pas eu à changer** : il mesure les rectangles réels des prises par rapport à
+`#eur-piste`, donc il suit les deux rangées tout seul. La rangée vide a une hauteur nulle, rien ne bouge
+pour un petit rack.
+
+*Le moteur gagne un second tour.* `scheduleEur` vide la file, puis appelle `m.finPas(t)` sur les modules
+qui en ont un, puis vide à nouveau. **C'est indispensable à la logique combinatoire** : évaluer dès
+l'arrivée de A laisserait l'ordre des câbles décider du résultat, et une sortie déjà partie ne se rattrape
+pas. Vérifié au banc en inversant l'ordre des câbles — résultat identique.
+
+*Huit modules peu communs* :
+- **SWING** (horloge) — retarde un pas sur deux, via la propagation datée.
+- **LOGIC** (horloge) — AND / OR / XOR, avec `finPas`.
+- **ARP** (seq) — égrène un accord, quatre parcours.
+- **LPG** (filtre) — la porte passe-bas de Buchla : filtre et ampli sur la même chute.
+- **RESONATE** (filtre) — trois passe-bande très pointus, accordés par `detune` depuis l'entrée V/OCT,
+  donc volt par octave exact sans calcul.
+- **RUNGLER** (mod) — suite logistique + registre à décalage, façon Benjolin. Garde-fou contre les points
+  fixes (`x` remis à 0,41 s'il s'échappe). **Ce n'est pas du hasard** : c'est déterministe et non
+  périodique, vérifié sur 64 pas à trois réglages.
+- **BBD** (effet) — passe-bas **dans** la boucle de réinjection, plus un léger tangage.
+- **SPRING** (effet) — trois délais courts de longueurs premières entre elles, gain de boucle borné à 0,88.
 
 **Un relevé qui mesure vraiment — v73**
 
