@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **70**.
+La version actuelle est la **71**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,31 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Poignées et grésillements — v71**
+
+*Poignées élargies partout.* Ce qui avait été fait pour l'Eurorack en v66 est étendu aux vingt-cinq
+machines : **l'identifiant du potard passe du `.bt` au bloc conteneur**, étiquette comprise. 103 potards
+déplacés en statique, plus ceux construits en JS (t1k, dbi, td3, cr, vlc, eur). Tous les conteneurs avaient
+déjà `touch-action:none`, rien d'autre à changer. `estCommande()` liste maintenant les onze classes de
+conteneur — **sans quoi toucher l'étiquette déplacerait la façade**.
+Seule exception : `tr8-k-tone` et `tr8-k-drive`, dont le conteneur porte déjà un identifiant qui sert à les
+masquer. Ils font 44 px, c'est déjà le plus gros de l'application.
+
+*Relevé sur l'appareil* : `48 kHz · running · retard 21 ms · 194 puis 1180 SOURCES · 2 DÉCROCHAGES`.
+Deux décrochages seulement : **l'ordonnanceur tient**, le goulot est dans le fil audio. Deux mesures :
+
+- `purgerSources` gardait quatre secondes d'historique et ne se déclenchait qu'au-delà de 400 entrées.
+  Chaque entrée retient un nœud audio et empêche de le récupérer ; le ramasse-miettes finit par passer, et
+  son passage s'entend. Fenêtre ramenée à **1,5 s**, purge à chaque tour. Mesuré au banc à 120 sources/s :
+  pic de 470 à 195 entrées, **59 % de moins**. La fenêtre doit rester supérieure à l'anticipation de
+  l'ordonnanceur (0,22 s en avant-plan, 1,2 s en arrière-plan) — ne pas descendre sous 1,5 s.
+- La saturation du bus général passe de `oversample:"4x"` à `"2x"` : moitié moins de travail sur chaque
+  échantillon du mélange. La courbe étant droite jusqu'à 0,84, le suréchantillonnage ne sert qu'aux crêtes.
+  **Réversible** si la coloration des crêtes déplaît.
+
+Le relevé sépare désormais le total des sources de celles **à venir** : un gros total avec peu d'à-venir
+veut dire que la purge traîne, pas que la machine joue beaucoup.
 
 **Huit genres de plus, et un contrôle qui a servi — v70**
 
