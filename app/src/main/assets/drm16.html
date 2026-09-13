@@ -227,6 +227,23 @@ body.m32 .read{color:#8fe8d8}
 #note button.sec{background:#2f2f35;color:#eceae4;margin-top:6px;margin-right:6px}
 #note button[disabled]{opacity:.5}
 /* bouton d'accès, toujours visible sur une machine */
+/* Le bandeau de signalement n'avait aucun style : il restait un bloc dans la
+   mise en page et poussait la machine hors du centre. Il flotte maintenant en
+   bas de l'écran, hors du flux, et ne se voit que lorsqu'il a quelque chose
+   à dire. */
+#signal{position:fixed;left:50%;bottom:14px;transform:translate(-50%,14px);z-index:16;
+  max-width:min(560px,92vw);padding:10px 16px;border-radius:20px;pointer-events:none;
+  background:#12141ae8;color:#f2efe8;font:700 12px/1.35 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:.8px;text-align:center;box-shadow:0 6px 20px #000a,inset 0 0 0 1px #ffffff26;
+  opacity:0;transition:opacity .18s,transform .18s}
+#signal.vu{opacity:1;transform:translate(-50%,0)}
+/* à gauche, il couvrait l'interrupteur de la DRM16 : il se range donc à côté
+   de NOTICE, dans un coin où aucune machine n'a de commande */
+#retour{position:fixed;top:8px;right:98px;z-index:14;padding:9px 13px;border:0;border-radius:20px;
+  background:#1c1c20e0;color:#f0ede6;font:800 11px/1 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:1.4px;box-shadow:0 3px 10px #0009,inset 0 0 0 1px #ffffff2e}
+#retour:active{background:#33333a}
+body.menu-ouvert #retour,body.note-ouverte #retour{display:none}
 #aide{position:fixed;top:8px;right:8px;z-index:14;padding:9px 13px;border:0;border-radius:20px;
   background:#1c1c20e0;color:#f0ede6;font:800 11px/1 "Roboto Condensed",sans-serif-condensed,Arial;
   letter-spacing:1.6px;box-shadow:0 3px 10px #0009,inset 0 0 0 1px #ffffff2e}
@@ -2540,6 +2557,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
 </div>
 
+<button id="retour">☰ MENU</button>
 <button id="aide">NOTICE</button>
 
 
@@ -3107,6 +3125,9 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <div id="note-nav"></div>
   <div id="note-corps">
   <div class="doc" id="note-general" data-titre="GÉNÉRAL">
+  <h3>Revenir au menu</h3>
+  <p>Le bouton <b>☰ MENU</b>, en haut à droite à côté de NOTICE, ramène au choix des machines depuis
+  n'importe laquelle. La lecture s'arrête et les réglages sont gardés.</p>
   <h3>L'application</h3>
   <p>Onze boîtes à rythmes recréées, <b>entièrement hors ligne</b> : aucun accès réseau, aucun échantillon
   téléchargé. Tous les sons sont synthétisés ou échantillonnés sur l'appareil. La permission Internet n'est
@@ -14377,7 +14398,12 @@ function eurCables(){
   svg.setAttribute("height", H);
   svg.style.width = L + "px";
   svg.style.height = H + "px";
+  /* Le rack est mis à l'échelle par fit() : les rectangles renvoyés par le
+     navigateur sont en pixels d'écran, alors que le dessin se fait dans le
+     repère du rack. Sans cette division, les câbles sont décalés et rapetissés
+     dès que la machine ne tient pas en entier dans la fenêtre. */
   var rp = piste.getBoundingClientRect();
+  var ech = rp.width / (piste.offsetWidth || 1) || 1;
   var teintes = ["#e05a3a","#3ad0e0","#e0c03a","#8fe05a","#c85ae0","#5a8fe0"];
   var h = "";
   EUR.cables.forEach(function(c, n){
@@ -14385,8 +14411,8 @@ function eurCables(){
     var b = document.querySelector('.eur-j[data-m="' + c.vers[0] + '"][data-j="' + c.vers[1] + '"] i');
     if(!a || !b) return;
     var ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
-    var x1 = ra.left - rp.left + ra.width / 2, y1 = ra.top - rp.top + ra.height / 2;
-    var x2 = rb.left - rp.left + rb.width / 2, y2 = rb.top - rp.top + rb.height / 2;
+    var x1 = (ra.left - rp.left + ra.width / 2) / ech, y1 = (ra.top - rp.top + ra.height / 2) / ech;
+    var x2 = (rb.left - rp.left + rb.width / 2) / ech, y2 = (rb.top - rp.top + rb.height / 2) / ech;
     /* un câble pend : la courbe descend, mais pas plus bas que le rack */
     var creux = Math.min(34, Math.max(14, Math.abs(x2 - x1) * 0.22));
     h += '<path d="M' + x1 + ',' + y1 + ' C' + x1 + ',' + (y1 + creux) + ' ' +
@@ -19463,6 +19489,7 @@ function appliquerModele(id){
   paint(); applyBass(); save();
   fit(); setTimeout(fit,120);
 }
+document.getElementById("retour").addEventListener("click", function(){ ouvrirMenu(); H.inter(); });
 function ouvrirMenu(){
   stop();
   menu.classList.remove("hide");

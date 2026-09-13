@@ -244,6 +244,30 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Retour au menu et bandeau flottant (version 57)
+
+Deux défauts signalés, et le second en cachait un troisième bien plus ancien.
+
+**Il n'y avait aucun moyen de revenir au menu.** La notice était accessible, pas le choix des machines :
+`ouvrirMenu()` existait, mais rien ne l'appelait. Un bouton **☰ MENU** a été ajouté. Posé d'abord en haut
+à gauche, il couvrait l'interrupteur de la DRM16 et rendait la machine impossible à allumer — il est
+maintenant à côté de NOTICE, dans un coin où aucune machine n'a de commande. Vérifié machine par machine :
+le bouton est accessible partout et le retour fonctionne depuis les vingt-cinq.
+
+**Le décalage de l'eurorack venait de deux causes.** D'abord les câbles : `fit()` met la machine à
+l'échelle, mais je dessinais en pixels d'écran dans un repère mis à l'échelle. Divisé par l'échelle, l'écart
+entre le départ d'un câble et le centre de son jack est maintenant de **zéro pixel** à toutes les tailles
+d'écran testées.
+
+**Ensuite, la vraie cause du décalage du panneau** : `#signal`, le bandeau de messages, **n'avait aucune
+règle de style**. Créé en JavaScript et ajouté au corps de page, il restait un bloc ordinaire dans une mise
+en page centrée — et poussait la machine de trente-neuf pixels vers la gauche. Sur toutes les machines,
+depuis toujours.
+
+Ce texte flottant à droite des panneaux, je l'ai vu dans chacune de mes captures d'écran et je l'ai pris
+pour un affichage normal sans jamais le vérifier. Le bandeau flotte maintenant en bas de l'écran, hors du
+flux, avec un fondu. Les vingt-cinq machines sont centrées au pixel près.
+
 ## Eurorack : cinquante-six modules (version 56)
 
 Quatre fois plus de modules, en huit familles : quatre horloges, cinq séquenceurs, sept oscillateurs, huit
