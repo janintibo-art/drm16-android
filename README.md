@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Vingt-deux machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+**Vingt-trois machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
 en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -243,6 +243,26 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Behringer RD-6 (version 53)
+
+Vingt-troisième machine, et la moins coûteuse de toutes : le moteur TR généralisé à la version 39 l'a
+accueillie sans rien changer à sa mécanique. Huit voix, **un seul potard par instrument — son niveau**.
+C'est fidèle : la TR-606 n'avait rien d'autre.
+
+**Les voix.** Grosse caisse tombant de 190 à 54 Hz en vingt-deux millisecondes, trois fois plus vite que
+celle de la 808 : c'est son claquement sec. Charleys filtrés au-dessus de 9 kHz. Les huit mesurées, aucune
+muette.
+
+**Ce que la RD-6 ajoute à la 606**, et qui a demandé un bus de sortie propre : DIST et DRIVE passent toute
+la machine dans une saturation — niveau efficace d'une grosse caisse de 0,052 à 0,088 —, TONE ferme le haut
+du spectre, et le sélecteur CY/CP remplace la cymbale par le clap de la BR-110 : 0,65 s de cymbale contre
+0,13 s de clap. Le bouton COULEUR fait défiler les **six teintes du commerce**, vérifiées distinctes.
+
+**Une leçon de méthode.** Trois de mes blocs de modification ont échoué sur leur dernière ligne, annulant
+au passage tout ce qui précédait — d'où une façade sans ses boutons et des couleurs sans feuille de style.
+J'applique désormais **chaque modification séparément, avec écriture immédiate** : un échec ne fait plus
+perdre que lui-même, et le journal dit lequel.
 
 ## Décalage humain et tirage au sort (version 52)
 

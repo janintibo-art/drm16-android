@@ -912,6 +912,29 @@ body.tr8 .akai{display:none}
 .rtr{display:none;width:100%;max-width:1180px;border-radius:6px;padding:14px 16px 16px;
   background:linear-gradient(172deg,#e9e7e2,#dcd9d2 40%,#d2cfc8 75%,#e4e2dc);
   box-shadow:0 18px 40px #000a,inset 0 1px 0 #fff9,inset 0 -3px 8px #0002;position:relative}
+/* La RD-6 existe en six teintes : bleu translucide d'origine, noir, argent,
+   vert, jaune et rouge. */
+body.rd6 .rtr{background:linear-gradient(172deg,#2f8fd8,#1f6fb8 40%,#1a5fa0 75%,#2a86cc)}
+body.rd6.c1 .rtr{background:linear-gradient(172deg,#3a3d42,#26282c 40%,#1d1f22 75%,#33363b)}
+body.rd6.c2 .rtr{background:linear-gradient(172deg,#e2e4e7,#cfd2d6 40%,#c2c5ca 75%,#dadde1)}
+body.rd6.c3 .rtr{background:linear-gradient(172deg,#5cd44a,#3fae32 40%,#349626 75%,#52c842)}
+body.rd6.c4 .rtr{background:linear-gradient(172deg,#f2c63a,#dca81c 40%,#c89512 75%,#eec033)}
+body.rd6.c5 .rtr{background:linear-gradient(172deg,#d8342a,#b4231c 40%,#9c1b16 75%,#cc2e25)}
+body.rd6 .tr8-roland{color:#fff;font:900 15px/1 "Arial Black",Impact,sans-serif}
+body.rd6.c2 .tr8-roland{color:#c8281c}
+body.rd6 .tr8-nom b{color:#fff;text-shadow:0 2px 3px #0006}
+body.rd6.c2 .tr8-nom b{color:#2f2f2d;text-shadow:none}
+body.rd6 .tr8-nom span{color:#e8f2ff}
+body.rd6.c2 .tr8-nom span{color:#5a5a56}
+body.rd6 .tr8-instr{background:rgba(0,0,0,.24)}
+body.rd6 .tr8-grp>b{color:#ffffff}
+body.rd6.c2 .tr8-grp>b{color:#3a3a36}
+body.rd6 .tr8-pas button.c0,body.rd6 .tr8-pas button.c1,
+body.rd6 .tr8-pas button.c2,body.rd6 .tr8-pas button.c3{
+  background:linear-gradient(180deg,#dfe3e8,#b4bac2);
+  box-shadow:0 3px 0 #6a6f76,0 4px 6px #0005,inset 0 1px 0 #fff}
+body.rd6 .tr8-pas button.act{background:linear-gradient(180deg,#ff8f7a,#e0301c);
+  box-shadow:0 3px 0 #6a6f76,0 0 12px #ff4a2ab0,inset 0 1px 0 #ffd0c8}
 body.tr9 .rtr{background:linear-gradient(172deg,#f2f1ee,#e6e5e1 40%,#dcdbd6 75%,#eceae6)}
 body.tr9 .tr8-pas button.c0,body.tr9 .tr8-pas button.c1,
 body.tr9 .tr8-pas button.c2,body.tr9 .tr8-pas button.c3{
@@ -985,6 +1008,9 @@ body.tr7 .tr8-pas button.c0{background:linear-gradient(180deg,#f8b478,#e2802a)}
   .tr8-kn,.tr8-kn .bt{width:29px} .tr8-kn .bt{height:29px}
 }
 
+.pick.prd6{background:linear-gradient(165deg,#2f8fd8,#0d2338 55%,#1a5fa0)}
+.pick.prd6 b{color:#dff0ff;text-shadow:0 2px 0 #0a1a2a}
+.pick.prd6 span{color:#b8d8f0}
 .pick.p808{background:linear-gradient(165deg,#8e8b84,#2c2b28 55%,#4a4844)}
 .pick.p808 b{color:#f0834a;text-shadow:0 2px 0 #2a1409}
 .pick.p808 span{color:#cbc7bd}
@@ -2750,6 +2776,13 @@ body.arcm .t1kb{display:none}
     <button class="tr8b" id="tr8-clear">CLEAR</button>
     <button class="tr8b" id="tr8-scale">SCALE 16</button>
     <button class="tr8b" id="tr8-last">LAST STEP 16</button>
+    <button class="tr8b" id="tr8-dist" style="display:none">DIST OFF</button>
+    <button class="tr8b" id="tr8-clap" style="display:none">CY / CP</button>
+    <button class="tr8b" id="tr8-couleur" style="display:none">COULEUR</button>
+    <div class="tr8-kn" id="tr8-kn-tone" style="width:44px;display:none">
+      <div class="bt" id="tr8-k-tone" style="width:44px;height:44px"><i></i></div><em>TONE</em></div>
+    <div class="tr8-kn" id="tr8-kn-drive" style="width:44px;display:none">
+      <div class="bt" id="tr8-k-drive" style="width:44px;height:44px"><i></i></div><em>DRIVE</em></div>
     <button class="tr8b" id="tr8-shuffle">SHUFFLE 0%</button>
     <button class="tr8b" id="tr8-flam" style="display:none">FLAM OFF</button>
     <button class="tr8b" id="tr8-tap">TAP</button>
@@ -2850,6 +2883,7 @@ body.arcm .t1kb{display:none}
   <button class="pick pcr5" data-m="cr5"><b>ROLAND CR-5000</b><span>24 RYTHMES PRÉSÉLECTIONNÉS · ARRANGEUR · BREAKS</span></button>
   <button class="pick pvlc" data-m="vlc"><b>KORG volca sample</b><span>10 PARTIES · MOTIFS AU FORMAT KORG · MOUVEMENTS</span></button>
   <button class="pick pdmx" data-m="dmx"><b>OBERHEIM DMX</b><span>ÉCHANTILLONS HUIT BITS · JEU AU VOL · 24 TOUCHES</span></button>
+  <button class="pick prd6" data-m="rd6"><b>BEHRINGER RD-6</b><span>LA 606 REMISE EN CIRCUIT · DISTORSION · SIX TEINTES</span></button>
   <button class="pick p808" data-m="tr808"><b>ROLAND TR-808</b><span>SYNTHÈSE ANALOGIQUE · 12 VOIX · 16 PAS</span></button>
   <button class="pick p909" data-m="tr909"><b>ROLAND TR-909</b><span>PEAUX ANALOGIQUES · MÉTAUX SIX BITS · FLAM</span></button>
   <button class="pick p707" data-m="tr707"><b>ROLAND TR-707</b><span>QUINZE VOIX ÉCHANTILLONNÉES · ÉCRAN À POINTS</span></button>
@@ -3223,6 +3257,20 @@ body.arcm .t1kb{display:none}
   reconnaître un charley de 909. <b>CRASH TUNE</b> et <b>RIDE TUNE</b> les transposent.</p>
   <p><b>FLAM</b> double chaque coup vingt-huit millisecondes plus tard — vérifié au comptage. <b>SHUFFLE</b>
   retarde les pas impairs jusqu'à la moitié d'un pas. Les deux machines gardent leurs motifs séparément.</p>
+
+  <h3>La Behringer RD-6</h3>
+  <p>La TR-606 remise en circuit quarante ans après, et la même mécanique que les trois Roland
+  ci-dessus. Huit voix, et <b>un seul potard par instrument : son niveau</b>. C'est fidèle — la 606 n'avait
+  rien d'autre, et la RD-6 n'en ajoute pas.</p>
+  <p>Sa grosse caisse tombe de 190 à 54 Hz en <b>vingt-deux millisecondes</b>, trois fois plus vite que
+  celle de la 808 : c'est ce qui lui donne son claquement sec. Ses charleys sont filtrés très haut,
+  au-dessus de 9 kHz.</p>
+  <p>Ce que la RD-6 ajoute à la 606, elle : <b>DIST</b> et son potard <b>DRIVE</b> passent toute la machine
+  dans une saturation — le niveau efficace d'une grosse caisse monte de 0,052 à 0,088 —, <b>TONE</b> ferme
+  le haut du spectre, et le sélecteur <b>CY / CP</b> remplace la cymbale par un <b>clap emprunté à la
+  BR-110</b> : 0,65 seconde de cymbale contre 0,13 de clap.</p>
+  <p>Le bouton <b>COULEUR</b> fait défiler les six teintes du commerce : bleu translucide, noir, argent,
+  vert, jaune, rouge.</p>
 
   <h3>La TR-707</h3>
   <p>Quinze instruments, et <b>un seul réglage par instrument</b> : son niveau. C'est fidèle — la 707 n'a
@@ -3633,12 +3681,12 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
 (function charger(){
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
-    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5","dbi","t1k","arcm"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","rd6","dmx","vlc","cr5","dbi","t1k","arcm"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
     if(typeof m.hum === "number"){ memoire.hum = m.hum; HUM.temps = m.hum; }
     if(typeof m.wav === "number"){ memoire.wav = m.wav; WAVX.mesures = m.wav; }
     if(m.midi) memoire.midi = m.midi;
     /* ancien format : les machines vivaient dans le blob global, on les répartit une fois */
-    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5","dbi","t1k","arcm"].forEach(function(c){
+    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","rd6","dmx","vlc","cr5","dbi","t1k","arcm"].forEach(function(c){
       if(m[c]){
         memoire[c] = m[c];
         try{ localStorage.setItem(MEM + "." + c, JSON.stringify(m[c])); }catch(e){}
@@ -4360,7 +4408,7 @@ function docDeLaMachine(){
   if(m === "emx") return "note-mx";
   if(m === "esx") return "note-sx";
   if(m === "mpc3000" || m === "mpc2000") return "note-mpc";
-  if(m === "tr808" || m === "tr909" || m === "tr707") return "note-808";
+  if(m === "tr808" || m === "tr909" || m === "tr707" || m === "rd6") return "note-808";
   if(m === "dmx") return "note-dmx";
   if(m === "vlc") return "note-vlc";
   if(m === "cr5") return "note-cr5";
@@ -4448,7 +4496,7 @@ document.getElementById("menu-pr").addEventListener("click", function(){
 (function machinePr(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"],["dbi","DrumBrute Impact"],["t1k","Roland TR-1000"],["arcm","Machine d'archive"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"],["dbi","DrumBrute Impact"],["t1k","Roland TR-1000"],["arcm","Machine d'archive"],["rd6","Behringer RD-6"]];
   var sel = document.getElementById("pr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -4496,7 +4544,7 @@ document.getElementById("enr-rec").addEventListener("click", function(){
 (function menuEnregistreur(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"],["dbi","DrumBrute Impact"],["t1k","Roland TR-1000"],["arcm","Machine d'archive"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"],["dbi","DrumBrute Impact"],["t1k","Roland TR-1000"],["arcm","Machine d'archive"],["rd6","Behringer RD-6"]];
   var sel = document.getElementById("enr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -4580,7 +4628,7 @@ window.addEventListener("pagehide", writeMem);
    Ce contrôle le dit tout de suite au lieu de laisser chercher. */
 (function collisionsDeClasses(){
   var corps = ["m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-               "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm","menu-ouvert","note-ouverte"];
+               "tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm","menu-ouvert","note-ouverte"];
   var mauvaises = corps.filter(function(c){
     var e = document.querySelector("." + c);
     return e && e !== document.body;
@@ -6111,7 +6159,7 @@ function activerEm(){
   S.modele = "em1";
   MACHINE = MACHINE_EM;
   document.body.classList.add("em1");
-  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   chargerEm();
   construireFx();
   EM.choisirPartie(EM.sel);
@@ -6814,7 +6862,7 @@ function activerEr(v){
   ER.v = (v===2) ? 2 : 1;
   S.modele = "er" + ER.v;
   MACHINE = MACHINE_ER;
-  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("er1");
   document.body.classList.toggle("mk2", ER.v===2);
   chargerEr();
@@ -7468,7 +7516,7 @@ function activerEa(v){
   EA.v = (v===2) ? 2 : 1;
   S.modele = "ea" + EA.v;
   MACHINE = MACHINE_EA;
-  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("ea1");
   document.body.classList.toggle("mk2", EA.v===2);
   chargerEa();
@@ -8369,7 +8417,7 @@ function activerEs(v){
   ES.v = (v===2) ? 2 : 1;
   S.modele = "es" + ES.v;
   MACHINE=MACHINE_ES;
-  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("es1");
   document.body.classList.toggle("mk2", ES.v===2);
   audioInit(); banqueEs(); busEffets(); chargerEchs();
@@ -9456,7 +9504,7 @@ function activerMx(){
   stop();
   S.modele="emx";
   MACHINE=MACHINE_MX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("emx");
   audioInit(); banqueEs(); mxAudio();
   chargerMx();
@@ -10496,7 +10544,7 @@ function activerSx(){
   stop();
   S.modele="esx";
   MACHINE=MACHINE_SX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("esx");
   audioInit(); banqueEs(); sxAudio(); chargerEchs();
   chargerSx();
@@ -11999,10 +12047,38 @@ var TR_TPQ = 4;
 function trSortie(k){
   if(!TR.noeuds[k]){
     var g = ctx.createGain();
-    g.connect(master);
+    g.connect(sortieRd6());
     TR.noeuds[k] = g;
   }
   return TR.noeuds[k];
+}
+/* La RD-6 passe par une distorsion et un réglage de timbre, les deux autres
+   vont droit au maître. Le nœud est construit dans les deux cas : c'est le
+   même chemin, avec ou sans effet. */
+function sortieRd6(){
+  if(!TR.bus){
+    var e = ctx.createGain();
+    var lp = ctx.createBiquadFilter(); lp.type = "lowpass";
+    var sec = ctx.createGain(), hum = ctx.createGain();
+    var d = ctx.createWaveShaper();
+    var n = 1024, c = new Float32Array(n);
+    for(var i=0;i<n;i++){ var x = i * 2 / n - 1; c[i] = Math.tanh(x * 4); }
+    d.curve = c; d.oversample = "2x";
+    e.connect(lp);
+    lp.connect(sec); sec.connect(master);
+    lp.connect(d); d.connect(hum); hum.connect(master);
+    TR.bus = {e:e, lp:lp, sec:sec, hum:hum};
+    majBusTr();
+  }
+  return TR.bus.e;
+}
+function majBusTr(){
+  if(!TR.bus) return;
+  var rd = (TR.m === "rd6");
+  TR.bus.lp.frequency.value = rd ? (300 * Math.pow(60, TR.tone)) : 20000;
+  var d = (rd && TR.dist) ? TR.drive : 0;
+  TR.bus.sec.gain.value = 1 - d * 0.8;
+  TR.bus.hum.gain.value = d * 0.85;
 }
 function trEnv(g, t, pic, dec, atk){
   g.gain.setValueAtTime(0.0001, t);
@@ -12421,6 +12497,105 @@ function TR707_USINE(n){
   return {};
 }
 
+/* ---------- Behringer RD-6 : la 606 remise en circuit ----------
+   Huit voix analogiques et un seul potard par instrument, son niveau : c'est
+   tout ce qu'avait la TR-606, et la RD-6 n'en ajoute pas. Ce qu'elle ajoute,
+   c'est une distorsion, un réglage de timbre général, et un clap emprunté à
+   la BR-110 qui prend la place de la cymbale. */
+var RD6_INSTR = [
+  {id:"AC", nom:"ACCENT",    grp:"ACCENT",      kns:[["niv","LEVEL"]]},
+  {id:"BD", nom:"BASS DRUM", grp:"BASS DRUM",   kns:[["niv","LEVEL"]]},
+  {id:"SD", nom:"SNARE",     grp:"SNARE DRUM",  kns:[["niv","LEVEL"]]},
+  {id:"LT", nom:"LOW TOM",   grp:"L.H. TOM",    kns:[["niv","LEVEL"]]},
+  {id:"HT", nom:"HI TOM",    grp:"",            kns:[["niv","LEVEL"]]},
+  {id:"CY", nom:"CYM / CLAP",grp:"CYMBAL/CLAP", kns:[["niv","LEVEL"]]},
+  {id:"OH", nom:"OPEN HAT",  grp:"O.C. HI HAT", kns:[["niv","LEVEL"]]},
+  {id:"CH", nom:"CLOSED HAT",grp:"",            kns:[["niv","LEVEL"]]}
+];
+var RD6_MIDI = [0, 36, 38, 43, 50, 49, 46, 42];
+function voix606(t, k, acc){
+  var s = TR.pat.son[k], id = RD6_INSTR[k].id;
+  var dest = trSortie(k);
+  var niv = mv("niv", s.niv) * (acc ? 1 : 0.6) * (0.35 + TR.pat.son[0].niv * 0.9);
+  var g = ctx.createGain();
+  g.connect(dest);
+  dest.gain.setValueAtTime(1, t);
+
+  if(id === "BD"){
+    /* la 606 frappe court et sec : la chute de hauteur est plus rapide que sur la 808 */
+    var o = ctx.createOscillator(); o.type = "sine";
+    o.frequency.setValueAtTime(190, t);
+    o.frequency.exponentialRampToValueAtTime(54, t + 0.022);
+    trEnv(g, t, niv * 1.15, 0.24, 0.001);
+    o.connect(g); o.start(t); o.stop(t + 0.3);
+    var nk = trBruit(t, 0.01), gk = ctx.createGain();
+    var hk = ctx.createBiquadFilter(); hk.type = "highpass"; hk.frequency.value = 2000;
+    trEnv(gk, t, niv * 0.35, 0.009, 0.0005);
+    nk.connect(hk); hk.connect(gk); gk.connect(dest);
+  }
+  else if(id === "SD"){
+    var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+    bp.frequency.value = 2400; bp.Q.value = 0.8;
+    var nb = trBruit(t, 0.1);
+    trEnv(g, t, niv * 1.2, 0.1, 0.0008);
+    nb.connect(bp); bp.connect(g);
+    var o1 = ctx.createOscillator(); o1.type = "triangle"; o1.frequency.value = 238;
+    var o2 = ctx.createOscillator(); o2.type = "triangle"; o2.frequency.value = 476;
+    var gc = ctx.createGain();
+    trEnv(gc, t, niv * 0.4, 0.05, 0.0008);
+    o1.connect(gc); o2.connect(gc); gc.connect(dest);
+    o1.start(t); o2.start(t); o1.stop(t + 0.08); o2.stop(t + 0.08);
+  }
+  else if(id === "LT" || id === "HT"){
+    var base = (id === "LT") ? 105 : 165;
+    var ot = ctx.createOscillator(); ot.type = "sine";
+    ot.frequency.setValueAtTime(base * 1.8, t);
+    ot.frequency.exponentialRampToValueAtTime(base, t + 0.04);
+    trEnv(g, t, niv * 1.1, 0.22, 0.0015);
+    ot.connect(g); ot.start(t); ot.stop(t + 0.3);
+  }
+  else if(id === "CY"){
+    if(TR.clap){                               /* le clap de la BR-110 */
+      var bc = ctx.createBiquadFilter(); bc.type = "bandpass";
+      bc.frequency.value = 1150; bc.Q.value = 1.5;
+      var nc = trBruit(t, 0.3);
+      nc.connect(bc); bc.connect(g);
+      g.gain.setValueAtTime(0.0001, t);
+      [0, 0.009, 0.018].forEach(function(o3){
+        g.gain.setValueAtTime(niv * 1.7, t + o3);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + o3 + 0.008);
+      });
+      g.gain.setValueAtTime(niv * 1.2, t + 0.028);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+    } else {
+      var m = trMetal(t, 1.1, 340, 0.36);
+      var hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 4200;
+      trEnv(g, t, niv * 1.1, 1.1, 0.001);
+      m.connect(hp); hp.connect(g);
+    }
+  }
+  else {                                       /* charleys : la 606 les fait très brillants */
+    var dh = (id === "CH") ? 0.045 : 0.32;
+    var mh = trMetal(t, dh, 1000, 0.4);
+    var hh = ctx.createBiquadFilter(); hh.type = "highpass"; hh.frequency.value = 9000;
+    trEnv(g, t, niv * (id === "CH" ? 2.1 : 1.6), dh, 0.0008);
+    mh.connect(hh); hh.connect(g);
+    if(id === "CH" && TR.ohGain){
+      try{ TR.ohGain.gain.cancelScheduledValues(t);
+           TR.ohGain.gain.setTargetAtTime(0.0001, t, 0.004); }catch(e){}
+    }
+    if(id === "OH") TR.ohGain = g;
+  }
+}
+function RD6_USINE(n){
+  if(n === 0) return {1:"x.......x.......", 2:"....x.......x...", 7:"x.x.x.x.x.x.x.x.", 0:"x.......x......."};
+  if(n === 1) return {1:"x..x..x...x.....", 2:"....x.......x...", 7:"xxxxxxxxxxxxxxxx",
+                      6:"..........x.....", 5:"............x..."};
+  if(n === 2) return {1:"x...x...x...x...", 2:"....x.......x...", 7:"x.x.x.x.x.x.x.x.",
+                      3:"..........x.x...", 0:"x...x...x...x..."};
+  return {};
+}
+
 /* ---------- descripteurs ---------- */
 var TR_MODELES = {
   tr808: {nom:"TR-808", sous:"RHYTHM COMPOSER", instr:TR808_INSTR, voix:voix808, midi:TR808_MIDI,
@@ -12428,7 +12603,9 @@ var TR_MODELES = {
   tr909: {nom:"TR-909", sous:"RHYTHM COMPOSER", instr:TR909_INSTR, voix:voix909, midi:TR909_MIDI,
           usine:function(n){ return TR909_USINE(n); }},
   tr707: {nom:"TR-707", sous:"RHYTHM COMPOSER", instr:TR707_INSTR, voix:voix707, midi:TR707_MIDI,
-          usine:function(n){ return TR707_USINE(n); }}
+          usine:function(n){ return TR707_USINE(n); }},
+  rd6:   {nom:"RD-6", sous:"ANALOG DRUM MACHINE", instr:RD6_INSTR, voix:voix606, midi:RD6_MIDI,
+          usine:function(n){ return RD6_USINE(n); }, marque:"Behringer"}
 };
 function TR808_USINE(n){
   if(n === 0) return {1:"x.......x.......", 2:"....x.......x...", 11:"x.x.x.x.x.x.x.x.", 0:"x.......x......."};
@@ -12464,7 +12641,8 @@ function motifTr(n){
   return p;
 }
 var TR = {m:"tr808", def:null, pat:null, slots:[], cur:0, var2:false, sel:1,
-          ecrit:true, pos:-1, noeuds:[], ohGain:null, flam:false, shuffle:0};
+          ecrit:true, pos:-1, noeuds:[], ohGain:null, flam:false, shuffle:0,
+          bus:null, dist:false, drive:0.45, tone:0.75, clap:false, couleur:0};
 
 /* ---------- séquenceur ---------- */
 function voixTr(t, k, acc){
@@ -12588,11 +12766,15 @@ function construireTr(){
 var kTrVol = knobEm("tr8-k-vol", {min:0, max:1, get:function(){ return S.vol; },
   set:function(v){ S.vol = v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
     lcdTr(String(Math.round(v*100)), "VOLUME", true); saveSoon(); }});
+var kTrTone = knobEm("tr8-k-tone", {min:0, max:1, get:function(){ return TR.tone; },
+  set:function(v){ TR.tone = v; majBusTr(); lcdTr(String(Math.round(v*100)), "TONE", true); memTr(); }});
+var kTrDrive = knobEm("tr8-k-drive", {min:0, max:1, get:function(){ return TR.drive; },
+  set:function(v){ TR.drive = v; majBusTr(); lcdTr(String(Math.round(v*100)), "DISTORTION", true); memTr(); }});
 var kTrTempo = knobEm("tr8-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 40) / 260; },
   set:function(v){ S.bpm = Math.round(40 + v * 260); lcdTr(String(S.bpm), "TEMPO", true); saveSoon(); }});
 function majKnobsTr(){
   TR_KNOBS.forEach(function(k){ k.maj(); });
-  kTrVol.maj(); kTrTempo.maj();
+  kTrVol.maj(); kTrTempo.maj(); kTrTone.maj(); kTrDrive.maj();
 }
 
 var trTmr = null;
@@ -12647,6 +12829,19 @@ function majTr(){
       }
     }
   }
+  var rd = (TR.m === "rd6");
+  ["tr8-dist","tr8-clap","tr8-couleur","tr8-kn-tone","tr8-kn-drive"].forEach(function(id){
+    var e = document.getElementById(id);
+    if(e) e.style.display = rd ? "" : "none";
+  });
+  if(rd){
+    var bd = document.getElementById("tr8-dist");
+    bd.textContent = TR.dist ? "DIST ON" : "DIST OFF";
+    bd.classList.toggle("on", TR.dist);
+    var bc = document.getElementById("tr8-clap");
+    bc.textContent = TR.clap ? "CP BR110" : "CY RD-6";
+    bc.classList.toggle("on", TR.clap);
+  }
   var bsh = document.getElementById("tr8-shuffle");
   if(bsh) bsh.textContent = "SHUFFLE " + Math.round(TR.shuffle * 100) + "%";
   majLcdTr();
@@ -12655,6 +12850,7 @@ function majTr(){
 function memTr(){
   memoire[TR.m] = {
     cur:TR.cur, sel:TR.sel, var2:TR.var2, flam:TR.flam, shuffle:TR.shuffle,
+    dist:TR.dist, drive:TR.drive, tone:TR.tone, clap:TR.clap, couleur:TR.couleur,
     slots:TR.slots.map(function(p){
       return {last:p.last, scale:p.scale, son:p.son,
               A:p.A.map(function(l){ return l.join(""); }),
@@ -12686,7 +12882,10 @@ function chargerTr(){
     if(typeof m.cur === "number") TR.cur = m.cur;
     if(typeof m.sel === "number") TR.sel = Math.min(m.sel, TR.def.instr.length - 1);
     TR.var2 = !!m.var2; TR.flam = !!m.flam;
-    if(typeof m.shuffle === "number") TR.shuffle = m.shuffle;
+    TR.dist = !!m.dist; TR.clap = !!m.clap;
+    ["shuffle","drive","tone","couleur"].forEach(function(c){
+      if(typeof m[c] === "number") TR[c] = m[c];
+    });
   }
   TR.pat = TR.slots[TR.cur];
 }
@@ -12726,6 +12925,22 @@ document.getElementById("tr8-scale").addEventListener("click", function(){
   majTr(); memTr(); H.cran();
   lcdTr(String(TR.pat.scale), "SCALE", true);
 });
+document.getElementById("tr8-dist").addEventListener("click", function(){
+  TR.dist = !TR.dist; majBusTr(); majTr(); memTr(); H.inter();
+});
+document.getElementById("tr8-clap").addEventListener("click", function(){
+  TR.clap = !TR.clap; majTr(); memTr(); H.inter();
+  signal(TR.clap ? "CLAP DE LA BR-110" : "CYMBALE DE LA RD-6");
+});
+document.getElementById("tr8-couleur").addEventListener("click", function(){
+  TR.couleur = (TR.couleur + 1) % 6;
+  appliquerCouleurRd6(); memTr(); H.cran();
+  signal(["BLEU","NOIR","ARGENT","VERT","JAUNE","ROUGE"][TR.couleur]);
+});
+function appliquerCouleurRd6(){
+  document.body.classList.remove("c1","c2","c3","c4","c5");
+  if(TR.m === "rd6" && TR.couleur > 0) document.body.classList.add("c" + TR.couleur);
+}
 document.getElementById("tr8-flam").addEventListener("click", function(){
   TR.flam = !TR.flam; majTr(); memTr(); H.inter();
   signal(TR.flam ? "FLAM : CHAQUE COUP EST DOUBLÉ" : "FLAM COUPÉ");
@@ -12760,6 +12975,7 @@ function activerTr(modele){
   document.body.classList.add("tr8");
   document.body.classList.toggle("tr9", TR.m === "tr909");
   document.body.classList.toggle("tr7", TR.m === "tr707");
+  document.body.classList.toggle("rd6", TR.m === "rd6");
   audioInit();
   chargerTr();            /* les motifs d'abord : les boutons lisent leurs valeurs à la création */
   construireTr();
@@ -12767,6 +12983,9 @@ function activerTr(modele){
   TR.sel = Math.min(TR.sel, TR.def.instr.length - 1);
   document.getElementById("tr8-notice").textContent = TR.def.nom;
   document.getElementById("tr8-sstitre").textContent = TR.def.sous;
+  document.querySelector(".tr8-roland").textContent = TR.def.marque || "Roland";
+  TR.bus = null;
+  appliquerCouleurRd6();
   majTr(); majKnobsTr();
   actif = unitTr;
   save(); fit(); setTimeout(fit, 120);
@@ -13141,7 +13360,7 @@ function activerArcm(){
   S.modele = "arcm";
   MACHINE = MACHINE_ARCM;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+                                 "tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("arcm");
   audioInit(); banqueEs(); chargerEchs();
   chargerArcm();
@@ -13665,7 +13884,7 @@ function activerT1k(){
   S.modele = "t1k";
   MACHINE = MACHINE_T1K;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+                                 "tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("t1k");
   audioInit(); banqueEs(); chargerEchs();
   chargerT1k();
@@ -14155,7 +14374,7 @@ function activerDbi(){
   S.modele = "dbi";
   MACHINE = MACHINE_DBI;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+                                 "tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("dbi");
   audioInit();
   chargerDbi();
@@ -14504,7 +14723,7 @@ function activerCr(){
   S.modele = "cr5";
   MACHINE = MACHINE_CR;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+                                 "tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("cr5");
   audioInit();
   chargerCr();
@@ -14928,7 +15147,7 @@ function activerVlc(){
   S.modele = "vlc";
   MACHINE = MACHINE_VLC;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+                                 "tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("vlc");
   audioInit(); banqueEs(); chargerEchs();
   chargerVlc();
@@ -15363,7 +15582,7 @@ function activerDmx(){
   stop();
   S.modele = "dmx";
   MACHINE = MACHINE_DMX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("dmx");
   audioInit();
   chargerDmx();
@@ -15638,6 +15857,16 @@ function sonsHasard(){
   else if(m === "vlc") pousse(motifVlcCur().parties.map(function(p){ return p.par; }), 10, null);
   else if(m === "mpc3000" || m === "mpc2000") pousse(MPC.pads, 64, ["pan","tune","dec","filt","debut"]);
   else if(m === "arcm") pousse(motifArcmCur().pistes, 16, ["pan","tune","dec","debut","filt"]);
+  else if(m === "rd6"){
+    /* la RD-6 n'a qu'un niveau par instrument : ce qui se tire, c'est son timbre */
+    TR.tone = 0.25 + Math.random() * 0.7;
+    TR.drive = Math.random();
+    TR.dist = Math.random() > 0.4;
+    majBusTr(); majTr(); memTr();
+    signal("TIMBRE ET DISTORSION TIRÉS AU SORT");
+    H.inter();
+    return;
+  }
   else if(m === "dmx"){ signal("LA DMX N'A PAS DE RÉGLAGES DE SONS"); return; }
   else if(m === "cr5"){ signal("LA CR-5000 N'A QUE DES NIVEAUX"); return; }
   if(!l.length){ signal("RIEN À TIRER AU SORT ICI"); return; }
@@ -17189,7 +17418,7 @@ function appliquerModele(id){
   stop();
   MACHINE = MACHINE_EHX;
   actif = unit;
-  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5","dmx","vlc","cr5","dbi","t1k","arcm");
   S.modele = id;
   MODELE = MODELES[id];
   var r = memoire[id];
@@ -17232,7 +17461,8 @@ function majVoileMenu(){
   v.classList.toggle("vu", reste > 12);
 }
 function allerMachine(id){
-  if(id === "arcm") activerArcm();
+  if(id === "rd6") activerTr("rd6");
+  else if(id === "arcm") activerArcm();
   else if(id === "t1k") activerT1k();
   else if(id === "dbi") activerDbi();
   else if(id === "cr5") activerCr();
@@ -17287,6 +17517,7 @@ else if(memoire.modele === "cr5") activerCr();
 else if(memoire.modele === "dbi") activerDbi();
 else if(memoire.modele === "t1k") activerT1k();
 else if(memoire.modele === "arcm") activerArcm();
+else if(memoire.modele === "rd6") activerTr("rd6");
 else appliquerModele(memoire.modele);
 menu.classList.remove("hide");
 document.body.classList.add("menu-ouvert");
