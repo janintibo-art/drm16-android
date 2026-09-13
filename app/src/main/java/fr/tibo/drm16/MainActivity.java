@@ -27,11 +27,18 @@ import android.webkit.WebViewClient;
 
 import android.os.Environment;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * DRM16 : recreation autonome.
@@ -48,6 +55,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
     private boolean enLecture;
     private boolean permissionDemandee;
     private Midi midi;
+    private final ExecutorService reseau = Executors.newFixedThreadPool(2);
     private ValueCallback<Uri[]> retourFichier;
     private static final int REQ_FICHIER = 7, REQ_MICRO = 8;
 
@@ -122,6 +130,52 @@ public class MainActivity extends Activity implements Midi.Ecoute {
                 f.write(o); f.flush(); f.getFD().sync(); f.close();
                 return cible.getAbsolutePath();
             } catch (Exception e) { return ""; }
+        }
+        /** Telechargement sur un fil separe : la page est prevenue quand c'est fini.
+            Deux plafonds : la taille annoncee et la taille reellement lue. */
+        @JavascriptInterface public void netCharger(final String url, final String jeton,
+                                                    final int maxOctets) {
+            reseau.execute(new Runnable() { @Override public void run() {
+                String err = "";
+                byte[] o = null;
+                HttpURLConnection c = null;
+                try {
+                    URL u = new URL(url);
+                    if (!"https".equals(u.getProtocol())) throw new IOException("https seulement");
+                    c = (HttpURLConnection) u.openConnection();
+                    c.setConnectTimeout(15000);
+                    c.setReadTimeout(30000);
+                    c.setInstanceFollowRedirects(true);
+                    c.setRequestProperty("User-Agent", "DRM16-Android");
+                    int code = c.getResponseCode();
+                    if (code != 200) throw new IOException("reponse " + code);
+                    int plafond = maxOctets > 0 ? maxOctets : 4 * 1024 * 1024;
+                    int annonce = c.getContentLength();
+                    if (annonce > plafond) throw new IOException("trop gros : " + annonce);
+                    InputStream in = c.getInputStream();
+                    ByteArrayOutputStream b = new ByteArrayOutputStream();
+                    byte[] tampon = new byte[16384];
+                    int n, total = 0;
+                    while ((n = in.read(tampon)) > 0) {
+                        total += n;
+                        if (total > plafond) { in.close(); throw new IOException("trop gros"); }
+                        b.write(tampon, 0, n);
+                    }
+                    in.close();
+                    o = b.toByteArray();
+                } catch (Exception e) {
+                    err = e.getMessage() == null ? e.toString() : e.getMessage();
+                } finally {
+                    if (c != null) c.disconnect();
+                }
+                final String charge = (o == null) ? "" : Base64.encodeToString(o, Base64.NO_WRAP);
+                final String erreur = err.replace("\\", " ").replace("'", " ");
+                ui.post(new Runnable() { @Override public void run() {
+                    if (web == null) return;
+                    web.evaluateJavascript("window.__net&&__net('" + jeton + "','" + erreur +
+                                           "','" + charge + "')", null);
+                }});
+            }});
         }
         private File dossierDoc() {
             File d = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);

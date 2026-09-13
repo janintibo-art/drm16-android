@@ -244,6 +244,35 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## La collection archive.org (version 48)
+
+Quatrième rayon de la bibliothèque : la **collection de boîtes à rythmes de l'Internet Archive**,
+470 machines et 48 000 échantillons en accès libre.
+
+**La découverte qui rend la chose faisable.** La collection n'est pas 48 000 fichiers mais **470 archives
+ZIP**, 3,8 Go en tout — certaines de 273 Mo. Télécharger une archive entière pour un son était hors de
+question. Mais le dépôt sert les fichiers **un par un depuis l'intérieur des ZIP** :
+`/download/<item>/<machine>.zip/<chemin interne>`. Rien n'est donc téléchargé en entier, ni décompressé :
+on récupère le son écouté ou importé, quelques dizaines de kilooctets.
+
+- **Java** : permission INTERNET, téléchargement sur un fil séparé avec deux plafonds — la taille annoncée
+  et la taille réellement lue —, délais de connexion et de lecture, HTTPS seulement, et un rappel vers la
+  page quand c'est fini.
+- **Liste des machines** par l'API de métadonnées, gardée en mémoire, avec recherche.
+- **Contenu d'une machine** par sa page d'archive. Le lecteur de liens accepte **deux formes** : chemin
+  complet et lien relatif — je n'ai pas pu voir le vrai HTML depuis ici, et une seule forme aurait été un
+  pari.
+- **Import** : le son passe par le traitement choisi et le rééchantillonnage à 32 kHz, et prend le nom de
+  sa machine.
+
+Vérifié sur un dépôt simulé : liste filtrée des .zip, recherche, contenu d'une machine avec les fichiers
+non sonores écartés, URL de son exacte, téléchargement, décodage et import nommé « Oberheim BD1 ». Sans
+pont réseau, le rayon le dit au lieu de rester muet.
+
+On y trouve les vraies machines dont l'application propose des recréations — DRM-15, DRM-16, DRM-32, les
+Electribe, les MPC, les TR-808, 909 et 707, la DMX, la volca sample. De quoi comparer ma synthèse aux
+enregistrements d'origine.
+
 ## Roland TR-1000 (version 47)
 
 Dernière des sept, et la plus fournie. **Deux couches par instrument** : une voix analogique avec ses TUNE,
