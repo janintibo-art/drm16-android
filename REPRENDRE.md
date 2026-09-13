@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **72**.
+La version actuelle est la **73**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,26 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Un relevé qui mesure vraiment — v73**
+
+Relevé v72 sur l'appareil : `48 SOURCES DONT 0 À VENIR · 5 DÉCROCHAGES`. Les sources sont bien tombées
+(1180 → 48 après la purge de la v71 et le tampon métallique de la v72). Mais **« à venir » vaudra toujours
+zéro** : le relevé ne se lit que depuis le menu, et `ouvrirMenu()` appelle `stop()`. Défaut de conception de
+l'instrument, pas de l'application.
+
+Le relevé donne maintenant des **maxima retenus pendant le jeu**, qui survivent à l'arrêt :
+
+- `AUDIT.pic` / `AUDIT.picAvenir` — maximum de `SOURCES.length` et des sources encore à venir.
+- `AUDIT.pause` — **le plus long trou entre deux tours de `tick()`**, en millisecondes. C'est la mesure
+  directe de ce qui fabrique les grésillements : quand le fil principal est bloqué, le moteur audio
+  s'assèche. Au-delà de ~150 ms, c'est audible. Bien plus fin que le seuil de décrochage à 0,4 s.
+- `AUDIT.tJeu` — temps réellement joué (`tDernier` remis à zéro par `stop()`), ce qui permet de donner les
+  décrochages **par minute** plutôt qu'en total.
+
+`start()` fixe `nextT = currentTime + 0.12` avant de lancer `tick()` : un départ ne compte donc **pas** de
+décrochage. Les cinq relevés étaient de vrais blocages. Prochaine piste à suivre selon `PAUSE MAX` :
+écritures `localStorage` synchrones, reconstructions du DOM (`eurDessiner`), ou ramasse-miettes.
 
 **Banc métallique pré-calculé — v72**
 

@@ -3372,12 +3372,18 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
      <button class="sec" id="b-audio-relance">RELANCER LE MOTEUR AUDIO</button></p>
   <p>Ce relevé est aussi dans le <b>menu</b>, tuile <b>ÉTAT DU SON</b> : plus simple à trouver qu'au fond
   de cette page. Un second appui sur la tuile, dans les quatre secondes, relance le moteur.</p>
-  <p>Le premier bouton relève ce que fait le moteur : sa fréquence
-  d'échantillonnage, son retard de sortie, le nombre de sources en vie et,
-  surtout, le compte des <b>décrochages</b> — les fois où l'ordonnanceur a pris
-  tellement de retard qu'il a fallu tout recaler. Un décrochage s'entend comme
-  un grésillement. S'il en monte plusieurs par minute, la machine n'arrive pas à
-  suivre : allégez le patch ou baissez le tempo.</p>
+  <p>Les chiffres se lisent ainsi :</p>
+  <ul>
+  <li><b>MIN DE JEU</b> — le temps réellement joué depuis l'ouverture. Tout le reste s'y rapporte.</li>
+  <li><b>PIC … SOURCES DONT … À VENIR</b> — le maximum atteint pendant le jeu, et non la valeur de
+  l'instant : ouvrir le menu arrête le séquenceur, une valeur instantanée n'y voudrait rien dire. « À
+  venir » compte les sons déjà programmés mais pas encore joués.</li>
+  <li><b>PAUSE MAX</b> — le plus long trou entre deux tours de l'ordonnanceur. C'est la mesure la plus
+  parlante : au-delà d'environ 150 ms, le fil principal a été bloqué assez longtemps pour que le son
+  s'assèche. C'est cela qu'on entend comme un grésillement.</li>
+  <li><b>DÉCROCHAGES</b> — les fois où le retard a dépassé 0,4 s et où il a fallu tout recaler. Le nombre
+  par minute compte davantage que le total.</li>
+  </ul>
   </div>
 
   <div class="doc" id="note-arcm" data-titre="MACHINE D'ARCHIVE">
@@ -4962,7 +4968,16 @@ var MODELES = {
    On surveille donc l'horloge du contexte. Si elle est arrêtée alors que le
    séquenceur tourne, on refait tout le moteur et on recharge la machine. */
 var VEILLE = {t:-1, fige:0};
-var AUDIT = {decroche:0, quand:0, relances:0};
+/* Le relevé ne peut se lire que depuis le menu, et ouvrir le menu arrête le
+   séquenceur : « à venir » y valait donc toujours zéro, et le nombre de sources
+   n'était qu'un reliquat. On retient donc les MAXIMA vus pendant que ça joue,
+   qui eux survivent à l'arrêt.
+
+   `pause` mesure directement ce qui fabrique les grésillements : le plus long
+   trou entre deux tours de l'ordonnanceur. Le fil principal bloqué, c'est le
+   moteur audio qui s'assèche. */
+var AUDIT = {decroche:0, quand:0, relances:0,
+             pic:0, picAvenir:0, pause:0, tours:0, tDernier:0, tJeu:0};
 function reveillerAudio(){
   if(!ctx || ctx.startRendering) return;
   if(ctx.state !== "running"){ try{ ctx.resume(); }catch(e){} }
@@ -5249,7 +5264,19 @@ function tick(){
   if(!ctx) return;
   surveillerAudio();
   if(!ctx) return;                    /* refaireAudio a pu tout remplacer */
+  var maintenant = Date.now();
+  if(AUDIT.tDernier){
+    var trou = maintenant - AUDIT.tDernier;
+    if(trou > AUDIT.pause) AUDIT.pause = trou;
+    AUDIT.tJeu += Math.min(trou, 1000);
+  }
+  AUDIT.tDernier = maintenant;
+  AUDIT.tours++;
   midiSuivreTempo(); purgerSources();
+  if(SOURCES.length > AUDIT.pic) AUDIT.pic = SOURCES.length;
+  var av = 0;
+  for(var q=0;q<SOURCES.length;q++) if(SOURCES[q].t > ctx.currentTime) av++;
+  if(av > AUDIT.picAvenir) AUDIT.picAvenir = av;
   if(nextT < ctx.currentTime - 0.4){
     /* l'ordonnanceur a pris trop de retard : on recale. Chaque recalage
        s'entend comme un trou ou un grésillement, on les compte pour pouvoir
@@ -5288,6 +5315,7 @@ function start(){
 }
 function stop(){
   S.run=false; clearInterval(timer); timer=null; queue=[];
+  AUDIT.tDernier = 0;                 /* le chrono ne compte que le jeu réel */
   couperSourcesFutures();
   midiSilence();
   if(MACHINE && MACHINE.arret) MACHINE.arret();
@@ -5547,15 +5575,14 @@ fsw.addEventListener("click", function(){
 /* ================= réglages de la notice ================= */
 function releveAudio(){
   if(!ctx) return "MOTEUR AUDIO PAS ENCORE DÉMARRÉ";
-  var avenir = 0, now = ctx.currentTime;
-  for(var i=0;i<SOURCES.length;i++) if(SOURCES[i].t > now) avenir++;
-  /* On sépare ce qui reste à jouer de ce qui n'est que retenu en mémoire :
-     un gros total avec peu d'à-venir veut dire que la purge traîne, pas que
-     la machine joue beaucoup. */
+  var min = AUDIT.tJeu / 60000;
   return Math.round(ctx.sampleRate/100)/10 + " kHz · " + ctx.state +
-         " · RETARD " + Math.round((ctx.baseLatency || 0) * 1000) + " ms" +
-         " · " + SOURCES.length + " SOURCES DONT " + avenir + " À VENIR" +
+         " · SORTIE " + Math.round((ctx.baseLatency || 0) * 1000) + " ms" +
+         " · " + Math.round(min * 10) / 10 + " MIN DE JEU" +
+         " · PIC " + AUDIT.pic + " SOURCES DONT " + AUDIT.picAvenir + " À VENIR" +
+         " · PAUSE MAX " + AUDIT.pause + " ms" +
          " · " + AUDIT.decroche + " DÉCROCHAGES" +
+         (min > 0.2 ? " (" + (Math.round(AUDIT.decroche / min * 10) / 10) + " PAR MIN)" : "") +
          (AUDIT.relances ? " · " + AUDIT.relances + " RELANCES" : "");
 }
 document.getElementById("b-audio-etat").addEventListener("click", function(){
