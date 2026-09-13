@@ -2771,6 +2771,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="arcm-bar">
     <button id="arcm-play" style="padding:12px 16px">PLAY</button>
+    <button id="arcm-rec">● REC</button>
     <button id="arcm-accent">ACCENT</button>
     <button id="arcm-last">LAST 16</button>
     <button id="arcm-ptn">PTN 1</button>
@@ -2815,6 +2816,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="t1k-bar">
     <button id="t1k-start" style="padding:12px 16px">START</button>
+    <button id="t1k-rec">● REC</button>
     <button id="t1k-stop" style="padding:12px 16px">STOP</button>
     <button id="t1k-fill">FILL IN TRIG</button>
     <button id="t1k-sub">SUB STEP</button>
@@ -2944,6 +2946,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="vlc-fx">
     <button class="vlcb" id="vlc-play">PLAY</button>
+    <button class="vlcb" id="vlc-rec">● REC PAS</button>
     <button class="vlcb" id="vlc-motion">MOTION</button>
     <button class="vlcb" id="vlc-loop">LOOP</button>
     <button class="vlcb" id="vlc-reverb">REVERB</button>
@@ -3182,8 +3185,27 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   L'Eurorack ne répond pas, n'ayant pas de voix fixes.</p>
   <p>Une note que la machine ne connaît pas joue la <b>voix choisie à l'écran</b> : n'importe quel clavier
   reste utilisable sans rien accorder. Une vélocité supérieure à 100 vaut accent.</p>
-  <p>À l'<b>enregistrement</b>, tout rentre dans le motif sur les Electribe, la MPC et la DMX. Sur les
-  autres machines, les notes reçues se jouent mais ne s'écrivent pas encore.</p>
+  <p>À l'<b>enregistrement</b>, tout rentre dans le motif, sur toutes les machines qui en ont un.
+  Voir ci-dessous.</p>
+
+  <h3>Jouer un motif à la main</h3>
+  <p>Sur seize machines, frapper un instrument pendant la lecture l'inscrit dans le motif, que la frappe
+  vienne du doigt ou d'un clavier MIDI. La frappe se cale sur le <b>pas le plus proche</b> — le pas courant
+  si on est dans sa première moitié, le suivant sinon — parce qu'on tape presque toujours un peu après le
+  temps qu'on vise.</p>
+  <p>Ce qui arme l'écriture change d'une machine à l'autre, en suivant l'original :</p>
+  <ul>
+  <li><b>TR-808, 909, 707, RD-6</b> : le mode <b>PATTERN WRITE</b>, comme sur les vraies.</li>
+  <li><b>DrumBrute Impact, TR-1000, machine d'archive, MPC, DMX</b> : le bouton <b>REC</b>.</li>
+  <li><b>volca sample</b> : le bouton <b>REC PAS</b>. À ne pas confondre avec <b>MOTION</b> juste à côté,
+  qui enregistre les mouvements de potards — les deux fonctionnent ensemble.</li>
+  <li><b>Les six Electribe</b> : leur propre REC, comme avant.</li>
+  </ul>
+  <p>Le bouton <b>ACCENT</b>, là où il existe, s'applique à la frappe : la note est écrite accentuée. Sur la
+  TR, l'accent tombe sur la ligne d'accent du motif, comme il se doit — et la ligne d'accent elle-même ne se
+  frappe pas.</p>
+  <p>La CR-5000 n'enregistre rien : ses rythmes sont figés en usine, c'était tout le principe de la
+  machine. L'Eurorack non plus, n'ayant pas de motif.</p>
   <h3>Bibliothèque</h3>
   <p>Trois rayons. <b>SONS</b> réunit la banque interne et tous vos enregistrements : écouter, renommer,
   supprimer, importer un fichier, enregistrer au micro, et surtout <b>affecter</b> un son à la partie ou au
@@ -5103,12 +5125,24 @@ window.__drmStop = stop;
 
 /* ================= affichage du temps ================= */
 var led = document.getElementById("led-power");
+/* L'instant audio auquel le pas affiché a commencé. Une frappe tombe presque
+   toujours un peu APRÈS le temps qu'elle vise : sans cet instant, on ne peut
+   pas savoir si elle appartient au pas courant ou au suivant. */
+var T_PAS = 0;
 function draw(){
   if(!S.run) return;
   var now = ctx ? ctx.currentTime : 0, cur=-1;
-  while(queue.length && queue[0].t <= now){ cur = queue.shift().i; }
+  while(queue.length && queue[0].t <= now){ var e = queue.shift(); cur = e.i; T_PAS = e.t; }
   if(cur>=0) MACHINE.beat(cur);
   requestAnimationFrame(draw);
+}
+/* Le pas auquel rattacher une frappe : le courant si on est dans sa première
+   moitié, le suivant sinon. C'est ce que fait l'oreille. */
+function pasLePlusProche(pos, L){
+  if(pos < 0 || !ctx || !L) return -1;
+  var f = (ctx.currentTime - T_PAS) / stepDur();
+  var p = pos + (f > 0.5 ? 1 : 0);
+  return ((p % L) + L) % L;
 }
 function beatEhx(i){
   if(i%4===0) led.classList.add("beat");
@@ -11662,7 +11696,7 @@ function majPlayEm(){
 function routageMidi(m){
   if(m === "tr808" || m === "tr909" || m === "tr707" || m === "rd6")
     return {notes:TR.def.midi, defaut:function(){ return Math.max(1, TR.sel); },
-            jouer:function(k, vel){ if(k > 0) voixTr(ctx.currentTime + 0.01, k, vel > 0.8); }};
+            jouer:function(k, vel){ frapperTr(k, vel > 0.8); }};
 
   if(m === "mpc3000" || m === "mpc2000")
     return {notes:MPC.pads.map(function(p){ return p ? p.note : -1; }),
@@ -11675,11 +11709,11 @@ function routageMidi(m){
 
   if(m === "dbi")
     return {notes:DBI_MIDI, defaut:function(){ return DBI.sel; },
-            jouer:function(k, vel){ voixDbi(ctx.currentTime + 0.01, k, vel > 0.8); }};
+            jouer:function(k, vel){ frapperDbi(k, vel > 0.8); }};
 
   if(m === "t1k")
     return {notes:T1K_MIDI, defaut:function(){ return T1K.sel; },
-            jouer:function(k, vel){ voixT1k(ctx.currentTime + 0.01, k, vel > 0.8); }};
+            jouer:function(k, vel){ frapperT1k(k, vel > 0.8); }};
 
   if(m === "cr5"){
     var ids = [], notes = [];
@@ -11692,11 +11726,11 @@ function routageMidi(m){
 
   if(m === "arcm")
     return {base:motifArcmCur().pistes.length, defaut:function(){ return ARCM.sel; },
-            jouer:function(k, vel){ voixArcm(ctx.currentTime + 0.01, k, vel > 0.8); }};
+            jouer:function(k, vel){ frapperArcm(k, vel > 0.8); }};
 
   if(m === "vlc")
     return {base:motifVlcCur().parties.length, defaut:function(){ return VLC.sel; },
-            jouer:function(k){ voixVlc(ctx.currentTime + 0.01, k); }};
+            jouer:function(k){ frapperVlc(k); }};
 
   return null;
 }
@@ -13693,6 +13727,23 @@ function voixTr(t, k, acc){
   TR.def.voix(t, k, acc);
   var n = TR.def.midi[k];
   if(n) midiNoteA(n, t, acc ? 1 : 0.7, MIDI.canal, 0.15);
+}
+/* Frapper une voix à la main ou par MIDI : on la joue, et si la machine est en
+   écriture pendant la lecture, on l'inscrit au pas le plus proche. La ligne 0
+   est l'accent, elle ne se frappe pas. */
+function frapperTr(k, acc){
+  audioInit();
+  if(!ctx || k < 1) return;
+  voixTr(ctx.currentTime + 0.005, k, acc);
+  if(S.run && TR.ecrit && TR.pat){
+    var j = pasLePlusProche(TR.pos, TR.pat.last || 16);
+    if(j >= 0){
+      var v = TR.var2 ? "B" : "A";
+      TR.pat[v][k][j] = 1;
+      if(acc) TR.pat[v][0][j] = 1;
+      majTr(); memTr();
+    }
+  }
 }
 function scheduleTr(i, t){
   var p = TR.pat, v = TR.var2 ? "B" : "A";
@@ -15992,7 +16043,7 @@ function motifArcm(){
   for(var i=0;i<16;i++) m.pistes.push(pisteArcm());
   return m;
 }
-var ARCM = {nom:"", motifs:[], cur:0, sel:0, accent:false, pos:-1, noeuds:[], kits:[]};
+var ARCM = {nom:"", motifs:[], cur:0, sel:0, accent:false, rec:false, pos:-1, noeuds:[], kits:[]};
 for(var amz=0; amz<8; amz++) ARCM.motifs.push(motifArcm());
 function motifArcmCur(){ return ARCM.motifs[ARCM.cur]; }
 function pisteArcmSel(){ return motifArcmCur().pistes[ARCM.sel]; }
@@ -16031,6 +16082,20 @@ function voixArcm(t, k, acc){
   src.start(t, Math.min(dep, Math.max(0, buf.duration - 0.01)));
   src.stop(t + duree + 0.05);
   midiNoteA(MIDI.base + k, t, acc ? 1 : 0.7, MIDI.canal, duree);
+}
+function frapperArcm(k, acc){
+  audioInit();
+  if(!ctx) return;
+  voixArcm(ctx.currentTime + 0.005, k, acc);
+  if(S.run && ARCM.rec){
+    var m = motifArcmCur();
+    var j = pasLePlusProche(ARCM.pos, m.last || 16);
+    if(j >= 0){
+      m.pistes[k].pas |= (1 << j);
+      if(acc) m.pistes[k].acc |= (1 << j);
+      majArcm(); memArcm();
+    }
+  }
 }
 function scheduleArcm(i, t){
   var m = motifArcmCur();
@@ -16175,10 +16240,7 @@ function arcmSuite(m, choisis, i, motif){
     var b2 = e.target.closest("button");
     if(!b2) return;
     ARCM.sel = +b2.dataset.k;
-    if(!S.run){
-      audioInit();
-      voixArcm(ctx.currentTime + 0.01, ARCM.sel, true);
-    }
+    frapperArcm(ARCM.sel, ARCM.accent);
     majArcm(); majKnobsArcm(); H.cran();
   });
   var pas = document.getElementById("arcm-pas");
@@ -16255,6 +16317,7 @@ function majArcm(){
     arcmPas[i].classList.toggle("hors", i >= m.last);
   }
   document.getElementById("arcm-accent").classList.toggle("on", ARCM.accent);
+  document.getElementById("arcm-rec").classList.toggle("on", ARCM.rec);
   document.getElementById("arcm-last").textContent = "LAST " + m.last;
   document.getElementById("arcm-ptn").textContent = "PTN " + (ARCM.cur + 1);
   document.getElementById("arcm-notice").textContent = ARCM.nom || "MACHINE D'ARCHIVE";
@@ -16323,6 +16386,10 @@ document.getElementById("arcm-bib").addEventListener("click", function(){
   BIB.onglet = 3;
   majBibUI();
 });
+document.getElementById("arcm-rec").addEventListener("click", function(){
+  ARCM.rec = !ARCM.rec; majArcm(); H.inter();
+  signal(ARCM.rec ? "FRAPPEZ UNE PISTE PENDANT LA LECTURE" : "ENREGISTREMENT COUPÉ");
+});
 document.getElementById("arcm-notice").addEventListener("click", function(){ ouvrirNotice(); });
 
 var unitArcm = document.getElementById("unit-arcm");
@@ -16374,7 +16441,7 @@ function motifT1k(n){
                     m.pas[7] = 0x4000; m.sub[6][10] = 3; }
   return m;
 }
-var T1K = {motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{},
+var T1K = {motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
            morph:0, mA:null, mB:null, sub:false, accent:false, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
@@ -16550,6 +16617,20 @@ function voixT1k(t, k, acc){
   }
   midiNoteA(T1K_MIDI[k], t, acc ? 1 : 0.7, MIDI.canal, 0.12);
 }
+function frapperT1k(k, acc){
+  audioInit();
+  if(!ctx) return;
+  voixT1k(ctx.currentTime + 0.005, k, acc);
+  if(S.run && T1K.rec){
+    var m = motifT1kCur();
+    var j = pasLePlusProche(T1K.pos, m.last || 16);
+    if(j >= 0){
+      m.pas[k] |= (1 << j);
+      if(acc) m.acc[k] |= (1 << j);
+      majT1k(); memT1k();
+    }
+  }
+}
 
 /* ---------- séquenceur, avec sous-pas ---------- */
 var T1K_FILL = [0x8888, 0x2222, 0x0F00, 0x00F0, 0, 0x1010, 0xAAAA, 0x0100, 0x0001, 0];
@@ -16605,7 +16686,7 @@ var T1K_KNOBS = [];
     if(!pad) return;
     audioInit();
     T1K.sel = +pad.dataset.p;
-    voixT1k(ctx.currentTime + 0.005, T1K.sel, true);
+    frapperT1k(T1K.sel, T1K.accent);
     majT1k(); majKnobsT1k(); H.cran();
   });
   /* curseurs de niveau */
@@ -16735,6 +16816,7 @@ function majT1k(){
   for(i=0;i<pads.length;i++) pads[i].classList.toggle("sel", i === T1K.sel);
   document.getElementById("t1k-sub").classList.toggle("on", T1K.sub);
   document.getElementById("t1k-accent").classList.toggle("on", T1K.accent);
+  document.getElementById("t1k-rec").classList.toggle("on", T1K.rec);
   document.getElementById("t1k-afx").classList.toggle("on", T1K.afx.on);
   document.getElementById("t1k-fill").classList.toggle("on", T1K.fill);
   document.getElementById("t1k-last").textContent = "LAST " + m.last;
@@ -16844,6 +16926,10 @@ document.getElementById("t1k-ech").addEventListener("click", function(){
   voixT1k(ctx.currentTime + 0.01, T1K.sel, true);
   majT1k(); majKnobsT1k(); memT1k(); H.cran();
   signal("COUCHE B : " + nomBib(I.ech));
+});
+document.getElementById("t1k-rec").addEventListener("click", function(){
+  T1K.rec = !T1K.rec; majT1k(); H.inter();
+  signal(T1K.rec ? "FRAPPEZ UN INSTRUMENT PENDANT LA LECTURE" : "ENREGISTREMENT COUPÉ");
 });
 document.getElementById("t1k-notice").addEventListener("click", function(){ ouvrirNotice(); });
 
@@ -17050,6 +17136,20 @@ function voixDbi(t, k, acc){
   }
   midiNoteA(DBI_MIDI[k], t, acc ? 1 : 0.7, MIDI.canal, 0.12);
 }
+function frapperDbi(k, acc){
+  audioInit();
+  if(!ctx) return;
+  voixDbi(ctx.currentTime + 0.005, k, acc);
+  if(S.run && DBI.rec){
+    var P = motifDbiCur().pistes[k];
+    var j = pasLePlusProche(DBI.pos, P.len || 16);
+    if(j >= 0){
+      P.pas |= (1 << j);
+      if(acc) P.acc |= (1 << j);
+      majDbi(); memDbi();
+    }
+  }
+}
 
 /* ---------- séquenceur, avec polyrythmie ---------- */
 function longueurDbi(){
@@ -17131,7 +17231,7 @@ var DBI_KNOBS = [];
     if(pad){
       audioInit();
       DBI.sel = +pad.dataset.p;
-      voixDbi(ctx.currentTime + 0.005, DBI.sel, true);
+      frapperDbi(DBI.sel, DBI.accent);
       majDbi(); majKnobsDbi(); H.cran();
       return;
     }
@@ -17728,7 +17828,9 @@ function motifVlc(n){
   }
   return m;
 }
-var VLC = {motifs:[], cur:0, sel:0, pos:-1, noeuds:[], rec:false, reverb:null};
+/* rec : enregistrement des MOUVEMENTS de potards (bouton MOTION)
+   recPas : enregistrement des DÉCLENCHEMENTS (bouton REC PAS) — deux choses */
+var VLC = {motifs:[], cur:0, sel:0, pos:-1, noeuds:[], rec:false, recPas:false, reverb:null};
 for(var vz=0; vz<10; vz++) VLC.motifs.push(motifVlc(vz < 2 ? vz : 9));
 
 function motifVlcCur(){ return VLC.motifs[VLC.cur]; }
@@ -17807,6 +17909,21 @@ function voixVlc(t, k, pas){
   src.start(t, Math.min(deb, Math.max(0, buf.duration - 0.01)));
   src.stop(t + duree + 0.05);
   midiNoteA(MIDI.base + k, t, v127(val("level")), MIDI.canal, duree);
+}
+/* La volca n'a pas d'accent : une frappe est une frappe. REC PAS écrit les
+   déclenchements ; MOTION, à côté, enregistre les mouvements de potards —
+   ce sont deux choses différentes et elles cohabitent. */
+function frapperVlc(k){
+  audioInit();
+  if(!ctx) return;
+  voixVlc(ctx.currentTime + 0.005, k);
+  if(S.run && VLC.recPas){
+    var j = pasLePlusProche(VLC.pos, 16);
+    if(j >= 0){
+      motifVlcCur().parties[k].pas |= (1 << j);
+      majVlc(); memVlc();
+    }
+  }
 }
 
 /* ---------- séquenceur ---------- */
@@ -17922,10 +18039,7 @@ var VLC_KNOBS = [];
     var b2 = e.target.closest(".vlcb");
     if(!b2) return;
     VLC.sel = +b2.dataset.p;
-    if(!S.run){
-      audioInit();
-      voixVlc(ctx.currentTime + 0.01, VLC.sel);
-    }
+    frapperVlc(VLC.sel);
     majVlc(); majKnobsVlc(); H.cran();
   });
 
@@ -17997,6 +18111,7 @@ function majVlc(){
     if(b) b.classList.toggle("on", !!P.f[f]);
   });
   document.getElementById("vlc-motion").classList.toggle("on", VLC.rec || !!P.f.motion);
+  document.getElementById("vlc-rec").classList.toggle("on", VLC.recPas);
   document.getElementById("vlc-motif").textContent = "PTN " + (VLC.cur + 1);
   majLcdVlc();
 }
@@ -18101,6 +18216,10 @@ document.getElementById("vlc-import").addEventListener("click", function(){
   majVlc(); majKnobsVlc(); memVlc();
   signal("MOTIF CHARGÉ DE " + l[n].nom);
   H.inter();
+});
+document.getElementById("vlc-rec").addEventListener("click", function(){
+  VLC.recPas = !VLC.recPas; majVlc(); H.inter();
+  signal(VLC.recPas ? "FRAPPEZ UNE PARTIE PENDANT LA LECTURE" : "ENREGISTREMENT COUPÉ");
 });
 document.getElementById("vlc-notice").addEventListener("click", function(){ ouvrirNotice(); });
 

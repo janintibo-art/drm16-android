@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **63**.
+La version actuelle est la **64**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,30 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Enregistrement à la volée — v64**
+
+Cinq machines savent maintenant écrire une frappe dans leur motif : TR (les quatre modèles), DrumBrute,
+TR-1000, machine d'archive, volca. Avec la MPC et la DMX qui le faisaient déjà, et les six Electribe,
+cela fait seize machines.
+
+- `T_PAS` (global) retient l'instant audio du pas affiché, capté dans `draw()` en dépilant la file.
+  `pasLePlusProche(pos, L)` rend le pas courant si on est dans sa première moitié, le suivant sinon.
+  **Ne pas remplacer par `pos + 1`** : une frappe juste en avance sur le temps se retrouverait un pas trop
+  loin.
+- `frapperTr / frapperDbi / frapperT1k / frapperArcm / frapperVlc`, sur le modèle de `frapperDmx` : jouer,
+  puis écrire si la machine est en écriture **et** en lecture. Les boutons d'instrument de l'écran et le
+  routage MIDI passent tous par ces fonctions — **ne plus appeler `voixXxx` directement** depuis
+  l'interface, sauf pour une simple écoute après changement d'échantillon (`t1k-ech`, `vlc-son`).
+- Structures de motif, toutes différentes : TR `pat[v][k][pas] = 1` avec la ligne 0 pour l'accent ;
+  DBI `pistes[k].pas` masque de bits ; T1K `pas[k]` masque ; ARCM `pistes[k].pas` masque ; VLC
+  `parties[k].pas` masque. Bit *i* = pas *i* dans tous les masques.
+- Armement, calqué sur les vraies machines : TR → `TR.ecrit` (PATTERN WRITE, bouton existant) ;
+  DBI → `DBI.rec`, **enfin lu** (le bouton existait, s'allumait, et ne servait à rien) ;
+  T1K, ARCM → nouveau bouton `● REC` et drapeau `rec` ; VLC → nouveau bouton `● REC PAS` et drapeau
+  **`recPas`**. Attention : `VLC.rec` existait déjà et désigne l'enregistrement des *mouvements de
+  potards* (bouton MOTION). Deux choses distinctes, deux champs.
+- La CR-5000 est volontairement exclue : ses rythmes sont en ROM, c'est le principe de la machine.
 
 **Entrée MIDI des 25 machines — v63**
 
