@@ -1051,6 +1051,56 @@ body.dmx .akai,body.dmx .rtr{display:none}
 .pick.pdmx{background:linear-gradient(165deg,#3a6ea8,#171a1f 55%,#2b2d31)}
 .pick.pdmx b{color:#dfe6f2;text-shadow:0 2px 0 #10131a}
 .pick.pdmx span{color:#a9bdd8}
+/* ===================== KORG volca sample ===================== */
+body.vlc .korgv{display:block}
+body.vlc #unit,body.vlc .em,body.vlc .er,body.vlc .ea,body.vlc .es,body.vlc .mx,body.vlc .sx,
+body.vlc .akai,body.vlc .rtr,body.vlc .dmxb{display:none}
+.korgv{display:none;width:100%;max-width:900px;border-radius:8px;padding:13px 15px 15px;
+  background:linear-gradient(168deg,#d9d6cd,#c6c3ba 40%,#b9b6ad 72%,#d2cfc6);
+  box-shadow:0 16px 36px #000a,inset 0 1px 0 #fff8}
+.vlc-tete{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.vlc-korg{font:900 17px/1 "Arial Black",Impact,sans-serif;color:#2b2b29;letter-spacing:-.5px}
+.vlc-nom{margin-left:auto;font:700 21px/1 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:1px;color:#1f1f1d;cursor:pointer}
+.vlc-nom span{color:#d8622a}
+.vlc-lcd{background:#17181a;border-radius:3px;padding:5px 11px;min-width:132px;text-align:center}
+.vlc-lcd b{display:block;font:800 14px/1.25 "Courier New",monospace;color:#ff8a3a}
+.vlc-lcd u{display:block;text-decoration:none;font:700 8px/1.3 "Roboto Condensed",Arial;
+  letter-spacing:1.4px;color:#a86a3a}
+.vlc-kns{display:flex;gap:5px;flex-wrap:wrap;justify-content:space-between;margin-bottom:10px}
+.vlc-kn{width:40px;flex:none;text-align:center;touch-action:none}
+.vlc-kn .bt{width:38px;height:38px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#fbfaf6,#d6d3ca 48%,#8f8c84 80%,#c2bfb6);
+  box-shadow:0 3px 6px #0006,inset 0 1px 1px #fff}
+.vlc-kn .bt i{position:absolute;left:50%;top:3px;width:2.5px;height:38%;margin-left:-1.25px;
+  border-radius:2px;background:#d8622a}
+.vlc-kn em{display:block;margin-top:2px;font:700 6.5px/1.2 "Roboto Condensed",Arial;letter-spacing:.4px;
+  color:#3a3a38;font-style:normal}
+.vlc-parts{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-bottom:8px}
+.vlcb{border:0;border-radius:3px;padding:9px 2px;background:linear-gradient(180deg,#f0eee8,#cfccc3);
+  box-shadow:0 2px 0 #8a8780,0 3px 5px #0004,inset 0 1px 0 #fff;
+  font:700 9px/1.1 "Roboto Condensed",Arial;letter-spacing:.4px;color:#2b2b29}
+.vlcb:active,.vlcb.on{background:linear-gradient(180deg,#ffb072,#d8622a);color:#2a1206;
+  transform:translateY(2px);box-shadow:0 1px 0 #8a8780,inset 0 1px 3px #0004}
+.vlc-fx{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.vlc-fx .vlcb{flex:1;min-width:62px;padding:9px 4px}
+.vlc-pas{display:grid;grid-template-columns:repeat(16,1fr);gap:4px}
+.vlc-pas button{border:0;border-radius:3px;padding:15px 0;position:relative;
+  background:linear-gradient(180deg,#f4f2ec,#d2cfc6);
+  box-shadow:0 3px 0 #8a8780,0 4px 6px #0005,inset 0 1px 0 #fff}
+.vlc-pas button.act{background:linear-gradient(180deg,#ffb072,#d8622a);
+  box-shadow:0 3px 0 #8a8780,0 0 10px #d8622a80,inset 0 1px 0 #ffd0a8}
+.vlc-pas button.cur::after{content:"";position:absolute;left:50%;top:4px;width:6px;height:6px;
+  margin-left:-3px;border-radius:50%;background:#c81f0f;box-shadow:0 0 7px #ff3a2a}
+@media (max-width:780px){
+  .vlc-kn,.vlc-kn .bt{width:33px} .vlc-kn .bt{height:33px}
+  .vlc-pas button{padding:11px 0}
+  .vlc-parts{grid-template-columns:repeat(5,1fr)}
+}
+
+.pick.pvlc{background:linear-gradient(165deg,#c9c6bd,#3a3833 55%,#6e6a60)}
+.pick.pvlc b{color:#ff9a5a;text-shadow:0 2px 0 #2a2622}
+.pick.pvlc span{color:#d6d2c8}
 @media (max-height:560px){
   .unit{padding:18px 10px 4px}
   .grid{gap:6px}
@@ -2214,6 +2264,43 @@ body.dmx .akai,body.dmx .rtr{display:none}
 
 
 
+
+<div class="korgv" id="unit-vlc">
+
+  <div class="em-jacks">
+    <div class="grp"><div class="tr"><i></i></div><span>PHONES</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>SYNC IN / OUT</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i></div><span>MIDI IN</span></div>
+  </div>
+
+  <div class="vlc-tete">
+    <div class="vlc-korg">KORG</div>
+    <div class="vlc-lcd"><b id="vlc-val">P1</b><u id="vlc-lab">PART</u></div>
+    <div class="vlc-nom" id="vlc-notice">volca <span>sample</span></div>
+  </div>
+
+  <div class="vlc-kns" id="vlc-kns"></div>
+
+  <div class="vlc-parts" id="vlc-parts"></div>
+
+  <div class="vlc-fx">
+    <button class="vlcb" id="vlc-play">PLAY</button>
+    <button class="vlcb" id="vlc-motion">MOTION</button>
+    <button class="vlcb" id="vlc-loop">LOOP</button>
+    <button class="vlcb" id="vlc-reverb">REVERB</button>
+    <button class="vlcb" id="vlc-reverse">REVERSE</button>
+    <button class="vlcb" id="vlc-mute">MUTE</button>
+    <button class="vlcb" id="vlc-son">SAMPLE</button>
+    <button class="vlcb" id="vlc-motif">PTN 1</button>
+    <button class="vlcb" id="vlc-export">EXPORT .dat</button>
+    <button class="vlcb" id="vlc-import">IMPORT .dat</button>
+  </div>
+
+  <div class="vlc-pas" id="vlc-pas"></div>
+</div>
+
+
 <div class="dmxb" id="unit-dmx">
  <div class="dmx-in">
 
@@ -2370,6 +2457,7 @@ body.dmx .akai,body.dmx .rtr{display:none}
   <button class="pick pes2" data-m="es2"><b>ES-1 mkII</b><span>KORG · ÉCHANTILLONNEUR · ISOLATOR, RESO. FILT.</span></button>
   <button class="pick pmx" data-m="emx"><b>ELECTRIBE EMX-1</b><span>KORG · 14 PARTIES · 3 EFFETS · VALVE FORCE</span></button>
   <button class="pick psx" data-m="esx"><b>ELECTRIBE ESX-1</b><span>KORG · ÉCHANTILLONNEUR · CLAVIER, STRETCH, VALVE FORCE</span></button>
+  <button class="pick pvlc" data-m="vlc"><b>KORG volca sample</b><span>10 PARTIES · MOTIFS AU FORMAT KORG · MOUVEMENTS</span></button>
   <button class="pick pdmx" data-m="dmx"><b>OBERHEIM DMX</b><span>ÉCHANTILLONS HUIT BITS · JEU AU VOL · 24 TOUCHES</span></button>
   <button class="pick p808" data-m="tr808"><b>ROLAND TR-808</b><span>SYNTHÈSE ANALOGIQUE · 12 VOIX · 16 PAS</span></button>
   <button class="pick p909" data-m="tr909"><b>ROLAND TR-909</b><span>PEAUX ANALOGIQUES · MÉTAUX SIX BITS · FLAM</span></button>
@@ -2520,6 +2608,56 @@ body.dmx .akai,body.dmx .rtr{display:none}
      <button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
   <p><button id="b-panique">PANIQUE · TOUT COUPER</button>
      <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
+  </div>
+
+  <div class="doc" id="note-vlc" data-titre="volca sample">
+  <h3>Dix parties, seize pas</h3>
+  <p>Chaque partie a son échantillon, ses onze potards et ses cinq interrupteurs. <b>SAMPLE</b> fait
+  défiler les sons de la bibliothèque, les dix touches PART choisissent la partie, les seize touches posent
+  ses pas. <b>PTN</b> passe d'un motif à l'autre, il y en a dix.</p>
+
+  <h3>Les onze potards</h3>
+  <p>Ce sont exactement ceux du format Korg : niveau, panoramique, vitesse, attaque et chute de l'enveloppe
+  de volume, intensité, attaque et chute de l'enveloppe de hauteur, point de départ, longueur, coupe-haut.
+  <b>SPEED</b> transpose l'échantillon, <b>P.INT</b> lui fait tomber ou monter la hauteur au
+  déclenchement.</p>
+
+  <h3>Mouvements</h3>
+  <p><b>MOTION</b> arme l'enregistrement : pendant la lecture, tourner un potard mémorise sa valeur
+  <b>pour ce pas-là</b>. Une deuxième pression revient en lecture, une troisième efface les mouvements de
+  la partie. Onze potards automatisables, comme sur la machine.</p>
+
+  <h3>Motifs au format Korg</h3>
+  <p><b>EXPORT .dat</b> écrit le motif courant en <b>2624 octets</b> au format documenté du SDK Korg :
+  en-tête PTST, code d'appareil 0x33B8, dix parties de 256 octets, pied PTED, tout en petit-boutiste.
+  <b>IMPORT .dat</b> relit un fichier du dossier Documents, qu'il vienne d'ici, du librarian officiel ou
+  d'un preset d'usine.</p>
+  <p>Le format vient de <b>MOC'TA BASS</b>. Une réserve de son auteur, que je reprends : l'échelle exacte
+  des valeurs de mouvement n'est pas documentée par Korg, c'est une interprétation.</p>
+  </div>
+
+  <div class="doc" id="note-dmx" data-titre="OBERHEIM DMX">
+  <h3>Une machine qui se joue</h3>
+  <p>La DMX n'a pas de pas à allumer. On appuie sur <b>PLAY</b>, sur <b>RECORD</b>, et on joue sur les
+  vingt-quatre touches : chaque frappe se range à sa place, calée par <b>QUANTIZE</b>. C'est la logique de
+  1981, la même que celle des MPC qui suivront.</p>
+
+  <h3>Trois variations par instrument</h3>
+  <p>C'est sa signature. <b>BASS 1, 2, 3</b> ne sont pas trois sons différents mais le même accordé
+  autrement — 48, 55 et 42 Hz. Pareil pour la caisse claire, les charleys (fermé, accentué, ouvert) et les
+  cymbales. Les six toms descendent de 170 à 68 Hz.</p>
+
+  <h3>Le grain huit bits</h3>
+  <p>Ses sons sont des enregistrements de vraie batterie en huit bits, à l'époque un exploit. Ici ils sont
+  synthétisés puis passés dans le même goulot : passe-bas à 10,5 kHz et <b>quantification sur huit bits</b>.
+  C'est ce goulot, bien plus dur que les douze bits de la TR-707, qui fait l'essentiel de son caractère.</p>
+
+  <h3>La façade</h3>
+  <p>Neuf curseurs : un par famille d'instruments, plus le métronome et le volume. Huit séquences, choisies
+  aux touches 1 à 8 ou avec les flèches. <b>LENGTH</b> règle le nombre de mesures, <b>SWING</b> retarde les
+  temps pairs, <b>ERASE</b> vide la séquence, <b>COPY</b> la recopie, <b>EDIT</b> revient en arrière.</p>
+  <p><b>SONG</b> et <b>STEP</b> répondent NOT ON DMX : ces fonctions existent sur l'appareil mais demandent
+  un écran que la machine n'a pas — j'ai préféré le dire plutôt que d'inventer.</p>
   </div>
 
   <div class="doc" id="note-808" data-titre="TR-808 · 909 · 707">
@@ -2959,10 +3097,10 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
 (function charger(){
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
-    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
     if(m.midi) memoire.midi = m.midi;
     /* ancien format : les machines vivaient dans le blob global, on les répartit une fois */
-    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx"].forEach(function(c){
+    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc"].forEach(function(c){
       if(m[c]){
         memoire[c] = m[c];
         try{ localStorage.setItem(MEM + "." + c, JSON.stringify(m[c])); }catch(e){}
@@ -3641,7 +3779,9 @@ function docDeLaMachine(){
   if(m === "emx") return "note-mx";
   if(m === "esx") return "note-sx";
   if(m === "mpc3000" || m === "mpc2000") return "note-mpc";
-  if(m === "tr808" || m === "tr909") return "note-808";
+  if(m === "tr808" || m === "tr909" || m === "tr707") return "note-808";
+  if(m === "dmx") return "note-dmx";
+  if(m === "vlc") return "note-vlc";
   return "note-general";
 }
 function montrerDoc(id){
@@ -3723,7 +3863,7 @@ document.getElementById("menu-pr").addEventListener("click", function(){
 (function machinePr(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"]];
   var sel = document.getElementById("pr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -3771,7 +3911,7 @@ document.getElementById("enr-rec").addEventListener("click", function(){
 (function menuEnregistreur(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"]];
   var sel = document.getElementById("enr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -3848,6 +3988,23 @@ document.addEventListener("visibilitychange", function(){
   }
 });
 window.addEventListener("pagehide", writeMem);
+
+/* Garde-fou : trois fois j'ai donné le même nom à la classe posée sur le corps
+   et à celle du châssis. La règle du châssis s'appliquait alors au corps, qui
+   passait en display:none — écran noir, sans la moindre erreur JavaScript.
+   Ce contrôle le dit tout de suite au lieu de laisser chercher. */
+(function collisionsDeClasses(){
+  var corps = ["m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
+               "tr8","tr9","tr7","dmx","vlc","menu-ouvert","note-ouverte"];
+  var mauvaises = corps.filter(function(c){
+    var e = document.querySelector("." + c);
+    return e && e !== document.body;
+  });
+  if(mauvaises.length){
+    console.error("Collision de classes corps/châssis : " + mauvaises.join(", "));
+    setTimeout(function(){ signal("COLLISION DE CLASSES : " + mauvaises.join(", ")); }, 900);
+  }
+})();
 
 /* ================= mise à l'échelle ================= */
 function fit(){
@@ -5354,7 +5511,7 @@ function activerEm(){
   S.modele = "em1";
   MACHINE = MACHINE_EM;
   document.body.classList.add("em1");
-  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx");
+  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
   chargerEm();
   construireFx();
   EM.choisirPartie(EM.sel);
@@ -6057,7 +6214,7 @@ function activerEr(v){
   ER.v = (v===2) ? 2 : 1;
   S.modele = "er" + ER.v;
   MACHINE = MACHINE_ER;
-  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx");
+  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
   document.body.classList.add("er1");
   document.body.classList.toggle("mk2", ER.v===2);
   chargerEr();
@@ -6711,7 +6868,7 @@ function activerEa(v){
   EA.v = (v===2) ? 2 : 1;
   S.modele = "ea" + EA.v;
   MACHINE = MACHINE_EA;
-  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx");
+  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
   document.body.classList.add("ea1");
   document.body.classList.toggle("mk2", EA.v===2);
   chargerEa();
@@ -7612,7 +7769,7 @@ function activerEs(v){
   ES.v = (v===2) ? 2 : 1;
   S.modele = "es" + ES.v;
   MACHINE=MACHINE_ES;
-  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx");
+  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
   document.body.classList.add("es1");
   document.body.classList.toggle("mk2", ES.v===2);
   audioInit(); banqueEs(); busEffets(); chargerEchs();
@@ -8699,7 +8856,7 @@ function activerMx(){
   stop();
   S.modele="emx";
   MACHINE=MACHINE_MX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8","tr9","tr7","dmx");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
   document.body.classList.add("emx");
   audioInit(); banqueEs(); mxAudio();
   chargerMx();
@@ -9739,7 +9896,7 @@ function activerSx(){
   stop();
   S.modele="esx";
   MACHINE=MACHINE_SX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
   document.body.classList.add("esx");
   audioInit(); banqueEs(); sxAudio(); chargerEchs();
   chargerSx();
@@ -11995,6 +12152,430 @@ function activerTr(modele){
   save(); fit(); setTimeout(fit, 120);
 }
 
+/* ===================== KORG volca sample =====================
+   Dix parties, seize pas, dix motifs. Les onze potards et les cinq
+   interrupteurs sont ceux du format de motif Korg, documenté dans le SDK
+   et repris de MOC'TA BASS : un motif exporté fait 2624 octets, en-tête
+   PTST, dix parties de 256 octets, pied PTED. */
+var VLC_PARAMS = [
+  ["level","LEVEL",127], ["pan","PAN",64], ["speed","SPEED",64],
+  ["ampeg_attack","A.ATK",0], ["ampeg_decay","A.DEC",127],
+  ["pitcheg_int","P.INT",64], ["pitcheg_attack","P.ATK",0], ["pitcheg_decay","P.DEC",0],
+  ["start_point","START",0], ["length","LENGTH",127], ["hicut","HI CUT",127]
+];
+var VLC_FONCS = ["motion","loop","reverb","reverse","mute"];
+var VLC_TAILLE = 0xA40, VLC_TAILLE_PARTIE = 0x100, VLC_DEVCODE = 0x33B8;
+
+function partieVlc(i){
+  var p = {ech:"b" + (i % 24), pas:0, f:{}, par:{}, mot:{}};
+  VLC_PARAMS.forEach(function(x){ p.par[x[0]] = x[2]; });
+  VLC_FONCS.forEach(function(f){ p.f[f] = false; });
+  return p;
+}
+function motifVlc(n){
+  var m = {parties:[], actif:0xFFFF};
+  for(var i=0;i<10;i++) m.parties.push(partieVlc(i));
+  if(n === 0){
+    m.parties[0].pas = 0x1111; m.parties[1].pas = 0x4444;
+    m.parties[3].pas = 0xFFFF; m.parties[3].par.level = 90;
+  } else if(n === 1){
+    m.parties[0].pas = 0x1041; m.parties[1].pas = 0x4444;
+    m.parties[3].pas = 0x5555; m.parties[6].pas = 0x0400;
+  }
+  return m;
+}
+var VLC = {motifs:[], cur:0, sel:0, pos:-1, noeuds:[], rec:false, reverb:null};
+for(var vz=0; vz<10; vz++) VLC.motifs.push(motifVlc(vz < 2 ? vz : 9));
+
+function motifVlcCur(){ return VLC.motifs[VLC.cur]; }
+function partieVlcSel(){ return motifVlcCur().parties[VLC.sel]; }
+
+/* ---------- réverbération commune, comme sur la machine ---------- */
+function reverbVlc(){
+  if(VLC.reverb) return VLC.reverb;
+  var c = ctx.createConvolver(), g = ctx.createGain();
+  var n = Math.floor(ctx.sampleRate * 1.1), b = ctx.createBuffer(2, n, ctx.sampleRate);
+  for(var k=0;k<2;k++){
+    var d = b.getChannelData(k);
+    for(var i=0;i<n;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/n, 2.6);
+  }
+  c.buffer = b;
+  g.gain.value = 0.34;
+  g.connect(c); c.connect(master);
+  VLC.reverb = g;
+  return g;
+}
+function sortieVlc(k){
+  if(!VLC.noeuds[k]){
+    var g = ctx.createGain(), p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if(p){ g.connect(p); p.connect(master); } else g.connect(master);
+    VLC.noeuds[k] = {g:g, p:p};
+  }
+  return VLC.noeuds[k];
+}
+function v127(x){ return Math.max(0, Math.min(127, x)) / 127; }
+function voixVlc(t, k, pas){
+  var P = motifVlcCur().parties[k];
+  if(!P || P.f.mute) return;
+  banqueEs();
+  var buf = P.f.reverse ? inverse(P.ech) : ES.buf[P.ech];
+  if(!buf) return;
+  /* un mouvement enregistré remplace la valeur du potard pour ce pas */
+  function val(nom){
+    var m = P.mot[nom];
+    if(m && pas !== undefined && m[pas] >= 0) return m[pas];
+    return P.par[nom];
+  }
+  var n = sortieVlc(k);
+  n.g.gain.setValueAtTime(1, t);
+  if(n.p) n.p.pan.setValueAtTime((val("pan") - 64) / 64, t);
+
+  var src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = !!P.f.loop;
+  var vitesse = Math.pow(2, (val("speed") - 64) / 24);
+  src.playbackRate.setValueAtTime(vitesse, t);
+  /* enveloppe de hauteur : intensité, attaque, chute */
+  var pint = (val("pitcheg_int") - 64) / 64;
+  if(Math.abs(pint) > 0.02){
+    var pa = v127(val("pitcheg_attack")) * 0.3, pd = 0.01 + v127(val("pitcheg_decay")) * 0.6;
+    src.playbackRate.setValueAtTime(vitesse * Math.pow(2, pint * 2), t);
+    if(pa > 0.005) src.playbackRate.linearRampToValueAtTime(vitesse * Math.pow(2, pint * 2), t + pa);
+    src.playbackRate.exponentialRampToValueAtTime(Math.max(0.02, vitesse), t + pa + pd);
+  }
+  var deb = v127(val("start_point")) * buf.duration * 0.95;
+  var lg = Math.max(0.02, (buf.duration - deb) * (0.05 + v127(val("length")) * 0.95) / vitesse);
+  var atk = v127(val("ampeg_attack")) * 0.25;
+  var dec = 0.02 + v127(val("ampeg_decay")) * 1.4;
+  var duree = Math.min(lg, atk + dec);
+
+  var lp = ctx.createBiquadFilter(); lp.type = "lowpass";
+  lp.frequency.setValueAtTime(180 * Math.pow(100, v127(val("hicut"))), t);
+  var g = ctx.createGain();
+  var pic = mv("niv", v127(val("level")));
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(pic, t + Math.max(0.002, atk));
+  g.gain.setValueAtTime(pic, t + Math.max(0.004, Math.min(duree - 0.01, atk + 0.005)));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.02, duree));
+
+  src.connect(lp); lp.connect(g); g.connect(n.g);
+  if(P.f.reverb) g.connect(reverbVlc());
+  src.start(t, Math.min(deb, Math.max(0, buf.duration - 0.01)));
+  src.stop(t + duree + 0.05);
+  midiNoteA(MIDI.base + k, t, v127(val("level")), MIDI.canal, duree);
+}
+
+/* ---------- séquenceur ---------- */
+function scheduleVlc(i, t){
+  var m = motifVlcCur();
+  if(!(m.actif & (1 << i))) return;            /* pas désactivé par ACTIVE STEP */
+  for(var k=0;k<10;k++){
+    if(m.parties[k].pas & (1 << i)) voixVlc(t, k, i);
+  }
+  if(!cache) queue.push({i:i, t:t});
+}
+var vlcPas = [];
+function beatVlc(i){
+  VLC.pos = i;
+  for(var j=0;j<16;j++) vlcPas[j].classList.toggle("cur", j === i);
+}
+function arretVlc(){
+  VLC.pos = -1;
+  for(var j=0;j<16;j++) vlcPas[j].classList.remove("cur");
+  var b = document.getElementById("vlc-play");
+  if(b) b.classList.remove("on");
+}
+function boucleVlc(){ }
+var MACHINE_VLC = {schedule:scheduleVlc, beat:beatVlc, arret:arretVlc, boucle:boucleVlc,
+                   longueur:function(){ return 16; }};
+
+/* ---------- motif au format Korg : 2624 octets ---------- */
+var VLC_PISTES_MOTION = {level:1, pan:3, speed:5, ampeg_attack:6, ampeg_decay:7,
+  pitcheg_int:8, pitcheg_attack:9, pitcheg_decay:10, start_point:11, length:12, hicut:13};
+function octetsVlc(){
+  var o = new Uint8Array(VLC_TAILLE), v = new DataView(o.buffer);
+  var m = motifVlcCur();
+  o[0] = 0x50; o[1] = 0x54; o[2] = 0x53; o[3] = 0x54;          /* PTST */
+  v.setUint16(4, VLC_DEVCODE, true);
+  v.setUint16(8, m.actif, true);
+  for(var k=0;k<10;k++){
+    var b = 0x20 + k * VLC_TAILLE_PARTIE, P = m.parties[k];
+    var num = parseInt(String(P.ech).replace(/[^0-9]/g, ""), 10);
+    v.setUint16(b, isNaN(num) ? k : Math.min(99, num), true);   /* numéro d'échantillon */
+    v.setUint16(b + 2, P.pas, true);
+    v.setUint16(b + 4, 0, true);
+    o[b + 8] = Math.min(127, P.par.level);
+    VLC_PARAMS.forEach(function(x, i){ o[b + 9 + i] = Math.min(255, P.par[x[0]]); });
+    var f = 0;
+    VLC_FONCS.forEach(function(nom, i){ if(P.f[nom]) f |= (1 << i); });
+    o[b + 20] = f;
+    for(var nom in VLC_PISTES_MOTION){
+      var piste = VLC_PISTES_MOTION[nom], mot = P.mot[nom];
+      if(!mot) continue;
+      for(var s=0;s<16;s++){
+        var val = mot[s] >= 0 ? mot[s] : P.par[nom];
+        o[b + 32 + piste * 16 + s] = Math.round(Math.min(127, val) * 255 / 127);
+      }
+    }
+  }
+  o[VLC_TAILLE - 4] = 0x50; o[VLC_TAILLE - 3] = 0x54;
+  o[VLC_TAILLE - 2] = 0x45; o[VLC_TAILLE - 1] = 0x44;          /* PTED */
+  return o;
+}
+function lireOctetsVlc(o){
+  if(o.length < VLC_TAILLE) return "fichier trop court : " + o.length + " octets";
+  if(!(o[0] === 0x50 && o[1] === 0x54 && o[2] === 0x53 && o[3] === 0x54)) return "en-tête PTST absent";
+  var v = new DataView(o.buffer, o.byteOffset, o.byteLength);
+  var m = motifVlc(9);
+  m.actif = v.getUint16(8, true) || 0xFFFF;
+  for(var k=0;k<10;k++){
+    var b = 0x20 + k * VLC_TAILLE_PARTIE, P = m.parties[k];
+    var num = v.getUint16(b, true);
+    if(ES.buf["b" + num]) P.ech = "b" + num;
+    P.pas = v.getUint16(b + 2, true);
+    VLC_PARAMS.forEach(function(x, i){ P.par[x[0]] = o[b + 9 + i]; });
+    P.par.level = o[b + 8] || P.par.level;
+    var f = o[b + 20];
+    VLC_FONCS.forEach(function(nom, i){ P.f[nom] = !!(f & (1 << i)); });
+    for(var nom in VLC_PISTES_MOTION){
+      var piste = VLC_PISTES_MOTION[nom], l = [], utile = false;
+      for(var s=0;s<16;s++){
+        var brut = o[b + 32 + piste * 16 + s];
+        l.push(Math.round(brut * 127 / 255));
+        if(brut) utile = true;
+      }
+      if(utile && (f & 1)) P.mot[nom] = l;
+    }
+  }
+  VLC.motifs[VLC.cur] = m;
+  return null;
+}
+
+/* ---------- interface ---------- */
+var VLC_KNOBS = [];
+(function construireVlc(){
+  var kns = document.getElementById("vlc-kns");
+  VLC_PARAMS.forEach(function(x){
+    var d = document.createElement("div");
+    d.className = "vlc-kn";
+    d.innerHTML = '<div class="bt" id="vlc-k-' + x[0] + '"><i></i></div><em>' + x[1] + '</em>';
+    kns.appendChild(d);
+  });
+  var dt = document.createElement("div");
+  dt.className = "vlc-kn";
+  dt.innerHTML = '<div class="bt" id="vlc-k-tempo"><i></i></div><em>TEMPO</em>';
+  kns.appendChild(dt);
+
+  var parts = document.getElementById("vlc-parts");
+  for(var i=0;i<10;i++){
+    var b = document.createElement("button");
+    b.className = "vlcb";
+    b.textContent = "PART " + (i + 1);
+    b.dataset.p = i;
+    parts.appendChild(b);
+  }
+  parts.addEventListener("click", function(e){
+    var b2 = e.target.closest(".vlcb");
+    if(!b2) return;
+    VLC.sel = +b2.dataset.p;
+    if(!S.run){
+      audioInit();
+      voixVlc(ctx.currentTime + 0.01, VLC.sel);
+    }
+    majVlc(); majKnobsVlc(); H.cran();
+  });
+
+  var pas = document.getElementById("vlc-pas");
+  for(var j=0;j<16;j++){
+    var b3 = document.createElement("button");
+    b3.dataset.i = j;
+    pas.appendChild(b3);
+    vlcPas.push(b3);
+  }
+  pas.addEventListener("click", function(e){
+    var b4 = e.target.closest("button");
+    if(!b4) return;
+    var i2 = +b4.dataset.i, P = partieVlcSel();
+    P.pas ^= (1 << i2);
+    if(!S.run && (P.pas & (1 << i2))){
+      audioInit();
+      voixVlc(ctx.currentTime + 0.01, VLC.sel, i2);
+    }
+    majVlc(); memVlc(); H.cran();
+  });
+})();
+
+function knobVlc(nom, etiq){
+  return knobEm("vlc-k-" + nom, {min:0, max:127,
+    get:function(){ return partieVlcSel().par[nom]; },
+    set:function(v){
+      var P = partieVlcSel();
+      P.par[nom] = Math.round(v);
+      if(VLC.rec && S.run && VLC.pos >= 0){      /* enregistrement de mouvement */
+        if(!P.mot[nom]){ P.mot[nom] = []; for(var i=0;i<16;i++) P.mot[nom].push(-1); }
+        P.mot[nom][VLC.pos] = Math.round(v);
+        P.f.motion = true;
+      }
+      lcdVlc(String(Math.round(v)), etiq, true);
+      memVlc();
+    }});
+}
+VLC_PARAMS.forEach(function(x){ VLC_KNOBS.push(knobVlc(x[0], x[1])); });
+var kVlcTempo = knobEm("vlc-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 50) / 200; },
+  set:function(v){ S.bpm = Math.round(50 + v * 200); lcdVlc(String(S.bpm), "TEMPO", true); saveSoon(); }});
+function majKnobsVlc(){
+  VLC_KNOBS.forEach(function(k){ k.maj(); });
+  kVlcTempo.maj();
+}
+
+var vlcTmr = null;
+function lcdVlc(v, l, fugace){
+  var a = document.getElementById("vlc-val"), b = document.getElementById("vlc-lab");
+  if(!a) return;
+  a.textContent = v; b.textContent = l;
+  clearTimeout(vlcTmr);
+  if(fugace) vlcTmr = setTimeout(majLcdVlc, 1300);
+}
+function majLcdVlc(){
+  var P = partieVlcSel();
+  lcdVlc("P" + (VLC.sel + 1), nomBib(P.ech).slice(0, 14));
+}
+function majVlc(){
+  var P = partieVlcSel(), m = motifVlcCur(), i;
+  for(i=0;i<16;i++){
+    vlcPas[i].classList.toggle("act", !!(P.pas & (1 << i)));
+    vlcPas[i].style.opacity = (m.actif & (1 << i)) ? "1" : ".45";
+  }
+  var bs = document.querySelectorAll("#vlc-parts .vlcb");
+  for(i=0;i<bs.length;i++) bs[i].classList.toggle("on", i === VLC.sel);
+  VLC_FONCS.forEach(function(f){
+    var b = document.getElementById("vlc-" + f);
+    if(b) b.classList.toggle("on", !!P.f[f]);
+  });
+  document.getElementById("vlc-motion").classList.toggle("on", VLC.rec || !!P.f.motion);
+  document.getElementById("vlc-motif").textContent = "PTN " + (VLC.cur + 1);
+  majLcdVlc();
+}
+
+function memVlc(){
+  memoire.vlc = {cur:VLC.cur, sel:VLC.sel,
+    motifs:VLC.motifs.map(function(m){
+      return {actif:m.actif, parties:m.parties.map(function(P){
+        return {ech:P.ech, pas:P.pas, par:P.par, f:P.f, mot:P.mot};
+      })};
+    })};
+  sauverMachine("vlc");
+}
+function chargerVlc(){
+  VLC.motifs = [];
+  for(var i=0;i<10;i++) VLC.motifs.push(motifVlc(i < 2 ? i : 9));
+  VLC.cur = 0; VLC.sel = 0; VLC.rec = false;
+  var m = memLire("vlc");
+  if(m && m.motifs && m.motifs.length === 10){
+    VLC.motifs = m.motifs.map(function(o, n){
+      var r = motifVlc(9);
+      r.actif = (typeof o.actif === "number") ? o.actif : 0xFFFF;
+      (o.parties || []).forEach(function(P, k){
+        if(k >= 10) return;
+        var d = r.parties[k];
+        if(P.ech) d.ech = P.ech;
+        d.pas = P.pas || 0;
+        if(P.par) for(var q in P.par) if(d.par[q] !== undefined) d.par[q] = P.par[q];
+        if(P.f) for(var w in P.f) d.f[w] = !!P.f[w];
+        if(P.mot) d.mot = P.mot;
+      });
+      return r;
+    });
+    if(typeof m.cur === "number") VLC.cur = m.cur;
+    if(typeof m.sel === "number") VLC.sel = m.sel;
+  }
+}
+
+document.getElementById("vlc-play").addEventListener("click", function(){
+  audioInit(); banqueEs();
+  if(S.run){ stop(); H.stop(); } else { step = 0; start(); H.start(); }
+  this.classList.toggle("on", S.run);
+});
+VLC_FONCS.forEach(function(f){
+  var b = document.getElementById("vlc-" + f);
+  if(!b || f === "motion") return;
+  b.addEventListener("click", function(){
+    var P = partieVlcSel();
+    P.f[f] = !P.f[f];
+    if(f === "reverse") delete ES.inv[P.ech];
+    majVlc(); memVlc(); H.inter();
+  });
+});
+document.getElementById("vlc-motion").addEventListener("click", function(){
+  var P = partieVlcSel();
+  if(VLC.rec){ VLC.rec = false; signal("MOUVEMENTS : LECTURE"); }
+  else if(P.f.motion && !VLC.rec && window.confirm("Effacer les mouvements de cette partie ?")){
+    P.mot = {}; P.f.motion = false; signal("MOUVEMENTS EFFACÉS");
+  } else {
+    VLC.rec = true; signal("TOURNEZ UN POTARD PENDANT LA LECTURE");
+  }
+  majVlc(); memVlc(); H.inter();
+});
+document.getElementById("vlc-son").addEventListener("click", function(){
+  audioInit(); banqueEs();
+  var l = listeEch(), P = partieVlcSel();
+  var i = l.indexOf(P.ech);
+  P.ech = l[((i < 0 ? 0 : i) + 1) % l.length];
+  delete ES.inv[P.ech];
+  voixVlc(ctx.currentTime + 0.01, VLC.sel);
+  majVlc(); memVlc(); H.cran();
+});
+document.getElementById("vlc-motif").addEventListener("click", function(){
+  memVlc();
+  VLC.cur = (VLC.cur + 1) % 10;
+  majVlc(); majKnobsVlc(); memVlc(); H.inter();
+});
+document.getElementById("vlc-export").addEventListener("click", function(){
+  var p = window.DRM16;
+  if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
+  var o = octetsVlc();
+  var nom = "volca-ptn-" + (VLC.cur + 1) + ".dat";
+  var chemin = "";
+  try{ chemin = p.fichierSauver(nom, octetsVersB64(o)); }catch(e){}
+  signal(chemin ? (nom + " · " + o.length + " OCTETS") : "ÉCRITURE REFUSÉE");
+  H.inter();
+});
+document.getElementById("vlc-import").addEventListener("click", function(){
+  var p = window.DRM16;
+  if(!p || !p.fichierListe){ signal("LECTURE IMPOSSIBLE ICI"); return; }
+  var l = bibFichiers(".dat");
+  if(!l.length){ signal("AUCUN .dat DANS DOCUMENTS"); return; }
+  var liste = l.map(function(f, i){ return (i + 1) + " · " + f.nom; }).join("\n");
+  var v = window.prompt("Quel motif charger dans PTN " + (VLC.cur + 1) + " ?\n\n" + liste, "1");
+  var n = parseInt(v, 10) - 1;
+  if(isNaN(n) || n < 0 || n >= l.length) return;
+  var b64 = "";
+  try{ b64 = p.fichierCharger(l[n].nom) || ""; }catch(e){}
+  if(!b64){ signal("FICHIER ILLISIBLE"); return; }
+  var err = lireOctetsVlc(b64VersOctets(b64));
+  if(err){ signal("REFUSÉ : " + err.toUpperCase()); return; }
+  majVlc(); majKnobsVlc(); memVlc();
+  signal("MOTIF CHARGÉ DE " + l[n].nom);
+  H.inter();
+});
+document.getElementById("vlc-notice").addEventListener("click", function(){ ouvrirNotice(); });
+
+var unitVlc = document.getElementById("unit-vlc");
+function activerVlc(){
+  stop();
+  S.modele = "vlc";
+  MACHINE = MACHINE_VLC;
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
+                                 "tr8","tr9","tr7","dmx","vlc");
+  document.body.classList.add("vlc");
+  audioInit(); banqueEs(); chargerEchs();
+  chargerVlc();
+  VLC.noeuds = []; VLC.reverb = null;
+  majVlc(); majKnobsVlc();
+  actif = unitVlc;
+  save(); fit(); setTimeout(fit, 120);
+}
+
 /* ===================== OBERHEIM DMX =====================
    Machine à échantillons de 1981 : on ne pose pas des pas, on joue sur ses
    vingt-quatre touches et elle enregistre au vol, avec correction de timing.
@@ -12420,7 +13001,7 @@ function activerDmx(){
   stop();
   S.modele = "dmx";
   MACHINE = MACHINE_DMX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
   document.body.classList.add("dmx");
   audioInit();
   chargerDmx();
@@ -13835,7 +14416,7 @@ function appliquerModele(id){
   stop();
   MACHINE = MACHINE_EHX;
   actif = unit;
-  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx");
+  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
   S.modele = id;
   MODELE = MODELES[id];
   var r = memoire[id];
@@ -13878,7 +14459,8 @@ function majVoileMenu(){
   v.classList.toggle("vu", reste > 12);
 }
 function allerMachine(id){
-  if(id === "dmx") activerDmx();
+  if(id === "vlc") activerVlc();
+  else if(id === "dmx") activerDmx();
   else if(id === "tr808") activerTr("tr808");
   else if(id === "tr909") activerTr("tr909");
   else if(id === "tr707") activerTr("tr707");
@@ -13923,6 +14505,7 @@ else if(memoire.modele === "tr808") activerTr("tr808");
 else if(memoire.modele === "tr909") activerTr("tr909");
 else if(memoire.modele === "tr707") activerTr("tr707");
 else if(memoire.modele === "dmx") activerDmx();
+else if(memoire.modele === "vlc") activerVlc();
 else appliquerModele(memoire.modele);
 menu.classList.remove("hide");
 document.body.classList.add("menu-ouvert");

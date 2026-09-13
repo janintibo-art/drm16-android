@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Dix-sept machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+**Dix-huit machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
 en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -243,6 +243,27 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Korg volca sample (version 44)
+
+Dix parties, seize pas, dix motifs. Chaque partie a son échantillon, ses **onze potards** — ceux du format
+Korg, ni plus ni moins — et ses cinq interrupteurs : mouvements, boucle, réverbération, lecture inversée,
+coupure. Les mouvements s'enregistrent potard par potard, pas par pas.
+
+**Motifs au format Korg.** EXPORT écrit le motif courant en **2624 octets** : en-tête PTST, code d'appareil
+0x33B8, dix parties de 256 octets, pied PTED, petit-boutiste. IMPORT relit un fichier du dossier Documents,
+qu'il vienne d'ici, du librarian officiel ou d'un preset d'usine.
+
+Le format et sa lecture viennent de **MOC'TA BASS**, y compris la réserve de son auteur : l'échelle exacte
+des valeurs de mouvement n'est pas documentée par Korg, c'est une interprétation.
+
+Aller-retour vérifié à l'octet près : pas `0x1111`, vitesse 90, coupe-haut 64, réverbération et lecture
+inversée actives, mouvement de niveau relu, et la partie 4 retrouvée avec son `0x4444`.
+
+**La même bévue pour la troisième fois** : classe du corps et classe du châssis portant le même nom, écran
+noir sans erreur JavaScript. J'ai donc ajouté un **garde-fou au chargement** qui parcourt la liste des
+classes de corps et signale toute collision, dans la console et à l'écran. Je ne la referai plus sans le
+savoir.
 
 ## Oberheim DMX (version 43)
 
