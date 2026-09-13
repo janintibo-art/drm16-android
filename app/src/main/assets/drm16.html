@@ -1485,6 +1485,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 .eur-mod>b{display:block;text-align:center;font:700 7.5px/1.2 "Roboto Condensed",Arial;letter-spacing:.6px;
   color:#23262b;margin-bottom:4px;min-height:9px}
 .eur-mod.sombre>b{color:#dfe4ea}
+/* Au-dela de six potards la facade devenait plus haute que l'ecran : le SEQ 16
+   en empilait dix-sept, soit six cents pixels. On passe alors sur deux colonnes,
+   remplies de haut en bas puis de gauche a droite, ce qui garde l'ordre de
+   lecture d'un sequenceur. */
+.eur-kns2{display:grid;grid-auto-flow:column;gap:0 3px}
 .eur-kn{width:100%;text-align:center;margin-bottom:3px;touch-action:none}
 .eur-kn .bt{width:26px;height:26px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
   background:radial-gradient(circle at 34% 26%,#fbfaf7,#d4d1cb 46%,#96938c 80%,#c0bdb6);
@@ -3161,7 +3166,9 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   Le bouton <b>WRITE</b> fixe le motif en mémoire ; les réglages, eux, sont gardés en continu.</p>
 
   <h3>Zoom et déplacement</h3>
-  <p>Deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois. Une fois agrandie, on la déplace
+  <p>Deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois. Deux doigts qui se rapprochent
+  la <b>rétrécissent</b>, jusqu'à un peu moins de la moitié : utile sur les modules les plus hauts de
+  l'Eurorack, qu'aucun écran de téléphone ne montre en entier. Une fois agrandie, on la déplace
   <b>d'un seul doigt posé sur le fond</b> — châssis, bandeaux de titre, espaces entre les blocs. Un doigt posé
   sur une commande règle la commande, comme d'habitude. Deux appuis brefs sur le fond remettent à plat.</p>
 
@@ -3349,6 +3356,14 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
      <button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
   <p><button id="b-panique">PANIQUE · TOUT COUPER</button>
      <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
+  <p><button class="sec" id="b-audio-etat">ÉTAT DU MOTEUR AUDIO</button>
+     <button class="sec" id="b-audio-relance">RELANCER LE MOTEUR AUDIO</button></p>
+  <p>Le premier bouton relève ce que fait le moteur : sa fréquence
+  d'échantillonnage, son retard de sortie, le nombre de sources en vie et,
+  surtout, le compte des <b>décrochages</b> — les fois où l'ordonnanceur a pris
+  tellement de retard qu'il a fallu tout recaler. Un décrochage s'entend comme
+  un grésillement. S'il en monte plusieurs par minute, la machine n'arrive pas à
+  suivre : allégez le patch ou baissez le tempo.</p>
   </div>
 
   <div class="doc" id="note-arcm" data-titre="MACHINE D'ARCHIVE">
@@ -3542,6 +3557,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <li><b>VIDER</b> repart d'un rack nu, après confirmation.</li>
   </ul>
 
+  <h3>Quand la façade est trop haute</h3>
+  <p>Le SEQ 16 porte dix-sept potards : même rangés sur <b>deux colonnes</b>, comme le fait la machine dès
+  qu'un module en compte plus de six, il reste plus haut que l'écran. Pincez alors à deux doigts pour
+  rétrécir la façade, puis déplacez-la d'un doigt posé sur le châssis.</p>
+
   <h3>Le premier patch</h3>
   <p><b>EXEMPLE</b> monte la chaîne classique de tout synthé — celle-là même qui est figée à l'usine dans
   les vingt-quatre autres machines. Huit modules, neuf câbles :</p>
@@ -3656,7 +3676,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   une note juste sans viser.</p>
   <span>Potards 1 à 8 · Entrée CLK · Sorties CV, GATE</span></div>
   <div class="fmod"><b>SEQ 16</b>
-  <p>Le même en seize pas, avec LEN pour raccourcir la boucle de 2 à 16. Une longueur de 7 contre une
+  <p>Le même en seize pas, avec LEN pour raccourcir la boucle de 2 à 16. Ses dix-sept potards sont rangés
+  sur deux colonnes, remplies de haut en bas. Une longueur de 7 contre une
   horloge en 16 donne un motif qui se décale à chaque mesure.</p>
   <span>Potards 1 à 16, LEN · Entrée CLK · Sorties CV, GATE</span></div>
   <div class="fmod"><b>TRIG 4</b>
@@ -4879,6 +4900,49 @@ var MODELES = {
 };
 
 /* ================= moteur audio ================= */
+/* ---------- quand le moteur audio meurt en silence ----------
+   Android peut suspendre ou casser un AudioContext sans prévenir : un appel
+   entrant, une autre application qui prend la main, l'écran éteint trop
+   longtemps. Il arrive alors que le contexte se dise "running" alors que son
+   horloge ne bouge plus : plus un son, et changer de machine n'y fait rien
+   puisque le problème est en dessous. Seul un redémarrage rendait le son.
+
+   On surveille donc l'horloge du contexte. Si elle est arrêtée alors que le
+   séquenceur tourne, on refait tout le moteur et on recharge la machine. */
+var VEILLE = {t:-1, fige:0};
+var AUDIT = {decroche:0, quand:0, relances:0};
+function reveillerAudio(){
+  if(!ctx || ctx.startRendering) return;
+  if(ctx.state !== "running"){ try{ ctx.resume(); }catch(e){} }
+}
+function surveillerAudio(){
+  if(!ctx || ctx.startRendering || !S.run){ VEILLE.t = -1; VEILLE.fige = 0; return; }
+  if(ctx.state !== "running"){ reveillerAudio(); VEILLE.fige = 0; VEILLE.t = -1; return; }
+  var t = ctx.currentTime;
+  if(t === VEILLE.t){
+    /* quatre tours sans que l'horloge avance : le contexte est mort */
+    if(++VEILLE.fige >= 4){ VEILLE.fige = 0; VEILLE.t = -1; refaireAudio(); }
+  } else { VEILLE.fige = 0; VEILLE.t = t; }
+}
+function refaireAudio(){
+  var reprendre = S.run, m = S.modele;
+  stop();
+  try{ if(ctx && ctx.close) ctx.close(); }catch(e){}
+  ctx = null; master = null;
+  SOURCES = []; COLLECTE = null; queue = [];
+  /* Ces deux machines gardent des nœuds que razNoeudsMachines ne touche pas :
+     TD3.noeuds doit redevenir null et non {}, sinon batirTd3 croit son moteur
+     déjà construit et ne refait rien. */
+  try{ TD3.noeuds = null; }catch(e){}
+  try{ EUR.bus = null; EUR.sources = null; EUR.noeuds = []; }catch(e){}
+  audioInit();
+  if(!ctx){ signal("AUDIO INDISPONIBLE"); return; }
+  try{ allerMachine(m); }catch(e){}
+  AUDIT.relances++;
+  signal("MOTEUR AUDIO RELANCÉ");
+  if(reprendre) start();
+}
+
 function audioInit(){
   /* un contexte de rendu n'a pas à être repris : il se déclenche tout seul */
   if(ctx) { if(ctx.state === "suspended" && !ctx.startRendering) ctx.resume(); return; }
@@ -5117,8 +5181,16 @@ function decalageHumain(){
 }
 function tick(){
   if(!ctx) return;
+  surveillerAudio();
+  if(!ctx) return;                    /* refaireAudio a pu tout remplacer */
   midiSuivreTempo(); purgerSources();
-  if(nextT < ctx.currentTime - 0.4){ nextT = ctx.currentTime + 0.08; queue=[]; }
+  if(nextT < ctx.currentTime - 0.4){
+    /* l'ordonnanceur a pris trop de retard : on recale. Chaque recalage
+       s'entend comme un trou ou un grésillement, on les compte pour pouvoir
+       le constater au lieu de le supposer. */
+    AUDIT.decroche++; AUDIT.quand = Date.now();
+    nextT = ctx.currentTime + 0.08; queue=[];
+  }
   while(nextT < ctx.currentTime + look()){
     var dh = decalageHumain();
     /* on ne recule jamais avant l'instant présent : le coup serait perdu */
@@ -5407,6 +5479,18 @@ fsw.addEventListener("click", function(){
 });
 
 /* ================= réglages de la notice ================= */
+document.getElementById("b-audio-etat").addEventListener("click", function(){
+  if(!ctx){ signal("MOTEUR AUDIO PAS ENCORE DÉMARRÉ"); return; }
+  var vives = 0, now = ctx.currentTime;
+  for(var i=0;i<SOURCES.length;i++) if(SOURCES[i].t <= now) vives++;
+  signal(Math.round(ctx.sampleRate/100)/10 + " kHz · " + ctx.state +
+         " · RETARD " + Math.round((ctx.baseLatency || 0) * 1000) + " ms" +
+         " · " + vives + " SOURCES · " + AUDIT.decroche + " DÉCROCHAGES" +
+         (AUDIT.relances ? " · " + AUDIT.relances + " RELANCES" : ""));
+});
+document.getElementById("b-audio-relance").addEventListener("click", function(){
+  refaireAudio();
+});
 document.getElementById("b-panique").addEventListener("click", function(){
   stop();
   midiPanique();
@@ -5418,6 +5502,7 @@ document.getElementById("b-panique").addEventListener("click", function(){
     master.gain.linearRampToValueAtTime(S.vol, now+0.35);
   }
   couperSourcesFutures();
+  reveillerAudio();
   signal("TOUT COUPÉ");
   H.stop();
 });
@@ -5642,6 +5727,7 @@ document.addEventListener("visibilitychange", function(){
     if(!S.bg){ stop(); return; }
   } else {
     queue = [];
+    reveillerAudio();
   }
   if(S.run){
     clearInterval(timer);
@@ -5725,7 +5811,10 @@ function zoomRaz(){ ZOOM.z = 1; ZOOM.tx = 0; ZOOM.ty = 0; appliquerZoom(); }
 /* une commande, ou du fond de façade ? le fond sert à déplacer */
 function estCommande(t){
   if(!t || !t.closest) return false;
-  return !!t.closest("button,input,.knob,.bt,.em-dial,.toggle,.jack,.slot,.fsw,td,.mx-ruban,u,.pick");
+  /* .eur-kn et .eur-bkn : depuis que la poignée du potard est le bloc entier,
+     l'étiquette sous le bouton doit compter comme une commande. Sans elle, la
+     toucher déplacerait la façade au lieu de tourner le potard. */
+  return !!t.closest("button,input,.knob,.bt,.eur-kn,.eur-bkn,.em-dial,.toggle,.jack,.slot,.fsw,td,.mx-ruban,u,.pick");
 }
 (function pincement(){
   var pts = {}, glisse = null, dernierTap = 0, tapX = 0, tapY = 0;
@@ -5773,10 +5862,15 @@ function estCommande(t){
     if(!p || !ZOOM.d0) return;
     var d = Math.max(1, Math.hypot(p[1].x-p[0].x, p[1].y-p[0].y));
     var c = {x:(p[0].x+p[1].x)/2, y:(p[0].y+p[1].y)/2};
-    ZOOM.z = Math.max(1, Math.min(4, ZOOM.z0 * d/ZOOM.d0));
+    /* On peut maintenant descendre sous 1 : certains modules de l'Eurorack
+       sont trop hauts pour l'écran, et il n'y avait aucun moyen de prendre du
+       recul. Le plancher à 0,45 garde les étiquettes lisibles. */
+    ZOOM.z = Math.max(0.45, Math.min(4, ZOOM.z0 * d/ZOOM.d0));
     ZOOM.tx = ZOOM.t0.x + (c.x - ZOOM.c0.x);
     ZOOM.ty = ZOOM.t0.y + (c.y - ZOOM.c0.y);
-    if(ZOOM.z < 1.04){ ZOOM.z = 1; ZOOM.tx = 0; ZOOM.ty = 0; }
+    /* on ne se recale sur 1 qu'en passant tout près, sinon rétrécir serait
+       impossible : le geste retomberait aussitôt à 1 */
+    if(ZOOM.z > 0.97 && ZOOM.z < 1.04){ ZOOM.z = 1; ZOOM.tx = 0; ZOOM.ty = 0; }
     else if(!ZOOM.dit){ ZOOM.dit = true; signal("GLISSER SUR LE FOND POUR DÉPLACER · DEUX APPUIS POUR REVENIR"); }
     bornerZoom(); appliquerZoom();
     e.preventDefault();
@@ -15479,12 +15573,17 @@ function eurDessiner(){
     e.style.width = d.hp + "px";
     e.dataset.i = i;
     var h = "<b>" + d.nom + "</b>";
+    /* deux colonnes dès que la pile deviendrait plus haute que l'écran */
+    var deuxCol = d.kns.length > 6;
+    if(deuxCol) h += '<div class="eur-kns2" style="grid-template-rows:repeat(' +
+                     Math.ceil(d.kns.length / 2) + ',auto)">';
     d.kns.forEach(function(k){
       /* la poignée est le bloc entier, étiquette comprise : le bouton seul fait
          vingt-six pixels, et bien moins une fois le rack mis à l'échelle */
       h += '<div class="eur-kn" id="eur-k-' + m.id + '-' + k[0] + '"><div class="bt"><i></i></div>' +
            '<em>' + k[1] + '</em></div>';
     });
+    if(deuxCol) h += "</div>";
     h += '<div class="eur-jacks">';
     d.jacks.forEach(function(j){
       h += '<div class="eur-j' + (j[2] ? " sortie" : "") + '" data-m="' + m.id + '" data-j="' + j[0] +

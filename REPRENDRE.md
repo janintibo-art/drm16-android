@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **66**.
+La version actuelle est la **67**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,40 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Moteur audio qui meurt en silence — v67**
+
+Signalé : coupure de son, aucune machine ne sonne plus, seul un redémarrage rend le son. Diagnostic : sur
+Android, un `AudioContext` peut être suspendu ou cassé par le système (appel entrant, autre application,
+écran éteint) et **se dire encore `running` alors que son horloge ne bouge plus**. Changer de machine n'y
+pouvait rien, le problème étant en dessous. Rien ne reprenait le contexte : `audioInit` ne fait `resume()`
+que sur l'état `suspended`, et `visibilitychange` ne l'appelait pas.
+
+- `reveillerAudio()` — `resume()` si l'état n'est pas `running`. Appelé au retour au premier plan et par
+  PANIQUE.
+- `surveillerAudio()` — appelé depuis `tick()`. Compare `ctx.currentTime` d'un tour à l'autre ; quatre tours
+  sans que l'horloge avance alors que le séquenceur tourne ⇒ `refaireAudio()`.
+- `refaireAudio()` — ferme le contexte, remet à zéro `SOURCES`, `COLLECTE`, `queue`, **`TD3.noeuds = null`**
+  (et non `{}`, sinon `batirTd3` croit son moteur déjà construit) et `EUR.bus/sources/noeuds`, puis
+  `audioInit()` et `allerMachine(S.modele)`. Aussi accessible à la main : bouton RELANCER LE MOTEUR AUDIO.
+- `AUDIT.decroche` compte les recalages de l'ordonnanceur dans `tick()` — chacun s'entend comme un
+  grésillement. Bouton ÉTAT DU MOTEUR AUDIO dans les réglages : fréquence, état, retard de sortie, sources
+  vives, décrochages, relances. **Demander ce relevé avant de chercher une cause aux grésillements.**
+
+*Piste non prise* pour les grésillements : la saturation du bus général est en `oversample:"4x"`, soit
+quatre fois le travail sur chaque échantillon du mélange. Passer à `"2x"` diviserait ce coût par deux pour
+une différence à peine audible — à faire seulement si le relevé montre beaucoup de décrochages.
+
+**Zoom arrière et modules trop hauts — v67**
+
+- Le pincement était borné à `Math.max(1, …)` : impossible de rétrécir. Plancher descendu à **0,45**, et le
+  recalage automatique sur 1 restreint à la bande 0,97–1,04 — sinon tout geste de rétrécissement retombait
+  aussitôt à 1.
+- Au-delà de six potards, les modules passent sur **deux colonnes** (`.eur-kns2`, `grid-auto-flow:column`
+  avec un nombre de rangées calculé). Le SEQ 16 passe de ~606 px à ~350 px de haut.
+- `estCommande()` accepte maintenant `.eur-kn` et `.eur-bkn`. **Indispensable depuis la v66** : la poignée
+  du potard étant le bloc entier, toucher l'étiquette sous le bouton n'était plus reconnu comme une
+  commande et déplaçait la façade.
 
 **Potards et modulation — v66**
 
