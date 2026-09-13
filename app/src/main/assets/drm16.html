@@ -226,7 +226,7 @@ body.m32 .read{color:#8fe8d8}
   color:#140f0c;font-weight:800;letter-spacing:1px;font-size:14px}
 #note button.sec{background:#2f2f35;color:#eceae4;margin-top:6px;margin-right:6px}
 #note button[disabled]{opacity:.5}
-/* la notice de l'Eurorack decrit soixante-dix-neuf modules : sans mise en forme
+/* la notice de l'Eurorack decrit quatre-vingt-un modules : sans mise en forme
    propre, la liste devient un mur de texte illisible sur un telephone */
 #note ol,#note ul{margin:0 0 10px;padding-left:20px}
 #note li{margin:0 0 5px}
@@ -3536,7 +3536,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>soixante-dix-neuf modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>quatre-vingt-un modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
@@ -3580,7 +3580,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   montrent alors ce nom à la place du numéro, et les demandes de confirmation aussi : on sait ce qu'on
   s'apprête à écraser. Un nom vide remet le numéro. Un montage pris dans <b>MONTAGES</b> nomme le rack
   tout seul.</li>
-  <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : soixante-dix-neuf modules en vrac seraient
+  <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : quatre-vingt-un modules en vrac seraient
   illisibles sur un téléphone.</li>
   <li><b>MONTAGES</b> ouvre vingt patchs tout faits, rangés par genre. Voir plus bas.</li>
   <li><b>RACK AU SORT</b> monte un ensemble complet et cohérent, décrit plus bas.</li>
@@ -3603,7 +3603,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   rétrécir la façade, puis déplacez-la d'un doigt posé sur le châssis.</p>
 
   <h3>Vingt montages tout faits</h3>
-  <p>Un rack vide décourage : il faut connaître soixante-dix-neuf modules et savoir lesquels vont ensemble avant
+  <p>Un rack vide décourage : il faut connaître quatre-vingt-un modules et savoir lesquels vont ensemble avant
   d'entendre quoi que ce soit. <b>MONTAGES</b> donne des points de départ qui sonnent, rangés en cinq
   genres. Ils remplacent le rack courant — passez au rack suivant d'abord si vous tenez au vôtre.</p>
   <ul>
@@ -3647,6 +3647,17 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   l'enveloppe vers le VCA : le son devient un bourdon continu. Retirez celui du séquenceur vers le VCO :
   toutes les notes deviennent la même. C'est la façon la plus rapide de comprendre à quoi sert chaque
   module.</p>
+
+  <h3>Tout remettre d'aplomb</h3>
+  <p>Six modules ont une entrée <b>RST</b> : SEQ 8, SEQ 16, TRIG 4, TURING, ARP, SWITCH, ainsi que le CV
+  LOOP. Une impulsion y ramène le séquenceur à son premier pas. Sans elle, deux séquences de longueurs
+  différentes — cinq et sept pas par exemple — ne se retrouvent qu'au bout de trente-cinq pas, et jamais
+  sur la mesure.</p>
+  <p>Le geste utile : un <b>CLK DIV</b> sur l'horloge, sa sortie /16 vers les RST. Tout se réaligne à chaque
+  mesure, et les décalages deviennent un effet qu'on choisit au lieu d'une dérive qu'on subit. La remise à
+  zéro prend effet <b>au pas suivant</b>, comme sur la plupart des séquenceurs.</p>
+  <p>Sur le TURING, RST ne remet pas un compteur : il tire un registre neuf. Ce module n'a pas de début,
+  il n'a qu'un contenu.</p>
 
   <h3>Les portes se propagent</h3>
   <p>Un module qui reçoit une impulsion peut en émettre une à son tour. C'est ce qui permet d'enchaîner
@@ -3697,7 +3708,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>L'<b>export WAV</b> fonctionne aussi, et enregistre ce qui sort de l'OUTPUT du rack affiché.</p>
   </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
-  <p>Les soixante-dix-neuf modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
+  <p>Les quatre-vingt-un modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
   potards, ses entrées et ses sorties. Les <b>sorties</b> sont les prises cerclées d'or.</p>
 
   <h3>Horloges · 9 modules</h3>
@@ -3750,28 +3761,28 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   les câbles : la machine attend que toutes les portes du pas soient arrivées avant de conclure.</p>
   <span>Aucun potard · Entrées A, B · Sorties AND, OR, XOR</span></div>
 
-  <h3>Séquenceurs · 6 modules</h3>
+  <h3>Séquenceurs · 7 modules</h3>
   <p>Ils transforment le temps en notes. Tous sortent deux choses : une <b>hauteur</b> par CV et une
   <b>porte</b> qui dit quand jouer. Les deux se câblent séparément, souvent vers deux modules différents.</p>
   <div class="fmod"><b>SEQ 8</b>
   <p>Huit pas, un potard par pas. Chaque potard couvre deux octaves, quantifiées au demi-ton : on trouve
   une note juste sans viser.</p>
-  <span>Potards 1 à 8 · Entrée CLK · Sorties CV, GATE</span></div>
+  <span>Potards 1 à 8 · Entrées CLK, RST · Sorties CV, GATE</span></div>
   <div class="fmod"><b>SEQ 16</b>
   <p>Le même en seize pas, avec LEN pour raccourcir la boucle de 2 à 16. Ses dix-sept potards sont rangés
   sur deux colonnes, remplies de haut en bas. Une longueur de 7 contre une
   horloge en 16 donne un motif qui se décale à chaque mesure.</p>
-  <span>Potards 1 à 16, LEN · Entrée CLK · Sorties CV, GATE</span></div>
+  <span>Potards 1 à 16, LEN · Entrées CLK, RST · Sorties CV, GATE</span></div>
   <div class="fmod"><b>TRIG 4</b>
   <p>Quatre pistes de déclenchement sur seize pas, avec des motifs de départ différents. Le potard d'une
   piste ne change pas son motif : il le <b>décale</b>. Un seul réglage, mais qui change tout le rythme.</p>
-  <span>Potards A, B, C, D · Entrée CLK · Sorties A, B, C, D</span></div>
+  <span>Potards A, B, C, D · Entrées CLK, RST · Sorties A, B, C, D</span></div>
   <div class="fmod"><b>TURING</b>
   <p>Un registre à décalage de seize bits qui tourne en boucle. CHANCE règle la probabilité qu'un bit se
   retourne en passant : à zéro le motif se répète pour toujours, au milieu il dérive lentement, à fond c'est
   du hasard pur. LEN fixe la longueur de la boucle, RANGE l'étendue des hauteurs. Le module le plus
   intéressant du rack pour qui veut une musique qui ne se répète jamais tout à fait.</p>
-  <span>Potards CHANCE, LEN, RANGE · Entrée CLK · Sorties CV, GATE</span></div>
+  <span>Potards CHANCE, LEN, RANGE · Entrées CLK, RST · Sorties CV, GATE</span></div>
   <div class="fmod"><b>QUANT</b>
   <p>Force une tension vers la note la plus proche d'une gamme : majeure, mineure naturelle, pentatonique,
   blues, chromatique. OCT transpose de deux octaves vers le haut ou vers le bas. Il faut lui câbler
@@ -3784,7 +3795,14 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>Égrène un accord note à note, au rythme de l'horloge. TYPE choisit l'accord parmi les cinq du module
   CHORD, MODE le parcours : montant, descendant, aller-retour, ou au hasard. Une seule voix suffit alors
   à faire entendre une harmonie.</p>
-  <span>Potards TYPE, MODE, OCT · Entrée CLK · Sorties CV, GATE</span></div>
+  <span>Potards TYPE, MODE, OCT · Entrées CLK, RST · Sorties CV, GATE</span></div>
+
+  <div class="fmod"><b>CV LOOP</b>
+  <p>Le séquenceur qu'on ne programme pas. Donnez-lui une tension — un potard qu'on tourne à la main, un
+  DRIFT, un S &amp; H — il la retient pas à pas. <b>FREEZE</b> arrête l'enregistrement, et ce qui passait
+  devient une séquence qui tourne. C'est la façon la plus rapide d'attraper un geste : on cherche à
+  l'oreille, et quand c'est bon on fige.</p>
+  <span>Potards LEN, FREEZE · Entrées IN, CLK, RST · Sortie OUT</span></div>
 
   <h3>Oscillateurs · 9 modules</h3>
   <p>Les sources de son. Tous sauf NOISE ont une entrée <b>V/OCT</b> : un volt de plus, une octave de plus.
@@ -3951,7 +3969,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   Pour un balayage de filtre qui tombe pile sur la mesure, c'est lui et pas l'autre.</p>
   <span>Potards DIV, AMT · Sorties SINE, TRI, RAMP</span></div>
 
-  <h3>Utilitaires · 11 modules</h3>
+  <h3>Utilitaires · 12 modules</h3>
   <p>Rien de spectaculaire, et pourtant c'est ce qui manque toujours dans un vrai rack. Ils dosent,
   mélangent, distribuent.</p>
   <div class="fmod"><b>OUTPUT</b>
@@ -3966,6 +3984,12 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>Deux VCA indépendants dans une seule façade. On n'en a jamais assez : il en faut un par voix, plus un
   par modulation qu'on veut doser.</p>
   <span>Potards GAIN 1, GAIN 2 · Entrées IN 1, CV 1, IN 2, CV 2 · Sorties OUT 1, OUT 2</span></div>
+  <div class="fmod"><b>TRANSPOSE</b>
+  <p>L'ATTENUV décale aussi, mais au jugé. Ici les crans tombent <b>exactement</b> sur l'octave et le
+  demi-ton : deux voix transposées d'une quinte le sont vraiment, et le restent. OCT couvre deux octaves de
+  part et d'autre, SEMI une octave.</p>
+  <span>Potards OCT, SEMI · Entrée IN · Sortie OUT</span></div>
+
   <div class="fmod"><b>COMPARE</b>
   <p>Le pont entre les deux moitiés d'un modulaire. D'un côté les tensions qui ondulent, de l'autre les
   impulsions : ce module fait passer de l'une à l'autre. Envoyez-lui un LFO lent, un DRIFT ou un RUNGLER et
@@ -4001,7 +4025,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <div class="fmod"><b>SWITCH</b>
   <p>Aiguille l'entrée vers l'une des quatre sorties, et passe à la suivante à chaque impulsion reçue sur
   CLK. Une seule séquence peut ainsi nourrir quatre voix à tour de rôle.</p>
-  <span>Aucun potard · Entrées IN, CLK · Sorties 1, 2, 3, 4</span></div>
+  <span>Aucun potard · Entrées IN, CLK, RST · Sorties 1, 2, 3, 4</span></div>
 
   <h3>Traitements · 14 modules</h3>
   <p>Ils se placent après les voix, en général entre le mélangeur et la sortie. Tous ont une entrée IN et
@@ -14744,18 +14768,21 @@ logic: {nom:"LOGIC", hp:60, sombre:true, res:"ET, OU, OU exclusif sur deux rythm
 seq8: {nom:"SEQ 8", hp:92, res:"Huit pas de hauteur et de porte", fam:"seq",
   kns:[["n1","1",0,1,0.25],["n2","2",0,1,0.4],["n3","3",0,1,0.25],["n4","4",0,1,0.58],
        ["n5","5",0,1,0.25],["n6","6",0,1,0.33],["n7","7",0,1,0.5],["n8","8",0,1,0.17]],
-  jacks:[["clk","CLK",0],["cv","CV",1],["gate","GATE",1]],
+  jacks:[["clk","CLK",0],["rst","RST",0],["cv","CV",1],["gate","GATE",1]],
   creer:function(m){
     var cv = eurConst(0), gate = eurConst(0);
     m.pos = -1;
-    m.recevoir = function(t){
+    m.recevoir = function(t, entree){
+      /* Sans remise à zéro, deux séquenceurs de longueurs différentes ne
+         peuvent plus jamais se réaligner une fois lancés. */
+      if(entree === "rst"){ m.pos = -1; return null; }
       m.pos = (m.pos + 1) % 8;
       var demi = Math.round(m.p["n" + (m.pos + 1)] * 24) / 12;
       cv.offset.setValueAtTime(demi, t);
       eurPorte(gate, t, 0.05);
       return ["gate"];
     };
-    return {e:{clk:eurGain(1)}, s:{cv:cv, gate:gate}};
+    return {e:{clk:eurGain(1), rst:eurGain(1)}, s:{cv:cv, gate:gate}};
   }},
 
 seq16: {nom:"SEQ 16", hp:120, res:"Seize pas, longueur réglable", fam:"seq",
@@ -14765,28 +14792,30 @@ seq16: {nom:"SEQ 16", hp:120, res:"Seize pas, longueur réglable", fam:"seq",
     l.push(["lg","LEN",0,1,1]);
     return l;
   })(),
-  jacks:[["clk","CLK",0],["cv","CV",1],["gate","GATE",1]],
+  jacks:[["clk","CLK",0],["rst","RST",0],["cv","CV",1],["gate","GATE",1]],
   creer:function(m){
     var cv = eurConst(0), gate = eurConst(0);
     m.pos = -1;
-    m.recevoir = function(t){
+    m.recevoir = function(t, entree){
+      if(entree === "rst"){ m.pos = -1; return null; }
       var L = 2 + Math.round(m.p.lg * 14);
       m.pos = (m.pos + 1) % L;
       cv.offset.setValueAtTime(Math.round(m.p["n" + (m.pos + 1)] * 24) / 12, t);
       eurPorte(gate, t, 0.05);
       return ["gate"];
     };
-    return {e:{clk:eurGain(1)}, s:{cv:cv, gate:gate}};
+    return {e:{clk:eurGain(1), rst:eurGain(1)}, s:{cv:cv, gate:gate}};
   }},
 
 trig4: {nom:"TRIG 4", hp:84, sombre:true, res:"Quatre pistes de déclenchement", fam:"seq",
   kns:[["a","A",0,1,0.55],["b","B",0,1,0.3],["c","C",0,1,0.4],["d","D",0,1,0.2]],
-  jacks:[["clk","CLK",0],["ta","A",1],["tb","B",1],["tc","C",1],["td","D",1]],
+  jacks:[["clk","CLK",0],["rst","RST",0],["ta","A",1],["tb","B",1],["tc","C",1],["td","D",1]],
   creer:function(m){
     var o = {ta:eurConst(0), tb:eurConst(0), tc:eurConst(0), td:eurConst(0)};
     var motifs = {ta:0x1111, tb:0x0440, tc:0x5555, td:0x0100};
     m.pos = -1;
-    m.recevoir = function(t){
+    m.recevoir = function(t, entree){
+      if(entree === "rst"){ m.pos = -1; return null; }
       m.pos = (m.pos + 1) % 16;
       var f = [];
       [["ta","a"],["tb","b"],["tc","c"],["td","d"]].forEach(function(x){
@@ -14797,17 +14826,23 @@ trig4: {nom:"TRIG 4", hp:84, sombre:true, res:"Quatre pistes de déclenchement",
       });
       return f;
     };
-    return {e:{clk:eurGain(1)}, s:o};
+    return {e:{clk:eurGain(1), rst:eurGain(1)}, s:o};
   }},
 
 turing: {nom:"TURING", hp:64, sombre:true, res:"Registre à décalage aléatoire", fam:"seq",
   kns:[["hasard","CHANCE",0,1,0.15],["lg","LEN",0,1,0.5],["amp","RANGE",0,1,0.5]],
-  jacks:[["clk","CLK",0],["cv","CV",1],["gate","GATE",1]],
+  jacks:[["clk","CLK",0],["rst","RST",0],["cv","CV",1],["gate","GATE",1]],
   creer:function(m){
     var cv = eurConst(0), gate = eurConst(0);
     var reg = [];
     for(var i=0;i<16;i++) reg.push(Math.random() > 0.5 ? 1 : 0);
-    m.recevoir = function(t){
+    m.recevoir = function(t, entree){
+      /* Ici la remise à zéro ne remet pas un compteur mais tire un registre
+         neuf : le TURING n'a pas de début, il n'a qu'un contenu. */
+      if(entree === "rst"){
+        for(var z=0;z<16;z++) reg[z] = Math.random() > 0.5 ? 1 : 0;
+        return null;
+      }
       var L = 2 + Math.round(m.p.lg * 14);
       var b = reg[L - 1];
       if(Math.random() < m.p.hasard) b = b ? 0 : 1;
@@ -14818,7 +14853,36 @@ turing: {nom:"TURING", hp:64, sombre:true, res:"Registre à décalage aléatoire
       if(reg[0]){ eurPorte(gate, t, 0.05); return ["gate"]; }
       return null;
     };
-    return {e:{clk:eurGain(1)}, s:{cv:cv, gate:gate}};
+    return {e:{clk:eurGain(1), rst:eurGain(1)}, s:{cv:cv, gate:gate}};
+  }},
+
+tape: {nom:"CV LOOP", hp:60, sombre:true, res:"Enregistre une tension, puis la rejoue en boucle", fam:"seq",
+  kns:[["lg","LEN",0,1,0.5],["fige","FREEZE",0,1,0]],
+  jacks:[["in","IN",0],["clk","CLK",0],["rst","RST",0],["out","OUT",1]],
+  creer:function(m){
+    /* Le séquenceur qu'on ne programme pas : on lui donne une tension — un
+       potard qu'on tourne à la main, un DRIFT, un S & H — il la retient pas à
+       pas. FREEZE arrête l'enregistrement, et ce qui passait devient une
+       séquence qui tourne. C'est la façon la plus rapide d'attraper un geste. */
+    var e = eurGain(1), out = eurConst(0);
+    var an = ctx.createAnalyser(); an.fftSize = 32;
+    e.connect(an);
+    var tampon = new Float32Array(an.fftSize);
+    m.mem = []; for(var i=0;i<16;i++) m.mem.push(0);
+    m.pos = -1;
+    m.recevoir = function(t, entree){
+      if(entree === "rst"){ m.pos = -1; return null; }
+      if(entree !== "clk") return null;
+      var L = 2 + Math.round(m.p.lg * 14);
+      m.pos = (m.pos + 1) % L;
+      if(m.p.fige < 0.5){
+        an.getFloatTimeDomainData(tampon);
+        m.mem[m.pos] = tampon[0] || 0;
+      }
+      out.offset.setValueAtTime(m.mem[m.pos], t);
+      return null;
+    };
+    return {e:{in:e, clk:eurGain(1), rst:eurGain(1)}, s:{out:out}};
   }},
 
 quant: {nom:"QUANT", hp:56, res:"Quantifie vers une gamme", fam:"seq",
@@ -14851,12 +14915,13 @@ quant: {nom:"QUANT", hp:56, res:"Quantifie vers une gamme", fam:"seq",
 
 arp: {nom:"ARP", hp:56, sombre:true, res:"Égrène un accord, note à note", fam:"seq",
   kns:[["type","TYPE",0,1,0],["mode","MODE",0,1,0],["oct","OCT",0,1,0.5]],
-  jacks:[["clk","CLK",0],["cv","CV",1],["gate","GATE",1]],
+  jacks:[["clk","CLK",0],["rst","RST",0],["cv","CV",1],["gate","GATE",1]],
   creer:function(m){
     var ACC = [[0,4,7,12],[0,3,7,10],[0,5,7,12],[0,4,7,11],[0,2,7,9]];
     var out = eurConst(0), g = eurConst(0);
     m.i = 0; m.sens = 1;
     m.recevoir = function(t, entree){
+      if(entree === "rst"){ m.i = 0; m.sens = 1; return null; }
       if(entree !== "clk") return null;
       var acc = ACC[Math.min(4, Math.round(m.p.type * 4))];
       var mode = Math.min(3, Math.round(m.p.mode * 3));
@@ -14871,7 +14936,7 @@ arp: {nom:"ARP", hp:56, sombre:true, res:"Égrène un accord, note à note", fam
       eurPorte(g, t);
       return ["gate"];
     };
-    return {e:{clk:eurGain(1)}, s:{cv:out, gate:g}};
+    return {e:{clk:eurGain(1), rst:eurGain(1)}, s:{cv:out, gate:g}};
   }},
 
 /* ================= oscillateurs ================= */
@@ -15463,6 +15528,23 @@ sh: {nom:"S & H", hp:56, sombre:true, res:"Prélève et bloque une tension", fam
     return {e:{in:e, trig:eurGain(1)}, s:{out:sortie}};
   }},
 
+trans: {nom:"TRANSPOSE", hp:56, res:"Transpose juste, en octaves et en demi-tons", fam:"util",
+  kns:[["oct","OCT",0,1,0.5],["semi","SEMI",0,1,0.5]],
+  jacks:[["in","IN",0],["out","OUT",1]],
+  creer:function(m){
+    /* L'ATTENUV décale aussi, mais au jugé. Ici les crans tombent exactement
+       sur l'octave et le demi-ton : deux voix transposées d'une quinte le sont
+       vraiment, et le restent. */
+    var e = eurGain(1), off = eurConst(0), out = eurGain(1);
+    e.connect(out); off.connect(out);
+    m.maj = function(){
+      off.offset.value = Math.round((m.p.oct - 0.5) * 4) +
+                         Math.round((m.p.semi - 0.5) * 24) / 12;
+    };
+    m.maj();
+    return {e:{in:e}, s:{out:out}};
+  }},
+
 compare: {nom:"COMPARE", hp:56, sombre:true, res:"Fabrique un rythme à partir d'une tension", fam:"util",
   kns:[["seuil","THRESH",0,1,0.5]],
   jacks:[["in","IN",0],["out","OUT",1],["inv","INV",1]],
@@ -15561,18 +15643,21 @@ pan: {nom:"PAN", hp:48, res:"Place dans le champ stéréo", fam:"util",
 
 switch4: {nom:"SWITCH", hp:56, sombre:true, res:"Aiguille vers quatre sorties", fam:"util",
   kns:[],
-  jacks:[["in","IN",0],["clk","CLK",0],["o1","1",1],["o2","2",1],["o3","3",1],["o4","4",1]],
+  jacks:[["in","IN",0],["clk","CLK",0],["rst","RST",0],["o1","1",1],["o2","2",1],["o3","3",1],["o4","4",1]],
   creer:function(m){
     var e = eurGain(1), g = [];
     for(var i=0;i<4;i++){ g.push(eurGain(i === 0 ? 1 : 0)); e.connect(g[i]); }
     m.pos = 0;
     m.recevoir = function(t, entree){
+      if(entree === "rst"){ m.pos = 0;
+        for(var z=0;z<4;z++) g[z].gain.setTargetAtTime(z === 0 ? 1 : 0, t, 0.004);
+        return null; }
       if(entree !== "clk") return null;
       m.pos = (m.pos + 1) % 4;
       for(var i=0;i<4;i++) g[i].gain.setTargetAtTime(i === m.pos ? 1 : 0, t, 0.004);
       return null;
     };
-    return {e:{in:e, clk:eurGain(1)}, s:{o1:g[0], o2:g[1], o3:g[2], o4:g[3]}};
+    return {e:{in:e, clk:eurGain(1), rst:eurGain(1)}, s:{o1:g[0], o2:g[1], o3:g[2], o4:g[3]}};
   }},
 
 /* ================= traitements ================= */
@@ -16317,7 +16402,7 @@ function eurCatalogue(){
   var c = document.getElementById("eur-cat");
   if(c.style.display !== "none" && c.dataset.vue === "mod"){ c.style.display = "none"; return; }
   c.innerHTML = ""; c.dataset.vue = "mod";
-  /* soixante-dix-neuf modules en vrac seraient illisibles : on les range par
+  /* quatre-vingt-un modules en vrac seraient illisibles : on les range par
      familles, et l'onglet choisi décide de ce qu'on voit */
   var onglets = document.createElement("div");
   onglets.className = "eur-fam";
@@ -16497,7 +16582,7 @@ document.getElementById("eur-hasard").addEventListener("click", function(){ eurH
    de rythme, deux ou trois voix, un traitement et une sortie. Sans cette
    ossature on obtient un tas de modules qui ne sonne pas. */
 /* ================= montages tout faits =================
-   Un rack vide décourage : il faut connaître soixante-dix-neuf modules et savoir
+   Un rack vide décourage : il faut connaître quatre-vingt-un modules et savoir
    lesquels vont ensemble avant d'entendre quoi que ce soit. Ces montages
    donnent un point de départ qui sonne, à défaire ensuite câble par câble —
    c'est la façon la plus rapide d'apprendre ce que fait chaque module.

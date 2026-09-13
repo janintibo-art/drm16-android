@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **75**.
+La version actuelle est la **76**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -40,7 +40,7 @@ sont sans accents (Termux).
 
 La notice est découpée en **onglets `.doc`** dans `#note-corps` ; la barre de navigation est construite
 toute seule à partir de leur `data-titre`. L'Eurorack en occupe trois : `note-eur` (les principes),
-`note-eurmod` (les 79 fiches), `note-eurpat` (huit patchs et le glossaire).
+`note-eurmod` (les 81 fiches), `note-eurpat` (huit patchs et le glossaire).
 
 Une seule page HTML porte toute l'application : `app/src/main/assets/drm16.html`, environ **890 ko**.
 Le Java ne sert que de pont vers Android.
@@ -59,8 +59,8 @@ Le Java ne sert que de pont vers Android.
 **Electro-Harmonix** DRM16, DRM32 · **Korg** Electribe EM-1, ER-1, EA-1, ES-1, ER-1 mkII, ES-1 mkII,
 EA-1 mkII, EMX-1, ESX-1, volca sample · **Akai** MPC3000, MPC2000 · **Roland** TR-808, TR-909, TR-707,
 CR-5000, TR-1000 · **Oberheim** DMX · **Arturia** DrumBrute Impact · **Behringer** RD-6, TD-3 ·
-**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (79 modules, deux rangées :
-9 horloges, 6 séquenceurs, 9 oscillateurs, 10 filtres, 9 modulations, 11 utilitaires, 14 traitements,
+**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (81 modules, deux rangées :
+9 horloges, 7 séquenceurs, 9 oscillateurs, 10 filtres, 9 modulations, 12 utilitaires, 14 traitements,
 11 percussions).
 
 ### Les outils
@@ -116,6 +116,30 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Remise à zéro, et deux modules — v76**
+
+*Manque de fond comblé : aucun séquenceur n'avait de RST.* Deux séquences de longueurs premières entre
+elles ne pouvaient plus jamais se réaligner une fois lancées. Entrée `rst` ajoutée à **seq8, seq16, trig4,
+turing, arp, switch4** et au nouveau **tape**.
+
+- Convention : `rst` met `m.pos = -1`, donc **la remise à zéro prend effet au pas suivant** — comme sur la
+  plupart des séquenceurs matériels, et comme il se doit puisque l'ordre d'arrivée de `clk` et de `rst`
+  dans un même pas dépend de l'ordre des câbles.
+- Sur **turing**, `rst` ne remet pas un compteur : il **tire un registre neuf**. Ce module n'a pas de
+  début, il n'a qu'un contenu. Ne pas « corriger » en y mettant un compteur.
+- Sur **switch4**, `rst` ramène l'aiguillage sur la sortie 1 *et* remet les gains tout de suite, sinon la
+  voie active resterait fausse jusqu'au prochain clk.
+- Tous ces modules prennent désormais `(t, entree)` là où ils prenaient `(t)` : toute évolution doit
+  garder le test `if(entree === "rst")` **en premier**.
+- Vérifié au banc : deux SEQ 16 en 5 et 7 pas, avec un CLK DIV /16 sur les RST, se retrouvent chaque mesure
+  au lieu de tous les 35 pas.
+
+*Deux modules* :
+- **CV LOOP** (seq) — enregistre la tension présente sur IN à chaque pas, FREEZE arrête l'enregistrement et
+  la boucle tourne. Lecture par analyseur, donc à la résolution du pas.
+- **TRANSPOSE** (util) — décalage **calibré** : crans exacts sur l'octave et le demi-ton, là où l'ATTENUV
+  décale au jugé. Vérifié : la quinte tombe à 0,5833 V.
 
 **Quatre modules de plus — v75**
 
