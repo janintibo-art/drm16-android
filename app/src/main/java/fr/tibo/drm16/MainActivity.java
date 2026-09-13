@@ -25,6 +25,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import android.os.Environment;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -110,6 +112,19 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         }
 
         /** Echantillons de l'utilisateur, ecrits dans le dossier prive de l'application. */
+        /** Ecrit un fichier dans Documents de l'application, visible par un gestionnaire de fichiers. */
+        @JavascriptInterface public String fichierSauver(String nom, String b64) {
+            try {
+                File d = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+                if (d == null) d = new File(getFilesDir(), "documents");
+                if (!d.exists() && !d.mkdirs()) return "";
+                File cible = new File(d, propre(nom));
+                byte[] o = Base64.decode(b64, Base64.DEFAULT);
+                FileOutputStream f = new FileOutputStream(cible);
+                f.write(o); f.flush(); f.getFD().sync(); f.close();
+                return cible.getAbsolutePath();
+            } catch (Exception e) { return ""; }
+        }
         @JavascriptInterface public String echDossier() {
             return new File(getFilesDir(), "ech").getAbsolutePath();
         }
@@ -156,7 +171,9 @@ public class MainActivity extends Activity implements Midi.Ecoute {
     }
 
     private String propre(String n) {
-        return n == null ? "x" : n.replaceAll("[^A-Za-z0-9_-]", "_");
+        if (n == null) return "x";
+        String p = n.replaceAll("[^A-Za-z0-9_.-]", "_");
+        return p.isEmpty() ? "x" : p;
     }
 
     /** Message recu d'un appareil MIDI : transmis tel quel a la page. */

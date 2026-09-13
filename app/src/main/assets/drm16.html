@@ -145,9 +145,25 @@ body.m32 .read{color:#8fe8d8}
 .off .led.on,.off .led.beat{background:#1d2a33;box-shadow:inset 0 1px 2px #000c}
 
 /* ---------- notice ---------- */
-#note{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
+#note,#enr{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
   font:15px/1.6 system-ui,-apple-system,"Roboto",sans-serif}
-#note.show{display:flex;flex-direction:column}
+#note.show,#enr.show{display:flex;flex-direction:column}
+#enr #note-bar b{color:#ff6a3d}
+#enr select{width:100%;padding:11px;border-radius:6px;border:1px solid #3a3a42;background:#1b1b1f;
+  color:#eceae4;font:600 15px system-ui,sans-serif}
+#enr button{margin-top:0;padding:13px 20px;border:0;border-radius:6px;background:var(--accent);
+  color:#140f0c;font-weight:800;letter-spacing:1px;font-size:15px}
+#enr button.sec{background:#2f2f35;color:#eceae4;padding:9px 13px;font-size:12px;margin:0}
+#enr button.on{background:#b3260f;color:#fff}
+#enr h3{margin:22px 0 6px;font:800 13px/1.3 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:2.2px;color:var(--accent);text-transform:uppercase}
+#enr p{margin:0 0 10px}
+#enr b{color:#fff}
+.enr-prise{border:1px solid #2e2e35;border-radius:8px;padding:10px 12px;margin-bottom:9px;background:#16161a}
+.enr-prise.joue{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.enr-prise b{display:block;font-size:15px}
+.enr-prise span{display:block;font-size:12.5px;opacity:.75;margin-top:2px}
+.enr-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 #note-bar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 12px;background:#17171a;
   border-bottom:1px solid #2c2c31}
 #note-bar b{flex:1;min-width:0;font:800 15px/1.2 "Roboto Condensed",sans-serif-condensed,Arial;
@@ -183,6 +199,9 @@ body.menu-ouvert #aide,body.note-ouverte #aide{display:none}
   align-content:start;justify-items:center;gap:5px;padding:9px 12px 16px;overflow:auto}
 @media (min-width:720px){ #menu{grid-template-columns:1fr 1fr} #menu h1{grid-column:1/-1} }
 @media (min-width:860px){ #menu{grid-template-columns:repeat(3,1fr)} }
+@media (min-width:720px) and (max-height:460px){ #menu{gap:4px;padding:6px 10px 12px}
+  #menu .pick{padding:6px 13px} #menu .pick b{font-size:21px} #menu .pick span{font-size:8.5px}
+  #menu h1{font-size:10px;margin:1px 0} }
 #menu.hide{display:none}
 #menu h1{margin:3px 0 2px;font:700 13px/1.4 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:4px;
   color:#8b867c;text-align:center}
@@ -736,6 +755,9 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.psx{background:linear-gradient(165deg,#9c1c2e,#3a0810 55%,#5e0e1a)}
 .pick.psx b{color:#ff6a78;text-shadow:0 2px 0 #4a0610}
 .pick.psx span{color:#d8b0b6}
+.pick.penr{background:linear-gradient(165deg,#7a2f18,#2a1008 55%,#46190c)}
+.pick.penr b{color:#ff8a5c;text-shadow:0 2px 0 #35110a}
+.pick.penr span{color:#d9b5a6}
 .pick.pdoc{background:linear-gradient(165deg,#3a3a40,#141417 55%,#242429)}
 .pick.pdoc b{color:#e8e4da;text-shadow:0 2px 0 #000}
 .pick.pdoc span{color:#a9a69e}
@@ -1794,6 +1816,31 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 
 <button id="aide">NOTICE</button>
 
+<div id="enr">
+  <div id="note-bar"><b>ENREGISTREUR MIDI</b><button id="enr-fermer">FERMER</button></div>
+  <div id="note-corps">
+    <div class="doc vu" style="max-width:620px">
+      <h3>Comment ça marche</h3>
+      <p>Branchez la carte USB-C vers MIDI, reliez la <b>sortie MIDI de la Korg</b> à l'entrée de la carte,
+      puis cherchez l'appareil dans la notice, onglet Général. Jouez sur la Korg : ses notes déclenchent les
+      parties de la machine choisie ci-dessous, <b>le son sort du téléphone</b>, et tout ce qui arrive est daté.</p>
+      <p>La relecture repasse par le même chemin : même machine, mêmes sons, même rythme. Chaque prise peut
+      être écrite en <b>fichier .mid</b> ordinaire, lisible par n'importe quel séquenceur.</p>
+
+      <h3>Machine qui fait le son</h3>
+      <p><select id="enr-machine"></select></p>
+
+      <h3>Enregistrement</h3>
+      <p><button id="enr-rec">● ENREGISTRER</button></p>
+      <p id="enr-etat" style="opacity:.85">—</p>
+
+      <h3>Prises</h3>
+      <div id="enr-liste"></div>
+      <p id="enr-chemin" style="opacity:.6;font-size:13px"></p>
+    </div>
+  </div>
+</div>
+
 <div id="menu">
   <h1>CHOISIR UNE MACHINE</h1>
   <button class="pick p16" data-m="16"><b>DRM16</b><span>MODEL 01 · 16 RYTHMES · SPACE DRUM COMMUTABLE</span></button>
@@ -1807,6 +1854,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <button class="pick pes2" data-m="es2"><b>ES-1 mkII</b><span>KORG · ÉCHANTILLONNEUR · ISOLATOR, RESO. FILT.</span></button>
   <button class="pick pmx" data-m="emx"><b>ELECTRIBE EMX-1</b><span>KORG · 14 PARTIES · 3 EFFETS · VALVE FORCE</span></button>
   <button class="pick psx" data-m="esx"><b>ELECTRIBE ESX-1</b><span>KORG · ÉCHANTILLONNEUR · CLAVIER, STRETCH, VALVE FORCE</span></button>
+  <button class="pick penr" id="menu-enr"><b>ENREGISTREUR MIDI</b><span>JOUER SUR LA KORG · LE SON SORT DU TÉLÉPHONE</span></button>
   <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
 </div>
 
@@ -1840,6 +1888,12 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   et les messages de départ et d'arrêt peuvent entraîner un autre appareil. En <b>entrée</b>, les notes 36 à 44
   déclenchent les parties de percussion de la machine affichée, les autres canaux ses parties mélodiques, et
   tout s'enregistre si REC est armé.</p>
+  <h3>Enregistreur MIDI</h3>
+  <p>La tuile <b>ENREGISTREUR MIDI</b> du menu ouvre une page à part : on y choisit la machine qui fait le
+  son, on lance l'enregistrement, et tout ce qui arrive par l'entrée MIDI est daté à la milliseconde.
+  Jouez sur la Korg, le son sort du téléphone. La relecture repasse par le même chemin, et chaque prise
+  s'écrit en <b>fichier .mid</b> ordinaire dans le dossier Documents de l'application.</p>
+
   <h3>Travailler avec une vraie Electribe</h3>
   <p><b>Du téléphone vers la machine.</b> Branchez la carte, cherchez l'appareil, laissez <b>SORTIE</b> active
   et mettez <b>HORLOGE : ENVOYÉE</b>. Réglez la <b>note de base</b> et les <b>canaux</b> pour qu'ils
@@ -2925,6 +2979,32 @@ function fermerNotice(){
 document.getElementById("note-fermer").addEventListener("click", function(){ fermerNotice(); H.cran(); });
 document.getElementById("aide").addEventListener("click", function(){ ouvrirNotice(); H.inter(); });
 document.getElementById("menu-notices").addEventListener("click", function(){ ouvrirNotice("note-general"); H.inter(); });
+document.getElementById("enr-fermer").addEventListener("click", function(){ fermerEnr(); H.cran(); });
+document.getElementById("enr-rec").addEventListener("click", function(){
+  if(ENR.actif) enrArreter(); else enrDemarrer();
+});
+(function menuEnregistreur(){
+  var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
+    ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"]];
+  var sel = document.getElementById("enr-machine");
+  NOMS.forEach(function(m){
+    var o = document.createElement("option");
+    o.value = m[0]; o.textContent = m[1];
+    sel.appendChild(o);
+  });
+  sel.addEventListener("change", function(){ allerMachine(this.value); majEnrUI(); });
+  document.getElementById("menu-enr").addEventListener("click", function(){
+    document.body.classList.remove("menu-ouvert");
+    menu.classList.add("hide");
+    var m = memoire.modele || "em1";
+    allerMachine(m);
+    sel.value = m;
+    enrCharger();
+    ouvrirEnr();
+    H.inter();
+  });
+})();
 
 var bMetro = document.getElementById("b-metro");
 function labelMetro(){ bMetro.textContent = "MÉTRONOME : " + (METRO ? "ACTIVÉ" : "COUPÉ"); }
@@ -9009,6 +9089,7 @@ function departEsclave(remise){
 
 /* réception */
 window.__midi = function(a,b,c){
+  enrNoter(a,b,c);
   if(!MIDI.in) return;
   if(a === 0xF8){ if(MIDI.sync) ticExterne(); return; }
   if(a === 0xFA){ if(MIDI.sync){ departEsclave(true); } else if(!S.run){ start(); majPlayEm(); } return; }
@@ -9285,6 +9366,200 @@ function teleEr(champ, v){
           : (champ === "wave") ? septBool(v)
           : sept01(v);
   teleLimiter("er"+lsb, function(){ nrpnEnvoyer(MIDI.canal, 2, lsb, val); });
+}
+
+/* ================= enregistreur MIDI =================
+   On branche la Korg sur l'entrée MIDI : ses notes jouent les parties de la machine
+   affichée, et tout ce qui arrive est daté et gardé. La relecture repasse par le même
+   chemin, donc le son sort du téléphone comme au moment du jeu. */
+var ENR = {actif:false, depart:0, evts:[], prises:[], lecture:null, tmr:[], compteur:0, sortie:true};
+
+function enrCharger(){
+  try{
+    var b = JSON.parse(localStorage.getItem(MEM + ".midirec") || "null");
+    if(b && b.length) ENR.prises = b;
+  }catch(e){}
+}
+function enrEcrire(){
+  try{ localStorage.setItem(MEM + ".midirec", JSON.stringify(ENR.prises)); }
+  catch(e){ signal("MÉMOIRE PLEINE · PRISE NON GARDÉE"); }
+}
+function enrDemarrer(){
+  if(ENR.lecture) enrArreterLecture();
+  ENR.evts = [];
+  ENR.depart = performance.now();
+  ENR.actif = true;
+  majEnrUI();
+  signal("ENREGISTREMENT EN COURS");
+  H.start();
+}
+function enrArreter(){
+  if(!ENR.actif) return;
+  ENR.actif = false;
+  var duree = Math.round(performance.now() - ENR.depart);
+  if(ENR.evts.length){
+    var d = new Date();
+    ENR.prises.unshift({
+      nom: "Prise " + (ENR.prises.length + 1),
+      date: d.getDate() + "/" + (d.getMonth()+1) + " " + ("0"+d.getHours()).slice(-2) + "h" + ("0"+d.getMinutes()).slice(-2),
+      bpm: S.bpm,
+      machine: S.modele,
+      duree: duree,
+      evts: ENR.evts
+    });
+    if(ENR.prises.length > 24) ENR.prises.length = 24;
+    enrEcrire();
+    signal(ENR.evts.length + " ÉVÉNEMENTS GARDÉS");
+  } else {
+    signal("RIEN N'EST ARRIVÉ · VÉRIFIEZ L'ENTRÉE MIDI");
+  }
+  ENR.evts = [];
+  majEnrUI();
+  H.stop();
+}
+/* appelé par la réception MIDI, avant tout traitement */
+function enrNoter(a,b,c){
+  if(!ENR.actif) return;
+  ENR.compteur++;
+  if(a >= 0xF8) return;                       /* horloge et temps réel : inutiles ici */
+  if(ENR.evts.length > 20000) return;
+  ENR.evts.push([Math.round(performance.now() - ENR.depart), a, b, c]);
+}
+function enrJouer(i){
+  var p = ENR.prises[i];
+  if(!p) return;
+  enrArreterLecture();
+  ENR.lecture = i;
+  var etait = MIDI.in;
+  MIDI.in = true;
+  p.evts.forEach(function(e){
+    ENR.tmr.push(setTimeout(function(){
+      var sauve = ENR.actif; ENR.actif = false;   /* on ne réenregistre pas la relecture */
+      try{ window.__midi(e[1], e[2], e[3]); }catch(err){}
+      ENR.actif = sauve;
+    }, e[0]));
+  });
+  ENR.tmr.push(setTimeout(function(){
+    ENR.lecture = null; MIDI.in = etait; majEnrUI();
+  }, p.duree + 200));
+  majEnrUI();
+  signal("RELECTURE DE " + p.nom);
+}
+function enrArreterLecture(){
+  ENR.tmr.forEach(function(t){ clearTimeout(t); });
+  ENR.tmr = [];
+  if(ENR.lecture !== null){ ENR.lecture = null; midiSilence(); majEnrUI(); }
+}
+function enrSupprimer(i){
+  ENR.prises.splice(i, 1);
+  enrEcrire(); majEnrUI(); H.inter();
+}
+
+/* ---------- fichier MIDI de type 0 ---------- */
+function varlen(n){
+  var o = [n & 0x7F];
+  n >>= 7;
+  while(n > 0){ o.unshift((n & 0x7F) | 0x80); n >>= 7; }
+  return o;
+}
+function enrFichier(i){
+  var p = ENR.prises[i];
+  if(!p) return null;
+  var div = 480, bpm = p.bpm || 120;
+  var parTic = 60000 / (bpm * div);            /* millisecondes par tic */
+  var piste = [], prec = 0, us = Math.round(60000000 / bpm);
+  piste = piste.concat([0x00, 0xFF, 0x51, 0x03, (us>>16)&0xFF, (us>>8)&0xFF, us&0xFF]);
+  p.evts.forEach(function(e){
+    var tic = Math.round(e[0] / parTic);
+    var d = Math.max(0, tic - prec);
+    prec = tic;
+    var st = e[1] & 0xFF;
+    if(st < 0x80 || st >= 0xF0) return;        /* seuls les messages de canal vont dans le fichier */
+    piste = piste.concat(varlen(d), [st, e[2] & 0x7F]);
+    var t = st & 0xF0;
+    if(t !== 0xC0 && t !== 0xD0) piste.push(e[3] & 0x7F);
+  });
+  piste = piste.concat([0x00, 0xFF, 0x2F, 0x00]);
+  var n = piste.length;
+  var tete = [0x4D,0x54,0x68,0x64, 0,0,0,6, 0,0, 0,1, (div>>8)&0xFF, div&0xFF];
+  var mtrk = [0x4D,0x54,0x72,0x6B, (n>>24)&0xFF, (n>>16)&0xFF, (n>>8)&0xFF, n&0xFF];
+  return new Uint8Array(tete.concat(mtrk).concat(piste));
+}
+function enrExporter(i){
+  var o = enrFichier(i);
+  if(!o){ signal("PRISE INTROUVABLE"); return; }
+  var p = window.DRM16;
+  var nom = "drm-" + (ENR.prises[i].nom.replace(/[^A-Za-z0-9]/g,"") || "prise") + "-" + i + ".mid";
+  if(p && p.fichierSauver){
+    var chemin = "";
+    try{ chemin = p.fichierSauver(nom, octetsVersB64(o)); }catch(e){}
+    signal(chemin ? ("ÉCRIT : " + nom) : "ÉCRITURE REFUSÉE");
+    if(chemin){
+      var e2 = document.getElementById("enr-chemin");
+      if(e2) e2.textContent = "Dernier fichier : " + chemin;
+    }
+    return;
+  }
+  /* hors Android : téléchargement ordinaire */
+  try{
+    var a = document.createElement("a");
+    a.href = "data:audio/midi;base64," + octetsVersB64(o);
+    a.download = nom;
+    a.click();
+    signal("FICHIER PROPOSÉ AU TÉLÉCHARGEMENT");
+  }catch(e){ signal("EXPORT IMPOSSIBLE ICI"); }
+}
+
+/* ---------- interface ---------- */
+function dureeTexte(ms){
+  var s = Math.round(ms/1000);
+  return Math.floor(s/60) + ":" + ("0"+(s%60)).slice(-2);
+}
+function majEnrUI(){
+  var b = document.getElementById("enr-rec");
+  if(!b) return;
+  b.textContent = ENR.actif ? "■ ARRÊTER" : "● ENREGISTRER";
+  b.classList.toggle("on", ENR.actif);
+  var etat = document.getElementById("enr-etat");
+  etat.textContent = ENR.actif
+    ? ("En cours — " + ENR.evts.length + " événements")
+    : (MIDI.ouvert < 0 ? "Aucun appareil MIDI ouvert. Cherchez-le dans la notice, onglet Général."
+                       : "Prêt. Jouez sur la Korg : le son sort du téléphone.");
+  var l = document.getElementById("enr-liste");
+  l.innerHTML = "";
+  if(!ENR.prises.length){
+    l.innerHTML = '<p style="opacity:.7">Aucune prise pour le moment.</p>';
+    return;
+  }
+  ENR.prises.forEach(function(p, i){
+    var d = document.createElement("div");
+    d.className = "enr-prise" + (ENR.lecture === i ? " joue" : "");
+    d.innerHTML = '<b>' + p.nom + '</b><span>' + p.date + ' · ' + dureeTexte(p.duree) +
+                  ' · ' + p.evts.length + ' évén. · ' + p.bpm + ' BPM</span>';
+    var barre = document.createElement("div");
+    barre.className = "enr-actions";
+    [["▶ JOUER", function(){ enrJouer(i); }],
+     ["■ STOP", function(){ enrArreterLecture(); }],
+     [".MID", function(){ enrExporter(i); }],
+     ["SUPPRIMER", function(){ enrSupprimer(i); }]].forEach(function(x){
+      var bb = document.createElement("button");
+      bb.className = "sec";
+      bb.textContent = x[0];
+      bb.addEventListener("click", x[1]);
+      barre.appendChild(bb);
+    });
+    d.appendChild(barre);
+    l.appendChild(d);
+  });
+}
+function ouvrirEnr(){
+  document.getElementById("enr").classList.add("show");
+  document.body.classList.add("note-ouverte");
+  majEnrUI();
+}
+function fermerEnr(){
+  document.getElementById("enr").classList.remove("show");
+  document.body.classList.remove("note-ouverte");
 }
 
 /* ================= transfert exclusif vers une vraie Korg =================
@@ -9582,22 +9857,26 @@ function ouvrirMenu(){
   menu.classList.remove("hide");
   document.body.classList.add("menu-ouvert");
 }
+function allerMachine(id){
+  if(id === "em1") activerEm();
+  else if(id === "er1") activerEr(1);
+  else if(id === "er2") activerEr(2);
+  else if(id === "ea1") activerEa(1);
+  else if(id === "ea2") activerEa(2);
+  else if(id === "es1") activerEs(1);
+  else if(id === "es2") activerEs(2);
+  else if(id === "emx") activerMx();
+  else if(id === "esx") activerSx();
+  else appliquerModele(id);
+}
 var picks = document.querySelectorAll(".pick");
 for(var q=0;q<picks.length;q++){
   picks[q].addEventListener("click", function(){
+    var id = this.dataset.m;
+    if(!id) return;              /* tuiles de service : notices, enregistreur */
     ZOOM.z = 1; ZOOM.tx = 0; ZOOM.ty = 0;
     document.body.classList.remove("menu-ouvert");
-    var id = this.dataset.m;
-    if(id === "em1") activerEm();
-    else if(id === "er1") activerEr(1);
-    else if(id === "er2") activerEr(2);
-    else if(id === "ea1") activerEa(1);
-    else if(id === "ea2") activerEa(2);
-    else if(id === "es1") activerEs(1);
-    else if(id === "es2") activerEs(2);
-    else if(id === "emx") activerMx();
-    else if(id === "esx") activerSx();
-    else appliquerModele(id);
+    allerMachine(id);
     menu.classList.add("hide");
     H.inter();
   });

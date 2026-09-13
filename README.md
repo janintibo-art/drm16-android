@@ -243,6 +243,26 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Enregistreur MIDI (version 31)
+
+Nouvelle tuile au menu : **ENREGISTREUR MIDI**. On branche la Korg sur l'entrée MIDI, on choisit dans la
+page la machine qui fait le son, et on enregistre : ses notes déclenchent les parties de la machine
+choisie, **le son sort du téléphone**, et tout ce qui arrive est daté à la milliseconde.
+
+- **Capture** : accrochée à l'entrée du récepteur MIDI, avant tout traitement ; l'horloge et les messages
+  temps réel sont écartés, ils n'ont pas de sens dans une prise. Limite de vingt mille événements.
+- **Relecture** : les événements repassent par le même chemin, donc même machine, mêmes sons, même rythme.
+  L'enregistrement est suspendu pendant la relecture pour ne pas se mordre la queue.
+- **Prises** gardées en mémoire avec leur date, leur durée, leur tempo et la machine utilisée ; vingt-quatre
+  au plus.
+- **Export en fichier .mid** de type 0, division 480, avec l'événement de tempo en tête et la fin de piste
+  réglementaire, écrit dans le dossier Documents de l'application par un nouveau pont Java. Vérifié :
+  en-tête `MThd`, format 0, une piste, division 480, piste terminée par `FF 2F 00`.
+
+Une bévue attrapée au passage : les deux tuiles de service du menu portent la classe `.pick`, donc le
+sélecteur de machine générique se déclenchait aussi, avec un identifiant vide — et plantait la mise en
+place du modèle. Les tuiles sans `data-m` sont maintenant ignorées par ce sélecteur.
+
 ## Télécommande des vraies machines (version 30)
 
 Avec le réglage **PILOTER LA MACHINE**, tourner un bouton dans l'application envoie le message
