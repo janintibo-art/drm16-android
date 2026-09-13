@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **65**.
+La version actuelle est la **66**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -40,7 +40,7 @@ sont sans accents (Termux).
 
 La notice est découpée en **onglets `.doc`** dans `#note-corps` ; la barre de navigation est construite
 toute seule à partir de leur `data-titre`. L'Eurorack en occupe trois : `note-eur` (les principes),
-`note-eurmod` (les 64 fiches), `note-eurpat` (huit patchs et le glossaire).
+`note-eurmod` (les 67 fiches), `note-eurpat` (huit patchs et le glossaire).
 
 Une seule page HTML porte toute l'application : `app/src/main/assets/drm16.html`, environ **890 ko**.
 Le Java ne sert que de pont vers Android.
@@ -59,8 +59,8 @@ Le Java ne sert que de pont vers Android.
 **Electro-Harmonix** DRM16, DRM32 · **Korg** Electribe EM-1, ER-1, EA-1, ES-1, ER-1 mkII, ES-1 mkII,
 EA-1 mkII, EMX-1, ESX-1, volca sample · **Akai** MPC3000, MPC2000 · **Roland** TR-808, TR-909, TR-707,
 CR-5000, TR-1000 · **Oberheim** DMX · **Arturia** DrumBrute Impact · **Behringer** RD-6, TD-3 ·
-**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (64 modules :
-7 horloges, 5 séquenceurs, 7 oscillateurs, 8 filtres, 4 modulations, 10 utilitaires, 12 traitements,
+**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (67 modules :
+7 horloges, 5 séquenceurs, 7 oscillateurs, 8 filtres, 7 modulations, 10 utilitaires, 12 traitements,
 11 percussions).
 
 ### Les outils
@@ -116,6 +116,34 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Potards et modulation — v66**
+
+*Maniement des potards* (`knobEm`, donc **toutes les machines**, pas seulement l'Eurorack) :
+
+- Le déplacement est maintenant **cumulé d'un événement à l'autre** au lieu d'être mesuré depuis le point
+  de départ. C'est ce qui permet de changer de finesse au milieu du geste sans faire sauter la valeur.
+  Ne pas revenir à `v0 + d`.
+- **S'écarter horizontalement affine**, jusqu'à dix fois : `fin = 1 + min(9, |dx| / 26)`. Un glissé droit
+  se comporte exactement comme avant, donc aucune machine ne change de sensation.
+- `opt.tap` : toucher sans tourner (moins de 5 px cumulés) appelle ce rappel. Même convention que la
+  fonction `knob` de la DRM16, qui l'avait déjà. Facultatif.
+- Dans l'Eurorack, **l'identifiant est passé du `.bt` au bloc `.eur-kn` entier**, étiquette comprise : la
+  poignée triple de surface sans que rien ne bouge à l'écran. Idem pour `.eur-bkn` (tempo). `knobEm` trouve
+  toujours l'aiguille par `querySelector("i")`. Si on redessine le rack, garder l'identifiant sur le bloc.
+- L'afficheur du rack montrait **le nom en gros et la valeur en petit**, à l'envers de toutes les autres
+  machines. Corrigé.
+
+*Trois modules de modulation* — la famille n'en comptait que 4 sur 64, alors que c'est le cœur d'un
+modulaire :
+
+- **ENV FOL** : redresseur (`WaveShaper` en V) puis passe-bas. Le seul module qui produise une commande à
+  partir d'un son. Permet le ducking.
+- **DRIFT** : bruit relu très lentement (`playbackRate` de 0,0006 à 0,05), passe-bas fixe à 30 Hz.
+  **Ne pas remplacer par un passe-bas très bas** : un biquad réglé à 0,08 Hz à 48 kHz n'a pas la précision
+  nécessaire. C'est la lecture qu'on ralentit, pas le filtre. Deux sorties à des vitesses différentes.
+- **CLK LFO** : fréquence recalculée depuis `stepDur()` à chaque pas via `m.tic`, pour suivre un tempo qui
+  change en cours de route.
 
 **Sources permanentes du rack — v65**
 

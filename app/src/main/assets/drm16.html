@@ -226,7 +226,7 @@ body.m32 .read{color:#8fe8d8}
   color:#140f0c;font-weight:800;letter-spacing:1px;font-size:14px}
 #note button.sec{background:#2f2f35;color:#eceae4;margin-top:6px;margin-right:6px}
 #note button[disabled]{opacity:.5}
-/* la notice de l'Eurorack decrit soixante-quatre modules : sans mise en forme
+/* la notice de l'Eurorack decrit soixante-sept modules : sans mise en forme
    propre, la liste devient un mur de texte illisible sur un telephone */
 #note ol,#note ul{margin:0 0 10px;padding-left:20px}
 #note li{margin:0 0 5px}
@@ -2699,7 +2699,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="eur-bar">
     <button id="eur-play" style="padding:12px 16px">START</button>
-    <div class="eur-bkn"><div class="bt" id="eur-k-tempo"><i></i></div><em>TEMPO</em></div>
+    <div class="eur-bkn" id="eur-k-tempo"><div class="bt"><i></i></div><em>TEMPO</em></div>
     <div class="eur-lcd"><b id="eur-val">RACK VIDE</b><u id="eur-lab">AJOUTEZ UN MODULE</u></div>
     <button id="eur-ajout">AJOUTER</button>
     <button id="eur-hasard">RACK AU SORT</button>
@@ -3496,7 +3496,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>soixante-quatre modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>soixante-sept modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
@@ -3515,16 +3515,25 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <h3>Régler un module</h3>
   <p>Toucher la façade d'un module le <b>choisit</b> : son cadre s'éclaire et l'afficheur rappelle à quoi il
-  sert. Les potards se tournent en glissant le doigt de haut en bas ; l'afficheur montre alors le nom du
-  réglage et sa valeur de <b>0 à 100</b>. Cette valeur est une position, pas une unité : 50 sur le FREQ d'un
-  filtre ne veut pas dire 50 Hz.</p>
+  sert. Les potards se tournent en glissant le doigt de haut en bas ; l'afficheur montre alors la valeur, de
+  <b>0 à 100</b>, et le nom du réglage en dessous. Cette valeur est une position, pas une unité : 50 sur le
+  FREQ d'un filtre ne veut pas dire 50 Hz.</p>
+  <p>Trois choses rendent ces petits potards maniables :</p>
+  <ul>
+  <li>La <b>prise est plus large que le bouton</b> : l'étiquette dessous fait partie de la poignée, ce qui
+  triple la surface à viser.</li>
+  <li><b>S'écarter sur le côté affine le réglage.</b> Posez le doigt, éloignez-le horizontalement, puis
+  montez ou descendez : le potard bouge jusqu'à dix fois plus lentement. C'est le geste des logiciels de
+  studio, et le seul moyen de viser juste sur un bouton de six millimètres. Un glissé droit reste franc.</li>
+  <li><b>Toucher sans tourner</b> affiche le nom du potard et sa valeur, sans rien changer.</li>
+  </ul>
 
   <h3>La barre du haut</h3>
   <ul>
   <li><b>START</b> lance et arrête l'horloge. Sans elle, rien ne se déclenche.</li>
   <li><b>TEMPO</b>, le petit potard juste à côté, règle la vitesse de 40 à 220 à la noire. Il commande le
   tempo général de l'application : le changer ici le change partout.</li>
-  <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : soixante-quatre modules en vrac seraient
+  <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : soixante-sept modules en vrac seraient
   illisibles sur un téléphone.</li>
   <li><b>RACK AU SORT</b> monte un ensemble complet et cohérent, décrit plus bas.</li>
   <li><b>RETIRER</b> enlève le module choisi, et avec lui tous ses câbles.</li>
@@ -3598,7 +3607,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   ce qui sort de l'OUTPUT.</p>
   </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
-  <p>Les soixante-quatre modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
+  <p>Les soixante-sept modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
   potards, ses entrées et ses sorties. Les <b>sorties</b> sont les prises cerclées d'or.</p>
 
   <h3>Horloges · 7 modules</h3>
@@ -3743,7 +3752,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   dent de scie, on entend une voyelle chantée ; balayé par un LFO lent, le rack se met à parler.</p>
   <span>Potards VOWEL, Q · Entrée IN · Sortie OUT</span></div>
 
-  <h3>Modulation · 4 modules</h3>
+  <h3>Modulation · 7 modules</h3>
   <p>Ils ne font pas de son : ils fabriquent des tensions qui bougent, à envoyer dans les entrées CV des
   autres. C'est ce qui empêche un patch de rester figé.</p>
   <div class="fmod"><b>ENVELOPE</b>
@@ -3768,6 +3777,26 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   tire au sort : c'est la mélodie aléatoire des vieux films de science-fiction. AMT règle l'étendue, SLEW
   arrondit les sauts.</p>
   <span>Potards AMT, SLEW · Entrées IN, TRIG · Sortie OUT</span></div>
+
+  <div class="fmod"><b>ENV FOL</b>
+  <p>Le seul module qui fasse le chemin inverse de tous les autres : il rend une <b>commande à partir d'un
+  son</b>. Envoyez-lui une grosse caisse et branchez sa sortie sur le CV d'un VCA monté à l'envers : la
+  nappe s'écarte à chaque frappe. C'est le <i>ducking</i>, et c'est ce qui manquait pour faire respirer un
+  patch chargé. GAIN règle la sensibilité, LAG la vitesse à laquelle la tension retombe.</p>
+  <span>Potards GAIN, LAG · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod"><b>DRIFT</b>
+  <p>Une tension qui erre sans jamais repasser au même endroit. Un LFO finit toujours par se répéter, celui-
+  ci non : c'est du bruit relu très lentement, une boucle d'une heure au réglage le plus lent. Les deux
+  sorties dérivent chacune de son côté et ne se retrouvent plus. Sur un accord ou un désaccordage, c'est ce
+  qui sépare un instrument vivant d'un instrument fixe.</p>
+  <span>Potards RATE, AMT · Sorties OUT, OUT 2</span></div>
+
+  <div class="fmod"><b>CLK LFO</b>
+  <p>Un LFO qui compte en mesures au lieu de compter en hertz : un quart, une demie, une, deux, quatre ou
+  huit. Il reste accroché au tempo, quel qu'il soit, là où un LFO ordinaire dérive par rapport au motif.
+  Pour un balayage de filtre qui tombe pile sur la mesure, c'est lui et pas l'autre.</p>
+  <span>Potards DIV, AMT · Sorties SINE, TRI, RAMP</span></div>
 
   <h3>Utilitaires · 10 modules</h3>
   <p>Rien de spectaculaire, et pourtant c'est ce qui manque toujours dans un vrai rack. Ils dosent,
@@ -6808,25 +6837,40 @@ function chargerEm(){
 /* --- boutons rotatifs de l'EM-1 --- */
 function knobEm(id, opt){
   var el = document.getElementById(id), pin = el.querySelector("i");
-  var st = {v:opt.get(), drag:false, y0:0, v0:0, moved:0};
+  var st = {v:opt.get(), drag:false, yp:0, x0:0, moved:0};
   function render(){
     var a = -140 + 280*((st.v-opt.min)/(opt.max-opt.min));
     pin.style.transformOrigin = "50% 140%";
     pin.style.transform = "rotate("+a+"deg)";
   }
   el.addEventListener("pointerdown", function(e){
-    st.drag=true; st.moved=0; st.y0=e.clientY; st.v0=st.v;
+    st.drag=true; st.moved=0; st.yp=e.clientY; st.x0=e.clientX;
     el.setPointerCapture(e.pointerId); e.preventDefault();
   });
   el.addEventListener("pointermove", function(e){
     if(!st.drag || PINCE) return;
-    var d = st.y0 - e.clientY;
-    st.moved = Math.max(st.moved, Math.abs(d));
+    /* On cumule les petits déplacements au lieu de mesurer depuis le point de
+       départ : sans cela, changer de finesse au milieu du geste ferait sauter
+       la valeur d'un coup. */
+    var d = st.yp - e.clientY;
+    st.yp = e.clientY;
+    st.moved += Math.abs(d);
+    /* S'écarter sur le côté affine le réglage, jusqu'à dix fois. C'est le geste
+       des logiciels de studio, et c'est le seul moyen de viser juste sur un
+       potard de six millimètres comme ceux de l'Eurorack. Un glissé droit se
+       comporte exactement comme avant. */
+    var fin = 1 + Math.min(9, Math.abs(e.clientX - st.x0) / 26);
     var r = opt.max-opt.min;
-    st.v = Math.max(opt.min, Math.min(opt.max, st.v0 + d/190*r));
+    st.v = Math.max(opt.min, Math.min(opt.max, st.v + d/(190*fin)*r));
     render(); opt.set(st.v);
   });
-  el.addEventListener("pointerup", function(){ if(st.drag){ st.drag=false; memEm(); } });
+  el.addEventListener("pointerup", function(){
+    if(!st.drag) return;
+    st.drag=false;
+    /* toucher sans tourner : la machine dit ce qu'est ce potard et où il en est */
+    if(st.moved < 5 && opt.tap) opt.tap();
+    memEm();
+  });
   el.addEventListener("pointercancel", function(){ st.drag=false; });
   render();
   return {maj:function(){ st.v = opt.get(); render(); }};
@@ -14706,6 +14750,87 @@ lfo: {nom:"LFO", hp:56, sombre:true, res:"Oscillateur lent", fam:"mod",
     return {e:{}, s:{sine:gs, sqr:gq, tri:gr}};
   }},
 
+envfol: {nom:"ENV FOL", hp:56, sombre:true, res:"Transforme un son en tension", fam:"mod",
+  kns:[["gain","GAIN",0,1,0.5],["lag","LAG",0,1,0.3]],
+  jacks:[["in","IN",0],["out","OUT",1]],
+  creer:function(m){
+    /* Le suiveur d'enveloppe fait le chemin inverse de tout le reste du rack :
+       il rend une commande à partir d'un son. On redresse le signal — une
+       courbe en V qui renvoie la valeur absolue — puis on lisse. Frapper une
+       grosse caisse peut alors ouvrir un filtre : c'est le ducking, et c'est
+       tout ce qui manquait pour faire respirer un patch. */
+    var e = eurGain(1), red = ctx.createWaveShaper();
+    var n = 1024, c = new Float32Array(n);
+    for(var i=0;i<n;i++) c[i] = Math.abs(i * 2 / n - 1);
+    red.curve = c; red.oversample = "2x";
+    var lp = ctx.createBiquadFilter(); lp.type = "lowpass";
+    var g = eurGain(1);
+    e.connect(red); red.connect(lp); lp.connect(g);
+    m.maj = function(){
+      lp.frequency.value = 40 * Math.pow(0.02, m.p.lag);   /* de 40 Hz à 0,8 Hz */
+      g.gain.value = m.p.gain * 4;
+    };
+    m.maj();
+    return {e:{in:e}, s:{out:g}};
+  }},
+
+drift: {nom:"DRIFT", hp:52, sombre:true, res:"Tension qui erre sans se répéter", fam:"mod",
+  kns:[["rate","RATE",0,1,0.3],["amt","AMT",0,1,0.5]],
+  jacks:[["out","OUT",1],["out2","OUT 2",1]],
+  creer:function(m){
+    /* Du bruit relu très lentement : une tension qui erre sans jamais repasser
+       au même endroit. Un LFO finit toujours par se répéter, celui-ci non.
+
+       On ralentit la LECTURE du bruit plutôt que de le filtrer très bas : un
+       passe-bas réglé à un dixième de hertz demanderait au filtre une précision
+       qu'il n'a pas à quarante-huit kilohertz. Ici le filtre reste à trente
+       hertz, il ne sert qu'à adoucir les marches de l'interpolation.
+
+       Les deux sorties lisent à des vitesses légèrement différentes : elles se
+       désolidarisent au bout de quelques secondes et ne se retrouvent plus. */
+    var a = eurBruit(), b = eurBruit();
+    var fa = ctx.createBiquadFilter(), fb = ctx.createBiquadFilter();
+    fa.type = "lowpass"; fb.type = "lowpass";
+    fa.frequency.value = 30; fb.frequency.value = 30;
+    var ga = eurGain(0), gb = eurGain(0);
+    a.connect(fa); fa.connect(ga);
+    b.connect(fb); fb.connect(gb);
+    m.maj = function(){
+      /* de 0,0006 — la boucle dure près d'une heure — à 0,05 */
+      var v = 0.0006 * Math.pow(90, m.p.rate);
+      a.playbackRate.value = v;
+      b.playbackRate.value = v * 1.23;
+      ga.gain.value = m.p.amt * 0.9;
+      gb.gain.value = m.p.amt * 0.9;
+    };
+    m.maj();
+    return {e:{}, s:{out:ga, out2:gb}};
+  }},
+
+clklfo: {nom:"CLK LFO", hp:56, sombre:true, res:"Oscillateur lent calé sur le tempo", fam:"mod",
+  kns:[["div","DIV",0,1,0.4],["amt","AMT",0,1,0.5]],
+  jacks:[["sine","SINE",1],["tri","TRI",1],["ramp","RAMP",1]],
+  creer:function(m){
+    /* Un LFO ordinaire dérive par rapport au motif. Celui-ci compte en mesures :
+       une, deux, quatre... et reste accroché au tempo, quel qu'il soit. */
+    var DIVS = [0.25, 0.5, 1, 2, 4, 8];
+    var s = ctx.createOscillator(), t = ctx.createOscillator(), r = ctx.createOscillator();
+    s.type = "sine"; t.type = "triangle"; r.type = "sawtooth";
+    s.start(); t.start(); r.start();
+    var gs = eurGain(0.5), gt = eurGain(0.5), gr = eurGain(0.5);
+    s.connect(gs); t.connect(gt); r.connect(gr);
+    m.maj = function(){
+      var d = DIVS[Math.min(DIVS.length - 1, Math.round(m.p.div * (DIVS.length - 1)))];
+      var f = 1 / (stepDur() * 16 * d);
+      [s,t,r].forEach(function(o){ o.frequency.value = f; });
+      [gs,gt,gr].forEach(function(g){ g.gain.value = m.p.amt; });
+    };
+    m.maj();
+    /* le tempo peut changer pendant que ça tourne : on se recale à chaque pas */
+    m.tic = function(){ m.maj(); return null; };
+    return {e:{}, s:{sine:gs, tri:gt, ramp:gr}};
+  }},
+
 sh: {nom:"S & H", hp:56, sombre:true, res:"Prélève et bloque une tension", fam:"mod",
   kns:[["amt","AMT",0,1,0.6],["lisse","SLEW",0,1,0]],
   jacks:[["in","IN",0],["trig","TRIG",0],["out","OUT",1]],
@@ -15355,7 +15480,9 @@ function eurDessiner(){
     e.dataset.i = i;
     var h = "<b>" + d.nom + "</b>";
     d.kns.forEach(function(k){
-      h += '<div class="eur-kn"><div class="bt" id="eur-k-' + m.id + '-' + k[0] + '"><i></i></div>' +
+      /* la poignée est le bloc entier, étiquette comprise : le bouton seul fait
+         vingt-six pixels, et bien moins une fois le rack mis à l'échelle */
+      h += '<div class="eur-kn" id="eur-k-' + m.id + '-' + k[0] + '"><div class="bt"><i></i></div>' +
            '<em>' + k[1] + '</em></div>';
     });
     h += '<div class="eur-jacks">';
@@ -15377,8 +15504,12 @@ function eurDessiner(){
         set:function(v){
           m.p[k[0]] = v;
           if(m.maj) m.maj();
-          lcdEur(EUR_CAT[m.type].nom + " " + k[1], String(Math.round(v * 100)), true);
+          lcdEur(String(Math.round(v * 100)), EUR_CAT[m.type].nom + " " + k[1], true);
           memEur();
+        },
+        tap:function(){
+          lcdEur(String(Math.round(m.p[k[0]] * 100)), EUR_CAT[m.type].nom + " " + k[1], true);
+          H.cran();
         }}));
     });
   });
@@ -15479,7 +15610,7 @@ function eurCatalogue(){
   var c = document.getElementById("eur-cat");
   if(c.style.display !== "none"){ c.style.display = "none"; return; }
   c.innerHTML = "";
-  /* soixante-quatre modules en vrac seraient illisibles : on les range par
+  /* soixante-sept modules en vrac seraient illisibles : on les range par
      familles, et l'onglet choisi décide de ce qu'on voit */
   var onglets = document.createElement("div");
   onglets.className = "eur-fam";
@@ -15610,7 +15741,8 @@ var kEurTempo = knobEm("eur-k-tempo", {min:0, max:1,
     S.bpm = Math.round(40 + v * 180);
     lcdEur(S.bpm + " BPM", "TEMPO", true);
     saveSoon();
-  }});
+  },
+  tap:function(){ lcdEur(S.bpm + " BPM", "TEMPO", true); H.cran(); }});
 
 var unitEur = document.getElementById("unit-eur");
 function activerEur(){
