@@ -1022,6 +1022,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
         <button class="btn sombre" id="er-prev">◀</button>
         <button class="btn sombre" id="er-next">▶</button>
         <span>SELECT</span>
+        <button class="btn" id="er-pset">PATTERN SET</button>
         <button class="btn" id="er-erase" style="margin-left:auto">ERASE</button>
         <button class="btn" id="er-shift">SHIFT</button>
       </div>
@@ -1304,6 +1305,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
           <button class="btn sombre" id="es-next">▶</button>
           <button class="btn rec" id="es-sampling">SAMPLING</button>
           <button class="btn" id="es-import">IMPORT</button>
+          <button class="btn" id="es-pset">PATTERN SET</button>
           <button class="btn" id="es-erase">ERASE</button>
           <button class="btn" id="es-shift">SHIFT</button>
           <input type="file" id="es-fichier" accept="audio/*">
@@ -1889,6 +1891,11 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   par SHIFT + touche 2. <b>◀ ▶</b> changent d'octave. Toucher un pas le sélectionne — un cadre vert le marque —
   et la touche du clavier ou la molette lui donne sa hauteur. Chaque pas a donc sa propre note.</p>
 
+  <h3>Pattern Set</h3>
+  <p><b>PATTERN SET</b> transforme les seize touches en sélecteur de motifs : une touche, un motif,
+  changement immédiat même en pleine lecture. La touche allumée est le motif en cours. Rappuyez dessus
+  pour revenir à l'édition des pas.</p>
+
   <h3>Mouvement et enchaînement</h3>
   <p><b>MOTION SEQ</b> enregistre le mouvement d'un bouton sur les seize pas : le bouton passe de OFF à
   <b>Smooth</b> puis <b>Trig Hold</b>, et avec REC armé pendant la lecture, tourner un bouton écrit la courbe.
@@ -1932,6 +1939,11 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <p>Les deux parties AUDIO IN deviennent des parties <b>PCM</b> : la rangée Sound y fait défiler la banque de
   vingt-quatre sons, PITCH change la vitesse de lecture et DECAY la coupe. Motifs et sons sont gardés
   séparément de la première version.</p>
+
+  <h3>Pattern Set</h3>
+  <p><b>PATTERN SET</b> transforme les seize touches en sélecteur de motifs : une touche, un motif,
+  changement immédiat même en pleine lecture. La touche allumée est le motif en cours. Rappuyez dessus
+  pour revenir à l'édition des pas.</p>
 
   <h3>Fonctions SHIFT</h3>
   <p><b>1 à 4</b> longueur du motif, <b>5 à 7</b> gamme rythmique, <b>8</b> swing, <b>9</b> décalage,
@@ -2001,6 +2013,11 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   EDIT 1 choisit laquelle et EDIT 2 la profondeur de la coupe — et <b>RESO. FILT.</b>, un passe-bas bien plus
   résonant.</p>
 
+  <h3>Pattern Set</h3>
+  <p><b>PATTERN SET</b> transforme les seize touches en sélecteur de motifs : une touche, un motif,
+  changement immédiat même en pleine lecture. La touche allumée est le motif en cours. Rappuyez dessus
+  pour revenir à l'édition des pas.</p>
+
   <h3>Fonctions SHIFT</h3>
   <p><b>11 Normalize</b> remonte le son au maximum sans saturer. <b>12 Truncate</b> coupe le silence de fin.
   <b>13 Time Slice</b>, <b>14 Delete Sample</b> : si le son sert ailleurs, il est seulement détaché de la partie
@@ -2041,6 +2058,10 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   harmoniques paires, ce qui donne la chaleur des lampes plutôt que la dureté d'une distorsion ordinaire.
   À zéro, la chaîne est parfaitement transparente. Les deux lampes de la fenêtre s'allument avec le réglage.</p>
 
+  <h3>Pattern Set</h3>
+  <p><b>PATTERN SET</b> transforme les seize touches en sélecteur de motifs — elles affichent A.1 à D.4 —
+  avec changement immédiat. En mode <b>KEYBOARD</b>, le même bouton change de gamme.</p>
+
   <h3>Arpégiateur</h3>
   <p>Le <b>ruban</b> joue les notes de la gamme, du grave à l'aigu, et les répète tant qu'on reste posé dessus.
   <b>PATTERN SET</b> change de gamme, <b>KEYBOARD</b> transforme les touches en clavier.</p>
@@ -2073,6 +2094,11 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <p>Les treize des autres machines, plus <b>talking mod</b> (deux formants balayés), un <b>égaliseur trois
   bandes</b> et le <b>grain shifter</b>, qui fait bégayer le son par tranches. Répartis sur trois chaînes,
   en parallèle ou en série, suivis du <b>Valve Force</b>.</p>
+
+  <h3>Pattern Set</h3>
+  <p><b>PATTERN SET</b> transforme les seize touches en sélecteur de motifs : une touche, un motif,
+  changement immédiat même en pleine lecture. La touche allumée est le motif en cours. Rappuyez dessus
+  pour revenir à l'édition des pas.</p>
 
   <h3>Fonctions SHIFT</h3>
   <p><b>11 Normalize</b>, <b>12 Truncate</b>, <b>13 Time Slice</b>, <b>14 Delete Sample</b>, <b>16 Protect</b>.
@@ -3132,17 +3158,28 @@ function busEffets(){
   fxOut.connect(dlyIn);
   construireFx();
 }
+function courbeBits(bits){
+  var niv = Math.pow(2, bits-1), n = 2048, c = new Float32Array(n);
+  for(var i=0;i<n;i++){ var x = i*2/n-1; c[i] = Math.round(x*niv)/niv; }
+  return c;
+}
 function courbeDist(k){
   var n=1024, c=new Float32Array(n);
   for(var i=0;i<n;i++){ var x=i*2/n-1; c[i]=Math.tanh(x*(1+k*14))/Math.tanh(1+k*14); }
   return c;
 }
 function irReverb(sec){
-  var n=Math.floor(ctx.sampleRate*sec), b=ctx.createBuffer(2,n,ctx.sampleRate);
-  for(var c=0;c<2;c++){
-    var d=b.getChannelData(c);
-    for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.6);
+  var n = Math.floor(ctx.sampleRate*sec), b = ctx.createBuffer(2,n,ctx.sampleRate);
+  var g = b.getChannelData(0), d = b.getChannelData(1), i;
+  /* décroissance calculée par multiplication au lieu d'une puissance par échantillon,
+     et canal droit obtenu par décalage : trois fois moins de travail, même queue */
+  var k = Math.pow(0.0009, 1/Math.max(1,n)), a = 1;
+  for(i=0;i<n;i++){
+    g[i] = (Math.random()*2-1)*a*a;
+    a *= k;
   }
+  var dec = Math.max(1, Math.floor(n*0.013));
+  for(i=0;i<n;i++) d[i] = g[(i+dec)%n]*0.94;
   return b;
 }
 var FX_NOMS = ["Pitch Shifter","Ring Mod","Phaser","Flg./Cho.","Reverb",
@@ -3152,6 +3189,9 @@ var FX_NOMS = ["Pitch Shifter","Ring Mod","Phaser","Flg./Cho.","Reverb",
 var FX_ES2 = [0,1,2,3,4,5,6,7,11,12,10];
 function construireFx(){
   if(!fxIn) return;
+  if(fxChaine.type === EM.fxType && fxChaine.maj){   /* même effet : on ne refait pas le câblage */
+    if(fxChaine.maj(EM.e1, EM.e2) !== false) return;
+  }
   fxChaine.forEach(function(n){
     try{ n.disconnect(); }catch(e){}
     try{ if(n.stop) n.stop(); }catch(e){}
@@ -3159,11 +3199,26 @@ function construireFx(){
   fxChaine = [];
   try{ fxIn.disconnect(); }catch(e){}
   construireFxEntre(fxIn, fxOut, EM.fxType, EM.e1, EM.e2, fxChaine);
+  fxChaine.type = EM.fxType;
 }
 /* construit un effet entre deux nœuds : les paramètres masquent les variables
    globales de même nom, ce qui laisse le corps valable pour toutes les machines */
+/* Cache des réponses impulsionnelles : en régénérer une à chaque mouvement de bouton
+   coûtait quarante millisecondes, soit bien plus qu'une image d'affichage. */
+var IR_CACHE = {};
+function irCache(sec){
+  var cle = Math.round(sec*8);          /* pas de 125 ms : l'oreille n'entend pas la marche */
+  if(!IR_CACHE[cle]) IR_CACHE[cle] = irReverb(cle/8);
+  return IR_CACHE[cle];
+}
+function ctp(param, v, lisse){ param.setTargetAtTime(v, ctx.currentTime, lisse === undefined ? 0.02 : lisse); }
+
+/* Construit un effet entre deux nœuds. Le registre reçoit aussi une fonction `maj`
+   qui applique EDIT 1 et EDIT 2 aux nœuds déjà en place : tourner un bouton ne
+   reconstruit plus rien, et le son ne se coupe plus. */
 function construireFxEntre(fxIn, fxOut, t, e1, e2, fxChaine){
   var i;
+  fxChaine.maj = null;
   if(t===1){                                   /* Ring Mod */
     var rg = ctx.createGain(); rg.gain.value = 0;
     var lo = ctx.createOscillator(); lo.type="sine";
@@ -3172,6 +3227,7 @@ function construireFxEntre(fxIn, fxOut, t, e1, e2, fxChaine){
     lo.connect(la); la.connect(rg.gain); lo.start();
     fxIn.connect(rg); rg.connect(fxOut);
     fxChaine.push(rg,lo,la);
+    fxChaine.maj = function(a,b){ ctp(lo.frequency, 40+a*1800); ctp(la.gain, 0.5+b*0.5); };
   } else if(t===2){                            /* Phaser */
     var prec = fxIn, lfo = ctx.createOscillator(), lg = ctx.createGain();
     lfo.type="sine"; lfo.frequency.value = 0.05 + e1*4; lg.gain.value = 400 + e2*1400;
@@ -3183,55 +3239,100 @@ function construireFxEntre(fxIn, fxOut, t, e1, e2, fxChaine){
       prec.connect(ap); prec = ap; fxChaine.push(ap);
     }
     prec.connect(fxOut);
+    fxChaine.maj = function(a,b){ ctp(lfo.frequency, 0.05+a*4); ctp(lg.gain, 400+b*1400); };
   } else if(t===3 || t===10){                  /* Flanger / Chorus et Mod. Delay */
+    var court = (t===3);
     var d = ctx.createDelay(0.6);
-    d.delayTime.value = t===3 ? 0.004 + e1*0.016 : 0.05 + e1*0.45;
-    var fb = ctx.createGain(); fb.gain.value = t===3 ? 0.55*e2 : 0.6*e2;
+    d.delayTime.value = court ? 0.004 + e1*0.016 : 0.05 + e1*0.45;
+    var fb = ctx.createGain(); fb.gain.value = (court ? 0.55 : 0.6)*e2;
     var lf = ctx.createOscillator(), lag = ctx.createGain();
-    lf.type="sine"; lf.frequency.value = t===3 ? 0.3 : 0.15;
-    lag.gain.value = t===3 ? 0.003 : 0.002;
+    lf.type="sine"; lf.frequency.value = court ? 0.3 : 0.15;
+    lag.gain.value = court ? 0.003 : 0.002;
     lf.connect(lag); lag.connect(d.delayTime); lf.start();
     fxIn.connect(d); d.connect(fb); fb.connect(d);
     fxIn.connect(fxOut); d.connect(fxOut);
     fxChaine.push(d,fb,lf,lag);
+    fxChaine.maj = function(a,b){
+      ctp(d.delayTime, court ? 0.004+a*0.016 : 0.05+a*0.45, 0.05);
+      ctp(fb.gain, (court?0.55:0.6)*b);
+    };
   } else if(t===4){                            /* Reverb */
-    var cv = ctx.createConvolver(); cv.buffer = irReverb(0.4 + e1*2.2);
+    var cv = ctx.createConvolver(); cv.buffer = irCache(0.4 + e1*2.2);
     var wet = ctx.createGain(); wet.gain.value = 0.3 + e2*0.7;
     fxIn.connect(cv); cv.connect(wet); wet.connect(fxOut);
     fxIn.connect(fxOut);
     fxChaine.push(cv,wet);
+    var tailleAct = Math.round((0.4+e1*2.2)*8), tmrIR = null;
+    fxChaine.maj = function(a,b){
+      ctp(wet.gain, 0.3+b*0.7);
+      var t2 = Math.round((0.4+a*2.2)*8);
+      if(t2 === tailleAct) return;
+      tailleAct = t2;
+      /* poser une réponse impulsionnelle oblige le convolueur à refaire ses tables :
+         on attend que le doigt s'arrête plutôt que de le faire soixante fois par seconde */
+      clearTimeout(tmrIR);
+      tmrIR = setTimeout(function(){ try{ cv.buffer = irCache(t2/8); }catch(e){} }, 130);
+    };
   } else if(t===5){                            /* Compressor */
     var cp = ctx.createDynamicsCompressor();
     cp.threshold.value = -6 - e1*40; cp.ratio.value = 2 + e2*18;
     cp.attack.value = 0.004; cp.release.value = 0.18; cp.knee.value = 6;
     fxIn.connect(cp); cp.connect(fxOut); fxChaine.push(cp);
+    fxChaine.maj = function(a,b){ ctp(cp.threshold, -6-a*40, 0.05); ctp(cp.ratio, 2+b*18, 0.05); };
   } else if(t===6){                            /* Distortion */
     var ws = ctx.createWaveShaper(); ws.curve = courbeDist(e1); ws.oversample="2x";
     var tn = ctx.createBiquadFilter(); tn.type="lowpass";
     tn.frequency.value = 600 + e2*9000;
     fxIn.connect(ws); ws.connect(tn); tn.connect(fxOut); fxChaine.push(ws,tn);
+    var dAct = Math.round(e1*40);
+    fxChaine.maj = function(a,b){
+      ctp(tn.frequency, 600+b*9000, 0.03);
+      var d2 = Math.round(a*40);
+      if(d2 !== dAct){ dAct = d2; ws.curve = courbeDist(d2/40); }
+    };
+  } else if(t===7){                            /* Decimator */
+    var bits = 1 + Math.round((1-e1)*10);
+    var wd = ctx.createWaveShaper(); wd.curve = courbeBits(bits);
+    var ld = ctx.createBiquadFilter(); ld.type="lowpass"; ld.frequency.value = 400 + (1-e2)*9000;
+    fxIn.connect(wd); wd.connect(ld); ld.connect(fxOut); fxChaine.push(wd,ld);
+    var bAct = bits;
+    fxChaine.maj = function(a,b){
+      ctp(ld.frequency, 400+(1-b)*9000, 0.03);
+      var b2 = 1 + Math.round((1-a)*10);
+      if(b2 !== bAct){ bAct = b2; wd.curve = courbeBits(b2); }
+    };
   } else if(t===8){                            /* Resonator */
     var som = ctx.createGain(); som.gain.value = 0.5;
+    var bqs = [];
     [1,1.5,2.4].forEach(function(m){
       var bq = ctx.createBiquadFilter(); bq.type="bandpass";
       bq.frequency.value = (120 + e1*1800)*m; bq.Q.value = 2 + e2*28;
-      fxIn.connect(bq); bq.connect(som); fxChaine.push(bq);
+      fxIn.connect(bq); bq.connect(som); fxChaine.push(bq); bqs.push({n:bq,m:m});
     });
     som.connect(fxOut); fxChaine.push(som);
+    fxChaine.maj = function(a,b){
+      bqs.forEach(function(o){ ctp(o.n.frequency, (120+a*1800)*o.m, 0.03); ctp(o.n.Q, 2+b*28, 0.03); });
+    };
   } else if(t===13){                           /* Talking Mod : deux formants qui bougent */
     var voy = [[730,1090],[530,1840],[390,1990],[570,840],[300,870]];
     var v1 = voy[Math.min(voy.length-1, Math.floor(e1*voy.length))];
     var som2 = ctx.createGain(); som2.gain.value = 1.4;
     var lfo2 = ctx.createOscillator(); lfo2.type="sine"; lfo2.frequency.value = 0.2 + e2*7;
     lfo2.start(); fxChaine.push(lfo2);
-    v1.forEach(function(fr){
+    var bqv = [];
+    v1.forEach(function(fr,ix){
       var bq3 = ctx.createBiquadFilter(); bq3.type="bandpass"; bq3.frequency.value = fr; bq3.Q.value = 8;
       var ga3 = ctx.createGain(); ga3.gain.value = fr*0.35;
       lfo2.connect(ga3); ga3.connect(bq3.frequency);
       fxIn.connect(bq3); bq3.connect(som2);
-      fxChaine.push(bq3,ga3);
+      fxChaine.push(bq3,ga3); bqv.push({f:bq3,g:ga3,i:ix});
     });
     som2.connect(fxOut); fxChaine.push(som2);
+    fxChaine.maj = function(a,b){
+      ctp(lfo2.frequency, 0.2+b*7, 0.05);
+      var v2 = voy[Math.min(voy.length-1, Math.floor(a*voy.length))];
+      bqv.forEach(function(o){ ctp(o.f.frequency, v2[o.i], 0.05); ctp(o.g.gain, v2[o.i]*0.35, 0.05); });
+    };
   } else if(t===14){                           /* EQ trois bandes */
     var bas = ctx.createBiquadFilter(); bas.type="lowshelf"; bas.frequency.value=220;
     bas.gain.value = (0.5-e1)*24;
@@ -3241,6 +3342,9 @@ function construireFxEntre(fxIn, fxOut, t, e1, e2, fxChaine){
     aig.gain.value=(e1-0.5)*24;
     fxIn.connect(bas); bas.connect(med); med.connect(aig); aig.connect(fxOut);
     fxChaine.push(bas,med,aig);
+    fxChaine.maj = function(a,b){
+      ctp(bas.gain, (0.5-a)*24, 0.03); ctp(aig.gain, (a-0.5)*24, 0.03); ctp(med.gain, (b-0.5)*24, 0.03);
+    };
   } else if(t===15){                           /* Grain Shifter : le son bégaie par tranches */
     var dg = ctx.createDelay(0.5);
     var taille = 0.02 + e2*0.28;
@@ -3252,20 +3356,31 @@ function construireFxEntre(fxIn, fxOut, t, e1, e2, fxChaine){
     carre.start();
     fxIn.connect(dg); dg.connect(fxOut);
     fxChaine.push(dg,carre,ag);
+    fxChaine.maj = function(a,b){
+      var ta = 0.02 + b*0.28;
+      ctp(carre.frequency, 0.5+a*11, 0.03);
+      ctp(dg.delayTime, ta, 0.03); ctp(ag.gain, ta*0.9, 0.03);
+    };
   } else if(t===11){                           /* Isolator : trois bandes */
     var bandes = [["lowpass",260],["bandpass",900],["highpass",3800]];
-    var focus = e1*2;                           /* 0 grave, 1 medium, 2 aigu */
     var somme = ctx.createGain(); somme.gain.value = 1;
+    var gains = [];
     bandes.forEach(function(bb,ib){
       var bq = ctx.createBiquadFilter(); bq.type = bb[0]; bq.frequency.value = bb[1];
       if(bb[0]==="bandpass") bq.Q.value = 0.9;
       var gg = ctx.createGain();
-      var poids = Math.max(0, 1 - Math.abs(focus - ib));
+      var poids = Math.max(0, 1 - Math.abs(e1*2 - ib));
       gg.gain.value = poids + (1-poids)*(1-e2);
       fxIn.connect(bq); bq.connect(gg); gg.connect(somme);
-      fxChaine.push(bq,gg);
+      fxChaine.push(bq,gg); gains.push({g:gg,i:ib});
     });
     somme.connect(fxOut); fxChaine.push(somme);
+    fxChaine.maj = function(a,b){
+      gains.forEach(function(o){
+        var p2 = Math.max(0, 1 - Math.abs(a*2 - o.i));
+        ctp(o.g.gain, p2 + (1-p2)*(1-b), 0.03);
+      });
+    };
   } else if(t===12){                           /* Reso. Filt. : passe-bas très résonant */
     var rf = ctx.createBiquadFilter(); rf.type="lowpass";
     rf.frequency.value = 90*Math.pow(140, e1);
@@ -3273,12 +3388,24 @@ function construireFxEntre(fxIn, fxOut, t, e1, e2, fxChaine){
     var comp = ctx.createGain(); comp.gain.value = 1/(1+e2*2.2);
     fxIn.connect(rf); rf.connect(comp); comp.connect(fxOut);
     fxChaine.push(rf,comp);
+    fxChaine.maj = function(a,b){
+      ctp(rf.frequency, 90*Math.pow(140,a), 0.03); ctp(rf.Q, 1+b*34, 0.03);
+      ctp(comp.gain, 1/(1+b*2.2), 0.03);
+    };
   } else if(t===9){                            /* Filter */
     var lp = ctx.createBiquadFilter(); lp.type="lowpass";
     lp.frequency.value = 120*Math.pow(80, e1); lp.Q.value = 0.7 + e2*22;
     fxIn.connect(lp); lp.connect(fxOut); fxChaine.push(lp);
+    fxChaine.maj = function(a,b){
+      ctp(lp.frequency, 120*Math.pow(80,a), 0.03); ctp(lp.Q, 0.7+b*22, 0.03);
+    };
   } else if(t===0){                            /* Pitch Shifter, par deux lignes à retard */
-    var demi = Math.round(e1*24-12);
+    var demi = Math.round(e1*24-12), fenPas = Math.round(e2*20);
+    /* les deux lignes sont démarrées en opposition de phase : on ne peut pas changer leur
+       cadence sans les refaire, mais on ne refait que si la valeur arrondie a bougé */
+    fxChaine.maj = function(a,b){
+      return (Math.round(a*24-12) === demi && Math.round(b*20) === fenPas) ? true : false;
+    };
     if(demi === 0){ fxIn.connect(fxOut); }
     else {
       var ratio = Math.pow(2, demi/12);
@@ -3286,8 +3413,8 @@ function construireFxEntre(fxIn, fxOut, t, e1, e2, fxChaine){
       var vit = Math.abs(1-ratio)/fen, sens = (ratio > 1) ? -1 : 1;
       var t0 = ctx.currentTime;
       for(i=0;i<2;i++){
-        var dl = ctx.createDelay(1), gg = ctx.createGain();
-        gg.gain.value = 0;
+        var dl = ctx.createDelay(1), gg2 = ctx.createGain();
+        gg2.gain.value = 0;
         var ramp = ctx.createOscillator(); ramp.type="sawtooth"; ramp.frequency.value = vit;
         var ra = ctx.createGain(); ra.gain.value = fen/2*sens;
         var dc = ctx.createConstantSource(); dc.offset.value = fen/2;
@@ -3295,21 +3422,13 @@ function construireFxEntre(fxIn, fxOut, t, e1, e2, fxChaine){
         var fen2 = ctx.createOscillator(); fen2.type="triangle"; fen2.frequency.value = vit;
         var fa = ctx.createGain(); fa.gain.value = 0.5;
         var fc = ctx.createConstantSource(); fc.offset.value = 0.5;
-        fen2.connect(fa); fa.connect(gg.gain); fc.connect(gg.gain);
-        fxIn.connect(dl); dl.connect(gg); gg.connect(fxOut);
+        fen2.connect(fa); fa.connect(gg2.gain); fc.connect(gg2.gain);
+        fxIn.connect(dl); dl.connect(gg2); gg2.connect(fxOut);
         var dep = t0 + (i ? 0.5/vit : 0);
         ramp.start(dep); fen2.start(dep); dc.start(t0); fc.start(t0);
-        fxChaine.push(dl,gg,ramp,ra,dc,fen2,fa,fc);
+        fxChaine.push(dl,gg2,ramp,ra,dc,fen2,fa,fc);
       }
     }
-  } else if(t===7){                            /* Decimator */
-    var bits = 1 + Math.round((1-e1)*10);
-    var niv = Math.pow(2, bits-1);
-    var n2 = 2048, cd = new Float32Array(n2);
-    for(i=0;i<n2;i++){ var xd = i*2/n2-1; cd[i] = Math.round(xd*niv)/niv; }
-    var wd = ctx.createWaveShaper(); wd.curve = cd;
-    var ld = ctx.createBiquadFilter(); ld.type="lowpass"; ld.frequency.value = 400 + (1-e2)*9000;
-    fxIn.connect(wd); wd.connect(ld); ld.connect(fxOut); fxChaine.push(wd,ld);
   } else {
     fxIn.connect(fxOut);
   }
@@ -3633,6 +3752,7 @@ EM.note = 36;
     var b=e.target.closest(".btn"); if(!b) return;
     var i = +b.dataset.i;
     if(EM.shift){ fonctionShift(i); return; }
+    if(EM.pset){ allerMotifEm(i); return; }
     if(EM.mode === 2){ toucheSong(i); return; }
     if(EM.kb){ toucheClavier(i); return; }
     if(EM.protect){ lcd("PRT","PROTECT",true); return; }
@@ -3650,6 +3770,14 @@ function noteClavier(i){
 }
 function majTouches(){
   var p = EM.pat, k = EM.sel, i;
+  if(EM.pset){
+    for(i=0;i<16;i++){
+      keysEls[i].textContent = ("0"+(i+1)).slice(-2);
+      keysEls[i].classList.toggle("act", i === EM.cur);
+      keysEls[i].classList.remove("sel","hors");
+    }
+    return;
+  }
   if(EM.mode === 2){
     for(i=0;i<16;i++){
       var v = EM.song[i];
@@ -4020,7 +4148,21 @@ function valeurCourante(champ){
   return EM.egT;
 }
 
-["em-motion","em-lock","em-pset"].forEach(function(id){
+function allerMotifEm(i){
+  memEm();
+  EM.cur = i; EM.pat = EM.slots[i];
+  majTouches(); majBascules(); majMotionLeds(); majKnobsPartie(); majLcd();
+  lcd(("00"+(i+1)).slice(-3), "PATTERN", true); H.inter();
+}
+document.getElementById("em-pset").addEventListener("click", function(){
+  EM.pset = !EM.pset;
+  this.classList.toggle("on", EM.pset);
+  majTouches();
+  lcd(EM.pset ? "SET" : "---", EM.pset ? "TOUCHE = MOTIF" : "PATTERN", true);
+  H.inter();
+});
+
+["em-motion","em-lock"].forEach(function(id){
   document.getElementById(id).addEventListener("click", function(){
     lcd("---","À VENIR",true); H.cran();
   });
@@ -4464,6 +4606,7 @@ function majLcdEr(){
     var bt=e.target.closest(".btn"); if(!bt) return;
     var i=+bt.dataset.i;
     if(ER.shift){ shiftEr(i); return; }
+    if(ER.pset){ allerMotifEr(i); return; }
     if(ER.mode===1){ songEr(i); return; }
     if(ER.protect){ lcdEr("PRT","PROTECT",true); return; }
     var p=ER.pat, k=ER.sel;
@@ -4493,6 +4636,14 @@ function nomPartieEr(k){
 }
 function majTouchesEr(){
   var p=ER.pat, k=ER.sel, i;
+  if(ER.pset){
+    for(i=0;i<16;i++){
+      erKeys[i].textContent = ("0"+(i+1)).slice(-2);
+      erKeys[i].classList.toggle("act", i === ER.cur);
+      erKeys[i].classList.remove("sel","hors");
+    }
+    return;
+  }
   if(ER.mode===1){
     for(i=0;i<16;i++){
       var v=ER.song[i];
@@ -4682,6 +4833,19 @@ document.getElementById("er-mseq").addEventListener("click", function(){
   if(m.mode && !m.v){ m.v=[]; for(var i=0;i<16;i++) m.v.push(ER.pat.son[k][m.p]); }
   majLedsEr(); memEr(); H.inter();
   lcdEr(m.mode===0?"OFF":(m.mode===1?"SMTH":"HOLD"), "MOTION · "+m.p.toUpperCase(), true);
+});
+function allerMotifEr(i){
+  memEr();
+  ER.cur = i; ER.pat = ER.slots[i];
+  majTouchesEr(); majKnobsEr(); majLedsEr(); majLcdEr();
+  lcdEr(("00"+(i+1)).slice(-3), "PATTERN", true); H.inter();
+}
+document.getElementById("er-pset").addEventListener("click", function(){
+  ER.pset = !ER.pset;
+  this.classList.toggle("on", ER.pset);
+  majTouchesEr();
+  lcdEr(ER.pset ? "SET" : "---", ER.pset ? "TOUCHE = MOTIF" : "PATTERN", true);
+  H.inter();
 });
 document.getElementById("er-shift").addEventListener("click", function(){
   ER.shift=!ER.shift; this.classList.toggle("on", ER.shift);
@@ -5949,6 +6113,7 @@ function echantillonner(){
     var b2=e.target.closest(".btn"); if(!b2) return;
     var i2=+b2.dataset.i;
     if(ES.shift){ shiftEs(i2); return; }
+    if(ES.pset){ allerMotifEs(i2); return; }
     if(ES.mode===1){ songEs(i2); return; }
     if(ES.protect){ lcdEs("PRT","PROTECT",true); return; }
     var p=ES.pat, k=ES.sel;
@@ -5977,6 +6142,14 @@ function choisirEs(k){
 }
 function majTouchesEs(){
   var p=ES.pat, k=ES.sel, i;
+  if(ES.pset){
+    for(i=0;i<16;i++){
+      esKeys[i].textContent = ("0"+(i+1)).slice(-2);
+      esKeys[i].classList.toggle("act", i === ES.cur);
+      esKeys[i].classList.remove("sel","hors");
+    }
+    return;
+  }
   if(ES.mode===1){
     for(i=0;i<16;i++){
       var v=ES.song[i];
@@ -6177,6 +6350,19 @@ document.getElementById("es-fichier").addEventListener("change", function(){
   }).then(function(buf){ poserEch(cible, buf, "fichier"); })
     .catch(function(){ lcdEs("ERR","FICHIER ILLISIBLE",true); });
   this.value="";
+});
+function allerMotifEs(i){
+  memEs();
+  ES.cur = i; ES.pat = ES.slots[i];
+  majTouchesEs(); majKnobsEs(); majLedsEs(); majLcdEs();
+  lcdEs(("00"+(i+1)).slice(-3), "PATTERN", true); H.inter();
+}
+document.getElementById("es-pset").addEventListener("click", function(){
+  ES.pset = !ES.pset;
+  this.classList.toggle("on", ES.pset);
+  majTouchesEs();
+  lcdEs(ES.pset ? "SET" : "---", ES.pset ? "TOUCHE = MOTIF" : "PATTERN", true);
+  H.inter();
 });
 document.getElementById("es-shift").addEventListener("click", function(){
   ES.shift=!ES.shift; this.classList.toggle("on", ES.shift);
@@ -6444,6 +6630,14 @@ function majTube(){
     }
   }
 }
+/* un seul emplacement à reconstruire, et rien du tout si seuls EDIT 1 et 2 bougent */
+function majFxMx(i){
+  var reg = MX.regFx[i];
+  if(reg && reg.type === MX.fx[i].t && reg.maj){
+    if(reg.maj(MX.fx[i].e1, MX.fx[i].e2) !== false) return true;
+  }
+  return false;
+}
 function cablerFxMx(){
   if(!MX.entrees.length) return;
   for(var i=0;i<3;i++){
@@ -6454,6 +6648,7 @@ function cablerFxMx(){
   }
   for(i=0;i<3;i++){
     construireFxEntre(MX.entrees[i], MX.sorties[i], MX.fx[i].t, MX.fx[i].e1, MX.fx[i].e2, MX.regFx[i]);
+    MX.regFx[i].type = MX.fx[i].t;
     if(MX.chaine && i<2) MX.sorties[i].connect(MX.entrees[i+1]);
     else MX.sorties[i].connect(MX.tubeIn);
   }
@@ -6896,6 +7091,7 @@ function majLcdMx(){
     var bb3=e.target.closest(".mxb"); if(!bb3) return;
     var i2=+bb3.dataset.i;
     if(MX.shift){ shiftMx(i2); return; }
+    if(MX.pset){ allerMotifMx(i2); return; }
     if(MX.mode===3){ songMx(i2); return; }
     if(MX.kb && MX.sel>=10 && MX.sel!==15){ clavierMx(i2); return; }
     if(MX.protect){ lcdMx("PROTECT","ÉCRITURE BLOQUÉE",true); return; }
@@ -6935,6 +7131,14 @@ function choisirMx(k){
 }
 function majTouchesMx(){
   var p=MX.pat, k=MX.sel, i;
+  if(MX.pset){
+    for(i=0;i<16;i++){
+      mxKeys[i].textContent = nomMotif(i);
+      mxKeys[i].classList.toggle("act", i === MX.cur);
+      mxKeys[i].classList.remove("hors");
+    }
+    return;
+  }
   if(MX.mode===3){
     for(i=0;i<16;i++){
       var v=MX.song[i];
@@ -7060,9 +7264,9 @@ var kMxDrv   = knobMx("mx-k-drv","drv",0,1,"DRIVE",true);
 var kMxMs    = knobMx("mx-k-mspeed","mspeed",0,1,"MOD SPEED",true);
 var kMxMd    = knobMx("mx-k-mdepth","mdepth",0,1,"MOD DEPTH",true);
 var kMxF1 = knobEm("mx-k-fx1",{min:0,max:1,get:function(){return MX.fx[MX.slot].e1;},
-  set:function(v){ MX.fx[MX.slot].e1=v; cablerFxMx(); lcdMx(String(Math.round(v*127)),"FX "+(MX.slot+1)+" EDIT 1",true); }});
+  set:function(v){ MX.fx[MX.slot].e1=v; if(!majFxMx(MX.slot)) cablerFxMx(); lcdMx(String(Math.round(v*127)),"FX "+(MX.slot+1)+" EDIT 1",true); }});
 var kMxF2 = knobEm("mx-k-fx2",{min:0,max:1,get:function(){return MX.fx[MX.slot].e2;},
-  set:function(v){ MX.fx[MX.slot].e2=v; cablerFxMx(); lcdMx(String(Math.round(v*127)),"FX "+(MX.slot+1)+" EDIT 2",true); }});
+  set:function(v){ MX.fx[MX.slot].e2=v; if(!majFxMx(MX.slot)) cablerFxMx(); lcdMx(String(Math.round(v*127)),"FX "+(MX.slot+1)+" EDIT 2",true); }});
 function majKnobsMx(){
   [kMxPitch,kMxPan,kMxEg,kMxLvl,kMxO1,kMxO2,kMxCut,kMxRes,kMxEgi,kMxDrv,kMxMs,kMxMd,kMxF1,kMxF2,kMxTube]
     .forEach(function(k){ k.maj(); });
@@ -7217,10 +7421,24 @@ document.getElementById("mx-kb").addEventListener("click", function(){
   lcdMx(MX.kb?GAMMES[MX.gamme||0].n:"EMX-1", MX.kb?"KEYBOARD OCT "+MX.oct:"PATTERN "+nomMotif(MX.cur), true);
   H.inter();
 });
+function allerMotifMx(i){
+  memMx();
+  MX.cur = i; MX.pat = MX.slots[i];
+  majTouchesMx(); majKnobsMx(); majLedsMx(); majLcdMx();
+  lcdMx(nomMotif(i), "PATTERN", true); H.inter();
+}
 document.getElementById("mx-pset").addEventListener("click", function(){
-  MX.gamme=((MX.gamme||0)+1)%GAMMES.length;
-  if(MX.kb) majTouchesMx(); memMx();
-  lcdMx(GAMMES[MX.gamme].n, "SCALE", true); H.cran();
+  if(MX.kb){                       /* en mode clavier, ce bouton change la gamme */
+    MX.gamme=((MX.gamme||0)+1)%GAMMES.length;
+    majTouchesMx(); memMx();
+    lcdMx(GAMMES[MX.gamme].n, "SCALE", true); H.cran();
+    return;
+  }
+  MX.pset = !MX.pset;
+  this.classList.toggle("on", MX.pset);
+  majTouchesMx();
+  lcdMx(MX.pset ? "SET" : "EMX-1", MX.pset ? "TOUCHE = MOTIF" : "PATTERN "+nomMotif(MX.cur), true);
+  H.inter();
 });
 document.getElementById("mx-shift").addEventListener("click", function(){
   MX.shift=!MX.shift; this.classList.toggle("on", MX.shift);
@@ -7437,6 +7655,14 @@ function majTubeSx(){
     }
   }
 }
+/* un seul emplacement à reconstruire, et rien du tout si seuls EDIT 1 et 2 bougent */
+function majFxSx(i){
+  var reg = SX.regFx[i];
+  if(reg && reg.type === SX.fx[i].t && reg.maj){
+    if(reg.maj(SX.fx[i].e1, SX.fx[i].e2) !== false) return true;
+  }
+  return false;
+}
 function cablerFxSx(){
   if(!SX.entrees.length) return;
   for(var i=0;i<3;i++){
@@ -7447,6 +7673,7 @@ function cablerFxSx(){
   }
   for(i=0;i<3;i++){
     construireFxEntre(SX.entrees[i], SX.sorties[i], SX.fx[i].t, SX.fx[i].e1, SX.fx[i].e2, SX.regFx[i]);
+    SX.regFx[i].type = SX.fx[i].t;
     if(SX.chaine && i<2) SX.sorties[i].connect(SX.entrees[i+1]);
     else SX.sorties[i].connect(SX.tubeIn);
   }
@@ -7766,6 +7993,7 @@ function majLcdSx(){
     var bb3=e.target.closest(".sxb"); if(!bb3) return;
     var i2=+bb3.dataset.i;
     if(SX.shift){ shiftSx(i2); return; }
+    if(SX.pset){ allerMotifSx(i2); return; }
     if(SX.mode===3){ songSx(i2); return; }
     if(SX.kb && SX.sel>=10 && SX.sel<12){ clavierSx(i2); return; }
     if(SX.protect){ lcdSx("PROTECT","ÉCRITURE BLOQUÉE",true); return; }
@@ -7805,6 +8033,14 @@ function choisirSx(k){
 }
 function majTouchesSx(){
   var p=SX.pat, k=SX.sel, i;
+  if(SX.pset){
+    for(i=0;i<16;i++){
+      sxKeys[i].textContent = nomMotif(i);
+      sxKeys[i].classList.toggle("act", i === SX.cur);
+      sxKeys[i].classList.remove("hors");
+    }
+    return;
+  }
   if(SX.mode===3){
     for(i=0;i<16;i++){
       var v=SX.song[i];
@@ -7931,9 +8167,9 @@ var kSxEgi   = knobSx("sx-k-egi","egi",0,1,"EG INT");
 var kSxMs    = knobSx("sx-k-mspeed","mspeed",0,1,"MOD SPEED");
 var kSxMd    = knobSx("sx-k-mdepth","mdepth",0,1,"MOD DEPTH");
 var kSxF1 = knobEm("sx-k-fx1",{min:0,max:1,get:function(){return SX.fx[SX.slot].e1;},
-  set:function(v){ SX.fx[SX.slot].e1=v; cablerFxSx(); lcdSx(String(Math.round(v*127)),"FX "+(SX.slot+1)+" EDIT 1",true); }});
+  set:function(v){ SX.fx[SX.slot].e1=v; if(!majFxSx(SX.slot)) cablerFxSx(); lcdSx(String(Math.round(v*127)),"FX "+(SX.slot+1)+" EDIT 1",true); }});
 var kSxF2 = knobEm("sx-k-fx2",{min:0,max:1,get:function(){return SX.fx[SX.slot].e2;},
-  set:function(v){ SX.fx[SX.slot].e2=v; cablerFxSx(); lcdSx(String(Math.round(v*127)),"FX "+(SX.slot+1)+" EDIT 2",true); }});
+  set:function(v){ SX.fx[SX.slot].e2=v; if(!majFxSx(SX.slot)) cablerFxSx(); lcdSx(String(Math.round(v*127)),"FX "+(SX.slot+1)+" EDIT 2",true); }});
 function majKnobsSx(){
   [kSxPitch,kSxPan,kSxStart,kSxEg,kSxLvl,kSxCut,kSxRes,kSxEgi,kSxMs,kSxMd,kSxF1,kSxF2,kSxTube]
     .forEach(function(k){ k.maj(); });
@@ -8088,10 +8324,24 @@ document.getElementById("sx-kb").addEventListener("click", function(){
   lcdSx(SX.kb?GAMMES[SX.gamme||0].n:"ESX-1", SX.kb?"KEYBOARD OCT "+SX.oct:"PATTERN "+nomMotif(SX.cur), true);
   H.inter();
 });
+function allerMotifSx(i){
+  memSx();
+  SX.cur = i; SX.pat = SX.slots[i];
+  majTouchesSx(); majKnobsSx(); majLedsSx(); majLcdSx();
+  lcdSx(nomMotif(i), "PATTERN", true); H.inter();
+}
 document.getElementById("sx-pset").addEventListener("click", function(){
-  SX.gamme=((SX.gamme||0)+1)%GAMMES.length;
-  if(SX.kb) majTouchesSx(); memSx();
-  lcdSx(GAMMES[SX.gamme].n,"SCALE",true); H.cran();
+  if(SX.kb){
+    SX.gamme=((SX.gamme||0)+1)%GAMMES.length;
+    majTouchesSx(); memSx();
+    lcdSx(GAMMES[SX.gamme].n,"SCALE",true); H.cran();
+    return;
+  }
+  SX.pset = !SX.pset;
+  this.classList.toggle("on", SX.pset);
+  majTouchesSx();
+  lcdSx(SX.pset ? "SET" : "ESX-1", SX.pset ? "TOUCHE = MOTIF" : "PATTERN "+nomMotif(SX.cur), true);
+  H.inter();
 });
 document.getElementById("sx-shift").addEventListener("click", function(){
   SX.shift=!SX.shift; this.classList.toggle("on", SX.shift);

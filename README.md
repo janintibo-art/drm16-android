@@ -208,6 +208,36 @@ déclenchaient les voix génériques de la DRM16. Chaque machine reçoit mainten
 notes 36 à 44 pour les percussions, canal séparé pour les parties mélodiques, et l'enregistrement au vol
 fonctionne partout.
 
+## Constructeur d'effets : mise à jour en place (version 25)
+
+Mesuré : tourner un bouton d'effet reconstruisait tout le graphe audio, soixante fois par seconde.
+Pour la réverbération, chaque reconstruction régénérait une réponse impulsionnelle de deux secondes —
+**39,9 ms par mouvement, soit 2392 ms de calcul par seconde de geste**. L'application gelait et le son
+décrochait.
+
+Chaque effet expose maintenant une fonction `maj` qui applique EDIT 1 et EDIT 2 **aux nœuds déjà en place**,
+par `setTargetAtTime` : plus de reconstruction, plus de coupure du son pendant le réglage. Le graphe n'est
+refait que si le type d'effet change — ou si `maj` renvoie `false`, ce que fait le pitch shifter quand sa
+hauteur arrondie a réellement bougé.
+
+Trois mesures complémentaires : les réponses impulsionnelles sont mises en cache par pas de 125 ms, leur
+fabrication passe d'une puissance par échantillon à une multiplication avec un canal droit obtenu par
+décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium à refaire ses tables — attend
+130 ms que le doigt s'arrête.
+
+| effet | avant | après |
+|---|---|---|
+| Réverbération | 2392 ms/s | 0,6 ms/s |
+| Distorsion | 42 ms/s | 2,6 ms/s |
+| Phaser | 29 ms/s | 0,3 ms/s |
+| Pire cas des seize | 2392 ms/s | 61 ms/s |
+
+## Pattern Set
+
+Les cinq Electribe ont enfin leur **PATTERN SET** : les seize touches deviennent un sélecteur de motifs,
+changement immédiat même en pleine lecture, touche allumée sur le motif en cours. Sur l'EMX-1 et l'ESX-1
+elles affichent A.1 à D.4, et le même bouton continue de changer de gamme quand le clavier est actif.
+
 ## Qualité sonore
 
 Mesures faites au rendu hors ligne, sinus de 220 Hz traversant la chaîne maîtresse.
