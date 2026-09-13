@@ -1153,6 +1153,65 @@ body.cr5 .akai,body.cr5 .rtr,body.cr5 .dmxb,body.cr5 .korgv{display:none}
 .pick.pcr5{background:linear-gradient(165deg,#e0a05a,#3a2a18 55%,#6a4a28)}
 .pick.pcr5 b{color:#ffd8a8;text-shadow:0 2px 0 #2a1c0e}
 .pick.pcr5 span{color:#d8c0a0}
+/* ===================== ARTURIA DRUMBRUTE IMPACT ===================== */
+body.dbi .dbib{display:block}
+body.dbi #unit,body.dbi .em,body.dbi .er,body.dbi .ea,body.dbi .es,body.dbi .mx,body.dbi .sx,
+body.dbi .akai,body.dbi .rtr,body.dbi .dmxb,body.dbi .korgv,body.dbi .crb{display:none}
+.dbib{display:none;width:100%;max-width:1120px;border-radius:8px;padding:13px 15px 15px;
+  background:linear-gradient(168deg,#3d434e,#2e333c 45%,#272b33 75%,#353b45);
+  box-shadow:0 18px 40px #000b,inset 0 1px 0 #ffffff18}
+.dbi-tete{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.dbi-nom{font:800 17px/1.1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:1px;
+  color:#e8ecf2;cursor:pointer}
+.dbi-nom small{display:block;font:700 7.5px/1.4 "Roboto Condensed",Arial;letter-spacing:1.8px;
+  color:#8c99ab}
+.dbi-trans{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap}
+.dbib button{border:0;border-radius:4px;font:700 8.5px/1.1 "Roboto Condensed",Arial;letter-spacing:.6px;
+  color:#dbe2ec;background:linear-gradient(180deg,#59606c,#3b414b);
+  box-shadow:0 2px 0 #1d2027,0 3px 5px #0006,inset 0 1px 0 #ffffff22;padding:10px 11px}
+.dbib button:active,.dbib button.on{background:linear-gradient(180deg,#ffb469,#e07a1e);color:#241203;
+  transform:translateY(2px);box-shadow:0 0 0 #1d2027,inset 0 1px 3px #0005}
+.dbib button.bleu.on{background:linear-gradient(180deg,#7fc7ff,#2a8ad0);color:#04202f}
+.dbi-lcd{background:#12151a;border-radius:4px;padding:6px 12px;min-width:142px;text-align:center}
+.dbi-lcd b{display:block;font:800 14px/1.2 "Courier New",monospace;color:#ff9a44}
+.dbi-lcd u{display:block;text-decoration:none;font:700 7.5px/1.3 "Roboto Condensed",Arial;
+  letter-spacing:1.4px;color:#9a7048}
+.dbi-voix{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:10px 0}
+.dbi-v{background:linear-gradient(180deg,#454c58,#333842);border-radius:5px;padding:6px 4px 5px;
+  box-shadow:inset 0 1px 0 #ffffff14;display:flex;flex-direction:column}
+.dbi-v .dbi-pad{margin-top:auto}
+.dbi-v>b{display:block;text-align:center;font:700 7.5px/1.2 "Roboto Condensed",Arial;letter-spacing:.6px;
+  color:#cfd7e2;margin-bottom:5px;min-height:9px}
+.dbi-kn{width:100%;text-align:center;margin-bottom:4px;touch-action:none}
+.dbi-kn .bt{width:32px;height:32px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#5d6572,#333841 55%,#1b1e24);
+  box-shadow:0 2px 5px #0008,inset 0 1px 1px #ffffff2a}
+.dbi-kn .bt i{position:absolute;left:50%;top:3px;width:2px;height:40%;margin-left:-1px;border-radius:1px;
+  background:#eef2f8}
+body.dbi-col .dbi-kn .bt i{background:#ff9a44}
+.dbi-kn em{display:block;margin-top:1px;font:700 6px/1.2 "Roboto Condensed",Arial;color:#9fabbb;
+  font-style:normal}
+.dbi-pad{width:100%;padding:12px 2px;border-radius:4px;font-size:7.5px;
+  background:linear-gradient(180deg,#2b2f37,#1a1d22) !important;color:#b9c3d0 !important;
+  box-shadow:0 2px 0 #12141a,inset 0 1px 0 #ffffff10 !important}
+.dbi-pad.sel{box-shadow:0 2px 0 #12141a,0 0 0 2px #e07a1e !important;color:#ffc089 !important}
+.dbi-pas{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;margin-top:8px}
+.dbi-pas button{padding:15px 0;position:relative;
+  background:linear-gradient(180deg,#5a626e,#3c424d)}
+.dbi-pas button.act{background:linear-gradient(180deg,#ffb469,#e07a1e)}
+.dbi-pas button.hors{opacity:.35}
+.dbi-pas button.cur::after{content:"";position:absolute;left:50%;top:4px;width:6px;height:6px;
+  margin-left:-3px;border-radius:50%;background:#fff;box-shadow:0 0 7px #fff}
+.dbi-bar{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:9px}
+@media (max-width:780px){
+  .dbi-voix{grid-template-columns:repeat(4,1fr)}
+  .dbi-kn .bt{width:28px;height:28px}
+  .dbi-pas button{padding:11px 0}
+}
+
+.pick.pdbi{background:linear-gradient(165deg,#4a5260,#20242b 55%,#e07a1e)}
+.pick.pdbi b{color:#ffc089;text-shadow:0 2px 0 #1a1d22}
+.pick.pdbi span{color:#b9c3d0}
 @media (max-height:560px){
   .unit{padding:18px 10px 4px}
   .grid{gap:6px}
@@ -2318,6 +2377,52 @@ body.cr5 .akai,body.cr5 .rtr,body.cr5 .dmxb,body.cr5 .korgv{display:none}
 
 
 
+
+<div class="dbib" id="unit-dbi">
+
+  <div class="em-jacks">
+    <div class="grp"><div class="tr"><i></i></div><span>PHONES</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>MIX / KICK OUT</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>SYNC IN / OUT</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>MIDI IN / OUT</span></div>
+  </div>
+
+  <div class="dbi-tete">
+    <div class="dbi-nom" id="dbi-notice">DRUMBRUTE IMPACT<small>ANALOG DRUM SYNTHESIZER</small></div>
+    <div class="dbi-lcd"><b id="dbi-val">PTN 1</b><u id="dbi-lab">PATTERN</u></div>
+    <div class="dbi-trans">
+      <button id="dbi-rec">● REC</button>
+      <button id="dbi-stop">■ STOP</button>
+      <button id="dbi-play">▶ PLAY</button>
+      <button id="dbi-color" class="bleu">COLOR</button>
+      <button id="dbi-poly">POLYRHYTHM</button>
+      <button id="dbi-roller">ROLLER</button>
+    </div>
+  </div>
+
+  <div class="dbi-voix" id="dbi-voix"></div>
+
+  <div class="dbi-bar">
+    <div class="dbi-kn" style="width:44px"><div class="bt" id="dbi-k-swing"><i></i></div><em>SWING</em></div>
+    <div class="dbi-kn" style="width:44px"><div class="bt" id="dbi-k-random"><i></i></div><em>RANDOM</em></div>
+    <div class="dbi-kn" style="width:44px"><div class="bt" id="dbi-k-drive"><i></i></div><em>DISTORTION</em></div>
+    <div class="dbi-kn" style="width:44px"><div class="bt" id="dbi-k-vol"><i></i></div><em>MASTER</em></div>
+    <div class="dbi-kn" style="width:44px"><div class="bt" id="dbi-k-tempo"><i></i></div><em>RATE</em></div>
+    <button id="dbi-dist">DIST ON</button>
+    <button id="dbi-accent">ACCNT</button>
+    <button id="dbi-last">LAST STEP 16</button>
+    <button id="dbi-len">TRACK LEN 16</button>
+    <button id="dbi-copy">COPY</button>
+    <button id="dbi-erase">ERASE</button>
+    <button id="dbi-ptn">PTN 1</button>
+  </div>
+
+  <div class="dbi-pas" id="dbi-pas"></div>
+</div>
+
+
 <div class="crb" id="unit-cr5">
 
   <div class="cr-haut">
@@ -2544,6 +2649,7 @@ body.cr5 .akai,body.cr5 .rtr,body.cr5 .dmxb,body.cr5 .korgv{display:none}
   <button class="pick pes2" data-m="es2"><b>ES-1 mkII</b><span>KORG · ÉCHANTILLONNEUR · ISOLATOR, RESO. FILT.</span></button>
   <button class="pick pmx" data-m="emx"><b>ELECTRIBE EMX-1</b><span>KORG · 14 PARTIES · 3 EFFETS · VALVE FORCE</span></button>
   <button class="pick psx" data-m="esx"><b>ELECTRIBE ESX-1</b><span>KORG · ÉCHANTILLONNEUR · CLAVIER, STRETCH, VALVE FORCE</span></button>
+  <button class="pick pdbi" data-m="dbi"><b>DRUMBRUTE IMPACT</b><span>ARTURIA · HUIT VOIX ANALOGIQUES · POLYRYTHMIE</span></button>
   <button class="pick pcr5" data-m="cr5"><b>ROLAND CR-5000</b><span>24 RYTHMES PRÉSÉLECTIONNÉS · ARRANGEUR · BREAKS</span></button>
   <button class="pick pvlc" data-m="vlc"><b>KORG volca sample</b><span>10 PARTIES · MOTIFS AU FORMAT KORG · MOUVEMENTS</span></button>
   <button class="pick pdmx" data-m="dmx"><b>OBERHEIM DMX</b><span>ÉCHANTILLONS HUIT BITS · JEU AU VOL · 24 TOUCHES</span></button>
@@ -2696,6 +2802,33 @@ body.cr5 .akai,body.cr5 .rtr,body.cr5 .dmxb,body.cr5 .korgv{display:none}
      <button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
   <p><button id="b-panique">PANIQUE · TOUT COUPER</button>
      <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
+  </div>
+
+  <div class="doc" id="note-dbi" data-titre="DRUMBRUTE IMPACT">
+  <h3>Polyrythmie</h3>
+  <p>C'est ce qu'aucune autre machine de l'application ne fait. <b>TRACK LEN</b> donne à la piste choisie
+  sa propre longueur, et <b>POLYRHYTHM</b> laisse chacune tourner sur la sienne : une piste de seize pas,
+  une de douze, une de sept ne se retrouvent qu'au bout de leur plus petit commun multiple. L'afficheur
+  donne la longueur du cycle complet — 336 pas pour ces trois-là, plafonné à 64.</p>
+  <p>Coupez POLYRHYTHM et tout le monde repart ensemble sur LAST STEP.</p>
+
+  <h3>La couche COLOR</h3>
+  <p>Le bouton <b>COLOR</b> remplace les potards par une seconde série : saturation de la grosse caisse,
+  corps de la caisse 1, clap sur la caisse 2, chute du tom, timbre de cymbale, chute du charley fermé,
+  harmoniques de l'ouvert, enveloppe de hauteur du FM. Huit réglages de plus sur les mêmes boutons, comme
+  sur l'appareil. Le repère des potards passe à l'orange pour qu'on sache où l'on est.</p>
+
+  <h3>Les huit voix</h3>
+  <p>Tout est synthétisé, rien n'est échantillonné. La <b>FM DRUM</b> est une vraie modulation de fréquence :
+  une porteuse, une modulante, et l'intensité qui décroît — de quoi faire aussi bien un tom métallique
+  qu'une cloche ou un bruit de laser. Le <b>TOM</b> et la <b>CYM/COW</b> ont deux personnalités chacun,
+  choisies par leur bouton TYPE.</p>
+
+  <h3>Hasard et roulement</h3>
+  <p>Le potard <b>RANDOM</b> ôte des coups et en ajoute : seize pas posés tombent entre sept et treize au
+  maximum, et le motif change à chaque tour. <b>ROLLER</b> double les coups de la piste choisie.
+  <b>DISTORTION</b> passe la sortie dans une saturation : le niveau efficace monte de 0,082 à 0,131 sur une
+  grosse caisse.</p>
   </div>
 
   <div class="doc" id="note-cr5" data-titre="CR-5000">
@@ -3208,10 +3341,10 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
 (function charger(){
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
-    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5","dbi"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
     if(m.midi) memoire.midi = m.midi;
     /* ancien format : les machines vivaient dans le blob global, on les répartit une fois */
-    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5"].forEach(function(c){
+    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5","dbi"].forEach(function(c){
       if(m[c]){
         memoire[c] = m[c];
         try{ localStorage.setItem(MEM + "." + c, JSON.stringify(m[c])); }catch(e){}
@@ -3894,6 +4027,7 @@ function docDeLaMachine(){
   if(m === "dmx") return "note-dmx";
   if(m === "vlc") return "note-vlc";
   if(m === "cr5") return "note-cr5";
+  if(m === "dbi") return "note-dbi";
   return "note-general";
 }
 function montrerDoc(id){
@@ -3975,7 +4109,7 @@ document.getElementById("menu-pr").addEventListener("click", function(){
 (function machinePr(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"],["dbi","DrumBrute Impact"]];
   var sel = document.getElementById("pr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -4023,7 +4157,7 @@ document.getElementById("enr-rec").addEventListener("click", function(){
 (function menuEnregistreur(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"],["dbi","DrumBrute Impact"]];
   var sel = document.getElementById("enr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -4107,7 +4241,7 @@ window.addEventListener("pagehide", writeMem);
    Ce contrôle le dit tout de suite au lieu de laisser chercher. */
 (function collisionsDeClasses(){
   var corps = ["m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-               "tr8","tr9","tr7","dmx","vlc","cr5","menu-ouvert","note-ouverte"];
+               "tr8","tr9","tr7","dmx","vlc","cr5","dbi","menu-ouvert","note-ouverte"];
   var mauvaises = corps.filter(function(c){
     var e = document.querySelector("." + c);
     return e && e !== document.body;
@@ -5623,7 +5757,7 @@ function activerEm(){
   S.modele = "em1";
   MACHINE = MACHINE_EM;
   document.body.classList.add("em1");
-  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
+  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi");
   chargerEm();
   construireFx();
   EM.choisirPartie(EM.sel);
@@ -6326,7 +6460,7 @@ function activerEr(v){
   ER.v = (v===2) ? 2 : 1;
   S.modele = "er" + ER.v;
   MACHINE = MACHINE_ER;
-  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
+  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi");
   document.body.classList.add("er1");
   document.body.classList.toggle("mk2", ER.v===2);
   chargerEr();
@@ -6980,7 +7114,7 @@ function activerEa(v){
   EA.v = (v===2) ? 2 : 1;
   S.modele = "ea" + EA.v;
   MACHINE = MACHINE_EA;
-  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
+  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi");
   document.body.classList.add("ea1");
   document.body.classList.toggle("mk2", EA.v===2);
   chargerEa();
@@ -7881,7 +8015,7 @@ function activerEs(v){
   ES.v = (v===2) ? 2 : 1;
   S.modele = "es" + ES.v;
   MACHINE=MACHINE_ES;
-  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
+  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi");
   document.body.classList.add("es1");
   document.body.classList.toggle("mk2", ES.v===2);
   audioInit(); banqueEs(); busEffets(); chargerEchs();
@@ -8968,7 +9102,7 @@ function activerMx(){
   stop();
   S.modele="emx";
   MACHINE=MACHINE_MX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi");
   document.body.classList.add("emx");
   audioInit(); banqueEs(); mxAudio();
   chargerMx();
@@ -10008,7 +10142,7 @@ function activerSx(){
   stop();
   S.modele="esx";
   MACHINE=MACHINE_SX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi");
   document.body.classList.add("esx");
   audioInit(); banqueEs(); sxAudio(); chargerEchs();
   chargerSx();
@@ -12264,6 +12398,495 @@ function activerTr(modele){
   save(); fit(); setTimeout(fit, 120);
 }
 
+/* ===================== ARTURIA DRUMBRUTE IMPACT =====================
+   Huit voix analogiques, et une chose qu'aucune autre machine d'ici ne fait :
+   la polyrythmie. Chaque piste garde sa propre longueur, et les motifs se
+   décalent les uns par rapport aux autres au lieu de tourner ensemble.
+   Le bouton COLOR ouvre une seconde couche de réglages sur les mêmes potards. */
+var DBI_VOIX = [
+  {id:"kick",  nom:"KICK",     kns:[["dec","DECAY"],["pit","PITCH"],["niv","LEVEL"]],
+                               col:[["drive","DRIVE"]]},
+  {id:"snr1",  nom:"SNARE 1",  kns:[["dec","DECAY"],["ton","TONE/SNAP"],["niv","LEVEL"]],
+                               col:[["body","BODY"]]},
+  {id:"snr2",  nom:"SNARE 2",  kns:[["dec","DECAY"],["ton","TONE"],["niv","LEVEL"]],
+                               col:[["clap","CLAP"]]},
+  {id:"tom",   nom:"TOM HI/LO",kns:[["pit","PITCH"],["niv","LEVEL"]],
+                               col:[["dec","DECAY"]], type:["HI","LOW"]},
+  {id:"cym",   nom:"CYM/COW",  kns:[["dec","CYM DEC"],["niv","LEVEL"]],
+                               col:[["ton","CYM TONE"]], type:["CYM","COW"]},
+  {id:"chh",   nom:"CLOSED HAT",kns:[["ton","HATS TONE"],["niv","LEVEL"]],
+                               col:[["dec","CH DECAY"]]},
+  {id:"ohh",   nom:"OPEN HAT", kns:[["dec","OH DECAY"],["niv","LEVEL"]],
+                               col:[["harm","HARMONICS"]]},
+  {id:"fm",    nom:"FM DRUM",  kns:[["mpit","MOD PITCH"],["fmamt","FM AMT"],["dec","DECAY"],
+                                    ["pit","CARRIER"],["niv","LEVEL"]],
+                               col:[["penv","PITCH ENV"]]}
+];
+var DBI_MIDI = [36, 38, 40, 45, 49, 42, 46, 39];
+function pisteDbi(i){
+  return {pas:0, acc:0, len:16,
+          p:{dec:0.5, pit:0.5, ton:0.5, niv:0.8, drive:0, body:0.3, clap:0,
+             harm:0.3, mpit:0.5, fmamt:0.4, penv:0.3},
+          type:0};
+}
+function motifDbi(n){
+  var m = {pistes:[], last:16};
+  for(var i=0;i<8;i++) m.pistes.push(pisteDbi(i));
+  if(n === 0){
+    m.pistes[0].pas = 0x1111; m.pistes[1].pas = 0x0440;
+    m.pistes[5].pas = 0x5555; m.pistes[0].acc = 0x0001;
+  } else if(n === 1){
+    m.pistes[0].pas = 0x0421; m.pistes[2].pas = 0x0110;
+    m.pistes[5].pas = 0xFFFF; m.pistes[6].pas = 0x4000;
+    m.pistes[7].pas = 0x0080;
+  }
+  return m;
+}
+var DBI = {motifs:[], cur:0, sel:0, color:false, poly:false, roller:false, rec:false,
+           swing:0, random:0, drive:0.25, dist:false, accent:false,
+           pos:-1, noeuds:{}, ohGain:null, distNode:null};
+for(var dbz=0; dbz<16; dbz++) DBI.motifs.push(motifDbi(dbz < 2 ? dbz : 9));
+
+function motifDbiCur(){ return DBI.motifs[DBI.cur]; }
+function pisteDbiSel(){ return motifDbiCur().pistes[DBI.sel]; }
+
+/* ---------- sortie, avec la distorsion de l'appareil ---------- */
+function sortieDbi(){
+  if(!DBI.noeuds.out){
+    var g = ctx.createGain();
+    var d = ctx.createWaveShaper();
+    var n = 1024, c = new Float32Array(n);
+    for(var i=0;i<n;i++){
+      var x = i * 2 / n - 1;
+      c[i] = Math.tanh(x * 3.2);
+    }
+    d.curve = c; d.oversample = "2x";
+    var sec = ctx.createGain(), hum = ctx.createGain();
+    g.connect(sec); sec.connect(master);
+    g.connect(d); d.connect(hum); hum.connect(master);
+    DBI.noeuds.out = g; DBI.noeuds.sec = sec; DBI.noeuds.hum = hum;
+    majDistDbi();
+  }
+  return DBI.noeuds.out;
+}
+function majDistDbi(){
+  if(!DBI.noeuds.sec) return;
+  var m = DBI.dist ? DBI.drive : 0;
+  DBI.noeuds.sec.gain.value = 1 - m * 0.8;
+  DBI.noeuds.hum.gain.value = m * 0.9;
+}
+function voixDbi(t, k, acc){
+  var V = DBI_VOIX[k], P = motifDbiCur().pistes[k];
+  var dest = sortieDbi();
+  var niv = mv("niv", P.p.niv) * (acc ? 1 : 0.68);
+  var g = ctx.createGain();
+  g.connect(dest);
+  var p = P.p;
+
+  if(V.id === "kick"){
+    var f0 = 36 + p.pit * 46, dec = 0.12 + p.dec * 1.0;
+    var o = ctx.createOscillator(); o.type = "sine";
+    o.frequency.setValueAtTime(f0 * 5, t);
+    o.frequency.exponentialRampToValueAtTime(f0, t + 0.03);
+    var sh = ctx.createWaveShaper();
+    var n2 = 512, c2 = new Float32Array(n2), dr = 1 + p.drive * 6;
+    for(var i=0;i<n2;i++){ var x2 = i*2/n2-1; c2[i] = Math.tanh(x2*dr)/Math.tanh(dr); }
+    sh.curve = c2;
+    trEnv(g, t, niv * 1.15, dec, 0.001);
+    o.connect(sh); sh.connect(g); o.start(t); o.stop(t + dec + 0.05);
+  }
+  else if(V.id === "snr1" || V.id === "snr2"){
+    var d2 = 0.06 + p.dec * 0.3;
+    var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+    bp.frequency.value = 1300 + p.ton * 3400; bp.Q.value = 0.7;
+    var nb = trBruit(t, d2);
+    trEnv(g, t, niv * 1.15, d2, 0.0008);
+    nb.connect(bp); bp.connect(g);
+    var corps = (V.id === "snr1") ? p.body : 0.25;
+    if(corps > 0.02){
+      var o1 = ctx.createOscillator(); o1.type = "triangle";
+      o1.frequency.value = (V.id === "snr1" ? 200 : 250) * (0.8 + p.ton * 0.5);
+      var gc = ctx.createGain();
+      trEnv(gc, t, niv * corps * 0.9, d2 * 0.5, 0.0008);
+      o1.connect(gc); gc.connect(dest); o1.start(t); o1.stop(t + d2);
+    }
+    if(V.id === "snr2" && p.clap > 0.02){      /* la couche COLOR de la caisse 2 est un clap */
+      var bc = ctx.createBiquadFilter(); bc.type = "bandpass";
+      bc.frequency.value = 1100; bc.Q.value = 1.5;
+      var nc = trBruit(t, 0.25), gcl = ctx.createGain();
+      nc.connect(bc); bc.connect(gcl); gcl.connect(dest);
+      gcl.gain.setValueAtTime(0.0001, t);
+      [0, 0.009, 0.018].forEach(function(o3){
+        gcl.gain.setValueAtTime(niv * p.clap * 1.6, t + o3);
+        gcl.gain.exponentialRampToValueAtTime(0.0001, t + o3 + 0.008);
+      });
+      gcl.gain.setValueAtTime(niv * p.clap, t + 0.028);
+      gcl.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+    }
+  }
+  else if(V.id === "tom"){
+    var base = (P.type ? 78 : 145) * Math.pow(2, (p.pit - 0.5) * 1.2);
+    var dt = 0.16 + p.dec * 0.7;
+    var ot = ctx.createOscillator(); ot.type = "sine";
+    ot.frequency.setValueAtTime(base * 2.2, t);
+    ot.frequency.exponentialRampToValueAtTime(base, t + 0.05);
+    trEnv(g, t, niv * 1.15, dt, 0.0015);
+    ot.connect(g); ot.start(t); ot.stop(t + dt + 0.05);
+  }
+  else if(V.id === "cym"){
+    if(P.type){                                 /* cowbell */
+      var som = ctx.createGain(); som.gain.value = 0.4;
+      [540, 800].forEach(function(f){
+        var ob = ctx.createOscillator(); ob.type = "square"; ob.frequency.value = f;
+        ob.connect(som); ob.start(t); ob.stop(t + 0.3);
+      });
+      var bb = ctx.createBiquadFilter(); bb.type = "bandpass"; bb.frequency.value = 2600; bb.Q.value = 1.2;
+      trEnv(g, t, niv * 1.4, 0.22, 0.001);
+      som.connect(bb); bb.connect(g);
+    } else {
+      var dc = 0.35 + p.dec * 2.2;
+      var mc = trMetal(t, dc, 300 + p.ton * 380, 0.34);
+      var hc = ctx.createBiquadFilter(); hc.type = "highpass";
+      hc.frequency.value = 2600 + p.ton * 4200;
+      trEnv(g, t, niv * 1.1, dc, 0.001);
+      mc.connect(hc); hc.connect(g);
+    }
+  }
+  else if(V.id === "chh" || V.id === "ohh"){
+    var dh = (V.id === "chh") ? (0.018 + p.dec * 0.1) : (0.1 + p.dec * 1.0);
+    var harm = (V.id === "ohh") ? p.harm : 0.35;
+    var mh = trMetal(t, dh, 700 + harm * 700, 0.34);
+    var hh2 = ctx.createBiquadFilter(); hh2.type = "highpass";
+    hh2.frequency.value = 6000 + (V.id === "chh" ? p.ton : 0.5) * 5000;
+    trEnv(g, t, niv * 1.35, dh, 0.0008);
+    mh.connect(hh2); hh2.connect(g);
+    if(V.id === "chh" && DBI.ohGain){
+      try{ DBI.ohGain.gain.cancelScheduledValues(t);
+           DBI.ohGain.gain.setTargetAtTime(0.0001, t, 0.004); }catch(e){}
+    }
+    if(V.id === "ohh") DBI.ohGain = g;
+  }
+  else {                                        /* FM DRUM : une vraie modulation de fréquence */
+    var porteuse = 40 * Math.pow(2, p.pit * 3.2);
+    var modulante = 40 * Math.pow(2, p.mpit * 3.6);
+    var df = 0.08 + p.dec * 0.9;
+    var oc2 = ctx.createOscillator(); oc2.type = "sine";
+    var om = ctx.createOscillator(); om.type = "sine";
+    om.frequency.value = modulante;
+    var gm = ctx.createGain();
+    gm.gain.setValueAtTime(modulante * p.fmamt * 9, t);
+    gm.gain.exponentialRampToValueAtTime(Math.max(1, modulante * p.fmamt * 0.4), t + df * 0.6);
+    om.connect(gm); gm.connect(oc2.frequency);
+    oc2.frequency.setValueAtTime(porteuse * (1 + p.penv * 3), t);
+    oc2.frequency.exponentialRampToValueAtTime(porteuse, t + 0.02 + p.penv * 0.12);
+    trEnv(g, t, niv * 1.1, df, 0.001);
+    oc2.connect(g);
+    om.start(t); oc2.start(t);
+    om.stop(t + df + 0.05); oc2.stop(t + df + 0.05);
+  }
+  midiNoteA(DBI_MIDI[k], t, acc ? 1 : 0.7, MIDI.canal, 0.12);
+}
+
+/* ---------- séquenceur, avec polyrythmie ---------- */
+function longueurDbi(){
+  var m = motifDbiCur();
+  if(!DBI.poly) return m.last;
+  /* en polyrythmie on parcourt le plus petit commun multiple, jusqu'à 64 pas,
+     pour que le cycle complet se referme au bon endroit */
+  var l = 1;
+  for(var k=0;k<8;k++){
+    var n = m.pistes[k].len || 16;
+    l = ppcmDbi(l, n);
+    if(l > 64) return 64;
+  }
+  return Math.max(1, l);
+}
+function ppcmDbi(a, b){
+  var x = a, y = b;
+  while(y){ var t = y; y = x % y; x = t; }
+  return a / x * b;
+}
+function scheduleDbi(i, t){
+  var m = motifDbiCur();
+  if(DBI.swing && i % 2 === 1) t += stepDur() * DBI.swing * 0.5;
+  for(var k=0;k<8;k++){
+    var P = m.pistes[k];
+    var lg = DBI.poly ? (P.len || 16) : m.last;
+    var s = i % lg;
+    var joue = !!(P.pas & (1 << s));
+    if(DBI.random > 0.01){
+      /* le potard RANDOM ôte des coups et en ajoute, comme sur l'appareil */
+      if(joue && Math.random() < DBI.random * 0.35) joue = false;
+      else if(!joue && Math.random() < DBI.random * 0.12) joue = true;
+    }
+    if(!joue) continue;
+    var acc = !!(P.acc & (1 << s));
+    voixDbi(t, k, acc);
+    if(DBI.roller && k === DBI.sel){
+      voixDbi(t + stepDur() / 2, k, false);     /* roulement sur la piste choisie */
+    }
+  }
+  if(!cache) queue.push({i:i, t:t});
+}
+var dbiPas = [];
+function beatDbi(i){
+  DBI.pos = i;
+  var lg = DBI.poly ? (pisteDbiSel().len || 16) : motifDbiCur().last;
+  for(var j=0;j<16;j++) dbiPas[j].classList.toggle("cur", j === (i % lg));
+}
+function arretDbi(){
+  DBI.pos = -1;
+  for(var j=0;j<16;j++) dbiPas[j].classList.remove("cur");
+  var b = document.getElementById("dbi-play");
+  if(b) b.classList.remove("on");
+}
+function boucleDbi(){ }
+var MACHINE_DBI = {schedule:scheduleDbi, beat:beatDbi, arret:arretDbi, boucle:boucleDbi,
+                   longueur:longueurDbi};
+
+/* ---------- interface ---------- */
+var DBI_KNOBS = [];
+(function construireDbi(){
+  var v = document.getElementById("dbi-voix");
+  DBI_VOIX.forEach(function(V, k){
+    var d = document.createElement("div");
+    d.className = "dbi-v";
+    var h = '<b>' + V.nom + '</b>';
+    V.kns.concat(V.col).forEach(function(kn){
+      var estCol = V.col.indexOf(kn) >= 0;
+      h += '<div class="dbi-kn" data-col="' + (estCol ? 1 : 0) + '">' +
+           '<div class="bt" id="dbi-k-' + k + '-' + kn[0] + '"><i></i></div><em>' + kn[1] + '</em></div>';
+    });
+    if(V.type) h += '<button class="dbi-type" data-t="' + k + '" style="width:100%;padding:6px 2px;font-size:7px">TYPE</button>';
+    h += '<button class="dbi-pad" data-p="' + k + '">' + V.nom + '</button>';
+    d.innerHTML = h;
+    v.appendChild(d);
+  });
+  v.addEventListener("click", function(e){
+    var pad = e.target.closest(".dbi-pad");
+    if(pad){
+      audioInit();
+      DBI.sel = +pad.dataset.p;
+      voixDbi(ctx.currentTime + 0.005, DBI.sel, true);
+      majDbi(); majKnobsDbi(); H.cran();
+      return;
+    }
+    var ty = e.target.closest(".dbi-type");
+    if(ty){
+      var P = motifDbiCur().pistes[+ty.dataset.t];
+      P.type = P.type ? 0 : 1;
+      majDbi(); memDbi(); H.cran();
+    }
+  });
+
+  var pas = document.getElementById("dbi-pas");
+  for(var i=0;i<16;i++){
+    var b = document.createElement("button");
+    b.dataset.i = i;
+    pas.appendChild(b);
+    dbiPas.push(b);
+  }
+  pas.addEventListener("click", function(e){
+    var b2 = e.target.closest("button");
+    if(!b2) return;
+    var i2 = +b2.dataset.i, P = pisteDbiSel();
+    if(DBI.accent) P.acc ^= (1 << i2);
+    else {
+      P.pas ^= (1 << i2);
+      if(!S.run && (P.pas & (1 << i2))){
+        audioInit();
+        voixDbi(ctx.currentTime + 0.01, DBI.sel, !!(P.acc & (1 << i2)));
+      }
+    }
+    majDbi(); memDbi(); H.cran();
+  });
+})();
+
+function knobDbi(k, nom, etiq){
+  return knobEm("dbi-k-" + k + "-" + nom, {min:0, max:1,
+    get:function(){ return motifDbiCur().pistes[k].p[nom]; },
+    set:function(v){
+      motifDbiCur().pistes[k].p[nom] = v;
+      lcdDbi(String(Math.round(v * 100)), DBI_VOIX[k].nom + " " + etiq, true);
+      memDbi();
+    }});
+}
+DBI_VOIX.forEach(function(V, k){
+  V.kns.concat(V.col).forEach(function(kn){ DBI_KNOBS.push(knobDbi(k, kn[0], kn[1])); });
+});
+var kDbiSwing = knobEm("dbi-k-swing", {min:0, max:0.7, get:function(){ return DBI.swing; },
+  set:function(v){ DBI.swing = v; lcdDbi(String(Math.round(50 + v*35)) + "%", "SWING", true); memDbi(); }});
+var kDbiRand = knobEm("dbi-k-random", {min:0, max:1, get:function(){ return DBI.random; },
+  set:function(v){ DBI.random = v; lcdDbi(String(Math.round(v*100)), "RANDOM", true); memDbi(); }});
+var kDbiDrive = knobEm("dbi-k-drive", {min:0, max:1, get:function(){ return DBI.drive; },
+  set:function(v){ DBI.drive = v; majDistDbi(); lcdDbi(String(Math.round(v*100)), "DISTORTION", true); memDbi(); }});
+var kDbiVol = knobEm("dbi-k-vol", {min:0, max:1, get:function(){ return S.vol; },
+  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+    lcdDbi(String(Math.round(v*100)), "MASTER", true); saveSoon(); }});
+var kDbiTempo = knobEm("dbi-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 30) / 270; },
+  set:function(v){ S.bpm = Math.round(30 + v * 270); lcdDbi(String(S.bpm), "RATE", true); saveSoon(); }});
+function majKnobsDbi(){
+  DBI_KNOBS.forEach(function(k){ k.maj(); });
+  kDbiSwing.maj(); kDbiRand.maj(); kDbiDrive.maj(); kDbiVol.maj(); kDbiTempo.maj();
+}
+
+var dbiTmr = null;
+function lcdDbi(v, l, fugace){
+  var a = document.getElementById("dbi-val"), b = document.getElementById("dbi-lab");
+  if(!a) return;
+  a.textContent = v; b.textContent = l;
+  clearTimeout(dbiTmr);
+  if(fugace) dbiTmr = setTimeout(majLcdDbi, 1300);
+}
+function majLcdDbi(){
+  var P = pisteDbiSel();
+  lcdDbi(DBI_VOIX[DBI.sel].nom, DBI.poly ? ("LEN " + (P.len || 16) + " · POLY") : ("PTN " + (DBI.cur + 1)));
+}
+function majDbi(){
+  var P = pisteDbiSel(), m = motifDbiCur(), i;
+  var lg = DBI.poly ? (P.len || 16) : m.last;
+  for(i=0;i<16;i++){
+    dbiPas[i].classList.toggle("act", DBI.accent ? !!(P.acc & (1 << i)) : !!(P.pas & (1 << i)));
+    dbiPas[i].classList.toggle("hors", i >= lg);
+  }
+  var pads = document.querySelectorAll(".dbi-pad");
+  for(i=0;i<pads.length;i++) pads[i].classList.toggle("sel", i === DBI.sel);
+  document.body.classList.toggle("dbi-col", DBI.color);
+  var kns = document.querySelectorAll(".dbi-kn[data-col]");
+  for(i=0;i<kns.length;i++){
+    var estCol = kns[i].dataset.col === "1";
+    kns[i].style.display = (estCol === DBI.color) ? "" : "none";
+  }
+  var tys = document.querySelectorAll(".dbi-type");
+  for(i=0;i<tys.length;i++){
+    var V = DBI_VOIX[+tys[i].dataset.t];
+    tys[i].textContent = V.type[motifDbiCur().pistes[+tys[i].dataset.t].type];
+  }
+  document.getElementById("dbi-color").classList.toggle("on", DBI.color);
+  document.getElementById("dbi-poly").classList.toggle("on", DBI.poly);
+  document.getElementById("dbi-roller").classList.toggle("on", DBI.roller);
+  document.getElementById("dbi-accent").classList.toggle("on", DBI.accent);
+  document.getElementById("dbi-dist").classList.toggle("on", DBI.dist);
+  document.getElementById("dbi-rec").classList.toggle("on", DBI.rec);
+  document.getElementById("dbi-last").textContent = "LAST STEP " + m.last;
+  document.getElementById("dbi-len").textContent = "TRACK LEN " + (P.len || 16);
+  document.getElementById("dbi-ptn").textContent = "PTN " + (DBI.cur + 1);
+  majLcdDbi();
+}
+function memDbi(){
+  memoire.dbi = {cur:DBI.cur, sel:DBI.sel, swing:DBI.swing, random:DBI.random,
+    drive:DBI.drive, dist:DBI.dist, poly:DBI.poly,
+    motifs:DBI.motifs.map(function(m){
+      return {last:m.last, pistes:m.pistes.map(function(P){
+        return {pas:P.pas, acc:P.acc, len:P.len, type:P.type, p:P.p};
+      })};
+    })};
+  sauverMachine("dbi");
+}
+function chargerDbi(){
+  DBI.motifs = [];
+  for(var i=0;i<16;i++) DBI.motifs.push(motifDbi(i < 2 ? i : 9));
+  DBI.cur = 0; DBI.sel = 0; DBI.color = false; DBI.accent = false;
+  var m = memLire("dbi");
+  if(m){
+    if(m.motifs && m.motifs.length === 16){
+      DBI.motifs = m.motifs.map(function(o){
+        var r = motifDbi(9);
+        r.last = o.last || 16;
+        (o.pistes || []).forEach(function(P, k){
+          if(k >= 8) return;
+          var d = r.pistes[k];
+          d.pas = P.pas || 0; d.acc = P.acc || 0; d.len = P.len || 16; d.type = P.type || 0;
+          if(P.p) for(var q in P.p) if(d.p[q] !== undefined) d.p[q] = P.p[q];
+        });
+        return r;
+      });
+    }
+    ["cur","sel","swing","random","drive"].forEach(function(c){
+      if(typeof m[c] === "number") DBI[c] = m[c];
+    });
+    DBI.dist = !!m.dist; DBI.poly = !!m.poly;
+  }
+}
+
+document.getElementById("dbi-play").addEventListener("click", function(){
+  audioInit();
+  if(S.run){ stop(); H.stop(); } else { step = 0; start(); H.start(); }
+  this.classList.toggle("on", S.run);
+});
+document.getElementById("dbi-stop").addEventListener("click", function(){
+  stop(); H.stop();
+  document.getElementById("dbi-play").classList.remove("on");
+});
+document.getElementById("dbi-rec").addEventListener("click", function(){
+  DBI.rec = !DBI.rec; majDbi(); H.inter();
+});
+document.getElementById("dbi-color").addEventListener("click", function(){
+  DBI.color = !DBI.color; majDbi(); majKnobsDbi(); H.inter();
+  signal(DBI.color ? "COULEUR : SECONDE COUCHE DE RÉGLAGES" : "RÉGLAGES PRINCIPAUX");
+});
+document.getElementById("dbi-poly").addEventListener("click", function(){
+  DBI.poly = !DBI.poly;
+  majDbi(); memDbi(); H.inter();
+  signal(DBI.poly ? ("POLYRYTHMIE · CYCLE DE " + longueurDbi() + " PAS") : "TOUTES LES PISTES ENSEMBLE");
+});
+document.getElementById("dbi-roller").addEventListener("click", function(){
+  DBI.roller = !DBI.roller; majDbi(); H.cran();
+});
+document.getElementById("dbi-accent").addEventListener("click", function(){
+  DBI.accent = !DBI.accent; majDbi(); H.inter();
+  signal(DBI.accent ? "LES TOUCHES POSENT LES ACCENTS" : "LES TOUCHES POSENT LES PAS");
+});
+document.getElementById("dbi-dist").addEventListener("click", function(){
+  DBI.dist = !DBI.dist; majDistDbi(); majDbi(); memDbi(); H.inter();
+});
+document.getElementById("dbi-last").addEventListener("click", function(){
+  var m = motifDbiCur(), v = [16, 12, 8, 4];
+  m.last = v[(v.indexOf(m.last) + 1) % v.length];
+  majDbi(); memDbi(); H.cran();
+});
+document.getElementById("dbi-len").addEventListener("click", function(){
+  var P = pisteDbiSel(), v = [16, 15, 14, 12, 11, 9, 8, 7, 6, 5, 4, 3];
+  P.len = v[(v.indexOf(P.len) + 1) % v.length];
+  majDbi(); memDbi(); H.cran();
+  if(DBI.poly) signal("PISTE SUR " + P.len + " PAS · CYCLE DE " + longueurDbi());
+});
+document.getElementById("dbi-copy").addEventListener("click", function(){
+  var v = window.prompt("Copier le motif " + (DBI.cur + 1) + " vers lequel ? (1 à 16)", "");
+  var n = parseInt(v, 10) - 1;
+  if(isNaN(n) || n < 0 || n > 15) return;
+  DBI.motifs[n] = JSON.parse(JSON.stringify(motifDbiCur()));
+  memDbi(); signal("COPIÉ VERS LE MOTIF " + (n + 1)); H.inter();
+});
+document.getElementById("dbi-erase").addEventListener("click", function(){
+  var P = pisteDbiSel();
+  P.pas = 0; P.acc = 0;
+  majDbi(); memDbi(); H.inter();
+  signal("PISTE " + DBI_VOIX[DBI.sel].nom + " VIDÉE");
+});
+document.getElementById("dbi-ptn").addEventListener("click", function(){
+  memDbi();
+  DBI.cur = (DBI.cur + 1) % 16;
+  majDbi(); majKnobsDbi(); H.inter();
+});
+document.getElementById("dbi-notice").addEventListener("click", function(){ ouvrirNotice(); });
+
+var unitDbi = document.getElementById("unit-dbi");
+function activerDbi(){
+  stop();
+  S.modele = "dbi";
+  MACHINE = MACHINE_DBI;
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
+                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi");
+  document.body.classList.add("dbi");
+  audioInit();
+  chargerDbi();
+  DBI.noeuds = {}; DBI.ohGain = null;
+  majDbi(); majKnobsDbi();
+  actif = unitDbi;
+  save(); fit(); setTimeout(fit, 120);
+}
+
 /* ===================== ROLAND CR-5000 =====================
    Boîte à présélections de 1980 : on ne programme rien. On choisit un des
    vingt-quatre rythmes, et l'ARRANGER y ajoute des instruments par-dessus.
@@ -12603,7 +13226,7 @@ function activerCr(){
   S.modele = "cr5";
   MACHINE = MACHINE_CR;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc","cr5");
+                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi");
   document.body.classList.add("cr5");
   audioInit();
   chargerCr();
@@ -13027,7 +13650,7 @@ function activerVlc(){
   S.modele = "vlc";
   MACHINE = MACHINE_VLC;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc","cr5");
+                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi");
   document.body.classList.add("vlc");
   audioInit(); banqueEs(); chargerEchs();
   chargerVlc();
@@ -13462,7 +14085,7 @@ function activerDmx(){
   stop();
   S.modele = "dmx";
   MACHINE = MACHINE_DMX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi");
   document.body.classList.add("dmx");
   audioInit();
   chargerDmx();
@@ -14877,7 +15500,7 @@ function appliquerModele(id){
   stop();
   MACHINE = MACHINE_EHX;
   actif = unit;
-  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
+  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi");
   S.modele = id;
   MODELE = MODELES[id];
   var r = memoire[id];
@@ -14920,7 +15543,8 @@ function majVoileMenu(){
   v.classList.toggle("vu", reste > 12);
 }
 function allerMachine(id){
-  if(id === "cr5") activerCr();
+  if(id === "dbi") activerDbi();
+  else if(id === "cr5") activerCr();
   else if(id === "vlc") activerVlc();
   else if(id === "dmx") activerDmx();
   else if(id === "tr808") activerTr("tr808");
@@ -14969,6 +15593,7 @@ else if(memoire.modele === "tr707") activerTr("tr707");
 else if(memoire.modele === "dmx") activerDmx();
 else if(memoire.modele === "vlc") activerVlc();
 else if(memoire.modele === "cr5") activerCr();
+else if(memoire.modele === "dbi") activerDbi();
 else appliquerModele(memoire.modele);
 menu.classList.remove("hide");
 document.body.classList.add("menu-ouvert");

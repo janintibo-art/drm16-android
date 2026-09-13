@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Dix-neuf machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+**Vingt machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
 en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -243,6 +243,27 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Arturia DrumBrute Impact (version 46)
+
+Septième machine, et la seule de l'application qui fasse de la **polyrythmie**. Chaque piste garde sa
+propre longueur : seize pas, douze, sept, et elles ne se retrouvent qu'au bout de leur plus petit commun
+multiple. L'ordonnanceur calcule ce cycle et le plafonne à 64 pas. Mesuré : trois pistes de 16, 12 et 7
+donnent un cycle de 64, et 16/12/12 en donnent un de 48.
+
+**La couche COLOR** remplace les potards par une seconde série de huit réglages — saturation de la grosse
+caisse, corps de la caisse 1, clap sur la caisse 2, chute du tom, timbre de cymbale, chute du charley
+fermé, harmoniques de l'ouvert, enveloppe de hauteur du FM. Vingt-deux potards en mode normal, huit en
+mode couleur, et le repère passe à l'orange.
+
+**La FM DRUM est une vraie modulation de fréquence** : porteuse, modulante, intensité décroissante. Le TOM
+et la CYM/COW ont deux personnalités chacun.
+
+**Le potard RANDOM** ôte des coups et en ajoute, différemment à chaque tour : seize pas posés tombent entre
+sept et treize au maximum. **DISTORTION** passe la sortie dans une saturation — niveau efficace de 0,082 à
+0,131 sur une grosse caisse.
+
+Les huit voix mesurées, aucune muette, de 0,04 s pour le charley fermé à 0,84 s pour la cymbale.
 
 ## Roland CR-5000 CompuRhythm (version 45)
 
