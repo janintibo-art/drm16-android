@@ -3172,9 +3172,18 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <h3>MIDI</h3>
   <p>Branchez une carte USB-C vers MIDI puis cherchez les appareils ci-dessous. En <b>sortie</b>, chaque coup
   part en note : percussions sur le canal réglable, parties mélodiques sur les canaux 1 et 2. L'<b>horloge</b>
-  et les messages de départ et d'arrêt peuvent entraîner un autre appareil. En <b>entrée</b>, les notes 36 à 44
-  déclenchent les parties de percussion de la machine affichée, les autres canaux ses parties mélodiques, et
-  tout s'enregistre si REC est armé.</p>
+  et les messages de départ et d'arrêt peuvent entraîner un autre appareil.</p>
+  <p>En <b>entrée</b>, les vingt-cinq machines répondent, chacune à sa façon. Les six Electribe prennent les
+  notes 36 à 44 sur leurs parties de percussion et les autres canaux sur leurs parties mélodiques. Les dix
+  boîtes à rythmes — TR-808, 909, 707, RD-6, MPC, DMX, volca, CR-5000, DrumBrute, TR-1000, machine
+  d'archive — acceptent <b>exactement les notes qu'elles émettent</b> : une note de grosse caisse tombe sur
+  la grosse caisse, sans réglage. Brancher deux machines de l'application l'une sur l'autre fonctionne donc
+  d'office. La TD-3 est mélodique : la note reçue est la note jouée, sur deux octaves autour du do médian.
+  L'Eurorack ne répond pas, n'ayant pas de voix fixes.</p>
+  <p>Une note que la machine ne connaît pas joue la <b>voix choisie à l'écran</b> : n'importe quel clavier
+  reste utilisable sans rien accorder. Une vélocité supérieure à 100 vaut accent.</p>
+  <p>À l'<b>enregistrement</b>, tout rentre dans le motif sur les Electribe, la MPC et la DMX. Sur les
+  autres machines, les notes reçues se jouent mais ne s'écrivent pas encore.</p>
   <h3>Bibliothèque</h3>
   <p>Trois rayons. <b>SONS</b> réunit la banque interne et tous vos enregistrements : écouter, renommer,
   supprimer, importer un fichier, enregistrer au micro, et surtout <b>affecter</b> un son à la partie ou au
@@ -11637,6 +11646,73 @@ function majPlayEm(){
   var pb = document.getElementById("em-play");
   if(pb) pb.classList.toggle("on", S.run && S.modele === "em1");
 }
+/* ---------- entrée MIDI : à quelle voix va une note ? ----------
+   Dix machines n'étaient pas branchées : une note reçue tombait dans le cas
+   par défaut d'entreeNote et jouait les voix de la DRM16, quelle que soit la
+   machine à l'écran.
+
+   Plutôt que d'inventer un plan de notes par machine, on retourne celui
+   qu'elles publient déjà pour SORTIR : TR808_MIDI, DBI_MIDI, T1K_MIDI,
+   DMX_MIDI, CR_MIDI, et MIDI.base + rang pour les autres. Une DRM16 branchée
+   sur une TR-808 tombe donc juste toute seule, et il n'y a qu'une table à
+   tenir par machine au lieu de deux.
+
+   Une note hors table joue la voix choisie à l'écran : un clavier quelconque
+   reste utilisable sans rien régler. */
+function routageMidi(m){
+  if(m === "tr808" || m === "tr909" || m === "tr707" || m === "rd6")
+    return {notes:TR.def.midi, defaut:function(){ return Math.max(1, TR.sel); },
+            jouer:function(k, vel){ if(k > 0) voixTr(ctx.currentTime + 0.01, k, vel > 0.8); }};
+
+  if(m === "mpc3000" || m === "mpc2000")
+    return {notes:MPC.pads.map(function(p){ return p ? p.note : -1; }),
+            defaut:function(){ return MPC.sel; },
+            jouer:function(k, vel){ frapperPad(k, vel); }};   /* joue ET enregistre */
+
+  if(m === "dmx")
+    return {notes:DMX_MIDI, defaut:function(){ return DMX.sel || 0; },
+            jouer:function(k){ frapperDmx(k); }};             /* joue ET enregistre */
+
+  if(m === "dbi")
+    return {notes:DBI_MIDI, defaut:function(){ return DBI.sel; },
+            jouer:function(k, vel){ voixDbi(ctx.currentTime + 0.01, k, vel > 0.8); }};
+
+  if(m === "t1k")
+    return {notes:T1K_MIDI, defaut:function(){ return T1K.sel; },
+            jouer:function(k, vel){ voixT1k(ctx.currentTime + 0.01, k, vel > 0.8); }};
+
+  if(m === "cr5"){
+    var ids = [], notes = [];
+    for(var id in CR_MIDI) if(Object.prototype.hasOwnProperty.call(CR_MIDI, id)){
+      ids.push(id); notes.push(CR_MIDI[id]);
+    }
+    return {notes:notes, defaut:function(){ return 0; },
+            jouer:function(k, vel){ voixCr(ctx.currentTime + 0.01, ids[k], vel > 0.8); }};
+  }
+
+  if(m === "arcm")
+    return {base:motifArcmCur().pistes.length, defaut:function(){ return ARCM.sel; },
+            jouer:function(k, vel){ voixArcm(ctx.currentTime + 0.01, k, vel > 0.8); }};
+
+  if(m === "vlc")
+    return {base:motifVlcCur().parties.length, defaut:function(){ return VLC.sel; },
+            jouer:function(k){ voixVlc(ctx.currentTime + 0.01, k); }};
+
+  return null;
+}
+
+/* Le rang de voix visé par une note, ou -1 si la table ne la connaît pas.
+   `base` remplace une table pour les machines rangées à partir de MIDI.base. */
+function rangMidi(r, note){
+  var i;
+  if(r.notes){
+    for(i=0;i<r.notes.length;i++) if(r.notes[i] === note) return i;
+    return -1;
+  }
+  i = note - MIDI.base;
+  return (i >= 0 && i < r.base) ? i : -1;
+}
+
 /* chaque machine reçoit les notes sur ses propres parties */
 function entreeNote(note, vel, canal){
   audioInit(); if(!ctx) return;
@@ -11697,6 +11773,33 @@ function entreeNote(note, vel, canal){
     }
     return;
   }
+
+  /* la TD-3 est mélodique : la note reçue EST la note jouée, sur deux octaves
+     autour du do médian, comme le fait son propre séquenceur */
+  if(m === "td3"){
+    var demi = note - 36, oc = Math.floor(demi / 12);
+    /* la voix de la TD-3 est unique et permanente : si on ne coupe pas le
+       glissando, une note reçue partirait de la hauteur du pas précédent */
+    TD3.precSlide = false;
+    jouerTd3(ctx.currentTime + 0.01, {on:true, note:((demi % 12) + 12) % 12,
+                                      oct:Math.max(-1, Math.min(1, oc)),
+                                      acc:vel > 0.8, slide:false, tie:false}, 0.35);
+    return;
+  }
+
+  /* les dix machines à percussion : la table qu'elles utilisent pour sortir */
+  var r = routageMidi(m);
+  if(r){
+    k = rangMidi(r, note);
+    if(k < 0) k = r.defaut();
+    r.jouer(k, vel);
+    return;
+  }
+
+  /* l'Eurorack n'a pas de voix fixes : une note n'y veut rien dire */
+  if(m === "eur") return;
+
+  /* il ne reste que la DRM16 et la DRM32 */
   if(voix && V[voix]) V[voix](ctx.currentTime+0.01, vel);
 };
 /* enregistrement au vol, commun à toutes les machines */

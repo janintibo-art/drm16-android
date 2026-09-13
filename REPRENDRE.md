@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **62**.
+La version actuelle est la **63**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,31 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Entrée MIDI des 25 machines — v63**
+
+C'était la lacune relevée par l'audit v62 : `entreeNote` ne connaissait que les Electribe, et sur les dix
+autres machines une note reçue tombait dans le cas par défaut et jouait **les voix de la DRM16**.
+
+Principe retenu : **ne pas inventer de plan de notes**. Chaque machine publie déjà la note qu'elle émet
+(`TR808_MIDI`, `T1K_MIDI`, `DBI_MIDI`, `DMX_MIDI`, `CR_MIDI`, ou `MIDI.base + rang` pour l'archive et la
+volca). On retourne ces tables pour l'entrée. Conséquences : une seule table à tenir par machine au lieu de
+deux, et deux machines de l'application branchées l'une sur l'autre tombent juste d'office.
+
+- `routageMidi(m)` renvoie `{notes | base, defaut(), jouer(k, vel)}`, ou `null` si la machine n'est pas
+  concernée. `rangMidi(r, note)` donne le rang visé, `-1` si inconnu → on joue la voix choisie à l'écran.
+- MPC et DMX passent par `frapperPad` / `frapperDmx`, qui **jouent et enregistrent** déjà. Les autres
+  machines n'ont pas de fonction de frappe qui enregistre : l'entrée MIDI y est audition seule.
+- La TD-3 est mélodique et traitée à part. `TD3.precSlide = false` avant de jouer, sinon sa voix unique
+  et permanente partirait de la hauteur du pas précédent — même précaution que son interface.
+- L'Eurorack retourne explicitement sans rien faire : pas de voix fixes.
+- **Le cas par défaut est maintenant réservé à `"16"` et `"32"`.** Vérifié : les 23 autres modèles sont
+  traités explicitement. Toute machine ajoutée doit entrer dans `routageMidi`, sinon elle jouera la DRM16.
+
+**Reste à faire** : l'enregistrement à la volée sur TR, DBI, T1K, CR5, ARCM, VLC. Chacune a une structure
+de motif différente ; il faudrait une fonction de frappe par machine, sur le modèle de `frapperDmx`.
+Noter au passage que `DBI.rec` existe, est basculé par un bouton et affiché, mais **n'est lu nulle part** :
+fonction commencée et jamais finie.
 
 **Audit v62 — la famille du bug de la v61, passée au peigne**
 
