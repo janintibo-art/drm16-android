@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Vingt-quatre machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+**Vingt-quatre machines et un rack eurorack**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
 en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -243,6 +243,31 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Eurorack (version 55)
+
+Un onglet d'une autre nature : **rien n'est câblé d'avance**. On pose des modules dans un rack et on les
+relie soi-même. Quatorze modules pour commencer — CLOCK, SEQ 8, VCO, NOISE, VCF, VCA, ENVELOPE, LFO,
+S & H, MIX 4, ECHO, REVERB, DRUM, OUTPUT.
+
+**Le modèle de signal.** Tout circule en audio, y compris les commandes, comme sur un vrai modulaire.
+Les entrées de hauteur sont branchées sur le **désaccord** des oscillateurs, exprimé en cents : cela donne
+la réponse exponentielle du 1 V/octave sans aucun calcul. Le séquenceur sort des tensions quantifiées au
+demi-ton.
+
+**Le câblage au doigt.** Toucher une sortie l'arme, toucher une entrée pose le câble ; retoucher une entrée
+câblée le retire. Une entrée n'accepte qu'un fil, une sortie en alimente plusieurs. Pas de glisser-déposer :
+sur un téléphone, deux touchers valent mieux qu'un geste tenu.
+
+**Reconstruction complète à chaque changement.** Plutôt que de démonter un branchement au milieu d'un
+graphe audio vivant, tout le rack est rebâti. C'est plus court et cela évite les nœuds orphelins.
+
+**Deux corrections d'affichage**, trouvées à l'image : les câbles plongeaient sous le rack — courbe réduite
+et place ménagée en bas — puis passaient **derrière** les modules. Ils passent maintenant devant, comme en
+vrai, sans capter le doigt : vérifié qu'un jack reste touchable sous un câble.
+
+Le patch d'exemple monte une chaîne complète en neuf câbles et sonne à 0,786 de crête. Le rack est gardé en
+mémoire, et l'export WAV fonctionne comme pour les autres machines.
 
 ## Behringer TD-3 (version 54)
 
