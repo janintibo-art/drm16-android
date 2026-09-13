@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **74**.
+La version actuelle est la **75**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -40,7 +40,7 @@ sont sans accents (Termux).
 
 La notice est découpée en **onglets `.doc`** dans `#note-corps` ; la barre de navigation est construite
 toute seule à partir de leur `data-titre`. L'Eurorack en occupe trois : `note-eur` (les principes),
-`note-eurmod` (les 75 fiches), `note-eurpat` (huit patchs et le glossaire).
+`note-eurmod` (les 79 fiches), `note-eurpat` (huit patchs et le glossaire).
 
 Une seule page HTML porte toute l'application : `app/src/main/assets/drm16.html`, environ **890 ko**.
 Le Java ne sert que de pont vers Android.
@@ -59,8 +59,8 @@ Le Java ne sert que de pont vers Android.
 **Electro-Harmonix** DRM16, DRM32 · **Korg** Electribe EM-1, ER-1, EA-1, ES-1, ER-1 mkII, ES-1 mkII,
 EA-1 mkII, EMX-1, ESX-1, volca sample · **Akai** MPC3000, MPC2000 · **Roland** TR-808, TR-909, TR-707,
 CR-5000, TR-1000 · **Oberheim** DMX · **Arturia** DrumBrute Impact · **Behringer** RD-6, TD-3 ·
-**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (75 modules, deux rangées :
-9 horloges, 6 séquenceurs, 7 oscillateurs, 10 filtres, 8 modulations, 10 utilitaires, 14 traitements,
+**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (79 modules, deux rangées :
+9 horloges, 6 séquenceurs, 9 oscillateurs, 10 filtres, 9 modulations, 11 utilitaires, 14 traitements,
 11 percussions).
 
 ### Les outils
@@ -116,6 +116,20 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Quatre modules de plus — v75**
+
+- **HARMONIC** (osc) — additif par `createPeriodicWave`, 24 rangs, pente et balance pair/impair. La table
+  est refaite à chaque `maj()` : c'est acceptable parce que `maj` n'est appelé que sur un tour de potard.
+- **SUB HARM** (osc) — fondamentale plus deux sous-harmoniques entières (1 à 16), façon Trautonium.
+- **FUNCTION** (mod) — RISE / FALL séparés, sortie **EOC**. Reliée à son propre TRIG, la fonction cycle.
+  **La borne est essentielle** : `if(fin - m.tStep > stepDur() * 1.5) return null`. Sans elle, une boucle
+  EOC → TRIG se relancerait des centaines de fois dans un seul pas et programmerait des minutes de son
+  d'avance. `m.tic` sert uniquement à retenir l'instant du pas courant. Vérifié à trois durées de cycle :
+  jamais plus de deux relances par pas, jamais plus loin que la fin du bloc programmé.
+- **COMPARE** (util) — seuil sur une tension, impulsion au franchissement montant (OUT) et descendant
+  (INV), rien entre deux. Lecture par analyseur dans `m.tic`, donc à la résolution du pas. C'est le pont
+  entre les tensions continues et les impulsions, qui manquait.
 
 **Deux rangées et huit modules rares — v74**
 

@@ -226,7 +226,7 @@ body.m32 .read{color:#8fe8d8}
   color:#140f0c;font-weight:800;letter-spacing:1px;font-size:14px}
 #note button.sec{background:#2f2f35;color:#eceae4;margin-top:6px;margin-right:6px}
 #note button[disabled]{opacity:.5}
-/* la notice de l'Eurorack decrit soixante-quinze modules : sans mise en forme
+/* la notice de l'Eurorack decrit soixante-dix-neuf modules : sans mise en forme
    propre, la liste devient un mur de texte illisible sur un telephone */
 #note ol,#note ul{margin:0 0 10px;padding-left:20px}
 #note li{margin:0 0 5px}
@@ -3536,7 +3536,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>soixante-quinze modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>soixante-dix-neuf modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
@@ -3580,7 +3580,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   montrent alors ce nom à la place du numéro, et les demandes de confirmation aussi : on sait ce qu'on
   s'apprête à écraser. Un nom vide remet le numéro. Un montage pris dans <b>MONTAGES</b> nomme le rack
   tout seul.</li>
-  <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : soixante-quinze modules en vrac seraient
+  <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : soixante-dix-neuf modules en vrac seraient
   illisibles sur un téléphone.</li>
   <li><b>MONTAGES</b> ouvre vingt patchs tout faits, rangés par genre. Voir plus bas.</li>
   <li><b>RACK AU SORT</b> monte un ensemble complet et cohérent, décrit plus bas.</li>
@@ -3603,7 +3603,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   rétrécir la façade, puis déplacez-la d'un doigt posé sur le châssis.</p>
 
   <h3>Vingt montages tout faits</h3>
-  <p>Un rack vide décourage : il faut connaître soixante-quinze modules et savoir lesquels vont ensemble avant
+  <p>Un rack vide décourage : il faut connaître soixante-dix-neuf modules et savoir lesquels vont ensemble avant
   d'entendre quoi que ce soit. <b>MONTAGES</b> donne des points de départ qui sonnent, rangés en cinq
   genres. Ils remplacent le rack courant — passez au rack suivant d'abord si vous tenez au vôtre.</p>
   <ul>
@@ -3697,7 +3697,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>L'<b>export WAV</b> fonctionne aussi, et enregistre ce qui sort de l'OUTPUT du rack affiché.</p>
   </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
-  <p>Les soixante-quinze modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
+  <p>Les soixante-dix-neuf modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
   potards, ses entrées et ses sorties. Les <b>sorties</b> sont les prises cerclées d'or.</p>
 
   <h3>Horloges · 9 modules</h3>
@@ -3786,7 +3786,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   à faire entendre une harmonie.</p>
   <span>Potards TYPE, MODE, OCT · Entrée CLK · Sorties CV, GATE</span></div>
 
-  <h3>Oscillateurs · 7 modules</h3>
+  <h3>Oscillateurs · 9 modules</h3>
   <p>Les sources de son. Tous sauf NOISE ont une entrée <b>V/OCT</b> : un volt de plus, une octave de plus.
   OCT couvre quatre octaves, FINE l'accord fin.</p>
   <div class="fmod"><b>VCO</b>
@@ -3818,6 +3818,20 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   neuvième ajoutée ; SPREAD les désaccorde légèrement pour élargir. Une seule entrée de hauteur transpose
   l'accord entier.</p>
   <span>Potards OCT, TYPE, SPREAD · Entrée V/OCT · Sortie OUT</span></div>
+  <div class="fmod"><b>HARMONIC</b>
+  <p>La synthèse additive, celle des orgues à tirettes : au lieu de partir d'une onde riche et de retirer au
+  filtre, on empile vingt-quatre harmoniques une par une. TILT règle la pente de l'empilement — à plat c'est
+  criard, en pente c'est presque un sinus. EVEN/ODD bascule entre rangs pairs et impairs : tout à gauche il
+  ne reste que les impairs, et c'est exactement ce que contient un carré, d'où sa couleur de clarinette.</p>
+  <span>Potards OCT, TILT, EVEN/ODD · Entrée V/OCT · Sortie OUT</span></div>
+
+  <div class="fmod"><b>SUB HARM</b>
+  <p>Le principe du Trautonium et du Subharmonicon : sous une fondamentale on range des <b>divisions
+  entières</b> — la moitié, le tiers, le cinquième. Ce sont des intervalles justes, mais pris à l'envers du
+  monde : on descend au lieu de monter. Ça sonne juste sans jamais sonner comme un accord ordinaire. DIV 1
+  et DIV 2 choisissent les deux diviseurs, de 1 à 16.</p>
+  <span>Potards OCT, DIV 1, DIV 2, MIX · Entrée V/OCT · Sortie OUT</span></div>
+
   <div class="fmod"><b>NOISE</b>
   <p>Du bruit, en permanence. Le blanc est plat et sifflant, le rose plus sourd. Base de toutes les
   percussions à main, et matière première du S &amp; H.</p>
@@ -3876,7 +3890,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   dent de scie, on entend une voyelle chantée ; balayé par un LFO lent, le rack se met à parler.</p>
   <span>Potards VOWEL, Q · Entrée IN · Sortie OUT</span></div>
 
-  <h3>Modulation · 8 modules</h3>
+  <h3>Modulation · 9 modules</h3>
   <p>Ils ne font pas de son : ils fabriquent des tensions qui bougent, à envoyer dans les entrées CV des
   autres. C'est ce qui empêche un patch de rester figé.</p>
   <div class="fmod"><b>ENVELOPE</b>
@@ -3895,6 +3909,14 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   le sinus ondule, le carré bascule, le triangle monte et descend droit. AMT règle la profondeur. Dans un
   CV de filtre, c'est un balayage ; dans un V/OCT, un vibrato ; dans un PAN, un va-et-vient.</p>
   <span>Potards RATE, AMT · Sorties SINE, SQR, TRI</span></div>
+  <div class="fmod"><b>FUNCTION</b>
+  <p>Ni une enveloppe ni un LFO : les deux, selon ce qu'on en fait. RISE et FALL se règlent séparément, de
+  trois millisecondes à plusieurs secondes. <b>EOC</b> annonce la fin du cycle — et c'est là que le module
+  devient intéressant : <b>reliez EOC à son propre TRIG</b> et la fonction se relance toute seule. Elle
+  devient un oscillateur lent dont on tient la montée et la descente séparément, ce qu'aucun LFO ne permet.
+  C'est le patch qu'on fait le jour où on comprend le module.</p>
+  <span>Potards RISE, FALL, LEVEL · Entrée TRIG · Sorties OUT, EOC</span></div>
+
   <div class="fmod"><b>RUNGLER</b>
   <p>Le cœur du Benjolin de Rob Hordijk. Ce n'est <b>pas du hasard</b> : c'est une suite déterministe qui
   frôle sans cesse la répétition sans jamais s'y installer. À CHAOS bas elle tourne en boucle courte, à
@@ -3929,7 +3951,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   Pour un balayage de filtre qui tombe pile sur la mesure, c'est lui et pas l'autre.</p>
   <span>Potards DIV, AMT · Sorties SINE, TRI, RAMP</span></div>
 
-  <h3>Utilitaires · 10 modules</h3>
+  <h3>Utilitaires · 11 modules</h3>
   <p>Rien de spectaculaire, et pourtant c'est ce qui manque toujours dans un vrai rack. Ils dosent,
   mélangent, distribuent.</p>
   <div class="fmod"><b>OUTPUT</b>
@@ -3944,6 +3966,13 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>Deux VCA indépendants dans une seule façade. On n'en a jamais assez : il en faut un par voix, plus un
   par modulation qu'on veut doser.</p>
   <span>Potards GAIN 1, GAIN 2 · Entrées IN 1, CV 1, IN 2, CV 2 · Sorties OUT 1, OUT 2</span></div>
+  <div class="fmod"><b>COMPARE</b>
+  <p>Le pont entre les deux moitiés d'un modulaire. D'un côté les tensions qui ondulent, de l'autre les
+  impulsions : ce module fait passer de l'une à l'autre. Envoyez-lui un LFO lent, un DRIFT ou un RUNGLER et
+  vous obtenez un rythme qui suit la <b>forme</b> au lieu de suivre une grille. Une impulsion sort quand la
+  tension franchit le seuil en montant, l'autre quand elle redescend — rien entre deux.</p>
+  <span>Potard THRESH · Entrée IN · Sorties OUT, INV</span></div>
+
   <div class="fmod"><b>ATTENUV</b>
   <p>Atténuateur-inverseur. AMOUNT va de −100 à +100 : au-dessus de zéro il réduit, au-dessous il réduit
   <b>et retourne</b> le signal, si bien qu'une enveloppe qui ouvrait un filtre le referme. OFFSET ajoute une
@@ -14998,6 +15027,73 @@ chord: {nom:"CHORD", hp:64, res:"Quatre voix accordées", fam:"osc",
     return {e:{voct:voct}, s:{out:out}};
   }},
 
+harmo: {nom:"HARMONIC", hp:64, res:"Banc de vingt-quatre harmoniques", fam:"osc",
+  kns:[["oct","OCT",0,1,0.5],["tilt","TILT",0,1,0.45],["par","EVEN/ODD",0,1,0.5]],
+  jacks:[["voct","V/OCT",0],["out","OUT",1]],
+  creer:function(m){
+    /* La synthèse additive, celle des orgues à tirettes et du Odessa : au lieu
+       de partir d'une onde riche et de retirer au filtre, on empile les
+       harmoniques une par une. TILT règle la pente de l'empilement — à plat
+       c'est criard, en pente c'est presque un sinus. EVEN/ODD bascule entre
+       les rangs pairs et impairs : tout à gauche on n'a que les impairs, et un
+       carré ne contient rien d'autre — d'où la couleur de clarinette. */
+    var base = 55, N = 24;
+    var o = ctx.createOscillator(), voct = eurGain(1200);
+    voct.connect(o.detune);
+    o.start();
+    var g = eurGain(0.5);
+    o.connect(g);
+    m.maj = function(){
+      var re = new Float32Array(N + 1), im = new Float32Array(N + 1);
+      var pente = 0.2 + m.p.tilt * 3.2;
+      for(var h=1; h<=N; h++){
+        var a = Math.pow(h, -pente);
+        /* le curseur au milieu laisse les deux rangs à parts égales */
+        a *= (h % 2 === 0) ? m.p.par * 2 : (1 - m.p.par) * 2;
+        re[h] = a;
+      }
+      try{ o.setPeriodicWave(ctx.createPeriodicWave(re, im)); }catch(e){}
+      o.frequency.value = base * Math.pow(2, (m.p.oct - 0.5) * 4);
+    };
+    m.maj();
+    return {e:{voct:voct}, s:{out:g}};
+  }},
+
+subharm: {nom:"SUB HARM", hp:68, res:"Sous-harmoniques : divise au lieu de multiplier", fam:"osc",
+  kns:[["oct","OCT",0,1,0.5],["d1","DIV 1",0,1,0.2],["d2","DIV 2",0,1,0.35],["mix","MIX",0,1,0.6]],
+  jacks:[["voct","V/OCT",0],["out","OUT",1]],
+  creer:function(m){
+    /* Le principe du Trautonium et du Subharmonicon : sous une fondamentale on
+       range des divisions entières, f/2, f/3, f/5… Ce sont des intervalles
+       justes, mais pris à l'envers du monde — on descend au lieu de monter.
+       Ça sonne juste sans jamais sonner comme un accord ordinaire. */
+    var base = 55;
+    var voct = eurGain(1200), som = eurGain(0.4);
+    function osc(){
+      var o = ctx.createOscillator();
+      o.type = "sawtooth";
+      voct.connect(o.detune);
+      o.start();
+      return o;
+    }
+    var f = osc(), s1 = osc(), s2 = osc();
+    var gf = eurGain(0.5), g1 = eurGain(0), g2 = eurGain(0);
+    f.connect(gf); s1.connect(g1); s2.connect(g2);
+    [gf, g1, g2].forEach(function(x){ x.connect(som); });
+    m.maj = function(){
+      var hz = base * Math.pow(2, (m.p.oct - 0.5) * 4);
+      var n1 = 1 + Math.round(m.p.d1 * 15), n2 = 1 + Math.round(m.p.d2 * 15);
+      f.frequency.value = hz;
+      s1.frequency.value = hz / n1;
+      s2.frequency.value = hz / n2;
+      gf.gain.value = 0.55 * (1 - m.p.mix * 0.6);
+      g1.gain.value = 0.5 * m.p.mix;
+      g2.gain.value = 0.5 * m.p.mix;
+    };
+    m.maj();
+    return {e:{voct:voct}, s:{out:som}};
+  }},
+
 noise: {nom:"NOISE", hp:44, sombre:true, res:"Bruit blanc et rose", fam:"osc",
   kns:[],
   jacks:[["blanc","WHITE",1],["rose","PINK",1]],
@@ -15286,6 +15382,38 @@ clklfo: {nom:"CLK LFO", hp:56, sombre:true, res:"Oscillateur lent calé sur le t
     return {e:{}, s:{sine:gs, tri:gt, ramp:gr}};
   }},
 
+fonc: {nom:"FUNCTION", hp:60, sombre:true, res:"Montée, descente, et fin de cycle", fam:"mod",
+  kns:[["r","RISE",0,1,0.15],["f","FALL",0,1,0.4],["niv","LEVEL",0,1,0.9]],
+  jacks:[["trig","TRIG",0],["out","OUT",1],["eoc","EOC",1]],
+  creer:function(m){
+    /* Le générateur de fonction, cœur du Maths de Make Noise. Ce n'est ni une
+       enveloppe ni un LFO : c'est les deux, selon ce qu'on en fait.
+
+       EOC annonce la fin du cycle. Reliez EOC à son propre TRIG et la fonction
+       se relance toute seule : elle devient un LFO dont on règle séparément la
+       montée et la descente. C'est le patch qu'on fait le jour où on comprend
+       le module. */
+    var out = eurConst(0), eoc = eurConst(0);
+    m.tStep = 0;
+    m.tic = function(t){ m.tStep = t; return null; };
+    m.recevoir = function(t, entree){
+      if(entree !== "trig") return null;
+      var r = 0.003 + m.p.r * 1.2, fa = 0.01 + m.p.f * 2.4;
+      out.offset.cancelScheduledValues(t);
+      out.offset.setValueAtTime(0, t);
+      out.offset.linearRampToValueAtTime(m.p.niv, t + r);
+      out.offset.linearRampToValueAtTime(0, t + r + fa);
+      var fin = t + r + fa;
+      eurPorte(eoc, fin);
+      /* Sans cette borne, une boucle EOC → TRIG se relancerait des centaines de
+         fois d'affilée et programmerait des minutes de son en un seul pas. On
+         ne va jamais plus loin qu'un pas et demi devant. */
+      if(fin - m.tStep > stepDur() * 1.5) return null;
+      return [["eoc", fin]];
+    };
+    return {e:{trig:eurGain(1)}, s:{out:out, eoc:eoc}};
+  }},
+
 rungler: {nom:"RUNGLER", hp:56, sombre:true, res:"Chaos qui se répète sans jamais boucler", fam:"mod",
   kns:[["chaos","CHAOS",0,1,0.6],["amp","RANGE",0,1,0.5]],
   jacks:[["clk","CLK",0],["cv","CV",1],["gate","GATE",1]],
@@ -15333,6 +15461,32 @@ sh: {nom:"S & H", hp:56, sombre:true, res:"Prélève et bloque une tension", fam
       return null;
     };
     return {e:{in:e, trig:eurGain(1)}, s:{out:sortie}};
+  }},
+
+compare: {nom:"COMPARE", hp:56, sombre:true, res:"Fabrique un rythme à partir d'une tension", fam:"util",
+  kns:[["seuil","THRESH",0,1,0.5]],
+  jacks:[["in","IN",0],["out","OUT",1],["inv","INV",1]],
+  creer:function(m){
+    /* Le pont entre les deux moitiés d'un modulaire : d'un côté les tensions
+       qui ondulent, de l'autre les impulsions. Envoyez-lui un LFO lent, un
+       DRIFT ou un RUNGLER, et vous obtenez un rythme qui suit la forme au lieu
+       de suivre une grille. La comparaison se fait à chaque pas — c'est la
+       résolution du rack. */
+    var e = eurGain(1), o = eurConst(0), inv = eurConst(0);
+    var an = ctx.createAnalyser(); an.fftSize = 32;
+    e.connect(an);
+    var tampon = new Float32Array(an.fftSize);
+    m.haut = false;
+    m.tic = function(t){
+      an.getFloatTimeDomainData(tampon);
+      var v = tampon[0] || 0;
+      var haut = v > (m.p.seuil - 0.5) * 2;
+      if(haut === m.haut) return null;      /* on ne sort qu'aux passages */
+      m.haut = haut;
+      if(haut){ eurPorte(o, t); return ["out"]; }
+      eurPorte(inv, t); return ["inv"];
+    };
+    return {e:{in:e}, s:{out:o, inv:inv}};
   }},
 
 atten: {nom:"ATTENUV", hp:52, res:"Atténue, inverse, décale", fam:"util",
@@ -16163,7 +16317,7 @@ function eurCatalogue(){
   var c = document.getElementById("eur-cat");
   if(c.style.display !== "none" && c.dataset.vue === "mod"){ c.style.display = "none"; return; }
   c.innerHTML = ""; c.dataset.vue = "mod";
-  /* soixante-quinze modules en vrac seraient illisibles : on les range par
+  /* soixante-dix-neuf modules en vrac seraient illisibles : on les range par
      familles, et l'onglet choisi décide de ce qu'on voit */
   var onglets = document.createElement("div");
   onglets.className = "eur-fam";
@@ -16343,7 +16497,7 @@ document.getElementById("eur-hasard").addEventListener("click", function(){ eurH
    de rythme, deux ou trois voix, un traitement et une sortie. Sans cette
    ossature on obtient un tas de modules qui ne sonne pas. */
 /* ================= montages tout faits =================
-   Un rack vide décourage : il faut connaître soixante-quinze modules et savoir
+   Un rack vide décourage : il faut connaître soixante-dix-neuf modules et savoir
    lesquels vont ensemble avant d'entendre quoi que ce soit. Ces montages
    donnent un point de départ qui sonne, à défaire ensuite câble par câble —
    c'est la façon la plus rapide d'apprendre ce que fait chaque module.
