@@ -2298,6 +2298,18 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
   <p><b>COUNT IN</b> ajoute une mesure de décompte au métronome avant que l'enregistrement ne morde.
   <b>WAIT KEY</b> attend votre première frappe pour lancer la séquence — départ à la note près.</p>
 
+  <h3>Quatre-vingt-dix-neuf pistes</h3>
+  <p>Chaque séquence contient <b>99 pistes</b>. <b>TRACK</b> ouvre leur page : la molette les parcourt, et
+  les touches SOFT deviennent <b>TYPE</b>, <b>MUTE</b>, <b>SOLO</b> et <b>CANAL</b>. <b>NAME</b> y renomme
+  la piste plutôt que la séquence.</p>
+  <p>Une piste <b>DRUM</b> joue les pads de l'appareil. Une piste <b>MIDI</b> n'émet rien à l'intérieur :
+  elle envoie ses notes sur son canal, vers le matériel branché. C'est là tout l'intérêt — piste 1 sur les
+  pads, piste 2 vers l'ES-1 sur son canal, piste 3 vers l'EMX-1, et l'on enregistre tout au vol avec le
+  Timing Correct.</p>
+  <p>Sur une piste MIDI, frapper un pad envoie la note que porte ce pad au lieu de déclencher son son.
+  L'enregistrement, l'effacement, le pas à pas et l'annulation travaillent tous sur la piste courante,
+  sans toucher aux autres.</p>
+
   <h3>Pas à pas et chanson</h3>
   <p><b>STEP EDIT</b> passe l'afficheur en revue des événements : la molette les parcourt en les faisant
   entendre, <b>−</b> et <b>+</b> décalent celui qui est affiché d'une triple croche, <b>ERASE</b> le retire.
@@ -2313,8 +2325,7 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
   <h3>Ce qui diffère des appareils d'origine</h3>
   <p>Pas de lecteur de disquette ni de carte, pas d'échantillonnage par l'entrée ligne — mais les sons
   enregistrés au micro ou importés dans l'ES-1 et l'ESX-1 sont disponibles ici, et la bibliothèque les
-  affecte aux pads. Une seule piste de percussion au lieu des quatre-vingt-dix-neuf pistes MIDI, et pas
-  de couches multiples par pad.</p>
+  affecte aux pads. Pas de couches multiples par pad.</p>
   </div>
 
   <div class="doc" id="note-ehx" data-titre="DRM16 · DRM32">
@@ -10043,15 +10054,29 @@ function padMpc(i){
   if((i % 16) >= 4 && (i % 16) <= 7) p.coupe = 0;
   return p;
 }
-function seqMpc(){
-  return {mesures:2, evts:[], q:3, swing:0, nom:"SEQ 1", bpm:0};   /* bpm 0 : suit le tempo général */
+function pisteMpc(i){
+  /* piste 1 : les pads internes. Les suivantes envoient en MIDI. */
+  return {type:(i === 0 ? 0 : 1), canal:0, nom:(i === 0 ? "DRUMS" : ("TRACK " + (i+1))),
+          mute:false, solo:false, evts:[]};
 }
+function seqMpc(){
+  var s = {mesures:2, q:3, swing:0, nom:"SEQ 1", bpm:0, pistes:[]};
+  for(var i=0;i<99;i++) s.pistes.push(pisteMpc(i));
+  return s;                                        /* bpm 0 : suit le tempo général */
+}
+function pisteCourante(){
+  var s = MPC.seq;
+  if(!s.pistes) s.pistes = [pisteMpc(0)];
+  if(!s.pistes[MPC.piste]) s.pistes[MPC.piste] = pisteMpc(MPC.piste);
+  return s.pistes[MPC.piste];
+}
+function evtsMpc(){ return pisteCourante().evts; }
 var MPC = {
   v:3000, banque:0, sel:0, pads:[], seq:null, seqs:[], seqCur:0,
   rec:false, over:false, plein:false, niv16:false, repet:false, apres:0,
   pos:-1, tStep:0, dernier:null, annule:null, tenu:{}, ecrase:false, param:0,
   mode:0, evtSel:0, type16:0, compte:false, attente:false, amorce:0,
-  chanson:[], chPos:0, chTour:0, presse:null
+  chanson:[], chPos:0, chTour:0, presse:null, piste:0
 };
 var MPC_T16 = ["VELOCITY","TUNE","START","DECAY"];
 (function initMpc(){
@@ -10127,11 +10152,21 @@ function scheduleMpc(i, t){
   if(seq.swing && i % 2 === 1) t += stepDur() * seq.swing * 0.55;
   MPC.tStep = t;
   var duree = stepDur();
-  seq.evts.forEach(function(e){
-    if(e.tic >= deb && e.tic < fin && !e.mute){
-      jouerPad(t + ((e.tic - deb) / tp) * duree, e.pad, e.vel);
+  var pistes = seq.pistes || [], k, solo = false;
+  for(k=0;k<pistes.length;k++) if(pistes[k] && pistes[k].solo) solo = true;
+  for(k=0;k<pistes.length;k++){
+    var pi = pistes[k];
+    if(!pi || !pi.evts.length) continue;
+    if(pi.mute) continue;
+    if(solo && !pi.solo) continue;
+    for(var j=0;j<pi.evts.length;j++){
+      var e = pi.evts[j];
+      if(e.tic < deb || e.tic >= fin) continue;
+      var quand = t + ((e.tic - deb) / tp) * duree;
+      if(pi.type === 0) jouerPad(quand, e.n, e.vel);
+      else midiNoteA(e.n, quand, e.vel, pi.canal, duree * 0.9);
     }
-  });
+  }
   if(!cache) queue.push({i:i, t:t});
 }
 function beatMpc(i){
@@ -10194,7 +10229,9 @@ function caleMpc(tic){
 function frapperPad(k, vel){
   audioInit();
   if(!ctx) return;
-  jouerPad(ctx.currentTime + 0.005, k, vel);
+  var pi = pisteCourante();
+  if(pi.type === 0) jouerPad(ctx.currentTime + 0.005, k, vel);
+  else midiNoteA(MPC.pads[k].note, ctx.currentTime + 0.005, vel, pi.canal, 0.25);
   MPC.sel = k;
   if(MPC.attente){                          /* WAIT FOR KEY : la première frappe lance tout */
     MPC.attente = false;
@@ -10204,9 +10241,9 @@ function frapperPad(k, vel){
   majPadsMpc(); majLcdMpc();
   if(MPC.amorce > 0) return;                /* pendant le décompte on joue sans enregistrer */
   if(S.run && (MPC.rec || MPC.over)){
-    MPC.annule = MPC.seq.evts.slice();
-    MPC.seq.evts.push({tic:caleMpc(ticCourant()), pad:k, vel:vel});
-    MPC.seq.evts.sort(function(a,b){ return a.tic - b.tic; });
+    MPC.annule = {p:MPC.piste, l:pi.evts.slice()};
+    pi.evts.push({tic:caleMpc(ticCourant()), n:(pi.type === 0 ? k : MPC.pads[k].note), vel:vel});
+    pi.evts.sort(function(a,b){ return a.tic - b.tic; });
     memMpc();
   }
 }
@@ -10228,13 +10265,25 @@ function majLcdMpc(){
   var seq = MPC.seq, p = MPC.pads[MPC.sel];
   var l2 = document.getElementById("mpc-l2"), l3 = document.getElementById("mpc-l3"),
       l4 = document.getElementById("mpc-l4");
+  var pi = pisteCourante();
   if(MPC.mode === 1){                       /* pas à pas */
-    var e = seq.evts[MPC.evtSel];
-    l1.textContent = "Step Edit  " + seq.nom;
-    l2.textContent = "Event " + (seq.evts.length ? (MPC.evtSel + 1) : 0) + "/" + seq.evts.length;
-    l3.textContent = e ? ("Pos:" + ticTexte(e.tic) + "  Vel:" + Math.round(e.vel * 127)) : "Sequence vide";
-    l4.textContent = e ? ("Pad " + MPC_BANQUES[Math.floor(e.pad/16)] + ((e.pad%16)+1) + " " + padNom(e.pad))
-                       : "Jouez sur les pads pour remplir";
+    var ev = pi.evts, e = ev[MPC.evtSel];
+    l1.textContent = "Step Edit  Trk " + (MPC.piste + 1);
+    l2.textContent = "Event " + (ev.length ? (MPC.evtSel + 1) : 0) + "/" + ev.length;
+    l3.textContent = e ? ("Pos:" + ticTexte(e.tic) + "  Vel:" + Math.round(e.vel * 127)) : "Piste vide";
+    l4.textContent = e ? (pi.type === 0
+        ? ("Pad " + MPC_BANQUES[Math.floor(e.n/16)] + ((e.n%16)+1) + " " + padNom(e.n))
+        : ("Note " + nomNote(e.n) + "  Ch" + (pi.canal + 1)))
+      : "Jouez sur les pads pour remplir";
+    return;
+  }
+  if(MPC.mode === 3){                       /* pistes */
+    l1.textContent = "Tracks     " + seq.nom;
+    l2.textContent = "Trk:" + ("0" + (MPC.piste + 1)).slice(-2) + "/99  " + pi.nom;
+    l3.textContent = (pi.type === 0 ? "DRUM  pads internes" : ("MIDI  canal " + (pi.canal + 1))) +
+                     "   Ev:" + pi.evts.length;
+    l4.textContent = (pi.mute ? "MUTE " : "") + (pi.solo ? "SOLO " : "") +
+                     "SOFT: type / mute / solo / canal";
     return;
   }
   if(MPC.mode === 2){                       /* chanson */
@@ -10254,7 +10303,8 @@ function majLcdMpc(){
                  + " " + seq.nom;
   l2.textContent = "Bar:" + mesure + "." + temps + "   Bars:" + seq.mesures + "   BPM:" + S.bpm;
   l3.textContent = "T.C.:" + MPC_QNOM[seq.q] + "  Sw:" + Math.round(seq.swing * 100) +
-                   "%  Ev:" + seq.evts.length + "  16L:" + MPC_T16[MPC.type16];
+                   "%  Trk" + (MPC.piste + 1) + ":" + (pi.type === 0 ? "DRM" : ("C" + (pi.canal + 1))) +
+                   " Ev:" + pi.evts.length;
   l4.textContent = "Pad " + MPC_BANQUES[MPC.banque] + ((MPC.sel % 16) + 1) + " " + padNom(MPC.sel) +
     "  " + nomEch(p.ech) + (p.envers ? " REV" : "") + (p.coupe >= 0 ? (" G" + (p.coupe+1)) : "");
 }
@@ -10281,6 +10331,18 @@ function majPadsMpc(){
   document.getElementById("mpc-t16").textContent = "16 LEV : " + MPC_T16[MPC.type16];
   document.getElementById("mpc-seqbpm").textContent =
     MPC.seq.bpm ? ("SEQ BPM " + MPC.seq.bpm) : "SEQ BPM : GÉNÉRAL";
+  var libelles = (MPC.mode === 3) ? ["TYPE","MUTE","SOLO","CANAL"] : ["BARS","T.C.","SWING","PARAM"];
+  var sfs = document.querySelectorAll("#mpc-soft .mpcb");
+  for(var q=0;q<sfs.length;q++) sfs[q].textContent = libelles[q];
+  var bt = document.getElementById("mpc-cmd");
+  if(bt){
+    var bk = bt.querySelector('[data-c="k"]');
+    if(bk) bk.classList.toggle("on", MPC.mode === 3);
+    var bs = bt.querySelector('[data-c="s"]');
+    if(bs) bs.classList.toggle("on", MPC.mode === 2);
+    var btt = bt.querySelector('[data-c="t"]');
+    if(btt) btt.classList.toggle("on", MPC.mode === 1);
+  }
 }
 
 /* --- mémoire --- */
@@ -10290,8 +10352,15 @@ function memMpc(){
     type16:MPC.type16, compte:MPC.compte, chanson:MPC.chanson,
     pads:MPC.pads,
     seqs:MPC.seqs.map(function(s){
-      return {mesures:s.mesures, q:s.q, swing:s.swing, nom:s.nom, bpm:s.bpm,
-              evts:s.evts.map(function(e){ return [e.tic, e.pad, Math.round(e.vel*100)]; })};
+      var pl = [];
+      (s.pistes || []).forEach(function(p, i){
+        var pardefaut = (p.type === (i === 0 ? 0 : 1)) && !p.canal && !p.mute && !p.solo &&
+                        p.nom === (i === 0 ? "DRUMS" : ("TRACK " + (i+1)));
+        if(!p.evts.length && pardefaut) return;      /* on ne garde que ce qui est occupé */
+        pl.push({i:i, type:p.type, canal:p.canal, nom:p.nom, mute:p.mute, solo:p.solo,
+                 evts:p.evts.map(function(e){ return [e.tic, e.n, Math.round(e.vel*100)]; })});
+      });
+      return {mesures:s.mesures, q:s.q, swing:s.swing, nom:s.nom, bpm:s.bpm, pistes:pl};
     })
   };
   sauverMachine("mpc" + MPC.v);
@@ -10300,7 +10369,7 @@ function chargerMpc(){
   MPC.pads = []; MPC.seqs = [];
   for(var i=0;i<64;i++) MPC.pads.push(padMpc(i));
   for(var s=0;s<8;s++){ var q = seqMpc(); q.nom = "SEQ " + (s+1); MPC.seqs.push(q); }
-  MPC.seqCur = 0; MPC.banque = 0; MPC.sel = 0; MPC.chanson = []; MPC.mode = 0;
+  MPC.seqCur = 0; MPC.banque = 0; MPC.sel = 0; MPC.chanson = []; MPC.mode = 0; MPC.piste = 0;
   MPC.chPos = 0; MPC.chTour = 0; MPC.amorce = 0; MPC.attente = false;
   var m = memLire("mpc" + MPC.v);
   if(m){
@@ -10310,7 +10379,17 @@ function chargerMpc(){
         var q = seqMpc();
         q.mesures = o.mesures || 2; q.q = o.q || 3; q.swing = o.swing || 0; q.bpm = o.bpm || 0;
         q.nom = o.nom || ("SEQ " + (i+1));
-        q.evts = (o.evts || []).map(function(e){ return {tic:e[0], pad:e[1], vel:e[2]/100}; });
+        if(o.pistes){
+          o.pistes.forEach(function(p){
+            var d = q.pistes[p.i] || pisteMpc(p.i);
+            d.type = p.type; d.canal = p.canal || 0; d.nom = p.nom || d.nom;
+            d.mute = !!p.mute; d.solo = !!p.solo;
+            d.evts = (p.evts || []).map(function(e){ return {tic:e[0], n:e[1], vel:e[2]/100}; });
+            q.pistes[p.i] = d;
+          });
+        } else if(o.evts){                            /* ancien format : tout sur la piste 1 */
+          q.pistes[0].evts = o.evts.map(function(e){ return {tic:e[0], n:e[1], vel:e[2]/100}; });
+        }
         return q;
       });
     }
@@ -10359,8 +10438,10 @@ function chargerMpc(){
       return;
     }
     if(MPC.ecrase){                             /* effacement : on retire les frappes de ce pad */
-      MPC.annule = MPC.seq.evts.slice();
-      MPC.seq.evts = MPC.seq.evts.filter(function(ev){ return ev.pad !== k; });
+      var pe = pisteCourante();
+      MPC.annule = {p:MPC.piste, l:pe.evts.slice()};
+      var cible = (pe.type === 0) ? k : MPC.pads[k].note;
+      pe.evts = pe.evts.filter(function(ev){ return ev.n !== cible; });
       memMpc(); majLcdMpc(); H.inter();
       return;
     }
@@ -10385,11 +10466,10 @@ function chargerMpc(){
   pads.addEventListener("pointercancel", relacher);
 
   var soft = document.getElementById("mpc-soft");
-  var nbSoft = 4;
-  for(i=0;i<nbSoft;i++){
+  for(i=0;i<4;i++){
     var b2 = document.createElement("button");
     b2.className = "mpcb";
-    b2.textContent = "SOFT " + (i+1);
+    b2.textContent = ["BARS","T.C.","SWING","PARAM"][i];
     b2.dataset.s = i;
     soft.appendChild(b2);
   }
@@ -10397,6 +10477,15 @@ function chargerMpc(){
     var b3 = e.target.closest(".mpcb");
     if(!b3) return;
     var i2 = +b3.dataset.s;
+    if(MPC.mode === 3){                       /* page des pistes */
+      var pt = pisteCourante();
+      if(i2 === 0){ pt.type = pt.type ? 0 : 1; }
+      else if(i2 === 1){ pt.mute = !pt.mute; }
+      else if(i2 === 2){ pt.solo = !pt.solo; }
+      else { pt.canal = (pt.canal + 1) % 16; }
+      memMpc(); majLcdMpc(); H.cran();
+      return;
+    }
     if(i2 === 0){ MPC.seq.mesures = [1,2,4,8][( [1,2,4,8].indexOf(MPC.seq.mesures)+1 )%4]; }
     else if(i2 === 1){ MPC.seq.q = (MPC.seq.q + 1) % MPC_Q.length; }
     else if(i2 === 2){ MPC.seq.swing = +((MPC.seq.swing + 0.1) % 0.7).toFixed(2); }
@@ -10430,7 +10519,7 @@ function chargerMpc(){
   });
 
   var cmd = document.getElementById("mpc-cmd");
-  [["DISK","d"],["PROGRAM","p"],["MIXER","m"],["SONG","s"],["COUNT IN","o"],["WAIT KEY","w"],
+  [["DISK","d"],["PROGRAM","p"],["TRACK","k"],["SONG","s"],["COUNT IN","o"],["WAIT KEY","w"],
    ["NAME","n"],["STEP EDIT","t"],["COPY SEQ","c"]].forEach(function(x){
     var b6 = document.createElement("button");
     b6.className = "mpcb"; b6.textContent = x[0]; b6.dataset.c = x[1];
@@ -10447,7 +10536,11 @@ function chargerMpc(){
       memMpc(); majLcdMpc();
       signal(p8.coupe < 0 ? "SANS GROUPE DE COUPURE" : ("GROUPE DE COUPURE " + (p8.coupe + 1)));
     }
-    else if(c === "m"){ ouvrirNotice(); }
+    else if(c === "k"){
+      MPC.mode = (MPC.mode === 3) ? 0 : 3;
+      majLcdMpc(); majPadsMpc();
+      signal(MPC.mode === 3 ? "PISTES · MOLETTE POUR CHOISIR" : "MODE PRINCIPAL");
+    }
     else if(c === "s"){
       MPC.mode = (MPC.mode === 2) ? 0 : 2;
       MPC.chPos = 0; MPC.chTour = 0;
@@ -10463,9 +10556,16 @@ function chargerMpc(){
       signal(MPC.attenteDemandee ? "DÉPART À LA PREMIÈRE FRAPPE" : "DÉPART IMMÉDIAT");
     }
     else if(c === "n"){
-      renommer("Nom de la séquence", MPC.seq.nom, function(v){
-        if(v){ MPC.seq.nom = v; memMpc(); majLcdMpc(); }
-      });
+      if(MPC.mode === 3){
+        var pk = pisteCourante();
+        renommer("Nom de la piste " + (MPC.piste + 1), pk.nom, function(v){
+          if(v){ pk.nom = v; memMpc(); majLcdMpc(); }
+        });
+      } else {
+        renommer("Nom de la séquence", MPC.seq.nom, function(v){
+          if(v){ MPC.seq.nom = v; memMpc(); majLcdMpc(); }
+        });
+      }
     }
     else if(c === "t"){
       MPC.mode = (MPC.mode === 1) ? 0 : 1;
@@ -10480,7 +10580,10 @@ function chargerMpc(){
         if(isNaN(n2) || n2 < 0 || n2 > 7){ signal("NUMÉRO ENTRE 1 ET 8"); return; }
         var d = MPC.seqs[n2];
         d.mesures = src.mesures; d.q = src.q; d.swing = src.swing; d.bpm = src.bpm;
-        d.evts = src.evts.map(function(e2){ return {tic:e2.tic, pad:e2.pad, vel:e2.vel}; });
+        d.pistes = src.pistes.map(function(pp){
+          return {type:pp.type, canal:pp.canal, nom:pp.nom, mute:pp.mute, solo:pp.solo,
+                  evts:pp.evts.map(function(e2){ return {tic:e2.tic, n:e2.n, vel:e2.vel}; })};
+        });
         memMpc(); signal("COPIÉE VERS " + d.nom);
       });
     }
@@ -10533,11 +10636,17 @@ function majKnobsMpc(){
   function pasMpcRoue(d){
     banqueEs();
     if(MPC.mode === 1){                       /* pas à pas : on parcourt les événements */
-      var n = MPC.seq.evts.length;
+      var pl = pisteCourante(), n = pl.evts.length;
       if(!n){ majLcdMpc(); return; }
       MPC.evtSel = (MPC.evtSel + d + n) % n;
-      var e = MPC.seq.evts[MPC.evtSel];
-      if(ctx) jouerPad(ctx.currentTime + 0.01, e.pad, e.vel);
+      var e = pl.evts[MPC.evtSel];
+      if(ctx && pl.type === 0) jouerPad(ctx.currentTime + 0.01, e.n, e.vel);
+      majLcdMpc(); H.cran();
+      return;
+    }
+    if(MPC.mode === 3){                       /* pistes : on parcourt les 99 */
+      MPC.piste = (MPC.piste + d + 99) % 99;
+      MPC.evtSel = 0;
       majLcdMpc(); H.cran();
       return;
     }
@@ -10571,12 +10680,12 @@ function majKnobsMpc(){
     pasMpcRoue(1);
   });
   function nudgeMpc(d){
-    var e = MPC.seq.evts[MPC.evtSel];
+    var pn = pisteCourante(), e = pn.evts[MPC.evtSel];
     if(!e) return;
-    MPC.annule = MPC.seq.evts.map(function(x){ return {tic:x.tic, pad:x.pad, vel:x.vel}; });
+    MPC.annule = {p:MPC.piste, l:pn.evts.map(function(x){ return {tic:x.tic, n:x.n, vel:x.vel}; })};
     e.tic = (e.tic + d * (MPC_TPQ / 8) + ticsMpc()) % ticsMpc();
-    MPC.seq.evts.sort(function(a,b){ return a.tic - b.tic; });
-    MPC.evtSel = MPC.seq.evts.indexOf(e);
+    pn.evts.sort(function(a,b){ return a.tic - b.tic; });
+    MPC.evtSel = pn.evts.indexOf(e);
     memMpc(); majLcdMpc(); H.cran();
   }
 })();
@@ -10625,11 +10734,11 @@ basculeMpc("mpc-16niv", "niv16");
 basculeMpc("mpc-repet", "repet");
 document.getElementById("mpc-efface").addEventListener("click", function(){
   if(MPC.mode === 1){                         /* pas à pas : retire l'événement choisi */
-    var e = MPC.seq.evts[MPC.evtSel];
+    var pz = pisteCourante(), e = pz.evts[MPC.evtSel];
     if(!e){ signal("AUCUN ÉVÉNEMENT"); return; }
-    MPC.annule = MPC.seq.evts.map(function(x){ return {tic:x.tic, pad:x.pad, vel:x.vel}; });
-    MPC.seq.evts.splice(MPC.evtSel, 1);
-    MPC.evtSel = Math.max(0, Math.min(MPC.evtSel, MPC.seq.evts.length - 1));
+    MPC.annule = {p:MPC.piste, l:pz.evts.map(function(x){ return {tic:x.tic, n:x.n, vel:x.vel}; })};
+    pz.evts.splice(MPC.evtSel, 1);
+    MPC.evtSel = Math.max(0, Math.min(MPC.evtSel, pz.evts.length - 1));
     memMpc(); majLcdMpc(); H.inter();
     return;
   }
@@ -10657,9 +10766,10 @@ document.getElementById("mpc-timing").addEventListener("click", function(){
 });
 document.getElementById("mpc-annule").addEventListener("click", function(){
   if(!MPC.annule){ signal("RIEN À ANNULER"); return; }
-  var avant = MPC.seq.evts;
-  MPC.seq.evts = MPC.annule;
-  MPC.annule = avant;
+  var cible = MPC.seq.pistes[MPC.annule.p] || pisteCourante();
+  var avant = cible.evts;
+  cible.evts = MPC.annule.l;
+  MPC.annule = {p:MPC.annule.p, l:avant};
   memMpc(); majLcdMpc(); H.inter();
   signal("SÉQUENCE REVENUE EN ARRIÈRE");
 });

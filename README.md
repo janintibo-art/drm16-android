@@ -243,6 +243,34 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## MPC : quatre-vingt-dix-neuf pistes (version 37)
+
+Ce que je croyais hors de portée ne l'était pas. Mesuré avant d'écrire quoi que ce soit :
+
+| | |
+|---|---|
+| Balayage de l'ordonnanceur, 20 000 événements | **47 µs par pas** |
+| Budget disponible par pas à 120 BPM | 125 000 µs |
+| Séquence de 99 pistes, 8 remplies | 14 ko |
+| Les 99 remplies de 60 notes | 74 ko |
+
+Aucune des trois objections que j'aurais pu invoquer ne tenait. L'interface non plus : une vraie MPC gère
+ses 99 pistes avec quatre lignes d'afficheur et une molette, exactement ce que j'ai.
+
+**Ce qui a changé.** Une séquence n'est plus une liste d'événements mais un jeu de 99 pistes, chacune avec
+son type — DRUM pour les pads internes, MIDI pour le matériel branché —, son canal, son nom, sa coupure et
+son solo. L'ordonnanceur boucle sur les pistes actives ; l'enregistrement, l'effacement, le pas à pas et
+l'annulation visent la piste courante. Sur une piste MIDI, frapper un pad envoie la note du pad au lieu de
+déclencher son son.
+
+**Le vrai gain** : la MPC devient le séquenceur des Korg. Piste 1 sur les pads internes, piste 2 vers l'ES-1
+sur son canal, piste 3 vers l'EMX-1, le tout enregistré au vol avec le Timing Correct.
+
+Vérifié : aiguillage des trois types de piste, coupure d'une piste MIDI, solo qui éteint tout le reste,
+enregistrement sur la piste 2 qui laisse la piste 1 intacte, et **reprise automatique des anciennes
+sauvegardes**, dont les événements atterrissent sur la piste 1. Une séquence de 99 pistes dont trois sont
+occupées pèse 8,3 ko : seules les pistes non vides ou modifiées sont écrites.
+
 ## MPC : options complétées (version 36)
 
 - **Réglages de pad** : point de départ dans le son, lecture à l'envers, dosage de la force de frappe sur le
