@@ -243,6 +243,24 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## MPC : options complétées (version 36)
+
+- **Réglages de pad** : point de départ dans le son, lecture à l'envers, dosage de la force de frappe sur le
+  volume, et **groupes de coupure** — deux pads du même groupe s'arrêtent l'un l'autre, les quatre charleys
+  y étant d'office comme sur l'appareil. Vérifié au rendu : point de départ à la moitié, le niveau efficace
+  d'un crash passe de 0,097 à 0,024.
+- **16 LEVELS** ne fait plus varier que la force : au choix la force, l'accord, le point de départ ou la
+  décroissance, comme sur les vraies.
+- **STEP EDIT** : l'afficheur passe en revue des événements, la molette les parcourt en les faisant entendre,
+  − et + décalent d'une triple croche, ERASE retire, UNDO revient.
+- **SONG** : enchaînement des huit séquences avec nombre de tours par pas.
+- **COUNT IN** : une mesure de décompte au métronome avant que l'enregistrement ne morde.
+  **WAIT KEY** : la séquence attend la première frappe pour partir.
+- **Séquences** renommables, copiables d'une place à l'autre, avec **tempo propre** ou tempo général.
+- **DISK** ouvre la bibliothèque.
+
+Tout est gardé en mémoire, y compris la chanson et les réglages de pad : vérifié par redémarrage.
+
 ## Bibliothèque (version 35)
 
 Une tuile de plus, qui rassemble ce qui était éparpillé — et qui ajoute le filet de sécurité qui manquait.

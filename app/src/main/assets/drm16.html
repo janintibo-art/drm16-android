@@ -2050,6 +2050,13 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
         <div class="mpc-kn"><div class="bt" id="mpc-k-tune"><i></i></div><em>TUNE</em></div>
         <div class="mpc-kn"><div class="bt" id="mpc-k-dec"><i></i></div><em>DECAY</em></div>
         <div class="mpc-kn"><div class="bt" id="mpc-k-filt"><i></i></div><em>FILTER</em></div>
+        <div class="mpc-kn"><div class="bt" id="mpc-k-debut"><i></i></div><em>START</em></div>
+        <div class="mpc-kn"><div class="bt" id="mpc-k-velniv"><i></i></div><em>VEL &gt; LEV</em></div>
+      </div>
+      <div class="mpc-rangee" style="margin-top:8px;justify-content:center;gap:6px">
+        <button class="mpcb" id="mpc-envers" style="padding:9px 12px">REVERSE</button>
+        <button class="mpcb" id="mpc-t16" style="padding:9px 12px">16 LEV : VELOCITY</button>
+        <button class="mpcb" id="mpc-seqbpm" style="padding:9px 12px">SEQ BPM</button>
       </div>
     </div>
 
@@ -2276,16 +2283,38 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
   filtre. La <b>molette</b> lui donne son son, pris dans la banque de vingt-quatre ou dans vos
   enregistrements — la même mémoire que les échantillonneurs Korg.</p>
 
+  <h3>Réglages d'un pad</h3>
+  <p>Les sept boutons du bas agissent sur le pad choisi : <b>LEVEL</b>, <b>PAN</b>, <b>TUNE</b>,
+  <b>DECAY</b>, <b>FILTER</b>, <b>START</b> qui attaque plus loin dans le son, et <b>VEL &gt; LEV</b> qui
+  dose l'effet de la force de frappe sur le volume. <b>REVERSE</b> lit le son à l'envers.</p>
+  <p><b>PROGRAM</b> donne au pad un <b>groupe de coupure</b> : deux pads du même groupe s'arrêtent l'un
+  l'autre. Les quatre charleys y sont d'office, comme sur l'appareil. <b>16 LEV</b> choisit ce que les seize
+  niveaux font varier : la force, l'accord, le point de départ ou la décroissance.</p>
+
   <h3>Séquences</h3>
-  <p>Huit séquences, choisies par les touches <b>1 à 8</b> du pavé. Les touches <b>SOFT</b> règlent le
-  nombre de mesures, le Timing Correct et le swing. <b>UNDO SEQ</b> revient en arrière d'un cran — et y
-  retourne si on rappuie. <b>ERASE</b> s'allume : frapper un pad retire alors toutes ses frappes.</p>
+  <p>Huit séquences, choisies par les touches <b>1 à 8</b> du pavé. <b>NAME</b> renomme la séquence,
+  <b>COPY SEQ</b> la recopie ailleurs, <b>SEQ BPM</b> lui donne un tempo propre ou la laisse suivre le
+  tempo général.</p>
+  <p><b>COUNT IN</b> ajoute une mesure de décompte au métronome avant que l'enregistrement ne morde.
+  <b>WAIT KEY</b> attend votre première frappe pour lancer la séquence — départ à la note près.</p>
+
+  <h3>Pas à pas et chanson</h3>
+  <p><b>STEP EDIT</b> passe l'afficheur en revue des événements : la molette les parcourt en les faisant
+  entendre, <b>−</b> et <b>+</b> décalent celui qui est affiché d'une triple croche, <b>ERASE</b> le retire.
+  <b>UNDO SEQ</b> revient en arrière à chaque fois.</p>
+  <p><b>SONG</b> enchaîne les séquences : les touches 1 à 8 ajoutent un pas, la molette règle le nombre de
+  tours, ERASE retire le pas affiché.</p>
+
+  <p>Les touches <b>SOFT</b> règlent le nombre de mesures, le Timing Correct et le swing.
+  <b>UNDO SEQ</b> revient en arrière d'un cran — et y retourne si on rappuie. <b>ERASE</b> s'allume :
+  frapper un pad retire alors toutes ses frappes. <b>DISK</b> ouvre la bibliothèque.</p>
   <p><b>LOCATE</b> change ce que fait la molette : son du pad, tempo, ou nombre de mesures.</p>
 
   <h3>Ce qui diffère des appareils d'origine</h3>
   <p>Pas de lecteur de disquette ni de carte, pas d'échantillonnage par l'entrée ligne — mais les sons
-  enregistrés au micro ou importés dans l'ES-1 et l'ESX-1 sont disponibles ici. Une seule piste de
-  percussion au lieu des quatre-vingt-dix-neuf pistes MIDI, et pas de mode Song.</p>
+  enregistrés au micro ou importés dans l'ES-1 et l'ESX-1 sont disponibles ici, et la bibliothèque les
+  affecte aux pads. Une seule piste de percussion au lieu des quatre-vingt-dix-neuf pistes MIDI, et pas
+  de couches multiples par pad.</p>
   </div>
 
   <div class="doc" id="note-ehx" data-titre="DRM16 · DRM32">
@@ -10008,17 +10037,23 @@ var MPC_TPQ = 96;                             /* tics par noire, comme la MPC300
 
 function padMpc(i){
   var defauts = [0,14,1,15,3,3,4,4,5,21,21,7,20,19,19,17];
-  return {ech:"b" + (defauts[i % 16] || 0), niv:0.8, pan:0, tune:0, dec:1, filt:1, coupe:-1};
+  var p = {ech:"b" + (defauts[i % 16] || 0), niv:0.8, pan:0, tune:0, dec:1, filt:1,
+           coupe:-1, debut:0, envers:false, velNiv:0.7, note:35 + (i % 16)};
+  /* les charleys se coupent entre eux, comme sur l'appareil */
+  if((i % 16) >= 4 && (i % 16) <= 7) p.coupe = 0;
+  return p;
 }
 function seqMpc(){
-  var s = {mesures:2, evts:[], q:3, swing:0, nom:"SEQ 1"};
-  return s;
+  return {mesures:2, evts:[], q:3, swing:0, nom:"SEQ 1", bpm:0};   /* bpm 0 : suit le tempo général */
 }
 var MPC = {
   v:3000, banque:0, sel:0, pads:[], seq:null, seqs:[], seqCur:0,
   rec:false, over:false, plein:false, niv16:false, repet:false, apres:0,
-  pos:-1, tStep:0, dernier:null, annule:null, tenu:{}, ecrase:false, param:0
+  pos:-1, tStep:0, dernier:null, annule:null, tenu:{}, ecrase:false, param:0,
+  mode:0, evtSel:0, type16:0, compte:false, attente:false, amorce:0,
+  chanson:[], chPos:0, chTour:0, presse:null
 };
+var MPC_T16 = ["VELOCITY","TUNE","START","DECAY"];
 (function initMpc(){
   for(var i=0;i<64;i++) MPC.pads.push(padMpc(i));
   for(var s=0;s<8;s++) MPC.seqs.push(seqMpc());
@@ -10053,22 +10088,26 @@ function jouerPad(t, k, vel){
   var n = sortieMpc(k);
   n.g.gain.setValueAtTime(mv("niv", p.niv), t);
   if(n.p) n.p.pan.setValueAtTime(mv("pan", p.pan), t);
-  var src = ctx.createBufferSource(); src.buffer = buf;
+  var src = ctx.createBufferSource();
+  src.buffer = p.envers ? inverse(p.ech) : buf;
   var variation = MPC.apres * 0.5;
   src.playbackRate.value = Math.pow(2, (p.tune + variation) * 1.2);
   var f = ctx.createBiquadFilter(); f.type = "lowpass";
   f.frequency.value = Math.min(18000, 150 * Math.pow(110, p.filt));
   var g = ctx.createGain();
-  var duree = Math.max(0.03, (buf.duration / src.playbackRate.value) * Math.max(0.05, p.dec));
+  var dep = (p.debut || 0) * buf.duration * 0.9;
+  var duree = Math.max(0.03, ((buf.duration - dep) / src.playbackRate.value) * Math.max(0.05, p.dec));
+  var amp = vel * (1 - p.velNiv) + vel * vel * p.velNiv;   /* la force agit sur le niveau */
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.linearRampToValueAtTime(vel, t + 0.003);
-  g.gain.setValueAtTime(vel, t + Math.max(0.006, duree - 0.02));
+  g.gain.linearRampToValueAtTime(amp, t + 0.003);
+  g.gain.setValueAtTime(amp, t + Math.max(0.006, duree - 0.02));
   g.gain.linearRampToValueAtTime(0.0001, t + Math.max(0.01, duree));
   src.connect(f); f.connect(g); g.connect(n.g);
-  src.start(t); src.stop(t + duree + 0.05);
+  src.start(t, Math.min(dep, Math.max(0, buf.duration - 0.02)));
+  src.stop(t + duree + 0.05);
   if(!MPC.voix) MPC.voix = [];
   MPC.voix[k] = g;
-  midiNoteA(35 + k, t, vel, MIDI.canal, duree);
+  midiNoteA(p.note, t, vel, MIDI.canal, duree);
 }
 
 /* --- séquenceur --- */
@@ -10076,6 +10115,13 @@ function ticsMpc(){ return MPC.seq.mesures * 4 * MPC_TPQ; }
 function pasMpc(){ return MPC.seq.mesures * 16; }
 function ticParPas(){ return MPC_TPQ / 4; }
 function scheduleMpc(i, t){
+  if(MPC.amorce > 0){                       /* décompte avant enregistrement */
+    MPC.tStep = t;
+    if(i % 4 === 0) clicMetroMpc(t, i === 0);
+    if(!cache) queue.push({i:i, t:t});
+    return;
+  }
+  if(MPC.attente) return;                   /* on attend la première frappe */
   var seq = MPC.seq, tp = ticParPas();
   var deb = i * tp, fin = deb + tp;
   if(seq.swing && i % 2 === 1) t += stepDur() * seq.swing * 0.55;
@@ -10090,6 +10136,7 @@ function scheduleMpc(i, t){
 }
 function beatMpc(i){
   MPC.pos = i;
+  if(MPC.seq.bpm && Math.abs(MPC.seq.bpm - S.bpm) >= 1) S.bpm = MPC.seq.bpm;
   majLcdMpc();
 }
 function arretMpc(){
@@ -10098,7 +10145,35 @@ function arretMpc(){
   if(b) b.classList.remove("on");
   majLcdMpc();
 }
-function boucleMpc(){ }
+function clicMetroMpc(t, fort){
+  if(!ctx || !master) return;
+  var o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = "square"; o.frequency.setValueAtTime(fort ? 1760 : 1100, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(fort ? 0.22 : 0.12, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.05);
+}
+function boucleMpc(){
+  if(MPC.amorce > 0){                       /* fin d'une mesure de décompte */
+    MPC.amorce--;
+    majLcdMpc();
+    return;
+  }
+  if(MPC.mode !== 2 || !MPC.chanson.length) return;
+  MPC.chTour++;
+  var pas = MPC.chanson[MPC.chPos];
+  if(!pas || MPC.chTour >= (pas.tours || 1)){
+    MPC.chTour = 0;
+    MPC.chPos = (MPC.chPos + 1) % MPC.chanson.length;
+    var suiv = MPC.chanson[MPC.chPos];
+    if(suiv){
+      MPC.seqCur = suiv.seq;
+      MPC.seq = MPC.seqs[MPC.seqCur];
+      majLcdMpc(); majPadsMpc();
+    }
+  }
+}
 var MACHINE_MPC = {schedule:scheduleMpc, beat:beatMpc, arret:arretMpc, boucle:boucleMpc,
                    longueur:function(){ return pasMpc(); }};
 
@@ -10121,7 +10196,13 @@ function frapperPad(k, vel){
   if(!ctx) return;
   jouerPad(ctx.currentTime + 0.005, k, vel);
   MPC.sel = k;
+  if(MPC.attente){                          /* WAIT FOR KEY : la première frappe lance tout */
+    MPC.attente = false;
+    step = 0;
+    majLcdMpc();
+  }
   majPadsMpc(); majLcdMpc();
+  if(MPC.amorce > 0) return;                /* pendant le décompte on joue sans enregistrer */
   if(S.run && (MPC.rec || MPC.over)){
     MPC.annule = MPC.seq.evts.slice();
     MPC.seq.evts.push({tic:caleMpc(ticCourant()), pad:k, vel:vel});
@@ -10135,21 +10216,47 @@ function padNom(k){
   if(MPC.v === 3000) return MPC_NOMS3000[k % 16];
   return "PAD " + ((k % 16) + 1);
 }
+function ticTexte(t){
+  var m = Math.floor(t / (MPC_TPQ*4)) + 1;
+  var b = Math.floor((t % (MPC_TPQ*4)) / MPC_TPQ) + 1;
+  var r = Math.round(t % MPC_TPQ);
+  return m + "." + b + "." + ("00" + r).slice(-2);
+}
 function majLcdMpc(){
   var l1 = document.getElementById("mpc-l1");
   if(!l1) return;
   var seq = MPC.seq, p = MPC.pads[MPC.sel];
+  var l2 = document.getElementById("mpc-l2"), l3 = document.getElementById("mpc-l3"),
+      l4 = document.getElementById("mpc-l4");
+  if(MPC.mode === 1){                       /* pas à pas */
+    var e = seq.evts[MPC.evtSel];
+    l1.textContent = "Step Edit  " + seq.nom;
+    l2.textContent = "Event " + (seq.evts.length ? (MPC.evtSel + 1) : 0) + "/" + seq.evts.length;
+    l3.textContent = e ? ("Pos:" + ticTexte(e.tic) + "  Vel:" + Math.round(e.vel * 127)) : "Sequence vide";
+    l4.textContent = e ? ("Pad " + MPC_BANQUES[Math.floor(e.pad/16)] + ((e.pad%16)+1) + " " + padNom(e.pad))
+                       : "Jouez sur les pads pour remplir";
+    return;
+  }
+  if(MPC.mode === 2){                       /* chanson */
+    var pas = MPC.chanson[MPC.chPos];
+    l1.textContent = "Song       " + MPC.chanson.length + " pas";
+    l2.textContent = "Step " + (MPC.chanson.length ? (MPC.chPos + 1) : 0) + "/" + MPC.chanson.length +
+                     "   Tour " + (MPC.chTour + 1);
+    l3.textContent = pas ? (MPC.seqs[pas.seq].nom + "  x" + (pas.tours || 1)) : "Ajoutez des pas";
+    l4.textContent = "1-8 ajoute une sequence   ERASE retire";
+    return;
+  }
   var mesure = (MPC.pos >= 0) ? Math.floor(MPC.pos / 16) + 1 : 1;
   var temps = (MPC.pos >= 0) ? (Math.floor((MPC.pos % 16) / 4) + 1) : 1;
-  l1.textContent = (S.run ? (MPC.rec ? "Record  " : MPC.over ? "Overdub " : "Play    ") : "Main    ")
-                 + seq.nom;
-  document.getElementById("mpc-l2").textContent =
-    "Bar:" + mesure + "." + temps + "   Bars:" + seq.mesures + "   BPM:" + S.bpm;
-  document.getElementById("mpc-l3").textContent =
-    "T.C.:" + MPC_QNOM[seq.q] + "   Swing:" + Math.round(seq.swing * 100) + "%   Ev:" + seq.evts.length;
-  document.getElementById("mpc-l4").textContent =
-    "Pad " + MPC_BANQUES[MPC.banque] + ((MPC.sel % 16) + 1) + " " + padNom(MPC.sel) +
-    "  Snd:" + nomEch(p.ech);
+  l1.textContent = (MPC.amorce > 0 ? "Count In" :
+                    MPC.attente ? "Wait Key" :
+                    S.run ? (MPC.rec ? "Record  " : MPC.over ? "Overdub " : "Play    ") : "Main    ")
+                 + " " + seq.nom;
+  l2.textContent = "Bar:" + mesure + "." + temps + "   Bars:" + seq.mesures + "   BPM:" + S.bpm;
+  l3.textContent = "T.C.:" + MPC_QNOM[seq.q] + "  Sw:" + Math.round(seq.swing * 100) +
+                   "%  Ev:" + seq.evts.length + "  16L:" + MPC_T16[MPC.type16];
+  l4.textContent = "Pad " + MPC_BANQUES[MPC.banque] + ((MPC.sel % 16) + 1) + " " + padNom(MPC.sel) +
+    "  " + nomEch(p.ech) + (p.envers ? " REV" : "") + (p.coupe >= 0 ? (" G" + (p.coupe+1)) : "");
 }
 function majPadsMpc(){
   var els = document.querySelectorAll("#mpc-pads .mpc-pad");
@@ -10169,15 +10276,21 @@ function majPadsMpc(){
   document.getElementById("mpc-over").classList.toggle("on", MPC.over);
   document.getElementById("mpc-efface").classList.toggle("on", MPC.ecrase);
   document.getElementById("mpc-timing").textContent = "T.C. " + MPC_QNOM[MPC.seq.q];
+  var pe = MPC.pads[MPC.sel];
+  document.getElementById("mpc-envers").classList.toggle("on", !!pe.envers);
+  document.getElementById("mpc-t16").textContent = "16 LEV : " + MPC_T16[MPC.type16];
+  document.getElementById("mpc-seqbpm").textContent =
+    MPC.seq.bpm ? ("SEQ BPM " + MPC.seq.bpm) : "SEQ BPM : GÉNÉRAL";
 }
 
 /* --- mémoire --- */
 function memMpc(){
   memoire["mpc" + MPC.v] = {
     banque:MPC.banque, sel:MPC.sel, seqCur:MPC.seqCur,
+    type16:MPC.type16, compte:MPC.compte, chanson:MPC.chanson,
     pads:MPC.pads,
     seqs:MPC.seqs.map(function(s){
-      return {mesures:s.mesures, q:s.q, swing:s.swing, nom:s.nom,
+      return {mesures:s.mesures, q:s.q, swing:s.swing, nom:s.nom, bpm:s.bpm,
               evts:s.evts.map(function(e){ return [e.tic, e.pad, Math.round(e.vel*100)]; })};
     })
   };
@@ -10187,20 +10300,23 @@ function chargerMpc(){
   MPC.pads = []; MPC.seqs = [];
   for(var i=0;i<64;i++) MPC.pads.push(padMpc(i));
   for(var s=0;s<8;s++){ var q = seqMpc(); q.nom = "SEQ " + (s+1); MPC.seqs.push(q); }
-  MPC.seqCur = 0; MPC.banque = 0; MPC.sel = 0;
+  MPC.seqCur = 0; MPC.banque = 0; MPC.sel = 0; MPC.chanson = []; MPC.mode = 0;
+  MPC.chPos = 0; MPC.chTour = 0; MPC.amorce = 0; MPC.attente = false;
   var m = memLire("mpc" + MPC.v);
   if(m){
     if(m.pads && m.pads.length === 64) MPC.pads = m.pads;
     if(m.seqs && m.seqs.length === 8){
       MPC.seqs = m.seqs.map(function(o, i){
         var q = seqMpc();
-        q.mesures = o.mesures || 2; q.q = o.q || 3; q.swing = o.swing || 0;
+        q.mesures = o.mesures || 2; q.q = o.q || 3; q.swing = o.swing || 0; q.bpm = o.bpm || 0;
         q.nom = o.nom || ("SEQ " + (i+1));
         q.evts = (o.evts || []).map(function(e){ return {tic:e[0], pad:e[1], vel:e[2]/100}; });
         return q;
       });
     }
-    ["banque","sel","seqCur"].forEach(function(c){ if(typeof m[c] === "number") MPC[c] = m[c]; });
+    ["banque","sel","seqCur","type16"].forEach(function(c){ if(typeof m[c] === "number") MPC[c] = m[c]; });
+    MPC.compte = !!m.compte;
+    MPC.chanson = (m.chanson && m.chanson.length) ? m.chanson : [];
   }
   MPC.seq = MPC.seqs[MPC.seqCur] || MPC.seqs[0];
 }
@@ -10229,9 +10345,16 @@ function chargerMpc(){
     if(!el) return;
     el.setPointerCapture(e.pointerId);
     var k = MPC.banque * 16 + (+el.dataset.p);
-    if(MPC.niv16){                              /* seize niveaux : un seul son, seize forces */
-      var n = (+el.dataset.p) + 1;
-      frapperPad(MPC.sel, Math.max(0.1, n / 16));
+    if(MPC.niv16){                              /* seize niveaux : un seul son, seize valeurs */
+      var n = (+el.dataset.p) + 1, f = n / 16;
+      var p16 = MPC.pads[MPC.sel], sauve = null;
+      if(MPC.type16 === 1){ sauve = p16.tune; p16.tune = (f - 0.5) * 2; }
+      else if(MPC.type16 === 2){ sauve = p16.debut; p16.debut = f - 1/16; }
+      else if(MPC.type16 === 3){ sauve = p16.dec; p16.dec = Math.max(0.05, f); }
+      frapperPad(MPC.sel, MPC.type16 === 0 ? Math.max(0.1, f) : 1);
+      if(MPC.type16 === 1) p16.tune = sauve;
+      else if(MPC.type16 === 2) p16.debut = sauve;
+      else if(MPC.type16 === 3) p16.dec = sauve;
       H.cran();
       return;
     }
@@ -10291,19 +10414,24 @@ function chargerMpc(){
     var b5 = e.target.closest(".mpcb");
     if(!b5) return;
     var t = b5.dataset.n;
-    if(t >= "1" && t <= "8"){                   /* choix direct d'une séquence */
-      memMpc();
-      MPC.seqCur = (+t) - 1;
-      MPC.seq = MPC.seqs[MPC.seqCur];
-      step = 0;
-      majLcdMpc(); majPadsMpc();
+    if(t >= "1" && t <= "8"){
+      if(MPC.mode === 2){                       /* en mode chanson : on ajoute un pas */
+        MPC.chanson.push({seq:(+t) - 1, tours:1});
+        MPC.chPos = MPC.chanson.length - 1;
+      } else {
+        memMpc();
+        MPC.seqCur = (+t) - 1;
+        MPC.seq = MPC.seqs[MPC.seqCur];
+        step = 0;
+      }
+      memMpc(); majLcdMpc(); majPadsMpc();
     }
     H.cran();
   });
 
   var cmd = document.getElementById("mpc-cmd");
-  [["DISK","d"],["PROGRAM","p"],["MIXER","m"],["MIDI","i"],["SONG","s"],["OTHER","o"],
-   ["EDIT","e"],["STEP EDIT","t"],["EDIT LOOP","l"]].forEach(function(x){
+  [["DISK","d"],["PROGRAM","p"],["MIXER","m"],["SONG","s"],["COUNT IN","o"],["WAIT KEY","w"],
+   ["NAME","n"],["STEP EDIT","t"],["COPY SEQ","c"]].forEach(function(x){
     var b6 = document.createElement("button");
     b6.className = "mpcb"; b6.textContent = x[0]; b6.dataset.c = x[1];
     cmd.appendChild(b6);
@@ -10311,9 +10439,51 @@ function chargerMpc(){
   cmd.addEventListener("click", function(e){
     var b7 = e.target.closest(".mpcb");
     if(!b7) return;
-    if(b7.dataset.c === "p" || b7.dataset.c === "e"){ MPC.param = 0; ouvrirNotice(); }
-    else if(b7.dataset.c === "i") ouvrirNotice("note-general");
-    else signal(b7.textContent + " · VOIR LA NOTICE");
+    var c = b7.dataset.c;
+    if(c === "d"){ ouvrirBib(); }
+    else if(c === "p"){                          /* groupe de coupure du pad choisi */
+      var p8 = MPC.pads[MPC.sel];
+      p8.coupe = (p8.coupe + 2) % 5 - 1;         /* -1, 0, 1, 2, 3 */
+      memMpc(); majLcdMpc();
+      signal(p8.coupe < 0 ? "SANS GROUPE DE COUPURE" : ("GROUPE DE COUPURE " + (p8.coupe + 1)));
+    }
+    else if(c === "m"){ ouvrirNotice(); }
+    else if(c === "s"){
+      MPC.mode = (MPC.mode === 2) ? 0 : 2;
+      MPC.chPos = 0; MPC.chTour = 0;
+      majLcdMpc(); majPadsMpc();
+      signal(MPC.mode === 2 ? "MODE CHANSON" : "MODE PRINCIPAL");
+    }
+    else if(c === "o"){
+      MPC.compte = !MPC.compte;
+      signal(MPC.compte ? "DÉCOMPTE D'UNE MESURE AVANT ENREGISTREMENT" : "SANS DÉCOMPTE");
+    }
+    else if(c === "w"){
+      MPC.attenteDemandee = !MPC.attenteDemandee;
+      signal(MPC.attenteDemandee ? "DÉPART À LA PREMIÈRE FRAPPE" : "DÉPART IMMÉDIAT");
+    }
+    else if(c === "n"){
+      renommer("Nom de la séquence", MPC.seq.nom, function(v){
+        if(v){ MPC.seq.nom = v; memMpc(); majLcdMpc(); }
+      });
+    }
+    else if(c === "t"){
+      MPC.mode = (MPC.mode === 1) ? 0 : 1;
+      MPC.evtSel = 0;
+      majLcdMpc(); majPadsMpc();
+      signal(MPC.mode === 1 ? "PAS À PAS : MOLETTE POUR PARCOURIR" : "MODE PRINCIPAL");
+    }
+    else if(c === "c"){
+      var src = MPC.seq;
+      renommer("Copier vers quelle séquence ? (1 à 8)", "", function(v){
+        var n2 = parseInt(v, 10) - 1;
+        if(isNaN(n2) || n2 < 0 || n2 > 7){ signal("NUMÉRO ENTRE 1 ET 8"); return; }
+        var d = MPC.seqs[n2];
+        d.mesures = src.mesures; d.q = src.q; d.swing = src.swing; d.bpm = src.bpm;
+        d.evts = src.evts.map(function(e2){ return {tic:e2.tic, pad:e2.pad, vel:e2.vel}; });
+        memMpc(); signal("COPIÉE VERS " + d.nom);
+      });
+    }
     H.cran();
   });
 })();
@@ -10336,8 +10506,11 @@ var kMpcPan  = knobMpc("mpc-k-pan", "pan", -1, 1, "PAN");
 var kMpcTune = knobMpc("mpc-k-tune", "tune", -1, 1, "TUNE");
 var kMpcDec  = knobMpc("mpc-k-dec", "dec", 0.05, 1, "DECAY");
 var kMpcFilt = knobMpc("mpc-k-filt", "filt", 0, 1, "FILTER");
+var kMpcDebut = knobMpc("mpc-k-debut", "debut", 0, 1, "START");
+var kMpcVelNiv = knobMpc("mpc-k-velniv", "velNiv", 0, 1, "VEL>LEV");
 function majKnobsMpc(){
-  [kMpcNiv, kMpcPan, kMpcTune, kMpcDec, kMpcFilt, kMpcVol].forEach(function(k){ k.maj(); });
+  [kMpcNiv, kMpcPan, kMpcTune, kMpcDec, kMpcFilt, kMpcDebut, kMpcVelNiv, kMpcVol]
+    .forEach(function(k){ k.maj(); });
 }
 
 /* --- molette : choisit le son du pad, ou le réglage courant --- */
@@ -10359,6 +10532,21 @@ function majKnobsMpc(){
   el.addEventListener("pointercancel", function(){ st.drag = false; });
   function pasMpcRoue(d){
     banqueEs();
+    if(MPC.mode === 1){                       /* pas à pas : on parcourt les événements */
+      var n = MPC.seq.evts.length;
+      if(!n){ majLcdMpc(); return; }
+      MPC.evtSel = (MPC.evtSel + d + n) % n;
+      var e = MPC.seq.evts[MPC.evtSel];
+      if(ctx) jouerPad(ctx.currentTime + 0.01, e.pad, e.vel);
+      majLcdMpc(); H.cran();
+      return;
+    }
+    if(MPC.mode === 2){                       /* chanson : nombre de tours du pas */
+      var pas = MPC.chanson[MPC.chPos];
+      if(pas){ pas.tours = Math.max(1, Math.min(64, (pas.tours || 1) + d)); memMpc(); }
+      majLcdMpc(); H.cran();
+      return;
+    }
     var l = listeEch(), p = MPC.pads[MPC.sel];
     if(MPC.param === 1){ S.bpm = Math.max(30, Math.min(300, S.bpm + d)); }
     else if(MPC.param === 2){ MPC.seq.mesures = Math.max(1, Math.min(16, MPC.seq.mesures + d)); }
@@ -10373,8 +10561,24 @@ function majKnobsMpc(){
     majLcdMpc(); H.cran();
   }
   MPC.pas = pasMpcRoue;
-  document.getElementById("mpc-moins").addEventListener("click", function(){ pasMpcRoue(-1); });
-  document.getElementById("mpc-plus").addEventListener("click", function(){ pasMpcRoue(1); });
+  /* en pas à pas, les touches − et + décalent l'événement choisi */
+  document.getElementById("mpc-moins").addEventListener("click", function(){
+    if(MPC.mode === 1) return nudgeMpc(-1);
+    pasMpcRoue(-1);
+  });
+  document.getElementById("mpc-plus").addEventListener("click", function(){
+    if(MPC.mode === 1) return nudgeMpc(1);
+    pasMpcRoue(1);
+  });
+  function nudgeMpc(d){
+    var e = MPC.seq.evts[MPC.evtSel];
+    if(!e) return;
+    MPC.annule = MPC.seq.evts.map(function(x){ return {tic:x.tic, pad:x.pad, vel:x.vel}; });
+    e.tic = (e.tic + d * (MPC_TPQ / 8) + ticsMpc()) % ticsMpc();
+    MPC.seq.evts.sort(function(a,b){ return a.tic - b.tic; });
+    MPC.evtSel = MPC.seq.evts.indexOf(e);
+    memMpc(); majLcdMpc(); H.cran();
+  }
 })();
 
 /* --- curseur de variation --- */
@@ -10400,10 +10604,47 @@ function basculeMpc(id, champ){
     majPadsMpc(); H.inter();
   });
 }
+document.getElementById("mpc-envers").addEventListener("click", function(){
+  var p = MPC.pads[MPC.sel];
+  p.envers = !p.envers;
+  delete ES.inv[p.ech];
+  majPadsMpc(); majLcdMpc(); memMpc(); H.cran();
+});
+document.getElementById("mpc-t16").addEventListener("click", function(){
+  MPC.type16 = (MPC.type16 + 1) % MPC_T16.length;
+  majPadsMpc(); majLcdMpc(); H.cran();
+  signal("16 LEVELS : " + MPC_T16[MPC.type16]);
+});
+document.getElementById("mpc-seqbpm").addEventListener("click", function(){
+  MPC.seq.bpm = MPC.seq.bpm ? 0 : S.bpm;
+  majPadsMpc(); majLcdMpc(); memMpc(); H.cran();
+  signal(MPC.seq.bpm ? ("TEMPO PROPRE À LA SÉQUENCE : " + MPC.seq.bpm) : "LA SÉQUENCE SUIT LE TEMPO GÉNÉRAL");
+});
 basculeMpc("mpc-plein", "plein");
 basculeMpc("mpc-16niv", "niv16");
 basculeMpc("mpc-repet", "repet");
-basculeMpc("mpc-efface", "ecrase");
+document.getElementById("mpc-efface").addEventListener("click", function(){
+  if(MPC.mode === 1){                         /* pas à pas : retire l'événement choisi */
+    var e = MPC.seq.evts[MPC.evtSel];
+    if(!e){ signal("AUCUN ÉVÉNEMENT"); return; }
+    MPC.annule = MPC.seq.evts.map(function(x){ return {tic:x.tic, pad:x.pad, vel:x.vel}; });
+    MPC.seq.evts.splice(MPC.evtSel, 1);
+    MPC.evtSel = Math.max(0, Math.min(MPC.evtSel, MPC.seq.evts.length - 1));
+    memMpc(); majLcdMpc(); H.inter();
+    return;
+  }
+  if(MPC.mode === 2){                          /* chanson : retire le pas */
+    if(MPC.chanson.length){
+      MPC.chanson.splice(MPC.chPos, 1);
+      MPC.chPos = Math.max(0, Math.min(MPC.chPos, MPC.chanson.length - 1));
+      memMpc(); majLcdMpc();
+    }
+    H.inter();
+    return;
+  }
+  MPC.ecrase = !MPC.ecrase;
+  majPadsMpc(); H.inter();
+});
 document.getElementById("mpc-banque").addEventListener("click", function(){
   MPC.banque = (MPC.banque + 1) % 4;
   MPC.sel = MPC.banque * 16 + (MPC.sel % 16);
@@ -10435,13 +10676,16 @@ document.getElementById("mpc-play").addEventListener("click", function(){
 });
 document.getElementById("mpc-playstart").addEventListener("click", function(){
   audioInit(); banqueEs();
-  stop(); step = 0; start(); H.start();
+  stop(); step = 0;
+  MPC.amorce = (MPC.compte && (MPC.rec || MPC.over)) ? 1 : 0;
+  MPC.attente = !!MPC.attenteDemandee;
+  start(); H.start();
   document.getElementById("mpc-play").classList.add("on");
   majLcdMpc();
 });
 document.getElementById("mpc-stop").addEventListener("click", function(){
   stop(); H.stop();
-  MPC.rec = false; MPC.over = false;
+  MPC.rec = false; MPC.over = false; MPC.amorce = 0; MPC.attente = false;
   document.getElementById("mpc-play").classList.remove("on");
   majPadsMpc(); majLcdMpc();
 });
