@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **61**.
+La version actuelle est la **62**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,48 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Audit v62 — la famille du bug de la v61, passée au peigne**
+
+Le bug de la v61 avait une forme : quelque chose recopié à la main, machine après machine, et devenu
+incomplet quand les dernières machines sont arrivées. Sept familles ont été examinées de façon
+systématique (extraction du code, pas relecture), et voici le résultat.
+
+*Saines* — rien à faire :
+- Tuiles du menu ↔ `allerMachine` ↔ `MODELES` : 25 tuiles, toutes routées.
+- Contrat des objets `MACHINE_*` : le moteur garde `boucle` et `longueur` derrière des tests, `MACHINE_EHX`
+  peut s'en passer.
+- Écouteurs empilés à chaque activation : aucun. Toutes les fabriques `knobEm` s'appellent au premier niveau.
+- Potards lisant `S.bpm`/`S.vol` : les 21 sont rafraîchis en entrant (par `.maj()` direct ou par tableau).
+- `docDeLaMachine`, `actif = …` : couverture complète.
+- Clés de `memoire` : une par machine, sans collision.
+
+*Corrigées* :
+- **Bus oubliés sans être débranchés.** `TR`, `DBI`, `T1K`, `TD3`, `VLC`, `DMX`, `CR5`, `ARCM` remettaient
+  leurs caches à zéro dans leur `activer*` et reconstruisaient ; les anciens nœuds restaient sur `master`.
+  Muets, mais calculés : saturations suréchantillonnées, un convolveur pour la volca, un oscillateur qui
+  tourne pour la TD-3 — un jeu de plus par passage dans le menu. Correctif : `debrancherTout(objet)`, qui
+  descend dans l'objet, débranche chaque nœud et arrête chaque source, appelé avant chaque remise à zéro.
+  **Règle** : ne jamais écrire `X.noeuds = {}` sans `debrancherTout(X.noeuds)` juste avant.
+- **Silence après un export WAV.** À l'aller, `batirAudio()` refaisait tous les bus dans le contexte de
+  rendu ; au retour, `remettre()` restaurait `ctx` et `master` mais ni `outBd/outMix/panBd/panMix`, ni
+  `fxIn/dlyNode`, ni `MX.tubeIn`. Les machines qui ne refont pas leurs bus en s'activant — DRM16, les six
+  Electribe, la MPC — rebranchaient leurs voix sur des nœuds du contexte de rendu : l'API refuse, plus un
+  son jusqu'au redémarrage. Correctif : `remettre()` appelle `razNoeudsMachines()` comme à l'aller, et rend
+  à la DRM16 ses quatre sorties mises de côté.
+- **Chaîne de démarrage dupliquée** (24 lignes en bas du fichier, copie de `allerMachine`). Remplacée par
+  `allerMachine(memoire.modele)`. Une machine ajoutée à l'une et pas à l'autre aurait planté au démarrage.
+
+*Constatée, non corrigée* — c'est une lacune de fonction, pas un accident :
+- **Entrée MIDI sur dix machines.** `entreeNote` ne connaît que les Electribe ; sur TR/RD-6, MPC, DMX,
+  volca, CR-5000, DrumBrute, TR-1000, archive, TD-3 et Eurorack, une note MIDI tombe dans le cas par
+  défaut et joue **les voix de la DRM16**. Même famille (« on joue une machine qu'on ne voit pas »), mais
+  le corriger demande d'écrire le routage MIDI de chaque machine. Le cas par défaut devrait au minimum être
+  réservé à `S.modele === "16" || "32"`.
+- Les potards de tempo n'ont pas tous la même étendue (TR 40–300, volca 50–250, T1K 30–300…). Un tempo
+  réglé hors de l'étendue d'une autre machine y apparaît en butée. Cosmétique.
+- `razNoeudsMachines()` ne liste ni `TD3` ni `EUR` ; c'est sans conséquence parce que leurs `activer*`
+  rebâtissent tout, mais une machine future qui garderait un cache sans le rebâtir devra y être ajoutée.
 
 **Bug corrigé en v61 — changement de machine**
 

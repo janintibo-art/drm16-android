@@ -5134,6 +5134,31 @@ function poserMachine(){
     EUR.bus.gain.value = d.contains("eur") ? 1 : 0;
 }
 
+/* ---------- oublier un nœud, c'est d'abord le débrancher ----------
+   Chaque machine garde ses bus dans un objet (TR.bus, DBI.noeuds, TD3.noeuds…)
+   qu'elle remettait à zéro à chaque activation avant d'en reconstruire un neuf.
+   Les anciens restaient branchés sur master : muets, mais toujours calculés —
+   des saturations suréchantillonnées, un convolveur pour la volca, un
+   oscillateur qui tourne pour la TD-3 — et il s'en ajoutait un jeu complet à
+   chaque passage par le menu. Sur un téléphone, au bout d'une vingtaine de
+   changements de machine, le moteur audio n'a plus le temps et décroche.
+   On descend dans l'objet, on débranche chaque nœud et on arrête chaque source. */
+function debrancherTout(x, prof){
+  prof = prof || 0;
+  if(!x || prof > 3) return;
+  if(typeof x.disconnect === "function" && typeof x.connect === "function"){
+    try{ x.disconnect(); }catch(e){}
+    if(typeof x.stop === "function"){ try{ x.stop(); }catch(e){} }
+    return;
+  }
+  var t = Object.prototype.toString.call(x);
+  if(t === "[object Array]"){
+    for(var i=0;i<x.length;i++) debrancherTout(x[i], prof + 1);
+  } else if(t === "[object Object]"){
+    for(var k in x) if(Object.prototype.hasOwnProperty.call(x, k)) debrancherTout(x[k], prof + 1);
+  }
+}
+
 /* ================= boutons rotatifs ================= */
 function ticksFor(el,n){
   var box = el.querySelector(".ticks");
@@ -13893,12 +13918,12 @@ function activerTr(modele){
   audioInit();
   chargerTr();            /* les motifs d'abord : les boutons lisent leurs valeurs à la création */
   construireTr();
-  TR.noeuds = []; TR.ohGain = null;
+  debrancherTout(TR.noeuds); TR.noeuds = []; TR.ohGain = null;
   TR.sel = Math.min(TR.sel, TR.def.instr.length - 1);
   document.getElementById("tr8-notice").textContent = TR.def.nom;
   document.getElementById("tr8-sstitre").textContent = TR.def.sous;
   document.querySelector(".tr8-roland").textContent = TR.def.marque || "Roland";
-  TR.bus = null;
+  debrancherTout(TR.bus); TR.bus = null;
   appliquerCouleurRd6();
   majTr(); majKnobsTr();
   actif = unitTr;
@@ -15826,7 +15851,7 @@ function activerTd3(){
   poserMachine("td3");
   audioInit();
   chargerTd3();
-  TD3.noeuds = null; TD3.precSlide = false;
+  debrancherTout(TD3.noeuds); TD3.noeuds = null; TD3.precSlide = false;
   batirTd3();
   appliquerCouleurTd3();
   majTd3(); majKnobsTd3();
@@ -16205,7 +16230,7 @@ function activerArcm(){
   poserMachine("arcm");
   audioInit(); banqueEs(); chargerEchs();
   chargerArcm();
-  ARCM.noeuds = [];
+  debrancherTout(ARCM.noeuds); ARCM.noeuds = [];
   majArcm(); majKnobsArcm();
   actif = unitArcm;
   save(); fit(); setTimeout(fit, 120);
@@ -16727,7 +16752,7 @@ function activerT1k(){
   poserMachine("t1k");
   audioInit(); banqueEs(); chargerEchs();
   chargerT1k();
-  T1K.noeuds = {}; T1K.ohGain = null;
+  debrancherTout(T1K.noeuds); T1K.noeuds = {}; T1K.ohGain = null;
   bâtirT1k();
   majT1k(); majKnobsT1k();
   actif = unitT1k;
@@ -17215,7 +17240,7 @@ function activerDbi(){
   poserMachine("dbi");
   audioInit();
   chargerDbi();
-  DBI.noeuds = {}; DBI.ohGain = null;
+  debrancherTout(DBI.noeuds); DBI.noeuds = {}; DBI.ohGain = null;
   majDbi(); majKnobsDbi();
   actif = unitDbi;
   save(); fit(); setTimeout(fit, 120);
@@ -17562,7 +17587,7 @@ function activerCr(){
   poserMachine("cr5");
   audioInit();
   chargerCr();
-  CR5.noeuds = {}; CR5.ohGain = null; CR5.mesure = 0; CR5.fill = false;
+  debrancherTout(CR5.noeuds); CR5.noeuds = {}; CR5.ohGain = null; CR5.mesure = 0; CR5.fill = false;
   majCr(); majKnobsCr();
   actif = unitCr;
   save(); fit(); setTimeout(fit, 120);
@@ -17984,7 +18009,7 @@ function activerVlc(){
   poserMachine("vlc");
   audioInit(); banqueEs(); chargerEchs();
   chargerVlc();
-  VLC.noeuds = []; VLC.reverb = null;
+  debrancherTout(VLC.noeuds); debrancherTout(VLC.reverb); VLC.noeuds = []; VLC.reverb = null;
   majVlc(); majKnobsVlc();
   actif = unitVlc;
   save(); fit(); setTimeout(fit, 120);
@@ -18418,7 +18443,7 @@ function activerDmx(){
   poserMachine("dmx");
   audioInit();
   chargerDmx();
-  DMX.noeuds = {}; DMX.ohGain = null;
+  debrancherTout(DMX.noeuds); DMX.noeuds = {}; DMX.ohGain = null;
   majAffDmx();
   actif = unitDmx;
   save(); fit();
@@ -18789,8 +18814,11 @@ function exporterWav(){
   var total = pas * WAVX.mesures * duree + 2.5;   /* deux secondes et demie pour les queues */
   var taux = 44100;
 
-  /* on met de côté tout ce que le rendu va remplacer */
+  /* on met de côté tout ce que le rendu va remplacer — y compris les quatre
+     sorties de la DRM16, que batirAudio() refait chez lui et que rien ne
+     recrée au retour */
   var ctxVrai = ctx, masterVrai = master, bruitVrai = noiseBuf, cacheVrai = cache;
+  var sortiesVraies = {outBd:outBd, outMix:outMix, panBd:panBd, panMix:panMix};
   var off;
   try{ off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(taux * total), taux); }
   catch(e){ WAVX.occupe = false; signal("RENDU IMPOSSIBLE SUR CET APPAREIL"); return; }
@@ -18803,6 +18831,15 @@ function exporterWav(){
   function remettre(){
     WAVX.occupe = false;
     ctx = ctxVrai; master = masterVrai; noiseBuf = bruitVrai; cache = cacheVrai;
+    /* Tout ce que les machines ont rebâti pendant le rendu appartient au
+       contexte de rendu. Celles qui ne refont pas leurs bus en s'activant —
+       la DRM16, les Electribe, la MPC — rebrancheraient leurs voix dessus,
+       l'API refuserait, et plus rien ne sortirait jusqu'au redémarrage.
+       On oublie donc ces nœuds comme à l'aller, et on rend à la DRM16 ses
+       sorties d'origine, qui sont toujours valables. */
+    razNoeudsMachines();
+    outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
+    panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
     try{ allerMachine(modele); }catch(e){ signal("MACHINE À RECHARGER"); }
   }
   try{
@@ -20332,30 +20369,8 @@ for(var q=0;q<picks.length;q++){
   });
 }
 
-if(memoire.modele === "em1") activerEm();
-else if(memoire.modele === "er1") activerEr(1);
-else if(memoire.modele === "er2") activerEr(2);
-else if(memoire.modele === "ea1") activerEa(1);
-else if(memoire.modele === "ea2") activerEa(2);
-else if(memoire.modele === "es1") activerEs(1);
-else if(memoire.modele === "es2") activerEs(2);
-else if(memoire.modele === "emx") activerMx();
-else if(memoire.modele === "esx") activerSx();
-else if(memoire.modele === "mpc3000") activerMpc(3000);
-else if(memoire.modele === "mpc2000") activerMpc(2000);
-else if(memoire.modele === "tr808") activerTr("tr808");
-else if(memoire.modele === "tr909") activerTr("tr909");
-else if(memoire.modele === "tr707") activerTr("tr707");
-else if(memoire.modele === "dmx") activerDmx();
-else if(memoire.modele === "vlc") activerVlc();
-else if(memoire.modele === "cr5") activerCr();
-else if(memoire.modele === "dbi") activerDbi();
-else if(memoire.modele === "t1k") activerT1k();
-else if(memoire.modele === "arcm") activerArcm();
-else if(memoire.modele === "rd6") activerTr("rd6");
-else if(memoire.modele === "td3") activerTd3();
-else if(memoire.modele === "eur") activerEur();
-else appliquerModele(memoire.modele);
+/* la machine mémorisée : même aiguillage que le menu, une seule liste à tenir */
+allerMachine(memoire.modele);
 menu.classList.remove("hide");
 document.body.classList.add("menu-ouvert");
 menu.addEventListener("scroll", majVoileMenu);
