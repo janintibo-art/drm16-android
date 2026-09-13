@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Quinze machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+**Seize machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
 en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -243,6 +243,23 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Roland TR-707 (version 40)
+
+Troisième des sept, et la première qui n'aura presque rien coûté : le moteur TR généralisé à la version
+précédente a suffi. Quinze instruments, un seul réglage chacun — son niveau. C'est fidèle : la 707 n'a que
+des curseurs de niveau, ses sons étant des échantillons figés.
+
+**Le goulot commun.** Toutes ses voix passent par le même passage obligé : passe-bas à 9,5 kHz et
+quantification sur douze bits, qui reproduit le convertisseur de 1985. C'est ce traitement appliqué
+uniformément, plus que le détail de chaque voix, qui donne à la 707 son grain sec et un peu terne.
+
+**L'écran à points** est reproduit sous les touches : une ligne par instrument, une colonne par pas,
+l'instrument choisi entouré. On y lit le motif entier d'un coup d'œil — aucune autre machine de
+l'application ne le permet.
+
+Relevés des quinze voix, toutes audibles, de 0,01 s pour le rim shot à 0,92 s pour la crash.
+Trois mesures avec la chaîne maîtresse : crêtes 0,93, 0,85 et 0,96, aucun échantillon saturé.
 
 ## Roland TR-909 (version 39)
 
