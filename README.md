@@ -2,7 +2,8 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Treize machines**, un menu au lancement, plus un enregistreur MIDI et un éditeur en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
+**Quatorze machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
 ## Electribe EM-1
@@ -242,6 +243,30 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Roland TR-808 (version 38)
+
+Première des sept machines de la nouvelle liste. **Aucun échantillon** : les douze voix sont refaites
+d'après les circuits d'origine.
+
+- **Grosse caisse** : oscillateur accordé à chute de hauteur, TONE dosant le claquement d'attaque et DECAY
+  la longueur — mesuré de 0,05 à 0,76 seconde. Fondamentale relevée à 65 Hz.
+- **Caisse claire** : deux oscillateurs accordés plus du bruit en passe-bande, TONE déplaçant les deux et
+  SNAPPY dosant le bruit.
+- **Toms** : chute de hauteur accordée par TUNING. Relevés à 95, 145 et 205 Hz.
+- **Métaux** : les **six carrés inharmoniques** de l'appareil (rapports 1 / 1,342 / 1,2312 / 1,6532 /
+  1,9523 / 2,1523) en passe-haut et passe-bande. Le charley fermé coupe l'ouvert — vérifié : l'énergie de
+  l'ouvert après 250 ms tombe à zéro.
+- **Clap** : trois bouffées de bruit espacées de onze millisecondes puis une queue, ce qui fait son grain.
+- **Cowbell** : deux carrés à 540 et 800 Hz dans un passe-bande à 2640.
+
+Séquenceur seize pas, seize motifs, variations A et B, piste d'accent avec son niveau, LAST STEP, et mode
+écriture ou lecture des motifs. Les réglages de sons sont propres à chaque motif.
+
+Une mesure du motif d'usine : crête 0,93, aucun échantillon saturé.
+
+**La même bévue qu'à l'arrivée des MPC** : classe du corps et classe du châssis portant le même nom, écran
+noir sans erreur JavaScript. Le châssis s'appelle `rtr`, que les TR-909 et TR-707 partageront.
 
 ## MPC : quatre-vingt-dix-neuf pistes (version 37)
 

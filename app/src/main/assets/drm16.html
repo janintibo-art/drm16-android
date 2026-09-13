@@ -903,6 +903,70 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
 .pick.pm2{background:linear-gradient(165deg,#7a7a7a,#242424 55%,#3d3d3d)}
 .pick.pm2 b{color:#efefef;text-shadow:0 2px 0 #1e1e1e}
 .pick.pm2 span{color:#bdbdbd}
+/* ===================== ROLAND TR-808 ===================== */
+body.tr8 .rtr{display:block}
+body.tr8 #unit,body.tr8 .em,body.tr8 .er,body.tr8 .ea,body.tr8 .es,body.tr8 .mx,body.tr8 .sx,
+body.tr8 .akai{display:none}
+.rtr{display:none;width:100%;max-width:1180px;border-radius:6px;padding:14px 16px 16px;
+  background:linear-gradient(172deg,#e9e7e2,#dcd9d2 40%,#d2cfc8 75%,#e4e2dc);
+  box-shadow:0 18px 40px #000a,inset 0 1px 0 #fff9,inset 0 -3px 8px #0002;position:relative}
+.tr8-tete{display:flex;align-items:flex-start;gap:14px;margin-bottom:10px}
+.tr8-roland{font:900 20px/1 "Arial Black",Impact,sans-serif;color:#e2621c;letter-spacing:-.5px}
+.tr8-nom{margin-left:auto;text-align:right}
+.tr8-nom b{display:block;font:900 34px/1 "Arial Black",Impact,sans-serif;letter-spacing:-1px;color:#3a3a38;
+  cursor:pointer}
+.tr8-nom span{display:block;font:700 11px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:4px;
+  color:#5a5a56;margin-top:4px}
+.tr8-instr{display:flex;gap:0;background:#3a3a38;border-radius:3px;padding:5px;overflow-x:auto}
+.tr8-grp{flex:none;padding:0 7px;border-right:1px solid #55554f;text-align:center}
+.tr8-grp:last-child{border-right:0}
+.tr8-grp>b{display:block;font:700 7.5px/1.3 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:1px;
+  color:#e8e4da;margin-bottom:4px;white-space:nowrap}
+.tr8-kns{display:flex;gap:6px;justify-content:center}
+.tr8-kn{width:34px;flex:none;text-align:center;touch-action:none}
+.tr8-kn .bt{width:34px;height:34px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 36% 28%,#57554e,#2a2925 55%,#141310);
+  box-shadow:0 2px 5px #0009,inset 0 1px 1px #ffffff30}
+.tr8-kn .bt i{position:absolute;left:50%;top:3px;width:2px;height:40%;margin-left:-1px;border-radius:1px;
+  background:#e2621c}
+.tr8-kn em{display:block;margin-top:2px;font:700 6.5px/1.2 "Roboto Condensed",Arial;letter-spacing:.4px;
+  color:#cfcbc2;font-style:normal}
+.tr8-bar{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.tr8b{background:linear-gradient(180deg,#f2efe8,#d6d2c8);border:0;border-radius:3px;
+  box-shadow:0 2px 0 #8d8a80,0 3px 5px #0004,inset 0 1px 0 #fff;
+  color:#3a3a36;font:700 9px/1.15 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:.6px;
+  padding:9px 11px;min-width:0}
+.tr8b:active,.tr8b.on{background:linear-gradient(180deg,#ffb37a,#e2621c);color:#2a1004;transform:translateY(2px);
+  box-shadow:0 1px 0 #8d8a80,inset 0 1px 3px #0004}
+.tr8-lcd{background:#1a0c06;border:2px solid #8d8a80;border-radius:3px;padding:6px 10px;min-width:110px}
+.tr8-lcd b{display:block;font:900 19px/1 "Courier New",monospace;color:#ff5a1e;text-shadow:0 0 10px #ff5a1e90}
+.tr8-lcd u{display:block;text-decoration:none;font:700 8px/1.4 "Roboto Condensed",Arial;letter-spacing:1.2px;
+  color:#c2551e}
+.tr8-sel{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.tr8-sel .tr8b{flex:1;min-width:56px;padding:8px 3px;font-size:8.5px}
+.tr8-pas{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;margin-top:10px}
+.tr8-pas button{border:0;border-radius:3px;padding:16px 0;position:relative;
+  font:700 9px/1 "Roboto Condensed",Arial;color:#2a2a28;
+  box-shadow:0 3px 0 #8d8a80,0 4px 6px #0005,inset 0 1px 0 #ffffff70}
+.tr8-pas button.c0{background:linear-gradient(180deg,#f0837a,#d8453a)}
+.tr8-pas button.c1{background:linear-gradient(180deg,#f5b06a,#e08a22)}
+.tr8-pas button.c2{background:linear-gradient(180deg,#f3dd82,#ddc23a)}
+.tr8-pas button.c3{background:linear-gradient(180deg,#f6f4ee,#d8d4ca)}
+.tr8-pas button.act{box-shadow:0 3px 0 #8d8a80,0 0 0 2px #e2621c,0 0 12px #e2621c90,inset 0 1px 0 #ffffff70}
+.tr8-pas button.cur::after{content:"";position:absolute;left:50%;top:4px;width:6px;height:6px;
+  margin-left:-3px;border-radius:50%;background:#b80f0f;box-shadow:0 0 8px #ff2a2a}
+.tr8-pas button.hors{opacity:.45}
+.tr8-nums{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;font:700 8px/1.4 Arial;color:#5a5a56;
+  text-align:center;margin-top:3px}
+@media (max-width:780px){
+  .tr8-nom b{font-size:24px}
+  .tr8-pas button{padding:12px 0}
+  .tr8-kn,.tr8-kn .bt{width:29px} .tr8-kn .bt{height:29px}
+}
+
+.pick.p808{background:linear-gradient(165deg,#8e8b84,#2c2b28 55%,#4a4844)}
+.pick.p808 b{color:#f0834a;text-shadow:0 2px 0 #2a1409}
+.pick.p808 span{color:#cbc7bd}
 @media (max-height:560px){
   .unit{padding:18px 10px 4px}
   .grid{gap:6px}
@@ -2064,6 +2128,47 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
 </div>
 
 
+
+<div class="rtr" id="unit-tr808">
+
+  <div class="em-jacks">
+    <div class="grp"><div class="tr"><i></i></div><span>PHONES</span></div>
+    <div class="grp"><div class="tr"><i></i></div><span>MIX OUT</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i><i></i></div><span>BD&nbsp;&nbsp;SD&nbsp;&nbsp;LT · INDIV</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>SYNC IN / OUT</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i></div><span>DC 9V</span></div>
+  </div>
+
+  <div class="tr8-tete">
+    <div class="tr8-roland">Roland</div>
+    <div class="tr8-nom"><b id="tr8-notice">TR-808</b><span>RHYTHM COMPOSER</span></div>
+  </div>
+
+  <div class="tr8-instr" id="tr8-instr"></div>
+
+  <div class="tr8-bar">
+    <button class="tr8b" id="tr8-start" style="padding:12px 18px">START</button>
+    <button class="tr8b" id="tr8-stop" style="padding:12px 18px">STOP/CONT</button>
+    <div class="tr8-lcd"><b id="tr8-val">01</b><u id="tr8-lab">PATTERN</u></div>
+    <div class="tr8-kn" style="width:44px"><div class="bt" id="tr8-k-tempo" style="width:44px;height:44px"><i></i></div><em>TEMPO</em></div>
+    <div class="tr8-kn" style="width:44px"><div class="bt" id="tr8-k-vol" style="width:44px;height:44px"><i></i></div><em>VOLUME</em></div>
+    <button class="tr8b" id="tr8-var">VARIATION A</button>
+    <button class="tr8b" id="tr8-mode">PATTERN WRITE</button>
+    <button class="tr8b" id="tr8-clear">CLEAR</button>
+    <button class="tr8b" id="tr8-scale">SCALE 16</button>
+    <button class="tr8b" id="tr8-last">LAST STEP 16</button>
+    <button class="tr8b" id="tr8-tap">TAP</button>
+  </div>
+
+  <div class="tr8-sel" id="tr8-sel"></div>
+
+  <div class="tr8-pas" id="tr8-pas"></div>
+  <div class="tr8-nums" id="tr8-nums"></div>
+</div>
+
+
 <div id="bib">
   <div id="note-bar"><b>BIBLIOTHÈQUE</b><button id="bib-fermer">FERMER</button></div>
   <div id="bib-nav">
@@ -2144,6 +2249,7 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
   <button class="pick pes2" data-m="es2"><b>ES-1 mkII</b><span>KORG · ÉCHANTILLONNEUR · ISOLATOR, RESO. FILT.</span></button>
   <button class="pick pmx" data-m="emx"><b>ELECTRIBE EMX-1</b><span>KORG · 14 PARTIES · 3 EFFETS · VALVE FORCE</span></button>
   <button class="pick psx" data-m="esx"><b>ELECTRIBE ESX-1</b><span>KORG · ÉCHANTILLONNEUR · CLAVIER, STRETCH, VALVE FORCE</span></button>
+  <button class="pick p808" data-m="tr808"><b>ROLAND TR-808</b><span>SYNTHÈSE ANALOGIQUE · 12 VOIX · 16 PAS</span></button>
   <button class="pick pm3" data-m="mpc3000"><b>AKAI MPC3000</b><span>PADS · ENREGISTREMENT AU VOL · TIMING CORRECT</span></button>
   <button class="pick pm2" data-m="mpc2000"><b>AKAI MPC2000</b><span>PADS · QUATRE BANQUES · SEIZE NIVEAUX</span></button>
   <button class="pick pbib" id="menu-bib"><b>BIBLIOTHÈQUE</b><span>SONS · PRISES · SAUVEGARDES DE VOS MACHINES</span></button>
@@ -2259,6 +2365,35 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
      <button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
   <p><button id="b-panique">PANIQUE · TOUT COUPER</button>
      <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
+  </div>
+
+  <div class="doc" id="note-808" data-titre="TR-808">
+  <h3>Prise en main</h3>
+  <p><b>START</b> lance. Choisissez un instrument dans la rangée du milieu, puis posez ses pas sur les seize
+  touches colorées. Un pas posé à l'arrêt fait entendre l'instrument.</p>
+
+  <h3>Les douze voix</h3>
+  <p>Aucun échantillon : tout est refait d'après les circuits d'origine. La <b>grosse caisse</b> est un
+  oscillateur accordé dont la hauteur chute d'un coup ; <b>TONE</b> y dose le claquement d'attaque et
+  <b>DECAY</b> la longueur — de 0,05 à 0,76 seconde, mesuré.</p>
+  <p>La <b>caisse claire</b> superpose deux oscillateurs accordés et du bruit filtré : <b>TONE</b> déplace
+  les deux, <b>SNAPPY</b> dose le bruit. Les trois <b>toms</b> sont des oscillateurs à chute de hauteur,
+  accordés par <b>TUNING</b>.</p>
+  <p>Les métaux — <b>cymbale</b>, <b>charleys</b> — sont les <b>six carrés inharmoniques</b> de l'appareil,
+  filtrés en passe-haut et passe-bande. Le charley fermé coupe l'ouvert, comme sur le vrai. Le
+  <b>clap</b> est fait de trois bouffées de bruit espacées de onze millisecondes suivies d'une queue :
+  c'est cet échelonnement qui lui donne son grain.</p>
+
+  <h3>Motifs</h3>
+  <p>Seize motifs, chacun avec ses variations <b>A</b> et <b>B</b> et ses propres réglages de sons.
+  <b>PATTERN WRITE</b> pose les pas ; en <b>PATTERN PLAY</b>, les seize touches choisissent le motif.
+  <b>LAST STEP</b> raccourcit la mesure, <b>CLEAR</b> vide l'instrument choisi.</p>
+  <p>La piste <b>AC ACCENT</b> renforce tous les coups du pas où elle est posée, et son bouton LEVEL en
+  règle la force — c'est le TOTAL ACCENT de l'appareil.</p>
+
+  <h3>Ce qui diffère</h3>
+  <p>Pas de mode chanson ni de cartouche mémoire. Le réglage SCALE change l'affichage mais la lecture reste
+  en doubles croches.</p>
   </div>
 
   <div class="doc" id="note-mpc" data-titre="MPC3000 · MPC2000">
@@ -2650,10 +2785,10 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
 (function charger(){
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
-    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
     if(m.midi) memoire.midi = m.midi;
     /* ancien format : les machines vivaient dans le blob global, on les répartit une fois */
-    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000"].forEach(function(c){
+    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808"].forEach(function(c){
       if(m[c]){
         memoire[c] = m[c];
         try{ localStorage.setItem(MEM + "." + c, JSON.stringify(m[c])); }catch(e){}
@@ -3332,6 +3467,7 @@ function docDeLaMachine(){
   if(m === "emx") return "note-mx";
   if(m === "esx") return "note-sx";
   if(m === "mpc3000" || m === "mpc2000") return "note-mpc";
+  if(m === "tr808") return "note-808";
   return "note-general";
 }
 function montrerDoc(id){
@@ -3411,7 +3547,7 @@ document.getElementById("menu-pr").addEventListener("click", function(){
 (function machinePr(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"]];
   var sel = document.getElementById("pr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -3459,7 +3595,7 @@ document.getElementById("enr-rec").addEventListener("click", function(){
 (function menuEnregistreur(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"]];
   var sel = document.getElementById("enr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -5042,7 +5178,7 @@ function activerEm(){
   S.modele = "em1";
   MACHINE = MACHINE_EM;
   document.body.classList.add("em1");
-  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2");
+  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8");
   chargerEm();
   construireFx();
   EM.choisirPartie(EM.sel);
@@ -5745,7 +5881,7 @@ function activerEr(v){
   ER.v = (v===2) ? 2 : 1;
   S.modele = "er" + ER.v;
   MACHINE = MACHINE_ER;
-  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2");
+  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8");
   document.body.classList.add("er1");
   document.body.classList.toggle("mk2", ER.v===2);
   chargerEr();
@@ -6399,7 +6535,7 @@ function activerEa(v){
   EA.v = (v===2) ? 2 : 1;
   S.modele = "ea" + EA.v;
   MACHINE = MACHINE_EA;
-  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2");
+  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8");
   document.body.classList.add("ea1");
   document.body.classList.toggle("mk2", EA.v===2);
   chargerEa();
@@ -7300,7 +7436,7 @@ function activerEs(v){
   ES.v = (v===2) ? 2 : 1;
   S.modele = "es" + ES.v;
   MACHINE=MACHINE_ES;
-  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2");
+  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8");
   document.body.classList.add("es1");
   document.body.classList.toggle("mk2", ES.v===2);
   audioInit(); banqueEs(); busEffets(); chargerEchs();
@@ -8387,7 +8523,7 @@ function activerMx(){
   stop();
   S.modele="emx";
   MACHINE=MACHINE_MX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8");
   document.body.classList.add("emx");
   audioInit(); banqueEs(); mxAudio();
   chargerMx();
@@ -9427,7 +9563,7 @@ function activerSx(){
   stop();
   S.modele="esx";
   MACHINE=MACHINE_SX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8");
   document.body.classList.add("esx");
   audioInit(); banqueEs(); sxAudio(); chargerEchs();
   chargerSx();
@@ -10849,6 +10985,466 @@ function activerMpc(v){
   save(); fit(); setTimeout(fit, 120);
 }
 
+/* ===================== ROLAND TR-808 =====================
+   Les douze voix sont refaites d'après les circuits d'origine : oscillateur accordé
+   à chute de hauteur pour les peaux, six carrés inharmoniques pour les métaux,
+   bouffées de bruit échelonnées pour le clap. Les boutons de la façade agissent
+   sur les mêmes grandeurs que sur l'appareil. */
+var TR8_INSTR = [
+  {id:"AC", nom:"ACCENT",    grp:"TOTAL ACCENT", kns:[["niv","LEVEL"]]},
+  {id:"BD", nom:"BASS DRUM", grp:"BASS DRUM",    kns:[["niv","LEVEL"],["ton","TONE"],["dec","DECAY"]]},
+  {id:"SD", nom:"SNARE",     grp:"SNARE DRUM",   kns:[["niv","LEVEL"],["ton","TONE"],["snap","SNAPPY"]]},
+  {id:"LT", nom:"LOW TOM",   grp:"LOW TOM/CONGA",kns:[["niv","LEVEL"],["acc","TUNING"]]},
+  {id:"MT", nom:"MID TOM",   grp:"MID TOM/CONGA",kns:[["niv","LEVEL"],["acc","TUNING"]]},
+  {id:"HT", nom:"HI TOM",    grp:"HI TOM/CONGA", kns:[["niv","LEVEL"],["acc","TUNING"]]},
+  {id:"RS", nom:"RIM SHOT",  grp:"RIM/CLAVES",   kns:[["niv","LEVEL"]]},
+  {id:"CP", nom:"HAND CLAP", grp:"CLAP/MARACAS", kns:[["niv","LEVEL"]]},
+  {id:"CB", nom:"COWBELL",   grp:"COWBELL",      kns:[["niv","LEVEL"]]},
+  {id:"CY", nom:"CYMBAL",    grp:"CYMBAL",       kns:[["niv","LEVEL"],["ton","TONE"],["dec","DECAY"]]},
+  {id:"OH", nom:"OPEN HAT",  grp:"HI HAT",       kns:[["niv","LEVEL"],["dec","OH DECAY"]]},
+  {id:"CH", nom:"CLOSED HAT",grp:"",             kns:[["niv","LEVEL"],["dec","CH DECAY"]]}
+];
+function sonTr8(i){
+  var d = {niv:0.8, ton:0.5, dec:0.5, snap:0.5, acc:0.5};
+  if(TR8_INSTR[i].id === "AC") d.niv = 0.7;
+  return d;
+}
+function motifTr8(n){
+  var p = {A:[], B:[], son:[], last:16, scale:16};
+  for(var k=0;k<TR8_INSTR.length;k++){
+    p.A.push(ligneVide()); p.B.push(ligneVide());
+    p.son.push(sonTr8(k));
+  }
+  function met(v,k,s){ s.split("").forEach(function(c,i){ if(c!=="." && c!==" ") p[v][k][i]=1; }); }
+  if(n===0){                                   /* le motif que tout le monde connaît */
+    met("A",1,"x.......x.......");
+    met("A",2,"....x.......x...");
+    met("A",11,"x.x.x.x.x.x.x.x.");
+    met("A",0,"x.......x.......");
+  } else if(n===1){
+    met("A",1,"x.....x...x.....");
+    met("A",2,"....x.......x...");
+    met("A",11,"xxxxxxxxxxxxxxxx");
+    met("A",10,"..........x.....");
+    met("A",7,"....x.......x...");
+  } else if(n===2){
+    met("A",1,"x..x..x...x.x...");
+    met("A",2,"....x.......x...");
+    met("A",8,"..x...x...x...x.");
+    met("A",9,"x...............");
+  }
+  return p;
+}
+var TR8 = {
+  pat:null, slots:[], cur:0, var2:false, sel:1, ecrit:true, pos:-1, noeuds:[]
+};
+for(var t8=0; t8<16; t8++) TR8.slots.push(motifTr8(t8 < 3 ? t8 : 9));
+TR8.pat = TR8.slots[0];
+
+/* --- sortie d'un instrument --- */
+function sortieTr8(k){
+  if(!TR8.noeuds[k]){
+    var g = ctx.createGain();
+    g.connect(master);
+    TR8.noeuds[k] = g;
+  }
+  return TR8.noeuds[k];
+}
+function envTr8(g, t, pic, dec, atk){
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(pic, t + (atk || 0.002));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+}
+function bruitTr8(t, dur){
+  var s = ctx.createBufferSource();
+  s.buffer = noiseBuf;
+  s.loop = true;
+  s.playbackRate.value = 0.9 + Math.random()*0.2;
+  s.start(t); s.stop(t + dur + 0.02);
+  return s;
+}
+/* les six carrés inharmoniques des métaux de la 808 */
+var TR8_METAL = [1, 1.342, 1.2312, 1.6532, 1.9523, 2.1523];
+function metalTr8(t, dur, base){
+  var som = ctx.createGain();
+  som.gain.value = 0.38;
+  TR8_METAL.forEach(function(r){
+    var o = ctx.createOscillator();
+    o.type = "square";
+    o.frequency.value = base * r;
+    o.connect(som);
+    o.start(t); o.stop(t + dur + 0.02);
+  });
+  return som;
+}
+function voixTr8(t, k, acc){
+  var s = TR8.pat.son[k], id = TR8_INSTR[k].id;
+  var dest = sortieTr8(k);
+  var niv = mv("niv", s.niv) * (acc ? 1 : 0.62) * (0.35 + TR8.pat.son[0].niv * 0.9);
+  var g = ctx.createGain();
+  g.connect(dest);
+  dest.gain.setValueAtTime(1, t);
+
+  if(id === "BD"){
+    var dec = 0.09 + s.dec * 1.1;
+    var o = ctx.createOscillator(); o.type = "sine";
+    var f0 = 48;
+    o.frequency.setValueAtTime(f0 * 4.2, t);
+    o.frequency.exponentialRampToValueAtTime(f0, t + 0.045);
+    envTr8(g, t, niv * 1.05, dec, 0.002);
+    o.connect(g); o.start(t); o.stop(t + dec + 0.05);
+    /* le bouton TONE dose le claquement d'attaque */
+    var cl = ctx.createGain();
+    var hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 1200;
+    var n = bruitTr8(t, 0.02);
+    envTr8(cl, t, niv * s.ton * 0.6, 0.02, 0.001);
+    n.connect(hp); hp.connect(cl); cl.connect(dest);
+  }
+  else if(id === "SD"){
+    var dur = 0.12 + s.snap * 0.1;
+    var o1 = ctx.createOscillator(), o2 = ctx.createOscillator();
+    o1.type = "triangle"; o2.type = "triangle";
+    o1.frequency.value = 175 + s.ton * 90;
+    o2.frequency.value = 330 + s.ton * 120;
+    var gc = ctx.createGain();
+    envTr8(gc, t, niv * 0.55, 0.1, 0.001);
+    o1.connect(gc); o2.connect(gc); gc.connect(dest);
+    o1.start(t); o2.start(t); o1.stop(t + 0.15); o2.stop(t + 0.15);
+    var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+    bp.frequency.value = 1800 + s.ton * 1400; bp.Q.value = 0.8;
+    var nb = bruitTr8(t, dur);
+    envTr8(g, t, niv * (0.4 + s.snap * 1.2), dur, 0.001);
+    nb.connect(bp); bp.connect(g);
+  }
+  else if(id === "LT" || id === "MT" || id === "HT"){
+    var base = {LT:80, MT:120, HT:175}[id];
+    var f = base * Math.pow(2, (s.acc - 0.5) * 1.2);
+    var dt = 0.35 + (1 - s.acc) * 0.25;
+    var ot = ctx.createOscillator(); ot.type = "sine";
+    ot.frequency.setValueAtTime(f * 2.1, t);
+    ot.frequency.exponentialRampToValueAtTime(f, t + 0.06);
+    envTr8(g, t, niv * 1.2, dt, 0.002);
+    ot.connect(g); ot.start(t); ot.stop(t + dt + 0.05);
+    var nc = bruitTr8(t, 0.012);
+    var gc2 = ctx.createGain();
+    envTr8(gc2, t, niv * 0.18, 0.012, 0.001);
+    nc.connect(gc2); gc2.connect(dest);
+  }
+  else if(id === "RS"){
+    var orf = ctx.createOscillator(); orf.type = "triangle"; orf.frequency.value = 1700;
+    var bpr = ctx.createBiquadFilter(); bpr.type = "bandpass";
+    bpr.frequency.value = 1700; bpr.Q.value = 4;
+    var nr = bruitTr8(t, 0.03);
+    envTr8(g, t, niv * 0.9, 0.032, 0.0008);
+    orf.connect(g); nr.connect(bpr); bpr.connect(g);
+    orf.start(t); orf.stop(t + 0.05);
+  }
+  else if(id === "CP"){
+    /* trois bouffées rapprochées puis une queue : c'est ce qui fait le clap 808 */
+    var bpc = ctx.createBiquadFilter(); bpc.type = "bandpass";
+    bpc.frequency.value = 1000; bpc.Q.value = 1.2;
+    var nc2 = bruitTr8(t, 0.35);
+    nc2.connect(bpc); bpc.connect(g);
+    g.gain.setValueAtTime(0.0001, t);
+    [0, 0.0105, 0.021].forEach(function(o2){
+      g.gain.setValueAtTime(niv * 1.7, t + o2);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + o2 + 0.009);
+    });
+    g.gain.setValueAtTime(niv * 1.3, t + 0.031);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.31);
+  }
+  else if(id === "CB"){
+    var som = ctx.createGain(); som.gain.value = 0.4;
+    [540, 800].forEach(function(f2){
+      var oc = ctx.createOscillator(); oc.type = "square"; oc.frequency.value = f2;
+      oc.connect(som); oc.start(t); oc.stop(t + 0.45);
+    });
+    var bpb = ctx.createBiquadFilter(); bpb.type = "bandpass";
+    bpb.frequency.value = 2640; bpb.Q.value = 1.1;
+    envTr8(g, t, niv * 1.5, 0.35, 0.001);
+    som.connect(bpb); bpb.connect(g);
+  }
+  else if(id === "CY" || id === "OH" || id === "CH"){
+    var long = (id === "CY") ? (0.7 + s.dec * 1.6)
+             : (id === "OH") ? (0.12 + s.dec * 0.7)
+             : (0.02 + s.dec * 0.09);
+    var m = metalTr8(t, long, id === "CY" ? 300 : 800);
+    var hpm = ctx.createBiquadFilter(); hpm.type = "highpass";
+    hpm.frequency.value = (id === "CY") ? (2500 + s.ton * 5000) : 7500;
+    var bpm2 = ctx.createBiquadFilter(); bpm2.type = "bandpass";
+    bpm2.frequency.value = (id === "CY") ? (4000 + s.ton * 3000) : 10000;
+    bpm2.Q.value = 0.6;
+    envTr8(g, t, niv * (id === "CH" ? 1.5 : 1.2), long, 0.001);
+    m.connect(hpm); hpm.connect(bpm2); bpm2.connect(g);
+    if(id === "CH" && TR8.ohGain){             /* le fermé coupe l'ouvert */
+      try{ TR8.ohGain.gain.cancelScheduledValues(t);
+           TR8.ohGain.gain.setTargetAtTime(0.0001, t, 0.004); }catch(e){}
+    }
+    if(id === "OH") TR8.ohGain = g;
+  }
+  midiNoteA(TR8_MIDI[k], t, acc ? 1 : 0.7, MIDI.canal, 0.15);
+}
+var TR8_MIDI = [0, 36, 38, 41, 45, 48, 37, 39, 56, 49, 46, 42];
+
+/* --- séquenceur --- */
+function scheduleTr8(i, t){
+  var p = TR8.pat, v = TR8.var2 ? "B" : "A";
+  if(i >= (p.last || 16)) return;
+  var acc = !!p[v][0][i];
+  for(var k=1;k<TR8_INSTR.length;k++){
+    if(p[v][k][i]) voixTr8(t, k, acc);
+  }
+  if(!cache) queue.push({i:i, t:t});
+}
+var tr8Pas = [];
+function beatTr8(i){
+  TR8.pos = i;
+  for(var j=0;j<16;j++) tr8Pas[j].classList.toggle("cur", j === i);
+}
+function arretTr8(){
+  TR8.pos = -1;
+  for(var j=0;j<16;j++) tr8Pas[j].classList.remove("cur");
+  var b = document.getElementById("tr8-start");
+  if(b) b.classList.remove("on");
+}
+function boucleTr8(){ }
+var MACHINE_TR8 = {schedule:scheduleTr8, beat:beatTr8, arret:arretTr8, boucle:boucleTr8,
+                   longueur:function(){ return TR8.pat.last || 16; }};
+
+/* --- construction de l'interface --- */
+(function construireTr8(){
+  var i;
+  var barre = document.getElementById("tr8-instr");
+  TR8_INSTR.forEach(function(ins, k){
+    if(!ins.grp) return;                       /* le charley partage le groupe de l'ouvert */
+    var d = document.createElement("div");
+    d.className = "tr8-grp";
+    var b = document.createElement("b");
+    b.textContent = ins.grp;
+    d.appendChild(b);
+    var r = document.createElement("div");
+    r.className = "tr8-kns";
+    var liste = [[k, ins.kns]];
+    if(ins.id === "OH") liste.push([11, TR8_INSTR[11].kns.slice(1)]);
+    liste.forEach(function(x){
+      x[1].forEach(function(kn){
+        var w = document.createElement("div");
+        w.className = "tr8-kn";
+        w.innerHTML = '<div class="bt" id="tr8-k-' + x[0] + '-' + kn[0] + '"><i></i></div><em>' + kn[1] + '</em>';
+        r.appendChild(w);
+      });
+    });
+    d.appendChild(r);
+    barre.appendChild(d);
+  });
+
+  var sel = document.getElementById("tr8-sel");
+  TR8_INSTR.forEach(function(ins, k){
+    var b2 = document.createElement("button");
+    b2.className = "tr8b";
+    b2.textContent = ins.id + " " + ins.nom;
+    b2.dataset.k = k;
+    sel.appendChild(b2);
+  });
+  sel.addEventListener("click", function(e){
+    var b3 = e.target.closest(".tr8b");
+    if(!b3) return;
+    TR8.sel = +b3.dataset.k;
+    majTr8(); H.cran();
+  });
+
+  var pas = document.getElementById("tr8-pas"), nums = document.getElementById("tr8-nums");
+  for(i=0;i<16;i++){
+    var b4 = document.createElement("button");
+    b4.className = "c" + Math.floor(i / 4);
+    b4.dataset.i = i;
+    pas.appendChild(b4);
+    tr8Pas.push(b4);
+    var sp = document.createElement("span");
+    sp.textContent = String(i + 1);
+    nums.appendChild(sp);
+  }
+  pas.addEventListener("click", function(e){
+    var b5 = e.target.closest("button");
+    if(!b5) return;
+    var i2 = +b5.dataset.i;
+    if(!TR8.ecrit){                            /* hors écriture : les touches changent de motif */
+      memTr8();
+      TR8.cur = i2;
+      TR8.pat = TR8.slots[i2];
+      majTr8(); H.inter();
+      return;
+    }
+    var v = TR8.var2 ? "B" : "A";
+    TR8.pat[v][TR8.sel][i2] = TR8.pat[v][TR8.sel][i2] ? 0 : 1;
+    if(!S.run && TR8.pat[v][TR8.sel][i2]){
+      audioInit();
+      voixTr8(ctx.currentTime + 0.01, TR8.sel, !!TR8.pat[v][0][i2]);
+    }
+    majTr8(); memTr8(); H.cran();
+  });
+})();
+
+/* --- boutons rotatifs, un par réglage de chaque instrument --- */
+var TR8_KNOBS = [];
+(function knobsTr8(){
+  TR8_INSTR.forEach(function(ins, k){
+    ins.kns.forEach(function(kn){
+      var id = "tr8-k-" + k + "-" + kn[0];
+      if(!document.getElementById(id)) return;
+      TR8_KNOBS.push(knobEm(id, {min:0, max:1,
+        get:function(){ return TR8.pat.son[k][kn[0]]; },
+        set:function(v){
+          TR8.pat.son[k][kn[0]] = v;
+          lcdTr8(String(Math.round(v * 100)), ins.id + " " + kn[1], true);
+          memTr8();
+        }}));
+    });
+  });
+})();
+var kTr8Vol = knobEm("tr8-k-vol", {min:0, max:1, get:function(){ return S.vol; },
+  set:function(v){ S.vol = v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+    lcdTr8(String(Math.round(v*100)), "VOLUME", true); saveSoon(); }});
+var kTr8Tempo = knobEm("tr8-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 40) / 260; },
+  set:function(v){ S.bpm = Math.round(40 + v * 260); lcdTr8(String(S.bpm), "TEMPO", true); saveSoon(); }});
+function majKnobsTr8(){
+  TR8_KNOBS.forEach(function(k){ k.maj(); });
+  kTr8Vol.maj(); kTr8Tempo.maj();
+}
+
+/* --- afficheur et mise à jour --- */
+var tr8Tmr = null;
+function lcdTr8(v, l, fugace){
+  var a = document.getElementById("tr8-val"), b = document.getElementById("tr8-lab");
+  if(!a) return;
+  a.textContent = v; b.textContent = l;
+  clearTimeout(tr8Tmr);
+  if(fugace) tr8Tmr = setTimeout(majLcdTr8, 1400);
+}
+function majLcdTr8(){
+  lcdTr8(("0" + (TR8.cur + 1)).slice(-2), "PATTERN " + (TR8.var2 ? "B" : "A"));
+}
+function majTr8(){
+  var p = TR8.pat, v = TR8.var2 ? "B" : "A", i;
+  for(i=0;i<16;i++){
+    tr8Pas[i].classList.toggle("act", TR8.ecrit ? !!p[v][TR8.sel][i] : (i === TR8.cur));
+    tr8Pas[i].classList.toggle("hors", i >= (p.last || 16));
+  }
+  var bs = document.querySelectorAll("#tr8-sel .tr8b");
+  for(i=0;i<bs.length;i++) bs[i].classList.toggle("on", +bs[i].dataset.k === TR8.sel);
+  document.getElementById("tr8-var").textContent = "VARIATION " + (TR8.var2 ? "B" : "A");
+  document.getElementById("tr8-mode").textContent = TR8.ecrit ? "PATTERN WRITE" : "PATTERN PLAY";
+  document.getElementById("tr8-mode").classList.toggle("on", TR8.ecrit);
+  document.getElementById("tr8-last").textContent = "LAST STEP " + (p.last || 16);
+  document.getElementById("tr8-scale").textContent = "SCALE " + (p.scale || 16);
+  majLcdTr8();
+}
+
+/* --- mémoire --- */
+function memTr8(){
+  memoire.tr808 = {
+    cur:TR8.cur, sel:TR8.sel, var2:TR8.var2,
+    slots:TR8.slots.map(function(p){
+      return {last:p.last, scale:p.scale, son:p.son,
+              A:p.A.map(function(l){ return l.join(""); }),
+              B:p.B.map(function(l){ return l.join(""); })};
+    })
+  };
+  sauverMachine("tr808");
+}
+function chargerTr8(){
+  TR8.slots = [];
+  for(var z=0;z<16;z++) TR8.slots.push(motifTr8(z < 3 ? z : 9));
+  TR8.cur = 0; TR8.sel = 1; TR8.var2 = false;
+  var m = memLire("tr808");
+  if(m){
+    if(m.slots && m.slots.length === 16){
+      TR8.slots = m.slots.map(function(o){
+        var p = motifTr8(9);
+        p.last = o.last || 16; p.scale = o.scale || 16;
+        if(o.son) p.son = o.son;
+        ["A","B"].forEach(function(v){
+          if(o[v]) o[v].forEach(function(s, k){
+            for(var i=0;i<16;i++) p[v][k][i] = s.charAt(i) === "1" ? 1 : 0;
+          });
+        });
+        return p;
+      });
+    }
+    if(typeof m.cur === "number") TR8.cur = m.cur;
+    if(typeof m.sel === "number") TR8.sel = m.sel;
+    TR8.var2 = !!m.var2;
+  }
+  TR8.pat = TR8.slots[TR8.cur];
+}
+
+/* --- boutons --- */
+document.getElementById("tr8-start").addEventListener("click", function(){
+  audioInit();
+  if(S.run){ stop(); H.stop(); } else { step = 0; start(); H.start(); }
+  this.classList.toggle("on", S.run);
+});
+document.getElementById("tr8-stop").addEventListener("click", function(){
+  if(S.run){ stop(); H.stop(); }
+  else { audioInit(); start(); H.start(); document.getElementById("tr8-start").classList.add("on"); }
+  document.getElementById("tr8-start").classList.toggle("on", S.run);
+});
+document.getElementById("tr8-var").addEventListener("click", function(){
+  TR8.var2 = !TR8.var2;
+  majTr8(); memTr8(); H.inter();
+});
+document.getElementById("tr8-mode").addEventListener("click", function(){
+  TR8.ecrit = !TR8.ecrit;
+  majTr8(); H.inter();
+  signal(TR8.ecrit ? "ÉCRITURE : LES TOUCHES POSENT LES PAS"
+                   : "LECTURE : LES TOUCHES CHOISISSENT LE MOTIF");
+});
+document.getElementById("tr8-clear").addEventListener("click", function(){
+  var v = TR8.var2 ? "B" : "A";
+  TR8.pat[v][TR8.sel] = ligneVide();
+  majTr8(); memTr8(); H.inter();
+  lcdTr8("CLR", TR8_INSTR[TR8.sel].id, true);
+});
+document.getElementById("tr8-last").addEventListener("click", function(){
+  var v = [16, 12, 8, 4];
+  TR8.pat.last = v[(v.indexOf(TR8.pat.last) + 1) % v.length];
+  majTr8(); memTr8(); H.cran();
+});
+document.getElementById("tr8-scale").addEventListener("click", function(){
+  var v = [16, 32, 12, 24];
+  TR8.pat.scale = v[(v.indexOf(TR8.pat.scale) + 1) % v.length];
+  majTr8(); memTr8(); H.cran();
+  lcdTr8(String(TR8.pat.scale), "SCALE", true);
+});
+var tr8Taps = [];
+document.getElementById("tr8-tap").addEventListener("click", function(){
+  var now = Date.now();
+  if(tr8Taps.length && now - tr8Taps[tr8Taps.length-1] > 2200) tr8Taps = [];
+  tr8Taps.push(now); if(tr8Taps.length > 5) tr8Taps.shift();
+  if(tr8Taps.length < 2){ H.cran(); return; }
+  var s = 0;
+  for(var i=1;i<tr8Taps.length;i++) s += tr8Taps[i] - tr8Taps[i-1];
+  var bpm = Math.round(60000 / (s / (tr8Taps.length - 1)));
+  if(bpm >= 40 && bpm <= 300){ S.bpm = bpm; kTr8Tempo.maj(); lcdTr8(String(bpm), "TEMPO", true); saveSoon(); }
+  H.cran();
+});
+document.getElementById("tr8-notice").addEventListener("click", function(){ ouvrirNotice(); });
+
+var unitTr8 = document.getElementById("unit-tr808");
+function activerTr8(){
+  stop();
+  S.modele = "tr808";
+  MACHINE = MACHINE_TR8;
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8");
+  document.body.classList.add("tr8");
+  audioInit();
+  chargerTr8();
+  TR8.noeuds = [];
+  majTr8(); majKnobsTr8();
+  actif = unitTr8;
+  save(); fit(); setTimeout(fit, 120);
+}
+
 /* ================= bibliothèque =================
    Trois rayons : les sons, les prises MIDI, et les sauvegardes des vraies machines.
    Tout y est renommable. Les sauvegardes sont de vrais fichiers .syx dans Documents. */
@@ -11847,7 +12443,7 @@ function appliquerModele(id){
   stop();
   MACHINE = MACHINE_EHX;
   actif = unit;
-  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2");
+  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8");
   S.modele = id;
   MODELE = MODELES[id];
   var r = memoire[id];
@@ -11890,7 +12486,8 @@ function majVoileMenu(){
   v.classList.toggle("vu", reste > 12);
 }
 function allerMachine(id){
-  if(id === "mpc3000") activerMpc(3000);
+  if(id === "tr808") activerTr8();
+  else if(id === "mpc3000") activerMpc(3000);
   else if(id === "mpc2000") activerMpc(2000);
   else if(id === "em1") activerEm();
   else if(id === "er1") activerEr(1);
@@ -11927,6 +12524,7 @@ else if(memoire.modele === "emx") activerMx();
 else if(memoire.modele === "esx") activerSx();
 else if(memoire.modele === "mpc3000") activerMpc(3000);
 else if(memoire.modele === "mpc2000") activerMpc(2000);
+else if(memoire.modele === "tr808") activerTr8();
 else appliquerModele(memoire.modele);
 menu.classList.remove("hide");
 document.body.classList.add("menu-ouvert");
