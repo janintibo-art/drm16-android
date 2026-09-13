@@ -243,6 +243,34 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Transfert de motifs par exclusif (version 29)
+
+Deux formats implantés d'après les tableaux d'implémentation MIDI officiels : l'**ES-1**
+(en-tête `F0 42 3c 57`, motif de 1732 octets) et l'**electribe de 2015** (`F0 42 3g 00 01 23`,
+16384 octets). Le pont Java sait maintenant émettre et recevoir des messages exclusifs de
+longueur quelconque, et l'analyseur du flux entrant ne les confond plus avec des notes.
+
+**La méthode n'invente aucun octet.** On demande d'abord son motif courant à la machine — la
+demande part sur les seize canaux, inutile de connaître son canal global —, on garde ses octets
+comme gabarit, et on ne réécrit que ce dont la place est connue. Les numéros d'échantillons, les
+champs réservés et tout ce que la spécification ne détaille pas restent les siens.
+
+Vers un **ES-1**, depuis l'ES-1 de l'application, le transfert porte : la grille des neuf parties
+et de l'accent, les niveaux, panoramiques, hauteurs et filtres, les interrupteurs lecture inversée,
+roulement et effet, les mouvements de boutons avec leur type et leur destination, le type et les
+deux réglages de l'effet, le délai et sa synchronisation, le swing, le niveau d'accent et le tempo.
+
+Vers une **electribe de 2015**, depuis n'importe quelle machine, il porte la grille de pas et les
+notes des parties mélodiques, avec la vélocité prise sur les pistes d'accent.
+
+Vérifié par aller-retour complet : codage sept-vers-huit réversible à l'octet près, message ES-1 de
+1986 octets pour 1732 utiles, tempo 132 retrouvé exactement, numéros d'échantillons de la machine
+intacts, grilles et mouvements à la bonne place.
+
+Le motif part dans la **mémoire d'édition**, jamais dans un emplacement rangé : rien n'est écrasé
+tant que l'utilisateur n'appuie pas sur Write sur la machine. La lecture est arrêtée d'office, les
+Electribe n'acceptant aucun message exclusif pendant qu'elles tournent.
+
 ## Jouer avec une vraie Electribe (version 28)
 
 L'application peut maintenant **mener ou suivre**.

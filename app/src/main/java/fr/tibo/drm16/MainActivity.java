@@ -86,6 +86,11 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             if (midi == null) return;
             if (on) midi.horlogeDepart(bpm); else midi.horlogeArret();
         }
+        @JavascriptInterface public void midiSysex(String base64) {
+            if (midi == null || base64 == null) return;
+            try { midi.envoyerSysex(Base64.decode(base64, Base64.DEFAULT)); }
+            catch (Exception ignored) {}
+        }
         @JavascriptInterface public void midiTempo(double bpm) {
             if (midi != null) midi.tempo(bpm);
         }
@@ -159,6 +164,13 @@ public class MainActivity extends Activity implements Midi.Ecoute {
     public void message(int a, int b, int c) {
         if (web == null) return;
         web.evaluateJavascript("window.__midi&&__midi(" + a + "," + b + "," + c + ")", null);
+    }
+
+    /** Envoi exclusif recu : transmis en base64, la page le decode. */
+    @Override
+    public void sysex(String base64) {
+        if (web == null || base64 == null) return;
+        web.evaluateJavascript("window.__midiSysex&&__midiSysex('" + base64 + "')", null);
     }
 
     @SuppressLint("SetJavaScriptEnabled")

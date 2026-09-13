@@ -11,6 +11,9 @@ import android.media.midi.MidiReceiver;
 import android.os.Handler;
 import android.os.Looper;
 
+import android.util.Base64;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.locks.LockSupport;
 
@@ -20,7 +23,10 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class Midi {
 
-    public interface Ecoute { void message(int a, int b, int c); }
+    public interface Ecoute {
+        void message(int a, int b, int c);
+        void sysex(String base64);
+    }
 
     private final Context ctx;
     private final Ecoute ecoute;
@@ -39,6 +45,9 @@ public class Midi {
 
     /* état de l'analyse du flux entrant */
     private int statut = 0, attendu = 0, d1 = 0, recus = 0;
+    private boolean enSysex = false;
+    private final ByteArrayOutputStream tampon = new ByteArrayOutputStream();
+    private static final int SYSEX_MAX = 262144;
 
     public Midi(Context c, Ecoute e) { ctx = c; ecoute = e; }
 
@@ -95,6 +104,25 @@ public class Midi {
         public void onSend(byte[] msg, int offset, int count, long timestamp) {
             for (int i = offset; i < offset + count; i++) {
                 int o = msg[i] & 0xFF;
+                if (enSysex) {                   // un envoi exclusif est en cours
+                    if (o == 0xF7) {
+                        enSysex = false;
+                        tampon.write(0xF7);
+                        livrerSysex();
+                    } else if (o >= 0xF8) {
+                        livrer(o, 0, 0);         // les messages temps réel s'intercalent
+                    } else if (tampon.size() < SYSEX_MAX) {
+                        tampon.write(o);
+                    }
+                    continue;
+                }
+                if (o == 0xF0) {
+                    enSysex = true;
+                    tampon.reset();
+                    tampon.write(0xF0);
+                    statut = 0;
+                    continue;
+                }
                 if (o >= 0xF8) {                 // temps réel : passe devant tout
                     livrer(o, 0, 0);
                 } else if (o >= 0x80) {          // nouveau statut
@@ -112,6 +140,25 @@ public class Midi {
             }
         }
     };
+
+    private void livrerSysex() {
+        final String b64 = Base64.encodeToString(tampon.toByteArray(), Base64.NO_WRAP);
+        tampon.reset();
+        ui.post(new Runnable() { @Override public void run() { ecoute.sysex(b64); } });
+    }
+
+    /** Envoi d'un message exclusif, découpé pour ne pas saturer le tampon du port. */
+    public void envoyerSysex(byte[] m) {
+        if (versAppareil == null || m == null) return;
+        int pos = 0;
+        try {
+            while (pos < m.length) {
+                int n = Math.min(240, m.length - pos);
+                versAppareil.send(m, pos, n);
+                pos += n;
+            }
+        } catch (IOException ignored) {}
+    }
 
     private void livrer(final int a, final int b, final int c) {
         ui.post(new Runnable() { @Override public void run() { ecoute.message(a, b, c); } });
