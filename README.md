@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Seize machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+**Dix-sept machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
 en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -243,6 +243,26 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Oberheim DMX (version 43)
+
+Quatrième machine de la liste, et la première d'une autre famille : pas de pas à allumer, on joue sur ses
+**vingt-quatre touches** et elle enregistre au vol, calé par QUANTIZE. La logique de 1981, celle que les
+MPC reprendront.
+
+**Trois variations par instrument**, sa signature : BASS 1, 2 et 3 sont le même son accordé autrement —
+48, 55 et 42 Hz, avec des décroissances de 0,28, 0,22 et 0,36 s. Pareil pour la caisse claire, les charleys
+et les cymbales. Les six toms descendent de 170 à 68 Hz.
+
+**Le grain huit bits.** Ses sons sont des enregistrements de vraie batterie en huit bits. Ici toutes les
+voix passent par le même goulot : passe-bas à 10,5 kHz et quantification sur huit bits — bien plus dur que
+les douze bits de la TR-707, et c'est ce qui fait l'essentiel de son caractère.
+
+Façade fidèle : rayures bleues sur fond gris, joues de bois, afficheur rouge, neuf curseurs — un par
+famille plus métronome et volume —, clavier numérique et les quatre rangées de commandes.
+
+Les vingt-quatre voix mesurées, aucune muette, de 0,02 s pour le rimshot à 1,31 s pour la crash.
+Deux mesures avec la chaîne maîtresse : crête 0,964, aucun échantillon saturé.
 
 ## Deux exports (version 42)
 
