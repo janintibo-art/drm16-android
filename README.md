@@ -244,6 +244,28 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Export audio (version 51)
+
+Le manque le plus criant est comblé : le motif de la machine affichée se rend **hors ligne, plus vite que
+le temps réel**, avec toute sa chaîne d'effets et le limiteur, et s'écrit en **WAV stéréo seize bits
+44,1 kHz** dans le dossier Documents. De une à seize mesures, plus deux secondes et demie pour laisser
+mourir les réverbérations.
+
+**Trois obstacles, tous dus au même malentendu** — on ne peut pas simplement remplacer le contexte audio :
+
+1. `audioInit()` sortait immédiatement si un contexte existait déjà. Les nœuds communs — délai, sorties,
+   panoramiques — restaient donc dans l'ancien contexte. La construction est maintenant séparée de la
+   création : `batirAudio()` rebâtit tout dans le contexte courant, quel qu'il soit.
+2. Les machines gardent leurs nœuds en cache et refusent de les rebâtir tant qu'ils existent —
+   `busEffets()` commence par `if(fxIn) return`. `razNoeudsMachines()` oublie tous ces champs avant
+   reconstruction, par nom : `noeuds`, `entrees`, `sorties`, `regFx`, `voix`, `tubeIn`, `reverb`…
+3. `ctx.resume()` était appelé sur un contexte de rendu, qui n'a pas à être repris.
+
+Vérifié sur les **dix-sept machines à motif**, une par une : fichier RIFF/WAVE, deux canaux, 44100 Hz,
+seize bits, durée juste, crêtes de 0,50 à 0,97, aucune saturation, et la machine correctement rechargée
+après coup. Vérifié aussi que le son continue de fonctionner normalement après un export — c'était le
+risque principal.
+
 ## Correction de compilation (version 50)
 
 Les compilations #47 et #48 ont échoué, et c'était une **vraie erreur de ma part** dans le Java de la
