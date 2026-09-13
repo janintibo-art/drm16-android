@@ -1477,6 +1477,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   max-height:150px;overflow-y:auto}
 .eur-cat button{padding:9px 4px;font-size:8px;text-align:left}
 .eur-cat button span{display:block;font-weight:400;font-size:7px;opacity:.72}
+.eur-fam{grid-column:1/-1;display:flex;gap:4px;flex-wrap:wrap;margin-bottom:2px}
+.eur-fam button{padding:7px 9px;font-size:7.5px}
 @media (max-width:780px){
   .eur-rack{min-height:210px}
   .eur-kn .bt{width:23px;height:23px}
@@ -2660,6 +2662,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="eur-play" style="padding:12px 16px">START</button>
     <div class="eur-lcd"><b id="eur-val">RACK VIDE</b><u id="eur-lab">AJOUTEZ UN MODULE</u></div>
     <button id="eur-ajout">AJOUTER</button>
+    <button id="eur-hasard">RACK AU SORT</button>
     <button id="eur-suppr">RETIRER</button>
     <button id="eur-decable">DÉCÂBLER</button>
     <button id="eur-exemple">EXEMPLE</button>
@@ -3397,11 +3400,27 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   donne la réponse exponentielle du 1 V/octave sans le moindre calcul. Le séquenceur sort des tensions
   quantifiées au demi-ton.</p>
 
-  <h3>Les quatorze modules</h3>
-  <p><b>CLOCK</b> et ses divisions, <b>SEQ 8</b> huit pas avec hauteur et porte, <b>VCO</b> à quatre formes
-  d'onde, <b>NOISE</b>, <b>VCF</b> résonant à quatre pôles, <b>VCA</b>, <b>ENVELOPE</b>, <b>LFO</b>,
-  <b>S &amp; H</b>, <b>MIX 4</b>, <b>ECHO</b>, <b>REVERB</b>, <b>DRUM</b> — une voix de percussion — et
-  <b>OUTPUT</b>, qu'il faut toujours pour entendre quelque chose.</p>
+  <h3>Cinquante-six modules, en huit familles</h3>
+  <p><b>Horloges</b> — CLOCK, CLK DIV, EUCLID, BURST.<br>
+  <b>Séquenceurs</b> — SEQ 8, SEQ 16, TRIG 4, TURING, QUANT.<br>
+  <b>Oscillateurs</b> — VCO, MODEL, FM 2OP, SUPERSAW, PLUCK, CHORD, NOISE.<br>
+  <b>Filtres</b> — VCF, HPF, BPF, NOTCH, PEAK, SVF à trois sorties, COMB, FORMANT.<br>
+  <b>Modulation</b> — ENVELOPE, AD, LFO, S &amp; H.<br>
+  <b>Utilitaires</b> — VCA, DUAL VCA, ATTENUV, SLEW, MIX 4, MULT, XFADE, PAN, SWITCH, OUTPUT.<br>
+  <b>Traitements</b> — ECHO, REVERB, FOLD, DRIVE, BITS, RING, CHORUS, PHASER, GRAIN, LIMIT.<br>
+  <b>Percussions</b> — DRUM, KICK, SNARE, HAT, CLAP, TOM, CYMBAL, RIM.</p>
+  <p>Le catalogue est rangé par familles : cinquante-six modules en vrac seraient illisibles sur un
+  téléphone.</p>
+
+  <h3>Les portes se propagent</h3>
+  <p>Un module qui reçoit une porte peut en émettre à son tour. C'est ce qui permet d'enchaîner
+  <b>horloge → diviseur → générateur euclidien → percussion</b>, chacun transformant ce qu'il reçoit.
+  La propagation est bornée : un câblage en boucle ne fait pas tourner l'application indéfiniment.</p>
+
+  <h3>Rack au sort</h3>
+  <p><b>RACK AU SORT</b> monte un ensemble complet mais pas n'importe lequel : une horloge, une source de
+  rythme, deux ou trois voix, un traitement, un mélangeur et une sortie. Sans cette ossature on obtient un
+  tas de modules qui ne sonne pas.</p>
 
   <h3>Pour commencer</h3>
   <p><b>EXEMPLE</b> monte un patch complet : horloge, séquence, oscillateur, filtre balayé par
@@ -13263,9 +13282,12 @@ function activerTr(modele){
    Convention de tension : une unité vaut un volt vaut une octave. Les entrées
    de hauteur sont branchées sur le désaccord de l'oscillateur, en cents, ce
    qui donne la réponse exponentielle du 1 V/octave sans calcul.
-   Tout circule en signal audio, y compris les commandes : c'est exactement ce
-   que fait un vrai modulaire, et ce que le Web Audio sait faire nativement. */
-var EUR = {mods:[], cables:[], sel:-1, attente:null, prochain:1, horloge:null};
+   Tout circule en signal audio, y compris les commandes.
+
+   Les portes se propagent de proche en proche : un module qui reçoit une porte
+   peut en émettre à son tour, ce qui permet d'enchaîner horloge, diviseur,
+   générateur euclidien et séquenceur. */
+var EUR = {mods:[], cables:[], sel:-1, attente:null, prochain:1, famille:"", noeuds:[]};
 
 function eurGain(v){ var g = ctx.createGain(); g.gain.value = v; return g; }
 function eurConst(v){
@@ -13274,273 +13296,952 @@ function eurConst(v){
   c.start();
   return c;
 }
-/* une brève impulsion sur une sortie de porte */
 function eurPorte(p, t, duree){
   p.offset.cancelScheduledValues(t);
   p.offset.setValueAtTime(1, t);
   p.offset.setValueAtTime(0, t + (duree || 0.012));
 }
-
-var EUR_CAT = {
-  out: {nom:"OUTPUT", hp:52, sombre:false, res:"Sortie vers le casque",
-    kns:[["niv","LEVEL",0,1,0.7]],
-    jacks:[["in","IN",0],["in2","IN 2",0]],
-    creer:function(m){
-      var g = eurGain(m.p.niv);
-      g.connect(master);
-      m.maj = function(){ g.gain.value = m.p.niv * m.p.niv; };
-      m.maj();
-      return {e:{in:g, in2:g}, s:{}};
-    }},
-
-  clock: {nom:"CLOCK", hp:56, sombre:true, res:"Horloge et divisions",
-    kns:[["div","DIV",0,3,0]],
-    jacks:[["out","OUT",1],["out4","/4",1],["out8","/8",1]],
-    creer:function(m){
-      var o1 = eurConst(0), o4 = eurConst(0), o8 = eurConst(0);
-      m.tic = function(t, n){
-        eurPorte(o1, t);
-        if(n % 4 === 0) eurPorte(o4, t);
-        if(n % 8 === 0) eurPorte(o8, t);
-      };
-      return {e:{}, s:{out:o1, out4:o4, out8:o8}};
-    }},
-
-  seq8: {nom:"SEQ 8", hp:92, sombre:false, res:"Huit pas de hauteur et de porte",
-    kns:[["n1","1",0,1,0.25],["n2","2",0,1,0.4],["n3","3",0,1,0.25],["n4","4",0,1,0.58],
-         ["n5","5",0,1,0.25],["n6","6",0,1,0.33],["n7","7",0,1,0.5],["n8","8",0,1,0.17]],
-    jacks:[["clk","CLK",0],["cv","CV",1],["gate","GATE",1]],
-    creer:function(m){
-      var cv = eurConst(0), gate = eurConst(0);
-      var entree = eurGain(1);
-      m.pos = -1;
-      /* la sortie de hauteur suit deux octaves, quantifiées au demi-ton */
-      m.avancer = function(t){
-        m.pos = (m.pos + 1) % 8;
-        var v = m.p["n" + (m.pos + 1)];
-        var demi = Math.round(v * 24) / 12;
-        cv.offset.setValueAtTime(demi, t);
-        eurPorte(gate, t, 0.05);
-      };
-      m.surTic = entree;
-      return {e:{clk:entree}, s:{cv:cv, gate:gate}};
-    }},
-
-  vco: {nom:"VCO", hp:72, sombre:false, res:"Oscillateur à quatre formes",
-    kns:[["oct","OCT",0,1,0.5],["fin","FINE",0,1,0.5],["fm","FM",0,1,0]],
-    jacks:[["voct","V/OCT",0],["fmin","FM",0],["saw","SAW",1],["sqr","SQR",1],["tri","TRI",1],["sub","SUB",1]],
-    creer:function(m){
-      var base = 55;
-      function osc(type, mult){
-        var o = ctx.createOscillator();
-        o.type = type;
-        o.frequency.value = base * mult;
-        o.start();
-        return o;
-      }
-      var saw = osc("sawtooth", 1), sqr = osc("square", 1),
-          tri = osc("triangle", 1), sub = osc("square", 0.5);
-      var voct = eurGain(1200);                 /* un volt vaut douze cents fois cent */
-      var fm = eurGain(0);
-      [saw, sqr, tri, sub].forEach(function(o){ voct.connect(o.detune); fm.connect(o.detune); });
-      m.maj = function(){
-        var demi = (m.p.oct - 0.5) * 48 + (m.p.fin - 0.5) * 2;
-        [saw, sqr, tri].forEach(function(o){ o.frequency.value = base * Math.pow(2, demi / 12); });
-        sub.frequency.value = base * Math.pow(2, demi / 12) / 2;
-        fm.gain.value = m.p.fm * 2400;
-      };
-      m.maj();
-      return {e:{voct:voct, fmin:fm}, s:{saw:saw, sqr:sqr, tri:tri, sub:sub}};
-    }},
-
-  noise: {nom:"NOISE", hp:44, sombre:true, res:"Bruit blanc et rose",
-    kns:[],
-    jacks:[["blanc","WHITE",1],["rose","PINK",1]],
-    creer:function(m){
-      var b = ctx.createBufferSource();
-      b.buffer = noiseBuf; b.loop = true; b.start();
-      var rose = ctx.createBiquadFilter();
-      rose.type = "lowpass"; rose.frequency.value = 900;
-      var b2 = ctx.createBufferSource();
-      b2.buffer = noiseBuf; b2.loop = true; b2.start();
-      b2.connect(rose);
-      return {e:{}, s:{blanc:b, rose:rose}};
-    }},
-
-  vcf: {nom:"VCF", hp:72, sombre:false, res:"Filtre résonant à quatre pôles",
-    kns:[["cut","CUTOFF",0,1,0.5],["res","RESO",0,1,0.3],["mod","CV AMT",0,1,0.5]],
+function eurBruit(){
+  var b = ctx.createBufferSource();
+  b.buffer = noiseBuf; b.loop = true; b.start();
+  return b;
+}
+function eurCourbe(f){
+  var n = 1024, c = new Float32Array(n);
+  for(var i=0;i<n;i++) c[i] = f(i * 2 / n - 1);
+  return c;
+}
+/* ---------- fabriques communes ----------
+   Beaucoup de modules ne diffèrent que par trois valeurs. Les écrire un par un
+   serait quarante fois la même chose avec une faute de frappe quelque part. */
+function eurFiltre(nom, type, res, deuxPoles){
+  return {nom:nom, hp:64, sombre:false, res:res, fam:"filtre",
+    kns:[["cut","FREQ",0,1,0.5],["q","Q",0,1,0.3],["mod","CV AMT",0,1,0.5]],
     jacks:[["in","IN",0],["cv","CV",0],["out","OUT",1]],
     creer:function(m){
-      var f1 = ctx.createBiquadFilter(), f2 = ctx.createBiquadFilter();
-      f1.type = "lowpass"; f2.type = "lowpass";
+      var f1 = ctx.createBiquadFilter(); f1.type = type;
+      var f2 = deuxPoles ? ctx.createBiquadFilter() : null;
+      if(f2) f2.type = type;
       var cv = eurGain(0);
-      cv.connect(f1.detune); cv.connect(f2.detune);
-      f1.connect(f2);
+      cv.connect(f1.detune);
+      if(f2){ cv.connect(f2.detune); f1.connect(f2); }
       m.maj = function(){
-        var f = 80 * Math.pow(180, m.p.cut);
-        f1.frequency.value = f; f2.frequency.value = f;
-        f1.Q.value = m.p.res * 12; f2.Q.value = 0.5;
+        var f = 60 * Math.pow(260, m.p.cut);
+        f1.frequency.value = f;
+        f1.Q.value = 0.4 + m.p.q * 14;
+        if(f2){ f2.frequency.value = f; f2.Q.value = 0.5; }
         cv.gain.value = m.p.mod * 2400;
       };
       m.maj();
-      return {e:{in:f1, cv:cv}, s:{out:f2}};
-    }},
-
-  vca: {nom:"VCA", hp:56, sombre:true, res:"Amplificateur commandé",
-    kns:[["gain","GAIN",0,1,0]],
-    jacks:[["in","IN",0],["cv","CV",0],["out","OUT",1]],
-    creer:function(m){
-      var g = eurGain(0);
-      var cv = eurGain(1);
-      cv.connect(g.gain);
-      m.maj = function(){ g.gain.value = m.p.gain; };
-      m.maj();
-      return {e:{in:g, cv:cv}, s:{out:g}};
-    }},
-
-  adsr: {nom:"ENVELOPE", hp:72, sombre:false, res:"Attaque, chute, tenue, retour",
-    kns:[["a","ATK",0,1,0.02],["d","DEC",0,1,0.3],["s","SUS",0,1,0.5],["r","REL",0,1,0.3]],
-    jacks:[["gate","GATE",0],["out","OUT",1]],
-    creer:function(m){
-      var sortie = eurConst(0);
-      var entree = eurGain(1);
-      m.declencher = function(t){
-        var a = 0.002 + m.p.a * 1.2, d = 0.01 + m.p.d * 1.5, s = m.p.s, r = 0.02 + m.p.r * 2;
-        sortie.offset.cancelScheduledValues(t);
-        sortie.offset.setValueAtTime(0.0001, t);
-        sortie.offset.linearRampToValueAtTime(1, t + a);
-        sortie.offset.linearRampToValueAtTime(Math.max(0.0001, s), t + a + d);
-        sortie.offset.linearRampToValueAtTime(0.0001, t + a + d + r);
-      };
-      m.surTic = entree;
-      return {e:{gate:entree}, s:{out:sortie}};
-    }},
-
-  lfo: {nom:"LFO", hp:56, sombre:true, res:"Oscillateur lent",
-    kns:[["rate","RATE",0,1,0.35],["amt","AMT",0,1,0.5]],
-    jacks:[["sine","SINE",1],["sqr","SQR",1]],
-    creer:function(m){
-      var s = ctx.createOscillator(), q = ctx.createOscillator();
-      s.type = "sine"; q.type = "square";
-      s.start(); q.start();
-      var gs = eurGain(0.5), gq = eurGain(0.5);
-      s.connect(gs); q.connect(gq);
-      m.maj = function(){
-        var f = 0.05 * Math.pow(400, m.p.rate);
-        s.frequency.value = f; q.frequency.value = f;
-        gs.gain.value = m.p.amt; gq.gain.value = m.p.amt;
-      };
-      m.maj();
-      return {e:{}, s:{sine:gs, sqr:gq}};
-    }},
-
-  sh: {nom:"S & H", hp:56, sombre:true, res:"Échantillonneur-bloqueur",
-    kns:[["amt","AMT",0,1,0.6]],
-    jacks:[["trig","TRIG",0],["out","OUT",1]],
-    creer:function(m){
-      var sortie = eurConst(0);
-      var entree = eurGain(1);
-      m.declencher = function(t){
-        /* pas d'entrée de signal : la source est le hasard, comme sur les
-           modules de tension aléatoire */
-        sortie.offset.setValueAtTime((Math.random() * 2 - 1) * m.p.amt, t);
-      };
-      m.surTic = entree;
-      return {e:{trig:entree}, s:{out:sortie}};
-    }},
-
-  mix4: {nom:"MIX 4", hp:72, sombre:false, res:"Quatre entrées, une sortie",
-    kns:[["a","A",0,1,0.7],["b","B",0,1,0],["c","C",0,1,0],["d","D",0,1,0]],
-    jacks:[["a","A",0],["b","B",0],["c","C",0],["d","D",0],["out","OUT",1]],
-    creer:function(m){
-      var out = eurGain(1);
-      var ga = eurGain(0), gb = eurGain(0), gc = eurGain(0), gd = eurGain(0);
-      [ga, gb, gc, gd].forEach(function(g){ g.connect(out); });
-      m.maj = function(){
-        ga.gain.value = m.p.a; gb.gain.value = m.p.b;
-        gc.gain.value = m.p.c; gd.gain.value = m.p.d;
-      };
-      m.maj();
-      return {e:{a:ga, b:gb, c:gc, d:gd}, s:{out:out}};
-    }},
-
-  delay: {nom:"ECHO", hp:72, sombre:true, res:"Délai à réinjection",
-    kns:[["time","TIME",0,1,0.3],["fb","FEED",0,1,0.35],["mix","MIX",0,1,0.4]],
-    jacks:[["in","IN",0],["out","OUT",1]],
-    creer:function(m){
-      var e = eurGain(1), d = ctx.createDelay(2), fb = eurGain(0),
-          sec = eurGain(1), hum = eurGain(0), out = eurGain(1);
-      e.connect(sec); sec.connect(out);
-      e.connect(d); d.connect(fb); fb.connect(d); d.connect(hum); hum.connect(out);
-      m.maj = function(){
-        d.delayTime.value = 0.02 + m.p.time * 1.2;
-        fb.gain.value = m.p.fb * 0.85;
-        sec.gain.value = 1 - m.p.mix * 0.6;
-        hum.gain.value = m.p.mix;
-      };
-      m.maj();
-      return {e:{in:e}, s:{out:out}};
-    }},
-
-  verb: {nom:"REVERB", hp:64, sombre:true, res:"Réverbération",
-    kns:[["taille","SIZE",0,1,0.5],["mix","MIX",0,1,0.35]],
-    jacks:[["in","IN",0],["out","OUT",1]],
-    creer:function(m){
-      var e = eurGain(1), c = ctx.createConvolver(),
-          sec = eurGain(1), hum = eurGain(0), out = eurGain(1);
-      var n = Math.floor(ctx.sampleRate * (0.4 + m.p.taille * 2.2));
-      var b = ctx.createBuffer(2, n, ctx.sampleRate);
-      for(var k=0;k<2;k++){
-        var d = b.getChannelData(k);
-        for(var i=0;i<n;i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.5);
-      }
-      c.buffer = b;
-      e.connect(sec); sec.connect(out);
-      e.connect(c); c.connect(hum); hum.connect(out);
-      m.maj = function(){ sec.gain.value = 1 - m.p.mix * 0.7; hum.gain.value = m.p.mix * 1.4; };
-      m.maj();
-      return {e:{in:e}, s:{out:out}};
-    }},
-
-  drum: {nom:"DRUM", hp:72, sombre:true, res:"Voix de percussion",
-    kns:[["tune","TUNE",0,1,0.3],["dec","DECAY",0,1,0.35],["drive","DRIVE",0,1,0.2],
-         ["bruit","NOISE",0,1,0.15]],
+      return {e:{in:f1, cv:cv}, s:{out:f2 || f1}};
+    }};
+}
+function eurPerc(nom, res, recette){
+  return {nom:nom, hp:60, sombre:true, res:res, fam:"perc",
+    kns:[["tune","TUNE",0,1,0.4],["dec","DECAY",0,1,0.4],["niv","LEVEL",0,1,0.7]],
     jacks:[["trig","TRIG",0],["out","OUT",1]],
     creer:function(m){
       var out = eurGain(1);
       var entree = eurGain(1);
-      m.declencher = function(t){
-        var f0 = 35 + m.p.tune * 190, dec = 0.04 + m.p.dec * 0.9;
-        var o = ctx.createOscillator(); o.type = "sine";
-        o.frequency.setValueAtTime(f0 * 4.5, t);
-        o.frequency.exponentialRampToValueAtTime(f0, t + 0.03);
-        var sh = ctx.createWaveShaper();
-        var n = 512, c = new Float32Array(n), dr = 1 + m.p.drive * 8;
-        for(var i=0;i<n;i++){ var x = i * 2 / n - 1; c[i] = Math.tanh(x * dr) / Math.tanh(dr); }
-        sh.curve = c;
-        var g = ctx.createGain();
-        g.gain.setValueAtTime(0.0001, t);
-        g.gain.linearRampToValueAtTime(0.9, t + 0.002);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
-        o.connect(sh); sh.connect(g); g.connect(out);
-        o.start(t); o.stop(t + dec + 0.05);
-        if(m.p.bruit > 0.02){
-          var nb = ctx.createBufferSource();
-          nb.buffer = noiseBuf; nb.loop = true;
-          var hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 1400;
-          var gn = ctx.createGain();
-          gn.gain.setValueAtTime(0.0001, t);
-          gn.gain.linearRampToValueAtTime(m.p.bruit * 0.8, t + 0.001);
-          gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.02 + m.p.bruit * 0.2);
-          nb.connect(hp); hp.connect(gn); gn.connect(out);
-          nb.start(t); nb.stop(t + 0.4);
-        }
-      };
-      m.surTic = entree;
+      m.recevoir = function(t){ recette(m, out, t); return null; };
       return {e:{trig:entree}, s:{out:out}};
-    }}
+    }};
+}
+function eurEffet(nom, hp, res, kns, bati){
+  return {nom:nom, hp:hp, sombre:true, res:res, fam:"effet", kns:kns,
+    jacks:[["in","IN",0],["out","OUT",1]],
+    creer:function(m){
+      var e = eurGain(1), out = eurGain(1);
+      bati(m, e, out);
+      return {e:{in:e}, s:{out:out}};
+    }};
+}
+var EUR_CAT = {
+
+/* ================= sortie et horloges ================= */
+out: {nom:"OUTPUT", hp:52, res:"Sortie vers le casque", fam:"util",
+  kns:[["niv","LEVEL",0,1,0.7]],
+  jacks:[["in","IN",0],["in2","IN 2",0]],
+  creer:function(m){
+    var g = eurGain(m.p.niv);
+    g.connect(master);
+    m.maj = function(){ g.gain.value = m.p.niv * m.p.niv; };
+    m.maj();
+    return {e:{in:g, in2:g}, s:{}};
+  }},
+
+clock: {nom:"CLOCK", hp:56, sombre:true, res:"Horloge maîtresse", fam:"horloge",
+  kns:[],
+  jacks:[["out","OUT",1],["out2","/2",1],["out4","/4",1]],
+  creer:function(m){
+    var o1 = eurConst(0), o2 = eurConst(0), o4 = eurConst(0);
+    m.tic = function(t, i){
+      var f = ["out"];
+      eurPorte(o1, t);
+      if(i % 2 === 0){ eurPorte(o2, t); f.push("out2"); }
+      if(i % 4 === 0){ eurPorte(o4, t); f.push("out4"); }
+      return f;
+    };
+    return {e:{}, s:{out:o1, out2:o2, out4:o4}};
+  }},
+
+clkdiv: {nom:"CLK DIV", hp:52, sombre:true, res:"Divise une horloge en cinq", fam:"horloge",
+  kns:[],
+  jacks:[["in","IN",0],["d2","/2",1],["d3","/3",1],["d4","/4",1],["d8","/8",1],["d16","/16",1]],
+  creer:function(m){
+    var o = {}, n = 0;
+    ["d2","d3","d4","d8","d16"].forEach(function(k){ o[k] = eurConst(0); });
+    m.recevoir = function(t){
+      n++;
+      var f = [];
+      [["d2",2],["d3",3],["d4",4],["d8",8],["d16",16]].forEach(function(x){
+        if(n % x[1] === 0){ eurPorte(o[x[0]], t); f.push(x[0]); }
+      });
+      return f;
+    };
+    return {e:{in:eurGain(1)}, s:o};
+  }},
+
+euclid: {nom:"EUCLID", hp:64, sombre:true, res:"Rythme euclidien", fam:"horloge",
+  kns:[["pas","STEPS",0,1,0.5],["coups","FILL",0,1,0.3],["dec","SHIFT",0,1,0]],
+  jacks:[["in","IN",0],["out","OUT",1],["inv","INV",1]],
+  creer:function(m){
+    var o = eurConst(0), inv = eurConst(0), n = -1;
+    /* les coups sont répartis aussi régulièrement que possible : c'est tout
+       l'algorithme, et c'est ce qui donne ces rythmes qu'on retrouve partout */
+    m.recevoir = function(t){
+      n++;
+      var L = 2 + Math.round(m.p.pas * 14);
+      var k = Math.round(m.p.coups * L);
+      var d = Math.round(m.p.dec * L);
+      var i = ((n - d) % L + L) % L;
+      var frappe = k > 0 && (Math.floor(i * k / L) !== Math.floor((i - 1) * k / L) || i === 0 && k > 0);
+      if(frappe){ eurPorte(o, t); return ["out"]; }
+      eurPorte(inv, t);
+      return ["inv"];
+    };
+    return {e:{in:eurGain(1)}, s:{out:o, inv:inv}};
+  }},
+
+burst: {nom:"BURST", hp:52, sombre:true, res:"Roulement de deux à huit coups", fam:"horloge",
+  kns:[["n","COUNT",0,1,0.3],["esp","SPACE",0,1,0.4]],
+  jacks:[["in","IN",0],["out","OUT",1]],
+  creer:function(m){
+    var o = eurConst(0);
+    m.recevoir = function(t){
+      var n = 2 + Math.round(m.p.n * 6), e = 0.01 + m.p.esp * 0.1;
+      for(var i=0;i<n;i++) eurPorte(o, t + i * e);
+      return ["out"];
+    };
+    return {e:{in:eurGain(1)}, s:{out:o}};
+  }},
+
+/* ================= séquenceurs ================= */
+seq8: {nom:"SEQ 8", hp:92, res:"Huit pas de hauteur et de porte", fam:"seq",
+  kns:[["n1","1",0,1,0.25],["n2","2",0,1,0.4],["n3","3",0,1,0.25],["n4","4",0,1,0.58],
+       ["n5","5",0,1,0.25],["n6","6",0,1,0.33],["n7","7",0,1,0.5],["n8","8",0,1,0.17]],
+  jacks:[["clk","CLK",0],["cv","CV",1],["gate","GATE",1]],
+  creer:function(m){
+    var cv = eurConst(0), gate = eurConst(0);
+    m.pos = -1;
+    m.recevoir = function(t){
+      m.pos = (m.pos + 1) % 8;
+      var demi = Math.round(m.p["n" + (m.pos + 1)] * 24) / 12;
+      cv.offset.setValueAtTime(demi, t);
+      eurPorte(gate, t, 0.05);
+      return ["gate"];
+    };
+    return {e:{clk:eurGain(1)}, s:{cv:cv, gate:gate}};
+  }},
+
+seq16: {nom:"SEQ 16", hp:120, res:"Seize pas, longueur réglable", fam:"seq",
+  kns:(function(){
+    var l = [];
+    for(var i=1;i<=16;i++) l.push(["n" + i, String(i), 0, 1, (i % 4 === 1) ? 0.25 : 0.4]);
+    l.push(["lg","LEN",0,1,1]);
+    return l;
+  })(),
+  jacks:[["clk","CLK",0],["cv","CV",1],["gate","GATE",1]],
+  creer:function(m){
+    var cv = eurConst(0), gate = eurConst(0);
+    m.pos = -1;
+    m.recevoir = function(t){
+      var L = 2 + Math.round(m.p.lg * 14);
+      m.pos = (m.pos + 1) % L;
+      cv.offset.setValueAtTime(Math.round(m.p["n" + (m.pos + 1)] * 24) / 12, t);
+      eurPorte(gate, t, 0.05);
+      return ["gate"];
+    };
+    return {e:{clk:eurGain(1)}, s:{cv:cv, gate:gate}};
+  }},
+
+trig4: {nom:"TRIG 4", hp:84, sombre:true, res:"Quatre pistes de déclenchement", fam:"seq",
+  kns:[["a","A",0,1,0.55],["b","B",0,1,0.3],["c","C",0,1,0.4],["d","D",0,1,0.2]],
+  jacks:[["clk","CLK",0],["ta","A",1],["tb","B",1],["tc","C",1],["td","D",1]],
+  creer:function(m){
+    var o = {ta:eurConst(0), tb:eurConst(0), tc:eurConst(0), td:eurConst(0)};
+    var motifs = {ta:0x1111, tb:0x0440, tc:0x5555, td:0x0100};
+    m.pos = -1;
+    m.recevoir = function(t){
+      m.pos = (m.pos + 1) % 16;
+      var f = [];
+      [["ta","a"],["tb","b"],["tc","c"],["td","d"]].forEach(function(x){
+        /* le potard décale le motif : un seul réglage, mais il change tout */
+        var mot = motifs[x[0]], dec = Math.round(m.p[x[1]] * 15);
+        var bit = ((mot >> ((m.pos + dec) % 16)) & 1);
+        if(bit){ eurPorte(o[x[0]], t); f.push(x[0]); }
+      });
+      return f;
+    };
+    return {e:{clk:eurGain(1)}, s:o};
+  }},
+
+turing: {nom:"TURING", hp:64, sombre:true, res:"Registre à décalage aléatoire", fam:"seq",
+  kns:[["hasard","CHANCE",0,1,0.15],["lg","LEN",0,1,0.5],["amp","RANGE",0,1,0.5]],
+  jacks:[["clk","CLK",0],["cv","CV",1],["gate","GATE",1]],
+  creer:function(m){
+    var cv = eurConst(0), gate = eurConst(0);
+    var reg = [];
+    for(var i=0;i<16;i++) reg.push(Math.random() > 0.5 ? 1 : 0);
+    m.recevoir = function(t){
+      var L = 2 + Math.round(m.p.lg * 14);
+      var b = reg[L - 1];
+      if(Math.random() < m.p.hasard) b = b ? 0 : 1;
+      reg.unshift(b); reg.pop();
+      var v = 0;
+      for(var i=0;i<8;i++) v = v * 2 + reg[i];
+      cv.offset.setValueAtTime(Math.round((v / 255) * 24 * m.p.amp) / 12, t);
+      if(reg[0]){ eurPorte(gate, t, 0.05); return ["gate"]; }
+      return null;
+    };
+    return {e:{clk:eurGain(1)}, s:{cv:cv, gate:gate}};
+  }},
+
+quant: {nom:"QUANT", hp:56, res:"Quantifie vers une gamme", fam:"seq",
+  kns:[["gamme","SCALE",0,1,0],["oct","OCT",0,1,0.5]],
+  jacks:[["in","IN",0],["out","OUT",1]],
+  creer:function(m){
+    /* on ne peut pas quantifier un signal continu sans processeur dédié :
+       on quantifie donc la valeur au moment du passage, ce qui suffit pour
+       une sortie de séquenceur qui ne change qu'aux pas */
+    var out = eurConst(0), e = eurGain(1);
+    var an = ctx.createAnalyser(); an.fftSize = 32;
+    e.connect(an);
+    var tampon = new Float32Array(an.fftSize);
+    var gammes = [[0,2,4,5,7,9,11],[0,2,3,5,7,8,10],[0,2,4,7,9],[0,3,5,6,7,10],[0,1,2,3,4,5,6,7,8,9,10,11]];
+    m.recevoir = function(t){
+      an.getFloatTimeDomainData(tampon);
+      var v = tampon[0] || 0;
+      var g = gammes[Math.min(4, Math.round(m.p.gamme * 4))];
+      var demi = v * 12, oct = Math.floor(demi / 12), r = ((demi % 12) + 12) % 12;
+      var meilleur = g[0], ecart = 99;
+      g.forEach(function(x){ if(Math.abs(x - r) < ecart){ ecart = Math.abs(x - r); meilleur = x; } });
+      out.offset.setValueAtTime(oct + meilleur / 12 + Math.round((m.p.oct - 0.5) * 4), t);
+      return null;
+    };
+    return {e:{in:e}, s:{out:out}};
+  }},
+
+/* ================= oscillateurs ================= */
+vco: {nom:"VCO", hp:72, res:"Oscillateur à quatre formes", fam:"osc",
+  kns:[["oct","OCT",0,1,0.5],["fin","FINE",0,1,0.5],["fm","FM",0,1,0]],
+  jacks:[["voct","V/OCT",0],["fmin","FM",0],["saw","SAW",1],["sqr","SQR",1],["tri","TRI",1],["sub","SUB",1]],
+  creer:function(m){
+    var base = 55;
+    function osc(type, mult){
+      var o = ctx.createOscillator();
+      o.type = type; o.frequency.value = base * mult; o.start();
+      return o;
+    }
+    var saw = osc("sawtooth",1), sqr = osc("square",1), tri = osc("triangle",1), sub = osc("square",0.5);
+    var voct = eurGain(1200), fm = eurGain(0);
+    [saw,sqr,tri,sub].forEach(function(o){ voct.connect(o.detune); fm.connect(o.detune); });
+    m.maj = function(){
+      var demi = (m.p.oct - 0.5) * 48 + (m.p.fin - 0.5) * 2;
+      [saw,sqr,tri].forEach(function(o){ o.frequency.value = base * Math.pow(2, demi/12); });
+      sub.frequency.value = base * Math.pow(2, demi/12) / 2;
+      fm.gain.value = m.p.fm * 2400;
+    };
+    m.maj();
+    return {e:{voct:voct, fmin:fm}, s:{saw:saw, sqr:sqr, tri:tri, sub:sub}};
+  }},
+
+wave: {nom:"MODEL", hp:76, res:"Oscillateur à modèles", fam:"osc",
+  kns:[["oct","OCT",0,1,0.5],["modele","MODEL",0,1,0],["harm","HARMO",0,1,0.4]],
+  jacks:[["voct","V/OCT",0],["out","OUT",1],["aux","AUX",1]],
+  creer:function(m){
+    var base = 55, out = eurGain(0.5), aux = eurGain(0.5);
+    var o1 = ctx.createOscillator(), o2 = ctx.createOscillator();
+    o1.start(); o2.start();
+    var g2 = eurGain(0.5);
+    var fold = ctx.createWaveShaper();
+    var voct = eurGain(1200);
+    voct.connect(o1.detune); voct.connect(o2.detune);
+    o1.connect(fold); fold.connect(out);
+    o2.connect(g2); g2.connect(aux);
+    m.maj = function(){
+      var demi = (m.p.oct - 0.5) * 48;
+      var f = base * Math.pow(2, demi / 12);
+      o1.frequency.value = f;
+      /* le potard MODEL parcourt quatre timbres : sinus, dent, carré, et un
+         repli d'onde qui enrichit à mesure qu'on tourne */
+      var mo = Math.min(3, Math.floor(m.p.modele * 4));
+      o1.type = ["sine","sawtooth","square","triangle"][mo];
+      o2.type = "sine";
+      o2.frequency.value = f * (1 + Math.round(m.p.harm * 6));
+      g2.gain.value = m.p.harm * 0.6;
+      var pli = 1 + m.p.harm * 4;
+      fold.curve = eurCourbe(function(x){ return Math.sin(x * pli * Math.PI) * 0.8; });
+    };
+    m.maj();
+    return {e:{voct:voct}, s:{out:out, aux:aux}};
+  }},
+
+fm2: {nom:"FM 2OP", hp:72, res:"Deux opérateurs en modulation", fam:"osc",
+  kns:[["oct","OCT",0,1,0.5],["rap","RATIO",0,1,0.25],["idx","INDEX",0,1,0.35]],
+  jacks:[["voct","V/OCT",0],["idxin","IDX",0],["out","OUT",1]],
+  creer:function(m){
+    var base = 55;
+    var por = ctx.createOscillator(), mod = ctx.createOscillator();
+    por.start(); mod.start();
+    var gi = eurGain(0), idxin = eurGain(600);
+    mod.connect(gi); gi.connect(por.frequency);
+    idxin.connect(gi.gain);
+    var voct = eurGain(1200);
+    voct.connect(por.detune); voct.connect(mod.detune);
+    var out = eurGain(0.6);
+    por.connect(out);
+    m.maj = function(){
+      var f = base * Math.pow(2, (m.p.oct - 0.5) * 48 / 12);
+      por.frequency.value = f;
+      mod.frequency.value = f * [0.5,1,1.5,2,3,4,5,7][Math.min(7, Math.round(m.p.rap * 7))];
+      gi.gain.value = m.p.idx * 1400;
+    };
+    m.maj();
+    return {e:{voct:voct, idxin:idxin}, s:{out:out}};
+  }},
+
+super: {nom:"SUPERSAW", hp:64, res:"Sept dents désaccordées", fam:"osc",
+  kns:[["oct","OCT",0,1,0.5],["det","DETUNE",0,1,0.25]],
+  jacks:[["voct","V/OCT",0],["out","OUT",1]],
+  creer:function(m){
+    var base = 55, out = eurGain(0.16), voct = eurGain(1200), os = [];
+    for(var i=0;i<7;i++){
+      var o = ctx.createOscillator();
+      o.type = "sawtooth"; o.start();
+      o.connect(out); voct.connect(o.detune);
+      os.push(o);
+    }
+    m.maj = function(){
+      var f = base * Math.pow(2, (m.p.oct - 0.5) * 48 / 12);
+      os.forEach(function(o, i){ o.frequency.value = f * (1 + (i - 3) * m.p.det * 0.012); });
+    };
+    m.maj();
+    return {e:{voct:voct}, s:{out:out}};
+  }},
+
+pluck: {nom:"PLUCK", hp:64, sombre:true, res:"Corde pincée", fam:"osc",
+  kns:[["oct","OCT",0,1,0.5],["ton","DAMP",0,1,0.5],["dec","DECAY",0,1,0.6]],
+  jacks:[["trig","TRIG",0],["voct","V/OCT",0],["out","OUT",1]],
+  creer:function(m){
+    /* une bouffée de bruit dans un délai qui se réinjecte : c'est tout le
+       principe de la corde pincée, et ça sonne juste */
+    var out = eurGain(1);
+    var dl = ctx.createDelay(0.2), fb = eurGain(0.9);
+    var lp = ctx.createBiquadFilter(); lp.type = "lowpass";
+    dl.connect(lp); lp.connect(fb); fb.connect(dl); dl.connect(out);
+    var an = ctx.createAnalyser(); an.fftSize = 32;
+    var voct = eurGain(1); voct.connect(an);
+    var tampon = new Float32Array(an.fftSize);
+    m.maj = function(){
+      lp.frequency.value = 500 + m.p.ton * 7000;
+      fb.gain.value = 0.86 + m.p.dec * 0.13;
+    };
+    m.maj();
+    m.recevoir = function(t){
+      an.getFloatTimeDomainData(tampon);
+      var demi = (m.p.oct - 0.5) * 36 + (tampon[0] || 0) * 12;
+      var f = 110 * Math.pow(2, demi / 12);
+      dl.delayTime.setValueAtTime(Math.min(0.19, 1 / f), t);
+      var n = eurBruit(), g = eurGain(0);
+      g.gain.setValueAtTime(0.9, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.006);
+      n.connect(g); g.connect(dl);
+      n.stop(t + 0.05);
+      return null;
+    };
+    return {e:{trig:eurGain(1), voct:voct}, s:{out:out}};
+  }},
+
+chord: {nom:"CHORD", hp:64, res:"Quatre voix accordées", fam:"osc",
+  kns:[["oct","OCT",0,1,0.4],["type","TYPE",0,1,0],["det","SPREAD",0,1,0.2]],
+  jacks:[["voct","V/OCT",0],["out","OUT",1]],
+  creer:function(m){
+    var base = 55, out = eurGain(0.22), voct = eurGain(1200), os = [];
+    for(var i=0;i<4;i++){
+      var o = ctx.createOscillator();
+      o.type = "sawtooth"; o.start(); o.connect(out); voct.connect(o.detune);
+      os.push(o);
+    }
+    var accords = [[0,4,7,12],[0,3,7,10],[0,5,7,12],[0,4,7,11],[0,2,7,9]];
+    m.maj = function(){
+      var f = base * Math.pow(2, (m.p.oct - 0.5) * 36 / 12);
+      var a = accords[Math.min(4, Math.round(m.p.type * 4))];
+      os.forEach(function(o, i){
+        o.frequency.value = f * Math.pow(2, a[i] / 12) * (1 + (i - 1.5) * m.p.det * 0.006);
+      });
+    };
+    m.maj();
+    return {e:{voct:voct}, s:{out:out}};
+  }},
+
+noise: {nom:"NOISE", hp:44, sombre:true, res:"Bruit blanc et rose", fam:"osc",
+  kns:[],
+  jacks:[["blanc","WHITE",1],["rose","PINK",1]],
+  creer:function(m){
+    var b = eurBruit();
+    var rose = ctx.createBiquadFilter();
+    rose.type = "lowpass"; rose.frequency.value = 900;
+    eurBruit().connect(rose);
+    return {e:{}, s:{blanc:b, rose:rose}};
+  }},
+
+/* ================= filtres ================= */
+vcf: eurFiltre("VCF", "lowpass", "Passe-bas résonant à quatre pôles", true),
+hpf: eurFiltre("HPF", "highpass", "Passe-haut résonant", true),
+bpf: eurFiltre("BPF", "bandpass", "Passe-bande", false),
+notch: eurFiltre("NOTCH", "notch", "Réjecteur de bande", false),
+peak: eurFiltre("PEAK", "peaking", "Cloche accentuée", false),
+
+svf: {nom:"SVF", hp:64, res:"Trois sorties simultanées", fam:"filtre",
+  kns:[["cut","FREQ",0,1,0.5],["q","Q",0,1,0.4],["mod","CV AMT",0,1,0.5]],
+  jacks:[["in","IN",0],["cv","CV",0],["lp","LP",1],["bp","BP",1],["hp","HP",1]],
+  creer:function(m){
+    var lp = ctx.createBiquadFilter(), bp = ctx.createBiquadFilter(), hp = ctx.createBiquadFilter();
+    lp.type = "lowpass"; bp.type = "bandpass"; hp.type = "highpass";
+    var e = eurGain(1), cv = eurGain(0);
+    [lp,bp,hp].forEach(function(f){ e.connect(f); cv.connect(f.detune); });
+    m.maj = function(){
+      var f = 60 * Math.pow(260, m.p.cut);
+      [lp,bp,hp].forEach(function(x){ x.frequency.value = f; x.Q.value = 0.4 + m.p.q * 12; });
+      cv.gain.value = m.p.mod * 2400;
+    };
+    m.maj();
+    return {e:{in:e, cv:cv}, s:{lp:lp, bp:bp, hp:hp}};
+  }},
+
+comb: {nom:"COMB", hp:56, sombre:true, res:"Filtre en peigne", fam:"filtre",
+  kns:[["f","FREQ",0,1,0.4],["fb","FEED",0,1,0.6]],
+  jacks:[["in","IN",0],["out","OUT",1]],
+  creer:function(m){
+    var e = eurGain(1), d = ctx.createDelay(0.05), fb = eurGain(0), out = eurGain(1);
+    e.connect(out); e.connect(d); d.connect(fb); fb.connect(d); d.connect(out);
+    m.maj = function(){
+      d.delayTime.value = 0.0004 + (1 - m.p.f) * 0.02;
+      fb.gain.value = m.p.fb * 0.92;
+    };
+    m.maj();
+    return {e:{in:e}, s:{out:out}};
+  }},
+
+formant: {nom:"FORMANT", hp:56, res:"Filtre à voyelles", fam:"filtre",
+  kns:[["v","VOWEL",0,1,0],["q","Q",0,1,0.5]],
+  jacks:[["in","IN",0],["out","OUT",1]],
+  creer:function(m){
+    var e = eurGain(1), out = eurGain(0.6);
+    var f1 = ctx.createBiquadFilter(), f2 = ctx.createBiquadFilter();
+    f1.type = "bandpass"; f2.type = "bandpass";
+    e.connect(f1); e.connect(f2); f1.connect(out); f2.connect(out);
+    var voyelles = [[730,1090],[530,1840],[390,1990],[570,840],[300,870]];
+    m.maj = function(){
+      var v = voyelles[Math.min(4, Math.round(m.p.v * 4))];
+      f1.frequency.value = v[0]; f2.frequency.value = v[1];
+      f1.Q.value = 3 + m.p.q * 16; f2.Q.value = 3 + m.p.q * 16;
+    };
+    m.maj();
+    return {e:{in:e}, s:{out:out}};
+  }},
+
+/* ================= amplis et enveloppes ================= */
+vca: {nom:"VCA", hp:56, sombre:true, res:"Amplificateur commandé", fam:"util",
+  kns:[["gain","GAIN",0,1,0]],
+  jacks:[["in","IN",0],["cv","CV",0],["out","OUT",1]],
+  creer:function(m){
+    var g = eurGain(0), cv = eurGain(1);
+    cv.connect(g.gain);
+    m.maj = function(){ g.gain.value = m.p.gain; };
+    m.maj();
+    return {e:{in:g, cv:cv}, s:{out:g}};
+  }},
+
+vca2: {nom:"DUAL VCA", hp:64, sombre:true, res:"Deux amplis commandés", fam:"util",
+  kns:[["g1","GAIN 1",0,1,0],["g2","GAIN 2",0,1,0]],
+  jacks:[["in1","IN 1",0],["cv1","CV 1",0],["o1","OUT 1",1],
+         ["in2","IN 2",0],["cv2","CV 2",0],["o2","OUT 2",1]],
+  creer:function(m){
+    var a = eurGain(0), b = eurGain(0), ca = eurGain(1), cb = eurGain(1);
+    ca.connect(a.gain); cb.connect(b.gain);
+    m.maj = function(){ a.gain.value = m.p.g1; b.gain.value = m.p.g2; };
+    m.maj();
+    return {e:{in1:a, cv1:ca, in2:b, cv2:cb}, s:{o1:a, o2:b}};
+  }},
+
+adsr: {nom:"ENVELOPE", hp:72, res:"Attaque, chute, tenue, retour", fam:"mod",
+  kns:[["a","ATK",0,1,0.02],["d","DEC",0,1,0.3],["s","SUS",0,1,0.5],["r","REL",0,1,0.3]],
+  jacks:[["gate","GATE",0],["out","OUT",1]],
+  creer:function(m){
+    var sortie = eurConst(0);
+    m.recevoir = function(t){
+      var a = 0.002 + m.p.a * 1.2, d = 0.01 + m.p.d * 1.5, s = m.p.s, r = 0.02 + m.p.r * 2;
+      sortie.offset.cancelScheduledValues(t);
+      sortie.offset.setValueAtTime(0.0001, t);
+      sortie.offset.linearRampToValueAtTime(1, t + a);
+      sortie.offset.linearRampToValueAtTime(Math.max(0.0001, s), t + a + d);
+      sortie.offset.linearRampToValueAtTime(0.0001, t + a + d + r);
+      return null;
+    };
+    return {e:{gate:eurGain(1)}, s:{out:sortie}};
+  }},
+
+ad: {nom:"AD", hp:52, res:"Attaque et chute", fam:"mod",
+  kns:[["a","ATK",0,1,0.02],["d","DEC",0,1,0.3]],
+  jacks:[["trig","TRIG",0],["out","OUT",1]],
+  creer:function(m){
+    var sortie = eurConst(0);
+    m.recevoir = function(t){
+      var a = 0.001 + m.p.a * 0.6, d = 0.01 + m.p.d * 2;
+      sortie.offset.cancelScheduledValues(t);
+      sortie.offset.setValueAtTime(0.0001, t);
+      sortie.offset.linearRampToValueAtTime(1, t + a);
+      sortie.offset.exponentialRampToValueAtTime(0.0001, t + a + d);
+      return null;
+    };
+    return {e:{trig:eurGain(1)}, s:{out:sortie}};
+  }},
+
+lfo: {nom:"LFO", hp:56, sombre:true, res:"Oscillateur lent", fam:"mod",
+  kns:[["rate","RATE",0,1,0.35],["amt","AMT",0,1,0.5]],
+  jacks:[["sine","SINE",1],["sqr","SQR",1],["tri","TRI",1]],
+  creer:function(m){
+    var s = ctx.createOscillator(), q = ctx.createOscillator(), r = ctx.createOscillator();
+    s.type = "sine"; q.type = "square"; r.type = "triangle";
+    s.start(); q.start(); r.start();
+    var gs = eurGain(0.5), gq = eurGain(0.5), gr = eurGain(0.5);
+    s.connect(gs); q.connect(gq); r.connect(gr);
+    m.maj = function(){
+      var f = 0.05 * Math.pow(400, m.p.rate);
+      [s,q,r].forEach(function(o){ o.frequency.value = f; });
+      [gs,gq,gr].forEach(function(g){ g.gain.value = m.p.amt; });
+    };
+    m.maj();
+    return {e:{}, s:{sine:gs, sqr:gq, tri:gr}};
+  }},
+
+sh: {nom:"S & H", hp:56, sombre:true, res:"Tension aléatoire bloquée", fam:"mod",
+  kns:[["amt","AMT",0,1,0.6],["lisse","SLEW",0,1,0]],
+  jacks:[["trig","TRIG",0],["out","OUT",1]],
+  creer:function(m){
+    var sortie = eurConst(0);
+    m.recevoir = function(t){
+      var v = (Math.random() * 2 - 1) * m.p.amt;
+      if(m.p.lisse > 0.02) sortie.offset.setTargetAtTime(v, t, 0.01 + m.p.lisse * 0.3);
+      else sortie.offset.setValueAtTime(v, t);
+      return null;
+    };
+    return {e:{trig:eurGain(1)}, s:{out:sortie}};
+  }},
+
+atten: {nom:"ATTENUV", hp:52, res:"Atténue, inverse, décale", fam:"util",
+  kns:[["amt","AMOUNT",-1,1,0.5],["off","OFFSET",-1,1,0]],
+  jacks:[["in","IN",0],["out","OUT",1]],
+  creer:function(m){
+    var g = eurGain(0.5), o = eurConst(0), out = eurGain(1);
+    g.connect(out); o.connect(out);
+    m.maj = function(){ g.gain.value = m.p.amt; o.offset.value = m.p.off; };
+    m.maj();
+    return {e:{in:g}, s:{out:out}};
+  }},
+
+slew: {nom:"SLEW", hp:52, res:"Adoucit les sauts de tension", fam:"util",
+  kns:[["t","TIME",0,1,0.3]],
+  jacks:[["in","IN",0],["out","OUT",1]],
+  creer:function(m){
+    /* un passe-bas très grave sur une commande, c'est exactement un
+       limiteur de pente */
+    var e = eurGain(1), f = ctx.createBiquadFilter();
+    f.type = "lowpass";
+    e.connect(f);
+    m.maj = function(){ f.frequency.value = 0.4 + (1 - m.p.t) * 60; };
+    m.maj();
+    return {e:{in:e}, s:{out:f}};
+  }},
+
+/* ================= mélange et aiguillage ================= */
+mix4: {nom:"MIX 4", hp:72, res:"Quatre entrées, une sortie", fam:"util",
+  kns:[["a","A",0,1,0.7],["b","B",0,1,0],["c","C",0,1,0],["d","D",0,1,0]],
+  jacks:[["a","A",0],["b","B",0],["c","C",0],["d","D",0],["out","OUT",1]],
+  creer:function(m){
+    var out = eurGain(1), g = {};
+    ["a","b","c","d"].forEach(function(k){ g[k] = eurGain(0); g[k].connect(out); });
+    m.maj = function(){ ["a","b","c","d"].forEach(function(k){ g[k].gain.value = m.p[k]; }); };
+    m.maj();
+    return {e:g, s:{out:out}};
+  }},
+
+mult: {nom:"MULT", hp:40, res:"Une entrée, quatre sorties", fam:"util",
+  kns:[],
+  jacks:[["in","IN",0],["o1","1",1],["o2","2",1],["o3","3",1],["o4","4",1]],
+  creer:function(m){
+    var e = eurGain(1);
+    return {e:{in:e}, s:{o1:e, o2:e, o3:e, o4:e}};
+  }},
+
+xfade: {nom:"XFADE", hp:56, res:"Fondu entre deux sources", fam:"util",
+  kns:[["x","BLEND",0,1,0.5]],
+  jacks:[["a","A",0],["b","B",0],["cv","CV",0],["out","OUT",1]],
+  creer:function(m){
+    var ga = eurGain(0.5), gb = eurGain(0.5), out = eurGain(1), cv = eurGain(0.5);
+    ga.connect(out); gb.connect(out);
+    cv.connect(gb.gain);
+    m.maj = function(){ ga.gain.value = 1 - m.p.x; gb.gain.value = m.p.x; };
+    m.maj();
+    return {e:{a:ga, b:gb, cv:cv}, s:{out:out}};
+  }},
+
+pan: {nom:"PAN", hp:48, res:"Place dans le champ stéréo", fam:"util",
+  kns:[["p","PAN",-1,1,0]],
+  jacks:[["in","IN",0],["cv","CV",0],["out","OUT",1]],
+  creer:function(m){
+    var e = eurGain(1);
+    var p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    var cv = eurGain(1);
+    if(p){ e.connect(p); cv.connect(p.pan); }
+    m.maj = function(){ if(p) p.pan.value = m.p.p; };
+    m.maj();
+    return {e:{in:e, cv:cv}, s:{out:p || e}};
+  }},
+
+switch4: {nom:"SWITCH", hp:56, sombre:true, res:"Aiguille vers quatre sorties", fam:"util",
+  kns:[],
+  jacks:[["in","IN",0],["clk","CLK",0],["o1","1",1],["o2","2",1],["o3","3",1],["o4","4",1]],
+  creer:function(m){
+    var e = eurGain(1), g = [];
+    for(var i=0;i<4;i++){ g.push(eurGain(i === 0 ? 1 : 0)); e.connect(g[i]); }
+    m.pos = 0;
+    m.recevoir = function(t, entree){
+      if(entree !== "clk") return null;
+      m.pos = (m.pos + 1) % 4;
+      for(var i=0;i<4;i++) g[i].gain.setTargetAtTime(i === m.pos ? 1 : 0, t, 0.004);
+      return null;
+    };
+    return {e:{in:e, clk:eurGain(1)}, s:{o1:g[0], o2:g[1], o3:g[2], o4:g[3]}};
+  }},
+
+/* ================= traitements ================= */
+delay: eurEffet("ECHO", 72, "Délai à réinjection",
+  [["time","TIME",0,1,0.3],["fb","FEED",0,1,0.35],["mix","MIX",0,1,0.4]],
+  function(m, e, out){
+    var d = ctx.createDelay(2), fb = eurGain(0), sec = eurGain(1), hum = eurGain(0);
+    e.connect(sec); sec.connect(out);
+    e.connect(d); d.connect(fb); fb.connect(d); d.connect(hum); hum.connect(out);
+    m.maj = function(){
+      d.delayTime.value = 0.02 + m.p.time * 1.2;
+      fb.gain.value = m.p.fb * 0.85;
+      sec.gain.value = 1 - m.p.mix * 0.6;
+      hum.gain.value = m.p.mix;
+    };
+    m.maj();
+  }),
+
+verb: eurEffet("REVERB", 64, "Réverbération",
+  [["taille","SIZE",0,1,0.5],["mix","MIX",0,1,0.35]],
+  function(m, e, out){
+    var c = ctx.createConvolver(), sec = eurGain(1), hum = eurGain(0);
+    var n = Math.floor(ctx.sampleRate * 2);
+    var b = ctx.createBuffer(2, n, ctx.sampleRate);
+    for(var k=0;k<2;k++){
+      var d = b.getChannelData(k);
+      for(var i=0;i<n;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/n, 2.5);
+    }
+    c.buffer = b;
+    e.connect(sec); sec.connect(out);
+    e.connect(c); c.connect(hum); hum.connect(out);
+    m.maj = function(){ sec.gain.value = 1 - m.p.mix * 0.7; hum.gain.value = m.p.mix * 1.4; };
+    m.maj();
+  }),
+
+fold: eurEffet("FOLD", 56, "Replie l'onde sur elle-même",
+  [["amt","FOLD",0,1,0.3],["sym","SYM",-1,1,0]],
+  function(m, e, out){
+    var pre = eurGain(1), sh = ctx.createWaveShaper(), off = eurConst(0);
+    e.connect(pre); off.connect(pre); pre.connect(sh); sh.connect(out);
+    m.maj = function(){
+      var p = 1 + m.p.amt * 7;
+      sh.curve = eurCourbe(function(x){ return Math.sin(x * p * Math.PI) * 0.85; });
+      off.offset.value = m.p.sym * 0.5;
+    };
+    m.maj();
+  }),
+
+dist: eurEffet("DRIVE", 56, "Saturation",
+  [["drv","DRIVE",0,1,0.4],["mix","MIX",0,1,1]],
+  function(m, e, out){
+    var sh = ctx.createWaveShaper(), sec = eurGain(0), hum = eurGain(1);
+    sh.oversample = "2x";
+    e.connect(sec); sec.connect(out);
+    e.connect(sh); sh.connect(hum); hum.connect(out);
+    m.maj = function(){
+      var d = 1 + m.p.drv * 20;
+      sh.curve = eurCourbe(function(x){ return Math.tanh(x * d) / Math.tanh(d); });
+      sec.gain.value = 1 - m.p.mix; hum.gain.value = m.p.mix;
+    };
+    m.maj();
+  }),
+
+bits: eurEffet("BITS", 52, "Réduction de définition",
+  [["b","BITS",0,1,0.5]],
+  function(m, e, out){
+    var sh = ctx.createWaveShaper();
+    e.connect(sh); sh.connect(out);
+    m.maj = function(){
+      var n = Math.max(2, Math.round(2 + (1 - m.p.b) * 12));
+      var pas = Math.pow(2, n) / 2;
+      sh.curve = eurCourbe(function(x){ return Math.round(x * pas) / pas; });
+    };
+    m.maj();
+  }),
+
+ring: {nom:"RING", hp:52, sombre:true, res:"Modulation en anneau", fam:"effet",
+  kns:[["f","FREQ",0,1,0.35],["mix","MIX",0,1,1]],
+  jacks:[["in","IN",0],["mod","MOD",0],["out","OUT",1]],
+  creer:function(m){
+    var e = eurGain(1), out = eurGain(1);
+    var anneau = eurGain(0);
+    var o = ctx.createOscillator(); o.type = "sine"; o.start();
+    var interne = eurGain(1);
+    o.connect(interne); interne.connect(anneau.gain);
+    var modin = eurGain(1);
+    modin.connect(anneau.gain);
+    e.connect(anneau);
+    var sec = eurGain(0);
+    e.connect(sec); sec.connect(out); anneau.connect(out);
+    m.maj = function(){
+      o.frequency.value = 20 * Math.pow(120, m.p.f);
+      sec.gain.value = 1 - m.p.mix;
+    };
+    m.maj();
+    return {e:{in:e, mod:modin}, s:{out:out}};
+  }},
+
+chorus: eurEffet("CHORUS", 56, "Épaissit par désaccord",
+  [["rate","RATE",0,1,0.3],["prof","DEPTH",0,1,0.4]],
+  function(m, e, out){
+    var d = ctx.createDelay(0.05), lfo = ctx.createOscillator(), amp = eurGain(0.002);
+    lfo.type = "sine"; lfo.start();
+    lfo.connect(amp); amp.connect(d.delayTime);
+    d.delayTime.value = 0.012;
+    e.connect(out); e.connect(d); d.connect(out);
+    m.maj = function(){
+      lfo.frequency.value = 0.1 + m.p.rate * 6;
+      amp.gain.value = m.p.prof * 0.006;
+    };
+    m.maj();
+  }),
+
+phaser: eurEffet("PHASER", 56, "Balaye des creux dans le spectre",
+  [["rate","RATE",0,1,0.25],["prof","DEPTH",0,1,0.5]],
+  function(m, e, out){
+    var lfo = ctx.createOscillator(), amp = eurGain(600);
+    lfo.type = "sine"; lfo.start(); lfo.connect(amp);
+    var prec = e;
+    for(var i=0;i<4;i++){
+      var ap = ctx.createBiquadFilter();
+      ap.type = "allpass";
+      ap.frequency.value = 400 + i * 500;
+      amp.connect(ap.detune);
+      prec.connect(ap);
+      prec = ap;
+    }
+    e.connect(out); prec.connect(out);
+    m.maj = function(){ lfo.frequency.value = 0.05 + m.p.rate * 4; amp.gain.value = m.p.prof * 1800; };
+    m.maj();
+  }),
+
+grain: eurEffet("GRAIN", 64, "Texture par nuage de grains",
+  [["taille","SIZE",0,1,0.4],["dens","DENSITY",0,1,0.5],["mix","MIX",0,1,0.6]],
+  function(m, e, out){
+    /* un délai court dont le temps saute sans cesse : ce n'est pas un vrai
+       granulateur, mais le nuage y ressemble beaucoup */
+    var d = ctx.createDelay(1), sec = eurGain(1), hum = eurGain(0);
+    var lfo = ctx.createOscillator(); lfo.type = "square"; lfo.start();
+    var amp = eurGain(0.05);
+    lfo.connect(amp); amp.connect(d.delayTime);
+    d.delayTime.value = 0.08;
+    e.connect(sec); sec.connect(out);
+    e.connect(d); d.connect(hum); hum.connect(out);
+    m.maj = function(){
+      d.delayTime.value = 0.01 + m.p.taille * 0.3;
+      lfo.frequency.value = 1 + m.p.dens * 28;
+      amp.gain.value = m.p.taille * 0.06;
+      sec.gain.value = 1 - m.p.mix * 0.8; hum.gain.value = m.p.mix * 1.2;
+    };
+    m.maj();
+  }),
+
+limit: eurEffet("LIMIT", 52, "Compresseur de crêtes",
+  [["seuil","THRESH",0,1,0.6],["rap","RATIO",0,1,0.5]],
+  function(m, e, out){
+    var c = ctx.createDynamicsCompressor();
+    c.attack.value = 0.003; c.release.value = 0.12; c.knee.value = 6;
+    e.connect(c); c.connect(out);
+    m.maj = function(){
+      c.threshold.value = -40 + m.p.seuil * 38;
+      c.ratio.value = 1.5 + m.p.rap * 18;
+    };
+    m.maj();
+  }),
+
+/* ================= percussions ================= */
+drum: {nom:"DRUM", hp:72, sombre:true, res:"Voix de percussion réglable", fam:"perc",
+  kns:[["tune","TUNE",0,1,0.3],["dec","DECAY",0,1,0.35],["drive","DRIVE",0,1,0.2],["bruit","NOISE",0,1,0.15]],
+  jacks:[["trig","TRIG",0],["out","OUT",1]],
+  creer:function(m){
+    var out = eurGain(1);
+    m.recevoir = function(t){
+      var f0 = 35 + m.p.tune * 190, dec = 0.04 + m.p.dec * 0.9;
+      var o = ctx.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(f0 * 4.5, t);
+      o.frequency.exponentialRampToValueAtTime(f0, t + 0.03);
+      var sh = ctx.createWaveShaper();
+      var dr = 1 + m.p.drive * 8;
+      sh.curve = eurCourbe(function(x){ return Math.tanh(x * dr) / Math.tanh(dr); });
+      var g = eurGain(0);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.9, t + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+      o.connect(sh); sh.connect(g); g.connect(out);
+      o.start(t); o.stop(t + dec + 0.05);
+      if(m.p.bruit > 0.02){
+        var nb = eurBruit(), hp = ctx.createBiquadFilter(), gn = eurGain(0);
+        hp.type = "highpass"; hp.frequency.value = 1400;
+        gn.gain.setValueAtTime(0.0001, t);
+        gn.gain.linearRampToValueAtTime(m.p.bruit * 0.8, t + 0.001);
+        gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.02 + m.p.bruit * 0.2);
+        nb.connect(hp); hp.connect(gn); gn.connect(out);
+        nb.stop(t + 0.4);
+      }
+      return null;
+    };
+    return {e:{trig:eurGain(1)}, s:{out:out}};
+  }},
+
+kick: eurPerc("KICK", "Grosse caisse", function(m, out, t){
+  var f0 = 32 + m.p.tune * 50, dec = 0.08 + m.p.dec * 0.9;
+  var o = ctx.createOscillator(); o.type = "sine";
+  o.frequency.setValueAtTime(f0 * 5, t);
+  o.frequency.exponentialRampToValueAtTime(f0, t + 0.03);
+  var g = eurGain(0);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(m.p.niv * 1.3, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+  o.connect(g); g.connect(out); o.start(t); o.stop(t + dec + 0.05);
+}),
+
+snare: eurPerc("SNARE", "Caisse claire", function(m, out, t){
+  var dec = 0.05 + m.p.dec * 0.35;
+  var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+  bp.frequency.value = 1200 + m.p.tune * 3200; bp.Q.value = 0.8;
+  var n = eurBruit(), g = eurGain(0);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(m.p.niv * 1.2, t + 0.001);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+  n.connect(bp); bp.connect(g); g.connect(out); n.stop(t + dec + 0.1);
+  var o = ctx.createOscillator(); o.type = "triangle";
+  o.frequency.value = 150 + m.p.tune * 200;
+  var g2 = eurGain(0);
+  g2.gain.setValueAtTime(0.0001, t);
+  g2.gain.linearRampToValueAtTime(m.p.niv * 0.5, t + 0.001);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t + dec * 0.5);
+  o.connect(g2); g2.connect(out); o.start(t); o.stop(t + dec);
+}),
+
+hat: eurPerc("HAT", "Charley", function(m, out, t){
+  var dec = 0.02 + m.p.dec * 0.5;
+  var som = eurGain(0.3);
+  [1, 1.342, 1.2312, 1.6532, 1.9523, 2.1523].forEach(function(r){
+    var o = ctx.createOscillator(); o.type = "square";
+    o.frequency.value = (600 + m.p.tune * 900) * r;
+    o.connect(som); o.start(t); o.stop(t + dec + 0.02);
+  });
+  var hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 7000;
+  var g = eurGain(0);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(m.p.niv * 1.3, t + 0.001);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+  som.connect(hp); hp.connect(g); g.connect(out);
+}),
+
+clap: eurPerc("CLAP", "Claquement de mains", function(m, out, t){
+  var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+  bp.frequency.value = 900 + m.p.tune * 1400; bp.Q.value = 1.4;
+  var n = eurBruit(), g = eurGain(0);
+  n.connect(bp); bp.connect(g); g.connect(out);
+  g.gain.setValueAtTime(0.0001, t);
+  [0, 0.009, 0.018].forEach(function(o){
+    g.gain.setValueAtTime(m.p.niv * 1.6, t + o);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + o + 0.008);
+  });
+  g.gain.setValueAtTime(m.p.niv * 1.1, t + 0.028);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05 + m.p.dec * 0.4);
+  n.stop(t + 0.6);
+}),
+
+tom: eurPerc("TOM", "Tom accordable", function(m, out, t){
+  var f0 = 70 + m.p.tune * 190, dec = 0.1 + m.p.dec * 0.7;
+  var o = ctx.createOscillator(); o.type = "sine";
+  o.frequency.setValueAtTime(f0 * 2, t);
+  o.frequency.exponentialRampToValueAtTime(f0, t + 0.05);
+  var g = eurGain(0);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(m.p.niv * 1.2, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+  o.connect(g); g.connect(out); o.start(t); o.stop(t + dec + 0.05);
+}),
+
+cym: eurPerc("CYMBAL", "Cymbale", function(m, out, t){
+  var dec = 0.3 + m.p.dec * 2.2;
+  var som = eurGain(0.24);
+  [1, 1.342, 1.2312, 1.6532, 1.9523, 2.1523].forEach(function(r){
+    var o = ctx.createOscillator(); o.type = "square";
+    o.frequency.value = (200 + m.p.tune * 420) * r;
+    o.connect(som); o.start(t); o.stop(t + dec + 0.02);
+  });
+  var hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 3000;
+  var g = eurGain(0);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(m.p.niv * 1.1, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+  som.connect(hp); hp.connect(g); g.connect(out);
+}),
+
+rim: eurPerc("RIM", "Rim shot", function(m, out, t){
+  var o = ctx.createOscillator(); o.type = "square";
+  o.frequency.value = 320 + m.p.tune * 600;
+  var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+  bp.frequency.value = 1800; bp.Q.value = 4;
+  var n = eurBruit();
+  var g = eurGain(0);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(m.p.niv * 1.2, t + 0.0006);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.015 + m.p.dec * 0.06);
+  o.connect(g); n.connect(bp); bp.connect(g); g.connect(out);
+  o.start(t); o.stop(t + 0.08); n.stop(t + 0.08);
+})
 };
-var EUR_ORDRE = ["clock","seq8","vco","noise","vcf","vca","adsr","lfo","sh","mix4","delay","verb","drum","out"];
+var EUR_FAM = [["horloge","HORLOGES"],["seq","SÉQUENCEURS"],["osc","OSCILLATEURS"],
+               ["filtre","FILTRES"],["mod","MODULATION"],["util","UTILITAIRES"],
+               ["effet","TRAITEMENTS"],["perc","PERCUSSIONS"]];
+var EUR_ORDRE = Object.keys(EUR_CAT);
 
 /* ---------- construction du rack ---------- */
 function eurAjouter(type, silencieux){
@@ -13586,25 +14287,29 @@ function eurMod(id){
   return null;
 }
 /* ---------- l'horloge fait avancer ce qui écoute ---------- */
+/* Les portes se propagent de proche en proche. Un module qui en reçoit une
+   peut en émettre à son tour : c'est ce qui permet d'enchaîner horloge,
+   diviseur, générateur euclidien puis séquenceur. La file est bornée pour
+   qu'un câblage en boucle ne fasse pas tourner l'application indéfiniment. */
 function scheduleEur(i, t){
+  var file = [];
   EUR.mods.forEach(function(m){
-    if(m.type === "clock" && m.tic) m.tic(t, i);
+    if(!m.tic) return;
+    var f = m.tic(t, i);
+    if(f) f.forEach(function(o){ file.push([m.id, o]); });
   });
-  /* les modules déclenchés le sont par les portes qu'ils reçoivent : on suit
-     les câbles au lieu de tout déclencher, sinon le rack n'aurait aucun sens */
-  EUR.cables.forEach(function(c){
-    var src = eurMod(c.de[0]), dst = eurMod(c.vers[0]);
-    if(!src || !dst) return;
-    var estPorte = (src.type === "clock") ||
-                   (src.type === "seq8" && c.de[1] === "gate");
-    if(!estPorte) return;
-    if(src.type === "clock"){
-      var div = (c.de[1] === "out4") ? 4 : (c.de[1] === "out8") ? 8 : 1;
-      if(i % div !== 0) return;
+  var garde = 0;
+  while(file.length && garde++ < 400){
+    var x = file.shift();
+    for(var k=0;k<EUR.cables.length;k++){
+      var c = EUR.cables[k];
+      if(c.de[0] !== x[0] || c.de[1] !== x[1]) continue;
+      var d = eurMod(c.vers[0]);
+      if(!d || !d.recevoir) continue;
+      var sorties = d.recevoir(t, c.vers[1]);
+      if(sorties) sorties.forEach(function(o){ file.push([d.id, o]); });
     }
-    if(dst.avancer) dst.avancer(t);
-    if(dst.declencher) dst.declencher(t);
-  });
+  }
   if(!cache) queue.push({i:i, t:t});
 }
 function beatEur(i){ EUR.pos = i; }
@@ -13750,8 +14455,24 @@ function eurCatalogue(){
   var c = document.getElementById("eur-cat");
   if(c.style.display !== "none"){ c.style.display = "none"; return; }
   c.innerHTML = "";
+  /* cinquante-huit modules en vrac seraient illisibles : on les range par
+     familles, et l'onglet choisi décide de ce qu'on voit */
+  var onglets = document.createElement("div");
+  onglets.className = "eur-fam";
+  EUR_FAM.forEach(function(f){
+    var b = document.createElement("button");
+    b.textContent = f[1];
+    b.className = (EUR.famille === f[0] || (!EUR.famille && f === EUR_FAM[0])) ? "on" : "";
+    b.addEventListener("click", function(){ EUR.famille = f[0]; c.style.display = "none"; eurCatalogue(); });
+    onglets.appendChild(b);
+  });
+  c.appendChild(onglets);
+  var fam = EUR.famille || EUR_FAM[0][0];
+  var n = 0;
   EUR_ORDRE.forEach(function(t){
     var d = EUR_CAT[t];
+    if((d.fam || "util") !== fam) return;
+    n++;
     var b = document.createElement("button");
     b.innerHTML = d.nom + "<span>" + d.res + "</span>";
     b.addEventListener("click", function(){
@@ -13826,6 +14547,32 @@ document.getElementById("eur-decable").addEventListener("click", function(){
   signal("TOUS LES CÂBLES RETIRÉS");
 });
 document.getElementById("eur-exemple").addEventListener("click", function(){ eurExemple(); H.inter(); });
+document.getElementById("eur-hasard").addEventListener("click", function(){ eurHasard(); H.inter(); });
+/* Un rack tiré au sort, mais pas n'importe comment : une horloge, une source
+   de rythme, deux ou trois voix, un traitement et une sortie. Sans cette
+   ossature on obtient un tas de modules qui ne sonne pas. */
+function eurHasard(){
+  function tire(l){ return l[Math.floor(Math.random() * l.length)]; }
+  EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1;
+  var h = eurAjouter("clock", true);
+  var rythme = eurAjouter(tire(["euclid","trig4","seq8","seq16","turing"]), true);
+  var voix = [];
+  var nv = 2 + Math.floor(Math.random() * 2);
+  for(var i=0;i<nv;i++) voix.push(eurAjouter(tire(["kick","snare","hat","clap","tom","rim","cym","drum","pluck"]), true));
+  var eff = eurAjouter(tire(["delay","verb","dist","fold","bits","chorus","phaser","grain","comb"]), true);
+  var mix = eurAjouter("mix4", true);
+  var so = eurAjouter("out", true);
+  EUR.cables.push({de:[h.id,"out"], vers:[rythme.id, rythme.type === "trig4" ? "clk" : "clk"]});
+  var sorties = (rythme.type === "trig4") ? ["ta","tb","tc","td"] : ["gate","gate","gate","gate"];
+  voix.forEach(function(v, i){
+    EUR.cables.push({de:[rythme.id, sorties[i % sorties.length]], vers:[v.id,"trig"]});
+    EUR.cables.push({de:[v.id,"out"], vers:[mix.id, ["a","b","c","d"][i]]});
+  });
+  EUR.cables.push({de:[mix.id,"out"], vers:[eff.id,"in"]});
+  EUR.cables.push({de:[eff.id,"out"], vers:[so.id,"in"]});
+  eurBatir(); eurDessiner(); memEur();
+  signal(EUR.mods.length + " MODULES TIRÉS AU SORT");
+}
 document.getElementById("eur-vider").addEventListener("click", function(){
   if(!window.confirm("Vider le rack ?")) return;
   EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.attente = null;

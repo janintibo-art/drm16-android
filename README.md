@@ -244,6 +244,33 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Eurorack : cinquante-six modules (version 56)
+
+Quatre fois plus de modules, en huit familles : quatre horloges, cinq séquenceurs, sept oscillateurs, huit
+filtres, quatre modulateurs, dix utilitaires, dix traitements, huit percussions.
+
+**Un meilleur modèle de propagation, d'abord.** L'ancien code ne savait déclencher que depuis une horloge
+ou la porte d'un séquenceur : un diviseur n'aurait jamais pu alimenter un générateur euclidien. Les portes
+se propagent maintenant **de proche en proche** — un module qui en reçoit une peut en émettre à son tour —
+avec une file bornée à quatre cents relais pour qu'un câblage en boucle ne fasse pas tourner l'application
+indéfiniment. Vérifié : deux diviseurs qui se renvoient la balle traitent seize pas sans blocage, et la
+chaîne horloge → diviseur /2 → euclidien → grosse caisse donne bien quatre coups sur vingt-quatre pas.
+
+**Des fabriques plutôt que des copies.** Les filtres, les percussions et les traitements ne diffèrent souvent
+que par trois valeurs. Trois fabriques — `eurFiltre`, `eurPerc`, `eurEffet` — les produisent, au lieu de
+quarante fois le même code avec une faute de frappe quelque part.
+
+**Quelques modules qui méritent un mot** : EUCLID répartit ses coups aussi régulièrement que possible, ce
+qui donne ces rythmes qu'on retrouve dans toutes les musiques ; TURING est un registre à décalage dont on
+règle la probabilité de mutation ; PLUCK est une corde pincée — une bouffée de bruit dans un délai qui se
+réinjecte ; SVF sort simultanément passe-bas, passe-bande et passe-haut.
+
+Les cinquante-six ont été construits et rendus un par un : **aucune erreur**. Trois ne produisent rien, et
+c'est normal — un VCA fermé est silencieux, un quantificateur sort une tension continue.
+
+**RACK AU SORT** monte un ensemble cohérent : horloge, source de rythme, deux ou trois voix, traitement,
+mélangeur, sortie. Sans cette ossature, un tirage au sort ne sonne pas.
+
 ## Eurorack (version 55)
 
 Un onglet d'une autre nature : **rien n'est câblé d'avance**. On pose des modules dans un rack et on les
