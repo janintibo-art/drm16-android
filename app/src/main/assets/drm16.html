@@ -145,9 +145,29 @@ body.m32 .read{color:#8fe8d8}
 .off .led.on,.off .led.beat{background:#1d2a33;box-shadow:inset 0 1px 2px #000c}
 
 /* ---------- notice ---------- */
-#note,#enr,#pr{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
+#note,#enr,#pr,#bib{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
   font:15px/1.6 system-ui,-apple-system,"Roboto",sans-serif}
-#note.show,#enr.show,#pr.show{display:flex;flex-direction:column}
+#note.show,#enr.show,#pr.show,#bib.show{display:flex;flex-direction:column}
+#bib #note-bar b{color:#8ce3a0}
+#bib-nav{flex:none;display:flex;gap:6px;padding:9px 12px;background:#131316;border-bottom:1px solid #2c2c31}
+#bib #bib-nav button{flex:1;margin:0;padding:9px 6px;border:0;border-radius:20px;background:#2a2a30;
+  color:#cfcbc2;font:700 12px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:1px}
+#bib #bib-nav button.on{background:#3ea95c;color:#06240f}
+#bib h3{margin:20px 0 8px;font:800 13px/1.3 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:2.2px;color:#8ce3a0;text-transform:uppercase}
+#bib p{margin:0 0 10px}
+#bib b{color:#fff}
+#bib button{margin:0;padding:11px 15px;border:0;border-radius:6px;background:#3ea95c;color:#06240f;
+  font-weight:800;letter-spacing:.8px;font-size:14px}
+#bib button.sec{background:#2f2f35;color:#eceae4;padding:8px 11px;font-size:12px}
+#bib select{padding:9px;border-radius:6px;border:1px solid #3a3a42;background:#1b1b1f;color:#eceae4;
+  font:600 13px system-ui,sans-serif;min-width:0}
+.bib-cible{display:flex;gap:6px;margin-bottom:10px}
+.bib-cible select{flex:1}
+.bib-ligne{border:1px solid #2e2e35;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#16161a}
+.bib-ligne b{display:block;font-size:15px}
+.bib-ligne span{display:block;font-size:12.5px;opacity:.75;margin-top:2px}
+.bib-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 #pr #note-bar b{color:#7fd4ff}
 #pr-barre{flex:none;display:flex;gap:6px;padding:8px 10px;background:#131316;border-bottom:1px solid #2c2c31;
   align-items:center}
@@ -774,6 +794,9 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.psx{background:linear-gradient(165deg,#9c1c2e,#3a0810 55%,#5e0e1a)}
 .pick.psx b{color:#ff6a78;text-shadow:0 2px 0 #4a0610}
 .pick.psx span{color:#d8b0b6}
+.pick.pbib{background:linear-gradient(165deg,#1f5c36,#07200f 55%,#0f3a1f)}
+.pick.pbib b{color:#8ce3a0;text-shadow:0 2px 0 #05240f}
+.pick.pbib span{color:#a8ceb4}
 .pick.ppr{background:linear-gradient(165deg,#1d4b6e,#08202f 55%,#0f3348)}
 .pick.ppr b{color:#7fd4ff;text-shadow:0 2px 0 #062334}
 .pick.ppr span{color:#a8c6d8}
@@ -2034,6 +2057,15 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
 </div>
 
 
+<div id="bib">
+  <div id="note-bar"><b>BIBLIOTHÈQUE</b><button id="bib-fermer">FERMER</button></div>
+  <div id="bib-nav">
+    <button class="on">SONS</button><button>PRISES MIDI</button><button>SAUVEGARDES</button>
+  </div>
+  <div id="note-corps"><div class="doc vu" id="bib-corps" style="max-width:620px"></div></div>
+  <input type="file" id="bib-fichier" accept="audio/*" style="display:none">
+</div>
+
 <div id="pr">
   <div id="note-bar"><b>TRAVAIL DU MIDI</b><button id="pr-fermer">FERMER</button></div>
   <div id="pr-barre">
@@ -2107,6 +2139,7 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
   <button class="pick psx" data-m="esx"><b>ELECTRIBE ESX-1</b><span>KORG · ÉCHANTILLONNEUR · CLAVIER, STRETCH, VALVE FORCE</span></button>
   <button class="pick pm3" data-m="mpc3000"><b>AKAI MPC3000</b><span>PADS · ENREGISTREMENT AU VOL · TIMING CORRECT</span></button>
   <button class="pick pm2" data-m="mpc2000"><b>AKAI MPC2000</b><span>PADS · QUATRE BANQUES · SEIZE NIVEAUX</span></button>
+  <button class="pick pbib" id="menu-bib"><b>BIBLIOTHÈQUE</b><span>SONS · PRISES · SAUVEGARDES DE VOS MACHINES</span></button>
   <button class="pick ppr" id="menu-pr"><b>TRAVAIL DU MIDI</b><span>ROULEAU PAR SON · RETOUCHER, CALER, REPORTER</span></button>
   <button class="pick penr" id="menu-enr"><b>ENREGISTREUR MIDI</b><span>JOUER SUR LA KORG · LE SON SORT DU TÉLÉPHONE</span></button>
   <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
@@ -2142,6 +2175,17 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
   et les messages de départ et d'arrêt peuvent entraîner un autre appareil. En <b>entrée</b>, les notes 36 à 44
   déclenchent les parties de percussion de la machine affichée, les autres canaux ses parties mélodiques, et
   tout s'enregistre si REC est armé.</p>
+  <h3>Bibliothèque</h3>
+  <p>Trois rayons. <b>SONS</b> réunit la banque interne et tous vos enregistrements : écouter, renommer,
+  supprimer, importer un fichier, enregistrer au micro, et surtout <b>affecter</b> un son à la partie ou au
+  pad de votre choix — la machine visée est chargée toute seule.</p>
+  <p><b>PRISES MIDI</b> reprend les enregistrements : jouer, renommer, exporter en .mid, ou les ouvrir
+  directement dans l'éditeur en rouleau.</p>
+  <p><b>SAUVEGARDES</b> lit <b>tout ce que contient la machine branchée</b> — motifs, chansons, réglages
+  généraux — et l'écrit en vrais fichiers .syx dans le dossier Documents de l'application. Renvoyez une
+  sauvegarde pour remettre la machine exactement comme elle était. À faire avant toute expérience : un
+  transfert de motif ne s'annule pas tout seul.</p>
+
   <h3>Travail du MIDI</h3>
   <p>La tuile <b>TRAVAIL DU MIDI</b> ouvre un éditeur en rouleau, <b>une piste par son</b> : les parties de
   percussion portent leur nom, les notes mélodiques leur hauteur et leur canal. Toucher une case vide ajoute
@@ -2543,6 +2587,7 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
 <script>
 "use strict";
 /* ================= état ================= */
+var BIB = {noms:{}, onglet:0, cible:{machine:"es1", partie:0}};
 /* déclarés dès le début : le câblage de l'interface s'en sert bien avant
    d'arriver aux modules qui les remplissent */
 var PR = {prise:-1, notes:[], pistes:[], sel:-1, grille:4, zoom:0.10, defil:0,
@@ -3285,6 +3330,37 @@ document.getElementById("aide").addEventListener("click", function(){ ouvrirNoti
 document.getElementById("menu-notices").addEventListener("click", function(){ ouvrirNotice("note-general"); H.inter(); });
 document.getElementById("enr-fermer").addEventListener("click", function(){ fermerEnr(); H.cran(); });
 document.getElementById("pr-fermer").addEventListener("click", function(){ fermerPr(); H.cran(); });
+document.getElementById("bib-fermer").addEventListener("click", function(){ fermerBib(); H.cran(); });
+document.getElementById("menu-bib").addEventListener("click", function(){
+  document.body.classList.remove("menu-ouvert");
+  menu.classList.add("hide");
+  allerMachine(memoire.modele || "es1");
+  ouvrirBib();
+  H.inter();
+});
+(function navBib(){
+  var bs = document.querySelectorAll("#bib-nav button");
+  for(var i=0;i<bs.length;i++){
+    (function(n){ bs[n].addEventListener("click", function(){ BIB.onglet = n; majBibUI(); H.cran(); }); })(i);
+  }
+})();
+document.getElementById("bib-fichier").addEventListener("change", function(){
+  var f = this.files && this.files[0];
+  if(!f){ return; }
+  if(f.size > 40*1024*1024){ signal("FICHIER TROP GROS · 40 Mo AU PLUS"); this.value=""; return; }
+  audioInit(); banqueEs();
+  f.arrayBuffer().then(function(ab){
+    return new Promise(function(res,rej){ ctx.decodeAudioData(ab,res,rej); });
+  }).then(function(buf){
+    var court = reduireEch(buf, 32000, 8);
+    var id = "u" + Date.now().toString(36);
+    ES.buf[id] = court; ES.noms[id] = "fichier";
+    BIB.noms[id] = f.name.replace(/\.[^.]+$/, "").slice(0, 28);
+    bibEcrire(); sauverEch(id, court); majBibUI();
+    signal("IMPORTÉ : " + BIB.noms[id]);
+  }).catch(function(){ signal("FICHIER ILLISIBLE"); });
+  this.value = "";
+});
 document.getElementById("menu-pr").addEventListener("click", function(){
   document.body.classList.remove("menu-ouvert");
   menu.classList.add("hide");
@@ -6428,6 +6504,7 @@ function banqueEs(){
 }
 function nomEch(id){
   if(!id) return "---";
+  if(BIB && BIB.noms && BIB.noms[id]) return BIB.noms[id];
   if(id.charAt(0)==="b") return ES_BANQUE[+id.slice(1)] || "---";
   return (ES.noms[id] === "fichier" ? "FICHIER " : "MIC ") + id.slice(-3).toUpperCase();
 }
@@ -10418,6 +10495,376 @@ function activerMpc(v){
   save(); fit(); setTimeout(fit, 120);
 }
 
+/* ================= bibliothèque =================
+   Trois rayons : les sons, les prises MIDI, et les sauvegardes des vraies machines.
+   Tout y est renommable. Les sauvegardes sont de vrais fichiers .syx dans Documents. */
+
+function bibLire(){
+  try{
+    var o = JSON.parse(localStorage.getItem(MEM + ".bib") || "null");
+    if(o && o.noms) BIB.noms = o.noms;
+  }catch(e){}
+}
+function bibEcrire(){
+  try{ localStorage.setItem(MEM + ".bib", JSON.stringify({noms:BIB.noms})); }
+  catch(e){ signal("MÉMOIRE PLEINE · NOMS NON GARDÉS"); }
+}
+/* le nom donné par l'utilisateur l'emporte sur le nom d'origine */
+function nomBib(id){
+  if(BIB.noms[id]) return BIB.noms[id];
+  return nomEch(id);
+}
+function renommer(titre, actuel, suite){
+  var v = window.prompt(titre, actuel || "");
+  if(v === null) return;
+  v = v.replace(/\s+/g, " ").trim().slice(0, 28);
+  suite(v);
+}
+
+/* ---------- rayon des sons ---------- */
+function bibSons(){
+  banqueEs();
+  var l = listeEch(), out = [];
+  l.forEach(function(id){
+    var b = ES.buf[id];
+    out.push({id:id, nom:nomBib(id), propre:(id.charAt(0) !== "b"),
+              duree:b ? b.duration : 0, freq:b ? b.sampleRate : 0});
+  });
+  return out;
+}
+function bibAffecter(id){
+  var m = BIB.cible.machine, k = BIB.cible.partie;
+  if(m === "es1" || m === "es2"){
+    if(S.modele !== m) activerEs(m === "es2" ? 2 : 1);
+    ES.pat.son[k].ech = id; delete ES.inv[id]; majLedsEs(); memEs();
+  } else if(m === "esx"){
+    if(S.modele !== m) activerSx();
+    SX.pat.son[k].ech = id; delete ES.inv[id]; majLedsSx(); memSx();
+  } else if(m === "mpc3000" || m === "mpc2000"){
+    if(S.modele !== m) activerMpc(m === "mpc2000" ? 2000 : 3000);
+    MPC.pads[k].ech = id; majPadsMpc(); majLcdMpc(); memMpc();
+  } else if(m === "emx"){
+    if(S.modele !== m) activerMx();
+    if(id.charAt(0) === "b"){ MX.pat.son[k].tim = +id.slice(1); majLedsMx(); memMx(); }
+    else { signal("L'EMX-1 NE LIT QUE LA BANQUE INTERNE"); return; }
+  } else if(m === "er2"){
+    if(S.modele !== m) activerEr(2);
+    if(id.charAt(0) === "b"){ ER.pat.son[k].pcm = +id.slice(1); memEr(); }
+    else { signal("LES PARTIES PCM NE LISENT QUE LA BANQUE"); return; }
+  }
+  signal(nomBib(id) + " → " + bibNomPartie(m, k));
+  majBibUI();
+  H.inter();
+}
+var BIB_MACHINES = [["es1","Electribe ES-1"],["es2","ES-1 mkII"],["esx","Electribe ESX-1"],
+                    ["emx","Electribe EMX-1"],["er2","ER-1 mkII"],
+                    ["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"]];
+function bibParties(m){
+  var l = [], i;
+  if(m === "es1" || m === "es2") for(i=0;i<9;i++) l.push(ES_PARTS[i].n);
+  else if(m === "esx") for(i=0;i<14;i++) l.push(nomPartieSx(i));
+  else if(m === "emx") for(i=0;i<9;i++) l.push("Drum " + MX_DRUMS[i]);
+  else if(m === "er2") l = ["PCM 1", "PCM 2"];
+  else for(i=0;i<64;i++) l.push("Pad " + MPC_BANQUES[Math.floor(i/16)] + ((i%16)+1));
+  return l;
+}
+function bibNomPartie(m, k){
+  var l = bibParties(m);
+  if(m === "er2") k = (k === 5) ? 1 : 0;
+  return l[k] !== undefined ? l[k] : ("partie " + (k+1));
+}
+function bibIndexReel(m, k){
+  if(m === "er2") return k ? 5 : 4;      /* les deux parties PCM de l'ER-1 mkII */
+  return k;
+}
+
+/* ---------- rayon des sauvegardes de machine ---------- */
+function bibFichiers(ext){
+  var p = window.DRM16, l = [];
+  if(!p || !p.fichierListe) return l;
+  var t = "";
+  try{ t = p.fichierListe(ext) || ""; }catch(e){}
+  t.split("\n").forEach(function(ligne){
+    if(!ligne) return;
+    var c = ligne.split("\t");
+    l.push({nom:c[0], taille:+c[1] || 0, date:+c[2] || 0});
+  });
+  l.sort(function(a,b){ return b.date - a.date; });
+  return l;
+}
+function bibDemanderSauvegarde(){
+  if(S.run) stop();
+  EXC.attenteSauve = true;
+  var n, ok = false;
+  for(n=0;n<16;n++){
+    var c = 0x30 | n;
+    ok = excEnvoyerBrut([0xF0,0x42,c,0x57,0x1C,0xF7]) || ok;   /* ES-1 : tous les motifs */
+    excEnvoyerBrut([0xF0,0x42,c,0x57,0x0B,0xF7]);              /* ES-1 : toutes les chansons */
+    excEnvoyerBrut([0xF0,0x42,c,0x57,0x0E,0xF7]);              /* ES-1 : réglages généraux */
+  }
+  if(ok){
+    signal("SAUVEGARDE DEMANDÉE · LAISSEZ LA MACHINE RÉPONDRE");
+    setTimeout(function(){
+      if(EXC.attenteSauve){ EXC.attenteSauve = false; signal("AUCUNE RÉPONSE DE LA MACHINE"); }
+    }, 8000);
+  }
+}
+/* appelé par la réception exclusive pour les envois volumineux */
+function bibRecevoirSauvegarde(o, type, fonction){
+  var p = window.DRM16;
+  if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE"); return false; }
+  var quoi = {0x4C:"motifs", 0x57:"chansons", 0x51:"reglages", 0x40:"motif"}[fonction] || "donnees";
+  var d = new Date();
+  var nom = "korg-" + type + "-" + quoi + "-" +
+            d.getFullYear() + ("0"+(d.getMonth()+1)).slice(-2) + ("0"+d.getDate()).slice(-2) + "-" +
+            ("0"+d.getHours()).slice(-2) + ("0"+d.getMinutes()).slice(-2) + ("0"+d.getSeconds()).slice(-2) + ".syx";
+  var chemin = "";
+  try{ chemin = p.fichierSauver(nom, octetsVersB64(o)); }catch(e){}
+  if(chemin){
+    EXC.attenteSauve = false;
+    signal("SAUVEGARDÉ : " + nom + " · " + o.length + " OCTETS");
+    majBibUI();
+    return true;
+  }
+  signal("ÉCRITURE REFUSÉE");
+  return false;
+}
+function bibRenvoyer(nom){
+  var p = window.DRM16;
+  if(!p || !p.fichierCharger){ signal("LECTURE IMPOSSIBLE"); return; }
+  if(!window.confirm("Renvoyer « " + nom + " » vers la machine ?\n\nElle sera remise dans l'état de cette sauvegarde.")) return;
+  if(S.run) stop();
+  var b64 = "";
+  try{ b64 = p.fichierCharger(nom) || ""; }catch(e){}
+  if(!b64){ signal("FICHIER ILLISIBLE"); return; }
+  var o = b64VersOctets(b64);
+  if(o[0] !== 0xF0){ signal("CE N'EST PAS UN ENVOI EXCLUSIF"); return; }
+  try{ p.midiSysex(b64); }catch(e){ signal("ENVOI REFUSÉ"); return; }
+  signal("RENVOYÉ : " + o.length + " OCTETS");
+}
+function bibSupprimerFichier(nom){
+  var p = window.DRM16;
+  if(!window.confirm("Supprimer « " + nom + " » ?")) return;
+  try{ if(p && p.fichierSupprimer) p.fichierSupprimer(nom); }catch(e){}
+  majBibUI(); H.inter();
+}
+
+/* ---------- interface ---------- */
+function octetsTexte(n){
+  if(n > 1048576) return (n/1048576).toFixed(1) + " Mo";
+  if(n > 1024) return Math.round(n/1024) + " ko";
+  return n + " o";
+}
+function majBibUI(){
+  var corps = document.getElementById("bib-corps");
+  if(!corps) return;
+  var bs = document.querySelectorAll("#bib-nav button");
+  for(var i=0;i<bs.length;i++) bs[i].classList.toggle("on", i === BIB.onglet);
+  corps.innerHTML = "";
+  if(BIB.onglet === 0) bibRendreSons(corps);
+  else if(BIB.onglet === 1) bibRendrePrises(corps);
+  else bibRendreSauvegardes(corps);
+}
+function ligneBib(titre, detail){
+  var d = document.createElement("div");
+  d.className = "bib-ligne";
+  d.innerHTML = "<b></b><span></span>";
+  d.querySelector("b").textContent = titre;
+  d.querySelector("span").textContent = detail;
+  return d;
+}
+function boutonBib(l, texte, fn, sec){
+  var b = document.createElement("button");
+  b.className = sec === false ? "" : "sec";
+  b.textContent = texte;
+  b.addEventListener("click", fn);
+  l.appendChild(b);
+  return b;
+}
+function bibRendreSons(corps){
+  var entete = document.createElement("div");
+  entete.innerHTML = "<h3>Affecter à</h3>";
+  var selM = document.createElement("select"), selP = document.createElement("select");
+  BIB_MACHINES.forEach(function(m){
+    var o = document.createElement("option");
+    o.value = m[0]; o.textContent = m[1];
+    selM.appendChild(o);
+  });
+  selM.value = BIB.cible.machine;
+  function remplirParties(){
+    selP.innerHTML = "";
+    bibParties(BIB.cible.machine).forEach(function(n, i){
+      var o = document.createElement("option");
+      o.value = i; o.textContent = n;
+      selP.appendChild(o);
+    });
+    selP.value = Math.min(BIB.cible.partie, selP.options.length - 1);
+    BIB.cible.partie = +selP.value;
+  }
+  selM.addEventListener("change", function(){ BIB.cible.machine = this.value; BIB.cible.partie = 0; remplirParties(); });
+  selP.addEventListener("change", function(){ BIB.cible.partie = +this.value; });
+  remplirParties();
+  var r = document.createElement("div"); r.className = "bib-cible";
+  r.appendChild(selM); r.appendChild(selP);
+  entete.appendChild(r);
+  var acts = document.createElement("div"); acts.className = "bib-actions";
+  boutonBib(acts, "ENREGISTRER AU MICRO", function(){ bibMicro(); });
+  boutonBib(acts, "IMPORTER UN FICHIER", function(){ document.getElementById("bib-fichier").click(); });
+  entete.appendChild(acts);
+  corps.appendChild(entete);
+
+  var h = document.createElement("h3"); h.textContent = "Sons";
+  corps.appendChild(h);
+  bibSons().forEach(function(s){
+    var l = ligneBib(s.nom, (s.propre ? "à vous" : "banque") +
+      (s.duree ? (" · " + s.duree.toFixed(2) + " s · " + Math.round(s.freq/1000) + " kHz") : " · non chargé"));
+    var a = document.createElement("div"); a.className = "bib-actions";
+    boutonBib(a, "ÉCOUTER", function(){
+      audioInit(); banqueEs();
+      var b = ES.buf[s.id];
+      if(!b) return;
+      var src = ctx.createBufferSource(); src.buffer = b;
+      var g = ctx.createGain(); g.gain.value = 0.8;
+      src.connect(g); g.connect(master); src.start();
+    });
+    boutonBib(a, "AFFECTER", function(){ bibAffecter(s.id); });
+    boutonBib(a, "RENOMMER", function(){
+      renommer("Nom du son", s.nom, function(v){
+        if(v) BIB.noms[s.id] = v; else delete BIB.noms[s.id];
+        bibEcrire(); majBibUI();
+      });
+    });
+    if(s.propre) boutonBib(a, "SUPPRIMER", function(){
+      var n = usagesEch(s.id);
+      if(n > 0 && !window.confirm("Ce son sert encore " + n + " fois. Le supprimer quand même ?")) return;
+      supprimerEch(s.id); delete BIB.noms[s.id]; bibEcrire(); majBibUI(); H.inter();
+    });
+    l.appendChild(a);
+    corps.appendChild(l);
+  });
+}
+function bibRendrePrises(corps){
+  enrCharger();
+  var h = document.createElement("h3"); h.textContent = "Prises MIDI";
+  corps.appendChild(h);
+  if(!ENR.prises.length){
+    var p = document.createElement("p");
+    p.style.opacity = ".7";
+    p.textContent = "Aucune prise. L'enregistreur MIDI en fabrique.";
+    corps.appendChild(p);
+  }
+  ENR.prises.forEach(function(pr, i){
+    var l = ligneBib(pr.nom, pr.date + " · " + dureeTexte(pr.duree) + " · " + pr.evts.length + " évén. · " + pr.bpm + " BPM");
+    var a = document.createElement("div"); a.className = "bib-actions";
+    boutonBib(a, "JOUER", function(){ enrJouer(i); });
+    boutonBib(a, "STOP", function(){ enrArreterLecture(); });
+    boutonBib(a, "TRAVAILLER", function(){ ouvrirPr(); setTimeout(function(){
+      document.getElementById("pr-prise").value = i;
+      prArreter(); prExtraire(i); prDessiner(); majPrUI();
+    }, 120); });
+    boutonBib(a, ".MID", function(){ enrExporter(i); });
+    boutonBib(a, "RENOMMER", function(){
+      renommer("Nom de la prise", pr.nom, function(v){
+        if(v){ pr.nom = v; enrEcrire(); majBibUI(); }
+      });
+    });
+    boutonBib(a, "SUPPRIMER", function(){
+      if(!window.confirm("Supprimer « " + pr.nom + " » ?")) return;
+      enrSupprimer(i); majBibUI();
+    });
+    l.appendChild(a);
+    corps.appendChild(l);
+  });
+}
+function bibRendreSauvegardes(corps){
+  var p1 = document.createElement("p");
+  p1.innerHTML = "Une sauvegarde lit <b>tout ce que contient la machine branchée</b> et l'écrit en fichier " +
+    ".syx dans le dossier Documents de l'application. Renvoyez-la pour remettre la machine comme avant.";
+  corps.appendChild(p1);
+  var acts = document.createElement("div"); acts.className = "bib-actions";
+  boutonBib(acts, "SAUVEGARDER LA MACHINE BRANCHÉE", function(){ bibDemanderSauvegarde(); }, false);
+  corps.appendChild(acts);
+  var h = document.createElement("h3"); h.textContent = "Sauvegardes";
+  corps.appendChild(h);
+  var l = bibFichiers(".syx");
+  if(!l.length){
+    var p2 = document.createElement("p");
+    p2.style.opacity = ".7";
+    p2.textContent = "Aucune sauvegarde pour le moment.";
+    corps.appendChild(p2);
+  }
+  l.forEach(function(f){
+    var d = new Date(f.date);
+    var li = ligneBib(BIB.noms["f:" + f.nom] || f.nom,
+      octetsTexte(f.taille) + " · " + d.getDate() + "/" + (d.getMonth()+1) + " " +
+      ("0"+d.getHours()).slice(-2) + "h" + ("0"+d.getMinutes()).slice(-2));
+    var a = document.createElement("div"); a.className = "bib-actions";
+    boutonBib(a, "RENVOYER À LA MACHINE", function(){ bibRenvoyer(f.nom); });
+    boutonBib(a, "RENOMMER", function(){
+      renommer("Nom de la sauvegarde", BIB.noms["f:" + f.nom] || f.nom, function(v){
+        if(v) BIB.noms["f:" + f.nom] = v; else delete BIB.noms["f:" + f.nom];
+        bibEcrire(); majBibUI();
+      });
+    });
+    boutonBib(a, "SUPPRIMER", function(){ bibSupprimerFichier(f.nom); });
+    li.appendChild(a);
+    corps.appendChild(li);
+  });
+  var p3 = document.createElement("p");
+  p3.style.opacity = ".6";
+  p3.style.fontSize = "12.5px";
+  var pj = window.DRM16;
+  var dossier = "";
+  try{ dossier = (pj && pj.fichierDossier) ? pj.fichierDossier() : ""; }catch(e){}
+  p3.textContent = dossier ? ("Dossier : " + dossier) : "";
+  corps.appendChild(p3);
+}
+function bibMicro(){
+  if(ES_REC.mr){ try{ ES_REC.mr.stop(); }catch(e){} return; }
+  audioInit(); banqueEs();
+  var p = window.DRM16;
+  if(p && p.micro){
+    var ok = false;
+    try{ ok = !!p.micro(); }catch(e){}
+    if(!ok){ signal("AUTORISEZ LE MICRO PUIS RECOMMENCEZ"); return; }
+  }
+  if(!navigator.mediaDevices || !window.MediaRecorder){ signal("MICRO INDISPONIBLE"); return; }
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(flux){
+    var morceaux = [], mr = new MediaRecorder(flux), minuteur = null;
+    ES_REC.mr = mr;
+    signal("ENREGISTREMENT · RETOUCHEZ POUR ARRÊTER");
+    mr.ondataavailable = function(e){ if(e.data && e.data.size) morceaux.push(e.data); };
+    mr.onstop = function(){
+      clearTimeout(minuteur);
+      flux.getTracks().forEach(function(t){ t.stop(); });
+      if(ES_REC.mr === mr) ES_REC.mr = null;
+      new Blob(morceaux).arrayBuffer().then(function(ab){
+        return new Promise(function(res, rej){ ctx.decodeAudioData(ab, res, rej); });
+      }).then(function(buf){
+        var court = reduireEch(buf, 32000, 8);
+        var id = "u" + Date.now().toString(36);
+        ES.buf[id] = court; ES.noms[id] = "mic";
+        sauverEch(id, court);
+        majBibUI();
+        signal("SON AJOUTÉ À LA BIBLIOTHÈQUE");
+      }).catch(function(){ signal("DÉCODAGE IMPOSSIBLE"); });
+    };
+    mr.start();
+    minuteur = setTimeout(function(){ if(ES_REC.mr === mr) try{ mr.stop(); }catch(e){} }, 8000);
+  }).catch(function(){ signal("MICRO REFUSÉ"); });
+}
+function ouvrirBib(){
+  bibLire();
+  audioInit(); banqueEs(); chargerEchs();   /* la banque doit exister pour être listée */
+  document.getElementById("bib").classList.add("show");
+  document.body.classList.add("note-ouverte");
+  majBibUI();
+}
+function fermerBib(){
+  document.getElementById("bib").classList.remove("show");
+  document.body.classList.remove("note-ouverte");
+}
+
 /* ================= travail du MIDI : éditeur en rouleau =================
    Une prise est convertie en notes (début, durée, hauteur), une piste par son.
    On y ajoute, déplace, allonge, transpose, puis on renvoie vers un fichier .mid
@@ -10867,7 +11314,11 @@ window.__midiSysex = function(b64){
   if(fonction === 0x24 || fonction === 0x26){ signal("MACHINE : DONNÉES REFUSÉES"); return; }
   if(fonction === 0x21){ signal("MACHINE : MOTIF ÉCRIT"); return; }
   if(fonction === 0x22){ signal("MACHINE : ÉCRITURE REFUSÉE"); return; }
+  if(fonction === 0x4C || fonction === 0x57 || fonction === 0x51){
+    if(EXC.attenteSauve){ bibRecevoirSauvegarde(o, type, fonction); return; }
+  }
   if(fonction !== 0x40) return;
+  if(EXC.attenteSauve){ bibRecevoirSauvegarde(o, type, fonction); return; }
   var brut = huit_vers_sept(o, deb, o.length - 1);
   var attendu = EXC_TAILLE[type];
   if(brut.length < attendu){ signal("MOTIF REÇU TROP COURT : " + brut.length); return; }

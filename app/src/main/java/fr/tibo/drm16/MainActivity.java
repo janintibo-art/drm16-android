@@ -115,15 +115,51 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         /** Ecrit un fichier dans Documents de l'application, visible par un gestionnaire de fichiers. */
         @JavascriptInterface public String fichierSauver(String nom, String b64) {
             try {
-                File d = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-                if (d == null) d = new File(getFilesDir(), "documents");
-                if (!d.exists() && !d.mkdirs()) return "";
+                File d = dossierDoc();
                 File cible = new File(d, propre(nom));
                 byte[] o = Base64.decode(b64, Base64.DEFAULT);
                 FileOutputStream f = new FileOutputStream(cible);
                 f.write(o); f.flush(); f.getFD().sync(); f.close();
                 return cible.getAbsolutePath();
             } catch (Exception e) { return ""; }
+        }
+        private File dossierDoc() {
+            File d = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+            if (d == null) d = new File(getFilesDir(), "documents");
+            if (!d.exists()) d.mkdirs();
+            return d;
+        }
+        /** Liste des fichiers de Documents portant l'extension demandee, avec leur taille. */
+        @JavascriptInterface public String fichierListe(String ext) {
+            File d = dossierDoc();
+            String[] l = d.list();
+            if (l == null) return "";
+            StringBuilder sb = new StringBuilder();
+            for (String n : l) {
+                if (ext != null && ext.length() > 0 && !n.endsWith(ext)) continue;
+                File f = new File(d, n);
+                if (sb.length() > 0) sb.append("\n");
+                sb.append(n).append("\t").append(f.length()).append("\t").append(f.lastModified());
+            }
+            return sb.toString();
+        }
+        @JavascriptInterface public String fichierCharger(String nom) {
+            try {
+                File f = new File(dossierDoc(), propre(nom));
+                if (!f.exists() || f.length() > 8 * 1024 * 1024) return "";
+                byte[] o = new byte[(int) f.length()];
+                FileInputStream in = new FileInputStream(f);
+                int lu = in.read(o); in.close();
+                if (lu <= 0) return "";
+                return Base64.encodeToString(o, Base64.NO_WRAP);
+            } catch (Exception e) { return ""; }
+        }
+        @JavascriptInterface public boolean fichierSupprimer(String nom) {
+            try { return new File(dossierDoc(), propre(nom)).delete(); }
+            catch (Exception e) { return false; }
+        }
+        @JavascriptInterface public String fichierDossier() {
+            return dossierDoc().getAbsolutePath();
         }
         @JavascriptInterface public String echDossier() {
             return new File(getFilesDir(), "ech").getAbsolutePath();

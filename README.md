@@ -243,6 +243,29 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Bibliothèque (version 35)
+
+Une tuile de plus, qui rassemble ce qui était éparpillé — et qui ajoute le filet de sécurité qui manquait.
+
+**Sons.** La banque interne et tous les enregistrements dans une seule liste : écouter, renommer, supprimer,
+importer, enregistrer au micro, et **affecter** un son à la partie ou au pad choisi. La machine visée est
+chargée automatiquement ; l'affectation marche sur les deux ES-1, l'ESX-1, les deux MPC, et sur l'EMX-1 et
+l'ER-1 mkII pour les sons de banque, les seuls qu'elles savent lire.
+
+**Prises MIDI.** Jouer, renommer, exporter en .mid, ou ouvrir directement dans l'éditeur en rouleau.
+
+**Sauvegardes de machine.** Le point important. Une demande envoyée sur les seize canaux réclame à la Korg
+branchée **tous ses motifs, toutes ses chansons et ses réglages généraux**, et les écrit en vrais fichiers
+`.syx` dans le dossier Documents de l'application. Un bouton les renvoie pour remettre la machine exactement
+comme elle était. C'est ce qu'il fallait avoir avant de laisser le transfert de motifs écrire quelque part :
+maintenant, tout est réversible.
+
+**Tout est renommable** : sons, prises et sauvegardes. Les noms sont gardés à part et remplacent partout le
+nom d'origine, y compris sur les afficheurs des machines.
+
+Trois méthodes Java de plus — lister, relire et supprimer un fichier de Documents — et l'écriture passe
+toujours par un fichier temporaire puis un remplacement.
+
 ## Akai MPC3000 et MPC2000 (version 34)
 
 Deux machines d'une autre famille, et surtout d'une **autre logique** : on ne pose pas des pas, on joue sur
