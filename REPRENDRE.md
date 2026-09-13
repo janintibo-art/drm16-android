@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **69**.
+La version actuelle est la **70**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,30 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Huit genres de plus, et un contrôle qui a servi — v70**
+
+Famille `style` ajoutée : dub, techno de Détroit, jungle, drone, école de Berlin, industriel, lo-fi, phases.
+Vingt montages en tout, cinq familles.
+
+**Troisième contrôle, le plus utile : la propagation des impulsions.** Les deux premiers (prises réelles,
+cohérence musicale) ne voyaient pas qu'un câble peut être parfaitement légal et pourtant muet. Le montage
+JUNGLE partait d'un `switch4` vers quatre `trig` de percussion : or **SWITCH aiguille de l'audio, pas des
+impulsions** — son `recevoir` renvoie toujours `null`, le module d'en face n'est jamais réveillé. Quatre
+voix muettes, sans la moindre erreur visible.
+
+Le contrôle interroge les modules eux-mêmes : on les construit, on les tic-tac **sur soixante-quatre pas**
+et on note les sorties qu'ils annoncent. Soixante-quatre et pas un : un `clkdiv` en /16 ne sort qu'un coup
+sur seize, une porte probabiliste ne montre sa seconde sortie qu'au bout de quelques tirages, un `trig4` ne
+révèle ses quatre pistes qu'après un tour complet. Avec un seul passage, le contrôle rendait onze faux
+positifs.
+
+Sortent une impulsion : `clock`, `clkdiv`, `euclid`, `burst`, `chance`, `clkmul`, `trigdly`, `seq8`,
+`seq16`, `trig4`, `turing`. **Aucune autre** — ni `switch4`, ni `mult`, ni une sortie `cv`.
+
+*Relevé audio déplacé* : il était au fond de l'onglet GÉNÉRAL de la notice, introuvable. Tuile
+**ÉTAT DU SON** dans le menu, second appui dans les quatre secondes pour relancer le moteur. Le texte est
+en commun dans `releveAudio()`.
 
 **Montages tout faits — v69**
 
