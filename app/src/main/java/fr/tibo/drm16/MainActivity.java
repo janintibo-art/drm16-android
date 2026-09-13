@@ -170,7 +170,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
                 }
                 final String charge = (o == null) ? "" : Base64.encodeToString(o, Base64.NO_WRAP);
                 final String erreur = err.replace("\\", " ").replace("'", " ");
-                ui.post(new Runnable() { @Override public void run() {
+                runOnUiThread(new Runnable() { @Override public void run() {
                     if (web == null) return;
                     web.evaluateJavascript("window.__net&&__net('" + jeton + "','" + erreur +
                                            "','" + charge + "')", null);

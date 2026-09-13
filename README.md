@@ -244,6 +244,21 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Correction de compilation (version 50)
+
+Les compilations #47 et #48 ont échoué, et c'était une **vraie erreur de ma part** dans le Java de la
+version 48 : j'avais copié `ui.post(...)` depuis `Midi.java`, qui possède son propre gestionnaire de fil
+principal. `MainActivity` n'en a pas — elle a `runOnUiThread()`. L'application ne compilait plus.
+
+**Le contrôle qui manquait.** Mes vérifications Java portaient sur l'équilibre des accolades, des
+parenthèses et des chaînes : elles ne pouvaient pas voir un objet inexistant. `verif-java.py` repère
+maintenant tout identifiant utilisé comme objet — `x.methode()` — sans être déclaré dans le fichier, ni
+importé, ni connu. Vérifié dans les deux sens : le contrôle signale bien `ui` sur la version fautive, et
+ne dit rien sur la version corrigée.
+
+Un faux positif a été corrigé au passage — les types qualifiés dans une boucle `for (A.B p : liste)`
+n'étaient pas reconnus. Un contrôle qui crie au loup finit ignoré.
+
 ## Machine d'archive (version 49)
 
 Vingt-deuxième machine, et celle qui en vaut quatre cent soixante-dix : elle n'imite personne, elle prend
