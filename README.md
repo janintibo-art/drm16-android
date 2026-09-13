@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Quatorze machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+**Quinze machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
 en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -243,6 +243,26 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Roland TR-909 (version 39)
+
+Deuxième des sept. Avant de l'écrire, le module TR-808 a été **généralisé** : séquenceur, motifs,
+variations, écriture, mémoire et interface sont maintenant communs, et chaque modèle n'apporte que sa liste
+d'instruments et ses voix. La façade se reconstruit au changement de machine. La TR-707 en profitera.
+
+**Les peaux** restent analogiques mais plus serrées que sur la 808 : la grosse caisse a son ATTACK séparé
+du TONE et une chute de hauteur trois fois plus rapide, les toms ont une part de bruit en passe-bande, la
+caisse claire passe en passe-haut réglable au lieu du passe-bande.
+
+**Les métaux** sont échantillonnés en six bits sur l'appareil d'origine. Ici ils sont synthétisés puis
+passés dans un **quantificateur à six bits** — c'est ce grain, et non la forme d'onde, qui fait reconnaître
+un charley de 909.
+
+**FLAM** double chaque coup 28 ms plus tard, vérifié au comptage : `[1.000, 1.028]`. **SHUFFLE** retarde
+les pas impairs, mesuré à +18,8 ms pour 30 % sur un pas de 125 ms.
+
+Relevés des onze voix : grosse caisse 70 Hz, toms 90 / 125 / 180 Hz, métaux entre 8,3 et 9,8 kHz.
+Une mesure complète avec la chaîne maîtresse : crête 0,956 et 0,993 selon le motif, aucun échantillon saturé.
 
 ## Roland TR-808 (version 38)
 
