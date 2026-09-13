@@ -622,6 +622,7 @@ body.emx #unit,body.emx .em,body.emx .er,body.emx .ea,body.emx .es{display:none}
 .mx-steps{display:grid;grid-template-columns:repeat(16,1fr);gap:3px}
 .mx-steps .mxb{padding:14px 0;font-size:11px}
 .mx-steps .mxb.act{background:linear-gradient(180deg,#ffe7a8,#e8b44f);color:#3a2607}
+.mx-steps .mxb.sel{outline:2px solid #3dff7a;outline-offset:-2px}
 .mx-steps .mxb.cur{box-shadow:0 1px 0 #2c5c88,0 0 0 2px #ff4a32,0 0 12px #ff4a3280}
 .mx-steps .mxb.hors{opacity:.45}
 .mx-beats{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;margin-bottom:5px}
@@ -713,6 +714,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .sx-steps{display:grid;grid-template-columns:repeat(16,1fr);gap:3px}
 .sx-steps .sxb{padding:14px 0;font-size:11px}
 .sx-steps .sxb.act{background:linear-gradient(180deg,#ffe9a8,#f0c24a);color:#3d2a05}
+.sx-steps .sxb.sel{outline:2px solid #ffd34a;outline-offset:-2px}
 .sx-steps .sxb.cur{box-shadow:0 1px 0 #5e0a16,0 0 0 2px #ffd34a,0 0 12px #ffd34a80}
 .sx-steps .sxb.hors{opacity:.45}
 .sx-beats{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;margin-bottom:5px}
@@ -1465,7 +1467,10 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
               <button class="mxb" id="mx-slot1" style="flex:1">FX 2</button>
               <button class="mxb" id="mx-slot2" style="flex:1">FX 3</button>
             </div>
-            <button class="mxb" id="mx-chain" style="width:100%;margin-top:5px">FX CHAIN</button>
+            <div style="display:flex;gap:5px;margin-top:5px">
+              <button class="mxb" id="mx-chain" style="flex:1">FX CHAIN</button>
+              <button class="mxb" id="mx-fxmot" style="flex:1">MOTION SEQ</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1656,7 +1661,10 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
               <button class="sxb" id="sx-slot1" style="flex:1">FX 2</button>
               <button class="sxb" id="sx-slot2" style="flex:1">FX 3</button>
             </div>
-            <button class="sxb" id="sx-chain" style="width:100%;margin-top:5px">FX CHAIN</button>
+            <div style="display:flex;gap:5px;margin-top:5px">
+              <button class="sxb" id="sx-chain" style="flex:1">FX CHAIN</button>
+              <button class="sxb" id="sx-fxmot" style="flex:1">MOTION SEQ</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1906,7 +1914,15 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <p>Le <b>niveau d'accent</b> se règle avec le bouton <b>LEVEL</b> quand une piste d'accent est choisie :
   il fixe la force des coups accentués au lieu de les pousser systématiquement au maximum.</p>
 
+  <h3>Step Edit</h3>
+  <p>Le mode <b>STEP EDIT</b> change ce que font les touches : au lieu d'allumer ou d'éteindre un pas, elles
+  le <b>choisissent</b>. L'afficheur montre alors ce qu'il contient — la note pour un synthé — et la molette
+  le modifie sans rien déranger d'autre. Pratique pour corriger une mélodie sans risquer d'effacer un pas.</p>
+
   <h3>Mouvement et enchaînement</h3>
+  <p>Le <b>MOTION SEQ</b> de la section EFFECT enregistre le mouvement d'<b>EDIT 1</b>, ou du temps de délai
+  si DELAY EDIT est actif : armez REC pendant la lecture et tournez le bouton. La courbe est rejouée à chaque
+  tour et enregistrée avec le motif.</p>
   <p><b>MOTION SEQ</b> enregistre le mouvement d'un bouton sur les seize pas : le bouton passe de OFF à
   <b>Smooth</b> puis <b>Trig Hold</b>, et avec REC armé pendant la lecture, tourner un bouton écrit la courbe.
   Smooth glisse d'un pas au suivant, Trig Hold tient la valeur. Un point vert marque les parties qui bougent.</p>
@@ -1939,6 +1955,11 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <p>Les deux parties <b>AUDIO IN</b> sont ici des percussions de <b>bruit filtré</b> : le téléphone n'a pas
   d'entrée ligne. PITCH y règle la fréquence du filtre, MOD DEPTH sa finesse. Les deux <b>charleys</b> se
   coupent l'un l'autre, comme sur l'appareil. Viennent ensuite la <b>crash</b> et le <b>hand clap</b>.</p>
+
+  <h3>Mouvement du délai</h3>
+  <p>Le bouton <b>TYPE</b> du délai passe de OFF à <b>Tempo Delay</b> puis <b>Motion Seq</b>. Dans cette
+  dernière position, armez REC pendant la lecture et tournez DEPTH ou TIME : le mouvement est enregistré sur
+  les seize pas et rejoué avec le motif.</p>
 
   <h3>Ampli et délai</h3>
   <p><b>DECAY</b>, <b>LEVEL</b>, <b>PAN</b>, et <b>LOW BOOST</b> — un renfort des graves propre à l'ER-1, à ne
@@ -2062,6 +2083,13 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <h3>Trois effets à la fois</h3>
   <p>Chaque partie choisit le sien avec <b>FX SELECT</b> et l'y envoie avec <b>FX SEND</b>.
   <b>FX CHAIN</b> met les trois en série au lieu de les laisser en parallèle.</p>
+  <p><b>MOTION SEQ</b>, dans la section EFFECT, enregistre le mouvement de FX EDIT sur les seize pas, pour
+  l'emplacement choisi : armez REC pendant la lecture et tournez le bouton. Un filtre qui balaie, un grain
+  shifter qui s'ouvre et se ferme, tout cela se garde avec le motif.</p>
+
+  <h3>Step Edit</h3>
+  <p>En mode <b>STEP EDIT</b>, les touches choisissent un pas au lieu de le basculer : un cadre vert le
+  marque, l'afficheur montre son contenu et la molette le modifie.</p>
 
   <h3>Valve Force</h3>
   <p><b>TUBE GAIN</b> pousse tout le mélange dans une saturation <b>dissymétrique</b> : elle engendre des
@@ -2099,6 +2127,10 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <p><b>PITCH/GLIDE</b>, <b>START POINT</b> pour attaquer plus loin dans le son, <b>LEVEL</b>, <b>PAN</b>,
   <b>EG TIME</b>, <b>CUTOFF</b>, <b>RESONANCE</b>, <b>EG INT</b> et le type de filtre. <b>REVERSE</b>,
   <b>ROLL</b>, <b>SLICE</b>, et une modulation assignable à la hauteur, la coupure, le volume ou le panoramique.</p>
+
+  <h3>Step Edit et mouvement d'effet</h3>
+  <p>En mode <b>STEP EDIT</b>, les touches choisissent un pas au lieu de le basculer, et la molette modifie
+  son contenu. Le <b>MOTION SEQ</b> de la section EFFECT enregistre le mouvement de FX EDIT sur les seize pas.</p>
 
   <h3>Seize effets sur trois chaînes</h3>
   <p>Les treize des autres machines, plus <b>talking mod</b> (deux formants balayés), un <b>égaliseur trois
@@ -2214,6 +2246,25 @@ function writeMem(){
 /* toutes les écritures sont différées : la saisie d'un motif ne bloque plus l'affichage */
 function save(){ clearTimeout(saveTmr); saveTmr = setTimeout(writeMem, 250); }
 function saveSoon(){ clearTimeout(saveTmr); saveTmr = setTimeout(writeMem, 300); }
+
+/* ================= mouvement des effets =================
+   Enregistre EDIT 1 ou EDIT 2 sur les seize pas. C'est devenu possible sans heurt
+   depuis que les effets se règlent en place au lieu d'être reconstruits. */
+function motFxVide(){ return {mode:0, p:"e1", v:null, slot:0}; }
+function motFxValeur(m, i, L){
+  if(!m || !m.mode || !m.v) return null;
+  var v = m.v[i % (L||16)];
+  return (typeof v === "number") ? v : null;
+}
+function motFxEcrire(m, champ, val, enCours, pos){
+  if(!m || !m.mode) return;
+  if(!enCours || pos < 0){ m.p = champ; return; }
+  if(m.p !== champ || !m.v){
+    m.p = champ; m.v = [];
+    for(var i=0;i<16;i++) m.v.push(val);
+  }
+  m.v[pos] = val;
+}
 
 /* ================= métronome ================= */
 var METRO = false;
@@ -2526,6 +2577,12 @@ function muted(k){
   return false;
 }
 function stepDur(){ return 60/S.bpm/4; }
+function appliquerMotFxEm(v, champ){
+  if(champ === "e1"){ EM.e1 = v; construireFx(); }
+  else if(champ === "e2"){ EM.e2 = v; construireFx(); }
+  else if(champ === "dTime"){ EM.dTime = 0.03+v*1.1; if(dlyNode) ctp(dlyNode.delayTime, EM.dTime, 0.05); }
+  else if(champ === "dDep"){ EM.dDepth = v; if(dlyIn) ctp(dlyIn.gain, v*0.6, 0.05); }
+}
 function scheduleEhx(i,t){
   var pat = rythme(), sw = pat.sw||0;
   if(sw && i%2===1) t += stepDur()*sw*0.55;
@@ -3639,6 +3696,8 @@ function enregMotion(champ, val){
 /* --- séquenceur de l'EM-1 --- */
 function scheduleEm(i,t){
   var p = EM.pat;
+  var vfx = motFxValeur(p.motFx, i, p.len);
+  if(vfx !== null) appliquerMotFxEm(vfx, p.motFx.p);
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   var accD = p.st[10][i], accS = p.st[11][i];
   var soloEm = false, q;
@@ -3798,6 +3857,7 @@ EM.note = 36;
     var i = +b.dataset.i;
     if(EM.shift){ fonctionShift(i); return; }
     if(EM.pset){ allerMotifEm(i); return; }
+    if(EM.mode === 1){ choisirPasEm(i); return; }
     if(EM.mode === 2){ toucheSong(i); return; }
     if(EM.kb){ toucheClavier(i); return; }
     if(EM.protect){ lcd("PRT","PROTECT",true); return; }
@@ -3812,6 +3872,14 @@ EM.note = 36;
 
 function noteClavier(i){
   return 12*EM.oct + GAMMES[EM.pat.gamme||0].i[i];
+}
+function choisirPasEm(i){
+  var p = EM.pat, k = EM.sel;
+  EM.pasSel = i;
+  majTouches(); H.cran();
+  if(!p.st[k][i]) lcd("---", "PAS "+(i+1)+" · VIDE", true);
+  else if(EM_PARTS[k].synth) lcd(nomNote(p.nt[k][i]), "PAS "+(i+1)+" · "+EM_PARTS[k].nom, true);
+  else lcd("ON", "PAS "+(i+1)+" · "+EM_PARTS[k].nom, true);
 }
 function majTouches(){
   var p = EM.pat, k = EM.sel, i;
@@ -3986,7 +4054,7 @@ function serialiser(p){
           st:p.st.map(function(l){ return l.join(""); }),
           nt:p.nt.map(function(l){ return l.join(","); }),
           lvl:p.lvl, pan:p.pan, pit:p.pit,
-          amp:p.amp, roll:p.roll, fx:p.fx, onde:p.onde, mot:p.mot, tim:p.tim};
+          amp:p.amp, roll:p.roll, fx:p.fx, onde:p.onde, mot:p.mot, tim:p.tim, motFx:p.motFx};
 }
 function deserialiser(o){
   var p = motifVide();
@@ -3996,6 +4064,7 @@ function deserialiser(o){
   if(o.st) o.st.forEach(function(s,k){ for(var i=0;i<16;i++) p.st[k][i] = s.charAt(i)==="1"?1:0; });
   if(o.nt) o.nt.forEach(function(s,k){ p.nt[k] = s.split(",").map(Number); });
   ["lvl","pan","pit","amp","roll","fx","onde","mot","tim"].forEach(function(c){ if(o[c]) p[c]=o[c]; });
+  if(o.motFx) p.motFx = o.motFx;
   return p;
 }
 function memEm(){
@@ -4050,16 +4119,22 @@ var kEmVol = knobEm("em-k-vol",{min:0,max:1,get:function(){return S.vol;},set:fu
 var kEmE1 = knobEm("em-k-e1",{min:0,max:1,get:function(){return EM.delayEdit?EM.dTime/1.2:EM.e1;},
   set:function(v){
     if(EM.delayEdit){ EM.dTime = 0.03+v*1.1; if(dlyNode) dlyNode.delayTime.setTargetAtTime(EM.dTime,ctx.currentTime,0.05);
+      motFxEcrire(EM.pat.motFx, "dTime", v, EM.rec && S.run, EM.pos);
       lcd(Math.round(EM.dTime*1000)+"","DELAY TIME",true); }
-    else { EM.e1=v; construireFx(); lcd(String(Math.round(v*127)),"EDIT 1",true); }
+    else { EM.e1=v; construireFx();
+      motFxEcrire(EM.pat.motFx, "e1", v, EM.rec && S.run, EM.pos);
+      lcd(String(Math.round(v*127)),"EDIT 1",true); }
   }});
 var kEmE2 = knobEm("em-k-e2",{min:0,max:1,get:function(){return EM.delayEdit?EM.dDepth:EM.e2;},
   set:function(v){
     if(EM.delayEdit){ EM.dDepth=v;
       if(dlyIn) dlyIn.gain.setTargetAtTime(v*0.6, ctx.currentTime, 0.05);
       if(dlyFb) dlyFb.gain.setTargetAtTime(0.12+v*0.48, ctx.currentTime, 0.05);
+      motFxEcrire(EM.pat.motFx, "dDep", v, EM.rec && S.run, EM.pos);
       lcd(String(Math.round(v*127)),"DELAY DEPTH",true); }
-    else { EM.e2=v; construireFx(); lcd(String(Math.round(v*127)),"EDIT 2",true); }
+    else { EM.e2=v; construireFx();
+      motFxEcrire(EM.pat.motFx, "e2", v, EM.rec && S.run, EM.pos);
+      lcd(String(Math.round(v*127)),"EDIT 2",true); }
   }});
 knobEm("em-k-cut",{min:0,max:1,get:function(){return EM.cut;},
   set:function(v){ EM.cut=v; enregMotion("cut",v); lcd(String(Math.round(v*127)),"CUTOFF",true); }});
@@ -4219,7 +4294,22 @@ document.getElementById("em-pset").addEventListener("click", function(){
   H.inter();
 });
 
-["em-motion","em-lock"].forEach(function(id){
+document.getElementById("em-motion").addEventListener("click", function(){
+  var p = EM.pat;
+  if(!p.motFx) p.motFx = motFxVide();
+  p.motFx.mode = p.motFx.mode ? 0 : 1;
+  if(p.motFx.mode && !p.motFx.v){
+    p.motFx.p = EM.delayEdit ? "dTime" : "e1";
+    var d = EM.delayEdit ? EM.dTime : EM.e1;
+    p.motFx.v = []; for(var i=0;i<16;i++) p.motFx.v.push(d);
+  }
+  this.classList.toggle("on", !!p.motFx.mode);
+  memEm();
+  lcd(p.motFx.mode ? "ON" : "OFF", "MOTION · EFFET", true);
+  H.inter();
+});
+
+["em-lock"].forEach(function(id){
   document.getElementById(id).addEventListener("click", function(){
     lcd("---","À VENIR",true); H.cran();
   });
@@ -4258,7 +4348,8 @@ for(var mb=0;mb<modeBtns.length;mb++){
     var m = +this.dataset.mode;
     for(var j=0;j<modeBtns.length;j++) modeBtns[j].classList.toggle("on", +modeBtns[j].dataset.mode===m);
     EM.mode = m;
-    if(m===2){
+    if(m===1){ EM.pasSel=-1; majTouches(); lcd("STEP","TOUCHE = CHOISIR UN PAS",true); }
+    else if(m===2){
       EM.spos = 0; EM.ssel = 0;
       if(EM.song.length){ EM.cur = EM.song[0]; EM.pat = EM.slots[EM.cur]; }
       majTouches(); majBascules(); majKnobsPartie(); majMotionLeds();
@@ -4546,8 +4637,14 @@ function enregMotionEr(champ, val){
   }
   m.v[ER.pos] = val;
 }
+function appliquerMotFxEr(v, champ){
+  if(champ === "dDep"){ ER.dDep = v; if(dlyIn) ctp(dlyIn.gain, v*0.6, 0.05); }
+  else { ER.dTime = v; majDelaiEr(); }
+}
 function scheduleEr(i,t){
   var p = ER.pat;
+  var vfx = motFxValeur(p.motFx, i, p.len);
+  if(vfx !== null) appliquerMotFxEr(vfx, p.motFx.p);
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   var acc = p.st[10][i];
   var soloEr = false, q;
@@ -4749,10 +4846,10 @@ function memEr(){
   memoire["er"+ER.v] = {cur:ER.cur, song:ER.song.slice(), dDep:ER.dDep, dTime:ER.dTime,
                  dTempo:ER.dTempo, dMot:ER.dMot, sel:ER.sel,
                  slots:ER.slots.map(function(p){
-                   return {sw:p.sw, len:p.len, son:p.son, mot:p.mot,
+                   return {sw:p.sw, len:p.len, son:p.son, mot:p.mot, motFx:p.motFx,
                            st:p.st.map(function(l){ return l.join(""); })};
                  })};
-  memoire["er"+ER.v].slots[ER.cur] = {sw:ER.pat.sw, len:ER.pat.len, son:ER.pat.son, mot:ER.pat.mot,
+  memoire["er"+ER.v].slots[ER.cur] = {sw:ER.pat.sw, len:ER.pat.len, son:ER.pat.son, mot:ER.pat.mot, motFx:ER.pat.motFx,
                                st:ER.pat.st.map(function(l){ return l.join(""); })};
   sauverMachine("er"+ER.v);
 }
@@ -4769,6 +4866,7 @@ function chargerEr(){
       if(o.st) o.st.forEach(function(s,k){ for(var i=0;i<16;i++) p.st[k][i]= s.charAt(i)==="1"?1:0; });
       if(o.son) p.son=o.son;
       if(o.mot) p.mot=o.mot;
+      if(o.motFx) p.motFx=o.motFx;
       return p;
     });
   }
@@ -4808,10 +4906,13 @@ var kErModT  = knobEm("er-k-modt",{min:0,max:5,
   }});
 var kErDDep = knobEm("er-k-ddep",{min:0,max:1,get:function(){return ER.dDep;},set:function(v){
   ER.dDep=v; if(dlyIn) dlyIn.gain.setTargetAtTime(v*0.6, ctx.currentTime, 0.05);
+  motFxEcrire(ER.pat.motFx, "dDep", v, ER.rec && S.run, ER.pos);
   lcdEr(String(Math.round(v*127)),"DELAY DEPTH",true);
 }});
 var kErDTime = knobEm("er-k-dtime",{min:0,max:1,get:function(){return ER.dTime;},set:function(v){
-  ER.dTime=v; majDelaiEr(); lcdEr(String(Math.round(v*127)),"DELAY TIME",true);
+  ER.dTime=v; majDelaiEr();
+  motFxEcrire(ER.pat.motFx, "dTime", v, ER.rec && S.run, ER.pos);
+  lcdEr(String(Math.round(v*127)),"DELAY TIME",true);
 }});
 function majDelaiEr(){
   if(!dlyNode) return;
@@ -4887,6 +4988,13 @@ document.getElementById("er-dtype").addEventListener("click", function(){
   if(!ER.dTempo && !ER.dMot){ ER.dTempo=true; }
   else if(ER.dTempo){ ER.dTempo=false; ER.dMot=true; }
   else { ER.dMot=false; }
+  var p = ER.pat;
+  if(!p.motFx) p.motFx = motFxVide();
+  p.motFx.mode = ER.dMot ? 1 : 0;
+  if(p.motFx.mode && !p.motFx.v){
+    p.motFx.p = "dTime";
+    p.motFx.v = []; for(var i=0;i<16;i++) p.motFx.v.push(ER.dTime);
+  }
   majLedsEr(); majDelaiEr(); memEr(); H.inter();
   lcdEr(ER.dTempo?"TMP":(ER.dMot?"MOT":"OFF"),"DELAY TYPE",true);
 });
@@ -6961,8 +7069,15 @@ function enregMotionMx(champ, val){
   if(m.p !== champ || !m.v){ m.p = champ; m.v = []; for(var i=0;i<16;i++) m.v.push(val); }
   m.v[MX.pos] = val;
 }
+function appliquerMotFxMx(v){
+  var m = MX.pat.motFx, sl = m.slot||0;
+  MX.fx[sl][m.p] = v;
+  if(!majFxMx(sl)) cablerFxMx();
+}
 function scheduleMx(i,t){
   var p = MX.pat, k;
+  var vfx = motFxValeur(p.motFx, i, p.len);
+  if(vfx !== null) appliquerMotFxMx(vfx);
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   var accD = p.st[9][i], accS = p.st[15][i];
   var soloActif = false;
@@ -7166,6 +7281,7 @@ function majLcdMx(){
     var i2=+bb3.dataset.i;
     if(MX.shift){ shiftMx(i2); return; }
     if(MX.pset){ allerMotifMx(i2); return; }
+    if(MX.mode === 2){ choisirPasMx(i2); return; }
     if(MX.mode===3){ songMx(i2); return; }
     if(MX.kb && MX.sel>=10 && MX.sel!==15){ clavierMx(i2); return; }
     if(MX.protect){ lcdMx("PROTECT","ÉCRITURE BLOQUÉE",true); return; }
@@ -7203,6 +7319,14 @@ function choisirMx(k){
   lcdMx(nomPartieMx(k), k>=10 && k!==15 ? MX_OSC[MX.pat.son[k].osc] : (k<9 ? ES_BANQUE[MX.pat.son[k].tim||0] : "ACCENT"), true);
   H.cran();
 }
+function choisirPasMx(i){
+  var p=MX.pat, k=MX.sel;
+  MX.pasSel = i; MX.param = 3;
+  majTouchesMx(); H.cran();
+  if(!p.st[k][i]) lcdMx("---", "PAS "+(i+1)+" · VIDE", true);
+  else if(k>=10 && k!==15) lcdMx(nomNote(p.nt[k][i]), "PAS "+(i+1)+" · "+nomPartieMx(k), true);
+  else lcdMx("ON", "PAS "+(i+1)+" · "+nomPartieMx(k), true);
+}
 function majTouchesMx(){
   var p=MX.pat, k=MX.sel, i;
   if(MX.pset){
@@ -7234,6 +7358,7 @@ function majTouchesMx(){
   for(i=0;i<16;i++){
     mxKeys[i].textContent=String(i+1);
     mxKeys[i].classList.toggle("act", !!p.st[k][i]);
+    mxKeys[i].classList.toggle("sel", i === MX.pasSel && MX.mode === 2);
     mxKeys[i].classList.toggle("hors", i >= (p.len||16));
     mxBeats[i].classList.toggle("hors", i >= (p.len||16));
   }
@@ -7252,6 +7377,7 @@ function majLedsMx(){
   for(j=0;j<us.length;j++) us[j].classList.toggle("on", +us[j].dataset.t===MX.fx[MX.slot].t);
   for(j=0;j<3;j++) document.getElementById("mx-slot"+j).classList.toggle("on", MX.slot===j);
   document.getElementById("mx-chain").classList.toggle("on", MX.chaine);
+  document.getElementById("mx-fxmot").classList.toggle("on", !!(MX.pat.motFx && MX.pat.motFx.mode));
   document.getElementById("mx-ampeg").classList.toggle("on", son.amp);
   document.getElementById("mx-roll").classList.toggle("on", son.roll);
   document.getElementById("mx-fxsend").classList.toggle("on", son.send);
@@ -7273,7 +7399,7 @@ function majLedsMx(){
 
 /* --- mémoire --- */
 function serMx(p){
-  return {sw:p.sw, len:p.len, son:p.son, mot:p.mot,
+  return {sw:p.sw, len:p.len, son:p.son, mot:p.mot, motFx:p.motFx,
           st:p.st.map(function(l){ return l.join(""); }),
           nt:p.nt.map(function(l){ return l.join(","); })};
 }
@@ -7298,6 +7424,7 @@ function chargerMx(){
       if(o.nt) o.nt.forEach(function(s,k){ p.nt[k]=s.split(",").map(Number); });
       if(o.son) p.son=o.son;
       if(o.mot) p.mot=o.mot;
+      if(o.motFx) p.motFx=o.motFx;
       return p;
     });
   }
@@ -7338,9 +7465,13 @@ var kMxDrv   = knobMx("mx-k-drv","drv",0,1,"DRIVE",true);
 var kMxMs    = knobMx("mx-k-mspeed","mspeed",0,1,"MOD SPEED",true);
 var kMxMd    = knobMx("mx-k-mdepth","mdepth",0,1,"MOD DEPTH",true);
 var kMxF1 = knobEm("mx-k-fx1",{min:0,max:1,get:function(){return MX.fx[MX.slot].e1;},
-  set:function(v){ MX.fx[MX.slot].e1=v; if(!majFxMx(MX.slot)) cablerFxMx(); lcdMx(String(Math.round(v*127)),"FX "+(MX.slot+1)+" EDIT 1",true); }});
+  set:function(v){ MX.fx[MX.slot].e1=v; if(!majFxMx(MX.slot)) cablerFxMx();
+    motFxEcrire(MX.pat.motFx, "e1", v, MX.rec && S.run, MX.pos);
+    lcdMx(String(Math.round(v*127)),"FX "+(MX.slot+1)+" EDIT 1",true); }});
 var kMxF2 = knobEm("mx-k-fx2",{min:0,max:1,get:function(){return MX.fx[MX.slot].e2;},
-  set:function(v){ MX.fx[MX.slot].e2=v; if(!majFxMx(MX.slot)) cablerFxMx(); lcdMx(String(Math.round(v*127)),"FX "+(MX.slot+1)+" EDIT 2",true); }});
+  set:function(v){ MX.fx[MX.slot].e2=v; if(!majFxMx(MX.slot)) cablerFxMx();
+    motFxEcrire(MX.pat.motFx, "e2", v, MX.rec && S.run, MX.pos);
+    lcdMx(String(Math.round(v*127)),"FX "+(MX.slot+1)+" EDIT 2",true); }});
 function majKnobsMx(){
   [kMxPitch,kMxPan,kMxEg,kMxLvl,kMxO1,kMxO2,kMxCut,kMxRes,kMxEgi,kMxDrv,kMxMs,kMxMd,kMxF1,kMxF2,kMxTube]
     .forEach(function(k){ k.maj(); });
@@ -7478,6 +7609,19 @@ for(var sl=0; sl<3; sl++){
     });
   })(sl);
 }
+document.getElementById("mx-fxmot").addEventListener("click", function(){
+  var p = MX.pat;
+  if(!p.motFx) p.motFx = motFxVide();
+  p.motFx.mode = p.motFx.mode ? 0 : 1;
+  if(p.motFx.mode && !p.motFx.v){
+    p.motFx.slot = MX.slot; p.motFx.p = "e1";
+    p.motFx.v = []; for(var i=0;i<16;i++) p.motFx.v.push(MX.fx[MX.slot].e1);
+  }
+  this.classList.toggle("on", !!p.motFx.mode);
+  memMx();
+  lcdMx(p.motFx.mode ? "ON" : "OFF", "MOTION · FX "+((p.motFx.slot||0)+1), true);
+  H.inter();
+});
 document.getElementById("mx-chain").addEventListener("click", function(){
   MX.chaine=!MX.chaine; cablerFxMx(); majLedsMx(); memMx(); H.inter();
   lcdMx(MX.chaine?"1→2→3":"PARALLÈLE","FX CHAIN",true);
@@ -7554,7 +7698,8 @@ for(var mm2=0; mm2<mxModes.length; mm2++){
       ouvrirNotice();
       lcdMx("GLOBAL","RÉGLAGES ET MIDI",true);
     } else if(m===1){ MX.param=2; majLcdMx(); }
-    else if(m===2){ MX.param=3; majLcdMx(); }
+    else if(m===2){ MX.param=3; MX.pasSel=-1; majTouchesMx();
+      lcdMx("STEP", "TOUCHE = CHOISIR UN PAS", true); }
     else { majTouchesMx(); majLcdMx(); }
     H.cran();
   });
@@ -7860,8 +8005,15 @@ function enregMotionSx(champ, val){
   if(m.p !== champ || !m.v){ m.p = champ; m.v = []; for(var i=0;i<16;i++) m.v.push(val); }
   m.v[SX.pos] = val;
 }
+function appliquerMotFxSx(v){
+  var m = SX.pat.motFx, sl = m.slot||0;
+  SX.fx[sl][m.p] = v;
+  if(!majFxSx(sl)) cablerFxSx();
+}
 function scheduleSx(i,t){
   var p = SX.pat, k;
+  var vfx = motFxValeur(p.motFx, i, p.len);
+  if(vfx !== null) appliquerMotFxSx(vfx);
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   var acc = p.st[9][i];
   var soloActif = false;
@@ -8068,6 +8220,7 @@ function majLcdSx(){
     var i2=+bb3.dataset.i;
     if(SX.shift){ shiftSx(i2); return; }
     if(SX.pset){ allerMotifSx(i2); return; }
+    if(SX.mode === 2){ choisirPasSx(i2); return; }
     if(SX.mode===3){ songSx(i2); return; }
     if(SX.kb && SX.sel>=10 && SX.sel<12){ clavierSx(i2); return; }
     if(SX.protect){ lcdSx("PROTECT","ÉCRITURE BLOQUÉE",true); return; }
@@ -8105,6 +8258,14 @@ function choisirSx(k){
   lcdSx(nomPartieSx(k), k===9 ? "ACCENT" : nomEch(SX.pat.son[k].ech), true);
   H.cran();
 }
+function choisirPasSx(i){
+  var p=SX.pat, k=SX.sel;
+  SX.pasSel = i; SX.param = 3;
+  majTouchesSx(); H.cran();
+  if(!p.st[k][i]) lcdSx("---", "PAS "+(i+1)+" · VIDE", true);
+  else if(k>=10 && k<12) lcdSx(nomNote(p.nt[k][i]), "PAS "+(i+1)+" · "+nomPartieSx(k), true);
+  else lcdSx("ON", "PAS "+(i+1)+" · "+nomPartieSx(k), true);
+}
 function majTouchesSx(){
   var p=SX.pat, k=SX.sel, i;
   if(SX.pset){
@@ -8136,6 +8297,7 @@ function majTouchesSx(){
   for(i=0;i<16;i++){
     sxKeys[i].textContent=String(i+1);
     sxKeys[i].classList.toggle("act", !!p.st[k][i]);
+    sxKeys[i].classList.toggle("sel", i === SX.pasSel && SX.mode === 2);
     sxKeys[i].classList.toggle("hors", i >= (p.len||16));
     sxBeats[i].classList.toggle("hors", i >= (p.len||16));
   }
@@ -8150,6 +8312,7 @@ function majLedsSx(){
   for(j=0;j<us.length;j++) us[j].classList.toggle("on", +us[j].dataset.t===SX.fx[SX.slot].t);
   for(j=0;j<3;j++) document.getElementById("sx-slot"+j).classList.toggle("on", SX.slot===j);
   document.getElementById("sx-chain").classList.toggle("on", SX.chaine);
+  document.getElementById("sx-fxmot").classList.toggle("on", !!(SX.pat.motFx && SX.pat.motFx.mode));
   document.getElementById("sx-ampeg").classList.toggle("on", son.amp);
   document.getElementById("sx-roll").classList.toggle("on", son.roll);
   document.getElementById("sx-fxsend").classList.toggle("on", son.send);
@@ -8178,7 +8341,7 @@ function majLedsSx(){
 
 /* --- mémoire --- */
 function serSx(p){
-  return {sw:p.sw, len:p.len, son:p.son, mot:p.mot,
+  return {sw:p.sw, len:p.len, son:p.son, mot:p.mot, motFx:p.motFx,
           st:p.st.map(function(l){ return l.join(""); }),
           nt:p.nt.map(function(l){ return l.join(","); })};
 }
@@ -8203,6 +8366,7 @@ function chargerSx(){
       if(o.nt) o.nt.forEach(function(s,k){ p.nt[k]=s.split(",").map(Number); });
       if(o.son) p.son=o.son;
       if(o.mot) p.mot=o.mot;
+      if(o.motFx) p.motFx=o.motFx;
       return p;
     });
   }
@@ -8241,9 +8405,13 @@ var kSxEgi   = knobSx("sx-k-egi","egi",0,1,"EG INT");
 var kSxMs    = knobSx("sx-k-mspeed","mspeed",0,1,"MOD SPEED");
 var kSxMd    = knobSx("sx-k-mdepth","mdepth",0,1,"MOD DEPTH");
 var kSxF1 = knobEm("sx-k-fx1",{min:0,max:1,get:function(){return SX.fx[SX.slot].e1;},
-  set:function(v){ SX.fx[SX.slot].e1=v; if(!majFxSx(SX.slot)) cablerFxSx(); lcdSx(String(Math.round(v*127)),"FX "+(SX.slot+1)+" EDIT 1",true); }});
+  set:function(v){ SX.fx[SX.slot].e1=v; if(!majFxSx(SX.slot)) cablerFxSx();
+    motFxEcrire(SX.pat.motFx, "e1", v, SX.rec && S.run, SX.pos);
+    lcdSx(String(Math.round(v*127)),"FX "+(SX.slot+1)+" EDIT 1",true); }});
 var kSxF2 = knobEm("sx-k-fx2",{min:0,max:1,get:function(){return SX.fx[SX.slot].e2;},
-  set:function(v){ SX.fx[SX.slot].e2=v; if(!majFxSx(SX.slot)) cablerFxSx(); lcdSx(String(Math.round(v*127)),"FX "+(SX.slot+1)+" EDIT 2",true); }});
+  set:function(v){ SX.fx[SX.slot].e2=v; if(!majFxSx(SX.slot)) cablerFxSx();
+    motFxEcrire(SX.pat.motFx, "e2", v, SX.rec && S.run, SX.pos);
+    lcdSx(String(Math.round(v*127)),"FX "+(SX.slot+1)+" EDIT 2",true); }});
 function majKnobsSx(){
   [kSxPitch,kSxPan,kSxStart,kSxEg,kSxLvl,kSxCut,kSxRes,kSxEgi,kSxMs,kSxMd,kSxF1,kSxF2,kSxTube]
     .forEach(function(k){ k.maj(); });
@@ -8381,6 +8549,19 @@ for(var xsl=0; xsl<3; xsl++){
     });
   })(xsl);
 }
+document.getElementById("sx-fxmot").addEventListener("click", function(){
+  var p = SX.pat;
+  if(!p.motFx) p.motFx = motFxVide();
+  p.motFx.mode = p.motFx.mode ? 0 : 1;
+  if(p.motFx.mode && !p.motFx.v){
+    p.motFx.slot = SX.slot; p.motFx.p = "e1";
+    p.motFx.v = []; for(var i=0;i<16;i++) p.motFx.v.push(SX.fx[SX.slot].e1);
+  }
+  this.classList.toggle("on", !!p.motFx.mode);
+  memSx();
+  lcdSx(p.motFx.mode ? "ON" : "OFF", "MOTION · FX "+((p.motFx.slot||0)+1), true);
+  H.inter();
+});
 document.getElementById("sx-chain").addEventListener("click", function(){
   SX.chaine=!SX.chaine; cablerFxSx(); majLedsSx(); memSx(); H.inter();
   lcdSx(SX.chaine?"1→2→3":"PARALLÈLE","FX CHAIN",true);
@@ -8526,7 +8707,8 @@ for(var sxm=0; sxm<sxModes.length; sxm++){
       majTouchesSx(); majKnobsSx(); lcdSx("SONG", SX.song.length?("PATTERN "+nomMotif(SX.cur)):"VIDE", true);
     } else if(m===4){ SX.param=2; banqueEs(); majLcdSx(); }
     else if(m===1){ SX.param=2; majLcdSx(); }
-    else if(m===2){ SX.param=3; majLcdSx(); }
+    else if(m===2){ SX.param=3; SX.pasSel=-1; majTouchesSx();
+      lcdSx("STEP", "TOUCHE = CHOISIR UN PAS", true); }
     else { majTouchesSx(); majLcdSx(); }
     H.cran();
   });

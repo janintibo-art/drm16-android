@@ -243,6 +243,19 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Mouvement des effets et Step Edit (version 27)
+
+**Motion Seq sur les effets.** Possible sans heurt seulement depuis que les effets se règlent en place :
+enregistrer une courbe voulait dire, auparavant, reconstruire le graphe audio à chaque pas. Disponible sur
+l'EM-1 (EDIT 1 ou temps de délai selon DELAY EDIT), l'ER-1 (profondeur et temps du délai, par la troisième
+position du bouton TYPE), l'EMX-1 et l'ESX-1 (FX EDIT de l'emplacement choisi). La courbe est gardée avec le
+motif. Vérifié au rendu : avec un filtre balayé par le mouvement, la brillance du motif passe de 0,008 à 0,06.
+
+**Step Edit** fait enfin quelque chose. Sur l'EM-1, l'EMX-1 et l'ESX-1, les touches y **choisissent** un pas
+au lieu de le basculer : un cadre le marque, l'afficheur montre son contenu — la note pour une partie
+mélodique — et la molette le modifie. On corrige une mélodie sans risquer d'effacer un pas d'un doigt mal
+placé.
+
 ## Pattern Set
 
 Les cinq Electribe ont enfin leur **PATTERN SET** : les seize touches deviennent un sélecteur de motifs,
