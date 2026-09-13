@@ -2708,6 +2708,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <div class="eur-lcd"><b id="eur-val">RACK VIDE</b><u id="eur-lab">AJOUTEZ UN MODULE</u></div>
     <button id="eur-ptn">RACK 1</button>
     <button id="eur-ajout">AJOUTER</button>
+    <button id="eur-mont">MONTAGES</button>
     <button id="eur-hasard">RACK AU SORT</button>
     <button id="eur-suppr">RETIRER</button>
     <button id="eur-decable">DÉCÂBLER</button>
@@ -3554,6 +3555,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   celui d'avant — un vrai modulaire ne garde rien, on le photographie avant de le défaire.</li>
   <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : soixante-sept modules en vrac seraient
   illisibles sur un téléphone.</li>
+  <li><b>MONTAGES</b> ouvre une douzaine de patchs tout faits, rangés par genre. Voir plus bas.</li>
   <li><b>RACK AU SORT</b> monte un ensemble complet et cohérent, décrit plus bas.</li>
   <li><b>RETIRER</b> enlève le module choisi, et avec lui tous ses câbles.</li>
   <li><b>DÉCÂBLER</b> retire tous les câbles mais garde les modules en place.</li>
@@ -3565,6 +3567,27 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>Le SEQ 16 porte dix-sept potards : même rangés sur <b>deux colonnes</b>, comme le fait la machine dès
   qu'un module en compte plus de six, il reste plus haut que l'écran. Pincez alors à deux doigts pour
   rétrécir la façade, puis déplacez-la d'un doigt posé sur le châssis.</p>
+
+  <h3>Douze montages tout faits</h3>
+  <p>Un rack vide décourage : il faut connaître soixante-sept modules et savoir lesquels vont ensemble avant
+  d'entendre quoi que ce soit. <b>MONTAGES</b> donne des points de départ qui sonnent, rangés en quatre
+  genres. Ils remplacent le rack courant — passez au rack suivant d'abord si vous tenez au vôtre.</p>
+  <ul>
+  <li><b>RYTHMES</b> — <i>Kick 4 au sol</i>, la grosse caisse sur chaque temps avec charley à contretemps ;
+  <i>Polyrythme euclidien</i>, trois densités qui se recroisent lentement ; <i>Roulements</i>, une caisse
+  claire qui part en roulement une fois sur trois.</li>
+  <li><b>BASSES</b> — <i>Basse acide</i>, le filtre résonant balayé par l'enveloppe ; <i>Mélodie sans fin</i>,
+  le registre à décalage remis en gamme ; <i>Cloches FM</i>, où l'enveloppe ouvre le timbre et non le
+  volume.</li>
+  <li><b>AMBIANCES</b> — <i>Nappe ambiante</i>, un bourdon qui respire et sonne même à l'arrêt ;
+  <i>Île flottante</i>, deux tensions qui errent sans se répéter ; <i>Vent et métal</i>, une nappe entière
+  tirée du bruit, sans le moindre oscillateur.</li>
+  <li><b>TEXTURES</b> — <i>Le rack qui parle</i>, deux résonances de voix humaine ; <i>Nappe qui s'écarte</i>,
+  où la grosse caisse creuse la nappe à chaque frappe ; <i>Machine cassée</i>, où plus rien n'est accordé.</li>
+  </ul>
+  <p>Chaque montage règle aussi le <b>tempo</b> qui lui va. Et le meilleur usage n'est pas de les écouter :
+  c'est de <b>débrancher un câble à la fois</b> pour entendre ce qui disparaît. On apprend plus vite ainsi
+  qu'en lisant les fiches.</p>
 
   <h3>Le premier patch</h3>
   <p><b>EXEMPLE</b> monte la chaîne classique de tout synthé — celle-là même qui est figée à l'usine dans
@@ -14249,7 +14272,7 @@ function activerTr(modele){
    peut en émettre à son tour, ce qui permet d'enchaîner horloge, diviseur,
    générateur euclidien et séquenceur. */
 var EUR = {mods:[], cables:[], sel:-1, attente:null, prochain:1, famille:"", noeuds:[],
-           bus:null, sources:null, cur:0};
+           bus:null, sources:null, cur:0, montFam:""};
 var EUR_RACKS = 8;
 
 function eurGain(v){ var g = ctx.createGain(); g.gain.value = v; return g; }
@@ -15716,8 +15739,8 @@ function majLcdEur(){
 /* ---------- catalogue ---------- */
 function eurCatalogue(){
   var c = document.getElementById("eur-cat");
-  if(c.style.display !== "none"){ c.style.display = "none"; return; }
-  c.innerHTML = "";
+  if(c.style.display !== "none" && c.dataset.vue === "mod"){ c.style.display = "none"; return; }
+  c.innerHTML = ""; c.dataset.vue = "mod";
   /* soixante-sept modules en vrac seraient illisibles : on les range par
      familles, et l'onglet choisi décide de ce qu'on voit */
   var onglets = document.createElement("div");
@@ -15848,6 +15871,193 @@ document.getElementById("eur-hasard").addEventListener("click", function(){ eurH
 /* Un rack tiré au sort, mais pas n'importe comment : une horloge, une source
    de rythme, deux ou trois voix, un traitement et une sortie. Sans cette
    ossature on obtient un tas de modules qui ne sonne pas. */
+/* ================= montages tout faits =================
+   Un rack vide décourage : il faut connaître soixante-sept modules et savoir
+   lesquels vont ensemble avant d'entendre quoi que ce soit. Ces montages
+   donnent un point de départ qui sonne, à défaire ensuite câble par câble —
+   c'est la façon la plus rapide d'apprendre ce que fait chaque module.
+
+   Format : mods est une liste de [type, réglages], cables une liste de
+   [rang de départ, prise de sortie, rang d'arrivée, prise d'entrée]. Les rangs
+   renvoient aux positions dans mods. bpm est facultatif. */
+var EUR_MONT_FAM = [["rythme","RYTHMES"],["basse","BASSES"],["nappe","AMBIANCES"],["etrange","TEXTURES"]];
+var EUR_MONTAGES = [
+
+/* ---------- rythmes ---------- */
+{id:"kick4", nom:"KICK 4 AU SOL", fam:"rythme", bpm:126,
+ res:"Grosse caisse sur chaque temps, charley à contretemps, clap en réponse",
+ mods:[["clock"], ["clkdiv"], ["euclid",{pas:1,coups:0.28,dec:0}],
+       ["kick",{tune:0.3,dec:0.45,niv:0.95}], ["hat",{tune:0.5,dec:0.12,niv:0.55}],
+       ["clap",{tune:0.5,dec:0.4,niv:0.6}],
+       ["mix4",{a:0.9,b:0.5,c:0.5,d:0}], ["dist",{drv:0.3,mix:0.5}], ["limit",{seuil:0.6,rap:0.5}], ["out",{niv:0.75}]],
+ cables:[[0,"out",1,"in"], [1,"d4",3,"trig"], [0,"out2",4,"trig"],
+         [0,"out",2,"in"], [2,"out",5,"trig"],
+         [3,"out",6,"a"], [4,"out",6,"b"], [5,"out",6,"c"],
+         [6,"out",7,"in"], [7,"out",8,"in"], [8,"out",9,"in"]]},
+
+{id:"euclide", nom:"POLYRYTHME EUCLIDIEN", fam:"rythme", bpm:118,
+ res:"Trois générateurs euclidiens de densités différentes, qui se recroisent lentement",
+ mods:[["clock"], ["euclid",{pas:1,coups:0.3,dec:0}], ["euclid",{pas:0.8,coups:0.45,dec:0.3}],
+       ["euclid",{pas:0.6,coups:0.6,dec:0.6}],
+       ["kick",{tune:0.32,dec:0.4,niv:0.9}], ["rim",{tune:0.55,dec:0.3,niv:0.6}],
+       ["shaker",{tune:0.6,dec:0.2,niv:0.45}],
+       ["mix4",{a:0.85,b:0.6,c:0.5,d:0}], ["verb",{taille:0.4,mix:0.22}], ["out",{niv:0.75}]],
+ cables:[[0,"out",1,"in"], [0,"out",2,"in"], [0,"out",3,"in"],
+         [1,"out",4,"trig"], [2,"out",5,"trig"], [3,"out",6,"trig"],
+         [4,"out",7,"a"], [5,"out",7,"b"], [6,"out",7,"c"],
+         [7,"out",8,"in"], [8,"out",9,"in"]]},
+
+{id:"breakbeat", nom:"ROULEMENTS", fam:"rythme", bpm:172,
+ res:"Caisse claire qui part en roulement une fois sur trois, tapis de triolets",
+ mods:[["clock"], ["clkdiv"], ["chance",{p:0.32}], ["burst",{n:0.6,esp:0.1}], ["clkmul"],
+       ["kick",{tune:0.28,dec:0.35,niv:0.9}], ["snare",{tune:0.5,dec:0.35,niv:0.75}],
+       ["claves",{tune:0.5,dec:0.2,niv:0.5}], ["shaker",{tune:0.7,dec:0.1,niv:0.4}],
+       ["mix4",{a:0.85,b:0.65,c:0.4,d:0.35}], ["limit",{seuil:0.55,rap:0.6}], ["out",{niv:0.75}]],
+ cables:[[0,"out",1,"in"], [1,"d4",5,"trig"], [1,"d2",2,"in"],
+         [2,"out",3,"in"], [3,"out",6,"trig"], [2,"alt",7,"trig"],
+         [0,"out",4,"in"], [4,"m3",8,"trig"],
+         [5,"out",9,"a"], [6,"out",9,"b"], [7,"out",9,"c"], [8,"out",9,"d"],
+         [9,"out",10,"in"], [10,"out",11,"in"]]},
+
+/* ---------- basses et lignes ---------- */
+{id:"acide", nom:"BASSE ACIDE", fam:"basse", bpm:130,
+ res:"Filtre résonant balayé par l'enveloppe, glissando entre les notes",
+ mods:[["clock"], ["seq16",{lg:0.45,n1:0.1,n2:0.1,n3:0.35,n4:0.1,n5:0.5,n6:0.1,n7:0.25,n8:0.1}],
+       ["slew",{t:0.18}], ["vco",{oct:0.15,fin:0.5,fm:0}],
+       ["vcf",{cut:0.18,q:0.72,mod:0.85}], ["adsr",{a:0,d:0.3,s:0.15,r:0.2}],
+       ["vca",{gain:0}], ["dist",{drv:0.4,mix:0.6}], ["delay",{time:0.28,fb:0.35,mix:0.25}],
+       ["out",{niv:0.75}]],
+ cables:[[0,"out",1,"clk"], [1,"cv",2,"in"], [2,"out",3,"voct"], [1,"gate",5,"gate"],
+         [3,"saw",4,"in"], [5,"out",4,"cv"], [4,"out",6,"in"], [5,"out",6,"cv"],
+         [6,"out",7,"in"], [7,"out",8,"in"], [8,"out",9,"in"]]},
+
+{id:"generatif", nom:"MÉLODIE SANS FIN", fam:"basse", bpm:104,
+ res:"Registre à décalage remis en gamme : une suite qui dérive sans jamais fausser",
+ mods:[["clock"], ["turing",{hasard:0.12,lg:0.5,amp:0.45}], ["quant",{gamme:0.5,oct:0.5}],
+       ["wave",{oct:0.4,modele:0.3,harm:0.35}], ["ad",{a:0.02,d:0.35}], ["vca",{gain:0}],
+       ["pingpong",{time:0.3,fb:0.45,mix:0.4}], ["out",{niv:0.7}]],
+ cables:[[0,"out",1,"clk"], [1,"cv",2,"in"], [1,"gate",2,"clk"], [2,"out",3,"voct"],
+         [1,"gate",4,"trig"], [3,"out",5,"in"], [4,"out",5,"cv"],
+         [5,"out",6,"in"], [6,"out",7,"in"]]},
+
+{id:"cloche", nom:"CLOCHES FM", fam:"basse", bpm:92,
+ res:"L'enveloppe ouvre le timbre et non le volume : attaque brillante, queue sombre",
+ mods:[["clock"], ["euclid",{pas:0.9,coups:0.3,dec:0.2}], ["ad",{a:0,d:0.6}],
+       ["fm2",{oct:0.55,rap:0.4,idx:0.12}], ["vca",{gain:0}],
+       ["verb",{taille:0.85,mix:0.5}], ["out",{niv:0.7}]],
+ cables:[[0,"out",1,"in"], [1,"out",2,"trig"], [2,"out",3,"idxin"], [2,"out",4,"cv"],
+         [3,"out",4,"in"], [4,"out",5,"in"], [5,"out",6,"in"]]},
+
+/* ---------- ambiances ---------- */
+{id:"ambiant", nom:"NAPPE AMBIANTE", fam:"nappe", bpm:70,
+ res:"Bourdon d'accord qui respire, sans horloge : il sonne même à l'arrêt",
+ mods:[["chord",{oct:0.35,type:0.25,det:0.35}], ["svf",{cut:0.4,q:0.25,mod:0.6}],
+       ["lfo",{rate:0.02,amt:0.4}], ["vca",{gain:0.55}],
+       ["chorus",{rate:0.15,prof:0.5}], ["verb",{taille:1,mix:0.62}], ["out",{niv:0.62}]],
+ cables:[[0,"out",1,"in"], [2,"sine",1,"cv"], [1,"lp",3,"in"],
+         [3,"out",4,"in"], [4,"out",5,"in"], [5,"out",6,"in"]]},
+
+{id:"derive", nom:"ÎLE FLOTTANTE", fam:"nappe", bpm:64,
+ res:"Deux tensions qui errent sans se répéter, l'une sur la hauteur, l'autre sur le filtre",
+ mods:[["drift",{rate:0.1,amt:0.3}], ["super",{oct:0.3,det:0.55}], ["svf",{cut:0.32,q:0.3,mod:0.7}],
+       ["vca",{gain:0.5}], ["grain",{taille:0.5,dens:0.4,mix:0.4}],
+       ["verb",{taille:1,mix:0.55}], ["out",{niv:0.6}]],
+ cables:[[0,"out",1,"voct"], [0,"out2",2,"cv"], [1,"out",2,"in"],
+         [2,"lp",3,"in"], [3,"out",4,"in"], [4,"out",5,"in"], [5,"out",6,"in"]]},
+
+{id:"souffle", nom:"VENT ET MÉTAL", fam:"nappe", bpm:60,
+ res:"Du bruit passé dans un peigne accordé : une nappe sans le moindre oscillateur",
+ mods:[["noise"], ["comb",{f:0.62,fb:0.8}], ["bpf",{cut:0.45,q:0.55,mod:0.6}],
+       ["clklfo",{div:0.8,amt:0.5}], ["vca",{gain:0.45}],
+       ["verb",{taille:1,mix:0.6}], ["out",{niv:0.6}]],
+ cables:[[0,"rose",1,"in"], [1,"out",2,"in"], [3,"tri",2,"cv"],
+         [2,"out",4,"in"], [4,"out",5,"in"], [5,"out",6,"in"]]},
+
+/* ---------- textures ---------- */
+{id:"voix", nom:"LE RACK QUI PARLE", fam:"etrange", bpm:96,
+ res:"Deux résonances de voix humaine posées sur une dent de scie large",
+ mods:[["clock"], ["seq8",{n1:0.2,n2:0.4,n3:0.2,n4:0.55,n5:0.3,n6:0.45,n7:0.2,n8:0.6}],
+       ["super",{oct:0.4,det:0.3}], ["formant",{v:0.2,q:0.7}],
+       ["adsr",{a:0.15,d:0.3,s:0.5,r:0.35}], ["vca",{gain:0}],
+       ["delay",{time:0.4,fb:0.4,mix:0.3}], ["out",{niv:0.7}]],
+ cables:[[0,"out",1,"clk"], [1,"cv",2,"voct"], [1,"gate",4,"gate"],
+         [2,"out",3,"in"], [3,"out",5,"in"], [4,"out",5,"cv"],
+         [5,"out",6,"in"], [6,"out",7,"in"]]},
+
+{id:"ducking", nom:"NAPPE QUI S'ÉCARTE", fam:"etrange", bpm:124,
+ res:"La grosse caisse creuse la nappe à chaque frappe, par suiveur d'enveloppe",
+ mods:[["clock"], ["clkdiv"], ["kick",{tune:0.3,dec:0.45,niv:0.95}],
+       ["chord",{oct:0.3,type:0.5,det:0.3}], ["envfol",{gain:0.7,lag:0.45}],
+       ["atten",{amt:0.1,off:1}], ["vca",{gain:0}],
+       ["mix4",{a:0.9,b:0.7,c:0,d:0}], ["verb",{taille:0.7,mix:0.3}], ["out",{niv:0.7}]],
+ cables:[[0,"out",1,"in"], [1,"d4",2,"trig"], [2,"out",4,"in"],
+         [4,"out",5,"in"], [3,"out",6,"in"], [5,"out",6,"cv"],
+         [2,"out",7,"a"], [6,"out",7,"b"], [7,"out",8,"in"], [8,"out",9,"in"]]},
+
+{id:"casse", nom:"MACHINE CASSÉE", fam:"etrange", bpm:88,
+ res:"Modulation en anneau, repli d'onde et réduction de définition : rien n'est accordé",
+ mods:[["clock"], ["trig4",{a:0.2,b:0.5,c:0.75,d:0.1}], ["drum",{tune:0.6,dec:0.3,drive:0.7,bruit:0.4}],
+       ["ring",{f:0.35,mix:0.7}], ["fold",{amt:0.5,sym:0.6}], ["bits",{b:0.65}],
+       ["sh",{amt:0.6,lisse:0.1}], ["mix4",{a:0.8,b:0.6,c:0,d:0}],
+       ["pingpong",{time:0.22,fb:0.55,mix:0.45}], ["out",{niv:0.68}]],
+ cables:[[0,"out",1,"clk"], [1,"ta",2,"trig"], [1,"tb",6,"trig"],
+         [2,"out",3,"in"], [6,"out",3,"mod"], [3,"out",4,"in"], [4,"out",5,"in"],
+         [5,"out",7,"a"], [2,"out",7,"b"], [7,"out",8,"in"], [8,"out",9,"in"]]}
+];
+
+/* Monte un patch complet d'un coup. On garde la même mécanique que partout :
+   tout est reconstruit, ce qui est plus court et plus sûr que de rapiécer. */
+function eurMonter(P){
+  EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
+  var rangs = P.mods.map(function(x){
+    var m = eurAjouter(x[0], true);
+    if(m && x[1]) for(var k in x[1]) if(m.p[k] !== undefined) m.p[k] = x[1][k];
+    return m ? m.id : -1;
+  });
+  P.cables.forEach(function(c){
+    if(rangs[c[0]] < 0 || rangs[c[2]] < 0) return;
+    EUR.cables.push({de:[rangs[c[0]], c[1]], vers:[rangs[c[2]], c[3]]});
+  });
+  if(P.bpm){ S.bpm = P.bpm; kEurTempo.maj(); saveSoon(); }
+  eurBatir(); eurDessiner(); memEur();
+  lcdEur(P.nom, EUR.mods.length + " MODULES · RACK " + (EUR.cur + 1), true);
+  signal(P.nom + " · " + P.res);
+}
+function eurMontages(){
+  var c = document.getElementById("eur-cat");
+  if(c.style.display !== "none" && c.dataset.vue === "mont"){ c.style.display = "none"; return; }
+  c.innerHTML = ""; c.dataset.vue = "mont";
+  var onglets = document.createElement("div");
+  onglets.className = "eur-fam";
+  EUR_MONT_FAM.forEach(function(f){
+    var b = document.createElement("button");
+    b.textContent = f[1];
+    b.className = (EUR.montFam === f[0] || (!EUR.montFam && f === EUR_MONT_FAM[0])) ? "on" : "";
+    b.addEventListener("click", function(){
+      EUR.montFam = f[0]; c.style.display = "none"; eurMontages();
+    });
+    onglets.appendChild(b);
+  });
+  c.appendChild(onglets);
+  var fam = EUR.montFam || EUR_MONT_FAM[0][0];
+  EUR_MONTAGES.forEach(function(P){
+    if(P.fam !== fam) return;
+    var b = document.createElement("button");
+    b.innerHTML = P.nom + "<span>" + P.res + "</span>";
+    b.addEventListener("click", function(){
+      if(EUR.mods.length &&
+         !window.confirm("Monter « " + P.nom + " » dans le rack " + (EUR.cur + 1) + " ?\n\n" +
+                         "Ce rack sera remplacé. Les sept autres ne sont pas touchés."))
+        return;
+      c.style.display = "none";
+      eurMonter(P);
+      H.inter();
+    });
+    c.appendChild(b);
+  });
+  c.style.display = "grid";
+}
+
 function eurHasard(){
   function tire(l){ return l[Math.floor(Math.random() * l.length)]; }
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1;
@@ -15875,6 +16085,7 @@ document.getElementById("eur-vider").addEventListener("click", function(){
   EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.attente = null;
   eurBatir(); eurDessiner(); memEur(); H.inter();
 });
+document.getElementById("eur-mont").addEventListener("click", function(){ eurMontages(); H.cran(); });
 document.getElementById("eur-ptn").addEventListener("click", function(){
   changerRack(EUR.cur + 1); H.inter();
 });

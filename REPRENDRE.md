@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **68**.
+La version actuelle est la **69**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,26 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Montages tout faits — v69**
+
+Douze patchs prêts à jouer, rangés en quatre genres (`EUR_MONT_FAM`), sous le bouton `MONTAGES`.
+
+- Format déclaratif : `mods` est une liste de `[type, réglages]`, `cables` une liste de
+  `[rang de départ, sortie, rang d'arrivée, entrée]`, les rangs renvoyant aux positions dans `mods`.
+  `bpm` facultatif. **Écrire en déclaratif est ce qui rend la vérification possible** — voir plus bas.
+- `eurMonter(P)` construit, `eurMontages()` affiche le sélecteur. Le panneau `eur-cat` est partagé avec le
+  catalogue de modules : `dataset.vue` vaut `"mod"` ou `"mont"`, sans quoi les deux listes se mélangent
+  quand on passe de l'un à l'autre.
+- Un montage **remplace le rack courant** seulement, après confirmation. Les sept autres sont intacts.
+
+*Vérification automatique des montages* (`/tmp/tmont.js` dans la session, à refaire si on en ajoute) :
+chaque montage est contrôlé contre le catalogue réel — type existant, potard existant, valeur entre 0 et 1,
+la prise de départ est bien une **sortie** et celle d'arrivée une **entrée**, pas deux câbles sur la même
+entrée, pas de module câblé sur lui-même, pas de module orphelin, un OUTPUT présent et alimenté. Puis trois
+contrôles musicaux : un chemin existe d'une source sonore jusqu'à l'OUTPUT, aucun VCA fermé sans CV, aucune
+voie de MIX 4 câblée mais laissée à zéro. **Refaire passer ce contrôle avant d'ajouter un montage** : ce
+sont exactement les trois causes de patch muet listées dans la notice.
 
 **Huit racks — v68**
 
