@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Vingt et une machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+**Vingt-deux machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
 en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -243,6 +243,27 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Machine d'archive (version 49)
+
+Vingt-deuxième machine, et celle qui en vaut quatre cent soixante-dix : elle n'imite personne, elle prend
+les sons de **n'importe quelle boîte à rythmes de la collection** et en fait une machine jouable. Seize
+pistes, seize pas, huit motifs, six réglages par piste — niveau, panoramique, accord, décroissance, point
+de départ, filtre.
+
+**Le rangement des pistes.** Les sons sont répartis d'après leur nom de fichier, par une liste
+d'expressions : grosse caisse, caisse claire, rim shot, clap, charleys, toms, cymbales, cowbell, claves,
+percussions. Vérifié sur une DMX simulée : BD1 → KICK, SD2 → SNARE, RIMSHOT → RIM, CLAPS → CLAP,
+HIHAT-CLOSED → CH, HIHAT-OPEN → OH, TOM1/2/3 aux trois toms, CRASH et RIDE aux cymbales.
+
+**Une piste rangée par reconnaissance porte son rôle ; une piste remplie faute de mieux porte le nom du
+fichier.** Le premier essai affichait COWB au-dessus d'un shaker — un nom de rôle sur un son qui n'y
+correspond pas. Corrigé : sur une LM-1 simulée, les pistes non reconnues affichent maintenant CABASA, LO
+et HI, leurs vrais noms.
+
+Le chargement prend les seize sons l'un après l'autre : l'avancement est visible, et un son qui refuse de
+se décoder ne fait pas perdre les quinze autres. Les sons rejoignent aussi la bibliothèque sous le nom de
+leur machine, donc restent disponibles pour les échantillonneurs et les MPC.
 
 ## La collection archive.org (version 48)
 

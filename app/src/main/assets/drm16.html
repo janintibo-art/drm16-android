@@ -1277,6 +1277,54 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 .pick.pt1k{background:linear-gradient(165deg,#b9bdc4,#2a2d33 55%,#5a5e66)}
 .pick.pt1k b{color:#8fd4ff;text-shadow:0 2px 0 #161a1f}
 .pick.pt1k span{color:#cbd0d8}
+/* ===================== MACHINE D'ARCHIVE ===================== */
+body.arcm .arcmb{display:block}
+body.arcm #unit,body.arcm .em,body.arcm .er,body.arcm .ea,body.arcm .es,body.arcm .mx,body.arcm .sx,
+body.arcm .akai,body.arcm .rtr,body.arcm .dmxb,body.arcm .korgv,body.arcm .crb,body.arcm .dbib,
+body.arcm .t1kb{display:none}
+.arcmb{display:none;width:100%;max-width:1080px;border-radius:8px;padding:13px 15px 15px;
+  background:linear-gradient(168deg,#2f3a34,#232b27 45%,#1d2420 75%,#2a332e);
+  box-shadow:0 18px 40px #000b,inset 0 1px 0 #ffffff15}
+.arcm-tete{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.arcm-nom{font:800 19px/1.15 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:.5px;
+  color:#d8ecd8;cursor:pointer}
+.arcm-nom small{display:block;font:700 7.5px/1.5 "Roboto Condensed",Arial;letter-spacing:2px;color:#7fa88c}
+.arcm-lcd{margin-left:auto;background:#0c1310;border-radius:4px;padding:6px 12px;min-width:150px}
+.arcm-lcd b{display:block;font:800 13px/1.25 "Courier New",monospace;color:#7fe0a0}
+.arcm-lcd u{display:block;text-decoration:none;font:700 7.5px/1.3 "Roboto Condensed",Arial;
+  letter-spacing:1.3px;color:#4f9068}
+.arcmb button{border:0;border-radius:4px;font:700 8.5px/1.1 "Roboto Condensed",Arial;letter-spacing:.5px;
+  color:#d4e4d8;background:linear-gradient(180deg,#4a5a50,#2f3a34);
+  box-shadow:0 2px 0 #161d19,0 3px 5px #0006,inset 0 1px 0 #ffffff1c;padding:10px 10px}
+.arcmb button:active,.arcmb button.on{background:linear-gradient(180deg,#8fe8b0,#35a868);color:#052616;
+  transform:translateY(2px);box-shadow:0 0 0 #161d19,inset 0 1px 3px #0005}
+.arcm-bar{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:9px}
+.arcm-kns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.arcm-kn{width:46px;text-align:center;touch-action:none}
+.arcm-kn .bt{width:36px;height:36px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#5a6b60,#2c352f 55%,#151a17);
+  box-shadow:0 2px 5px #0008,inset 0 1px 1px #ffffff28}
+.arcm-kn .bt i{position:absolute;left:50%;top:3px;width:2px;height:40%;margin-left:-1px;border-radius:1px;
+  background:#8fe8b0}
+.arcm-kn em{display:block;margin-top:2px;font:700 7px/1.2 "Roboto Condensed",Arial;color:#9fc0ac;
+  font-style:normal}
+.arcm-sel{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:8px}
+.arcm-sel button{padding:9px 2px;font-size:7.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.arcm-sel button.vide{opacity:.4}
+.arcm-pas{display:grid;grid-template-columns:repeat(16,1fr);gap:4px}
+.arcm-pas button{padding:15px 0;position:relative;background:linear-gradient(180deg,#3a473f,#232b27)}
+.arcm-pas button.act{background:linear-gradient(180deg,#8fe8b0,#35a868)}
+.arcm-pas button.hors{opacity:.35}
+.arcm-pas button.cur::after{content:"";position:absolute;left:50%;top:4px;width:6px;height:6px;
+  margin-left:-3px;border-radius:50%;background:#fff;box-shadow:0 0 7px #fff}
+@media (max-width:780px){
+  .arcm-sel{grid-template-columns:repeat(4,1fr)}
+  .arcm-pas button{padding:11px 0}
+}
+
+.pick.parcm{background:linear-gradient(165deg,#35a868,#0f1a14 55%,#1d3a28)}
+.pick.parcm b{color:#9fe8b8;text-shadow:0 2px 0 #0a1a10}
+.pick.parcm span{color:#b8d8c4}
 @media (max-height:560px){
   .unit{padding:18px 10px 4px}
   .grid{gap:6px}
@@ -2443,6 +2491,40 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 
 
 
+
+<div class="arcmb" id="unit-arcm">
+  <div class="arcm-tete">
+    <div class="arcm-nom" id="arcm-nom"><span id="arcm-notice">MACHINE D'ARCHIVE</span><small>SONS D'ORIGINE · INTERNET ARCHIVE</small></div>
+    <div class="arcm-lcd"><b id="arcm-val">VIDE</b><u id="arcm-lab">AUCUN KIT CHARGÉ</u></div>
+  </div>
+
+  <div class="arcm-bar">
+    <button id="arcm-play" style="padding:12px 16px">PLAY</button>
+    <button id="arcm-accent">ACCENT</button>
+    <button id="arcm-last">LAST 16</button>
+    <button id="arcm-ptn">PTN 1</button>
+    <button id="arcm-clear">CLEAR</button>
+    <button id="arcm-kits">KITS</button>
+    <button id="arcm-bib">BIBLIOTHÈQUE</button>
+    <div class="arcm-kn" style="width:42px"><div class="bt" id="arcm-k-tempo"><i></i></div><em>TEMPO</em></div>
+    <div class="arcm-kn" style="width:42px"><div class="bt" id="arcm-k-vol"><i></i></div><em>VOLUME</em></div>
+  </div>
+
+  <div class="arcm-sel" id="arcm-sel"></div>
+
+  <div class="arcm-kns">
+    <div class="arcm-kn"><div class="bt" id="arcm-k-niv"><i></i></div><em>LEVEL</em></div>
+    <div class="arcm-kn"><div class="bt" id="arcm-k-pan"><i></i></div><em>PAN</em></div>
+    <div class="arcm-kn"><div class="bt" id="arcm-k-tune"><i></i></div><em>TUNE</em></div>
+    <div class="arcm-kn"><div class="bt" id="arcm-k-dec"><i></i></div><em>DECAY</em></div>
+    <div class="arcm-kn"><div class="bt" id="arcm-k-debut"><i></i></div><em>START</em></div>
+    <div class="arcm-kn"><div class="bt" id="arcm-k-filt"><i></i></div><em>FILTER</em></div>
+  </div>
+
+  <div class="arcm-pas" id="arcm-pas"></div>
+</div>
+
+
 <div class="t1kb" id="unit-t1k">
 
   <div class="em-jacks">
@@ -2762,6 +2844,7 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
   <button class="pick pes2" data-m="es2"><b>ES-1 mkII</b><span>KORG · ÉCHANTILLONNEUR · ISOLATOR, RESO. FILT.</span></button>
   <button class="pick pmx" data-m="emx"><b>ELECTRIBE EMX-1</b><span>KORG · 14 PARTIES · 3 EFFETS · VALVE FORCE</span></button>
   <button class="pick psx" data-m="esx"><b>ELECTRIBE ESX-1</b><span>KORG · ÉCHANTILLONNEUR · CLAVIER, STRETCH, VALVE FORCE</span></button>
+  <button class="pick parcm" data-m="arcm"><b>MACHINE D'ARCHIVE</b><span>470 BOÎTES À RYTHMES · SONS D'ORIGINE</span></button>
   <button class="pick pt1k" data-m="t1k"><b>ROLAND TR-1000</b><span>ANALOGIQUE + ÉCHANTILLONS · MORPHING · SOUS-PAS</span></button>
   <button class="pick pdbi" data-m="dbi"><b>DRUMBRUTE IMPACT</b><span>ARTURIA · HUIT VOIX ANALOGIQUES · POLYRYTHMIE</span></button>
   <button class="pick pcr5" data-m="cr5"><b>ROLAND CR-5000</b><span>24 RYTHMES PRÉSÉLECTIONNÉS · ARRANGEUR · BREAKS</span></button>
@@ -2930,6 +3013,31 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
      <button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
   <p><button id="b-panique">PANIQUE · TOUT COUPER</button>
      <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
+  </div>
+
+  <div class="doc" id="note-arcm" data-titre="MACHINE D'ARCHIVE">
+  <h3>Quatre cent soixante-dix machines de plus</h3>
+  <p>Celle-ci n'imite personne : elle prend les sons de n'importe quelle boîte à rythmes de la collection
+  archive.org et en fait une machine jouable. Dans la bibliothèque, rayon <b>ARCHIVE</b>, le bouton
+  <b>EN FAIRE UNE MACHINE</b> charge seize sons et vous amène ici.</p>
+
+  <h3>Le rangement des pistes</h3>
+  <p>Les sons sont répartis d'après leur nom de fichier : la grosse caisse sur la première piste, la
+  caisse claire sur la deuxième, puis rim shot, clap, charleys fermé et ouvert, toms, cymbales,
+  percussions. Une piste rangée par reconnaissance porte son rôle — KICK, SNARE — ; une piste remplie
+  faute de mieux porte le nom du fichier. Vous saurez toujours ce que vous entendez.</p>
+
+  <h3>Six réglages par piste</h3>
+  <p>Niveau, panoramique, accord, décroissance, point de départ et filtre. Seize pistes, seize pas, huit
+  motifs, une piste d'accent. Un motif de départ est posé sur la grosse caisse, la caisse claire et le
+  charley pour que quelque chose sorte tout de suite.</p>
+
+  <h3>Ce qu'il faut savoir</h3>
+  <p>Le chargement prend seize sons l'un après l'autre : on voit l'avancement, et un son qui refuse de se
+  décoder ne fait pas perdre les quinze autres. Les sons rejoignent aussi la bibliothèque sous le nom de
+  leur machine, donc ils restent disponibles pour les échantillonneurs et les MPC.</p>
+  <p>Un seul kit tient en mémoire à la fois : charger une autre machine remplace le précédent. Les sons,
+  eux, restent dans la bibliothèque.</p>
   </div>
 
   <div class="doc" id="note-t1k" data-titre="TR-1000">
@@ -3499,10 +3607,10 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
 (function charger(){
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
-    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5","dbi","t1k"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5","dbi","t1k","arcm"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
     if(m.midi) memoire.midi = m.midi;
     /* ancien format : les machines vivaient dans le blob global, on les répartit une fois */
-    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5","dbi","t1k"].forEach(function(c){
+    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5","dbi","t1k","arcm"].forEach(function(c){
       if(m[c]){
         memoire[c] = m[c];
         try{ localStorage.setItem(MEM + "." + c, JSON.stringify(m[c])); }catch(e){}
@@ -4187,6 +4295,7 @@ function docDeLaMachine(){
   if(m === "cr5") return "note-cr5";
   if(m === "dbi") return "note-dbi";
   if(m === "t1k") return "note-t1k";
+  if(m === "arcm") return "note-arcm";
   return "note-general";
 }
 function montrerDoc(id){
@@ -4268,7 +4377,7 @@ document.getElementById("menu-pr").addEventListener("click", function(){
 (function machinePr(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"],["dbi","DrumBrute Impact"],["t1k","Roland TR-1000"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"],["dbi","DrumBrute Impact"],["t1k","Roland TR-1000"],["arcm","Machine d'archive"]];
   var sel = document.getElementById("pr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -4316,7 +4425,7 @@ document.getElementById("enr-rec").addEventListener("click", function(){
 (function menuEnregistreur(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"],["dbi","DrumBrute Impact"],["t1k","Roland TR-1000"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"],["dbi","DrumBrute Impact"],["t1k","Roland TR-1000"],["arcm","Machine d'archive"]];
   var sel = document.getElementById("enr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -4400,7 +4509,7 @@ window.addEventListener("pagehide", writeMem);
    Ce contrôle le dit tout de suite au lieu de laisser chercher. */
 (function collisionsDeClasses(){
   var corps = ["m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-               "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","menu-ouvert","note-ouverte"];
+               "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm","menu-ouvert","note-ouverte"];
   var mauvaises = corps.filter(function(c){
     var e = document.querySelector("." + c);
     return e && e !== document.body;
@@ -5916,7 +6025,7 @@ function activerEm(){
   S.modele = "em1";
   MACHINE = MACHINE_EM;
   document.body.classList.add("em1");
-  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   chargerEm();
   construireFx();
   EM.choisirPartie(EM.sel);
@@ -6619,7 +6728,7 @@ function activerEr(v){
   ER.v = (v===2) ? 2 : 1;
   S.modele = "er" + ER.v;
   MACHINE = MACHINE_ER;
-  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("er1");
   document.body.classList.toggle("mk2", ER.v===2);
   chargerEr();
@@ -7273,7 +7382,7 @@ function activerEa(v){
   EA.v = (v===2) ? 2 : 1;
   S.modele = "ea" + EA.v;
   MACHINE = MACHINE_EA;
-  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("ea1");
   document.body.classList.toggle("mk2", EA.v===2);
   chargerEa();
@@ -8174,7 +8283,7 @@ function activerEs(v){
   ES.v = (v===2) ? 2 : 1;
   S.modele = "es" + ES.v;
   MACHINE=MACHINE_ES;
-  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("es1");
   document.body.classList.toggle("mk2", ES.v===2);
   audioInit(); banqueEs(); busEffets(); chargerEchs();
@@ -9261,7 +9370,7 @@ function activerMx(){
   stop();
   S.modele="emx";
   MACHINE=MACHINE_MX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("emx");
   audioInit(); banqueEs(); mxAudio();
   chargerMx();
@@ -10301,7 +10410,7 @@ function activerSx(){
   stop();
   S.modele="esx";
   MACHINE=MACHINE_SX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("esx");
   audioInit(); banqueEs(); sxAudio(); chargerEchs();
   chargerSx();
@@ -12557,6 +12666,385 @@ function activerTr(modele){
   save(); fit(); setTimeout(fit, 120);
 }
 
+/* ===================== MACHINE D'ARCHIVE =====================
+   Une machine générique de seize pistes, dont les sons viennent de la
+   collection : n'importe laquelle des 470 boîtes à rythmes devient jouable
+   avec ses enregistrements d'origine. */
+var ARCM_ROLES = [
+  {n:"KICK",  re:/\b(bd|kick|bass ?drum|kik|bdrum)\b|^bd|kick/i},
+  {n:"SNARE", re:/\b(sd|snare|sn|snr)\b|^sd|snare/i},
+  {n:"RIM",   re:/rim|sidestick|x-?stick/i},
+  {n:"CLAP",  re:/clap|\bcp\b|hand/i},
+  {n:"CH",    re:/closed|\bch\b|chh|hh ?cl|hihat ?c/i},
+  {n:"OH",    re:/open|\boh\b|ohh|hh ?op/i},
+  {n:"HAT",   re:/hat|\bhh\b/i},
+  {n:"TOM 1", re:/tom ?-?1|lo ?tom|low ?tom|\blt\b/i},
+  {n:"TOM 2", re:/tom ?-?2|mid ?tom|\bmt\b/i},
+  {n:"TOM 3", re:/tom ?-?3|hi ?tom|high ?tom|\bht\b/i},
+  {n:"CRASH", re:/crash|\bcc\b/i},
+  {n:"RIDE",  re:/ride|\brc\b|\brd\b/i},
+  {n:"COWB",  re:/cowbell|\bcb\b|cow/i},
+  {n:"CLAVE", re:/clave|\bcl\b|stick/i},
+  {n:"PERC",  re:/conga|bongo|timbale|agogo|block|tamb|shaker|maraca|cabasa|guiro|perc/i},
+  {n:"FX",    re:/./}
+];
+function pisteArcm(){
+  return {ech:"", nom:"", pas:0, acc:0, niv:0.8, pan:0, tune:0.5, dec:0.8, debut:0, filt:1};
+}
+function motifArcm(){
+  var m = {pistes:[], last:16};
+  for(var i=0;i<16;i++) m.pistes.push(pisteArcm());
+  return m;
+}
+var ARCM = {nom:"", motifs:[], cur:0, sel:0, accent:false, pos:-1, noeuds:[], kits:[]};
+for(var amz=0; amz<8; amz++) ARCM.motifs.push(motifArcm());
+function motifArcmCur(){ return ARCM.motifs[ARCM.cur]; }
+function pisteArcmSel(){ return motifArcmCur().pistes[ARCM.sel]; }
+
+function sortieArcm(k){
+  if(!ARCM.noeuds[k]){
+    var g = ctx.createGain(), p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if(p){ g.connect(p); p.connect(master); } else g.connect(master);
+    ARCM.noeuds[k] = {g:g, p:p};
+  }
+  return ARCM.noeuds[k];
+}
+function voixArcm(t, k, acc){
+  var P = motifArcmCur().pistes[k];
+  if(!P || !P.ech) return;
+  banqueEs();
+  var buf = ES.buf[P.ech];
+  if(!buf) return;
+  var n = sortieArcm(k);
+  n.g.gain.setValueAtTime(1, t);
+  if(n.p) n.p.pan.setValueAtTime(P.pan, t);
+  var src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.playbackRate.value = Math.pow(2, (P.tune - 0.5) * 2);
+  var f = ctx.createBiquadFilter(); f.type = "lowpass";
+  f.frequency.value = Math.min(19000, 160 * Math.pow(115, P.filt));
+  var g = ctx.createGain();
+  var dep = P.debut * buf.duration * 0.9;
+  var duree = Math.max(0.03, ((buf.duration - dep) / src.playbackRate.value) * Math.max(0.05, P.dec));
+  var pic = mv("niv", P.niv) * (acc ? 1 : 0.68);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(pic, t + 0.002);
+  g.gain.setValueAtTime(pic, t + Math.max(0.005, duree - 0.02));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.02, duree));
+  src.connect(f); f.connect(g); g.connect(n.g);
+  src.start(t, Math.min(dep, Math.max(0, buf.duration - 0.01)));
+  src.stop(t + duree + 0.05);
+  midiNoteA(MIDI.base + k, t, acc ? 1 : 0.7, MIDI.canal, duree);
+}
+function scheduleArcm(i, t){
+  var m = motifArcmCur();
+  if(i >= m.last) return;
+  for(var k=0;k<16;k++){
+    if(m.pistes[k].pas & (1 << i)) voixArcm(t, k, !!(m.pistes[k].acc & (1 << i)));
+  }
+  if(!cache) queue.push({i:i, t:t});
+}
+var arcmPas = [];
+function beatArcm(i){
+  ARCM.pos = i;
+  for(var j=0;j<16;j++) arcmPas[j].classList.toggle("cur", j === i);
+}
+function arretArcm(){
+  ARCM.pos = -1;
+  for(var j=0;j<16;j++) arcmPas[j].classList.remove("cur");
+  var b = document.getElementById("arcm-play");
+  if(b) b.classList.remove("on");
+}
+function boucleArcm(){ }
+var MACHINE_ARCM = {schedule:scheduleArcm, beat:beatArcm, arret:arretArcm, boucle:boucleArcm,
+                    longueur:function(){ return motifArcmCur().last; }};
+
+/* ---------- charger une machine de la collection ---------- */
+function rangerArcm(fichiers){
+  /* on devine le rôle de chaque son d'après son nom de fichier, pour que la
+     grosse caisse tombe sur la première piste et le charley au bon endroit */
+  var pris = {}, sortie = [];
+  ARCM_ROLES.forEach(function(r, i){
+    if(i === ARCM_ROLES.length - 1) return;
+    for(var j=0;j<fichiers.length;j++){
+      if(pris[j]) continue;
+      if(r.re.test(fichiers[j].nom)){ sortie[i] = {f:fichiers[j], role:true}; pris[j] = 1; break; }
+    }
+  });
+  for(var i=0;i<16;i++){
+    if(sortie[i]) continue;
+    for(var j=0;j<fichiers.length;j++){
+      if(pris[j]) continue;
+      sortie[i] = {f:fichiers[j], role:false}; pris[j] = 1; break;
+    }
+  }
+  return sortie;
+}
+function arcmCharger(m){
+  if(ARC.occupe) return;
+  ARC.occupe = true;
+  majArcUI();
+  signal("LECTURE DU CONTENU DE " + m.nom.toUpperCase());
+  var url = ARC.base + "/" + encodeURIComponent(m.zip) + "/";
+  netCharger(url, 2 * 1024 * 1024).then(function(b64){
+    var html = texteDeB64(b64);
+    var prefixe = "/download/drum-machines-collection/" + encodeURIComponent(m.zip) + "/";
+    var vus = {}, l = [];
+    function ajoute(interne){
+      if(!interne || vus[interne]) return;
+      vus[interne] = 1;
+      l.push({interne:interne, nom:decodeURIComponent(interne).split("/").pop()});
+    }
+    var re = /href="([^"]+)"/gi, x;
+    while((x = re.exec(html))){
+      if(!/\.(wav|aif|aiff)$/i.test(x[1])) continue;
+      if(x[1].indexOf(prefixe) >= 0) ajoute(x[1].slice(x[1].indexOf(prefixe) + prefixe.length));
+    }
+    if(!l.length){
+      re = /href="([^"]+)"/gi;
+      while((x = re.exec(html))){
+        if(!/\.(wav|aif|aiff)$/i.test(x[1])) continue;
+        if(/^https?:/i.test(x[1]) || x[1].charAt(0) === "/") continue;
+        ajoute(x[1].replace(/^\.\//, ""));
+      }
+    }
+    if(!l.length) throw "aucun son lisible";
+    var choisis = rangerArcm(l);
+    return arcmSuite(m, choisis, 0, motifArcm());
+  }).catch(function(e){
+    ARC.occupe = false;
+    majArcUI();
+    signal("CHARGEMENT IMPOSSIBLE · " + String(e).toUpperCase());
+  });
+}
+/* les sons sont pris un par un : on voit l'avancement et une panne isolée
+   n'emporte pas tout le kit */
+function arcmSuite(m, choisis, i, motif){
+  if(i >= 16){
+    ARC.occupe = false;
+    ARCM.nom = m.nom;
+    ARCM.motifs = [];
+    for(var z=0; z<8; z++) ARCM.motifs.push(z === 0 ? motif : motifArcm());
+    ARCM.cur = 0; ARCM.sel = 0;
+    var p = motif.pistes[0];
+    if(p.ech){ p.pas = 0x1111; }
+    if(motif.pistes[1].ech) motif.pistes[1].pas = 0x0440;
+    if(motif.pistes[4].ech) motif.pistes[4].pas = 0x5555;
+    memArcm();
+    fermerBib();
+    activerArcm();
+    signal(m.nom.toUpperCase() + " CHARGÉE · " +
+           motif.pistes.filter(function(q){ return q.ech; }).length + " SONS");
+    H.inter();
+    return;
+  }
+  var ch = choisis[i];
+  if(!ch) return arcmSuite(m, choisis, i + 1, motif);
+  var f = ch.f;
+  signal("CHARGEMENT " + (i + 1) + "/16 · " + f.nom);
+  var url = ARC.base + "/" + encodeURIComponent(m.zip) + "/" + f.interne;
+  return netCharger(url, 2 * 1024 * 1024).then(function(b64){
+    var o = b64VersOctets(b64);
+    return new Promise(function(ok, rej){
+      ctx.decodeAudioData(o.buffer.slice(0), ok, function(){ rej("format refusé"); });
+    });
+  }).then(function(buf){
+    var court = reduireEch(buf, 32000, 6);
+    var id = "a" + Date.now().toString(36) + i;
+    ES.buf[id] = court;
+    ES.noms[id] = "archive";
+    BIB.noms[id] = (m.nom.split(" ")[0] + " " + f.nom.replace(/\.[^.]+$/, "")).slice(0, 28);
+    sauverEch(id, court);
+    motif.pistes[i].ech = id;
+    /* le nom du rôle seulement si le son a bien été reconnu ; sinon celui du
+       fichier, pour ne pas afficher COWB au-dessus d'un shaker */
+    motif.pistes[i].nom = ch.role ? ARCM_ROLES[i].n
+                                  : f.nom.replace(/\.[^.]+$/, "").replace(/^.*[_\- ]/, "").slice(0, 8);
+    return arcmSuite(m, choisis, i + 1, motif);
+  }).catch(function(){
+    /* ce son-là n'a pas voulu : on passe au suivant sans perdre le reste */
+    return arcmSuite(m, choisis, i + 1, motif);
+  });
+}
+
+/* ---------- interface ---------- */
+(function construireArcm(){
+  var sel = document.getElementById("arcm-sel");
+  for(var i=0;i<16;i++){
+    var b = document.createElement("button");
+    b.dataset.k = i;
+    sel.appendChild(b);
+  }
+  sel.addEventListener("click", function(e){
+    var b2 = e.target.closest("button");
+    if(!b2) return;
+    ARCM.sel = +b2.dataset.k;
+    if(!S.run){
+      audioInit();
+      voixArcm(ctx.currentTime + 0.01, ARCM.sel, true);
+    }
+    majArcm(); majKnobsArcm(); H.cran();
+  });
+  var pas = document.getElementById("arcm-pas");
+  for(var j=0;j<16;j++){
+    var b3 = document.createElement("button");
+    b3.dataset.i = j;
+    pas.appendChild(b3);
+    arcmPas.push(b3);
+  }
+  pas.addEventListener("click", function(e){
+    var b4 = e.target.closest("button");
+    if(!b4) return;
+    var i2 = +b4.dataset.i, P = pisteArcmSel();
+    if(ARCM.accent) P.acc ^= (1 << i2);
+    else {
+      P.pas ^= (1 << i2);
+      if(!S.run && (P.pas & (1 << i2))){
+        audioInit();
+        voixArcm(ctx.currentTime + 0.01, ARCM.sel, !!(P.acc & (1 << i2)));
+      }
+    }
+    majArcm(); memArcm(); H.cran();
+  });
+})();
+
+function knobArcm(nom, etiq, min, max){
+  return knobEm("arcm-k-" + nom, {min:min, max:max,
+    get:function(){ return pisteArcmSel()[nom]; },
+    set:function(v){
+      pisteArcmSel()[nom] = v;
+      lcdArcm(String(Math.round(v * 100)), etiq, true);
+      memArcm();
+    }});
+}
+var kArcmNiv = knobArcm("niv", "LEVEL", 0, 1);
+var kArcmPan = knobArcm("pan", "PAN", -1, 1);
+var kArcmTune = knobArcm("tune", "TUNE", 0, 1);
+var kArcmDec = knobArcm("dec", "DECAY", 0.05, 1);
+var kArcmDebut = knobArcm("debut", "START", 0, 1);
+var kArcmFilt = knobArcm("filt", "FILTER", 0, 1);
+var kArcmVol = knobEm("arcm-k-vol", {min:0, max:1, get:function(){ return S.vol; },
+  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+    lcdArcm(String(Math.round(v*100)), "VOLUME", true); saveSoon(); }});
+var kArcmTempo = knobEm("arcm-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 40) / 220; },
+  set:function(v){ S.bpm = Math.round(40 + v*220); lcdArcm(String(S.bpm), "TEMPO", true); saveSoon(); }});
+function majKnobsArcm(){
+  [kArcmNiv, kArcmPan, kArcmTune, kArcmDec, kArcmDebut, kArcmFilt, kArcmVol, kArcmTempo]
+    .forEach(function(k){ k.maj(); });
+}
+var arcmTmr = null;
+function lcdArcm(v, l, fugace){
+  var a = document.getElementById("arcm-val"), b = document.getElementById("arcm-lab");
+  if(!a) return;
+  a.textContent = v; b.textContent = l;
+  clearTimeout(arcmTmr);
+  if(fugace) arcmTmr = setTimeout(majLcdArcm, 1300);
+}
+function majLcdArcm(){
+  var P = pisteArcmSel();
+  if(!ARCM.nom){ lcdArcm("VIDE", "CHARGEZ UN KIT DEPUIS LA BIBLIOTHÈQUE"); return; }
+  lcdArcm(P.nom || ("PISTE " + (ARCM.sel + 1)), ARCM.nom.slice(0, 22));
+}
+function majArcm(){
+  var m = motifArcmCur(), P = m.pistes[ARCM.sel], i;
+  var bs = document.querySelectorAll("#arcm-sel button");
+  for(i=0;i<bs.length;i++){
+    var Q = m.pistes[i];
+    bs[i].textContent = Q.nom || String(i + 1);
+    bs[i].classList.toggle("on", i === ARCM.sel);
+    bs[i].classList.toggle("vide", !Q.ech);
+  }
+  for(i=0;i<16;i++){
+    arcmPas[i].classList.toggle("act", ARCM.accent ? !!(P.acc & (1 << i)) : !!(P.pas & (1 << i)));
+    arcmPas[i].classList.toggle("hors", i >= m.last);
+  }
+  document.getElementById("arcm-accent").classList.toggle("on", ARCM.accent);
+  document.getElementById("arcm-last").textContent = "LAST " + m.last;
+  document.getElementById("arcm-ptn").textContent = "PTN " + (ARCM.cur + 1);
+  document.getElementById("arcm-notice").textContent = ARCM.nom || "MACHINE D'ARCHIVE";
+  majLcdArcm();
+}
+function memArcm(){
+  memoire.arcm = {nom:ARCM.nom, cur:ARCM.cur, sel:ARCM.sel,
+    motifs:ARCM.motifs.map(function(m){
+      return {last:m.last, pistes:m.pistes.map(function(P){
+        return {ech:P.ech, nom:P.nom, pas:P.pas, acc:P.acc, niv:P.niv, pan:P.pan,
+                tune:P.tune, dec:P.dec, debut:P.debut, filt:P.filt};
+      })};
+    })};
+  sauverMachine("arcm");
+}
+function chargerArcm(){
+  ARCM.motifs = [];
+  for(var i=0;i<8;i++) ARCM.motifs.push(motifArcm());
+  ARCM.nom = ""; ARCM.cur = 0; ARCM.sel = 0;
+  var m = memLire("arcm");
+  if(m){
+    if(m.nom) ARCM.nom = m.nom;
+    if(m.motifs && m.motifs.length === 8){
+      ARCM.motifs = m.motifs.map(function(o){
+        var r = motifArcm();
+        r.last = o.last || 16;
+        (o.pistes || []).forEach(function(P, k){
+          if(k >= 16) return;
+          for(var q in P) if(r.pistes[k][q] !== undefined) r.pistes[k][q] = P[q];
+        });
+        return r;
+      });
+    }
+    if(typeof m.cur === "number") ARCM.cur = m.cur;
+    if(typeof m.sel === "number") ARCM.sel = m.sel;
+  }
+}
+document.getElementById("arcm-play").addEventListener("click", function(){
+  audioInit(); banqueEs();
+  if(S.run){ stop(); H.stop(); } else { step = 0; start(); H.start(); }
+  this.classList.toggle("on", S.run);
+});
+document.getElementById("arcm-accent").addEventListener("click", function(){
+  ARCM.accent = !ARCM.accent; majArcm(); H.inter();
+});
+document.getElementById("arcm-last").addEventListener("click", function(){
+  var m = motifArcmCur(), v = [16, 12, 8, 4];
+  m.last = v[(v.indexOf(m.last) + 1) % v.length];
+  majArcm(); memArcm(); H.cran();
+});
+document.getElementById("arcm-ptn").addEventListener("click", function(){
+  memArcm();
+  ARCM.cur = (ARCM.cur + 1) % 8;
+  majArcm(); majKnobsArcm(); H.inter();
+});
+document.getElementById("arcm-clear").addEventListener("click", function(){
+  var P = pisteArcmSel();
+  P.pas = 0; P.acc = 0;
+  majArcm(); memArcm(); H.inter();
+});
+document.getElementById("arcm-kits").addEventListener("click", function(){
+  signal(ARCM.nom ? ("KIT COURANT : " + ARCM.nom.toUpperCase()) : "AUCUN KIT · PASSEZ PAR LA BIBLIOTHÈQUE");
+});
+document.getElementById("arcm-bib").addEventListener("click", function(){
+  ouvrirBib();
+  BIB.onglet = 3;
+  majBibUI();
+});
+document.getElementById("arcm-notice").addEventListener("click", function(){ ouvrirNotice(); });
+
+var unitArcm = document.getElementById("unit-arcm");
+function activerArcm(){
+  stop();
+  S.modele = "arcm";
+  MACHINE = MACHINE_ARCM;
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
+                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
+  document.body.classList.add("arcm");
+  audioInit(); banqueEs(); chargerEchs();
+  chargerArcm();
+  ARCM.noeuds = [];
+  majArcm(); majKnobsArcm();
+  actif = unitArcm;
+  save(); fit(); setTimeout(fit, 120);
+}
+
 /* ===================== ROLAND TR-1000 =====================
    Hybride : chaque instrument a une voix analogique (couche A) et une couche
    d'échantillon (couche B), mélangées par un potard. Le curseur MORPH
@@ -13071,7 +13559,7 @@ function activerT1k(){
   S.modele = "t1k";
   MACHINE = MACHINE_T1K;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("t1k");
   audioInit(); banqueEs(); chargerEchs();
   chargerT1k();
@@ -13561,7 +14049,7 @@ function activerDbi(){
   S.modele = "dbi";
   MACHINE = MACHINE_DBI;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("dbi");
   audioInit();
   chargerDbi();
@@ -13910,7 +14398,7 @@ function activerCr(){
   S.modele = "cr5";
   MACHINE = MACHINE_CR;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("cr5");
   audioInit();
   chargerCr();
@@ -14334,7 +14822,7 @@ function activerVlc(){
   S.modele = "vlc";
   MACHINE = MACHINE_VLC;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+                                 "tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("vlc");
   audioInit(); banqueEs(); chargerEchs();
   chargerVlc();
@@ -14769,7 +15257,7 @@ function activerDmx(){
   stop();
   S.modele = "dmx";
   MACHINE = MACHINE_DMX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   document.body.classList.add("dmx");
   audioInit();
   chargerDmx();
@@ -15197,6 +15685,7 @@ function bibRendreArchive(corps){
     corps.appendChild(h0);
     var a1 = document.createElement("div"); a1.className = "bib-actions";
     boutonBib(a1, "◀ TOUTES LES MACHINES", function(){ ARC.machine = null; ARC.fichiers = []; majArcUI(); });
+    boutonBib(a1, "EN FAIRE UNE MACHINE", function(){ arcmCharger(ARC.machine); }, false);
     corps.appendChild(a1);
     if(ARC.occupe && !ARC.fichiers.length){
       var pw = document.createElement("p"); pw.style.opacity = ".7";
@@ -15240,6 +15729,7 @@ function bibRendreArchive(corps){
     var li = ligneBib(m.nom, octetsTexteCourt(m.taille));
     var a = document.createElement("div"); a.className = "bib-actions";
     boutonBib(a, "OUVRIR", function(){ arcOuvrirMachine(m); });
+    boutonBib(a, "EN FAIRE UNE MACHINE", function(){ arcmCharger(m); });
     li.appendChild(a);
     corps.appendChild(li);
   });
@@ -16423,7 +16913,7 @@ function appliquerModele(id){
   stop();
   MACHINE = MACHINE_EHX;
   actif = unit;
-  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k");
+  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5","dbi","t1k","arcm");
   S.modele = id;
   MODELE = MODELES[id];
   var r = memoire[id];
@@ -16466,7 +16956,8 @@ function majVoileMenu(){
   v.classList.toggle("vu", reste > 12);
 }
 function allerMachine(id){
-  if(id === "t1k") activerT1k();
+  if(id === "arcm") activerArcm();
+  else if(id === "t1k") activerT1k();
   else if(id === "dbi") activerDbi();
   else if(id === "cr5") activerCr();
   else if(id === "vlc") activerVlc();
@@ -16519,6 +17010,7 @@ else if(memoire.modele === "vlc") activerVlc();
 else if(memoire.modele === "cr5") activerCr();
 else if(memoire.modele === "dbi") activerDbi();
 else if(memoire.modele === "t1k") activerT1k();
+else if(memoire.modele === "arcm") activerArcm();
 else appliquerModele(memoire.modele);
 menu.classList.remove("hide");
 document.body.classList.add("menu-ouvert");
