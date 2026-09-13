@@ -1866,6 +1866,13 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <p>Le motif part dans sa <b>mémoire d'édition</b>, jamais dans un emplacement rangé : rien n'est écrasé
   tant que vous n'appuyez pas sur Write sur la machine elle-même. La lecture est arrêtée d'office, les
   Electribe n'acceptant rien pendant qu'elles tournent.</p>
+  <h3>Piloter la machine au doigt</h3>
+  <p>Quand ce réglage est actif, tourner un bouton dans l'application envoie le message correspondant à la
+  machine branchée : elle suit en direct. <b>ES-1</b> et <b>EMX-1</b> sont adressés partie par partie ;
+  sur l'<b>ER-1</b>, les messages s'appliquent à la partie choisie sur la machine elle-même, son
+  implémentation ne permettant pas de la désigner à distance.</p>
+  <p><button class="sec" id="b-tele"></button></p>
+
   <p><button class="sec" id="b-exc-lire">LIRE LE MOTIF DE LA MACHINE</button>
      <button class="sec" id="b-exc-envoi" disabled>ENVOYER LE MOTIF</button></p>
   <p id="exc-etat" style="opacity:.8">Aucun gabarit. Lisez d'abord le motif courant de la machine.</p>
@@ -4924,6 +4931,7 @@ function knobEr(id, champ, min, max){
     set:function(v){
       ER.pat.son[ER.sel][champ] = v;
       enregMotionEr(champ, v);
+      teleEr(champ, v);
       lcdEr(String(Math.round((champ==="pan"? v*63 : v*127))), champ.toUpperCase(), true);
     }});
 }
@@ -4947,12 +4955,12 @@ var kErModT  = knobEm("er-k-modt",{min:0,max:5,
   }});
 var kErDDep = knobEm("er-k-ddep",{min:0,max:1,get:function(){return ER.dDep;},set:function(v){
   ER.dDep=v; if(dlyIn) dlyIn.gain.setTargetAtTime(v*0.6, ctx.currentTime, 0.05);
-  motFxEcrire(ER.pat.motFx, "dDep", v, ER.rec && S.run, ER.pos);
+  motFxEcrire(ER.pat.motFx, "dDep", v, ER.rec && S.run, ER.pos); teleEr("dDep", v);
   lcdEr(String(Math.round(v*127)),"DELAY DEPTH",true);
 }});
 var kErDTime = knobEm("er-k-dtime",{min:0,max:1,get:function(){return ER.dTime;},set:function(v){
   ER.dTime=v; majDelaiEr();
-  motFxEcrire(ER.pat.motFx, "dTime", v, ER.rec && S.run, ER.pos);
+  motFxEcrire(ER.pat.motFx, "dTime", v, ER.rec && S.run, ER.pos); teleEr("dTime", v);
   lcdEr(String(Math.round(v*127)),"DELAY TIME",true);
 }});
 function majDelaiEr(){
@@ -6298,6 +6306,7 @@ function echantillonner(){
   bt.addEventListener("click", function(e){
     var u=e.target.closest("u"); if(!u) return;
     EM.fxType=+u.dataset.t; construireFx(); majLedsEs();
+    teleEs1(-1, "fxType", EXC_FX_ES1[EM.fxType] || 0);
     lcdEs(String(EM.fxType+1), FX_NOMS[EM.fxType].toUpperCase(), true); H.cran();
   });
 
@@ -6463,6 +6472,7 @@ function knobEs(id, champ, min, max, nom){
     get:function(){ return ES.pat.son[ES.sel][champ]; },
     set:function(v){
       ES.pat.son[ES.sel][champ]=v; enregMotionEs(champ,v);
+      teleEs1(ES.sel, champ, v);
       lcdEs(String(Math.round(v*127)), nom, true);
     }});
 }
@@ -6475,13 +6485,13 @@ var kEsFilt  = knobEs("es-k-filt","filt",0,1,"FILTER");
 var kEsLvl   = knobEs("es-k-lvl","lvl",0,1,"LEVEL");
 var kEsPan   = knobEs("es-k-pan","pan",-1,1,"PAN");
 var kEsE1 = knobEm("es-k-e1",{min:0,max:1,get:function(){return EM.e1;},
-  set:function(v){ EM.e1=v; construireFx(); lcdEs(String(Math.round(v*127)),"EDIT 1",true); }});
+  set:function(v){ EM.e1=v; construireFx(); teleEs1(-1,"e1",v); lcdEs(String(Math.round(v*127)),"EDIT 1",true); }});
 var kEsE2 = knobEm("es-k-e2",{min:0,max:1,get:function(){return EM.e2;},
-  set:function(v){ EM.e2=v; construireFx(); lcdEs(String(Math.round(v*127)),"EDIT 2",true); }});
+  set:function(v){ EM.e2=v; construireFx(); teleEs1(-1,"e2",v); lcdEs(String(Math.round(v*127)),"EDIT 2",true); }});
 var kEsDDep = knobEm("es-k-ddep",{min:0,max:1,get:function(){return ES.dDep;},
-  set:function(v){ ES.dDep=v; majDelaiEs(); lcdEs(String(Math.round(v*127)),"DELAY DEPTH",true); }});
+  set:function(v){ ES.dDep=v; majDelaiEs(); teleEs1(-1,"dDep",v); lcdEs(String(Math.round(v*127)),"DELAY DEPTH",true); }});
 var kEsDTime = knobEm("es-k-dtime",{min:0,max:1,get:function(){return ES.dTime;},
-  set:function(v){ ES.dTime=v; majDelaiEs(); lcdEs(String(Math.round(v*127)),"DELAY TIME",true); }});
+  set:function(v){ ES.dTime=v; majDelaiEs(); teleEs1(-1,"dTime",v); lcdEs(String(Math.round(v*127)),"DELAY TIME",true); }});
 function majKnobsEs(){ [kEsPitch,kEsFilt,kEsLvl,kEsPan].forEach(function(k){ k.maj(); }); }
 
 /* --- molette --- */
@@ -7483,6 +7493,7 @@ function knobMx(id, champ, min, max, nom, synthSeul){
     set:function(v){
       if(synthSeul && MX.sel<10){ lcdMx("---","PARTIE DE SYNTHÉ SEULEMENT",true); return; }
       MX.pat.son[MX.sel][champ]=v; enregMotionMx(champ,v);
+      teleMx(MX.sel, champ, v);
       lcdMx(String(Math.round((champ==="pan"||champ==="pitch") ? v*63 : v*127)), nom, true);
     }});
 }
@@ -7507,11 +7518,11 @@ var kMxMs    = knobMx("mx-k-mspeed","mspeed",0,1,"MOD SPEED",true);
 var kMxMd    = knobMx("mx-k-mdepth","mdepth",0,1,"MOD DEPTH",true);
 var kMxF1 = knobEm("mx-k-fx1",{min:0,max:1,get:function(){return MX.fx[MX.slot].e1;},
   set:function(v){ MX.fx[MX.slot].e1=v; if(!majFxMx(MX.slot)) cablerFxMx();
-    motFxEcrire(MX.pat.motFx, "e1", v, MX.rec && S.run, MX.pos);
+    motFxEcrire(MX.pat.motFx, "e1", v, MX.rec && S.run, MX.pos); teleMxFx(MX.slot, 1, v);
     lcdMx(String(Math.round(v*127)),"FX "+(MX.slot+1)+" EDIT 1",true); }});
 var kMxF2 = knobEm("mx-k-fx2",{min:0,max:1,get:function(){return MX.fx[MX.slot].e2;},
   set:function(v){ MX.fx[MX.slot].e2=v; if(!majFxMx(MX.slot)) cablerFxMx();
-    motFxEcrire(MX.pat.motFx, "e2", v, MX.rec && S.run, MX.pos);
+    motFxEcrire(MX.pat.motFx, "e2", v, MX.rec && S.run, MX.pos); teleMxFx(MX.slot, 2, v);
     lcdMx(String(Math.round(v*127)),"FX "+(MX.slot+1)+" EDIT 2",true); }});
 function majKnobsMx(){
   [kMxPitch,kMxPan,kMxEg,kMxLvl,kMxO1,kMxO2,kMxCut,kMxRes,kMxEgi,kMxDrv,kMxMs,kMxMd,kMxF1,kMxF2,kMxTube]
@@ -8876,6 +8887,8 @@ function activerSx(){
 /* ===================== MIDI ===================== */
 var MIDI = {dispo:false, liste:[], ouvert:-1, out:true, in:true, clock:false,
             canal:9, canalSy:0, base:36, sync:false};
+/* pilotage des vraies machines : déclaré tôt, la notice s'en sert au chargement */
+var TELE = {actif:false, dernier:{}, tmr:{}};
 /* horloge reçue de l'extérieur : l'application devient esclave */
 var SYNC = {ticks:0, dernier:0, bpmEst:120, attente:false};
 (function chargerMidi(){
@@ -8888,10 +8901,11 @@ var SYNC = {ticks:0, dernier:0, bpmEst:120, attente:false};
   if(typeof m.canalSy === "number") MIDI.canalSy = Math.max(0, Math.min(15, m.canalSy|0));
   if(typeof m.base === "number") MIDI.base = Math.max(0, Math.min(96, m.base|0));
   if(typeof m.sync === "boolean") MIDI.sync = m.sync;
+  if(typeof m.tele === "boolean") TELE.actif = m.tele;
 })();
 function memMidi(){
   memoire.midi = {out:MIDI.out, in:MIDI.in, clock:MIDI.clock, canal:MIDI.canal,
-                  canalSy:MIDI.canalSy, base:MIDI.base, sync:MIDI.sync};
+                  canalSy:MIDI.canalSy, base:MIDI.base, sync:MIDI.sync, tele:TELE.actif};
   writeMem();
 }
 var GM = {bd:36, sd:38, cp:39, lt:45, hh:42, oh:46, rd:51, cy:49, wb:76, cb:56, sp:41};
@@ -9095,6 +9109,14 @@ var bScan = document.getElementById("b-midi-scan");
 var boxMidi = document.getElementById("midi-liste");
 var bOut = document.getElementById("b-midi-out"), bIn = document.getElementById("b-midi-in");
 var bClk = document.getElementById("b-midi-clk"), bCh = document.getElementById("b-midi-ch");
+var bTele = document.getElementById("b-tele");
+function labelTele(){ bTele.textContent = "PILOTER LA MACHINE : " + (TELE.actif ? "OUI" : "NON"); }
+bTele.addEventListener("click", function(){
+  TELE.actif = !TELE.actif; labelTele(); memMidi(); H.cran();
+  signal(TELE.actif ? "LES BOUTONS PILOTENT LA MACHINE BRANCHÉE" : "PILOTAGE COUPÉ");
+});
+labelTele();
+
 document.getElementById("b-exc-lire").addEventListener("click", function(){ excDemanderMotif(); H.cran(); });
 document.getElementById("b-exc-envoi").addEventListener("click", function(){ excEnvoyerMotif(); H.inter(); });
 
@@ -9158,6 +9180,112 @@ bSync.addEventListener("click", function(){
   if(p){ try{ MIDI.dispo = !!p.midiDispo(); }catch(e){} }
   majMidiUI();
 })();
+
+/* ================= télécommande des vraies machines =================
+   Quand un bouton bouge dans l'application, le message correspondant part vers
+   la machine branchée. Tables : ES-1 d'après sa notice d'implémentation officielle,
+   EMX-1 et ER-1 d'après midi.guide (licence CC BY-SA 4.0). */
+
+function nrpnEnvoyer(canal, msb, lsb, val){
+  var v = Math.max(0, Math.min(127, Math.round(val)));
+  midiBrut(0xB0|canal, 99, msb & 0x7F);
+  midiBrut(0xB0|canal, 98, lsb & 0x7F);
+  midiBrut(0xB0|canal, 6, v);
+}
+function ccEnvoyer(canal, num, val){
+  midiBrut(0xB0|canal, num & 0x7F, Math.max(0, Math.min(127, Math.round(val))));
+}
+/* un doigt produit soixante mouvements par seconde : on en garde vingt-cinq,
+   la dernière valeur étant toujours transmise */
+function teleLimiter(cle, fn){
+  var now = performance.now();
+  if(now - (TELE.dernier[cle] || 0) >= 40){ TELE.dernier[cle] = now; fn(); return; }
+  clearTimeout(TELE.tmr[cle]);
+  TELE.tmr[cle] = setTimeout(function(){ TELE.dernier[cle] = performance.now(); fn(); }, 45);
+}
+function telePret(){ return TELE.actif && MIDI.out && midiPret(); }
+function sept01(v){ return v*127; }
+function septCentre(v){ return (v+1)/2*127; }
+function septBool(b){ return b ? 127 : 0; }
+
+/* ---------- ES-1 : NRPN de poids fort 5, sept paramètres par partie ---------- */
+var TELE_ES1_PART = {pitch:0, lvl:1, filt:2, pan:3, fx:4, roll:5, rev:6};
+var TELE_ES1_GLOB = {dDep:96, dTime:97, fxType:98, e1:99, e2:100, bpmSync:101, accent:104};
+function teleEs1(k, champ, v){
+  if(!telePret()) return;
+  var c = MIDI.canal;
+  if(k >= 0 && TELE_ES1_PART[champ] !== undefined && k < 10){
+    var lsb = k*8 + TELE_ES1_PART[champ];
+    var val = (champ === "pan" || champ === "pitch") ? septCentre(v)
+            : (champ === "fx" || champ === "roll" || champ === "rev") ? septBool(v)
+            : sept01(v);
+    teleLimiter("es"+lsb, function(){ nrpnEnvoyer(c, 5, lsb, val); });
+    return;
+  }
+  var g = TELE_ES1_GLOB[champ];
+  if(g === undefined) return;
+  var val2 = (champ === "fxType") ? v : (champ === "bpmSync") ? septBool(v) : sept01(v);
+  teleLimiter("esg"+g, function(){ nrpnEnvoyer(c, 5, g, val2); });
+}
+
+/* ---------- EMX-1 : percussions en NRPN, synthés en CC sur leur canal ---------- */
+var TELE_MX_DRUM = {tim:0, pitch:1, lvl:7, pan:8, eg:9, amp:10, roll:11,
+                    send:13, slot:14, mwave:15, mdepth:16, mspeed:17, mdest:18, msync:19};
+var TELE_MX_SYN = {lvl:7, pan:10, eg:75, cut:74, res:71, egi:79, drv:84,
+                   o1:14, o2:15, osc:70, mspeed:89, mdepth:90, mwave:87, mdest:88,
+                   msync:82, ftype:83, amp:86, roll:85, send:91, slot:81};
+function teleMx(k, champ, v){
+  if(!telePret()) return;
+  if(k < 9){                                   /* percussion */
+    var off = TELE_MX_DRUM[champ];
+    if(off === undefined) return;
+    var plat = 1184 + 32*k + off;
+    var val = (champ === "pitch" || champ === "pan" || champ === "mdepth") ? septCentre(v)
+            : (champ === "amp" || champ === "roll" || champ === "send" || champ === "msync") ? septBool(v)
+            : (champ === "slot") ? [0,64,127][v] || 0
+            : (champ === "mwave") ? [8,24,40,56,96][v] || 0
+            : (champ === "mdest") ? [8,48,100][Math.min(2,v)] || 0
+            : (champ === "tim") ? v
+            : sept01(v);
+    teleLimiter("mx"+plat, function(){ nrpnEnvoyer(MIDI.canal, plat>>7, plat&127, val); });
+    return;
+  }
+  if(k >= 10 && k !== 15){                     /* synthé */
+    var num = TELE_MX_SYN[champ];
+    if(num === undefined) return;
+    var canal = Math.min(15, MIDI.canalSy + (k-10));
+    var val2 = (champ === "pan" || champ === "egi" || champ === "mdepth") ? septCentre(v)
+             : (champ === "amp" || champ === "roll" || champ === "send" || champ === "msync") ? septBool(v)
+             : (champ === "slot") ? [0,64,127][v] || 0
+             : (champ === "ftype") ? [0,40,80,110][v] || 0
+             : (champ === "mwave") ? [8,24,40,56,96][v] || 0
+             : (champ === "mdest") ? [8,24,40,56,72,100][v] || 0
+             : (champ === "osc") ? Math.min(127, v*8+4)
+             : sept01(v);
+    teleLimiter("mxs"+canal+"_"+num, function(){ ccEnvoyer(canal, num, val2); });
+  }
+}
+var TELE_MX_FX = [[12,92,93],[13,94,95],[24,25,26]];
+function teleMxFx(slot, quoi, v){
+  if(!telePret() || slot < 0 || slot > 2) return;
+  var num = TELE_MX_FX[slot][quoi];
+  var val = (quoi === 0) ? Math.min(127, v*8+4) : sept01(v);
+  teleLimiter("mxfx"+num, function(){ ccEnvoyer(MIDI.canal, num, val); });
+}
+
+/* ---------- ER-1 : NRPN de poids fort 2, appliqué à la partie choisie sur la machine ---------- */
+var TELE_ER = {pitch:2, modD:6, modS:5, modT:4, wave:3, dec:8, lvl:7, pan:1, boost:0,
+               dDep:100, dTime:101};
+function teleEr(champ, v){
+  if(!telePret()) return;
+  var lsb = TELE_ER[champ];
+  if(lsb === undefined) return;
+  var val = (champ === "pan" || champ === "modD") ? septCentre(v)
+          : (champ === "modT") ? Math.min(127, v*21)
+          : (champ === "wave") ? septBool(v)
+          : sept01(v);
+  teleLimiter("er"+lsb, function(){ nrpnEnvoyer(MIDI.canal, 2, lsb, val); });
+}
 
 /* ================= transfert exclusif vers une vraie Korg =================
    Deux formats connus : l'ES-1 (en-tête F0 42 3c 57, motif de 1732 octets) et

@@ -243,6 +243,29 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Télécommande des vraies machines (version 30)
+
+Avec le réglage **PILOTER LA MACHINE**, tourner un bouton dans l'application envoie le message
+correspondant à la Korg branchée : elle suit en direct.
+
+- **ES-1** : NRPN de poids fort 5, sept paramètres par partie (hauteur, niveau, filtre, panoramique,
+  envoi d'effet, roulement, lecture inversée), plus le délai, le type et les réglages d'effet et le niveau
+  d'accent. D'après sa notice d'implémentation officielle.
+- **EMX-1** : percussions en NRPN adressé partie par partie (poids fort 9 à 11, quinze paramètres chacune),
+  synthés en contrôleurs continus sur leur propre canal, effets et chaîne en contrôleurs globaux.
+  D'après midi.guide, licence CC BY-SA 4.0.
+- **ER-1** : NRPN de poids fort 2. Les messages s'appliquent à la partie choisie sur la machine elle-même :
+  son implémentation ne permet pas de la désigner à distance, et c'est dit dans la notice.
+
+Le débit est limité à vingt-cinq messages par seconde et par paramètre, la dernière valeur étant toujours
+transmise : un doigt qui tourne produit soixante mouvements par seconde, soit cent quatre-vingts messages
+NRPN — plus que ne peut en absorber une liaison MIDI à 31250 bauds. Mesuré : soixante mouvements donnent
+deux messages.
+
+Vérifié message par message : ES-1 partie 3 niveau → `5/17/127`, panoramique à gauche → `5/19/0`,
+délai → `5/96` et `5/97` ; EMX-1 percussion 1 niveau → `9/39`, percussion 7B hauteur → `11/33`,
+synthé 1 coupure → CC 74 sur son canal, effet 2 → CC 94 sur le canal global.
+
 ## Transfert de motifs par exclusif (version 29)
 
 Deux formats implantés d'après les tableaux d'implémentation MIDI officiels : l'**ES-1**
