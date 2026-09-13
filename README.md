@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Vingt-trois machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+**Vingt-quatre machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
 en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -243,6 +243,25 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Behringer TD-3 (version 54)
+
+Vingt-quatrième machine, et la première vraiment mélodique après l'EA-1. La 303 remise en circuit, avec ce
+qui fait tout son caractère : un filtre résonant à **quatre pôles** balayé par une enveloppe, un accent qui
+pousse le volume **et** le filtre, et un glissando qui enchaîne deux notes sans réattaquer.
+
+**Une architecture différente de toutes les autres.** Les vingt-trois machines précédentes créent leurs
+nœuds à chaque coup. Impossible ici : on ne peut pas glisser d'un oscillateur à un autre. La TD-3 garde
+donc **une voix permanente** — oscillateur, deux filtres en série, ampli — dont on automatise la fréquence
+et les enveloppes. Vérifié : lors d'un glissando, le niveau ne retombe qu'à 0,209 contre 1,062 avant, au
+lieu de repartir de zéro comme une réattaque.
+
+**Une correction de niveau.** La machine dépassait la pleine échelle — jusqu'à 1,43 avec accent. Un filtre
+résonant amplifie sa bande ; le gain est maintenant rendu en fonction de la résonance, comme le fait le
+circuit. Mesuré avec la chaîne maîtresse : de 0,37 à 0,78 selon les réglages, aucune saturation.
+
+Trente-deux motifs en quatre groupes de huit, clavier de treize touches, marques d'accent, glissando et
+tenue par pas, tirage d'une ligne en gamme mineure, distorsion, choix de l'onde, cinq teintes.
 
 ## Behringer RD-6 (version 53)
 
