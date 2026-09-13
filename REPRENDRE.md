@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **76**.
+La version actuelle est la **77**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,41 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Grand contrôle — v77**
+
+Treize familles de vérifications passées à la machine. **Un bug réel trouvé, sérieux.**
+
+*Corrigé : la BIBLIOTHÈQUE se vidait dès qu'on ouvrait la notice.*
+`id="note-bar"` désignait **quatre** éléments et `id="note-corps"` **trois** : les panneaux bibliothèque,
+travail du MIDI, enregistreur et notice réutilisaient ces identifiants pour partager le style. Or le corps
+de la bibliothèque porte la classe `doc`, et `montrerDoc()` faisait
+`document.querySelectorAll("#note-corps .doc")` — un sélecteur d'identifiant en `querySelectorAll` matche
+**tous** les éléments concernés, pas le premier. Ouvrir la notice retirait donc la classe `vu` au corps de
+la bibliothèque, que **rien ne remettait** : panneau vide jusqu'au redémarrage. Au passage, `construireNav`
+lui fabriquait aussi un onglet sans titre.
+
+Correctif en deux temps : `note-bar` et `note-corps` deviennent des **classes** (c'étaient des styles, pas
+des identités) dans le HTML et le CSS ; et la notice ne cherche plus que **dans son propre panneau**, via
+`noteEl.querySelectorAll(".doc")`. Plus aucun identifiant en double dans le fichier.
+**Règle** : un panneau qui réutilise le style `note-corps` ne doit jamais reprendre un identifiant.
+
+*Vérifié sain* — rien à faire :
+- 25 tuiles du menu ↔ `allerMachine` ↔ `docDeLaMachine` ↔ routage MIDI : couverture complète.
+- 17 objets `MACHINE_*` : contrat respecté.
+- `debrancherTout` appelé avant chaque remise à zéro de cache.
+- Les 13 conteneurs de potards sont dans `estCommande` ; seuls `tr8-k-tone` et `tr8-k-drive` gardent
+  l'identifiant sur le bouton, exception documentée (44 px).
+- 81 modules construits, potards aux deux bornes, valeurs finies, prises réelles.
+- 20 montages : prises, cohérence musicale, propagation des impulsions.
+- Mémoire : 10 clés de machine + `eur`, sans collision. `rackCourant` écrit neuf champs, `poserRack` les
+  relit tous.
+- Notice : 81 fiches pour 81 modules, et les huit nombres annoncés par famille correspondent au code.
+
+*Piège de méthode rencontré deux fois.* La sonde de propagation appelait `recevoir` sur **toutes** les
+entrées, y compris les nouvelles `rst` : elle remettait les compteurs à zéro entre deux essais et masquait
+`trig4.tb` et `trig4.td`. Corrigée en excluant `rst`. **Quand un contrôle signale une régression après
+l'ajout d'une entrée, suspecter d'abord la sonde.**
 
 **Remise à zéro, et deux modules — v76**
 
