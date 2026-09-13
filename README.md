@@ -234,10 +234,19 @@ Autres corrections :
 
 ## Zoom
 
-Deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois ; deux doigts la déplacent ensuite.
-Un seul doigt reste réservé aux commandes : le zoom n'est pris en compte qu'à partir de deux points de
-contact, et tout geste en cours sur un bouton est gelé pendant le pincement, pour qu'un doigt posé sur un
-réglage ne le fasse pas bouger. Pincer jusqu'au bout remet à plat, changer de machine aussi.
+Deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois.
+
+Une fois agrandie, elle se déplace **d'un seul doigt posé sur le fond** : le geste ne démarre que si le
+doigt ne touche ni bouton, ni bouton rotatif, ni case, ni molette, ni ruban — `estCommande()` fait le tri
+en remontant l'arbre. Un doigt sur une commande règle la commande, comme avant. Deux doigts déplacent
+également, où qu'ils soient posés.
+
+**Deux appuis brefs sur le fond** remettent à plat, pincer jusqu'au bout également, changer de machine aussi.
+Le déplacement est borné au débordement réel, avec 26 px de marge pour que les bords restent atteignables ;
+vérifié à 3,6× : façade poussée à fond, le bord droit revient dans l'écran.
+
+Tout geste en cours sur un bouton est gelé pendant un pincement, pour qu'un doigt déjà posé sur un réglage
+ne le fasse pas bouger.
 
 Le zoom vient s'ajouter à la mise à l'échelle automatique : `ZOOM.base` est le facteur calculé pour faire
 tenir la façade, `ZOOM.z` celui de l'utilisateur, et le déplacement est borné au débordement réel.

@@ -1955,9 +1955,12 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   pour les interrupteurs, un départ franc et un double battement à l'arrêt sur la pédale.</p>
   <p>Recréation personnelle hommage aux appareils d'origine ; sans lien avec le fabricant, et sans réutilisation
   de ses échantillons.</p>
-  <p><b>Zoom</b> — deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois. Une fois agrandie,
-  deux doigts la déplacent ; un seul doigt reste réservé aux commandes, pour ne pas les déclencher par
-  mégarde. Pincer jusqu'au bout remet à plat, et changer de machine aussi.</p>
+  <p><b>Zoom</b> — deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois.
+  Une fois agrandie, on la déplace <b>d'un seul doigt posé sur le fond</b> — le châssis, les bandeaux de
+  titre, tout ce qui n'est pas une commande. Un doigt posé sur un bouton règle le bouton, comme avant :
+  rien ne change pour le jeu. Deux doigts déplacent aussi, où qu'ils soient.
+  <b>Deux appuis brefs sur le fond</b> remettent la façade à plat, pincer jusqu'au bout également,
+  et changer de machine aussi.</p>
 
   <p style="margin-bottom:4px"><b>MIDI</b> — branchez la carte USB-C vers MIDI, puis cherchez les appareils.
   En sortie, chaque coup part en note (percussions sur le canal choisi, notes du synthé sur les canaux 1 et 2) ;
@@ -2691,8 +2694,8 @@ var PINCE = false;
 var ZOOM = {base:1, z:1, tx:0, ty:0, d0:0, z0:1, c0:null, t0:null};
 function bornerZoom(){
   var u = actif, s = ZOOM.base * ZOOM.z;
-  var deX = Math.max(0, (u.offsetWidth*s - window.innerWidth)/2 + 12);
-  var deY = Math.max(0, (u.offsetHeight*s - window.innerHeight)/2 + 12);
+  var deX = Math.max(0, (u.offsetWidth*s - window.innerWidth)/2 + 26);
+  var deY = Math.max(0, (u.offsetHeight*s - window.innerHeight)/2 + 26);
   ZOOM.tx = Math.max(-deX, Math.min(deX, ZOOM.tx));
   ZOOM.ty = Math.max(-deY, Math.min(deY, ZOOM.ty));
 }
@@ -2704,18 +2707,35 @@ function appliquerZoom(){
   u.style.transform = "translate("+Math.round(ZOOM.tx)+"px,"+Math.round(ZOOM.ty)+"px) scale("+s.toFixed(4)+")";
 }
 function zoomRaz(){ ZOOM.z = 1; ZOOM.tx = 0; ZOOM.ty = 0; appliquerZoom(); }
+/* une commande, ou du fond de façade ? le fond sert à déplacer */
+function estCommande(t){
+  if(!t || !t.closest) return false;
+  return !!t.closest("button,input,.knob,.bt,.em-dial,.toggle,.jack,.slot,.fsw,td,.mx-ruban,u,.pick");
+}
 (function pincement(){
-  var pts = {};
+  var pts = {}, glisse = null, dernierTap = 0, tapX = 0, tapY = 0;
   function paire(){
     var ids = Object.keys(pts);
     if(ids.length < 2) return null;
     return [pts[ids[0]], pts[ids[1]]];
   }
   document.addEventListener("pointerdown", function(e){
-    if(e.pointerType === "mouse") return;
     pts[e.pointerId] = {x:e.clientX, y:e.clientY};
+    /* un doigt sur le fond, façade agrandie : on déplace */
+    if(Object.keys(pts).length === 1 && ZOOM.z > 1.02 && !estCommande(e.target)){
+      glisse = {id:e.pointerId, x0:e.clientX, y0:e.clientY, tx0:ZOOM.tx, ty0:ZOOM.ty, bouge:false};
+    }
+    /* deux appuis brefs sur le fond : retour à plat */
+    if(!estCommande(e.target)){
+      var t = Date.now();
+      if(t - dernierTap < 320 && Math.abs(e.clientX-tapX) < 34 && Math.abs(e.clientY-tapY) < 34){
+        dernierTap = 0; glisse = null;
+        if(ZOOM.z > 1.02){ zoomRaz(); signal("ZOOM REMIS À PLAT"); }
+      } else { dernierTap = t; tapX = e.clientX; tapY = e.clientY; }
+    }
     var p = paire();
     if(p){
+      glisse = null;
       PINCE = true;
       ZOOM.d0 = Math.max(1, Math.hypot(p[1].x-p[0].x, p[1].y-p[0].y));
       ZOOM.z0 = ZOOM.z;
@@ -2726,6 +2746,14 @@ function zoomRaz(){ ZOOM.z = 1; ZOOM.tx = 0; ZOOM.ty = 0; appliquerZoom(); }
   document.addEventListener("pointermove", function(e){
     if(!pts[e.pointerId]) return;
     pts[e.pointerId] = {x:e.clientX, y:e.clientY};
+    if(glisse && e.pointerId === glisse.id && !paire()){
+      ZOOM.tx = glisse.tx0 + (e.clientX - glisse.x0);
+      ZOOM.ty = glisse.ty0 + (e.clientY - glisse.y0);
+      glisse.bouge = true;
+      bornerZoom(); appliquerZoom();
+      e.preventDefault();
+      return;
+    }
     var p = paire();
     if(!p || !ZOOM.d0) return;
     var d = Math.max(1, Math.hypot(p[1].x-p[0].x, p[1].y-p[0].y));
@@ -2734,11 +2762,13 @@ function zoomRaz(){ ZOOM.z = 1; ZOOM.tx = 0; ZOOM.ty = 0; appliquerZoom(); }
     ZOOM.tx = ZOOM.t0.x + (c.x - ZOOM.c0.x);
     ZOOM.ty = ZOOM.t0.y + (c.y - ZOOM.c0.y);
     if(ZOOM.z < 1.04){ ZOOM.z = 1; ZOOM.tx = 0; ZOOM.ty = 0; }
+    else if(!ZOOM.dit){ ZOOM.dit = true; signal("GLISSER SUR LE FOND POUR DÉPLACER · DEUX APPUIS POUR REVENIR"); }
     bornerZoom(); appliquerZoom();
     e.preventDefault();
   }, true);
   function fin(e){
     delete pts[e.pointerId];
+    if(glisse && e.pointerId === glisse.id) glisse = null;
     if(Object.keys(pts).length < 2){
       ZOOM.d0 = 0;
       setTimeout(function(){ PINCE = false; }, 90);
