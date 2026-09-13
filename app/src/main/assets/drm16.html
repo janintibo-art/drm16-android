@@ -2706,6 +2706,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="eur-play" style="padding:12px 16px">START</button>
     <div class="eur-bkn" id="eur-k-tempo"><div class="bt"><i></i></div><em>TEMPO</em></div>
     <div class="eur-lcd"><b id="eur-val">RACK VIDE</b><u id="eur-lab">AJOUTEZ UN MODULE</u></div>
+    <button id="eur-ptn">RACK 1</button>
     <button id="eur-ajout">AJOUTER</button>
     <button id="eur-hasard">RACK AU SORT</button>
     <button id="eur-suppr">RETIRER</button>
@@ -3548,13 +3549,16 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <li><b>START</b> lance et arrête l'horloge. Sans elle, rien ne se déclenche.</li>
   <li><b>TEMPO</b>, le petit potard juste à côté, règle la vitesse de 40 à 220 à la noire. Il commande le
   tempo général de l'application : le changer ici le change partout.</li>
+  <li><b>RACK 1</b> passe au rack suivant. Il y en a <b>huit</b>, gardés séparément : le rack qu'on quitte
+  est enregistré tel quel, câbles et potards compris. C'est le seul moyen d'essayer un patch sans perdre
+  celui d'avant — un vrai modulaire ne garde rien, on le photographie avant de le défaire.</li>
   <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : soixante-sept modules en vrac seraient
   illisibles sur un téléphone.</li>
   <li><b>RACK AU SORT</b> monte un ensemble complet et cohérent, décrit plus bas.</li>
   <li><b>RETIRER</b> enlève le module choisi, et avec lui tous ses câbles.</li>
   <li><b>DÉCÂBLER</b> retire tous les câbles mais garde les modules en place.</li>
   <li><b>EXEMPLE</b> remonte le patch de démonstration.</li>
-  <li><b>VIDER</b> repart d'un rack nu, après confirmation.</li>
+  <li><b>VIDER</b> repart d'un rack nu, après confirmation. Seul le rack courant est touché.</li>
   </ul>
 
   <h3>Quand la façade est trop haute</h3>
@@ -3622,9 +3626,13 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   </ol>
 
   <h3>Ce qui est gardé</h3>
-  <p>Le rack, ses câbles et la position de chaque potard sont enregistrés en continu, comme les motifs des
-  autres machines : on retrouve son patch en revenant. L'<b>export WAV</b> fonctionne aussi, et enregistre
-  ce qui sort de l'OUTPUT.</p>
+  <p><b>Huit racks</b>, gardés séparément, avec leurs câbles et la position de chaque potard. Tout est
+  enregistré en continu, comme les motifs des autres machines : on retrouve ses patchs en revenant, et le
+  rack affiché à la sortie est celui qui revient.</p>
+  <p>Avant d'appuyer sur <b>RACK AU SORT</b>, passez donc au rack suivant : le tirage écrase le rack
+  courant, pas les autres. C'est aussi la façon de comparer deux versions d'un même patch — montez la
+  seconde à côté et passez de l'une à l'autre d'un bouton.</p>
+  <p>L'<b>export WAV</b> fonctionne aussi, et enregistre ce qui sort de l'OUTPUT du rack affiché.</p>
   </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
   <p>Les soixante-sept modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
@@ -14241,7 +14249,8 @@ function activerTr(modele){
    peut en émettre à son tour, ce qui permet d'enchaîner horloge, diviseur,
    générateur euclidien et séquenceur. */
 var EUR = {mods:[], cables:[], sel:-1, attente:null, prochain:1, famille:"", noeuds:[],
-           bus:null, sources:null};
+           bus:null, sources:null, cur:0};
+var EUR_RACKS = 8;
 
 function eurGain(v){ var g = ctx.createGain(); g.gain.value = v; return g; }
 function eurConst(v){
@@ -15738,30 +15747,64 @@ function eurCatalogue(){
   });
   c.style.display = "grid";
 }
-function memEur(){
-  memoire.eur = {prochain:EUR.prochain, sel:EUR.sel,
+/* Huit racks au lieu d'un. Un vrai modulaire ne garde rien : on photographie
+   son patch avant de le défaire. Ici RACK AU SORT et VIDER effaçaient le
+   travail en cours sans retour possible, ce qui décourageait d'essayer. */
+function rackCourant(){
+  return {prochain:EUR.prochain, sel:EUR.sel,
     mods:EUR.mods.map(function(m){ return {id:m.id, type:m.type, p:m.p}; }),
     cables:EUR.cables};
+}
+function memEur(){
+  var m = memoire.eur;
+  if(!m || !m.racks) m = memoire.eur = {cur:EUR.cur, racks:[]};
+  m.cur = EUR.cur;
+  m.racks[EUR.cur] = rackCourant();
   sauverMachine("eur");
 }
-function chargerEur(){
-  EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.prochain = 1; EUR.attente = null;
+/* Les sauvegardes d'avant la v68 sont un rack seul : on le reprend en premier
+   emplacement au lieu de le perdre. */
+function memEurNormalise(){
   var m = memLire("eur");
-  if(m && m.mods){
-    m.mods.forEach(function(o){
-      if(!EUR_CAT[o.type]) return;
-      var x = {id:o.id, type:o.type, p:{}};
-      EUR_CAT[o.type].kns.forEach(function(k){
-        x.p[k[0]] = (o.p && typeof o.p[k[0]] === "number") ? o.p[k[0]] : k[4];
+  if(!m) return {cur:0, racks:[]};
+  if(m.racks) return m;
+  var n = {cur:0, racks:[m.mods ? m : null]};
+  memoire.eur = n;
+  return n;
+}
+function poserRack(o){
+  EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.prochain = 1; EUR.attente = null;
+  if(o && o.mods){
+    o.mods.forEach(function(x){
+      if(!EUR_CAT[x.type]) return;
+      var y = {id:x.id, type:x.type, p:{}};
+      EUR_CAT[x.type].kns.forEach(function(k){
+        y.p[k[0]] = (x.p && typeof x.p[k[0]] === "number") ? x.p[k[0]] : k[4];
       });
-      EUR.mods.push(x);
+      EUR.mods.push(y);
     });
-    EUR.cables = (m.cables || []).filter(function(c){
-      return c && c.de && c.vers;
-    });
-    if(typeof m.prochain === "number") EUR.prochain = m.prochain;
-    if(typeof m.sel === "number") EUR.sel = m.sel;
+    EUR.cables = (o.cables || []).filter(function(c){ return c && c.de && c.vers; });
+    if(typeof o.prochain === "number") EUR.prochain = o.prochain;
+    if(typeof o.sel === "number") EUR.sel = o.sel;
   }
+}
+function changerRack(n){
+  memEur();                                   /* on garde celui qu'on quitte */
+  EUR.cur = ((n % EUR_RACKS) + EUR_RACKS) % EUR_RACKS;
+  poserRack(memEurNormalise().racks[EUR.cur]);
+  eurBatir(); eurDessiner(); memEur();
+  majRackEur();
+  lcdEur("RACK " + (EUR.cur + 1), EUR.mods.length ? (EUR.mods.length + " MODULES") : "VIDE", true);
+}
+function majRackEur(){
+  var b = document.getElementById("eur-ptn");
+  if(b) b.textContent = "RACK " + (EUR.cur + 1);
+}
+function chargerEur(){
+  var m = memEurNormalise();
+  EUR.cur = (typeof m.cur === "number" && m.cur >= 0 && m.cur < EUR_RACKS) ? m.cur : 0;
+  poserRack(m.racks[EUR.cur]);
+  majRackEur();
 }
 function eurExemple(){
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1;
@@ -15828,9 +15871,12 @@ function eurHasard(){
   signal(EUR.mods.length + " MODULES TIRÉS AU SORT");
 }
 document.getElementById("eur-vider").addEventListener("click", function(){
-  if(!window.confirm("Vider le rack ?")) return;
+  if(!window.confirm("Vider le rack " + (EUR.cur + 1) + " ?\n\nLes sept autres racks ne sont pas touchés.")) return;
   EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.attente = null;
   eurBatir(); eurDessiner(); memEur(); H.inter();
+});
+document.getElementById("eur-ptn").addEventListener("click", function(){
+  changerRack(EUR.cur + 1); H.inter();
 });
 document.getElementById("eur-notice").addEventListener("click", function(){ ouvrirNotice(); });
 
@@ -15851,7 +15897,11 @@ function activerEur(){
   poserMachine("eur");
   audioInit();
   chargerEur();
-  if(!EUR.mods.length) eurExemple();
+  /* Le patch d'exemple ne se pose qu'à la toute première visite. Depuis qu'il y
+     a huit racks, un rack vide est un choix : le remplir d'office effacerait ce
+     que l'on vient délibérément de vider. */
+  if(!EUR.mods.length && !memEurNormalise().racks.some(function(r){ return r && r.mods && r.mods.length; }))
+    eurExemple();
   else { eurBatir(); eurDessiner(); }
   kEurTempo.maj();
   actif = unitEur;

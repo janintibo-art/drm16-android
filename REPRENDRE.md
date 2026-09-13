@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **67**.
+La version actuelle est la **68**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,23 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Huit racks — v68**
+
+`RACK AU SORT` et `VIDER` écrasaient le travail en cours sans retour possible, ce qui décourageait
+d'essayer quoi que ce soit. Le rack est maintenant l'un de huit, choisis par le bouton `eur-ptn`.
+
+- **Le format de sauvegarde a changé** : `memoire.eur` passe de `{prochain, sel, mods, cables}` à
+  `{cur, racks:[…8]}`. `memEurNormalise()` reprend une ancienne sauvegarde comme rack 1 au lieu de la
+  perdre — **ne pas retirer cette fonction**, des installations en v67 ou avant existent.
+- `poserRack(o)` contient le filtrage qui était dans `chargerEur` (type inconnu écarté, potard manquant
+  remis à sa valeur par défaut, câble incomplet écarté). `chargerEur` ne fait plus que choisir l'emplacement.
+- `changerRack(n)` enregistre le rack quitté **avant** de charger le suivant. Le passage par `memEur()` est
+  ce qui garantit qu'on ne perd rien ; ne pas l'ôter pour « optimiser ».
+- `activerEur` ne pose le patch d'exemple que si **aucun** des huit racks n'a de module. Sinon, vider un
+  rack puis revenir le remplissait d'office.
+- Testé au banc : migration de l'ancien format, aller-retour entre deux racks, bouclage du sélecteur,
+  absence totale de sauvegarde, sauvegarde abîmée (type inconnu, potards nuls, câbles tronqués).
 
 **Moteur audio qui meurt en silence — v67**
 
