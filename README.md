@@ -243,6 +243,23 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Jouer avec une vraie Electribe (version 28)
+
+L'application peut maintenant **mener ou suivre**.
+
+**Suivre.** Le réglage `HORLOGE : SUIVIE` arrête l'ordonnanceur interne : ce sont les tics reçus qui font
+avancer le séquenceur, un pas tous les six tics, et le tempo affiché se déduit de leur cadence par moyenne
+glissante. Les pas sont programmés 30 ms en avant pour absorber la gigue du pont Java. En esclave,
+l'application n'envoie plus d'horloge, pour ne pas se battre avec la machine qui mène.
+
+Vérifié : 96 tics à 20 ms donnent exactement **125 BPM déduits et 16 pas avancés**, le départ et l'arrêt
+reçus sont respectés, et aucune horloge n'est émise.
+
+**Mener, et transférer.** Les notes envoyées suivent désormais une **note de base réglable** (24, 36, 48, 60)
+et un **canal mélodique** séparé du canal de percussions, pour tomber sur ce qu'attend la machine d'en face.
+La méthode est décrite dans la notice : on met la Korg en enregistrement temps réel, on lance la lecture ici,
+elle reçoit le départ, l'horloge et les notes, et enregistre le motif au fil de la mesure.
+
 ## Mouvement des effets et Step Edit (version 27)
 
 **Motion Seq sur les effets.** Possible sans heurt seulement depuis que les effets se règlent en place :

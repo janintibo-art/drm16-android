@@ -1840,12 +1840,28 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   et les messages de départ et d'arrêt peuvent entraîner un autre appareil. En <b>entrée</b>, les notes 36 à 44
   déclenchent les parties de percussion de la machine affichée, les autres canaux ses parties mélodiques, et
   tout s'enregistre si REC est armé.</p>
+  <h3>Travailler avec une vraie Electribe</h3>
+  <p><b>Du téléphone vers la machine.</b> Branchez la carte, cherchez l'appareil, laissez <b>SORTIE</b> active
+  et mettez <b>HORLOGE : ENVOYÉE</b>. Réglez la <b>note de base</b> et les <b>canaux</b> pour qu'ils
+  correspondent à ce qu'attend votre machine — sur la plupart des Electribe, les parties de percussion suivent
+  les notes à partir de do1 (36). Mettez ensuite la Korg en enregistrement temps réel et lancez la lecture
+  ici : elle reçoit le départ, l'horloge et les notes, et enregistre le motif au fil de la mesure.</p>
+  <p><b>De la machine vers le téléphone.</b> Mettez <b>HORLOGE : SUIVIE</b>. Le séquenceur de l'application
+  s'arrête d'avancer tout seul : ce sont les tics reçus qui le font avancer, un pas tous les six tics, et le
+  tempo affiché se déduit de ce qui arrive. Lancez la Korg, les deux partent ensemble et restent ensemble.
+  L'application n'envoie alors plus d'horloge, pour ne pas se battre avec la machine qui mène.</p>
+  <p>Dans les deux sens, <b>ENTRÉE</b> active permet aussi de jouer les parties de l'application depuis les
+  touches de la Korg, et d'enregistrer au vol avec REC.</p>
+
   <p style="margin-top:14px"><button class="sec" id="b-midi-scan">CHERCHER LES APPAREILS MIDI</button></p>
   <div id="midi-liste"></div>
   <p><button class="sec" id="b-midi-out"></button>
      <button class="sec" id="b-midi-in"></button></p>
   <p><button class="sec" id="b-midi-clk"></button>
-     <button class="sec" id="b-midi-ch"></button></p>
+     <button class="sec" id="b-midi-sync"></button></p>
+  <p><button class="sec" id="b-midi-ch"></button>
+     <button class="sec" id="b-midi-chsy"></button>
+     <button class="sec" id="b-midi-base"></button></p>
   <p><button class="sec" id="b-metro">MÉTRONOME</button>
      <button class="sec" id="b-haptic">RETOUR HAPTIQUE</button>
      <button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
@@ -2609,6 +2625,14 @@ function start(){
   audioInit();
   if(!ctx) return;
   S.run=true; step=0; queue=[];
+  if(MIDI.sync && MIDI.ouvert >= 0){
+    /* esclave : ce sont les tics reçus qui avancent le séquenceur */
+    clearInterval(timer); timer = null;
+    SYNC.ticks = 0; SYNC.dernier = 0; SYNC.attente = true;
+    draw(); host(true);
+    signal("EN ATTENTE DE L'HORLOGE EXTÉRIEURE");
+    return;
+  }
   nextT = ctx.currentTime + 0.12;
   var depart = nextT;                 /* tick() fait avancer nextT : on garde l'heure du premier pas */
   clearInterval(timer); timer = setInterval(tick, periode()); tick();
@@ -3715,10 +3739,10 @@ function scheduleEm(i,t){
       if(part.synth){
         var dEm = EM.pat.amp[k] ? (0.06 + EM.egTime()*1.1) : stepDur()*0.9;
         voixSynth(tt,k,p.nt[k][i],vel);
-        midiNoteA(p.nt[k][i], tt, vel, (k===9?1:0), dEm);
+        midiNoteA(p.nt[k][i], tt, vel, MIDI.canalSy + (k===9?1:0), dEm);
       } else {
         jouerTimbre(p.tim[k], tt, vel, sortiePartie(k,tt));
-        midiVoix(part.v, tt, vel);
+        midiNoteA(MIDI.base + k, tt, vel, MIDI.canal);
       }
     }
     MOT = null;
@@ -4656,7 +4680,7 @@ function scheduleEr(i,t){
     MOT = motionEr(k,i);
     var velEr = acc ? velAccent(p.son[10].lvl) : 0.72;
     voixEr(t, k, velEr);
-    midiNoteA(36+k, t, velEr, MIDI.canal);
+    midiNoteA(MIDI.base+k, t, velEr, MIDI.canal);
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
@@ -5350,7 +5374,7 @@ function scheduleEa(i,t){
     MOT = motionEa(k,i);
     var dEa = dureeEa(k,i);
     voixEa(t, k, p.nt[k][i], 1, dEa);
-    midiNoteA(p.nt[k][i], t, 1, k, dEa);
+    midiNoteA(p.nt[k][i], t, 1, MIDI.canalSy + k, dEa);
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
@@ -6043,7 +6067,7 @@ function scheduleEs(i,t){
     MOT = motionEs(k,i);
     var n = p.son[k].roll ? (p.rollN||4) : 1;
     for(var j=0;j<n;j++) jouerEs(t + j*stepDur()/n, k, acc?velAcc:0.75, i);
-    midiNoteA(36+k, t, acc?velAcc:0.75, MIDI.canal);
+    midiNoteA(MIDI.base+k, t, acc?velAcc:0.75, MIDI.canal);
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
@@ -7096,10 +7120,10 @@ function scheduleMx(i,t){
       if(synth){
         var d = p.son[k].amp ? (0.05 + p.son[k].eg*1.3) : stepDur()*0.95;
         voixMxSynth(tt, k, p.nt[k][i], vel, d);
-        midiNoteA(p.nt[k][i], tt, vel, Math.min(15, k-10), d);
+        midiNoteA(p.nt[k][i], tt, vel, Math.min(15, MIDI.canalSy + k-10), d);
       } else {
         voixMxDrum(tt, k, vel);
-        midiNoteA(36+k, tt, vel, MIDI.canal);
+        midiNoteA(MIDI.base+k, tt, vel, MIDI.canal);
       }
     }
     MOT = null;
@@ -8039,7 +8063,7 @@ function scheduleSx(i,t){
         midiNoteA(p.nt[k][i], tt, acc?velAccent(p.son[9].lvl):0.8, k-10, dSx);
       } else {
         voixSx(tt, k, acc?velAccent(p.son[9].lvl):0.75, i);
-        midiNoteA(36+k, tt, acc?1:0.75, MIDI.canal);
+        midiNoteA(MIDI.base+k, tt, acc?velAccent(p.son[9].lvl):0.75, MIDI.canal);
       }
     }
     MOT = null;
@@ -8833,7 +8857,10 @@ function activerSx(){
 }
 
 /* ===================== MIDI ===================== */
-var MIDI = {dispo:false, liste:[], ouvert:-1, out:true, in:true, clock:false, canal:9, canalSy:0};
+var MIDI = {dispo:false, liste:[], ouvert:-1, out:true, in:true, clock:false,
+            canal:9, canalSy:0, base:36, sync:false};
+/* horloge reçue de l'extérieur : l'application devient esclave */
+var SYNC = {ticks:0, dernier:0, bpmEst:120, attente:false};
 (function chargerMidi(){
   var m = memoire.midi;
   if(!m) return;
@@ -8841,9 +8868,13 @@ var MIDI = {dispo:false, liste:[], ouvert:-1, out:true, in:true, clock:false, ca
   if(typeof m.in === "boolean") MIDI.in = m.in;
   if(typeof m.clock === "boolean") MIDI.clock = m.clock;
   if(typeof m.canal === "number") MIDI.canal = Math.max(0, Math.min(15, m.canal|0));
+  if(typeof m.canalSy === "number") MIDI.canalSy = Math.max(0, Math.min(15, m.canalSy|0));
+  if(typeof m.base === "number") MIDI.base = Math.max(0, Math.min(96, m.base|0));
+  if(typeof m.sync === "boolean") MIDI.sync = m.sync;
 })();
 function memMidi(){
-  memoire.midi = {out:MIDI.out, in:MIDI.in, clock:MIDI.clock, canal:MIDI.canal};
+  memoire.midi = {out:MIDI.out, in:MIDI.in, clock:MIDI.clock, canal:MIDI.canal,
+                  canalSy:MIDI.canalSy, base:MIDI.base, sync:MIDI.sync};
   writeMem();
 }
 var GM = {bd:36, sd:38, cp:39, lt:45, hh:42, oh:46, rd:51, cy:49, wb:76, cb:56, sp:41};
@@ -8894,6 +8925,7 @@ var bpmEnvoye = 0;
 var horlogeTmr = null;
 function midiHorloge(on, avance){
   var p = pont(); if(!p || !MIDI.dispo || MIDI.ouvert < 0) return;
+  if(MIDI.sync) return;              /* en esclave, on n'envoie pas d'horloge */
   clearTimeout(horlogeTmr); horlogeTmr = null;
   if(on && !MIDI.clock) return;      /* seul le démarrage dépend de l'option */
   /* le premier son est programmé un peu dans le futur : l'horloge part au même instant */
@@ -8914,10 +8946,42 @@ function midiSuivreTempo(){
   try{ pont().midiTempo(S.bpm); }catch(e){}
 }
 
+/* un pas tous les six tics : vingt-quatre tics par noire, seize pas par mesure */
+function ticExterne(){
+  var now = performance.now();
+  if(SYNC.dernier){
+    var dt = now - SYNC.dernier;
+    if(dt > 1 && dt < 250){
+      var bpm = 60000/(dt*24);
+      SYNC.bpmEst = SYNC.bpmEst*0.85 + bpm*0.15;
+      var arr = Math.round(SYNC.bpmEst);
+      if(arr >= 20 && arr <= 300 && Math.abs(arr - S.bpm) >= 1) S.bpm = arr;
+    }
+  }
+  SYNC.dernier = now;
+  if(!S.run || !ctx) return;
+  if(SYNC.ticks % 6 === 0){
+    if(SYNC.attente){ SYNC.attente = false; signal("HORLOGE REÇUE"); }
+    var t = ctx.currentTime + 0.03;      /* petite avance : elle absorbe la gigue du pont */
+    MACHINE.schedule(step, t);
+    if(METRO && step % 4 === 0) clicMetro(t, step === 0);
+    step = (step+1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
+    if(step === 0 && MACHINE.boucle) MACHINE.boucle();
+  }
+  SYNC.ticks++;
+}
+function departEsclave(remise){
+  SYNC.ticks = 0; SYNC.dernier = 0; SYNC.attente = false;
+  if(remise) step = 0;
+  if(!S.run){ S.run = true; queue = []; draw(); host(true); majPlayEm(); }
+}
+
 /* réception */
 window.__midi = function(a,b,c){
   if(!MIDI.in) return;
-  if(a === 0xFA){ if(!S.run){ start(); majPlayEm(); } return; }
+  if(a === 0xF8){ if(MIDI.sync) ticExterne(); return; }
+  if(a === 0xFA){ if(MIDI.sync){ departEsclave(true); } else if(!S.run){ start(); majPlayEm(); } return; }
+  if(a === 0xFB){ if(MIDI.sync) departEsclave(false); else if(!S.run){ start(); majPlayEm(); } return; }
   if(a === 0xFC || a === 0xFF){ if(S.run){ stop(); majPlayEm(); } return; }
   var t = a & 0xF0;
   if(t !== 0x90 || c === 0) return;
@@ -9014,11 +9078,16 @@ var bScan = document.getElementById("b-midi-scan");
 var boxMidi = document.getElementById("midi-liste");
 var bOut = document.getElementById("b-midi-out"), bIn = document.getElementById("b-midi-in");
 var bClk = document.getElementById("b-midi-clk"), bCh = document.getElementById("b-midi-ch");
+var bSync = document.getElementById("b-midi-sync"), bChSy = document.getElementById("b-midi-chsy");
+var bBase = document.getElementById("b-midi-base");
 function majMidiUI(){
   bOut.textContent = "SORTIE : " + (MIDI.out ? "ACTIVE" : "COUPÉE");
   bIn.textContent  = "ENTRÉE : " + (MIDI.in ? "ACTIVE" : "COUPÉE");
   bClk.textContent = "HORLOGE : " + (MIDI.clock ? "ENVOYÉE" : "COUPÉE");
-  bCh.textContent  = "CANAL PERCUSSIONS : " + (MIDI.canal+1);
+  bCh.textContent   = "CANAL PERCUSSIONS : " + (MIDI.canal+1);
+  bChSy.textContent = "CANAL MÉLODIQUE : " + (MIDI.canalSy+1);
+  bBase.textContent = "NOTE DE BASE : " + nomNote(MIDI.base) + " (" + MIDI.base + ")";
+  bSync.textContent = "HORLOGE : " + (MIDI.sync ? "SUIVIE" : "INTERNE");
   var bs = boxMidi.querySelectorAll("button");
   for(var i=0;i<bs.length;i++) bs[i].classList.toggle("on", i === MIDI.ouvert);
 }
@@ -9052,6 +9121,18 @@ bClk.addEventListener("click", function(){
   if(S.run) midiHorloge(MIDI.clock);
 });
 bCh.addEventListener("click", function(){ MIDI.canal = (MIDI.canal+1)%16; majMidiUI(); memMidi(); H.cran(); });
+bChSy.addEventListener("click", function(){ MIDI.canalSy = (MIDI.canalSy+1)%16; majMidiUI(); memMidi(); H.cran(); });
+bBase.addEventListener("click", function(){
+  var v = [24,36,48,60];
+  MIDI.base = v[(v.indexOf(MIDI.base)+1) % v.length];
+  majMidiUI(); memMidi(); H.cran();
+});
+bSync.addEventListener("click", function(){
+  MIDI.sync = !MIDI.sync;
+  if(S.run) stop();
+  majMidiUI(); memMidi(); H.inter();
+  signal(MIDI.sync ? "LE SÉQUENCEUR SUIT L'HORLOGE REÇUE" : "HORLOGE INTERNE");
+});
 (function initMidi(){
   var p = pont();
   if(p){ try{ MIDI.dispo = !!p.midiDispo(); }catch(e){} }
