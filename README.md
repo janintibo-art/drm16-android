@@ -232,6 +232,26 @@ Autres corrections :
   impaires (17 % contre 8 % à mi-course), ce qui est le comportement d'une lampe.
 - Niveaux des voix de l'ES-1 et de l'ESX-1 revus : plus aucun échantillon saturé sur une mesure dense.
 
+## Notices
+
+Huit notices complètes en français, écrites pour **ces** machines : GÉNÉRAL, DRM16 · DRM32, EM-1, ER-1,
+EA-1, ES-1, EMX-1, ESX-1. Chacune suit le même plan — prise en main en trois pas, les commandes, les
+fonctions SHIFT, et ce qui diffère de l'appareil d'origine.
+
+Les notices officielles Korg ne peuvent pas être intégrées : ce sont des documents sous droit d'auteur, et
+l'application n'a de toute façon aucun accès réseau. Elles décriraient d'ailleurs des machines qui diffèrent
+de celles-ci sur plusieurs points.
+
+**Accès.** Un bouton **NOTICE** est posé en haut à droite de l'écran, visible sur toutes les machines, et
+masqué quand le menu ou la notice sont ouverts. Le menu a aussi son entrée **NOTICES**, qui ouvre le sommaire
+sans charger de machine. La référence de l'appareil, en haut à droite de chaque façade, continue d'ouvrir sa
+propre notice.
+
+**Lecture.** Fond opaque — l'ancienne notice laissait transparaître la façade et devenait illisible —, barre
+de titre fixe avec le bouton FERMER toujours atteignable, et une rangée d'onglets pour passer d'une machine
+à l'autre. Les réglages MIDI, haptique, arrière-plan et le bouton PANIQUE sont rassemblés dans l'onglet
+GÉNÉRAL.
+
 ## Zoom
 
 Deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois.

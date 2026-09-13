@@ -145,32 +145,38 @@ body.m32 .read{color:#8fe8d8}
 .off .led.on,.off .led.beat{background:#1d2a33;box-shadow:inset 0 1px 2px #000c}
 
 /* ---------- notice ---------- */
-#note{position:fixed;inset:0;background:#000000e8;color:#e7e3d8;padding:26px;overflow:auto;display:none;
-  font:14px/1.6 system-ui;z-index:9}
-#note.show{display:block}
-#signal{position:fixed;left:8px;right:8px;bottom:14px;z-index:20;padding:11px 14px;border-radius:7px;
-  background:#b3260f;color:#fff3ee;font:700 12px/1.35 "Roboto Condensed",sans-serif-condensed,Arial;
-  letter-spacing:1.2px;text-align:center;box-shadow:0 6px 18px #000a;opacity:0;transform:translateY(14px);
-  transition:opacity .25s,transform .25s;pointer-events:none}
-#signal.vu{opacity:1;transform:translateY(0)}
-#note-em,#note-er,#note-ea,#note-es,#note-mx,#note-sx,.mk2-seul{display:none}
-body.emx #note-ehx,body.esx #note-ehx{display:none}
-body.esx #note-sx{display:block}
-body.emx #note-mx{display:block}
-body.mk2 .mk2-seul{display:block}
-body.em1 #note-ehx,body.er1 #note-ehx,body.ea1 #note-ehx,body.es1 #note-ehx{display:none}
-body.es1 #note-es{display:block}
-body.ea1 #note-ea{display:block}
-body.em1 #note-em{display:block}
-body.er1 #note-er{display:block}
-#note h2{color:var(--accent);letter-spacing:2px;margin:0 0 10px}
+#note{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
+  font:15px/1.6 system-ui,-apple-system,"Roboto",sans-serif}
+#note.show{display:flex;flex-direction:column}
+#note-bar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 12px;background:#17171a;
+  border-bottom:1px solid #2c2c31}
+#note-bar b{flex:1;min-width:0;font:800 15px/1.2 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:1.6px;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#note #note-bar button{flex:none;margin:0;padding:9px 16px;border:0;border-radius:6px;background:var(--accent);
+  color:#140f0c;font-weight:800;letter-spacing:1px;font-size:13px}
+#note-nav{flex:none;display:flex;gap:6px;overflow-x:auto;padding:9px 12px;background:#131316;
+  border-bottom:1px solid #2c2c31;-webkit-overflow-scrolling:touch}
+#note #note-nav button{flex:none;margin:0;padding:8px 13px;border:0;border-radius:20px;background:#2a2a30;
+  color:#cfcbc2;font:700 12px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:1.1px}
+#note #note-nav button.on{background:var(--accent);color:#140f0c}
+#note-corps{flex:1;min-height:0;overflow:auto;padding:16px 16px 40px;-webkit-overflow-scrolling:touch}
+#note-corps .doc{display:none;max-width:620px;margin:0 auto}
+#note-corps .doc.vu{display:block}
+#note h3{margin:22px 0 6px;font:800 13px/1.3 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:2.2px;color:var(--accent);text-transform:uppercase}
+#note h3:first-child{margin-top:2px}
+#note p{margin:0 0 10px}
 #note b{color:#fff}
-#note button{margin-top:18px;padding:12px 22px;border:0;border-radius:6px;background:var(--accent);color:#140f0c;
-  font-weight:800;letter-spacing:1px;font-size:15px}
-#note button.sec{background:#33302b;color:#f0ece2;margin-top:6px;margin-right:6px}
-#midi-liste button{display:block;width:100%;text-align:left;margin-top:5px}
-#midi-liste button.on{background:#15625a;color:#eafffb}
+#note button{margin-top:14px;padding:12px 18px;border:0;border-radius:6px;background:var(--accent);
+  color:#140f0c;font-weight:800;letter-spacing:1px;font-size:14px}
+#note button.sec{background:#2f2f35;color:#eceae4;margin-top:6px;margin-right:6px}
 #note button[disabled]{opacity:.5}
+/* bouton d'accès, toujours visible sur une machine */
+#aide{position:fixed;top:8px;right:8px;z-index:14;padding:9px 13px;border:0;border-radius:20px;
+  background:#1c1c20e0;color:#f0ede6;font:800 11px/1 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:1.6px;box-shadow:0 3px 10px #0009,inset 0 0 0 1px #ffffff2e}
+#aide:active{background:#33333a}
+body.menu-ouvert #aide,body.note-ouverte #aide{display:none}
 
 /* ---------- menu de choix du modèle ---------- */
 #menu{position:fixed;inset:0;z-index:12;background:#0b0b0c;display:grid;grid-template-columns:1fr;
@@ -728,6 +734,9 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.psx{background:linear-gradient(165deg,#9c1c2e,#3a0810 55%,#5e0e1a)}
 .pick.psx b{color:#ff6a78;text-shadow:0 2px 0 #4a0610}
 .pick.psx span{color:#d8b0b6}
+.pick.pdoc{background:linear-gradient(165deg,#3a3a40,#141417 55%,#242429)}
+.pick.pdoc b{color:#e8e4da;text-shadow:0 2px 0 #000}
+.pick.pdoc span{color:#a9a69e}
 @media (max-height:560px){
   .unit{padding:18px 10px 4px}
   .grid{gap:6px}
@@ -1769,6 +1778,8 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 
 </div>
 
+<button id="aide">NOTICE</button>
+
 <div id="menu">
   <h1>CHOISIR UNE MACHINE</h1>
   <button class="pick p16" data-m="16"><b>DRM16</b><span>MODEL 01 · 16 RYTHMES · SPACE DRUM COMMUTABLE</span></button>
@@ -1782,203 +1793,292 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <button class="pick pes2" data-m="es2"><b>ES-1 mkII</b><span>KORG · ÉCHANTILLONNEUR · ISOLATOR, RESO. FILT.</span></button>
   <button class="pick pmx" data-m="emx"><b>ELECTRIBE EMX-1</b><span>KORG · 14 PARTIES · 3 EFFETS · VALVE FORCE</span></button>
   <button class="pick psx" data-m="esx"><b>ELECTRIBE ESX-1</b><span>KORG · ÉCHANTILLONNEUR · CLAVIER, STRETCH, VALVE FORCE</span></button>
+  <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
 </div>
 
 <div id="note">
-  <h2 id="note-titre">DRM16 — recréation autonome</h2>
-  <p>Application <b>entièrement hors ligne</b> : aucun accès réseau, aucun échantillon téléchargé.
-  Les rythmes et les neuf timbres sont <b>synthétisés en temps réel</b> par le moteur audio de l'application.</p>
-  <div id="note-ehx">
-  <p><b>POWER</b> met l'appareil sous tension (et débloque le son sur Android).
-  <b>Pédale</b> : départ / arrêt. <b>STYLE</b> et <b>COLUMN</b> choisissent une case de la matrice ; la case peut aussi
-  être touchée directement. <b>DELETE</b> retire un timbre du rythme, et toucher le nom d'un timbre dans cette liste
-  le joue seul, même s'il est retiré.
-  <b>VOLUME</b> et <b>TEMPO</b> se règlent en glissant le doigt verticalement sur le bouton ; une série d'appuis brefs
-  sur TEMPO bat la mesure. <b>BASS OUT</b> : toucher le jack envoie la grosse caisse à droite et le reste à gauche.
-  Tous les réglages sont retenus, séparément pour chaque modèle.</p>
-  <p id="note-modele"></p>
-  </div>
+  <div id="note-bar"><b id="note-titre">NOTICE</b><button id="note-fermer">FERMER</button></div>
+  <div id="note-nav"></div>
+  <div id="note-corps">
+  <div class="doc" id="note-general" data-titre="GÉNÉRAL">
+  <h3>L'application</h3>
+  <p>Onze boîtes à rythmes recréées, <b>entièrement hors ligne</b> : aucun accès réseau, aucun échantillon
+  téléchargé. Tous les sons sont synthétisés ou échantillonnés sur l'appareil. La permission Internet n'est
+  même pas demandée.</p>
+  <p>Chaque machine garde <b>ses propres motifs et ses propres sons</b>, enregistrés automatiquement.
+  Le bouton <b>WRITE</b> fixe le motif en mémoire ; les réglages, eux, sont gardés en continu.</p>
 
-  <div id="note-sx">
-  <p>Quatorze parties d'échantillons : neuf parties de percussion, deux parties <b>KEYBOARD</b> qui lisent
-  leur son à la hauteur des notes, deux parties <b>STRETCH</b>, et une piste d'accent.</p>
-  <p>Les sons viennent des <b>mêmes trois sources que l'ES-1</b> et sont partagés avec elle : <b>SAMPLING</b>
-  enregistre au micro (huit secondes au maximum), <b>IMPORT</b> ouvre le sélecteur de fichiers, et la rangée
-  <b>Sample</b> de l'afficheur fait défiler la banque de vingt-quatre sons plus tous vos enregistrements.</p>
-  <p>Une partie <b>STRETCH</b> découpe son échantillon en autant de tranches qu'il y a de pas et en joue une
-  par pas : la boucle suit le tempo <b>sans que la hauteur bouge</b>, puisque c'est la position qui avance,
-  pas la vitesse de lecture. <b>SLICE</b> fait la même chose sur une partie de percussion.</p>
-  <p>Par partie : hauteur, point de départ, niveau, panoramique, enveloppe, lecture à l'envers, roulement,
-  filtre à quatre types avec résonance et enveloppe, et une modulation assignable à la hauteur, à la coupure,
-  au volume ou au panoramique.</p>
-  <p><b>Seize effets</b> — les treize des autres machines plus talking mod, égaliseur trois bandes et grain
-  shifter — répartis sur <b>trois chaînes</b> simultanées, en parallèle ou en série. <b>VALVE FORCE</b> comme
-  sur l'EMX-1. Arpégiateur au ruban, clavier, mode Song, Motion Seq, mute et solo, et les fonctions SHIFT dont
-  <b>Normalize</b>, <b>Truncate</b>, <b>Time Slice</b> et <b>Delete Sample</b>.</p>
-  <p>L'entrée ligne et le lecteur de carte n'ont pas d'équivalent.</p>
-  </div>
+  <h3>Zoom et déplacement</h3>
+  <p>Deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois. Une fois agrandie, on la déplace
+  <b>d'un seul doigt posé sur le fond</b> — châssis, bandeaux de titre, espaces entre les blocs. Un doigt posé
+  sur une commande règle la commande, comme d'habitude. Deux appuis brefs sur le fond remettent à plat.</p>
 
-  <div id="note-mx">
-  <p>Quatorze parties jouables : neuf percussions lisant la banque de vingt-quatre sons, cinq parties de
-  synthé à modèles d'oscillateurs, plus deux pistes d'accent. Les boutons de partie choisissent et font
-  sonner ; les seize touches allument les pas.</p>
-  <p><b>SYNTH OSCILLATOR</b> propose quinze modèles — modulation croisée, synchronisation, anneau, unisson,
-  accord, double oscillateur, forme d'onde simple, VPM à deux opérateurs, mise en forme d'onde, additif,
-  peigne, formants, bruit, et deux modèles qui passent un échantillon dans le peigne ou la mise en forme.
-  <b>OSC EDIT 1</b> et <b>2</b> en règlent les deux paramètres, différents pour chaque modèle.</p>
-  <p><b>SYNTH FILTER</b> : coupure, résonance, intensité d'enveloppe, saturation, et quatre types
-  (passe-bas, passe-haut, passe-bande, passe-bande étroit). <b>MODULATION</b> assigne un oscillateur lent à
-  la hauteur, aux deux réglages d'oscillateur, à la coupure, au volume ou au panoramique, avec cinq formes et
-  une synchronisation au tempo.</p>
-  <p><b>Trois effets</b> tournent en même temps. Chaque partie choisit le sien avec <b>FX SELECT</b> et
-  l'envoie avec <b>FX SEND</b> ; <b>FX CHAIN</b> les met en série au lieu de les laisser en parallèle.</p>
-  <p><b>VALVE FORCE</b> : le <b>TUBE GAIN</b> pousse tout le mélange dans une saturation dissymétrique —
-  elle engendre des harmoniques paires, ce qui donne la couleur des lampes. Les deux lampes de la fenêtre
-  s'allument avec le réglage.</p>
-  <p><b>ARPEGGIATOR</b> : le ruban joue les notes de la gamme, du grave à l'aigu, et les répète tant qu'on
-  reste posé dessus. <b>PATTERN SET</b> change de gamme, <b>KEYBOARD</b> transforme les touches en clavier.
-  Mode <b>SONG</b>, <b>MOTION SEQ</b>, <b>MUTE</b>, <b>SOLO</b> et fonctions <b>SHIFT</b> comme sur les autres.</p>
-  <p>Le lecteur de carte SmartMedia et l'entrée audio n'ont pas d'équivalent.</p>
-  </div>
+  <h3>Réglages</h3>
+  <p>Le <b>retour haptique</b> donne une vibration différente selon la commande. La <b>lecture en
+  arrière-plan</b> laisse le rythme tourner quand on quitte l'application, avec une notification ; la couper
+  arrête la lecture à la sortie. <b>PANIQUE</b> coupe tout, ferme les notes MIDI ouvertes et rétablit le volume.</p>
 
-  <div id="note-es">
-  <p>Échantillonneur : neuf parties, chacune tenant un son, plus une piste d'accent. Les seize touches
-  allument les pas de la partie choisie ; toucher un bouton de partie la fait sonner.</p>
-  <p><b>Trois façons de charger un son</b> dans la partie choisie. <b>SAMPLING</b> enregistre au micro du
-  téléphone — première pression pour démarrer, seconde pour arrêter, six secondes au maximum ; Android
-  demande l'autorisation au premier essai, il faut alors retoucher le bouton. <b>IMPORT</b> ouvre le
-  sélecteur de fichiers et prend n'importe quel fichier audio lisible par le téléphone. Enfin le mode
-  <b>SAMPLE</b>, ou la rangée <b>Sample</b> de l'afficheur, fait défiler à la molette la banque interne de
-  quatorze sons calculés à la volée et tous les sons que vous avez enregistrés.</p>
-  <p>Les sons enregistrés sont ramenés en mono à 32 kHz, normalisés, et écrits dans le dossier privé de
-  l'application : ils reviennent au lancement suivant. Si l'écriture échoue, un bandeau rouge le dit —
-  le son reste jouable jusqu'à la fermeture mais ne reviendra pas.</p>
-  <p><b>PITCH/SPEED</b> transpose en changeant la vitesse de lecture, <b>FILTER</b> ouvre ou ferme,
-  <b>LEVEL</b> et <b>PAN</b> placent le son. <b>REVERSE</b> lit à l'envers, <b>ROLL</b> répète, <b>EFFECT</b>
-  envoie vers l'effet, <b>SLICE</b> découpe le son en seize tranches, une par pas — la tranche jouée suit
-  la position dans la mesure.</p>
-  <p>Les onze effets et le délai sont ceux des autres Electribe, avec <b>BPM SYNC</b> pour caler le délai sur
-  le tempo. <b>PART MUTE</b> et <b>SOLO</b> coupent ou isolent la partie choisie. <b>SHIFT</b> donne aussi
-  <b>Normalize</b>, <b>Truncate</b> (coupe le silence de fin), <b>Time Slice</b> et <b>Delete Sample</b>.
-  Le lecteur de carte SmartMedia n'a pas d'équivalent.</p>
-  <p class="mk2-seul"><b>mkII</b> : la liste d'effets remplace Resonator et Filter par <b>ISOLATOR</b> —
-  trois bandes dont une seule reste au premier plan, EDIT 1 choisit laquelle, EDIT 2 la profondeur de la coupe —
-  et <b>RESO. FILT.</b>, un passe-bas bien plus résonant. Motifs et échantillons assignés sont gardés
-  séparément de la première version ; les sons enregistrés, eux, sont communs aux deux.</p>
-  </div>
-
-  <div id="note-ea">
-  <p>Deux parties de synthé, chacune avec sa séquence de seize pas et son propre son.
-  <b>PART SELECT</b> passe de l'une à l'autre. Toucher un pas l'allume et le sélectionne ;
-  <b>KEYBOARD</b> transforme les touches en clavier — les deux dernières deviennent <b>REST</b> et <b>TIE</b>,
-  la liaison tenant la note sur le pas suivant. <b>◀ ▶</b> changent d'octave en mode clavier.</p>
-  <p><b>OSCILLATOR</b> : deux oscillateurs (dent de scie, carré, triangle), leur équilibre, le désaccord du
-  second, le portamento entre deux notes, et <b>OSC MOD</b> — modulation en anneau, synchronisation approchée
-  et décimation. <b>FILTER</b> : coupure, résonance, intensité et décroissance d'enveloppe. <b>AMP</b> :
-  distorsion et niveau.</p>
-  <p><b>EFFECT</b> : délai synchronisé au tempo ou chorus/flanger, avec profondeur et temps.
-  <b>Gate Time</b>, dans la liste de l'afficheur, règle la longueur des notes, et la rangée <b>Sound</b>
-  — à la place de Step Rec., non implémenté — charge l'un des quatorze sons préréglés dans la partie choisie :
-  basses, acid, sub, leads, sync, ring, deci, pluck, nappe, bleep, growl, hoover. Tout reste modifiable au
-  bouton ensuite.</p>
-  <p>L'entrée audio de l'appareil d'origine n'a pas d'équivalent ici : le téléphone n'a pas d'entrée ligne.
-  <b>MOTION SEQ</b>, mode <b>SONG</b> et fonctions <b>SHIFT</b> fonctionnent comme sur les autres Electribe.</p>
-  <p class="mk2-seul"><b>mkII</b> : l'<b>OSC MOD</b> gagne la position <b>CROSS</b>, la modulation croisée —
-  l'oscillateur 2 module la fréquence du premier, d'autant plus fort que l'équilibre penche vers lui. Motifs
-  et sons sont gardés séparément de la première version.</p>
-  </div>
-
-  <div id="note-er">
-  <p><b>▶ ❙❙</b> lance et arrête, <b>■</b> revient au premier pas, <b>TAP</b> bat le tempo. Les onze boutons de
-  partie choisissent la partie et la font sonner ; les seize touches allument ses pas. La partie <b>ACC</b>
-  renforce les coups des autres.</p>
-  <p>Les quatre <b>percussions synthétisées</b> sont un oscillateur sinus ou triangle : <b>PITCH</b> donne la
-  hauteur, <b>MOD DEPTH</b> et <b>MOD SPEED</b> la profondeur et la vitesse de modulation, <b>MOD TYPE</b> sa
-  forme — sinus, carré, triangle, montée, chute, aléatoire. La chute de hauteur donne la grosse caisse, la
-  modulation rapide et aléatoire les timbres métalliques. <b>RING MOD</b> fait se multiplier les parties 1 et 2,
-  ou 3 et 4.</p>
-  <p>Les deux parties <b>AUDIO IN</b> sont ici des percussions de bruit filtré — le téléphone n'a pas d'entrée
-  ligne. <b>PITCH</b> y règle la fréquence du filtre et <b>MOD DEPTH</b> sa finesse. Les deux charleys se
-  coupent l'un l'autre comme sur l'appareil d'origine.</p>
-  <p class="mk2-seul"><b>mkII</b> : ces deux parties deviennent des parties <b>PCM</b>, comme sur l'appareil
-  d'origine. La rangée <b>Sound</b> y fait défiler les quatorze sons de la banque, <b>PITCH</b> change la
-  vitesse de lecture et <b>DECAY</b> la coupe. Motifs et sons sont gardés séparément de la première version.</p>
-  <p><b>AMP</b> : décroissance, niveau, panoramique et <b>LOW BOOST</b>, un renfort des graves propre à l'ER-1.
-  <b>DELAY</b> : profondeur et temps, avec un mode synchronisé au tempo par le bouton TYPE.</p>
-  <p>La rangée <b>Sound</b> de l'afficheur charge l'un des seize sons préréglés dans la partie choisie —
-  grosses caisses, caisse claire, rimshot, toms, conga, blip, métal, cloche, zap, laser, wobble, click, sub,
-  bruité. Les boutons restent libres ensuite : un préréglage n'est qu'un point de départ.</p>
-  <p><b>MOTION SEQ</b> enregistre le mouvement d'un bouton sur les seize pas, en Smooth ou Trig Hold, avec REC
-  armé pendant la lecture. <b>SHIFT</b> plus une touche donne les fonctions imprimées dessous : longueur,
-  gamme, swing, décalage, copie, effacement, motifs et chanson. <b>SONG</b> enchaîne les motifs.</p>
-  </div>
-
-  <div id="note-em">
-  <p><b>▶ ❙❙</b> lance et arrête, <b>■</b> revient au premier pas, <b>TAP</b> bat le tempo.
-  Les boutons <b>DRUM PART</b> et <b>SYNTH PART</b> choisissent la partie : la toucher la fait sonner, et les
-  seize touches du bas allument ou éteignent ses pas. <b>ACCENT</b> est une partie comme les autres : les pas
-  allumés y renforcent les coups des autres parties.</p>
-  <p><b>AMP EG</b>, <b>ROLL</b> et <b>EFFECT</b> s'appliquent à la partie choisie — enveloppe courte, roulement
-  de quatre coups, envoi vers l'effet. <b>EG TIME</b>, <b>PITCH</b>, <b>LEVEL</b> et <b>PAN</b> également.
-  <b>SYNTH FILTER</b> agit sur les deux parties de synthé.</p>
-  <p>La <b>molette</b> modifie le paramètre allumé dans la colonne de gauche de l'afficheur : <b>Pattern</b>
-  (seize motifs), <b>Tempo</b>, <b>Wave</b> et <b>Note No.</b> (hauteur des pas allumés).
-  <b>Wave</b> change le timbre de la partie choisie : forme d'onde pour les deux synthés, et pour les huit
-  percussions le choix parmi vingt-neuf timbres — quatre grosses caisses, trois caisses claires, rimshot, clap,
-  trois toms, conga, deux charleys fermés et deux ouverts, crash, ride, cowbell, clave, wood block, shaker,
-  tambourin, zap, laser, bruit, blip et space drum. Le choix est enregistré avec le motif.
-  <b>WRITE</b> enregistre le motif, <b>ERASE</b> efface la partie choisie.</p>
-  <p><b>REC</b> arme l'enregistrement au vol : pendant la lecture, toucher une partie ou une touche du clavier
-  écrit un pas à la volée. <b>DELAY EDIT</b> bascule les deux boutons EDIT sur le temps et la profondeur du délai.</p>
-  <p><b>KEYBOARD</b> transforme les seize touches en clavier pour la partie de synthé choisie, dans la gamme
-  réglée par SHIFT + touche 2 ; <b>◀</b> et <b>▶</b> changent alors d'octave. Toucher un pas le sélectionne :
-  le cadre vert indique le pas en cours d'édition, et la touche du clavier ou la molette lui donne sa hauteur.</p>
-  <p><b>SHIFT</b> puis une touche donne accès aux fonctions imprimées dessous : longueur du motif, gamme, swing,
-  type de roulement, décalage d'un pas, copie et échange de partie, copie de son, effacement, duplication et
-  effacement de motif, protection. Clear Motion, Clear Song, Bend Range et Dump attendent les modes
-  correspondants.</p>
-  <p><b>MOTION SEQ</b> enregistre le mouvement d'un bouton sur les seize pas de la partie choisie. Le bouton
-  passe de OFF à <b>Smooth</b> puis <b>Trig Hold</b> ; avec REC armé pendant la lecture, tourner LEVEL, PAN,
-  PITCH, EG TIME ou l'un des quatre boutons du filtre écrit la courbe. Smooth glisse d'un pas au suivant,
-  Trig Hold tient la valeur. Un point vert marque les parties qui ont un mouvement, SHIFT + touche 8 l'efface.</p>
-  <p>Le bouton <b>SONG</b> enchaîne les motifs : les seize touches deviennent les positions de la chanson,
-  une touche vide prend le motif courant, la molette change le motif d'une position, ERASE en retire une,
-  SHIFT + touche 13 vide la chanson. La lecture passe au motif suivant à chaque fin de boucle.</p>
-  <p>Les onze effets sont en place, pitch shifter et decimator compris — le premier travaille par deux lignes
-  à retard modulées, son résultat est volontairement rugueux. <b>GLOBAL</b> ouvre les réglages MIDI.
-  Restent le mode STEP EDIT et le bend range.</p>
-  </div>
-  <p>Le rythme continue quand l'application passe en arrière-plan : une notification reste affichée tant que la
-  lecture dure, et la touchant ramène au panneau. Le son se coupe de lui-même si un appel ou une autre application
-  prend la main.</p>
-  <p>Chaque commande donne une courte vibration : un cran pour les boutons et les cases, une impulsion plus marquée
-  pour les interrupteurs, un départ franc et un double battement à l'arrêt sur la pédale.</p>
-  <p>Recréation personnelle hommage aux appareils d'origine ; sans lien avec le fabricant, et sans réutilisation
-  de ses échantillons.</p>
-  <p><b>Zoom</b> — deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois.
-  Une fois agrandie, on la déplace <b>d'un seul doigt posé sur le fond</b> — le châssis, les bandeaux de
-  titre, tout ce qui n'est pas une commande. Un doigt posé sur un bouton règle le bouton, comme avant :
-  rien ne change pour le jeu. Deux doigts déplacent aussi, où qu'ils soient.
-  <b>Deux appuis brefs sur le fond</b> remettent la façade à plat, pincer jusqu'au bout également,
-  et changer de machine aussi.</p>
-
-  <p style="margin-bottom:4px"><b>MIDI</b> — branchez la carte USB-C vers MIDI, puis cherchez les appareils.
-  En sortie, chaque coup part en note (percussions sur le canal choisi, notes du synthé sur les canaux 1 et 2) ;
-  l'horloge et les messages de départ et d'arrêt peuvent être envoyés pour entraîner un autre appareil.
-  En entrée, les notes déclenchent les timbres et s'enregistrent si REC est armé sur l'Electribe, et les
-  messages de départ et d'arrêt pilotent le transport.</p>
-  <p style="margin-top:4px"><button class="sec" id="b-midi-scan">CHERCHER LES APPAREILS</button></p>
+  <h3>MIDI</h3>
+  <p>Branchez une carte USB-C vers MIDI puis cherchez les appareils ci-dessous. En <b>sortie</b>, chaque coup
+  part en note : percussions sur le canal réglable, parties mélodiques sur les canaux 1 et 2. L'<b>horloge</b>
+  et les messages de départ et d'arrêt peuvent entraîner un autre appareil. En <b>entrée</b>, les notes 36 à 44
+  déclenchent les parties de percussion de la machine affichée, les autres canaux ses parties mélodiques, et
+  tout s'enregistre si REC est armé.</p>
+  <p style="margin-top:14px"><button class="sec" id="b-midi-scan">CHERCHER LES APPAREILS MIDI</button></p>
   <div id="midi-liste"></div>
   <p><button class="sec" id="b-midi-out"></button>
      <button class="sec" id="b-midi-in"></button></p>
   <p><button class="sec" id="b-midi-clk"></button>
      <button class="sec" id="b-midi-ch"></button></p>
+  <p><button class="sec" id="b-haptic">RETOUR HAPTIQUE</button>
+     <button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
+  <p><button id="b-panique">PANIQUE · TOUT COUPER</button>
+     <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
+  </div>
 
-  <p><button id="b-panique">PANIQUE · TOUT COUPER</button></p>
-  <p><button class="sec" id="b-haptic">RETOUR HAPTIQUE</button></p>
-  <p><button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
-  <p><button class="sec" id="b-modele">CHANGER DE MODÈLE</button></p>
-  <button onclick="document.getElementById('note').classList.remove('show')">FERMER</button>
+  <div class="doc" id="note-ehx" data-titre="DRM16 · DRM32">
+  <h3>Prise en main</h3>
+  <p><b>1.</b> Basculez <b>POWER · ON</b> — c'est lui qui débloque le son sur Android.
+  <b>2.</b> Touchez une case de la matrice pour choisir un rythme.
+  <b>3.</b> Appuyez sur la <b>pédale</b> chromée.</p>
+
+  <h3>Les commandes</h3>
+  <p><b>VOLUME</b> et <b>TEMPO</b> : glissez le doigt vers le haut ou le bas sur le bouton. Une série d'appuis
+  brefs sur TEMPO bat la mesure. Plage : 40 à 220 à la noire.</p>
+  <p><b>STYLE</b> et <b>COLUMN</b> choisissent la case de la matrice, exactement comme sur l'appareil ; la case
+  peut aussi être touchée directement, ce qui va plus vite.</p>
+  <p><b>DELETE</b> retire un timbre du rythme en cours. Toucher le <b>nom</b> d'un timbre dans cette liste le
+  joue seul, même s'il est retiré — pratique pour l'entendre avant de décider.</p>
+  <p><b>BASS OUT</b> : toucher le jack envoie la grosse caisse à droite et le reste à gauche, comme la sortie
+  séparée de l'appareil d'origine. Le jack s'entoure alors d'un anneau orange.</p>
+
+  <h3>Ce qui distingue les deux modèles</h3>
+  <p>La <b>DRM16</b> a seize rythmes et un interrupteur <b>SPACE DRUM</b> qui ajoute ou retire les accents de
+  space drum.</p>
+  <p>La <b>DRM32</b> en a trente-deux : chaque case porte deux rythmes, le vert et le jaune, et
+  l'interrupteur <b>SELECTION</b> passe de l'un à l'autre. La moitié allumée de la case indique la sélection
+  en cours. Son DELETE retire le space drum, le wood block ou les deux cymbales. MISC IV s'y appelle SWING.</p>
+
+  <h3>Ce qui diffère de l'appareil d'origine</h3>
+  <p>Les seize rythmes sont <b>rejoués</b>, pas échantillonnés : neuf timbres synthétisés en temps réel.
+  Les jacks OUTPUT 1, OUTPUT 2 et CLOCK OUT sont décoratifs.</p>
+  </div>
+
+  <div class="doc" id="note-em" data-titre="EM-1">
+  <h3>Prise en main</h3>
+  <p><b>1.</b> <b>▶ ❙❙</b> lance la lecture. <b>2.</b> Choisissez une partie dans <b>DRUM PART</b> ou
+  <b>SYNTH PART</b> — la toucher la fait sonner. <b>3.</b> Allumez ses pas sur les seize touches.</p>
+
+  <h3>Les parties</h3>
+  <p>Huit percussions, deux synthés, et <b>deux pistes d'accent</b> : une pour les percussions, une pour le
+  synthé. Un pas allumé sur une piste d'accent renforce tous les coups des parties de son groupe.</p>
+
+  <h3>Choisir les sons</h3>
+  <p>La rangée <b>Wave</b> de l'afficheur, puis la molette. Pour une percussion, elle fait défiler
+  <b>vingt-neuf timbres</b> : quatre grosses caisses, trois caisses claires, rimshot, clap, trois toms, conga,
+  deux charleys fermés et deux ouverts, crash, ride, cowbell, clave, wood block, shaker, tambourin, zap,
+  laser, bruit, blip, space drum. Pour un synthé, elle choisit la forme d'onde. Le choix est enregistré
+  avec le motif : deux motifs peuvent avoir des kits différents.</p>
+
+  <h3>Régler une partie</h3>
+  <p><b>LEVEL</b>, <b>PAN</b>, <b>PITCH</b>, <b>EG TIME</b> agissent sur la partie choisie.
+  <b>AMP EG</b> raccourcit l'enveloppe, <b>ROLL</b> répète le coup, <b>EFFECT</b> l'envoie vers l'effet.</p>
+
+  <h3>Le clavier</h3>
+  <p><b>KEYBOARD</b> transforme les touches en clavier pour la partie de synthé choisie, dans la gamme réglée
+  par SHIFT + touche 2. <b>◀ ▶</b> changent d'octave. Toucher un pas le sélectionne — un cadre vert le marque —
+  et la touche du clavier ou la molette lui donne sa hauteur. Chaque pas a donc sa propre note.</p>
+
+  <h3>Mouvement et enchaînement</h3>
+  <p><b>MOTION SEQ</b> enregistre le mouvement d'un bouton sur les seize pas : le bouton passe de OFF à
+  <b>Smooth</b> puis <b>Trig Hold</b>, et avec REC armé pendant la lecture, tourner un bouton écrit la courbe.
+  Smooth glisse d'un pas au suivant, Trig Hold tient la valeur. Un point vert marque les parties qui bougent.</p>
+  <p><b>SONG</b> enchaîne les motifs : les touches deviennent les positions, une touche vide prend le motif
+  courant, la molette change le motif d'une position.</p>
+
+  <h3>Fonctions SHIFT</h3>
+  <p>SHIFT puis une touche : <b>1</b> longueur du motif, <b>2</b> gamme, <b>3</b> swing, <b>4</b> type de
+  roulement, <b>5</b> décalage d'un pas, <b>6</b> copier la partie, <b>7</b> copier le son, <b>8</b> effacer le
+  mouvement, <b>9</b> vider la partie, <b>10</b> échanger avec la copie, <b>11</b> dupliquer le motif,
+  <b>12</b> effacer le motif, <b>16</b> protection en écriture.</p>
+  </div>
+
+  <div class="doc" id="note-er" data-titre="ER-1">
+  <h3>Prise en main</h3>
+  <p><b>1.</b> <b>▶ ❙❙</b> lance. <b>2.</b> Touchez un bouton de partie : elle sonne et devient la partie
+  réglée. <b>3.</b> Allumez ses pas. La partie <b>ACC</b> renforce les coups des autres.</p>
+
+  <h3>Les percussions synthétisées</h3>
+  <p>Les quatre premières parties sont un <b>oscillateur</b> sinus ou triangle, et tout le caractère vient de
+  sa modulation. <b>PITCH</b> donne la hauteur. <b>MOD DEPTH</b> et <b>MOD SPEED</b> règlent la profondeur et
+  la vitesse. <b>MOD TYPE</b> en choisit la forme : sinus, carré, triangle, montée, chute, aléatoire.</p>
+  <p>Deux recettes à connaître : une <b>chute</b> de hauteur profonde et lente donne la grosse caisse ; une
+  modulation <b>aléatoire</b> rapide donne les timbres métalliques. <b>RING MOD</b> fait se multiplier les
+  parties 1 et 2, ou 3 et 4 — c'est là que naissent les cloches et les sons inharmoniques.</p>
+  <p>La rangée <b>Sound</b> de l'afficheur charge l'un des seize sons préréglés dans la partie choisie.
+  Ce n'est qu'un point de départ : tous les boutons restent libres ensuite.</p>
+
+  <h3>Les autres parties</h3>
+  <p>Les deux parties <b>AUDIO IN</b> sont ici des percussions de <b>bruit filtré</b> : le téléphone n'a pas
+  d'entrée ligne. PITCH y règle la fréquence du filtre, MOD DEPTH sa finesse. Les deux <b>charleys</b> se
+  coupent l'un l'autre, comme sur l'appareil. Viennent ensuite la <b>crash</b> et le <b>hand clap</b>.</p>
+
+  <h3>Ampli et délai</h3>
+  <p><b>DECAY</b>, <b>LEVEL</b>, <b>PAN</b>, et <b>LOW BOOST</b> — un renfort des graves propre à l'ER-1, à ne
+  pas confondre avec le volume. <b>DELAY</b> : profondeur et temps, avec un mode synchronisé au tempo par le
+  bouton TYPE.</p>
+
+  <h3>Version mkII</h3>
+  <p>Les deux parties AUDIO IN deviennent des parties <b>PCM</b> : la rangée Sound y fait défiler la banque de
+  vingt-quatre sons, PITCH change la vitesse de lecture et DECAY la coupe. Motifs et sons sont gardés
+  séparément de la première version.</p>
+
+  <h3>Fonctions SHIFT</h3>
+  <p><b>1 à 4</b> longueur du motif, <b>5 à 7</b> gamme rythmique, <b>8</b> swing, <b>9</b> décalage,
+  <b>10</b> copier la partie, <b>11</b> effacer le mouvement, <b>12</b> vider la partie, <b>13</b> dupliquer le
+  motif, <b>14</b> effacer le motif, <b>15</b> retirer une position de chanson, <b>16</b> vider la chanson.</p>
+  </div>
+
+  <div class="doc" id="note-ea" data-titre="EA-1">
+  <h3>Prise en main</h3>
+  <p><b>1.</b> <b>▶ ❙❙</b> lance. <b>2.</b> <b>PART SELECT</b> passe d'une partie de synthé à l'autre.
+  <b>3.</b> Allumez des pas, puis donnez-leur leur hauteur au clavier.</p>
+
+  <h3>Les oscillateurs</h3>
+  <p>Deux oscillateurs par partie : dent de scie, carré ou triangle, choisis par <b>OSC1</b> et <b>OSC2</b>.
+  <b>OSC BALANCE</b> dose leur mélange, <b>OSC2 PITCH OFS</b> désaccorde le second — un léger désaccord épaissit,
+  une octave donne du corps, une quinte chante. <b>PORTAMENTO</b> fait glisser d'une note à la suivante.</p>
+  <p><b>OSC MOD</b> : <b>RING</b> multiplie les deux oscillateurs, <b>SYNC</b> découpe le second sur le premier,
+  <b>DECI</b> réduit la définition. La version <b>mkII</b> ajoute <b>CROSS</b>, la modulation croisée, d'autant
+  plus violente que l'équilibre penche vers l'oscillateur 2.</p>
+
+  <h3>Filtre et ampli</h3>
+  <p><b>CUTOFF</b> et <b>RESONANCE</b>, <b>EG INT</b> pour la quantité d'enveloppe et <b>DECAY</b> pour sa
+  longueur : c'est la combinaison de ces quatre boutons qui fait une basse acid. <b>DISTORTION</b> et
+  <b>LEVEL</b> terminent le trajet.</p>
+
+  <h3>Le clavier et les liaisons</h3>
+  <p><b>KEYBOARD</b> transforme les touches en clavier ; les deux dernières deviennent <b>REST</b> et
+  <b>TIE</b>. Une liaison tient la note sur le pas suivant sans la réattaquer — c'est ce qui donne les lignes
+  de basse qui respirent. <b>Gate Time</b>, dans la liste de l'afficheur, règle la longueur des notes.</p>
+
+  <h3>Effet</h3>
+  <p><b>TYPE SELECT</b> choisit entre le <b>délai synchronisé au tempo</b> et le <b>chorus/flanger</b>,
+  réglés par DEPTH et TIME.</p>
+
+  <h3>Sons préréglés</h3>
+  <p>La rangée <b>Sound</b> de l'afficheur charge l'un des quatorze sons préréglés dans la partie choisie :
+  basses, acid, sub, leads, sync, ring, deci, pluck, nappe, bleep, growl, hoover.</p>
+  <p>L'entrée audio de l'appareil d'origine n'a pas d'équivalent : le téléphone n'a pas d'entrée ligne.</p>
+  </div>
+
+  <div class="doc" id="note-es" data-titre="ES-1">
+  <h3>Prise en main</h3>
+  <p><b>1.</b> Choisissez une partie. <b>2.</b> Donnez-lui un son (voir ci-dessous). <b>3.</b> Allumez ses pas
+  et lancez la lecture.</p>
+
+  <h3>Trois façons de charger un son</h3>
+  <p><b>SAMPLING</b> enregistre au micro du téléphone : une pression pour démarrer, une autre pour arrêter,
+  six secondes au maximum. Android demande l'autorisation au premier essai — il faut alors retoucher le bouton.</p>
+  <p><b>IMPORT</b> ouvre le sélecteur de fichiers et prend n'importe quel fichier audio lisible par le
+  téléphone, jusqu'à 40 Mo.</p>
+  <p>Le mode <b>SAMPLE</b>, ou la rangée <b>Sample</b> de l'afficheur, fait défiler à la molette la
+  <b>banque interne de vingt-quatre sons</b> et tous vos enregistrements.</p>
+  <p>Les sons enregistrés sont ramenés en mono à 32 kHz, normalisés, et écrits dans le dossier privé de
+  l'application : ils reviennent au lancement suivant. Si l'écriture échoue, un bandeau rouge le dit.</p>
+
+  <h3>Régler une partie</h3>
+  <p><b>PITCH/SPEED</b> transpose en changeant la vitesse de lecture. <b>FILTER</b> ouvre ou ferme.
+  <b>LEVEL</b> et <b>PAN</b> placent le son. <b>REVERSE</b> le lit à l'envers, <b>ROLL</b> le répète,
+  <b>EFFECT</b> l'envoie vers l'effet.</p>
+  <p><b>SLICE</b> découpe le son en seize tranches et en joue une par pas : la tranche suit la position dans
+  la mesure. C'est ainsi qu'on fait tenir une boucle entière sur une partie.</p>
+  <p><b>PART MUTE</b> et <b>SOLO</b> coupent ou isolent la partie choisie.</p>
+
+  <h3>Effets</h3>
+  <p>Onze effets et un délai, avec <b>BPM SYNC</b> pour caler le délai sur le tempo. La version <b>mkII</b>
+  remplace Resonator et Filter par <b>ISOLATOR</b> — trois bandes dont une seule reste au premier plan,
+  EDIT 1 choisit laquelle et EDIT 2 la profondeur de la coupe — et <b>RESO. FILT.</b>, un passe-bas bien plus
+  résonant.</p>
+
+  <h3>Fonctions SHIFT</h3>
+  <p><b>11 Normalize</b> remonte le son au maximum sans saturer. <b>12 Truncate</b> coupe le silence de fin.
+  <b>13 Time Slice</b>, <b>14 Delete Sample</b> : si le son sert ailleurs, il est seulement détaché de la partie
+  courante et un bandeau le signale. Le lecteur de carte SmartMedia n'a pas d'équivalent.</p>
+  </div>
+
+  <div class="doc" id="note-mx" data-titre="EMX-1">
+  <h3>Prise en main</h3>
+  <p><b>1.</b> <b>▶ ❙❙</b> lance. <b>2.</b> Choisissez une partie parmi les neuf percussions ou les cinq
+  synthés. <b>3.</b> Allumez ses pas. Les deux pistes <b>ACC</b> renforcent les coups.</p>
+
+  <h3>Les percussions</h3>
+  <p>Elles lisent la banque de vingt-quatre sons, choisis par la rangée <b>Sound</b> de l'afficheur.
+  <b>PITCH/GLIDE</b> change la vitesse de lecture, <b>EG TIME</b> la coupe quand <b>AMP EG</b> est actif.</p>
+
+  <h3>Les synthés : quinze modèles d'oscillateur</h3>
+  <p>C'est le cœur de la machine, et <b>OSC EDIT 1</b> et <b>2</b> ne font pas la même chose d'un modèle à
+  l'autre.</p>
+  <p><b>CROSS MOD</b> modulation croisée. <b>OSC SYNC</b> synchronisation. <b>RING MOD</b> multiplication.
+  <b>UNISON</b> quatre dents de scie désaccordées. <b>CHORD</b> un accord complet sur une note.
+  <b>DUAL OSC</b> deux oscillateurs. <b>WAVEFORM</b> une onde simple. <b>VPM</b> modulation de phase à deux
+  opérateurs, pour les cloches et les basses métalliques. <b>WS</b> mise en forme d'onde. <b>ADDITIVE</b> une
+  onde construite harmonique par harmonique. <b>COMB</b> un filtre en peigne accordé sur la note.
+  <b>FORMANT</b> des voyelles. <b>NOISE</b> du bruit filtré. <b>PCM+COMB</b> et <b>PCM+WS</b> passent un
+  échantillon dans le peigne ou la mise en forme.</p>
+
+  <h3>Filtre et modulation</h3>
+  <p>Filtre à quatre types — passe-bas, passe-haut, passe-bande, passe-bande étroit — avec <b>EG INT</b> et
+  <b>DRIVE</b>. La <b>MODULATION</b> assigne un oscillateur lent à la hauteur, aux deux réglages d'oscillateur,
+  à la coupure, au volume ou au panoramique ; cinq formes, et <b>BPM SYNC</b> pour la caler sur le tempo.</p>
+
+  <h3>Trois effets à la fois</h3>
+  <p>Chaque partie choisit le sien avec <b>FX SELECT</b> et l'y envoie avec <b>FX SEND</b>.
+  <b>FX CHAIN</b> met les trois en série au lieu de les laisser en parallèle.</p>
+
+  <h3>Valve Force</h3>
+  <p><b>TUBE GAIN</b> pousse tout le mélange dans une saturation <b>dissymétrique</b> : elle engendre des
+  harmoniques paires, ce qui donne la chaleur des lampes plutôt que la dureté d'une distorsion ordinaire.
+  À zéro, la chaîne est parfaitement transparente. Les deux lampes de la fenêtre s'allument avec le réglage.</p>
+
+  <h3>Arpégiateur</h3>
+  <p>Le <b>ruban</b> joue les notes de la gamme, du grave à l'aigu, et les répète tant qu'on reste posé dessus.
+  <b>PATTERN SET</b> change de gamme, <b>KEYBOARD</b> transforme les touches en clavier.</p>
+  </div>
+
+  <div class="doc" id="note-sx" data-titre="ESX-1">
+  <h3>Prise en main</h3>
+  <p>L'EMX-1 avec l'échantillonnage. <b>1.</b> Choisissez une partie. <b>2.</b> Donnez-lui un son au micro,
+  par import, ou dans la banque. <b>3.</b> Allumez ses pas.</p>
+
+  <h3>Trois familles de parties</h3>
+  <p>Neuf <b>parties de percussion</b> lisent leur son à vitesse réglable.</p>
+  <p>Deux parties <b>KEYBOARD</b> le lisent <b>à la hauteur des notes</b> : elles transforment n'importe quel
+  son en instrument jouable au clavier.</p>
+  <p>Deux parties <b>STRETCH</b> découpent leur son en autant de tranches qu'il y a de pas et en jouent une par
+  pas. La boucle suit le tempo <b>sans que la hauteur bouge</b>, puisque c'est la position de lecture qui
+  avance et non la vitesse — c'est la différence avec un simple ralentissement.</p>
+
+  <h3>Les sons</h3>
+  <p><b>SAMPLING</b> au micro (huit secondes), <b>IMPORT</b> par le sélecteur de fichiers, ou la banque de
+  vingt-quatre sons à la molette. La mémoire des sons est <b>partagée avec l'ES-1</b> : ce qui est enregistré
+  sur l'une est disponible sur l'autre.</p>
+
+  <h3>Régler une partie</h3>
+  <p><b>PITCH/GLIDE</b>, <b>START POINT</b> pour attaquer plus loin dans le son, <b>LEVEL</b>, <b>PAN</b>,
+  <b>EG TIME</b>, <b>CUTOFF</b>, <b>RESONANCE</b>, <b>EG INT</b> et le type de filtre. <b>REVERSE</b>,
+  <b>ROLL</b>, <b>SLICE</b>, et une modulation assignable à la hauteur, la coupure, le volume ou le panoramique.</p>
+
+  <h3>Seize effets sur trois chaînes</h3>
+  <p>Les treize des autres machines, plus <b>talking mod</b> (deux formants balayés), un <b>égaliseur trois
+  bandes</b> et le <b>grain shifter</b>, qui fait bégayer le son par tranches. Répartis sur trois chaînes,
+  en parallèle ou en série, suivis du <b>Valve Force</b>.</p>
+
+  <h3>Fonctions SHIFT</h3>
+  <p><b>11 Normalize</b>, <b>12 Truncate</b>, <b>13 Time Slice</b>, <b>14 Delete Sample</b>, <b>16 Protect</b>.
+  L'entrée ligne et le lecteur de carte n'ont pas d'équivalent.</p>
+  </div>
+  </div>
 </div>
 
 <script>
@@ -2617,6 +2717,56 @@ document.getElementById("b-panique").addEventListener("click", function(){
   H.stop();
 });
 
+/* ================= notices ================= */
+var noteEl = document.getElementById("note");
+var noteNav = document.getElementById("note-nav");
+var docCourantId = "note-general";
+function docDeLaMachine(){
+  var m = S.modele;
+  if(m === "16" || m === "32") return "note-ehx";
+  if(m === "em1") return "note-em";
+  if(m === "er1" || m === "er2") return "note-er";
+  if(m === "ea1" || m === "ea2") return "note-ea";
+  if(m === "es1" || m === "es2") return "note-es";
+  if(m === "emx") return "note-mx";
+  if(m === "esx") return "note-sx";
+  return "note-general";
+}
+function montrerDoc(id){
+  var docs = document.querySelectorAll("#note-corps .doc"), i;
+  for(i=0;i<docs.length;i++) docs[i].classList.toggle("vu", docs[i].id === id);
+  var bs = noteNav.querySelectorAll("button");
+  for(i=0;i<bs.length;i++) bs[i].classList.toggle("on", bs[i].dataset.d === id);
+  var d = document.getElementById(id);
+  noteTitre.textContent = d ? ("NOTICE · " + d.dataset.titre) : "NOTICE";
+  document.getElementById("note-corps").scrollTop = 0;
+  docCourantId = id;
+}
+function ouvrirNotice(id){
+  noteEl.classList.add("show");
+  document.body.classList.add("note-ouverte");
+  montrerDoc(id || docDeLaMachine());
+}
+function fermerNotice(){
+  noteEl.classList.remove("show");
+  document.body.classList.remove("note-ouverte");
+}
+(function construireNav(){
+  var docs = document.querySelectorAll("#note-corps .doc");
+  for(var i=0;i<docs.length;i++){
+    (function(d){
+      var b = document.createElement("button");
+      b.textContent = d.dataset.titre;
+      b.dataset.d = d.id;
+      b.addEventListener("click", function(){ montrerDoc(d.id); H.cran(); });
+      noteNav.appendChild(b);
+    })(docs[i]);
+  }
+})();
+document.getElementById("note-fermer").addEventListener("click", function(){ fermerNotice(); H.cran(); });
+document.getElementById("aide").addEventListener("click", function(){ ouvrirNotice(); H.inter(); });
+document.getElementById("menu-notices").addEventListener("click", function(){ ouvrirNotice("note-general"); H.inter(); });
+
 var bHaptic = document.getElementById("b-haptic");
 function labelHaptic(){
   bHaptic.textContent = "RETOUR HAPTIQUE : " + (S.haptic ? "ACTIVÉ" : "DÉSACTIVÉ");
@@ -2645,12 +2795,10 @@ labelBg();
 
 var note = document.getElementById("note");
 document.getElementById("b-modele").addEventListener("click", function(){
-  note.classList.remove("show");
+  fermerNotice();
   ouvrirMenu();
 });
-document.querySelector(".model").addEventListener("click", function(){
-  note.classList.add("show");
-});
+document.querySelector(".model").addEventListener("click", function(){ ouvrirNotice(); });
 
 document.addEventListener("visibilitychange", function(){
   cache = document.hidden;
@@ -3919,7 +4067,7 @@ for(var mb=0;mb<modeBtns.length;mb++){
     } else if(m===0){
       majTouches(); majLcd();
     } else if(m===3){
-      document.getElementById("note").classList.add("show");
+      ouvrirNotice();
       lcd("MIDI","GLOBAL",true);
     } else {
       lcd("---","À VENIR",true);
@@ -3985,7 +4133,7 @@ function ecrireVol(k){
 }
 
 document.getElementById("em-notice").addEventListener("click", function(){
-  document.getElementById("note").classList.add("show");
+  ouvrirNotice();
 });
 
 function boucleEm(){
@@ -4006,7 +4154,6 @@ function activerEm(){
   document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx");
   chargerEm();
   construireFx();
-  noteTitre.textContent = "ELECTRIBE EM-1 — recréation autonome";
   EM.choisirPartie(EM.sel);
   majTouches(); majBascules(); majKnobsPartie(); majLcd();
   kEmVol.maj(); kEmE1.maj(); kEmE2.maj();
@@ -4566,7 +4713,7 @@ for(var em2=0; em2<erModes.length; em2++){
       majTouchesEr(); majKnobsEr();
       lcdEr(ER.song.length?("00"+(ER.cur+1)).slice(-3):"---","SONG",true);
     } else if(m>=2){
-      document.getElementById("note").classList.add("show");
+      ouvrirNotice();
       lcdEr("MIDI", m===2?"GLOBAL":"MIDI", true);
     } else { majTouchesEr(); majLcdEr(); }
     H.cran();
@@ -4597,7 +4744,7 @@ document.getElementById("er-tap").addEventListener("click", function(){
   H.cran();
 });
 document.getElementById("er-notice").addEventListener("click", function(){
-  document.getElementById("note").classList.add("show");
+  ouvrirNotice();
 });
 
 function songEr(i){
@@ -4657,7 +4804,6 @@ function activerEr(v){
   chargerEr();
   document.getElementById("er-notice").textContent = ER.v===2 ? "ER-1 mkII" : "ER-1";
   document.getElementById("er-grp-audio").textContent = ER.v===2 ? "PCM" : "AUDIO IN";
-  noteTitre.textContent = (ER.v===2 ? "ELECTRIBE ER-1 mkII" : "ELECTRIBE ER-1") + " — recréation autonome";
   choisirEr(ER.sel||0);
   majTouchesEr(); majKnobsEr(); majLedsEr(); majLcdEr(); kErVol.maj();
   actif = unitEr;
@@ -5223,7 +5369,7 @@ for(var am=0; am<eaModes.length; am++){
       majTouchesEa(); majKnobsEa();
       lcdEa(EA.song.length?("00"+(EA.cur+1)).slice(-3):"---","SONG",true);
     } else if(m>=2){
-      document.getElementById("note").classList.add("show");
+      ouvrirNotice();
       lcdEa("MIDI", m===2?"GLOBAL":"MIDI", true);
     } else { majTouchesEa(); majLcdEa(); }
     H.cran();
@@ -5254,7 +5400,7 @@ document.getElementById("ea-tap").addEventListener("click", function(){
   H.cran();
 });
 document.getElementById("ea-notice").addEventListener("click", function(){
-  document.getElementById("note").classList.add("show");
+  ouvrirNotice();
 });
 function songEa(i){
   if(EA.protect){ lcdEa("PRT","PROTECT",true); return; }
@@ -5311,7 +5457,6 @@ function activerEa(v){
   document.body.classList.toggle("mk2", EA.v===2);
   chargerEa();
   document.getElementById("ea-notice").textContent = EA.v===2 ? "EA-1 mkII" : "EA-1";
-  noteTitre.textContent = (EA.v===2 ? "ELECTRIBE EA-1 mkII" : "ELECTRIBE EA-1") + " — recréation autonome";
   majTouchesEa(); majKnobsEa(); majLedsEa(); majLcdEa(); kEaVol.maj();
   actif = unitEa;
   save(); fit(); setTimeout(fit,120);
@@ -6067,7 +6212,7 @@ for(var sm=0; sm<esModes.length; sm++){
       for(var q=0;q<us.length;q++) us[q].classList.toggle("on", +us[q].dataset.p===2);
       majLcdEs();
     } else if(m===3){
-      document.getElementById("note").classList.add("show");
+      ouvrirNotice();
       lcdEs("MIDI","GLOBAL",true);
     } else { majTouchesEs(); majLcdEs(); }
     H.cran();
@@ -6098,7 +6243,7 @@ document.getElementById("es-tap").addEventListener("click", function(){
   H.cran();
 });
 document.getElementById("es-notice").addEventListener("click", function(){
-  document.getElementById("note").classList.add("show");
+  ouvrirNotice();
 });
 function songEs(i){
   if(ES.protect){ lcdEs("PRT","PROTECT",true); return; }
@@ -6189,7 +6334,6 @@ function activerEs(v){
   construireTypesEs(ES.v);
   chargerEs();
   document.getElementById("es-notice").textContent = ES.v===2 ? "ES-1 mkII" : "ES-1";
-  noteTitre.textContent = (ES.v===2 ? "ELECTRIBE ES-1 mkII" : "ELECTRIBE ES-1") + " — recréation autonome";
   choisirEs(ES.sel||0);
   majTouchesEs(); majKnobsEs(); majLedsEs(); majLcdEs(); kEsVol.maj(); majDelaiEs();
   actif = unitEs;
@@ -7115,7 +7259,7 @@ for(var mm2=0; mm2<mxModes.length; mm2++){
       if(MX.song.length){ MX.cur=MX.song[0]; MX.pat=MX.slots[MX.cur]; }
       majTouchesMx(); majKnobsMx(); lcdMx("SONG", MX.song.length?("PATTERN "+nomMotif(MX.cur)):"VIDE", true);
     } else if(m===4){
-      document.getElementById("note").classList.add("show");
+      ouvrirNotice();
       lcdMx("GLOBAL","RÉGLAGES ET MIDI",true);
     } else if(m===1){ MX.param=2; majLcdMx(); }
     else if(m===2){ MX.param=3; majLcdMx(); }
@@ -7149,7 +7293,7 @@ document.getElementById("mx-tap").addEventListener("click", function(){
   H.cran();
 });
 document.getElementById("mx-notice").addEventListener("click", function(){
-  document.getElementById("note").classList.add("show");
+  ouvrirNotice();
 });
 function songMx(i){
   if(MX.protect) return;
@@ -7189,7 +7333,7 @@ function shiftMx(i){
   }
   else if(i===9){ MX.slots[MX.cur]=motifMx(9); MX.pat=MX.slots[MX.cur]; majTouchesMx(); majKnobsMx(); majLedsMx(); memMx(); lcdMx("DELETE","PATTERN",true); }
   else if(i===10){ MX.song=[]; MX.spos=0; MX.ssel=0; if(MX.mode===3) majTouchesMx(); memMx(); lcdMx("CLEAR","SONG",true); }
-  else if(i===11){ document.getElementById("note").classList.add("show"); lcdMx("UTILITY","RÉGLAGES",true); }
+  else if(i===11){ ouvrirNotice(); lcdMx("UTILITY","RÉGLAGES",true); }
   else if(i===15){ MX.protect=!MX.protect; lcdMx(MX.protect?"ON":"OFF","PROTECT",true); }
   else if(MX.clip && i===12){ p.st[k]=MX.clip.st.slice(); p.nt[k]=MX.clip.nt.slice(); majTouchesMx(); memMx(); lcdMx("PASTE","PART",true); }
   else lcdMx("---","À VENIR",true);
@@ -7205,7 +7349,6 @@ function activerMx(){
   audioInit(); banqueEs(); mxAudio();
   chargerMx();
   cablerFxMx(); majTube();
-  noteTitre.textContent = "ELECTRIBE EMX-1 — recréation autonome";
   choisirMx(MX.sel||0);
   majTouchesMx(); majKnobsMx(); majLedsMx(); majLcdMx(); kMxVol.maj();
   actif = unitMx;
@@ -8090,7 +8233,7 @@ document.getElementById("sx-tap").addEventListener("click", function(){
   H.cran();
 });
 document.getElementById("sx-notice").addEventListener("click", function(){
-  document.getElementById("note").classList.add("show");
+  ouvrirNotice();
 });
 function songSx(i){
   if(SX.protect) return;
@@ -8163,7 +8306,7 @@ function shiftSx(i){
     } else lcdSx("DELETE","SAMPLE",true);
     majLedsSx(); memSx();
   }
-  else if(i===14){ document.getElementById("note").classList.add("show"); lcdSx("UTILITY","RÉGLAGES",true); }
+  else if(i===14){ ouvrirNotice(); lcdSx("UTILITY","RÉGLAGES",true); }
   else { SX.protect=!SX.protect; lcdSx(SX.protect?"ON":"OFF","PROTECT",true); }
   H.cran();
 }
@@ -8177,7 +8320,6 @@ function activerSx(){
   audioInit(); banqueEs(); sxAudio(); chargerEchs();
   chargerSx();
   cablerFxSx(); majTubeSx();
-  noteTitre.textContent = "ELECTRIBE ESX-1 — recréation autonome";
   choisirSx(SX.sel||0);
   majTouchesSx(); majKnobsSx(); majLedsSx(); majLcdSx(); kSxVol.maj();
   actif = document.getElementById("unit-esx");
@@ -8418,7 +8560,6 @@ var capOut2 = document.getElementById("cap-out2");
 var capRight = document.getElementById("cap-right");
 var misc4 = document.getElementById("misc4");
 var noteTitre = document.getElementById("note-titre");
-var noteModele = document.getElementById("note-modele");
 
 function appliquerModele(id){
   stop();
@@ -8439,8 +8580,6 @@ function appliquerModele(id){
   capRight.textContent = MODELE.droite;
   misc4.textContent = MODELE.misc4;
   for(var i=0;i<odel.length;i++) odel[i].textContent = MODELE.del[i];
-  noteTitre.textContent = MODELE.logo + " — recréation autonome";
-  noteModele.textContent = MODELE.note;
 
   swRight.classList.toggle("on",
       MODELE.modeDroite === "bank" ? S.bank === 1 : S.space);
@@ -8459,11 +8598,13 @@ function appliquerModele(id){
 function ouvrirMenu(){
   stop();
   menu.classList.remove("hide");
+  document.body.classList.add("menu-ouvert");
 }
 var picks = document.querySelectorAll(".pick");
 for(var q=0;q<picks.length;q++){
   picks[q].addEventListener("click", function(){
     ZOOM.z = 1; ZOOM.tx = 0; ZOOM.ty = 0;
+    document.body.classList.remove("menu-ouvert");
     var id = this.dataset.m;
     if(id === "em1") activerEm();
     else if(id === "er1") activerEr(1);
@@ -8491,6 +8632,7 @@ else if(memoire.modele === "emx") activerMx();
 else if(memoire.modele === "esx") activerSx();
 else appliquerModele(memoire.modele);
 menu.classList.remove("hide");
+document.body.classList.add("menu-ouvert");
 setTimeout(fit,500);
 </script>
 </body>
