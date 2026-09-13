@@ -232,6 +232,17 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 | Phaser | 29 ms/s | 0,3 ms/s |
 | Pire cas des seize | 2392 ms/s | 61 ms/s |
 
+## Options ajoutées (version 26)
+
+- **MUTE et SOLO** sur l'EM-1 et l'ER-1, qui ne les avaient pas. Vérifié au rendu : couper la grosse caisse
+  fait passer le niveau efficace d'un motif de 0,1446 à 0,0254.
+- **Métronome**, réglable dans l'onglet GÉNÉRAL de la notice. Il marque les temps, plus fort sur le premier
+  (crête 0,187 contre 0,109), passe directement au mélange — ni effets, ni niveaux de parties — et n'est
+  pas envoyé en MIDI. Gardé en mémoire.
+- **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
+  piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
+  exactement le comportement précédent.
+
 ## Pattern Set
 
 Les cinq Electribe ont enfin leur **PATTERN SET** : les seize touches deviennent un sélecteur de motifs,

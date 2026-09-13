@@ -895,6 +895,8 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
         <span>SELECT</span>
         <button class="btn" id="em-kb">KEYBOARD</button>
         <button class="btn" id="em-pset">PATTERN SET</button>
+        <button class="btn" id="em-mute">MUTE</button>
+        <button class="btn" id="em-solo">SOLO</button>
         <button class="btn" id="em-erase" style="margin-left:auto">ERASE</button>
         <button class="btn" id="em-shift">SHIFT</button>
       </div>
@@ -1023,6 +1025,8 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
         <button class="btn sombre" id="er-next">▶</button>
         <span>SELECT</span>
         <button class="btn" id="er-pset">PATTERN SET</button>
+        <button class="btn" id="er-mute">MUTE</button>
+        <button class="btn" id="er-solo">SOLO</button>
         <button class="btn" id="er-erase" style="margin-left:auto">ERASE</button>
         <button class="btn" id="er-shift">SHIFT</button>
       </div>
@@ -1816,6 +1820,8 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   sur une commande règle la commande, comme d'habitude. Deux appuis brefs sur le fond remettent à plat.</p>
 
   <h3>Réglages</h3>
+  <p>Le <b>métronome</b> marque les temps pendant la lecture, plus fort sur le premier ; il ne passe ni par
+  les effets ni par les niveaux de parties, et n'est pas envoyé en MIDI.</p>
   <p>Le <b>retour haptique</b> donne une vibration différente selon la commande. La <b>lecture en
   arrière-plan</b> laisse le rythme tourner quand on quitte l'application, avec une notification ; la couper
   arrête la lecture à la sortie. <b>PANIQUE</b> coupe tout, ferme les notes MIDI ouvertes et rétablit le volume.</p>
@@ -1832,7 +1838,8 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
      <button class="sec" id="b-midi-in"></button></p>
   <p><button class="sec" id="b-midi-clk"></button>
      <button class="sec" id="b-midi-ch"></button></p>
-  <p><button class="sec" id="b-haptic">RETOUR HAPTIQUE</button>
+  <p><button class="sec" id="b-metro">MÉTRONOME</button>
+     <button class="sec" id="b-haptic">RETOUR HAPTIQUE</button>
      <button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
   <p><button id="b-panique">PANIQUE · TOUT COUPER</button>
      <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
@@ -1891,10 +1898,13 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   par SHIFT + touche 2. <b>◀ ▶</b> changent d'octave. Toucher un pas le sélectionne — un cadre vert le marque —
   et la touche du clavier ou la molette lui donne sa hauteur. Chaque pas a donc sa propre note.</p>
 
-  <h3>Pattern Set</h3>
+  <h3>Pattern Set, coupure et solo</h3>
   <p><b>PATTERN SET</b> transforme les seize touches en sélecteur de motifs : une touche, un motif,
-  changement immédiat même en pleine lecture. La touche allumée est le motif en cours. Rappuyez dessus
-  pour revenir à l'édition des pas.</p>
+  changement immédiat même en pleine lecture. La touche allumée est le motif en cours.</p>
+  <p><b>MUTE</b> coupe la partie choisie, <b>SOLO</b> ne laisse passer qu'elle. Les deux se cumulent entre
+  parties et ne touchent pas au motif : rien n'est effacé.</p>
+  <p>Le <b>niveau d'accent</b> se règle avec le bouton <b>LEVEL</b> quand une piste d'accent est choisie :
+  il fixe la force des coups accentués au lieu de les pousser systématiquement au maximum.</p>
 
   <h3>Mouvement et enchaînement</h3>
   <p><b>MOTION SEQ</b> enregistre le mouvement d'un bouton sur les seize pas : le bouton passe de OFF à
@@ -2139,6 +2149,7 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
     if(typeof m.bpm === "number") memoire.bpm = Math.min(220, Math.max(40, m.bpm|0));
     if(typeof m.haptic === "boolean") memoire.haptic = m.haptic;
     if(typeof m.bg === "boolean") memoire.bg = m.bg;
+    if(typeof m.metro === "boolean") memoire.metro = m.metro;
     if(typeof m.bass === "boolean") memoire.bass = m.bass;
     ["16","32"].forEach(function(k){
       var r = m[k]; if(!r) return;
@@ -2192,7 +2203,7 @@ function writeMem(){
       memoire[S.modele] = {style:S.style, col:S.col, del:S.del, space:S.space, bank:S.bank};
     localStorage.setItem(MEM, JSON.stringify({
       modele:memoire.modele, vol:memoire.vol, bpm:memoire.bpm, haptic:memoire.haptic,
-      bg:memoire.bg, bass:memoire.bass, midi:memoire.midi,
+      bg:memoire.bg, bass:memoire.bass, midi:memoire.midi, metro:memoire.metro,
       "16":memoire["16"], "32":memoire["32"]
     }));
     memEchec = false;
@@ -2203,6 +2214,22 @@ function writeMem(){
 /* toutes les écritures sont différées : la saisie d'un motif ne bloque plus l'affichage */
 function save(){ clearTimeout(saveTmr); saveTmr = setTimeout(writeMem, 250); }
 function saveSoon(){ clearTimeout(saveTmr); saveTmr = setTimeout(writeMem, 300); }
+
+/* ================= métronome ================= */
+var METRO = false;
+function clicMetro(t, fort){
+  if(!METRO || !ctx || !master) return;
+  var o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = "square";
+  o.frequency.setValueAtTime(fort ? 1760 : 1100, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(fort ? 0.22 : 0.13, t+0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+0.035);
+  var pb = ctx.createBiquadFilter(); pb.type="bandpass";
+  pb.frequency.value = fort ? 1760 : 1100; pb.Q.value = 3;
+  o.connect(pb); pb.connect(g); g.connect(master);
+  o.start(t); o.stop(t+0.05);
+}
 
 /* ================= bandeau de signalement ================= */
 var signalEl = null, signalTmr = null;
@@ -2515,6 +2542,7 @@ function tick(){
   if(nextT < ctx.currentTime - 0.4){ nextT = ctx.currentTime + 0.08; queue=[]; }
   while(nextT < ctx.currentTime + look()){
     MACHINE.schedule(step, nextT);
+    if(METRO && step % 4 === 0) clicMetro(nextT, step === 0);
     nextT += stepDur();
     step = (step+1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
     if(step === 0 && MACHINE.boucle) MACHINE.boucle();
@@ -2792,6 +2820,14 @@ function fermerNotice(){
 document.getElementById("note-fermer").addEventListener("click", function(){ fermerNotice(); H.cran(); });
 document.getElementById("aide").addEventListener("click", function(){ ouvrirNotice(); H.inter(); });
 document.getElementById("menu-notices").addEventListener("click", function(){ ouvrirNotice("note-general"); H.inter(); });
+
+var bMetro = document.getElementById("b-metro");
+function labelMetro(){ bMetro.textContent = "MÉTRONOME : " + (METRO ? "ACTIVÉ" : "COUPÉ"); }
+bMetro.addEventListener("click", function(){
+  METRO = !METRO; labelMetro(); memoire.metro = METRO; save(); H.cran();
+});
+if(memoire.metro) METRO = true;
+labelMetro();
 
 var bHaptic = document.getElementById("b-haptic");
 function labelHaptic(){
@@ -3504,7 +3540,7 @@ var GAMMES = [
   {n:"BLUES", i:[0,3,5,6,7,10,12,15,17,18,19,22,24,27,29,30]}
 ];
 var EM = {
-  kb:false, oct:3, pasSel:-1, protect:false, clip:null, clipSon:null,
+  kb:false, oct:3, pasSel:-1, protect:false, clip:null, clipSon:null, pset:false, mute:[], solo:[],
   song:[], spos:0, ssel:0,
   pat: motifUsine(0), slots: [], cur: 0, sel: 0, param: 0, mode: 0,
   rec:false, shift:false, delayEdit:false, motion:false,
@@ -3576,6 +3612,11 @@ EM.egT = 0.35;
 /* --- séquence de mouvement --- */
 var MOT = null;
 function mv(champ, defaut){ return (MOT && MOT.p === champ) ? MOT.v : defaut; }
+/* l'accent n'est plus tout ou rien : le bouton LEVEL de la piste d'accent en règle la force */
+function velAccent(niv){
+  if(typeof niv !== "number") niv = 0.8;
+  return Math.max(0.72, Math.min(1, 0.7 + niv*0.375));
+}
 function motionAu(k,i){
   var m = EM.pat.mot[k];
   if(!m || !m.mode || !m.v) return null;
@@ -3600,10 +3641,14 @@ function scheduleEm(i,t){
   var p = EM.pat;
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   var accD = p.st[10][i], accS = p.st[11][i];
+  var soloEm = false, q;
+  for(q=0;q<10;q++) if(EM.solo[q]) soloEm = true;
   for(var k=0;k<10;k++){
     if(!p.st[k][i]) continue;
+    if(EM.mute[k]) continue;
+    if(soloEm && !EM.solo[k]) continue;
     var part = EM_PARTS[k];
-    var vel = (part.synth ? accS : accD) ? 1 : 0.7;
+    var vel = (part.synth ? accS : accD) ? velAccent(p.lvl[part.synth ? 11 : 10]) : 0.7;
     var n = p.roll[k] ? (p.rollN||4) : 1, j;
     MOT = motionAu(k,i);
     for(j=0;j<n;j++){
@@ -3837,6 +3882,8 @@ function toucheClavier(i){
 }
 function majBascules(){
   var p=EM.pat, k=EM.sel;
+  document.getElementById("em-mute").classList.toggle("on", !!EM.mute[k]);
+  document.getElementById("em-solo").classList.toggle("on", !!EM.solo[k]);
   document.getElementById("em-amp").classList.toggle("on", p.amp[k]);
   document.getElementById("em-roll").classList.toggle("on", p.roll[k]);
   document.getElementById("em-fx").classList.toggle("on", p.fx[k]);
@@ -4154,6 +4201,16 @@ function allerMotifEm(i){
   majTouches(); majBascules(); majMotionLeds(); majKnobsPartie(); majLcd();
   lcd(("00"+(i+1)).slice(-3), "PATTERN", true); H.inter();
 }
+function basculeCoupeEm(quoi){
+  var k = EM.sel;
+  EM[quoi][k] = !EM[quoi][k];
+  document.getElementById("em-"+(quoi==="mute"?"mute":"solo")).classList.toggle("on", !!EM[quoi][k]);
+  majBascules();
+  lcd(EM[quoi][k] ? (quoi==="mute"?"MUT":"SOL") : "ON", EM_PARTS[k].nom, true);
+  H.inter();
+}
+document.getElementById("em-mute").addEventListener("click", function(){ basculeCoupeEm("mute"); });
+document.getElementById("em-solo").addEventListener("click", function(){ basculeCoupeEm("solo"); });
 document.getElementById("em-pset").addEventListener("click", function(){
   EM.pset = !EM.pset;
   this.classList.toggle("on", EM.pset);
@@ -4350,7 +4407,7 @@ function motifEr(n){
 var ER = {
   pat: motifEr(0), slots: [], cur:0, sel:0, param:0, mode:0,
   rec:false, shift:false, protect:false, clip:null,
-  song:[], spos:0, ssel:0, pos:-1, pasSel:-1, son:0, v:1,
+  song:[], spos:0, ssel:0, pos:-1, pasSel:-1, son:0, v:1, pset:false, mute:[], solo:[],
   dDep:0.25, dTime:0.3, dTempo:false, dMot:false,
   noeuds:[], ohGain:null
 };
@@ -4493,11 +4550,16 @@ function scheduleEr(i,t){
   var p = ER.pat;
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   var acc = p.st[10][i];
+  var soloEr = false, q;
+  for(q=0;q<10;q++) if(ER.solo[q]) soloEr = true;
   for(var k=0;k<10;k++){
     if(!p.st[k][i]) continue;
+    if(ER.mute[k]) continue;
+    if(soloEr && !ER.solo[k]) continue;
     MOT = motionEr(k,i);
-    voixEr(t, k, acc ? 1 : 0.72);
-    midiNoteA(36+k, t, acc ? 1 : 0.72, MIDI.canal);
+    var velEr = acc ? velAccent(p.son[10].lvl) : 0.72;
+    voixEr(t, k, velEr);
+    midiNoteA(36+k, t, velEr, MIDI.canal);
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
@@ -4663,6 +4725,8 @@ function majTouchesEr(){
   }
 }
 function majLedsEr(){
+  document.getElementById("er-mute").classList.toggle("on", !!ER.mute[ER.sel]);
+  document.getElementById("er-solo").classList.toggle("on", !!ER.solo[ER.sel]);
   var m = ER.pat.mot[ER.sel], mode = m ? m.mode||0 : 0;
   document.getElementById("er-smooth").classList.toggle("on", mode===1);
   document.getElementById("er-trig").classList.toggle("on", mode===2);
@@ -4840,6 +4904,15 @@ function allerMotifEr(i){
   majTouchesEr(); majKnobsEr(); majLedsEr(); majLcdEr();
   lcdEr(("00"+(i+1)).slice(-3), "PATTERN", true); H.inter();
 }
+function basculeCoupeEr(quoi){
+  var k = ER.sel;
+  ER[quoi][k] = !ER[quoi][k];
+  majLedsEr();
+  lcdEr(ER[quoi][k] ? (quoi==="mute"?"MUT":"SOL") : "ON", nomPartieEr(k), true);
+  H.inter();
+}
+document.getElementById("er-mute").addEventListener("click", function(){ basculeCoupeEr("mute"); });
+document.getElementById("er-solo").addEventListener("click", function(){ basculeCoupeEr("solo"); });
 document.getElementById("er-pset").addEventListener("click", function(){
   ER.pset = !ER.pset;
   this.classList.toggle("on", ER.pset);
@@ -5852,6 +5925,7 @@ function scheduleEs(i,t){
   var p = ES.pat;
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   var acc = p.st[9][i];
+  var velAcc = velAccent(p.son[9].lvl);
   var soloActif = false, q;
   for(q=0;q<9;q++) if(ES.solo[q]) soloActif = true;
   for(var k=0;k<9;k++){
@@ -5860,8 +5934,8 @@ function scheduleEs(i,t){
     if(soloActif && !ES.solo[k]) continue;
     MOT = motionEs(k,i);
     var n = p.son[k].roll ? (p.rollN||4) : 1;
-    for(var j=0;j<n;j++) jouerEs(t + j*stepDur()/n, k, acc?1:0.75, i);
-    midiNoteA(36+k, t, acc?1:0.75, MIDI.canal);
+    for(var j=0;j<n;j++) jouerEs(t + j*stepDur()/n, k, acc?velAcc:0.75, i);
+    midiNoteA(36+k, t, acc?velAcc:0.75, MIDI.canal);
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
@@ -6899,7 +6973,7 @@ function scheduleMx(i,t){
     if(MX.mute[k]) continue;
     if(soloActif && !MX.solo[k]) continue;
     var synth = k>=10;
-    var vel = (synth ? accS : accD) ? 1 : 0.72;
+    var vel = (synth ? accS : accD) ? velAccent(p.son[synth ? 15 : 9].lvl) : 0.72;
     MOT = motionMx(k,i);
     var n = p.son[k].roll ? 4 : 1, j;
     for(j=0;j<n;j++){
@@ -7805,14 +7879,14 @@ function scheduleSx(i,t){
         var buf = tampon(p.son[k]);
         if(buf){
           var L = p.len||16;
-          voixSxTranche(tt, k, acc?1:0.8, i, L);
+          voixSxTranche(tt, k, acc?velAccent(p.son[9].lvl):0.8, i, L);
         }
       } else if(k>=10){
         var dSx = p.son[k].amp ? (0.03 + p.son[k].eg*1.4) : stepDur()*0.95;
-        voixSx(tt, k, acc?1:0.8, i, p.nt[k][i], p.son[k].amp ? null : stepDur()*0.95);
-        midiNoteA(p.nt[k][i], tt, acc?1:0.8, k-10, dSx);
+        voixSx(tt, k, acc?velAccent(p.son[9].lvl):0.8, i, p.nt[k][i], p.son[k].amp ? null : stepDur()*0.95);
+        midiNoteA(p.nt[k][i], tt, acc?velAccent(p.son[9].lvl):0.8, k-10, dSx);
       } else {
-        voixSx(tt, k, acc?1:0.75, i);
+        voixSx(tt, k, acc?velAccent(p.son[9].lvl):0.75, i);
         midiNoteA(36+k, tt, acc?1:0.75, MIDI.canal);
       }
     }
