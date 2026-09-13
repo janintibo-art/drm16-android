@@ -244,6 +244,36 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Traitement du son (version 41)
+
+Chaîne reprise de **MOC'TA BASS** (janintibo-art), transposée en traitement hors ligne dans la page :
+offset continu, passe-haut à deux pôles, coupe des silences, porte de bruit, accentuation de l'attaque,
+compression, saturation, mise à niveau en **LUFS** avec pondération K, fondus, et limiteur à anticipation.
+Six préréglages — doux, punch, max, loop, sub, voix.
+
+Deux règles de son auteur, gardées telles quelles parce qu'elles sont justes :
+
+- la **saturation passe avant la mise à niveau**, sinon elle déplace le niveau qu'on vient de caler ;
+- le **gain supplémentaire déplace la cible** au lieu de s'ajouter après, sinon le limiteur le reprend.
+
+Mesuré sur un coup de grosse caisse à −50 LUFS avec offset continu et souffle : **+32 dB** en *doux*,
+**+40 dB** en *max*, crête finale à −0,19 dB pour un plafond à −0,2, aucun dépassement sur les trois
+préréglages. L'offset de 0,15 tombe à 3·10⁻⁵.
+
+Le traitement s'applique aux sons enregistrés au micro et importés, et à la demande par son.
+
+**Égaliser le kit.** Aligne le niveau perçu des parties de la machine affichée. La méthode vient du même
+projet — mesurer, corriger, recommencer, parce que la réponse au gain n'est pas linéaire — avec une
+différence assumée : là-bas le levier est le fichier, ici c'est un bouton de niveau. Aligner sur le plus
+faible descendrait tout le kit de dix-sept décibels dès qu'un son est très en dessous ; on vise donc la
+médiane, et l'application dit combien de sons n'ont pas pu l'atteindre.
+
+Mesuré : sur des sons déjà traités, écart de 3,24 → **0,15 dB**. Sur des sons bruts d'écart 28 dB, quatre
+sons signalés comme trop faibles, avec l'invitation à les traiter.
+
+**Optimiser la mémoire.** Repère les sons sans aigu et abaisse leur taux : une grosse caisse à 70 Hz
+descend à 8 kHz, les trois quarts de sa place rendus. Un son à 6 kHz ou du bruit restent à 32 kHz.
+
 ## Roland TR-707 (version 40)
 
 Troisième des sept, et la première qui n'aura presque rien coûté : le moteur TR généralisé à la version
