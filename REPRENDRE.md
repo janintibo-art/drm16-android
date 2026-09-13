@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **59**.
+La version actuelle est la **61**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,58 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Bug corrigé en v61 — changement de machine**
+
+Symptôme signalé : on choisit une boîte à rythmes, on revient au menu, on en choisit une autre, et on
+retombe sur la précédente — souvent, pas toujours — avec parfois le son qui semble couper.
+
+Deux causes, indépendantes.
+
+1. **Les listes de classes étaient recopiées à la main** dans les dix-sept fonctions d'activation. Celles
+   écrites avant l'arrivée des dernières machines ne les effaçaient pas : `activerTr` n'enlevait ni `eur`,
+   ni `td3`, ni `arcm`, ni `t1k`, ni `dbi`, ni `cr5`, ni `vlc`, ni `dmx` ; `activerMpc` encore moins ;
+   `activerTd3` oubliait `eur`. Les deux classes restaient sur `<body>`, les deux unités passaient en
+   `display:block`, et **c'est la règle la plus basse dans la feuille de style qui gagnait** — donc la
+   machine la plus récemment ajoutée au projet, c'est-à-dire l'ancienne à l'écran. Pendant ce temps `actif`
+   et `MACHINE` pointaient bien sur la nouvelle : on jouait une machine qu'on ne voyait pas.
+   Mesuré sur les 272 transitions possibles : **18 étaient fautives**, toutes à destination de la MPC,
+   des TR/RD-6, ou de la TD-3 depuis l'Eurorack.
+
+   Correctif : `CLASSES_MACHINE` + `poserMachine(...)`, un seul endroit qui efface tout puis pose ce qu'on
+   lui donne. **Ne jamais réécrire une liste à la main** : toute machine ajoutée doit voir sa classe entrer
+   dans `CLASSES_MACHINE`, et rien d'autre à faire. Les variantes de couleur (`c1`–`c5`, `t1`–`t4`) sont
+   effacées aussi, et réappliquées juste après par `appliquerCouleurRd6()` / `appliquerCouleurTd3()`, qui
+   sont bien appelées après `poserMachine` — vérifier que ça reste le cas.
+
+2. **Le rack de l'Eurorack ne se débranchait jamais.** Le module OUTPUT était câblé droit sur `master`, et
+   `arretEur` ne faisait qu'éteindre le bouton. Ses oscillateurs tournent en permanence : en quittant le
+   rack, ils continuaient de sonner par-dessus la machine suivante, et chaque reconstruction en empilait un
+   de plus. Correctif : `EUR.bus`, refait à neuf à chaque `eurBatir()` (l'ancien est débranché d'un coup),
+   et fermé par `poserMachine` dès que la classe `eur` n'est plus posée.
+
+   **Reste à faire** : les oscillateurs de l'ancien graphe sont débranchés mais jamais arrêtés. C'est
+   silencieux, mais ça consomme. Il faudrait que `creer` retourne aussi la liste de ses sources pour
+   pouvoir les `stop()`. Même remarque pour la TD-3, dont `construireTd3` empile des chaînes muettes.
+
+**Icône, v60**
+
+Le lanceur n'affiche plus la matrice vectorielle mais une image. Le montage :
+
+- `mipmap-{m,h,xh,xxh,xxxh}dpi/ic_drm16.png` — le visuel plein cadre, 48 dp (héritée, API 24-25).
+- `…/ic_drm16_round.png` — le même recadré en rond, mais **réduit d'abord à 63 %** pour que le boîtier
+  tienne entier dans le cercle ; un simple recadrage rognait les potards.
+- `…/ic_drm16_fg.png` — premier plan adaptatif, canevas de 108 dp, visuel à **63 %** centré sur le fond
+  `#0E0C0C`. Cette valeur n'est pas arbitraire : à 70 % le masque circulaire mangeait 6 % du boîtier, à
+  63 % il n'en mange plus rien. Ne pas l'augmenter sans revérifier.
+- `mipmap-anydpi/ic_launcher.xml` est devenu un `<bitmap>` qui renvoie vers le PNG. **C'est indispensable** :
+  le qualificatif `anydpi` l'emporte sur toutes les densités, et tant qu'il contenait un vecteur, aucun PNG
+  n'était utilisé.
+- `mipmap-anydpi-v26/ic_launcher.xml` et `ic_launcher_round.xml` : adaptatif, fond `@drawable/ic_bg`
+  (recoloré en `#0E0C0C`), premier plan `@mipmap/ic_drm16_fg`.
+- `AndroidManifest.xml` déclare maintenant `android:roundIcon`.
+
+`drawable/ic_matrix.xml` n'est plus référencé. Il est laissé en place, il ne gêne pas.
 
 **Corrigé en v59 — à ne pas refaire**
 

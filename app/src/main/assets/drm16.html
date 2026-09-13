@@ -5109,6 +5109,31 @@ function arretEhx(){ led.classList.remove("beat"); }
 var MACHINE_EHX = {schedule:scheduleEhx, beat:beatEhx, arret:arretEhx};
 var MACHINE = MACHINE_EHX;
 
+/* ---------- quelle machine est affichée ----------
+   Le CSS choisit l'unité visible d'après une classe posée sur <body>. Il ne
+   doit donc y en avoir qu'une à la fois.
+
+   Ces listes étaient recopiées à la main dans chacune des dix-sept fonctions
+   d'activation, et celles écrites avant l'arrivée des dernières machines ne
+   les effaçaient pas : en quittant l'Eurorack pour la TR-808, la classe "eur"
+   restait, le rack continuait de s'afficher par-dessus alors que les commandes
+   pilotaient la TR — d'où l'impression de retomber sur la machine précédente,
+   et le son qui semble couper puisqu'on joue une autre machine que celle qu'on
+   voit. On efface maintenant tout, depuis un seul endroit. */
+var CLASSES_MACHINE = ["m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
+                       "tr8","tr9","tr7","rd6","td3","eur","dmx","vlc","cr5","dbi",
+                       "t1k","arcm",
+                       "c1","c2","c3","c4","c5","t1","t2","t3","t4"];
+function poserMachine(){
+  var d = document.body.classList, i;
+  for(i=0;i<CLASSES_MACHINE.length;i++) d.remove(CLASSES_MACHINE[i]);
+  for(i=0;i<arguments.length;i++) if(arguments[i]) d.add(arguments[i]);
+  /* le rack garde des oscillateurs en marche : on ferme son bus dès qu'on
+     regarde ailleurs, et on le rouvre en y revenant */
+  if(typeof EUR !== "undefined" && EUR && EUR.bus)
+    EUR.bus.gain.value = d.contains("eur") ? 1 : 0;
+}
+
 /* ================= boutons rotatifs ================= */
 function ticksFor(el,n){
   var box = el.querySelector(".ticks");
@@ -7060,8 +7085,7 @@ function activerEm(){
   stop();
   S.modele = "em1";
   MACHINE = MACHINE_EM;
-  document.body.classList.add("em1");
-  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
+  poserMachine("em1");
   chargerEm();
   construireFx();
   EM.choisirPartie(EM.sel);
@@ -7764,9 +7788,7 @@ function activerEr(v){
   ER.v = (v===2) ? 2 : 1;
   S.modele = "er" + ER.v;
   MACHINE = MACHINE_ER;
-  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("er1");
-  document.body.classList.toggle("mk2", ER.v===2);
+  poserMachine("er1", ER.v===2 ? "mk2" : null);
   chargerEr();
   document.getElementById("er-notice").textContent = ER.v===2 ? "ER-1 mkII" : "ER-1";
   document.getElementById("er-grp-audio").textContent = ER.v===2 ? "PCM" : "AUDIO IN";
@@ -8418,9 +8440,7 @@ function activerEa(v){
   EA.v = (v===2) ? 2 : 1;
   S.modele = "ea" + EA.v;
   MACHINE = MACHINE_EA;
-  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("ea1");
-  document.body.classList.toggle("mk2", EA.v===2);
+  poserMachine("ea1", EA.v===2 ? "mk2" : null);
   chargerEa();
   document.getElementById("ea-notice").textContent = EA.v===2 ? "EA-1 mkII" : "EA-1";
   majTouchesEa(); majKnobsEa(); majLedsEa(); majLcdEa(); kEaVol.maj();
@@ -9319,9 +9339,7 @@ function activerEs(v){
   ES.v = (v===2) ? 2 : 1;
   S.modele = "es" + ES.v;
   MACHINE=MACHINE_ES;
-  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("es1");
-  document.body.classList.toggle("mk2", ES.v===2);
+  poserMachine("es1", ES.v===2 ? "mk2" : null);
   audioInit(); banqueEs(); busEffets(); chargerEchs();
   construireTypesEs(ES.v);
   chargerEs();
@@ -10406,8 +10424,7 @@ function activerMx(){
   stop();
   S.modele="emx";
   MACHINE=MACHINE_MX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("emx");
+  poserMachine("emx");
   audioInit(); banqueEs(); mxAudio();
   chargerMx();
   cablerFxMx(); majTube();
@@ -11446,8 +11463,7 @@ function activerSx(){
   stop();
   S.modele="esx";
   MACHINE=MACHINE_SX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("esx");
+  poserMachine("esx");
   audioInit(); banqueEs(); sxAudio(); chargerEchs();
   chargerSx();
   cablerFxSx(); majTubeSx();
@@ -12927,9 +12943,7 @@ function activerMpc(v){
   MPC.v = (v === 2000) ? 2000 : 3000;
   S.modele = "mpc" + MPC.v;
   MACHINE = MACHINE_MPC;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2");
-  document.body.classList.add("mpc");
-  document.body.classList.toggle("mpc2", MPC.v === 2000);
+  poserMachine("mpc", MPC.v === 2000 ? "mpc2" : null);
   audioInit(); banqueEs(); chargerEchs();
   chargerMpc();
   document.getElementById("mpc-notice").textContent = "MPC" + MPC.v;
@@ -13873,11 +13887,9 @@ function activerTr(modele){
   TR.def = TR_MODELES[TR.m];
   S.modele = TR.m;
   MACHINE = MACHINE_TR;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2");
-  document.body.classList.add("tr8");
-  document.body.classList.toggle("tr9", TR.m === "tr909");
-  document.body.classList.toggle("tr7", TR.m === "tr707");
-  document.body.classList.toggle("rd6", TR.m === "rd6");
+  poserMachine("tr8", TR.m === "tr909" ? "tr9" : null,
+                      TR.m === "tr707" ? "tr7" : null,
+                      TR.m === "rd6"   ? "rd6" : null);
   audioInit();
   chargerTr();            /* les motifs d'abord : les boutons lisent leurs valeurs à la création */
   construireTr();
@@ -13905,7 +13917,7 @@ function activerTr(modele){
    Les portes se propagent de proche en proche : un module qui reçoit une porte
    peut en émettre à son tour, ce qui permet d'enchaîner horloge, diviseur,
    générateur euclidien et séquenceur. */
-var EUR = {mods:[], cables:[], sel:-1, attente:null, prochain:1, famille:"", noeuds:[]};
+var EUR = {mods:[], cables:[], sel:-1, attente:null, prochain:1, famille:"", noeuds:[], bus:null};
 
 function eurGain(v){ var g = ctx.createGain(); g.gain.value = v; return g; }
 function eurConst(v){
@@ -13982,7 +13994,7 @@ out: {nom:"OUTPUT", hp:52, res:"Sortie vers le casque", fam:"util",
   jacks:[["in","IN",0],["in2","IN 2",0]],
   creer:function(m){
     var g = eurGain(m.p.niv);
-    g.connect(master);
+    g.connect(EUR.bus || master);
     m.maj = function(){ g.gain.value = m.p.niv * m.p.niv; };
     m.maj();
     return {e:{in:g, in2:g}, s:{}};
@@ -15049,9 +15061,15 @@ function eurRetirer(i){
    plus sûr que de démonter un branchement au milieu d'un graphe audio. */
 function eurBatir(){
   audioInit();
-  if(EUR.noeuds) EUR.noeuds.forEach(function(n){
-    try{ if(n.arret) n.arret(); }catch(e){}
-  });
+  /* Chaque module fabrique des oscillateurs qui tournent en permanence, et
+     rien ne les referme : le module OUTPUT était branché droit sur le mélange
+     général. Un rack reconstruit s'ajoutait donc au précédent, et continuait
+     de sonner par-dessus la machine suivante — le son paraissait couper alors
+     qu'il était simplement recouvert. Tout passe maintenant par un bus qu'on
+     débranche d'un coup. */
+  if(EUR.bus){ try{ EUR.bus.disconnect(); }catch(e){} }
+  EUR.bus = eurGain(document.body.classList.contains("eur") ? 1 : 0);
+  EUR.bus.connect(master);
   EUR.noeuds = [];
   EUR.mods.forEach(function(m){
     var d = EUR_CAT[m.type];
@@ -15400,10 +15418,7 @@ function activerEur(){
   stop();
   S.modele = "eur";
   MACHINE = MACHINE_EUR;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5",
-                                 "t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("eur");
+  poserMachine("eur");
   audioInit();
   chargerEur();
   if(!EUR.mods.length) eurExemple();
@@ -15808,10 +15823,7 @@ function activerTd3(){
   stop();
   S.modele = "td3";
   MACHINE = MACHINE_TD3;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","rd6","c1","c2","c3","c4","c5",
-                                 "dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("td3");
+  poserMachine("td3");
   audioInit();
   chargerTd3();
   TD3.noeuds = null; TD3.precSlide = false;
@@ -16190,9 +16202,7 @@ function activerArcm(){
   stop();
   S.modele = "arcm";
   MACHINE = MACHINE_ARCM;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("arcm");
+  poserMachine("arcm");
   audioInit(); banqueEs(); chargerEchs();
   chargerArcm();
   ARCM.noeuds = [];
@@ -16714,9 +16724,7 @@ function activerT1k(){
   stop();
   S.modele = "t1k";
   MACHINE = MACHINE_T1K;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("t1k");
+  poserMachine("t1k");
   audioInit(); banqueEs(); chargerEchs();
   chargerT1k();
   T1K.noeuds = {}; T1K.ohGain = null;
@@ -17204,9 +17212,7 @@ function activerDbi(){
   stop();
   S.modele = "dbi";
   MACHINE = MACHINE_DBI;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("dbi");
+  poserMachine("dbi");
   audioInit();
   chargerDbi();
   DBI.noeuds = {}; DBI.ohGain = null;
@@ -17553,9 +17559,7 @@ function activerCr(){
   stop();
   S.modele = "cr5";
   MACHINE = MACHINE_CR;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("cr5");
+  poserMachine("cr5");
   audioInit();
   chargerCr();
   CR5.noeuds = {}; CR5.ohGain = null; CR5.mesure = 0; CR5.fill = false;
@@ -17977,9 +17981,7 @@ function activerVlc(){
   stop();
   S.modele = "vlc";
   MACHINE = MACHINE_VLC;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("vlc");
+  poserMachine("vlc");
   audioInit(); banqueEs(); chargerEchs();
   chargerVlc();
   VLC.noeuds = []; VLC.reverb = null;
@@ -18413,8 +18415,7 @@ function activerDmx(){
   stop();
   S.modele = "dmx";
   MACHINE = MACHINE_DMX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
-  document.body.classList.add("dmx");
+  poserMachine("dmx");
   audioInit();
   chargerDmx();
   DMX.noeuds = {}; DMX.ohGain = null;
@@ -20249,7 +20250,7 @@ function appliquerModele(id){
   stop();
   MACHINE = MACHINE_EHX;
   actif = unit;
-  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","rd6","td3","c1","c2","c3","c4","c5","t1","t2","t3","t4","eur","dmx","vlc","cr5","dbi","t1k","arcm");
+  poserMachine();   /* le m32 est posé plus bas, une fois le modèle connu */
   S.modele = id;
   MODELE = MODELES[id];
   var r = memoire[id];
