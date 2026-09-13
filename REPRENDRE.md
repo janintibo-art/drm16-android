@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **58**.
+La version actuelle est la **59**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -40,7 +40,7 @@ sont sans accents (Termux).
 
 La notice est découpée en **onglets `.doc`** dans `#note-corps` ; la barre de navigation est construite
 toute seule à partir de leur `data-titre`. L'Eurorack en occupe trois : `note-eur` (les principes),
-`note-eurmod` (les 56 fiches), `note-eurpat` (six patchs et le glossaire).
+`note-eurmod` (les 64 fiches), `note-eurpat` (huit patchs et le glossaire).
 
 Une seule page HTML porte toute l'application : `app/src/main/assets/drm16.html`, environ **890 ko**.
 Le Java ne sert que de pont vers Android.
@@ -59,9 +59,9 @@ Le Java ne sert que de pont vers Android.
 **Electro-Harmonix** DRM16, DRM32 · **Korg** Electribe EM-1, ER-1, EA-1, ES-1, ER-1 mkII, ES-1 mkII,
 EA-1 mkII, EMX-1, ESX-1, volca sample · **Akai** MPC3000, MPC2000 · **Roland** TR-808, TR-909, TR-707,
 CR-5000, TR-1000 · **Oberheim** DMX · **Arturia** DrumBrute Impact · **Behringer** RD-6, TD-3 ·
-**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (56 modules :
-4 horloges, 5 séquenceurs, 7 oscillateurs, 8 filtres, 4 modulations, 10 utilitaires, 10 traitements,
-8 percussions).
+**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (64 modules :
+7 horloges, 5 séquenceurs, 7 oscillateurs, 8 filtres, 4 modulations, 10 utilitaires, 12 traitements,
+11 percussions).
 
 ### Les outils
 
@@ -117,17 +117,27 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
 
-**Trouvé en relisant le code de l'Eurorack (v58), pas encore corrigé**
+**Corrigé en v59 — à ne pas refaire**
 
-- **QUANT ne se met jamais à jour.** Il n'a que deux prises, IN et OUT, et son `recevoir` n'est appelé que
-  si une *porte* arrive sur IN. Or une sortie CV de séquenceur ne propage pas de porte : seules les sorties
-  de déclenchement le font. Le module est donc inerte dans son usage normal. Correctif : lui ajouter une
-  entrée `clk` séparée, comme PLUCK qui a TRIG *et* V/OCT.
-- **REVERB : le potard SIZE ne fait rien.** `m.maj` ne lit que `m.p.mix` ; la queue de convolution est
-  fixée à deux secondes à la construction. Correctif : refabriquer le buffer dans `maj`, ou retirer le potard.
-- **Pas de tempo sur la façade du rack.** `eur-bar` n'a que START : le tempo se règle depuis la DRM16 ou la
-  TR-808. Un potard TEMPO dans la barre (via `knobEm`, comme `tr8-k-tempo`) réglerait le problème.
-- **S & H ne prélève rien** : il tire au sort. Le nom est trompeur mais le comportement est documenté tel quel.
+- **La propagation est maintenant datée.** `scheduleEur` empile `[id, sortie, instant]` au lieu de
+  `[id, sortie]`, et `recevoir` reçoit l'instant de *son* impulsion, pas celui du pas. Une sortie s'annonce
+  soit par son nom, soit par le couple `["out", t]` — voir `eurSortie()`. C'est ce qui fait que BURST
+  déclenche réellement huit coups de caisse au lieu d'un seul, et ce qui rend CLK MULT et TRIG DLY
+  possibles. La garde est passée de 400 à 900 étapes.
+- **QUANT a une entrée `clk` séparée** : une sortie CV ne propage aucune porte, le module restait inerte.
+- **S & H a une entrée `in`** et prélève vraiment ce qu'on lui donne ; sans câble dans IN il tire au sort,
+  comme avant. `eurBatir()` prévient les modules via `m.brancher(bool)` une fois le câblage posé — c'est le
+  seul mécanisme qui dit à un module si une de ses entrées est occupée.
+- **REVERB : SIZE agit.** Quatre tampons de convolution préfabriqués (0,35 / 0,9 / 1,8 / 3,2 s), on bascule
+  au lieu de refabriquer à chaque tour de potard.
+- **Potard TEMPO dans `eur-bar`** (`eur-k-tempo`, classe `.eur-bkn`), remis à jour par `kEurTempo.maj()`
+  dans `activerEur()`.
+
+**Ajouté en v59 — huit modules**
+
+CHANCE, CLK MULT, TRIG DLY (horloges) · EQ 3, PING PONG (traitements) · COWBELL, SHAKER, CLAVES
+(percussions). Contrat inchangé : `{nom, hp, sombre, res, fam, kns, jacks, creer}`, avec `m.tic`,
+`m.recevoir`, `m.maj`, et désormais `m.brancher` en option.
 
 **Pistes ouvertes**
 

@@ -226,7 +226,7 @@ body.m32 .read{color:#8fe8d8}
   color:#140f0c;font-weight:800;letter-spacing:1px;font-size:14px}
 #note button.sec{background:#2f2f35;color:#eceae4;margin-top:6px;margin-right:6px}
 #note button[disabled]{opacity:.5}
-/* la notice de l'Eurorack decrit cinquante-six modules : sans mise en forme
+/* la notice de l'Eurorack decrit soixante-quatre modules : sans mise en forme
    propre, la liste devient un mur de texte illisible sur un telephone */
 #note ol,#note ul{margin:0 0 10px;padding-left:20px}
 #note li{margin:0 0 5px}
@@ -1459,6 +1459,16 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 .eurb button:active,.eurb button.on{background:linear-gradient(180deg,#8fd4ff,#2a8fd0);color:#04222f;
   transform:translateY(2px);box-shadow:0 0 0 #14171b,inset 0 1px 3px #0005}
 .eur-lcd{background:#0b0f13;border-radius:4px;padding:6px 11px;min-width:170px;flex:1}
+/* le rack n'avait aucun reglage de tempo : il fallait aller le changer sur
+   une autre machine, ce qui n'avait aucun sens une fois dans le patch */
+.eur-bkn{flex:none;width:40px;text-align:center;touch-action:none}
+.eur-bkn .bt{width:28px;height:28px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#5a5f68,#31353c 55%,#1a1d21);
+  box-shadow:0 2px 4px #0007,inset 0 1px 1px #ffffff22}
+.eur-bkn .bt i{position:absolute;left:50%;top:2px;width:2px;height:42%;margin-left:-1px;border-radius:1px;
+  background:#8fd4ff}
+.eur-bkn em{display:block;margin-top:2px;font:700 6.5px/1.15 "Roboto Condensed",Arial;color:#7fa8c4;
+  letter-spacing:.7px}
 .eur-lcd b{display:block;font:800 12px/1.3 "Courier New",monospace;color:#7fd4ff}
 .eur-lcd u{display:block;text-decoration:none;font:700 7.5px/1.3 "Roboto Condensed",Arial;
   letter-spacing:1.2px;color:#4a8ab0}
@@ -2689,6 +2699,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="eur-bar">
     <button id="eur-play" style="padding:12px 16px">START</button>
+    <div class="eur-bkn"><div class="bt" id="eur-k-tempo"><i></i></div><em>TEMPO</em></div>
     <div class="eur-lcd"><b id="eur-val">RACK VIDE</b><u id="eur-lab">AJOUTEZ UN MODULE</u></div>
     <button id="eur-ajout">AJOUTER</button>
     <button id="eur-hasard">RACK AU SORT</button>
@@ -3454,7 +3465,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>cinquante-six modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>soixante-quatre modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
@@ -3480,7 +3491,9 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <h3>La barre du haut</h3>
   <ul>
   <li><b>START</b> lance et arrête l'horloge. Sans elle, rien ne se déclenche.</li>
-  <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : cinquante-six modules en vrac seraient
+  <li><b>TEMPO</b>, le petit potard juste à côté, règle la vitesse de 40 à 220 à la noire. Il commande le
+  tempo général de l'application : le changer ici le change partout.</li>
+  <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : soixante-quatre modules en vrac seraient
   illisibles sur un téléphone.</li>
   <li><b>RACK AU SORT</b> monte un ensemble complet et cohérent, décrit plus bas.</li>
   <li><b>RETIRER</b> enlève le module choisi, et avec lui tous ses câbles.</li>
@@ -3516,7 +3529,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   ralentit, mais ne fait pas tourner l'application indéfiniment.</p>
   <p>Attention : seules les <b>sorties de déclenchement</b> se propagent ainsi. Une sortie CV porte bien sa
   tension dans le câble, mais elle ne réveille pas le module d'en face. D'où les modules à deux entrées
-  séparées — PLUCK a un TRIG <i>et</i> un V/OCT — qu'il faut câbler tous les deux.</p>
+  séparées — PLUCK a un TRIG <i>et</i> un V/OCT, QUANT a un IN <i>et</i> un CLK — qu'il faut câbler tous
+  les deux.</p>
+  <p>Une impulsion peut aussi être <b>repoussée dans le temps</b> : BURST, CLK MULT et TRIG DLY envoient
+  leurs coups en avance sur le pas suivant, et chacun réveille bien le module d'en face à son propre
+  instant. C'est ce qui permet un vrai roulement sur une caisse claire.</p>
 
   <h3>Rack au sort</h3>
   <p><b>RACK AU SORT</b> tire un ensemble complet, mais pas n'importe lequel : une horloge, une source de
@@ -3525,9 +3542,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   pas. Le résultat est un point de départ : changez une voix, ajoutez un filtre, recâblez.</p>
 
   <h3>Le tempo</h3>
-  <p>L'horloge du rack suit le <b>tempo général de l'application</b>, celui que règle le potard TEMPO de la
-  DRM16 ou de la TR-808. Un pas de rack vaut une double-croche, seize pas par mesure. Le module CLOCK sort
-  une impulsion à chaque pas, plus deux sorties divisées par deux et par quatre — la croche et la noire.</p>
+  <p>Le potard <b>TEMPO</b> de la barre règle la vitesse, de 40 à 220 à la noire. C'est le tempo général de
+  l'application : il est partagé avec les vingt-quatre autres machines. Un pas de rack vaut une
+  double-croche, seize pas par mesure. Le module CLOCK sort une impulsion à chaque pas, plus deux sorties
+  divisées par deux et par quatre — la croche et la noire. Pour des subdivisions plus fines, CLK MULT
+  descend jusqu'au triolet de quadruple-croche.</p>
 
   <h3>Quand ça ne sonne pas</h3>
   <p>Neuf fois sur dix, c'est l'un de ces six points :</p>
@@ -3548,10 +3567,10 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   ce qui sort de l'OUTPUT.</p>
   </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
-  <p>Les cinquante-six modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
+  <p>Les soixante-quatre modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
   potards, ses entrées et ses sorties. Les <b>sorties</b> sont les prises cerclées d'or.</p>
 
-  <h3>Horloges · 4 modules</h3>
+  <h3>Horloges · 7 modules</h3>
   <p>Elles fabriquent le temps. Aucune ne produit de son : elles envoient des impulsions.</p>
   <div class="fmod"><b>CLOCK</b>
   <p>L'horloge maîtresse. Elle bat une fois par pas, au tempo général de l'application, et donne en plus la
@@ -3569,8 +3588,25 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <span>Potards STEPS, FILL, SHIFT · Entrée IN · Sorties OUT, INV</span></div>
   <div class="fmod"><b>BURST</b>
   <p>Transforme une impulsion en roulement de deux à huit coups. SPACE règle leur écartement, de dix à cent
-  dix millisecondes. Sur une caisse claire, c'est un roulement ; sur un charley, un bégaiement.</p>
+  dix millisecondes. Sur une caisse claire, c'est un roulement ; sur un charley, un bégaiement. Chaque coup
+  du roulement déclenche réellement le module d'en face.</p>
   <span>Potards COUNT, SPACE · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod"><b>CHANCE</b>
+  <p>La porte de Bernoulli : à chaque impulsion, pile ou face. PROB règle la pente de la pièce. Ce qui ne
+  sort pas par OUT sort par ALT, si bien que rien n'est perdu — on peut envoyer les deux vers deux voix
+  différentes et obtenir un rythme qui hésite entre elles.</p>
+  <span>Potard PROB · Entrée IN · Sorties OUT, ALT</span></div>
+
+  <div class="fmod"><b>CLK MULT</b>
+  <p>Le contraire du CLK DIV : il <b>accélère</b>. Une impulsion reçue en ressort deux, trois ou quatre,
+  réparties sur la durée d'un pas. Le x3 donne le triolet que rien d'autre ne sait faire dans le rack.</p>
+  <span>Aucun potard · Entrée IN · Sorties x2, x3, x4</span></div>
+
+  <div class="fmod"><b>TRIG DLY</b>
+  <p>Repousse l'impulsion, de quatre millisecondes à une demi-seconde. THRU renvoie l'original sans le
+  toucher : en câblant les deux vers la même voix, on obtient un écho de frappe, un coup et sa réplique.</p>
+  <span>Potard TIME · Entrée IN · Sorties OUT, THRU</span></div>
 
   <h3>Séquenceurs · 5 modules</h3>
   <p>Ils transforment le temps en notes. Tous sortent deux choses : une <b>hauteur</b> par CV et une
@@ -3595,8 +3631,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <span>Potards CHANCE, LEN, RANGE · Entrée CLK · Sorties CV, GATE</span></div>
   <div class="fmod"><b>QUANT</b>
   <p>Force une tension vers la note la plus proche d'une gamme : majeure, mineure naturelle, pentatonique,
-  blues, chromatique. OCT transpose de deux octaves vers le haut ou vers le bas.</p>
-  <span>Potards SCALE, OCT · Entrée IN · Sortie OUT</span></div>
+  blues, chromatique. OCT transpose de deux octaves vers le haut ou vers le bas. Il faut lui câbler
+  <b>deux choses</b> : la tension à corriger sur IN, et une porte sur CLK qui lui dit quand regarder —
+  typiquement la sortie GATE du même séquenceur. Placé après un TURING ou un S &amp; H, il transforme une
+  suite de notes au hasard en mélodie qui tombe juste.</p>
+  <span>Potards SCALE, OCT · Entrées IN, CLK · Sortie OUT</span></div>
 
   <h3>Oscillateurs · 7 modules</h3>
   <p>Les sources de son. Tous sauf NOISE ont une entrée <b>V/OCT</b> : un volt de plus, une octave de plus.
@@ -3693,10 +3732,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   CV de filtre, c'est un balayage ; dans un V/OCT, un vibrato ; dans un PAN, un va-et-vient.</p>
   <span>Potards RATE, AMT · Sorties SINE, SQR, TRI</span></div>
   <div class="fmod"><b>S &amp; H</b>
-  <p>À chaque impulsion reçue, il tire une tension au hasard et la garde jusqu'à la suivante. AMT règle
-  l'étendue, SLEW arrondit les sauts. Dans un V/OCT, c'est la mélodie aléatoire des vieux films de science-
-  fiction ; dans un CV de filtre, un timbre qui change à chaque note.</p>
-  <span>Potards AMT, SLEW · Entrée TRIG · Sortie OUT</span></div>
+  <p>À chaque impulsion sur TRIG, il regarde la tension présente sur IN et la <b>garde</b> jusqu'à la
+  suivante. Un LFO lent branché sur IN devient ainsi un escalier. Si <b>rien n'est branché sur IN</b>, il
+  tire au sort : c'est la mélodie aléatoire des vieux films de science-fiction. AMT règle l'étendue, SLEW
+  arrondit les sauts.</p>
+  <span>Potards AMT, SLEW · Entrées IN, TRIG · Sortie OUT</span></div>
 
   <h3>Utilitaires · 10 modules</h3>
   <p>Rien de spectaculaire, et pourtant c'est ce qui manque toujours dans un vrai rack. Ils dosent,
@@ -3743,7 +3783,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   CLK. Une seule séquence peut ainsi nourrir quatre voix à tour de rôle.</p>
   <span>Aucun potard · Entrées IN, CLK · Sorties 1, 2, 3, 4</span></div>
 
-  <h3>Traitements · 10 modules</h3>
+  <h3>Traitements · 12 modules</h3>
   <p>Ils se placent après les voix, en général entre le mélangeur et la sortie. Tous ont une entrée IN et
   une sortie OUT, sauf RING qui a une entrée de modulation en plus. MIX dose le mélange entre le signal
   d'origine et le signal traité.</p>
@@ -3752,8 +3792,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   répétitions. Poussé à fond, il part en résonance — c'est un effet en soi, pas une erreur.</p>
   <span>Potards TIME, FEED, MIX · Entrée IN · Sortie OUT</span></div>
   <div class="fmod"><b>REVERB</b>
-  <p>Une réverbération à convolution, sur une queue de deux secondes. Elle place le son dans un espace au
-  lieu de le laisser collé à l'oreille.</p>
+  <p>Une réverbération à convolution. SIZE parcourt quatre espaces, d'une chambre d'un tiers de seconde à
+  une salle de trois secondes. Elle place le son quelque part au lieu de le laisser collé à l'oreille.</p>
   <span>Potards SIZE, MIX · Entrée IN · Sortie OUT</span></div>
   <div class="fmod"><b>FOLD</b>
   <p>Replie l'onde sur elle-même au lieu de l'écrêter. Sur un sinus, qui n'a rien à offrir, il fabrique des
@@ -3788,7 +3828,19 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   THRESH fixe le seuil, RATIO la fermeté.</p>
   <span>Potards THRESH, RATIO · Entrée IN · Sortie OUT</span></div>
 
-  <h3>Percussions · 8 modules</h3>
+  <div class="fmod"><b>EQ 3</b>
+  <p>Trois cloches en série — grave, médium, aigu —, de moins quinze à plus quinze décibels chacune. Au
+  milieu, les trois potards ne font rien. C'est le module qu'on regrette de ne pas avoir dès qu'un patch
+  compte plus de trois voix : creuser le médium d'une nappe laisse la place à la caisse claire.</p>
+  <span>Potards LOW, MID, HIGH · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod"><b>PING PONG</b>
+  <p>Un écho dont les répétitions passent d'une oreille à l'autre : deux délais qui se nourrissent
+  mutuellement, l'un à gauche, l'autre à droite. Beaucoup plus large que l'ECHO ordinaire, et bien plus
+  frappant au casque.</p>
+  <span>Potards TIME, FEED, MIX · Entrée IN · Sortie OUT</span></div>
+
+  <h3>Percussions · 11 modules</h3>
   <p>Des voix complètes : une impulsion sur TRIG suffit, pas besoin d'enveloppe ni de VCA. Les sept
   dernières partagent les mêmes trois réglages — TUNE l'accord, DECAY la longueur, LEVEL le niveau.</p>
   <div class="fmod"><b>DRUM</b>
@@ -3819,9 +3871,24 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <div class="fmod"><b>RIM</b>
   <p>Rim shot : un carré très bref et un peu de bruit filtré. Une dizaine de millisecondes en tout.</p>
   <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+
+  <div class="fmod"><b>COWBELL</b>
+  <p>Deux carrés dans un rapport qui ne tombe sur aucun harmonique, passés dans un passe-bande. C'est la
+  recette exacte de la 808, et c'est ce rapport bancal qui donne ce timbre creux qu'on reconnaît entre
+  mille.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+
+  <div class="fmod"><b>SHAKER</b>
+  <p>Du bruit très aigu, très court, avec une attaque légèrement molle. À faire tourner sur les doubles
+  croches sous tout le reste : c'est ce qui donne le mouvement.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+
+  <div class="fmod"><b>CLAVES</b>
+  <p>Un sinus aigu et très bref. Presque rien, mais c'est ce presque rien qui perce un mélange chargé.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
   </div>
   <div class="doc" id="note-eurpat" data-titre="PATCHS EUR.">
-  <p>Six patchs à monter soi-même, du plus simple au plus retors. À chaque fois : les modules à ajouter dans
+  <p>Huit patchs à monter soi-même, du plus simple au plus retors. À chaque fois : les modules à ajouter dans
   l'ordre, les câbles à poser, et les réglages qui comptent. Commencez par <b>VIDER</b> le rack.</p>
   <p>Rappel utile : une <b>sortie peut alimenter plusieurs entrées</b>, et plusieurs de ces patchs s'en
   servent — la même enveloppe part souvent à deux endroits.</p>
@@ -3903,6 +3970,36 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   </div>
   <p>La même AD part à deux endroits : elle ouvre le volume et elle ouvre le timbre. Débranchez celle qui va
   vers IDX : la cloche devient un orgue.</p>
+
+  <h3>7 · Le roulement qui hésite</h3>
+  <p>Trois nouveautés d'un coup : une porte probabiliste, un roulement qui roule vraiment, et un triolet.</p>
+  <div class="enc">
+  <p><b>Modules</b> — CLOCK, CHANCE, BURST, CLK MULT, SNARE, CLAVES, SHAKER, MIX 4, OUTPUT.</p>
+  <p><b>Câbles</b> — CLOCK /4 → CHANCE IN · CHANCE OUT → BURST IN · BURST OUT → SNARE TRIG ·
+  CHANCE ALT → CLAVES TRIG · CLOCK OUT → CLK MULT IN · CLK MULT x3 → SHAKER TRIG ·
+  SNARE OUT → MIX 4 A · CLAVES OUT → MIX 4 B · SHAKER OUT → MIX 4 C · MIX 4 OUT → OUTPUT IN.</p>
+  <p><b>Réglages</b> — ouvrez B et C sur le MIX 4. CHANCE : PROB vers 30, pour que le roulement reste rare.
+  BURST : COUNT vers 60, SPACE court. SHAKER : DECAY au minimum.</p>
+  </div>
+  <p>Une caisse claire qui part en roulement une fois sur trois, des claves les autres fois, et un tapis de
+  triolets par-dessus. La sortie ALT du CHANCE est ce qui rend le patch vivant : le temps est toujours
+  marqué, mais jamais par le même instrument. Montez PROB à fond et le roulement devient systématique,
+  donc ennuyeux — c'est un module qui se règle bas.</p>
+
+  <h3>8 · Le hasard mis en gamme</h3>
+  <p>QUANT à sa vraie place : entre une source désordonnée et un oscillateur. Notez ses <b>deux</b> câbles
+  d'entrée, c'est tout le secret du module.</p>
+  <div class="enc">
+  <p><b>Modules</b> — CLOCK, S &amp; H, QUANT, VCO, AD, VCA, PING PONG, OUTPUT.</p>
+  <p><b>Câbles</b> — CLOCK /2 → S &amp; H TRIG · S &amp; H OUT → QUANT IN · CLOCK /2 → QUANT CLK ·
+  QUANT OUT → VCO V/OCT · CLOCK /2 → AD TRIG · VCO TRI → VCA IN · AD OUT → VCA CV ·
+  VCA OUT → PING PONG IN · PING PONG OUT → OUTPUT IN.</p>
+  <p><b>Réglages</b> — S &amp; H : AMT vers 40, rien dans IN pour qu'il tire au sort. QUANT : SCALE sur la
+  pentatonique, la gamme qui ne fait jamais de fausse note. AD : DEC moyen. PING PONG : FEED vers 50.</p>
+  </div>
+  <p>La sortie /2 de l'horloge part à trois endroits : c'est permis, une sortie alimente autant d'entrées
+  qu'on veut. Comparez en tournant SCALE vers le chromatique — les notes redeviennent quelconques, et on
+  comprend d'un coup à quoi sert un quantificateur.</p>
 
   <h3>Trois idées à essayer ensuite</h3>
   <ul>
@@ -13950,11 +14047,61 @@ burst: {nom:"BURST", hp:52, sombre:true, res:"Roulement de deux à huit coups", 
   creer:function(m){
     var o = eurConst(0);
     m.recevoir = function(t){
-      var n = 2 + Math.round(m.p.n * 6), e = 0.01 + m.p.esp * 0.1;
-      for(var i=0;i<n;i++) eurPorte(o, t + i * e);
-      return ["out"];
+      var n = 2 + Math.round(m.p.n * 6), e = 0.01 + m.p.esp * 0.1, f = [];
+      for(var i=0;i<n;i++){ eurPorte(o, t + i * e); f.push(["out", t + i * e]); }
+      return f;
     };
     return {e:{in:eurGain(1)}, s:{out:o}};
+  }},
+
+chance: {nom:"CHANCE", hp:52, sombre:true, res:"Laisse passer une fois sur deux", fam:"horloge",
+  kns:[["p","PROB",0,1,0.5]],
+  jacks:[["in","IN",0],["out","OUT",1],["alt","ALT",1]],
+  creer:function(m){
+    /* la porte de Bernoulli : à chaque impulsion, pile ou face. Ce qui ne
+       sort pas par OUT sort par ALT, donc rien n'est perdu. */
+    var o = eurConst(0), a = eurConst(0);
+    m.recevoir = function(t){
+      if(Math.random() < m.p.p){ eurPorte(o, t); return ["out"]; }
+      eurPorte(a, t); return ["alt"];
+    };
+    return {e:{in:eurGain(1)}, s:{out:o, alt:a}};
+  }},
+
+clkmul: {nom:"CLK MULT", hp:52, sombre:true, res:"Multiplie une horloge par deux, trois, quatre", fam:"horloge",
+  kns:[],
+  jacks:[["in","IN",0],["m2","x2",1],["m3","x3",1],["m4","x4",1]],
+  creer:function(m){
+    /* on ne peut pas deviner l'avenir d'une horloge quelconque ; celle du
+       rack suit le tempo général, donc la durée d'un pas est connue et les
+       sous-divisions se posent d'avance */
+    var o = {m2:eurConst(0), m3:eurConst(0), m4:eurConst(0)};
+    m.recevoir = function(t){
+      var d = stepDur(), f = [];
+      [["m2",2],["m3",3],["m4",4]].forEach(function(x){
+        for(var i=0;i<x[1];i++){
+          var tt = t + i * d / x[1];
+          eurPorte(o[x[0]], tt);
+          f.push([x[0], tt]);
+        }
+      });
+      return f;
+    };
+    return {e:{in:eurGain(1)}, s:o};
+  }},
+
+trigdly: {nom:"TRIG DLY", hp:52, sombre:true, res:"Repousse l'impulsion", fam:"horloge",
+  kns:[["t","TIME",0,1,0.25]],
+  jacks:[["in","IN",0],["out","OUT",1],["thru","THRU",1]],
+  creer:function(m){
+    var o = eurConst(0), th = eurConst(0);
+    m.recevoir = function(t){
+      var dt = 0.004 + m.p.t * 0.5;
+      eurPorte(th, t);
+      eurPorte(o, t + dt);
+      return ["thru", ["out", t + dt]];
+    };
+    return {e:{in:eurGain(1)}, s:{out:o, thru:th}};
   }},
 
 /* ================= séquenceurs ================= */
@@ -14040,17 +14187,20 @@ turing: {nom:"TURING", hp:64, sombre:true, res:"Registre à décalage aléatoire
 
 quant: {nom:"QUANT", hp:56, res:"Quantifie vers une gamme", fam:"seq",
   kns:[["gamme","SCALE",0,1,0],["oct","OCT",0,1,0.5]],
-  jacks:[["in","IN",0],["out","OUT",1]],
+  jacks:[["in","IN",0],["clk","CLK",0],["out","OUT",1]],
   creer:function(m){
     /* on ne peut pas quantifier un signal continu sans processeur dédié :
        on quantifie donc la valeur au moment du passage, ce qui suffit pour
-       une sortie de séquenceur qui ne change qu'aux pas */
+       une sortie de séquenceur qui ne change qu'aux pas.
+       Il faut pour cela une entrée CLK à part : une sortie CV ne propage
+       aucune porte, et sans elle le module restait muet pour toujours. */
     var out = eurConst(0), e = eurGain(1);
     var an = ctx.createAnalyser(); an.fftSize = 32;
     e.connect(an);
     var tampon = new Float32Array(an.fftSize);
     var gammes = [[0,2,4,5,7,9,11],[0,2,3,5,7,8,10],[0,2,4,7,9],[0,3,5,6,7,10],[0,1,2,3,4,5,6,7,8,9,10,11]];
-    m.recevoir = function(t){
+    m.recevoir = function(t, entree){
+      if(entree !== "clk") return null;
       an.getFloatTimeDomainData(tampon);
       var v = tampon[0] || 0;
       var g = gammes[Math.min(4, Math.round(m.p.gamme * 4))];
@@ -14060,7 +14210,7 @@ quant: {nom:"QUANT", hp:56, res:"Quantifie vers une gamme", fam:"seq",
       out.offset.setValueAtTime(oct + meilleur / 12 + Math.round((m.p.oct - 0.5) * 4), t);
       return null;
     };
-    return {e:{in:e}, s:{out:out}};
+    return {e:{in:e, clk:eurGain(1)}, s:{out:out}};
   }},
 
 /* ================= oscillateurs ================= */
@@ -14358,18 +14508,29 @@ lfo: {nom:"LFO", hp:56, sombre:true, res:"Oscillateur lent", fam:"mod",
     return {e:{}, s:{sine:gs, sqr:gq, tri:gr}};
   }},
 
-sh: {nom:"S & H", hp:56, sombre:true, res:"Tension aléatoire bloquée", fam:"mod",
+sh: {nom:"S & H", hp:56, sombre:true, res:"Prélève et bloque une tension", fam:"mod",
   kns:[["amt","AMT",0,1,0.6],["lisse","SLEW",0,1,0]],
-  jacks:[["trig","TRIG",0],["out","OUT",1]],
+  jacks:[["in","IN",0],["trig","TRIG",0],["out","OUT",1]],
   creer:function(m){
-    var sortie = eurConst(0);
-    m.recevoir = function(t){
-      var v = (Math.random() * 2 - 1) * m.p.amt;
+    /* le vrai module prélève ce qu'on lui donne ; sans câble dans IN, il
+       tire au sort, ce qui est l'usage le plus courant de toute façon */
+    var sortie = eurConst(0), e = eurGain(1);
+    var an = ctx.createAnalyser(); an.fftSize = 32;
+    e.connect(an);
+    var tampon = new Float32Array(an.fftSize), branche = false;
+    m.brancher = function(oui){ branche = oui; };
+    m.recevoir = function(t, entree){
+      if(entree !== "trig") return null;
+      var v;
+      if(branche){
+        an.getFloatTimeDomainData(tampon);
+        v = (tampon[0] || 0) * m.p.amt;
+      } else v = (Math.random() * 2 - 1) * m.p.amt;
       if(m.p.lisse > 0.02) sortie.offset.setTargetAtTime(v, t, 0.01 + m.p.lisse * 0.3);
       else sortie.offset.setValueAtTime(v, t);
       return null;
     };
-    return {e:{trig:eurGain(1)}, s:{out:sortie}};
+    return {e:{in:e, trig:eurGain(1)}, s:{out:sortie}};
   }},
 
 atten: {nom:"ATTENUV", hp:52, res:"Atténue, inverse, décale", fam:"util",
@@ -14477,17 +14638,29 @@ delay: eurEffet("ECHO", 72, "Délai à réinjection",
 verb: eurEffet("REVERB", 64, "Réverbération",
   [["taille","SIZE",0,1,0.5],["mix","MIX",0,1,0.35]],
   function(m, e, out){
+    /* SIZE ne faisait rien : la queue était fixée à deux secondes une fois
+       pour toutes. Refabriquer le tampon à chaque tour de potard coûterait
+       trop cher, alors on en prépare quatre et on bascule. */
     var c = ctx.createConvolver(), sec = eurGain(1), hum = eurGain(0);
-    var n = Math.floor(ctx.sampleRate * 2);
-    var b = ctx.createBuffer(2, n, ctx.sampleRate);
-    for(var k=0;k<2;k++){
-      var d = b.getChannelData(k);
-      for(var i=0;i<n;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/n, 2.5);
-    }
-    c.buffer = b;
+    var durees = [0.35, 0.9, 1.8, 3.2], tampons = [];
+    durees.forEach(function(sec2){
+      var n = Math.floor(ctx.sampleRate * sec2);
+      var b = ctx.createBuffer(2, n, ctx.sampleRate);
+      for(var k=0;k<2;k++){
+        var d = b.getChannelData(k);
+        for(var i=0;i<n;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/n, 2.5);
+      }
+      tampons.push(b);
+    });
+    var courant = -1;
     e.connect(sec); sec.connect(out);
     e.connect(c); c.connect(hum); hum.connect(out);
-    m.maj = function(){ sec.gain.value = 1 - m.p.mix * 0.7; hum.gain.value = m.p.mix * 1.4; };
+    m.maj = function(){
+      var n = Math.min(3, Math.floor(m.p.taille * 4));
+      if(n !== courant){ courant = n; c.buffer = tampons[n]; }
+      sec.gain.value = 1 - m.p.mix * 0.7;
+      hum.gain.value = m.p.mix * 1.4;
+    };
     m.maj();
   }),
 
@@ -14618,6 +14791,51 @@ limit: eurEffet("LIMIT", 52, "Compresseur de crêtes",
     m.maj = function(){
       c.threshold.value = -40 + m.p.seuil * 38;
       c.ratio.value = 1.5 + m.p.rap * 18;
+    };
+    m.maj();
+  }),
+
+eq3: eurEffet("EQ 3", 64, "Grave, médium, aigu",
+  [["bas","LOW",0,1,0.5],["mil","MID",0,1,0.5],["haut","HIGH",0,1,0.5]],
+  function(m, e, out){
+    /* l'égaliseur qui manque toujours dans un rack : trois cloches en série,
+       chacune de moins quinze à plus quinze décibels */
+    var b = ctx.createBiquadFilter(), md = ctx.createBiquadFilter(), h = ctx.createBiquadFilter();
+    b.type = "lowshelf"; b.frequency.value = 180;
+    md.type = "peaking"; md.frequency.value = 1100; md.Q.value = 0.9;
+    h.type = "highshelf"; h.frequency.value = 4200;
+    e.connect(b); b.connect(md); md.connect(h); h.connect(out);
+    m.maj = function(){
+      b.gain.value = (m.p.bas - 0.5) * 30;
+      md.gain.value = (m.p.mil - 0.5) * 30;
+      h.gain.value = (m.p.haut - 0.5) * 30;
+    };
+    m.maj();
+  }),
+
+pingpong: eurEffet("PING PONG", 72, "Écho qui rebondit d'une oreille à l'autre",
+  [["time","TIME",0,1,0.35],["fb","FEED",0,1,0.4],["mix","MIX",0,1,0.45]],
+  function(m, e, out){
+    var dg = ctx.createDelay(2), dd = ctx.createDelay(2), fb = eurGain(0);
+    var pg = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    var pd = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    var sec = eurGain(1), hum = eurGain(0);
+    e.connect(sec); sec.connect(out);
+    e.connect(dg);
+    /* chaque délai nourrit l'autre : le rebond passe de gauche à droite */
+    dg.connect(dd); dd.connect(fb); fb.connect(dg);
+    if(pg && pd){
+      pg.pan.value = -0.85; pd.pan.value = 0.85;
+      dg.connect(pg); dd.connect(pd);
+      pg.connect(hum); pd.connect(hum);
+    } else { dg.connect(hum); dd.connect(hum); }
+    hum.connect(out);
+    m.maj = function(){
+      var d = 0.05 + m.p.time * 0.7;
+      dg.delayTime.value = d; dd.delayTime.value = d;
+      fb.gain.value = m.p.fb * 0.82;
+      sec.gain.value = 1 - m.p.mix * 0.6;
+      hum.gain.value = m.p.mix;
     };
     m.maj();
   }),
@@ -14757,6 +14975,51 @@ rim: eurPerc("RIM", "Rim shot", function(m, out, t){
   g.gain.exponentialRampToValueAtTime(0.0001, t + 0.015 + m.p.dec * 0.06);
   o.connect(g); n.connect(bp); bp.connect(g); g.connect(out);
   o.start(t); o.stop(t + 0.08); n.stop(t + 0.08);
+}),
+
+cowbell: eurPerc("COWBELL", "Cloche à vache", function(m, out, t){
+  /* deux carrés dans un rapport qui ne tombe sur aucun harmonique : c'est
+     exactement la recette de la 808, et c'est pour ça que ça sonne creux */
+  var dec = 0.12 + m.p.dec * 0.7;
+  var f0 = 480 + m.p.tune * 380;
+  var som = eurGain(0.4);
+  [1, 1.4816].forEach(function(r){
+    var o = ctx.createOscillator(); o.type = "square";
+    o.frequency.value = f0 * r;
+    o.connect(som); o.start(t); o.stop(t + dec + 0.02);
+  });
+  var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+  bp.frequency.value = f0 * 1.2; bp.Q.value = 2.2;
+  var g = eurGain(0);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(m.p.niv * 1.1, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+  som.connect(bp); bp.connect(g); g.connect(out);
+}),
+
+shaker: eurPerc("SHAKER", "Maracas", function(m, out, t){
+  var dec = 0.03 + m.p.dec * 0.18;
+  var n = eurBruit();
+  var hp = ctx.createBiquadFilter(); hp.type = "highpass";
+  hp.frequency.value = 4000 + m.p.tune * 5000;
+  var g = eurGain(0);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(m.p.niv * 0.9, t + 0.006);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+  n.connect(hp); hp.connect(g); g.connect(out);
+  n.stop(t + dec + 0.05);
+}),
+
+claves: eurPerc("CLAVES", "Claves", function(m, out, t){
+  var f = 1100 + m.p.tune * 1600;
+  var o = ctx.createOscillator(); o.type = "sine";
+  o.frequency.value = f;
+  var g = eurGain(0);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(m.p.niv * 1.3, t + 0.0008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.02 + m.p.dec * 0.12);
+  o.connect(g); g.connect(out);
+  o.start(t); o.stop(t + 0.2);
 })
 };
 var EUR_FAM = [["horloge","HORLOGES"],["seq","SÉQUENCEURS"],["osc","OSCILLATEURS"],
@@ -14802,6 +15065,14 @@ function eurBatir(){
     if(!s || !e) return;
     try{ s.connect(e); }catch(err){}
   });
+  /* quelques modules se comportent autrement selon qu'on leur a branché
+     quelque chose ou non : ils l'apprennent une fois le câblage posé */
+  EUR.mods.forEach(function(m){
+    if(!m.brancher) return;
+    m.brancher(EUR.cables.some(function(c){
+      return c.vers[0] === m.id && c.vers[1] === "in";
+    }));
+  });
 }
 function eurMod(id){
   for(var i=0;i<EUR.mods.length;i++) if(EUR.mods[i].id === id) return EUR.mods[i];
@@ -14811,27 +15082,37 @@ function eurMod(id){
 /* Les portes se propagent de proche en proche. Un module qui en reçoit une
    peut en émettre à son tour : c'est ce qui permet d'enchaîner horloge,
    diviseur, générateur euclidien puis séquenceur. La file est bornée pour
-   qu'un câblage en boucle ne fasse pas tourner l'application indéfiniment. */
+   qu'un câblage en boucle ne fasse pas tourner l'application indéfiniment.
+
+   Chaque élément de la file porte SON PROPRE INSTANT. Sans cela, un module
+   qui décale ses impulsions (BURST, CLK MULT, TRIG DLY) voyait bien sa
+   tension partir en avance dans le câble, mais le module d'en face était
+   réveillé une seule fois, au temps du pas : un roulement de huit coups ne
+   donnait qu'un seul coup de caisse. Une sortie peut donc être annoncée
+   soit par son nom, soit par le couple [nom, instant]. */
 function scheduleEur(i, t){
   var file = [];
   EUR.mods.forEach(function(m){
     if(!m.tic) return;
     var f = m.tic(t, i);
-    if(f) f.forEach(function(o){ file.push([m.id, o]); });
+    if(f) f.forEach(function(o){ file.push(eurSortie(m.id, o, t)); });
   });
   var garde = 0;
-  while(file.length && garde++ < 400){
+  while(file.length && garde++ < 900){
     var x = file.shift();
     for(var k=0;k<EUR.cables.length;k++){
       var c = EUR.cables[k];
       if(c.de[0] !== x[0] || c.de[1] !== x[1]) continue;
       var d = eurMod(c.vers[0]);
       if(!d || !d.recevoir) continue;
-      var sorties = d.recevoir(t, c.vers[1]);
-      if(sorties) sorties.forEach(function(o){ file.push([d.id, o]); });
+      var sorties = d.recevoir(x[2], c.vers[1]);
+      if(sorties) sorties.forEach(function(o){ file.push(eurSortie(d.id, o, x[2])); });
     }
   }
   if(!cache) queue.push({i:i, t:t});
+}
+function eurSortie(id, o, t){
+  return (typeof o === "string") ? [id, o, t] : [id, o[0], o[1]];
 }
 function beatEur(i){ EUR.pos = i; }
 function arretEur(){
@@ -14981,7 +15262,7 @@ function eurCatalogue(){
   var c = document.getElementById("eur-cat");
   if(c.style.display !== "none"){ c.style.display = "none"; return; }
   c.innerHTML = "";
-  /* cinquante-six modules en vrac seraient illisibles : on les range par
+  /* soixante-quatre modules en vrac seraient illisibles : on les range par
      familles, et l'onglet choisi décide de ce qu'on voit */
   var onglets = document.createElement("div");
   onglets.className = "eur-fam";
@@ -15106,6 +15387,14 @@ document.getElementById("eur-vider").addEventListener("click", function(){
 });
 document.getElementById("eur-notice").addEventListener("click", function(){ ouvrirNotice(); });
 
+var kEurTempo = knobEm("eur-k-tempo", {min:0, max:1,
+  get:function(){ return (S.bpm - 40) / 180; },
+  set:function(v){
+    S.bpm = Math.round(40 + v * 180);
+    lcdEur(S.bpm + " BPM", "TEMPO", true);
+    saveSoon();
+  }});
+
 var unitEur = document.getElementById("unit-eur");
 function activerEur(){
   stop();
@@ -15119,6 +15408,7 @@ function activerEur(){
   chargerEur();
   if(!EUR.mods.length) eurExemple();
   else { eurBatir(); eurDessiner(); }
+  kEurTempo.maj();
   actif = unitEur;
   save(); fit();
   setTimeout(function(){ fit(); eurCables(); }, 150);
