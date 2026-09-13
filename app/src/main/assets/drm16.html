@@ -783,6 +783,103 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.pdoc{background:linear-gradient(165deg,#3a3a40,#141417 55%,#242429)}
 .pick.pdoc b{color:#e8e4da;text-shadow:0 2px 0 #000}
 .pick.pdoc span{color:#a9a69e}
+/* ===================== AKAI MPC3000 / MPC2000 ===================== */
+body.mpc .akai{display:block}
+body.mpc #unit,body.mpc .em,body.mpc .er,body.mpc .ea,body.mpc .es,body.mpc .mx,body.mpc .sx{display:none}
+.akai{display:none;width:100%;max-width:1180px;border-radius:10px;padding:14px 16px 16px;
+  background:linear-gradient(168deg,#e6e1d2,#d3ccb8 35%,#c9c2ad 70%,#ddd7c6);
+  box-shadow:0 18px 40px #000a,inset 0 1px 0 #fff8,inset 0 -3px 8px #0003;position:relative}
+body.mpc2 .akai{background:linear-gradient(168deg,#e9e9e9,#d8d8d8 35%,#cfcfcf 70%,#e2e2e2)}
+.mpc-tete{display:flex;align-items:flex-start;gap:14px;margin-bottom:10px}
+.mpc-akai{font:900 26px/1 "Arial Black",Impact,sans-serif;color:#c0261d;letter-spacing:-1px}
+.mpc-akai small{display:block;font:italic 700 11px/1 Georgia,serif;color:#3a3a38;letter-spacing:1px;margin-top:2px}
+.mpc-sous{font:700 9px/1.5 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:1.6px;color:#4a4a46;
+  padding-top:4px}
+.mpc-nom{margin-left:auto;text-align:right}
+.mpc-nom b{display:block;font:900 30px/1 "Arial Black",Impact,sans-serif;letter-spacing:-1px;color:#5a5a56;cursor:pointer}
+body.mpc2 .mpc-nom b{color:#6a6a6a}
+.mpc-nom span{display:block;font:700 9px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:3px;
+  color:#7a7a74;margin-top:3px}
+.mpc-grilles{display:flex;gap:7px;margin-left:14px;padding-top:3px}
+.mpc-grilles i{display:block;width:34px;height:26px;border-radius:2px;
+  background:repeating-linear-gradient(180deg,#b9b2a0 0 2px,#e6e1d2 2px 5px)}
+.mpc-corps{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;align-items:start}
+body.mpc2 .mpc-corps{grid-template-columns:1fr 1.15fr}
+/* MPC3000 : pads au centre gauche, commandes à droite. MPC2000 : pads à droite. */
+body.mpc:not(.mpc2) .mpc-gauche{order:2}
+body.mpc:not(.mpc2) .mpc-droite{order:1}
+.mpc-lcd{background:linear-gradient(180deg,#0a1c3a,#061024);border:3px solid #9a9484;border-radius:3px;
+  padding:9px 11px;box-shadow:inset 0 2px 10px #000c}
+body.mpc2 .mpc-lcd{background:linear-gradient(180deg,#9fb07a,#8aa063);border-color:#2a2a2a}
+.mpc-lcd b{display:block;font:700 15px/1.35 "Courier New",monospace;color:#8fd8ff;letter-spacing:.5px;
+  white-space:pre;overflow:hidden}
+body.mpc2 .mpc-lcd b{color:#1c2410}
+.mpc-lcd u{display:block;text-decoration:none;font:700 11px/1.5 "Courier New",monospace;color:#5fa8d8;white-space:pre}
+body.mpc2 .mpc-lcd u{color:#39461f}
+.mpc-soft{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+body.mpc2 .mpc-soft{grid-template-columns:repeat(6,1fr)}
+.mpcb{background:linear-gradient(180deg,#f4f1e6,#d8d2c0);border:0;border-radius:3px;
+  box-shadow:0 2px 0 #8f8878,0 3px 5px #0004,inset 0 1px 0 #fff;
+  color:#3a3a36;font:700 9px/1.15 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:.6px;
+  padding:8px 4px;min-width:0}
+body.mpc2 .mpcb{background:linear-gradient(180deg,#f6f6f6,#dcdcdc);box-shadow:0 2px 0 #9a9a9a,0 3px 5px #0004,inset 0 1px 0 #fff}
+.mpcb:active,.mpcb.on{background:linear-gradient(180deg,#9fd0f0,#5fa0d0);color:#06243a;transform:translateY(2px);
+  box-shadow:0 1px 0 #8f8878,inset 0 1px 3px #0004}
+.mpcb.rouge{background:linear-gradient(180deg,#f08a72,#d8452a);color:#2a0a04}
+.mpcb.rouge.on{background:linear-gradient(180deg,#ff9a80,#ff3a18);box-shadow:0 1px 0 #8f8878,0 0 12px #ff5a3a90}
+.mpc-num{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.mpc-num .mpcb{padding:10px 2px;font-size:11px}
+.mpc-roue{width:88px;height:88px;border-radius:50%;flex:none;touch-action:none;position:relative;
+  background:radial-gradient(circle at 36% 28%,#fbfaf5,#d9d3c2 45%,#9a9484 80%,#c3bdac);
+  box-shadow:0 5px 12px #0007,inset 0 1px 2px #fff,inset 0 -4px 10px #00000030}
+.mpc-roue::after{content:"";position:absolute;left:50%;top:11px;width:16px;height:16px;margin-left:-8px;
+  border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#b8b2a0)}
+.mpc-pads{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#8d8879;padding:10px;
+  border-radius:4px;box-shadow:inset 0 2px 8px #0006}
+body.mpc2 .mpc-pads{background:#9a9a9a}
+.mpc-pad{position:relative;aspect-ratio:1/0.82;border:0;border-radius:4px;touch-action:none;
+  background:linear-gradient(170deg,#7e7a6e,#59564d 60%,#45433c);
+  box-shadow:0 3px 0 #33312b,0 5px 9px #0006,inset 0 1px 0 #ffffff22}
+body.mpc2 .mpc-pad{background:linear-gradient(170deg,#8a8a8a,#616161 60%,#4d4d4d);box-shadow:0 3px 0 #3a3a3a,0 5px 9px #0006,inset 0 1px 0 #ffffff22}
+.mpc-pad:active,.mpc-pad.on{background:linear-gradient(170deg,#ffb27a,#e0742c 60%,#b8541a);transform:translateY(3px);
+  box-shadow:0 0 0 #33312b,inset 0 2px 6px #0005}
+.mpc-pad.vide{opacity:.62}
+.mpc-pad i{position:absolute;left:5px;top:4px;font:700 7.5px/1 "Roboto Condensed",Arial;letter-spacing:.3px;
+  color:#e8e2d2;font-style:normal;text-align:left;max-width:78%;overflow:hidden;white-space:nowrap}
+.mpc-pad em{position:absolute;right:5px;top:4px;font:700 7.5px/1 Arial;color:#c9c2ad;font-style:normal}
+.mpc-etiq{font:700 8px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:2px;color:#5a5a54;
+  text-align:center;margin-bottom:5px}
+.mpc-kn{width:44px;flex:none;text-align:center;touch-action:none}
+.mpc-kn .bt{width:44px;height:44px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#fdfcf7,#ddd7c6 46%,#9a9484 78%,#c3bdac);
+  box-shadow:0 3px 7px #0006,inset 0 1px 1px #fff}
+.mpc-kn .bt i{position:absolute;left:50%;top:4px;width:3px;height:34%;margin-left:-1.5px;border-radius:2px;background:#3a3a36}
+.mpc-kn em{display:block;margin-top:3px;font:700 8px/1.2 "Roboto Condensed",Arial;letter-spacing:.6px;
+  color:#4a4a46;font-style:normal}
+.mpc-rangee{display:flex;gap:6px;align-items:flex-start}
+.mpc-cmd{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.mpc-trans{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;background:#bfb8a6;padding:8px;border-radius:4px}
+body.mpc2 .mpc-trans{background:#c8c8c8}
+.mpc-trans .mpcb{padding:12px 3px;font-size:10px}
+.mpc-vari{display:flex;flex-direction:column;align-items:center;gap:4px}
+.mpc-fader{width:34px;height:110px;border-radius:4px;background:linear-gradient(180deg,#b5ae9c,#8d8879);
+  box-shadow:inset 0 2px 6px #0006;position:relative;touch-action:none}
+.mpc-fader b{position:absolute;left:2px;right:2px;height:16px;border-radius:3px;
+  background:linear-gradient(180deg,#fdfcf7,#b8b2a0);box-shadow:0 2px 4px #0006;top:47px}
+.mpc-mini{font:700 7.5px/1.3 "Roboto Condensed",Arial;letter-spacing:1px;color:#5a5a54;text-align:center}
+@media (max-width:780px){
+  .mpc-corps{grid-template-columns:1fr}
+  body.mpc .mpc-gauche,body.mpc .mpc-droite{order:0}
+  .mpc-akai{font-size:21px} .mpc-nom b{font-size:23px}
+  .mpc-grilles{display:none}
+}
+
+.pick.pm3{background:linear-gradient(165deg,#8a8472,#2e2b23 55%,#4a463a)}
+.pick.pm3 b{color:#f0e9d2;text-shadow:0 2px 0 #26241c}
+.pick.pm3 span{color:#c4bda8}
+.pick.pm2{background:linear-gradient(165deg,#7a7a7a,#242424 55%,#3d3d3d)}
+.pick.pm2 b{color:#efefef;text-shadow:0 2px 0 #1e1e1e}
+.pick.pm2 span{color:#bdbdbd}
 @media (max-height:560px){
   .unit{padding:18px 10px 4px}
   .grid{gap:6px}
@@ -1838,6 +1935,105 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 
 <button id="aide">NOTICE</button>
 
+
+<div class="akai" id="unit-mpc">
+
+  <div class="em-jacks">
+    <div class="grp"><div class="tr"><i></i></div><span>PHONES</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>L&nbsp;&nbsp;R · STEREO OUT</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>REC IN</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i><i></i><i></i></div><span>IN&nbsp;&nbsp;OUT A&nbsp;&nbsp;OUT B · MIDI</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i></div><span>POWER</span></div>
+  </div>
+
+  <div class="mpc-tete">
+    <div class="mpc-akai">AKAI<small>professional</small></div>
+    <div class="mpc-sous">INTEGRATED RHYTHM MACHINE<br>16 BIT DRUM SAMPLER / MIDI SEQUENCER</div>
+    <div class="mpc-grilles"><i></i><i></i><i></i><i></i></div>
+    <div class="mpc-nom"><b id="mpc-notice">MPC3000</b><span id="mpc-sstitre">MIDI PRODUCTION CENTER</span></div>
+  </div>
+
+  <div class="mpc-corps">
+
+    <div class="em-col mpc-gauche">
+      <div class="mpc-rangee">
+        <div>
+          <div class="mpc-kn"><div class="bt" id="mpc-k-vol"><i></i></div><em>MAIN<br>VOLUME</em></div>
+          <div class="mpc-kn" style="margin-top:8px"><div class="bt" id="mpc-k-gain"><i></i></div><em>REC<br>GAIN</em></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="mpc-lcd">
+            <b id="mpc-l1">                    </b>
+            <u id="mpc-l2"></u><u id="mpc-l3"></u><u id="mpc-l4"></u>
+          </div>
+          <div class="mpc-soft" id="mpc-soft"></div>
+        </div>
+      </div>
+
+      <div class="mpc-rangee" style="margin-top:10px">
+        <div class="mpc-num" id="mpc-num"></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div class="mpc-roue" id="mpc-roue"></div>
+          <div class="mpc-mini">DATA ENTRY</div>
+          <div style="display:flex;gap:6px">
+            <button class="mpcb" id="mpc-moins" style="padding:8px 14px">−</button>
+            <button class="mpcb" id="mpc-plus" style="padding:8px 14px">+</button>
+          </div>
+        </div>
+        <div class="mpc-cmd" id="mpc-cmd"></div>
+      </div>
+
+      <div class="mpc-trans" style="margin-top:10px">
+        <button class="mpcb" id="mpc-debut">|◀◀</button>
+        <button class="mpcb" id="mpc-recul">◀◀</button>
+        <button class="mpcb" id="mpc-locate">LOCATE</button>
+        <button class="mpcb" id="mpc-avance">▶▶</button>
+        <button class="mpcb" id="mpc-fin">▶▶|</button>
+        <button class="mpcb rouge" id="mpc-rec">REC</button>
+        <button class="mpcb rouge" id="mpc-over">OVER DUB</button>
+        <button class="mpcb" id="mpc-stop">STOP</button>
+        <button class="mpcb" id="mpc-play">PLAY</button>
+        <button class="mpcb" id="mpc-playstart">PLAY START</button>
+      </div>
+    </div>
+
+    <div class="em-col mpc-droite">
+      <div class="mpc-etiq">DRUMS</div>
+      <div class="mpc-pads" id="mpc-pads"></div>
+
+      <div class="mpc-rangee" style="margin-top:10px;align-items:flex-start">
+        <div class="mpc-vari">
+          <div class="mpc-mini">NOTE<br>VARIATION</div>
+          <button class="mpcb" id="mpc-apres">AFTER</button>
+          <div class="mpc-fader" id="mpc-fader"><b></b></div>
+        </div>
+        <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button class="mpcb" id="mpc-banque">PAD BANK A</button>
+          <button class="mpcb" id="mpc-plein">FULL LEVEL</button>
+          <button class="mpcb" id="mpc-16niv">16 LEVELS</button>
+          <button class="mpcb" id="mpc-repet">NOTE REPEAT</button>
+          <button class="mpcb" id="mpc-timing">TIMING CORRECT</button>
+          <button class="mpcb" id="mpc-efface">ERASE</button>
+          <button class="mpcb" id="mpc-annule">UNDO SEQ</button>
+          <button class="mpcb" id="mpc-tap">TAP TEMPO</button>
+        </div>
+      </div>
+
+      <div class="mpc-rangee" style="margin-top:10px;justify-content:center">
+        <div class="mpc-kn"><div class="bt" id="mpc-k-niv"><i></i></div><em>LEVEL</em></div>
+        <div class="mpc-kn"><div class="bt" id="mpc-k-pan"><i></i></div><em>PAN</em></div>
+        <div class="mpc-kn"><div class="bt" id="mpc-k-tune"><i></i></div><em>TUNE</em></div>
+        <div class="mpc-kn"><div class="bt" id="mpc-k-dec"><i></i></div><em>DECAY</em></div>
+        <div class="mpc-kn"><div class="bt" id="mpc-k-filt"><i></i></div><em>FILTER</em></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
 <div id="pr">
   <div id="note-bar"><b>TRAVAIL DU MIDI</b><button id="pr-fermer">FERMER</button></div>
   <div id="pr-barre">
@@ -1909,6 +2105,8 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <button class="pick pes2" data-m="es2"><b>ES-1 mkII</b><span>KORG · ÉCHANTILLONNEUR · ISOLATOR, RESO. FILT.</span></button>
   <button class="pick pmx" data-m="emx"><b>ELECTRIBE EMX-1</b><span>KORG · 14 PARTIES · 3 EFFETS · VALVE FORCE</span></button>
   <button class="pick psx" data-m="esx"><b>ELECTRIBE ESX-1</b><span>KORG · ÉCHANTILLONNEUR · CLAVIER, STRETCH, VALVE FORCE</span></button>
+  <button class="pick pm3" data-m="mpc3000"><b>AKAI MPC3000</b><span>PADS · ENREGISTREMENT AU VOL · TIMING CORRECT</span></button>
+  <button class="pick pm2" data-m="mpc2000"><b>AKAI MPC2000</b><span>PADS · QUATRE BANQUES · SEIZE NIVEAUX</span></button>
   <button class="pick ppr" id="menu-pr"><b>TRAVAIL DU MIDI</b><span>ROULEAU PAR SON · RETOUCHER, CALER, REPORTER</span></button>
   <button class="pick penr" id="menu-enr"><b>ENREGISTREUR MIDI</b><span>JOUER SUR LA KORG · LE SON SORT DU TÉLÉPHONE</span></button>
   <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
@@ -2010,6 +2208,40 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
      <button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
   <p><button id="b-panique">PANIQUE · TOUT COUPER</button>
      <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
+  </div>
+
+  <div class="doc" id="note-mpc" data-titre="MPC3000 · MPC2000">
+  <h3>Une autre logique</h3>
+  <p>Ici, on ne pose pas des pas : on <b>joue sur les pads</b> et la machine enregistre au vol.
+  <b>PLAY</b> lance la boucle, <b>REC</b> ou <b>OVER DUB</b> arme l'enregistrement, et chaque frappe se
+  range à sa place. Frapper <b>haut sur un pad</b> donne un coup doux, <b>bas</b> un coup fort : la force
+  suit l'endroit touché.</p>
+
+  <h3>Timing Correct</h3>
+  <p>C'est le cœur de l'affaire. <b>T.C.</b> cale chaque frappe sur la division choisie — croche, triolet,
+  double croche, triple — au moment même où elle est enregistrée. En position <b>OFF</b>, rien n'est corrigé
+  et le jeu reste tel quel, à la milliseconde près. La machine travaille en quatre-vingt-seize tics par
+  noire, comme l'appareil d'origine.</p>
+
+  <h3>Les pads</h3>
+  <p><b>PAD BANK</b> passe de A à D : soixante-quatre sons en tout. <b>FULL LEVEL</b> force toutes les
+  frappes au maximum. <b>16 LEVELS</b> étale le son choisi sur les seize pads, du plus doux au plus fort.
+  <b>NOTE REPEAT</b> répète tant qu'on reste appuyé, à la cadence du Timing Correct.</p>
+  <p>Le <b>curseur NOTE VARIATION</b> décale la hauteur de la frappe suivante ; <b>AFTER</b> le remet au
+  centre. Les cinq boutons du bas règlent le pad choisi : niveau, panoramique, accord, décroissance et
+  filtre. La <b>molette</b> lui donne son son, pris dans la banque de vingt-quatre ou dans vos
+  enregistrements — la même mémoire que les échantillonneurs Korg.</p>
+
+  <h3>Séquences</h3>
+  <p>Huit séquences, choisies par les touches <b>1 à 8</b> du pavé. Les touches <b>SOFT</b> règlent le
+  nombre de mesures, le Timing Correct et le swing. <b>UNDO SEQ</b> revient en arrière d'un cran — et y
+  retourne si on rappuie. <b>ERASE</b> s'allume : frapper un pad retire alors toutes ses frappes.</p>
+  <p><b>LOCATE</b> change ce que fait la molette : son du pad, tempo, ou nombre de mesures.</p>
+
+  <h3>Ce qui diffère des appareils d'origine</h3>
+  <p>Pas de lecteur de disquette ni de carte, pas d'échantillonnage par l'entrée ligne — mais les sons
+  enregistrés au micro ou importés dans l'ES-1 et l'ESX-1 sont disponibles ici. Une seule piste de
+  percussion au lieu des quatre-vingt-dix-neuf pistes MIDI, et pas de mode Song.</p>
   </div>
 
   <div class="doc" id="note-ehx" data-titre="DRM16 · DRM32">
@@ -2333,10 +2565,10 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
 (function charger(){
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
-    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
     if(m.midi) memoire.midi = m.midi;
     /* ancien format : les machines vivaient dans le blob global, on les répartit une fois */
-    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx"].forEach(function(c){
+    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000"].forEach(function(c){
       if(m[c]){
         memoire[c] = m[c];
         try{ localStorage.setItem(MEM + "." + c, JSON.stringify(m[c])); }catch(e){}
@@ -3014,6 +3246,7 @@ function docDeLaMachine(){
   if(m === "es1" || m === "es2") return "note-es";
   if(m === "emx") return "note-mx";
   if(m === "esx") return "note-sx";
+  if(m === "mpc3000" || m === "mpc2000") return "note-mpc";
   return "note-general";
 }
 function montrerDoc(id){
@@ -3062,7 +3295,7 @@ document.getElementById("menu-pr").addEventListener("click", function(){
 (function machinePr(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"]];
   var sel = document.getElementById("pr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -3110,7 +3343,7 @@ document.getElementById("enr-rec").addEventListener("click", function(){
 (function menuEnregistreur(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"]];
   var sel = document.getElementById("enr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -4693,7 +4926,7 @@ function activerEm(){
   S.modele = "em1";
   MACHINE = MACHINE_EM;
   document.body.classList.add("em1");
-  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx");
+  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2");
   chargerEm();
   construireFx();
   EM.choisirPartie(EM.sel);
@@ -5396,7 +5629,7 @@ function activerEr(v){
   ER.v = (v===2) ? 2 : 1;
   S.modele = "er" + ER.v;
   MACHINE = MACHINE_ER;
-  document.body.classList.remove("m32","em1","ea1","es1","emx","esx");
+  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2");
   document.body.classList.add("er1");
   document.body.classList.toggle("mk2", ER.v===2);
   chargerEr();
@@ -6050,7 +6283,7 @@ function activerEa(v){
   EA.v = (v===2) ? 2 : 1;
   S.modele = "ea" + EA.v;
   MACHINE = MACHINE_EA;
-  document.body.classList.remove("m32","em1","er1","es1","emx","esx");
+  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2");
   document.body.classList.add("ea1");
   document.body.classList.toggle("mk2", EA.v===2);
   chargerEa();
@@ -6950,7 +7183,7 @@ function activerEs(v){
   ES.v = (v===2) ? 2 : 1;
   S.modele = "es" + ES.v;
   MACHINE=MACHINE_ES;
-  document.body.classList.remove("m32","em1","er1","ea1","emx","esx");
+  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2");
   document.body.classList.add("es1");
   document.body.classList.toggle("mk2", ES.v===2);
   audioInit(); banqueEs(); busEffets(); chargerEchs();
@@ -8037,7 +8270,7 @@ function activerMx(){
   stop();
   S.modele="emx";
   MACHINE=MACHINE_MX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2");
   document.body.classList.add("emx");
   audioInit(); banqueEs(); mxAudio();
   chargerMx();
@@ -9077,7 +9310,7 @@ function activerSx(){
   stop();
   S.modele="esx";
   MACHINE=MACHINE_SX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2");
   document.body.classList.add("esx");
   audioInit(); banqueEs(); sxAudio(); chargerEchs();
   chargerSx();
@@ -9683,6 +9916,506 @@ function ouvrirEnr(){
 function fermerEnr(){
   document.getElementById("enr").classList.remove("show");
   document.body.classList.remove("note-ouverte");
+}
+
+/* ===================== AKAI MPC3000 / MPC2000 =====================
+   Autre logique que les Electribe : on ne pose pas des pas, on joue sur les pads
+   et la machine enregistre au vol, avec correction de timing au moment voulu. */
+var MPC_BANQUES = ["A","B","C","D"];
+var MPC_NOMS3000 = ["KICK","KICK (ALT)","SNARE","SNARE (ALT)","HIHAT FOOT","HIHAT CLOSED",
+                    "HIHAT LOOSE","HIHAT OPEN","TOM 1","TOM 2","TOM 3","TOM 4",
+                    "RIDE 1","RIDE 2","CRASH 1","CRASH 2"];
+var MPC_Q = [0, 8, 12, 16, 24, 32];          /* division par mesure : libre, 1/8, triolet, 1/16, ... */
+var MPC_QNOM = ["OFF","1/8","1/8T","1/16","1/16T","1/32"];
+var MPC_TPQ = 96;                             /* tics par noire, comme la MPC3000 */
+
+function padMpc(i){
+  var defauts = [0,14,1,15,3,3,4,4,5,21,21,7,20,19,19,17];
+  return {ech:"b" + (defauts[i % 16] || 0), niv:0.8, pan:0, tune:0, dec:1, filt:1, coupe:-1};
+}
+function seqMpc(){
+  var s = {mesures:2, evts:[], q:3, swing:0, nom:"SEQ 1"};
+  return s;
+}
+var MPC = {
+  v:3000, banque:0, sel:0, pads:[], seq:null, seqs:[], seqCur:0,
+  rec:false, over:false, plein:false, niv16:false, repet:false, apres:0,
+  pos:-1, tStep:0, dernier:null, annule:null, tenu:{}, ecrase:false, param:0
+};
+(function initMpc(){
+  for(var i=0;i<64;i++) MPC.pads.push(padMpc(i));
+  for(var s=0;s<8;s++) MPC.seqs.push(seqMpc());
+  MPC.seqs.forEach(function(x,i){ x.nom = "SEQ " + (i+1); });
+  MPC.seq = MPC.seqs[0];
+})();
+
+/* --- son d'un pad --- */
+function sortieMpc(k){
+  if(!MPC.noeuds) MPC.noeuds = [];
+  if(!MPC.noeuds[k]){
+    var g = ctx.createGain(), pn = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if(pn){ g.connect(pn); pn.connect(master); } else g.connect(master);
+    MPC.noeuds[k] = {g:g, p:pn};
+  }
+  return MPC.noeuds[k];
+}
+function jouerPad(t, k, vel){
+  banqueEs();
+  var p = MPC.pads[k];
+  if(!p) return;
+  var buf = ES.buf[p.ech];
+  if(!buf) return;
+  if(p.coupe >= 0){                          /* groupe de coupure : le charley ferme l'ouvert */
+    for(var j=0;j<64;j++){
+      if(j !== k && MPC.pads[j].coupe === p.coupe && MPC.voix && MPC.voix[j]){
+        try{ MPC.voix[j].gain.cancelScheduledValues(t);
+             MPC.voix[j].gain.setTargetAtTime(0.0001, t, 0.004); }catch(e){}
+      }
+    }
+  }
+  var n = sortieMpc(k);
+  n.g.gain.setValueAtTime(mv("niv", p.niv), t);
+  if(n.p) n.p.pan.setValueAtTime(mv("pan", p.pan), t);
+  var src = ctx.createBufferSource(); src.buffer = buf;
+  var variation = MPC.apres * 0.5;
+  src.playbackRate.value = Math.pow(2, (p.tune + variation) * 1.2);
+  var f = ctx.createBiquadFilter(); f.type = "lowpass";
+  f.frequency.value = Math.min(18000, 150 * Math.pow(110, p.filt));
+  var g = ctx.createGain();
+  var duree = Math.max(0.03, (buf.duration / src.playbackRate.value) * Math.max(0.05, p.dec));
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vel, t + 0.003);
+  g.gain.setValueAtTime(vel, t + Math.max(0.006, duree - 0.02));
+  g.gain.linearRampToValueAtTime(0.0001, t + Math.max(0.01, duree));
+  src.connect(f); f.connect(g); g.connect(n.g);
+  src.start(t); src.stop(t + duree + 0.05);
+  if(!MPC.voix) MPC.voix = [];
+  MPC.voix[k] = g;
+  midiNoteA(35 + k, t, vel, MIDI.canal, duree);
+}
+
+/* --- séquenceur --- */
+function ticsMpc(){ return MPC.seq.mesures * 4 * MPC_TPQ; }
+function pasMpc(){ return MPC.seq.mesures * 16; }
+function ticParPas(){ return MPC_TPQ / 4; }
+function scheduleMpc(i, t){
+  var seq = MPC.seq, tp = ticParPas();
+  var deb = i * tp, fin = deb + tp;
+  if(seq.swing && i % 2 === 1) t += stepDur() * seq.swing * 0.55;
+  MPC.tStep = t;
+  var duree = stepDur();
+  seq.evts.forEach(function(e){
+    if(e.tic >= deb && e.tic < fin && !e.mute){
+      jouerPad(t + ((e.tic - deb) / tp) * duree, e.pad, e.vel);
+    }
+  });
+  if(!cache) queue.push({i:i, t:t});
+}
+function beatMpc(i){
+  MPC.pos = i;
+  majLcdMpc();
+}
+function arretMpc(){
+  MPC.pos = -1;
+  var b = document.getElementById("mpc-play");
+  if(b) b.classList.remove("on");
+  majLcdMpc();
+}
+function boucleMpc(){ }
+var MACHINE_MPC = {schedule:scheduleMpc, beat:beatMpc, arret:arretMpc, boucle:boucleMpc,
+                   longueur:function(){ return pasMpc(); }};
+
+/* position en tics, au moment précis de la frappe */
+function ticCourant(){
+  if(MPC.pos < 0 || !ctx) return 0;
+  var tp = ticParPas();
+  var frac = (ctx.currentTime - MPC.tStep) / stepDur();
+  frac = Math.max(0, Math.min(0.999, frac));
+  return (MPC.pos * tp + frac * tp) % ticsMpc();
+}
+function caleMpc(tic){
+  var d = MPC_Q[MPC.seq.q];
+  if(!d) return Math.round(tic);
+  var pas = (MPC_TPQ * 4) / d;               /* tics par division */
+  return Math.round(tic / pas) * pas % ticsMpc();
+}
+function frapperPad(k, vel){
+  audioInit();
+  if(!ctx) return;
+  jouerPad(ctx.currentTime + 0.005, k, vel);
+  MPC.sel = k;
+  majPadsMpc(); majLcdMpc();
+  if(S.run && (MPC.rec || MPC.over)){
+    MPC.annule = MPC.seq.evts.slice();
+    MPC.seq.evts.push({tic:caleMpc(ticCourant()), pad:k, vel:vel});
+    MPC.seq.evts.sort(function(a,b){ return a.tic - b.tic; });
+    memMpc();
+  }
+}
+
+/* --- afficheur --- */
+function padNom(k){
+  if(MPC.v === 3000) return MPC_NOMS3000[k % 16];
+  return "PAD " + ((k % 16) + 1);
+}
+function majLcdMpc(){
+  var l1 = document.getElementById("mpc-l1");
+  if(!l1) return;
+  var seq = MPC.seq, p = MPC.pads[MPC.sel];
+  var mesure = (MPC.pos >= 0) ? Math.floor(MPC.pos / 16) + 1 : 1;
+  var temps = (MPC.pos >= 0) ? (Math.floor((MPC.pos % 16) / 4) + 1) : 1;
+  l1.textContent = (S.run ? (MPC.rec ? "Record  " : MPC.over ? "Overdub " : "Play    ") : "Main    ")
+                 + seq.nom;
+  document.getElementById("mpc-l2").textContent =
+    "Bar:" + mesure + "." + temps + "   Bars:" + seq.mesures + "   BPM:" + S.bpm;
+  document.getElementById("mpc-l3").textContent =
+    "T.C.:" + MPC_QNOM[seq.q] + "   Swing:" + Math.round(seq.swing * 100) + "%   Ev:" + seq.evts.length;
+  document.getElementById("mpc-l4").textContent =
+    "Pad " + MPC_BANQUES[MPC.banque] + ((MPC.sel % 16) + 1) + " " + padNom(MPC.sel) +
+    "  Snd:" + nomEch(p.ech);
+}
+function majPadsMpc(){
+  var els = document.querySelectorAll("#mpc-pads .mpc-pad");
+  for(var i=0;i<els.length;i++){
+    var k = MPC.banque * 16 + i;
+    var p = MPC.pads[k];
+    els[i].querySelector("i").textContent = padNom(k);
+    els[i].querySelector("em").textContent = String(i + 1);
+    els[i].classList.toggle("on", k === MPC.sel);
+    els[i].classList.toggle("vide", !ES.buf[p.ech]);
+  }
+  document.getElementById("mpc-banque").textContent = "PAD BANK " + MPC_BANQUES[MPC.banque];
+  document.getElementById("mpc-plein").classList.toggle("on", MPC.plein);
+  document.getElementById("mpc-16niv").classList.toggle("on", MPC.niv16);
+  document.getElementById("mpc-repet").classList.toggle("on", MPC.repet);
+  document.getElementById("mpc-rec").classList.toggle("on", MPC.rec);
+  document.getElementById("mpc-over").classList.toggle("on", MPC.over);
+  document.getElementById("mpc-efface").classList.toggle("on", MPC.ecrase);
+  document.getElementById("mpc-timing").textContent = "T.C. " + MPC_QNOM[MPC.seq.q];
+}
+
+/* --- mémoire --- */
+function memMpc(){
+  memoire["mpc" + MPC.v] = {
+    banque:MPC.banque, sel:MPC.sel, seqCur:MPC.seqCur,
+    pads:MPC.pads,
+    seqs:MPC.seqs.map(function(s){
+      return {mesures:s.mesures, q:s.q, swing:s.swing, nom:s.nom,
+              evts:s.evts.map(function(e){ return [e.tic, e.pad, Math.round(e.vel*100)]; })};
+    })
+  };
+  sauverMachine("mpc" + MPC.v);
+}
+function chargerMpc(){
+  MPC.pads = []; MPC.seqs = [];
+  for(var i=0;i<64;i++) MPC.pads.push(padMpc(i));
+  for(var s=0;s<8;s++){ var q = seqMpc(); q.nom = "SEQ " + (s+1); MPC.seqs.push(q); }
+  MPC.seqCur = 0; MPC.banque = 0; MPC.sel = 0;
+  var m = memLire("mpc" + MPC.v);
+  if(m){
+    if(m.pads && m.pads.length === 64) MPC.pads = m.pads;
+    if(m.seqs && m.seqs.length === 8){
+      MPC.seqs = m.seqs.map(function(o, i){
+        var q = seqMpc();
+        q.mesures = o.mesures || 2; q.q = o.q || 3; q.swing = o.swing || 0;
+        q.nom = o.nom || ("SEQ " + (i+1));
+        q.evts = (o.evts || []).map(function(e){ return {tic:e[0], pad:e[1], vel:e[2]/100}; });
+        return q;
+      });
+    }
+    ["banque","sel","seqCur"].forEach(function(c){ if(typeof m[c] === "number") MPC[c] = m[c]; });
+  }
+  MPC.seq = MPC.seqs[MPC.seqCur] || MPC.seqs[0];
+}
+
+/* --- construction de l'interface --- */
+(function construireMpc(){
+  var i;
+  var pads = document.getElementById("mpc-pads");
+  /* rangée du haut = pads 13 à 16, comme sur l'appareil */
+  var ordre = [12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3];
+  ordre.forEach(function(idx){
+    var b = document.createElement("button");
+    b.className = "mpc-pad";
+    b.dataset.p = idx;
+    b.innerHTML = "<i></i><em></em>";
+    pads.appendChild(b);
+  });
+  function velocite(e, el){
+    if(MPC.plein) return 1;
+    var r = el.getBoundingClientRect();
+    var y = (e.clientY - r.top) / r.height;    /* haut du pad : frappe douce, bas : forte */
+    return Math.max(0.25, Math.min(1, 0.35 + y * 0.75));
+  }
+  pads.addEventListener("pointerdown", function(e){
+    var el = e.target.closest(".mpc-pad");
+    if(!el) return;
+    el.setPointerCapture(e.pointerId);
+    var k = MPC.banque * 16 + (+el.dataset.p);
+    if(MPC.niv16){                              /* seize niveaux : un seul son, seize forces */
+      var n = (+el.dataset.p) + 1;
+      frapperPad(MPC.sel, Math.max(0.1, n / 16));
+      H.cran();
+      return;
+    }
+    if(MPC.ecrase){                             /* effacement : on retire les frappes de ce pad */
+      MPC.annule = MPC.seq.evts.slice();
+      MPC.seq.evts = MPC.seq.evts.filter(function(ev){ return ev.pad !== k; });
+      memMpc(); majLcdMpc(); H.inter();
+      return;
+    }
+    var vel = velocite(e, el);
+    frapperPad(k, vel);
+    H.cran();
+    if(MPC.repet){
+      clearInterval(MPC.tenu[k]);
+      var d = MPC_Q[MPC.seq.q] || 16;
+      var ms = (60000 / S.bpm) * 4 / d;
+      MPC.tenu[k] = setInterval(function(){ frapperPad(k, vel); }, Math.max(40, ms));
+    }
+  });
+  function relacher(e){
+    var el = e.target.closest ? e.target.closest(".mpc-pad") : null;
+    if(!el) return;
+    var k = MPC.banque * 16 + (+el.dataset.p);
+    clearInterval(MPC.tenu[k]);
+    MPC.tenu[k] = null;
+  }
+  pads.addEventListener("pointerup", relacher);
+  pads.addEventListener("pointercancel", relacher);
+
+  var soft = document.getElementById("mpc-soft");
+  var nbSoft = 4;
+  for(i=0;i<nbSoft;i++){
+    var b2 = document.createElement("button");
+    b2.className = "mpcb";
+    b2.textContent = "SOFT " + (i+1);
+    b2.dataset.s = i;
+    soft.appendChild(b2);
+  }
+  soft.addEventListener("click", function(e){
+    var b3 = e.target.closest(".mpcb");
+    if(!b3) return;
+    var i2 = +b3.dataset.s;
+    if(i2 === 0){ MPC.seq.mesures = [1,2,4,8][( [1,2,4,8].indexOf(MPC.seq.mesures)+1 )%4]; }
+    else if(i2 === 1){ MPC.seq.q = (MPC.seq.q + 1) % MPC_Q.length; }
+    else if(i2 === 2){ MPC.seq.swing = +((MPC.seq.swing + 0.1) % 0.7).toFixed(2); }
+    else { MPC.param = (MPC.param + 1) % 6; }
+    memMpc(); majLcdMpc(); majPadsMpc(); H.cran();
+  });
+
+  var num = document.getElementById("mpc-num");
+  ["7","8","9","4","5","6","1","2","3","0",".","ENT"].forEach(function(t){
+    var b4 = document.createElement("button");
+    b4.className = "mpcb"; b4.textContent = t; b4.dataset.n = t;
+    num.appendChild(b4);
+  });
+  num.addEventListener("click", function(e){
+    var b5 = e.target.closest(".mpcb");
+    if(!b5) return;
+    var t = b5.dataset.n;
+    if(t >= "1" && t <= "8"){                   /* choix direct d'une séquence */
+      memMpc();
+      MPC.seqCur = (+t) - 1;
+      MPC.seq = MPC.seqs[MPC.seqCur];
+      step = 0;
+      majLcdMpc(); majPadsMpc();
+    }
+    H.cran();
+  });
+
+  var cmd = document.getElementById("mpc-cmd");
+  [["DISK","d"],["PROGRAM","p"],["MIXER","m"],["MIDI","i"],["SONG","s"],["OTHER","o"],
+   ["EDIT","e"],["STEP EDIT","t"],["EDIT LOOP","l"]].forEach(function(x){
+    var b6 = document.createElement("button");
+    b6.className = "mpcb"; b6.textContent = x[0]; b6.dataset.c = x[1];
+    cmd.appendChild(b6);
+  });
+  cmd.addEventListener("click", function(e){
+    var b7 = e.target.closest(".mpcb");
+    if(!b7) return;
+    if(b7.dataset.c === "p" || b7.dataset.c === "e"){ MPC.param = 0; ouvrirNotice(); }
+    else if(b7.dataset.c === "i") ouvrirNotice("note-general");
+    else signal(b7.textContent + " · VOIR LA NOTICE");
+    H.cran();
+  });
+})();
+
+/* --- boutons rotatifs --- */
+function knobMpc(id, champ, min, max, nom){
+  return knobEm(id, {min:min, max:max,
+    get:function(){ return MPC.pads[MPC.sel][champ]; },
+    set:function(v){
+      MPC.pads[MPC.sel][champ] = v;
+      majLcdMpc(); memMpc();
+    }});
+}
+var kMpcVol = knobEm("mpc-k-vol", {min:0, max:1, get:function(){ return S.vol; },
+  set:function(v){ S.vol = v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02); saveSoon(); }});
+var kMpcGain = knobEm("mpc-k-gain", {min:0, max:1, get:function(){ return MPC.gain || 0.5; },
+  set:function(v){ MPC.gain = v; }});
+var kMpcNiv  = knobMpc("mpc-k-niv", "niv", 0, 1, "LEVEL");
+var kMpcPan  = knobMpc("mpc-k-pan", "pan", -1, 1, "PAN");
+var kMpcTune = knobMpc("mpc-k-tune", "tune", -1, 1, "TUNE");
+var kMpcDec  = knobMpc("mpc-k-dec", "dec", 0.05, 1, "DECAY");
+var kMpcFilt = knobMpc("mpc-k-filt", "filt", 0, 1, "FILTER");
+function majKnobsMpc(){
+  [kMpcNiv, kMpcPan, kMpcTune, kMpcDec, kMpcFilt, kMpcVol].forEach(function(k){ k.maj(); });
+}
+
+/* --- molette : choisit le son du pad, ou le réglage courant --- */
+(function rouleMpc(){
+  var el = document.getElementById("mpc-roue"), st = {drag:false, y0:0, a:0};
+  el.addEventListener("pointerdown", function(e){
+    st.drag = true; st.y0 = e.clientY; el.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  el.addEventListener("pointermove", function(e){
+    if(!st.drag || PINCE) return;
+    var d = st.y0 - e.clientY;
+    if(Math.abs(d) < 11) return;
+    st.y0 = e.clientY;
+    pasMpcRoue(d > 0 ? 1 : -1);
+    st.a += (d > 0 ? 14 : -14);
+    el.style.transform = "rotate(" + st.a + "deg)";
+  });
+  el.addEventListener("pointerup", function(){ st.drag = false; memMpc(); });
+  el.addEventListener("pointercancel", function(){ st.drag = false; });
+  function pasMpcRoue(d){
+    banqueEs();
+    var l = listeEch(), p = MPC.pads[MPC.sel];
+    if(MPC.param === 1){ S.bpm = Math.max(30, Math.min(300, S.bpm + d)); }
+    else if(MPC.param === 2){ MPC.seq.mesures = Math.max(1, Math.min(16, MPC.seq.mesures + d)); }
+    else {
+      var i = l.indexOf(p.ech);
+      i = ((i < 0 ? 0 : i) + d + l.length) % l.length;
+      p.ech = l[i];
+      delete ES.inv[l[i]];
+      jouerPad(ctx ? ctx.currentTime + 0.01 : 0, MPC.sel, 0.9);
+      majPadsMpc();
+    }
+    majLcdMpc(); H.cran();
+  }
+  MPC.pas = pasMpcRoue;
+  document.getElementById("mpc-moins").addEventListener("click", function(){ pasMpcRoue(-1); });
+  document.getElementById("mpc-plus").addEventListener("click", function(){ pasMpcRoue(1); });
+})();
+
+/* --- curseur de variation --- */
+(function faderMpc(){
+  var el = document.getElementById("mpc-fader"), b = el.querySelector("b"), st = {drag:false};
+  function poser(e){
+    var r = el.getBoundingClientRect();
+    var y = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+    MPC.apres = 1 - y * 2;                       /* haut : aigu, bas : grave */
+    b.style.top = Math.round(y * (r.height - 16)) + "px";
+    majLcdMpc();
+  }
+  el.addEventListener("pointerdown", function(e){ st.drag = true; el.setPointerCapture(e.pointerId); poser(e); e.preventDefault(); });
+  el.addEventListener("pointermove", function(e){ if(st.drag && !PINCE) poser(e); });
+  el.addEventListener("pointerup", function(){ st.drag = false; });
+  el.addEventListener("pointercancel", function(){ st.drag = false; });
+})();
+
+/* --- boutons --- */
+function basculeMpc(id, champ){
+  document.getElementById(id).addEventListener("click", function(){
+    MPC[champ] = !MPC[champ];
+    majPadsMpc(); H.inter();
+  });
+}
+basculeMpc("mpc-plein", "plein");
+basculeMpc("mpc-16niv", "niv16");
+basculeMpc("mpc-repet", "repet");
+basculeMpc("mpc-efface", "ecrase");
+document.getElementById("mpc-banque").addEventListener("click", function(){
+  MPC.banque = (MPC.banque + 1) % 4;
+  MPC.sel = MPC.banque * 16 + (MPC.sel % 16);
+  majPadsMpc(); majLcdMpc(); majKnobsMpc(); memMpc(); H.inter();
+});
+document.getElementById("mpc-timing").addEventListener("click", function(){
+  MPC.seq.q = (MPC.seq.q + 1) % MPC_Q.length;
+  majPadsMpc(); majLcdMpc(); memMpc(); H.cran();
+  signal("TIMING CORRECT : " + MPC_QNOM[MPC.seq.q]);
+});
+document.getElementById("mpc-annule").addEventListener("click", function(){
+  if(!MPC.annule){ signal("RIEN À ANNULER"); return; }
+  var avant = MPC.seq.evts;
+  MPC.seq.evts = MPC.annule;
+  MPC.annule = avant;
+  memMpc(); majLcdMpc(); H.inter();
+  signal("SÉQUENCE REVENUE EN ARRIÈRE");
+});
+document.getElementById("mpc-apres").addEventListener("click", function(){
+  MPC.apres = 0;
+  document.querySelector("#mpc-fader b").style.top = "47px";
+  majLcdMpc(); H.cran();
+});
+document.getElementById("mpc-play").addEventListener("click", function(){
+  audioInit(); banqueEs();
+  if(S.run){ stop(); H.stop(); } else { start(); H.start(); }
+  this.classList.toggle("on", S.run);
+  majPadsMpc(); majLcdMpc();
+});
+document.getElementById("mpc-playstart").addEventListener("click", function(){
+  audioInit(); banqueEs();
+  stop(); step = 0; start(); H.start();
+  document.getElementById("mpc-play").classList.add("on");
+  majLcdMpc();
+});
+document.getElementById("mpc-stop").addEventListener("click", function(){
+  stop(); H.stop();
+  MPC.rec = false; MPC.over = false;
+  document.getElementById("mpc-play").classList.remove("on");
+  majPadsMpc(); majLcdMpc();
+});
+document.getElementById("mpc-rec").addEventListener("click", function(){
+  MPC.rec = !MPC.rec; if(MPC.rec) MPC.over = false;
+  majPadsMpc(); majLcdMpc(); H.inter();
+});
+document.getElementById("mpc-over").addEventListener("click", function(){
+  MPC.over = !MPC.over; if(MPC.over) MPC.rec = false;
+  majPadsMpc(); majLcdMpc(); H.inter();
+});
+document.getElementById("mpc-debut").addEventListener("click", function(){ step = 0; majLcdMpc(); H.cran(); });
+document.getElementById("mpc-fin").addEventListener("click", function(){ step = pasMpc() - 1; majLcdMpc(); H.cran(); });
+document.getElementById("mpc-recul").addEventListener("click", function(){ step = Math.max(0, step - 16); majLcdMpc(); H.cran(); });
+document.getElementById("mpc-avance").addEventListener("click", function(){ step = (step + 16) % pasMpc(); majLcdMpc(); H.cran(); });
+document.getElementById("mpc-locate").addEventListener("click", function(){
+  MPC.param = (MPC.param + 1) % 3;
+  signal(["MOLETTE : SON DU PAD","MOLETTE : TEMPO","MOLETTE : NOMBRE DE MESURES"][MPC.param]);
+  H.cran();
+});
+var mpcTaps = [];
+document.getElementById("mpc-tap").addEventListener("click", function(){
+  var now = Date.now();
+  if(mpcTaps.length && now - mpcTaps[mpcTaps.length-1] > 2200) mpcTaps = [];
+  mpcTaps.push(now); if(mpcTaps.length > 5) mpcTaps.shift();
+  if(mpcTaps.length < 2){ H.cran(); return; }
+  var s = 0;
+  for(var i=1;i<mpcTaps.length;i++) s += mpcTaps[i] - mpcTaps[i-1];
+  var bpm = Math.round(60000 / (s / (mpcTaps.length - 1)));
+  if(bpm >= 30 && bpm <= 300){ S.bpm = bpm; majLcdMpc(); saveSoon(); }
+  H.cran();
+});
+document.getElementById("mpc-notice").addEventListener("click", function(){ ouvrirNotice(); });
+
+var unitMpc = document.getElementById("unit-mpc");
+function activerMpc(v){
+  stop();
+  MPC.v = (v === 2000) ? 2000 : 3000;
+  S.modele = "mpc" + MPC.v;
+  MACHINE = MACHINE_MPC;
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2");
+  document.body.classList.add("mpc");
+  document.body.classList.toggle("mpc2", MPC.v === 2000);
+  audioInit(); banqueEs(); chargerEchs();
+  chargerMpc();
+  document.getElementById("mpc-notice").textContent = "MPC" + MPC.v;
+  document.getElementById("mpc-sstitre").textContent =
+    MPC.v === 3000 ? "MIDI PRODUCTION CENTER" : "MIDI PRODUCTION CENTER";
+  majPadsMpc(); majKnobsMpc(); majLcdMpc();
+  actif = unitMpc;
+  save(); fit(); setTimeout(fit, 120);
 }
 
 /* ================= travail du MIDI : éditeur en rouleau =================
@@ -10309,7 +11042,7 @@ function appliquerModele(id){
   stop();
   MACHINE = MACHINE_EHX;
   actif = unit;
-  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx");
+  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2");
   S.modele = id;
   MODELE = MODELES[id];
   var r = memoire[id];
@@ -10352,7 +11085,9 @@ function majVoileMenu(){
   v.classList.toggle("vu", reste > 12);
 }
 function allerMachine(id){
-  if(id === "em1") activerEm();
+  if(id === "mpc3000") activerMpc(3000);
+  else if(id === "mpc2000") activerMpc(2000);
+  else if(id === "em1") activerEm();
   else if(id === "er1") activerEr(1);
   else if(id === "er2") activerEr(2);
   else if(id === "ea1") activerEa(1);
@@ -10385,6 +11120,8 @@ else if(memoire.modele === "es1") activerEs(1);
 else if(memoire.modele === "es2") activerEs(2);
 else if(memoire.modele === "emx") activerMx();
 else if(memoire.modele === "esx") activerSx();
+else if(memoire.modele === "mpc3000") activerMpc(3000);
+else if(memoire.modele === "mpc2000") activerMpc(2000);
 else appliquerModele(memoire.modele);
 menu.classList.remove("hide");
 document.body.classList.add("menu-ouvert");

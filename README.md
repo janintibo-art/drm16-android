@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Onze machines**, un menu au lancement. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
+**Treize machines**, un menu au lancement, plus un enregistreur MIDI et un éditeur en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
 ## Electribe EM-1
@@ -242,6 +242,30 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Akai MPC3000 et MPC2000 (version 34)
+
+Deux machines d'une autre famille, et surtout d'une **autre logique** : on ne pose pas des pas, on joue sur
+seize pads et la machine enregistre au vol.
+
+- **Séquenceur temps réel** en quatre-vingt-seize tics par noire, comme l'appareil d'origine. Chaque frappe
+  est datée au tic près à partir de l'heure audio, puis calée par le **Timing Correct** au moment de
+  l'enregistrement — croche, triolet, double croche, triple, ou rien du tout. Vérifié : huit frappes jouées
+  à la main tombent toutes sur des multiples de 24 tics en 1/16.
+- **Vélocité par l'endroit de la frappe** : haut du pad doux, bas fort. **FULL LEVEL** force au maximum,
+  **16 LEVELS** étale un son sur les seize pads, **NOTE REPEAT** répète à la cadence du Timing Correct.
+- **Quatre banques** de seize pads, huit séquences, **UNDO SEQ** qui va et revient, **ERASE** qui retire
+  toutes les frappes d'un pad, groupes de coupure pour que le charley fermé arrête l'ouvert.
+- Les sons viennent de la **banque commune** et des enregistrements faits dans l'ES-1 ou l'ESX-1 : la même
+  mémoire d'échantillons sert aux cinq machines.
+- Façades distinctes : champagne et afficheur bleu pour la 3000, grise et afficheur vert pour la 2000, avec
+  les pads à gauche sur l'une et à droite sur l'autre, comme sur les vraies.
+
+**Une bévue instructive** : j'avais donné le même nom, `mpc`, à la classe posée sur le `body` pour choisir la
+machine et à celle du châssis. La règle du châssis s'appliquait donc au `body` lui-même, qui passait en
+`display:none` et se retrouvait à zéro pixel de large — écran noir, sans la moindre erreur JavaScript. Le
+châssis s'appelle maintenant `akai`. Toutes les autres machines utilisaient déjà des noms distincts pour les
+deux rôles, par chance plus que par méthode.
 
 ## Menu défilant (version 33)
 
