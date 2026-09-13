@@ -4919,6 +4919,11 @@ function razNoeudsMachines(){
 
 /* toute source créée retient son heure de départ : Stop peut annuler celles à venir */
 var SOURCES = [];
+/* Quand ce panier n'est pas nul, toute source démarrée y tombe aussi. Il sert
+   à l'Eurorack, seule machine dont les sources tournent en permanence et dont
+   on ne peut pas retrouver la liste autrement : ses modules créent leurs
+   oscillateurs dans leur propre fonction de construction, sans les exposer. */
+var COLLECTE = null;
 function pisterSources(){
   if(ctx.__piste) return;
   ctx.__piste = true;
@@ -4930,6 +4935,7 @@ function pisterSources(){
       var depart = n.start.bind(n);
       n.start = function(t){
         SOURCES.push({n:n, t:(t === undefined ? ctx.currentTime : t)});
+        if(COLLECTE) COLLECTE.push(n);
         return depart.apply(n, arguments);
       };
       return n;
@@ -14096,7 +14102,8 @@ function activerTr(modele){
    Les portes se propagent de proche en proche : un module qui reçoit une porte
    peut en émettre à son tour, ce qui permet d'enchaîner horloge, diviseur,
    générateur euclidien et séquenceur. */
-var EUR = {mods:[], cables:[], sel:-1, attente:null, prochain:1, famille:"", noeuds:[], bus:null};
+var EUR = {mods:[], cables:[], sel:-1, attente:null, prochain:1, famille:"", noeuds:[],
+           bus:null, sources:null};
 
 function eurGain(v){ var g = ctx.createGain(); g.gain.value = v; return g; }
 function eurConst(v){
@@ -15247,14 +15254,27 @@ function eurBatir(){
      qu'il était simplement recouvert. Tout passe maintenant par un bus qu'on
      débranche d'un coup. */
   if(EUR.bus){ try{ EUR.bus.disconnect(); }catch(e){} }
+  /* Débrancher rendait le silence, mais les oscillateurs du rack précédent
+     continuaient d'être calculés : un rack chargé, reconstruit à chaque ajout
+     de module, finissait par coûter plus cher que tout le reste. On les arrête
+     pour de bon avant d'en fabriquer d'autres. */
+  if(EUR.sources) EUR.sources.forEach(function(n){ try{ n.stop(); }catch(e){} });
   EUR.bus = eurGain(document.body.classList.contains("eur") ? 1 : 0);
   EUR.bus.connect(master);
   EUR.noeuds = [];
-  EUR.mods.forEach(function(m){
-    var d = EUR_CAT[m.type];
-    m.io = d.creer(m);
-    EUR.noeuds.push(m.io);
-  });
+  COLLECTE = [];
+  try{
+    EUR.mods.forEach(function(m){
+      var d = EUR_CAT[m.type];
+      m.io = d.creer(m);
+      EUR.noeuds.push(m.io);
+    });
+  } finally {
+    /* quoi qu'il arrive, le panier se referme : sinon toutes les percussions
+       jouées ensuite s'y accumuleraient sans fin */
+    EUR.sources = COLLECTE;
+    COLLECTE = null;
+  }
   EUR.cables.forEach(function(c){
     var a = eurMod(c.de[0]), b = eurMod(c.vers[0]);
     if(!a || !b) return;

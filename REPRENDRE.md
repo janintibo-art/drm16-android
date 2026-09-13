@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **64**.
+La version actuelle est la **65**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,23 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Sources permanentes du rack — v65**
+
+Dernier point ouvert depuis la v61. Les modules de l'Eurorack créent leurs oscillateurs dans leur propre
+`creer()` sans les exposer : impossible de les retrouver pour les arrêter. On se sert donc du pisteur qui
+enveloppe déjà `createOscillator` / `createBufferSource` / `createConstantSource`.
+
+- `COLLECTE` (global, `null` par défaut) : quand c'est un tableau, toute source démarrée y tombe aussi.
+- `eurBatir()` arrête `EUR.sources` (le jeu précédent), ouvre le panier, construit, puis le referme dans
+  un `finally` et range le résultat dans `EUR.sources`.
+- **Le `finally` n'est pas décoratif** : si une exception laissait `COLLECTE` ouvert, toutes les
+  percussions jouées ensuite s'y accumuleraient sans fin.
+- Mesuré au banc : rack de 15 modules reconstruit 21 fois, 546 sources créées, **26 vivantes** — celles du
+  rack courant. Avant, les 546 tournaient toujours.
+
+Ce mécanisme ne sert qu'à l'Eurorack. Les autres machines exposent leurs nœuds dans un cache, que
+`debrancherTout` suffit à parcourir.
 
 **Enregistrement à la volée — v64**
 
@@ -237,9 +254,7 @@ Deux causes, indépendantes.
    de plus. Correctif : `EUR.bus`, refait à neuf à chaque `eurBatir()` (l'ancien est débranché d'un coup),
    et fermé par `poserMachine` dès que la classe `eur` n'est plus posée.
 
-   **Reste à faire** : les oscillateurs de l'ancien graphe sont débranchés mais jamais arrêtés. C'est
-   silencieux, mais ça consomme. Il faudrait que `creer` retourne aussi la liste de ses sources pour
-   pouvoir les `stop()`. Même remarque pour la TD-3, dont `construireTd3` empile des chaînes muettes.
+   *Réglé en v65* (voir ci-dessous). La TD-3 l'est depuis la v62, par `debrancherTout(TD3.noeuds)`.
 
 **Icône, v60**
 
