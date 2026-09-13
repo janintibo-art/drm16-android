@@ -243,6 +243,44 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Menu défilant (version 33)
+
+À quatorze tuiles, le menu était resserré de version en version pour tenir dans un écran : caractères
+réduits, marges rognées. Il défile maintenant, et les tuiles retrouvent une taille confortable — titres à
+30 px, sous-titres lisibles, respiration entre les blocs.
+
+Un **voile dégradé** apparaît en bas tant qu'il reste des tuiles plus bas, et disparaît quand on atteint la
+fin : sans lui, rien ne dit qu'il y a autre chose sous le bord de l'écran. Il est masqué dès qu'une machine
+est ouverte.
+
+Vérifié dans les quatre formats : la dernière tuile est atteignable et cliquable après défilement,
+et le voile s'éteint bien en bas de course.
+
+## Travail du MIDI : éditeur en rouleau (version 32)
+
+Nouvelle tuile **TRAVAIL DU MIDI**. Une prise de l'enregistreur y est convertie en notes — les paires
+marche/arrêt sont appariées pour retrouver les durées — et affichée en rouleau, **une piste par son**.
+Les parties de percussion portent le nom qu'elles ont sur la machine choisie, les notes mélodiques leur
+hauteur et leur canal.
+
+- **Édition au doigt** : toucher une case vide ajoute une note et la fait entendre, toucher une note la
+  choisit, la faire glisser la déplace en se calant sur la grille ; glisser sur la règle ou la marge fait
+  défiler. Les boutons déplacent, allongent, transposent d'une piste, doublent, suppriment.
+- **TOUT CALER** aligne toutes les notes sur la grille — double croche, croche, triolet, ou libre.
+  Vérifié : 17, 268, 511, 759… deviennent 0, 250, 500, 750.
+- **Relecture** avec tête de lecture, par le même chemin que l'enregistreur : le son sort du téléphone.
+- **VERS LE MOTIF** reporte les notes dans le motif de la machine choisie, la position dans la mesure
+  donnant le pas et la note donnant la partie. De là, le transfert par exclusif les emmène dans la vraie
+  Korg. Vérifié sur l'EMX-1 : notes 36, 38 et 42 rangées dans les parties 1, 3 et 6B aux bons pas.
+- **GARDER** réécrit la prise à partir des notes, **.MID** l'exporte.
+
+Le rouleau est dessiné sur un canevas, redimensionné à la densité de l'écran, avec règle de mesures,
+alternance des pistes, marge de noms figée et vélocité rendue par l'opacité des blocs.
+
+Deux bévues de même famille attrapées au test : `PR` et `ENR` étaient déclarés dans leurs modules, en fin
+de script, alors que le câblage de l'interface s'en sert bien avant — une affectation sur un objet encore
+indéfini interrompait tout le chargement. Les deux sont maintenant déclarés en tête.
+
 ## Enregistreur MIDI (version 31)
 
 Nouvelle tuile au menu : **ENREGISTREUR MIDI**. On branche la Korg sur l'entrée MIDI, on choisit dans la

@@ -145,9 +145,26 @@ body.m32 .read{color:#8fe8d8}
 .off .led.on,.off .led.beat{background:#1d2a33;box-shadow:inset 0 1px 2px #000c}
 
 /* ---------- notice ---------- */
-#note,#enr{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
+#note,#enr,#pr{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
   font:15px/1.6 system-ui,-apple-system,"Roboto",sans-serif}
-#note.show,#enr.show{display:flex;flex-direction:column}
+#note.show,#enr.show,#pr.show{display:flex;flex-direction:column}
+#pr #note-bar b{color:#7fd4ff}
+#pr-barre{flex:none;display:flex;gap:6px;padding:8px 10px;background:#131316;border-bottom:1px solid #2c2c31;
+  align-items:center}
+#pr-pied select{width:100%;padding:9px;border-radius:6px;border:1px solid #3a3a42;background:#1b1b1f;
+  color:#eceae4;font:600 14px system-ui,sans-serif}
+#pr-barre select{flex:1;min-width:0;padding:8px;border-radius:6px;border:1px solid #3a3a42;background:#1b1b1f;
+  color:#eceae4;font:600 13px system-ui,sans-serif}
+#pr-zone{flex:1;min-height:0;overflow:auto;background:#0c0c0f;-webkit-overflow-scrolling:touch}
+#pr-canvas{display:block;width:100%;touch-action:none}
+#pr-outils{flex:none;display:flex;gap:5px;flex-wrap:wrap;padding:8px 10px;background:#131316;
+  border-top:1px solid #2c2c31}
+#pr-pied{flex:none;padding:8px 12px 14px;background:#0e0e10;border-top:1px solid #2c2c31;max-height:38vh;overflow:auto}
+#pr-pied p{margin:0 0 8px}
+#pr button{margin:0;padding:11px 16px;border:0;border-radius:6px;background:var(--accent);color:#140f0c;
+  font-weight:800;letter-spacing:.8px;font-size:14px}
+#pr button.sec{background:#2f2f35;color:#eceae4;padding:9px 11px;font-size:12px}
+#pr #note-bar button{background:var(--accent)}
 #enr #note-bar b{color:#ff6a3d}
 #enr select{width:100%;padding:11px;border-radius:6px;border:1px solid #3a3a42;background:#1b1b1f;
   color:#eceae4;font:600 15px system-ui,sans-serif}
@@ -196,22 +213,24 @@ body.menu-ouvert #aide,body.note-ouverte #aide{display:none}
 
 /* ---------- menu de choix du modèle ---------- */
 #menu{position:fixed;inset:0;z-index:12;background:#0b0b0c;display:grid;grid-template-columns:1fr;
-  align-content:start;justify-items:center;gap:5px;padding:9px 12px 16px;overflow:auto}
+  align-content:start;justify-items:center;gap:9px;padding:14px 14px 34px;
+  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 @media (min-width:720px){ #menu{grid-template-columns:1fr 1fr} #menu h1{grid-column:1/-1} }
 @media (min-width:860px){ #menu{grid-template-columns:repeat(3,1fr)} }
-@media (min-width:720px) and (max-height:460px){ #menu{gap:4px;padding:6px 10px 12px}
-  #menu .pick{padding:6px 13px} #menu .pick b{font-size:21px} #menu .pick span{font-size:8.5px}
-  #menu h1{font-size:10px;margin:1px 0} }
 #menu.hide{display:none}
-#menu h1{margin:3px 0 2px;font:700 13px/1.4 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:4px;
+#menu h1{margin:6px 0 4px;font:700 14px/1.4 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:4px;
   color:#8b867c;text-align:center}
-.pick{width:100%;max-width:460px;border:0;border-radius:9px;padding:7px 14px;text-align:left;
+/* voile en bas : il dit qu'il reste des tuiles plus bas */
+#menu-voile{position:fixed;left:0;right:0;bottom:0;height:52px;z-index:13;pointer-events:none;
+  background:linear-gradient(180deg,#0b0b0c00,#0b0b0ce6);opacity:0;transition:opacity .2s}
+body.menu-ouvert #menu-voile.vu{opacity:1}
+.pick{width:100%;max-width:460px;border:0;border-radius:10px;padding:13px 17px;text-align:left;
   background:linear-gradient(150deg,#26221f,#0c0b0a 55%,#151312);
   box-shadow:inset 0 1px 0 #ffffff1a,0 6px 16px #000a;color:#f0ede3;display:block}
-.pick b{display:block;font:900 25px/1 "Arial Black",Impact,sans-serif;letter-spacing:.5px;color:#ee4d1e;
+.pick b{display:block;font:900 30px/1 "Arial Black",Impact,sans-serif;letter-spacing:.5px;color:#ee4d1e;
   text-shadow:0 2px 0 #7d1f04}
-.pick span{display:block;margin-top:3px;font:700 9px/1.35 "Roboto Condensed",sans-serif-condensed,Arial;
-  letter-spacing:1.4px;color:#b7b1a6}
+.pick span{display:block;margin-top:5px;font:700 10.5px/1.4 "Roboto Condensed",sans-serif-condensed,Arial;
+  letter-spacing:1.5px;color:#b7b1a6}
 .pick.p32{background:linear-gradient(150deg,#2b3542,#0d131a 55%,#18202a)}
 .pick.p32 b{color:#13b9a2;text-shadow:0 2px 0 #06564a}
 .pick.p32 span{color:#9fb0ae}
@@ -755,6 +774,9 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.psx{background:linear-gradient(165deg,#9c1c2e,#3a0810 55%,#5e0e1a)}
 .pick.psx b{color:#ff6a78;text-shadow:0 2px 0 #4a0610}
 .pick.psx span{color:#d8b0b6}
+.pick.ppr{background:linear-gradient(165deg,#1d4b6e,#08202f 55%,#0f3348)}
+.pick.ppr b{color:#7fd4ff;text-shadow:0 2px 0 #062334}
+.pick.ppr span{color:#a8c6d8}
 .pick.penr{background:linear-gradient(165deg,#7a2f18,#2a1008 55%,#46190c)}
 .pick.penr b{color:#ff8a5c;text-shadow:0 2px 0 #35110a}
 .pick.penr span{color:#d9b5a6}
@@ -781,8 +803,8 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   .toggle{width:16px;height:26px} .toggle b{height:10px} .toggle.on b{top:13px}
   .jack{width:20px;height:20px}
   .top .cap{font-size:9px;letter-spacing:1px}
-  #menu{gap:7px;padding:10px} .pick{padding:9px 14px} .pick b{font-size:24px}
-  #menu h1{font-size:11px;margin:2px 0} .pick span{font-size:9px}
+  #menu{gap:9px;padding:12px} .pick{padding:12px 16px} .pick b{font-size:28px}
+  #menu h1{font-size:12px;margin:4px 0} .pick span{font-size:10px}
 }
 @media (max-width:700px){
   .grid{grid-template-columns:1fr}
@@ -1816,6 +1838,38 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 
 <button id="aide">NOTICE</button>
 
+<div id="pr">
+  <div id="note-bar"><b>TRAVAIL DU MIDI</b><button id="pr-fermer">FERMER</button></div>
+  <div id="pr-barre">
+    <select id="pr-prise"></select>
+    <button class="sec" id="pr-jouer">▶ JOUER</button>
+    <button class="sec" id="pr-grille">GRILLE : DOUBLE</button>
+    <button class="sec" id="pr-zmoins">−</button>
+    <button class="sec" id="pr-zplus">+</button>
+  </div>
+  <div id="pr-zone"><canvas id="pr-canvas"></canvas></div>
+  <div id="pr-outils">
+    <button class="sec" data-pr="gauche">◀</button>
+    <button class="sec" data-pr="droite">▶</button>
+    <button class="sec" data-pr="haut">▲</button>
+    <button class="sec" data-pr="bas">▼</button>
+    <button class="sec" data-pr="court">− COURT</button>
+    <button class="sec" data-pr="long">+ LONG</button>
+    <button class="sec" data-pr="double">DOUBLER</button>
+    <button class="sec" data-pr="supprimer">SUPPRIMER</button>
+    <button class="sec" data-pr="caler">TOUT CALER</button>
+  </div>
+  <div id="pr-pied">
+    <p id="pr-etat">—</p>
+    <p><select id="pr-machine"></select></p>
+    <p><button id="pr-garder">GARDER LES MODIFICATIONS</button>
+       <button class="sec" id="pr-mid">.MID</button>
+       <button class="sec" id="pr-motif">VERS LE MOTIF</button></p>
+    <p style="opacity:.65;font-size:12.5px">Toucher une case vide ajoute une note, toucher une note la
+    choisit, la faire glisser la déplace. Glisser sur la règle ou la marge fait défiler.</p>
+  </div>
+</div>
+
 <div id="enr">
   <div id="note-bar"><b>ENREGISTREUR MIDI</b><button id="enr-fermer">FERMER</button></div>
   <div id="note-corps">
@@ -1841,6 +1895,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   </div>
 </div>
 
+<div id="menu-voile"></div>
 <div id="menu">
   <h1>CHOISIR UNE MACHINE</h1>
   <button class="pick p16" data-m="16"><b>DRM16</b><span>MODEL 01 · 16 RYTHMES · SPACE DRUM COMMUTABLE</span></button>
@@ -1854,6 +1909,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   <button class="pick pes2" data-m="es2"><b>ES-1 mkII</b><span>KORG · ÉCHANTILLONNEUR · ISOLATOR, RESO. FILT.</span></button>
   <button class="pick pmx" data-m="emx"><b>ELECTRIBE EMX-1</b><span>KORG · 14 PARTIES · 3 EFFETS · VALVE FORCE</span></button>
   <button class="pick psx" data-m="esx"><b>ELECTRIBE ESX-1</b><span>KORG · ÉCHANTILLONNEUR · CLAVIER, STRETCH, VALVE FORCE</span></button>
+  <button class="pick ppr" id="menu-pr"><b>TRAVAIL DU MIDI</b><span>ROULEAU PAR SON · RETOUCHER, CALER, REPORTER</span></button>
   <button class="pick penr" id="menu-enr"><b>ENREGISTREUR MIDI</b><span>JOUER SUR LA KORG · LE SON SORT DU TÉLÉPHONE</span></button>
   <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
 </div>
@@ -1888,6 +1944,15 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
   et les messages de départ et d'arrêt peuvent entraîner un autre appareil. En <b>entrée</b>, les notes 36 à 44
   déclenchent les parties de percussion de la machine affichée, les autres canaux ses parties mélodiques, et
   tout s'enregistre si REC est armé.</p>
+  <h3>Travail du MIDI</h3>
+  <p>La tuile <b>TRAVAIL DU MIDI</b> ouvre un éditeur en rouleau, <b>une piste par son</b> : les parties de
+  percussion portent leur nom, les notes mélodiques leur hauteur et leur canal. Toucher une case vide ajoute
+  une note, toucher une note la choisit, la faire glisser la déplace ; glisser sur la règle ou sur la marge
+  fait défiler. Les boutons du bas déplacent, allongent, transposent d'une piste, doublent ou suppriment.</p>
+  <p><b>TOUT CALER</b> aligne toutes les notes sur la grille choisie — double croche, croche ou triolet.
+  <b>GARDER</b> réécrit la prise, <b>.MID</b> l'exporte, et <b>VERS LE MOTIF</b> reporte les notes dans le
+  motif de la machine choisie : de là, le transfert par exclusif les emmène dans la vraie Korg.</p>
+
   <h3>Enregistreur MIDI</h3>
   <p>La tuile <b>ENREGISTREUR MIDI</b> du menu ouvre une page à part : on y choisit la machine qui fait le
   son, on lance l'enregistrement, et tout ce qui arrive par l'entrée MIDI est daté à la milliseconde.
@@ -2246,6 +2311,12 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 <script>
 "use strict";
 /* ================= état ================= */
+/* déclarés dès le début : le câblage de l'interface s'en sert bien avant
+   d'arriver aux modules qui les remplissent */
+var PR = {prise:-1, notes:[], pistes:[], sel:-1, grille:4, zoom:0.10, defil:0,
+          lecture:false, tmr:[], t0:0, anim:null, cv:null, ct:null, hauteurPiste:26, selMachine:null};
+var ENR = {actif:false, depart:0, evts:[], prises:[], lecture:null, tmr:[], compteur:0};
+
 var S = {
   modele:"16", power:false, run:false,
   space:false, bank:0, bass:false, haptic:true, bg:true,
@@ -2980,6 +3051,59 @@ document.getElementById("note-fermer").addEventListener("click", function(){ fer
 document.getElementById("aide").addEventListener("click", function(){ ouvrirNotice(); H.inter(); });
 document.getElementById("menu-notices").addEventListener("click", function(){ ouvrirNotice("note-general"); H.inter(); });
 document.getElementById("enr-fermer").addEventListener("click", function(){ fermerEnr(); H.cran(); });
+document.getElementById("pr-fermer").addEventListener("click", function(){ fermerPr(); H.cran(); });
+document.getElementById("menu-pr").addEventListener("click", function(){
+  document.body.classList.remove("menu-ouvert");
+  menu.classList.add("hide");
+  allerMachine(memoire.modele || "em1");
+  ouvrirPr();
+  H.inter();
+});
+(function machinePr(){
+  var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
+    ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"]];
+  var sel = document.getElementById("pr-machine");
+  NOMS.forEach(function(m){
+    var o = document.createElement("option");
+    o.value = m[0]; o.textContent = "Son et motif : " + m[1];
+    sel.appendChild(o);
+  });
+  sel.addEventListener("change", function(){
+    allerMachine(this.value);
+    prPistes(); prDessiner(); majPrUI();
+  });
+  PR.selMachine = sel;
+})();
+document.getElementById("pr-prise").addEventListener("change", function(){
+  prArreter(); prExtraire(+this.value); prDessiner(); majPrUI();
+});
+document.getElementById("pr-jouer").addEventListener("click", function(){
+  if(PR.lecture) prArreter(); else prJouer();
+});
+document.getElementById("pr-grille").addEventListener("click", function(){
+  var v = [4,2,3,0];
+  PR.grille = v[(v.indexOf(PR.grille) + 1) % v.length];
+  majPrUI(); H.cran();
+});
+document.getElementById("pr-zmoins").addEventListener("click", function(){
+  PR.zoom = Math.max(0.02, PR.zoom/1.5); prDessiner(); H.cran();
+});
+document.getElementById("pr-zplus").addEventListener("click", function(){
+  PR.zoom = Math.min(1.2, PR.zoom*1.5); prDessiner(); H.cran();
+});
+(function outilsPr(){
+  var bs = document.querySelectorAll("#pr-outils button");
+  for(var i=0;i<bs.length;i++){
+    (function(b){ b.addEventListener("click", function(){ prAgir(b.dataset.pr); }); })(bs[i]);
+  }
+})();
+document.getElementById("pr-garder").addEventListener("click", function(){ prGarder(); });
+document.getElementById("pr-motif").addEventListener("click", function(){ prVersMotif(); });
+document.getElementById("pr-mid").addEventListener("click", function(){
+  if(PR.prise < 0){ signal("AUCUNE PRISE CHOISIE"); return; }
+  prGarder(); enrExporter(PR.prise);
+});
 document.getElementById("enr-rec").addEventListener("click", function(){
   if(ENR.actif) enrArreter(); else enrDemarrer();
 });
@@ -9372,7 +9496,6 @@ function teleEr(champ, v){
    On branche la Korg sur l'entrée MIDI : ses notes jouent les parties de la machine
    affichée, et tout ce qui arrive est daté et gardé. La relecture repasse par le même
    chemin, donc le son sort du téléphone comme au moment du jeu. */
-var ENR = {actif:false, depart:0, evts:[], prises:[], lecture:null, tmr:[], compteur:0, sortie:true};
 
 function enrCharger(){
   try{
@@ -9559,6 +9682,370 @@ function ouvrirEnr(){
 }
 function fermerEnr(){
   document.getElementById("enr").classList.remove("show");
+  document.body.classList.remove("note-ouverte");
+}
+
+/* ================= travail du MIDI : éditeur en rouleau =================
+   Une prise est convertie en notes (début, durée, hauteur), une piste par son.
+   On y ajoute, déplace, allonge, transpose, puis on renvoie vers un fichier .mid
+   ou directement dans le motif de la machine affichée. */
+
+/* ---------- conversion d'une prise en notes ---------- */
+function prExtraire(i){
+  var p = ENR.prises[i];
+  PR.notes = []; PR.pistes = []; PR.sel = -1; PR.defil = 0; PR.prise = i;
+  if(!p) return;
+  var ouvertes = {};
+  p.evts.forEach(function(e){
+    var st = e[1] & 0xF0, canal = e[1] & 0x0F, note = e[2], vel = e[3];
+    var cle = canal + ":" + note;
+    if(st === 0x90 && vel > 0){
+      ouvertes[cle] = {t:e[0], note:note, canal:canal, vel:vel};
+    } else if(st === 0x80 || (st === 0x90 && vel === 0)){
+      var o = ouvertes[cle];
+      if(o){ PR.notes.push({t:o.t, dur:Math.max(30, e[0]-o.t), note:note, canal:canal, vel:o.vel}); delete ouvertes[cle]; }
+    }
+  });
+  for(var k in ouvertes){
+    var o2 = ouvertes[k];
+    PR.notes.push({t:o2.t, dur:120, note:o2.note, canal:o2.canal, vel:o2.vel});
+  }
+  PR.notes.sort(function(a,b){ return a.t - b.t; });
+  prPistes();
+}
+function prPistes(){
+  var vues = {};
+  PR.notes.forEach(function(n){ vues[n.canal + ":" + n.note] = {canal:n.canal, note:n.note}; });
+  var l = [];
+  for(var k in vues) l.push(vues[k]);
+  if(!l.length){                      /* prise vide : on propose les parties de la machine */
+    for(var i=0;i<9;i++) l.push({canal:MIDI.canal, note:MIDI.base + i});
+  }
+  l.sort(function(a,b){ return (a.canal - b.canal) || (b.note - a.note); });
+  PR.pistes = l;
+}
+function prNomPiste(p){
+  if(p.canal === MIDI.canal){
+    var k = p.note - MIDI.base;
+    var m = S.modele;
+    if(k >= 0 && k < 9){
+      if(m === "es1" || m === "es2") return ES_PARTS[k].n;
+      if(m === "esx") return SX_DRUMS[k];
+      if(m === "emx") return "D" + MX_DRUMS[k];
+      if(m === "er1" || m === "er2") return ER_PARTS[k].n;
+      if(m === "em1") return EM_PARTS[k] ? EM_PARTS[k].nom : nomNote(p.note);
+    }
+  }
+  return nomNote(p.note) + " ·" + (p.canal + 1);
+}
+function prIndexPiste(n){
+  for(var i=0;i<PR.pistes.length;i++)
+    if(PR.pistes[i].canal === n.canal && PR.pistes[i].note === n.note) return i;
+  return -1;
+}
+function prPas(){                      /* durée d'un carreau de grille, en millisecondes */
+  var bpm = (ENR.prises[PR.prise] && ENR.prises[PR.prise].bpm) || S.bpm;
+  return PR.grille ? (60000 / bpm) / PR.grille : 1;
+}
+function prCaler(t){
+  if(!PR.grille) return Math.max(0, Math.round(t));
+  var p = prPas();
+  return Math.max(0, Math.round(t / p) * p);
+}
+function prDuree(){
+  var f = 2000;
+  PR.notes.forEach(function(n){ f = Math.max(f, n.t + n.dur); });
+  return f + 1000;
+}
+
+/* ---------- dessin ---------- */
+var PR_GOUTTIERE = 74, PR_REGLE = 20;
+function prDessiner(){
+  var cv = PR.cv, ct = PR.ct;
+  if(!cv || !ct) return;
+  var L = cv.clientWidth, H = PR.pistes.length * PR.hauteurPiste + PR_REGLE;
+  var d = window.devicePixelRatio || 1;
+  if(cv.width !== Math.round(L*d) || cv.height !== Math.round(H*d)){
+    cv.width = Math.round(L*d); cv.height = Math.round(H*d);
+    cv.style.height = H + "px";
+  }
+  ct.setTransform(d,0,0,d,0,0);
+  ct.clearRect(0,0,L,H);
+  var bpm = (ENR.prises[PR.prise] && ENR.prises[PR.prise].bpm) || S.bpm;
+  var msNoire = 60000 / bpm, px = PR.zoom;
+  var large = L - PR_GOUTTIERE;
+
+  ct.fillStyle = "#141418"; ct.fillRect(PR_GOUTTIERE, 0, large, H);
+  /* règle : traits de noire, traits plus clairs de mesure */
+  var t = Math.floor(PR.defil / msNoire) * msNoire;
+  while(true){
+    var x = PR_GOUTTIERE + (t - PR.defil) * px;
+    if(x > L) break;
+    if(x >= PR_GOUTTIERE){
+      var mesure = Math.round(t / (msNoire*4));
+      var estMesure = Math.abs(t - mesure*msNoire*4) < 1;
+      ct.fillStyle = estMesure ? "#4a4a56" : "#26262e";
+      ct.fillRect(x, 0, estMesure ? 2 : 1, H);
+      if(estMesure){
+        ct.fillStyle = "#8a8a96";
+        ct.font = "10px system-ui, sans-serif";
+        ct.fillText(String(mesure + 1), x + 4, 13);
+      }
+    }
+    t += msNoire;
+  }
+  /* pistes */
+  PR.pistes.forEach(function(p, i){
+    var y = PR_REGLE + i * PR.hauteurPiste;
+    ct.fillStyle = (i % 2) ? "#17171c" : "#121216";
+    ct.fillRect(PR_GOUTTIERE, y, large, PR.hauteurPiste);
+    ct.fillStyle = "#2a2a33";
+    ct.fillRect(PR_GOUTTIERE, y + PR.hauteurPiste - 1, large, 1);
+    ct.fillStyle = "#0e0e12";
+    ct.fillRect(0, y, PR_GOUTTIERE, PR.hauteurPiste);
+    ct.fillStyle = "#c8c4bb";
+    ct.font = "600 11px system-ui, sans-serif";
+    ct.fillText(prNomPiste(p).slice(0, 9), 6, y + PR.hauteurPiste/2 + 4);
+  });
+  ct.fillStyle = "#0e0e12"; ct.fillRect(0, 0, PR_GOUTTIERE, PR_REGLE);
+  ct.fillStyle = "#2a2a33"; ct.fillRect(PR_GOUTTIERE - 1, 0, 1, H);
+  /* notes */
+  PR.notes.forEach(function(n, idx){
+    var i = prIndexPiste(n);
+    if(i < 0) return;
+    var x = PR_GOUTTIERE + (n.t - PR.defil) * px;
+    var w = Math.max(4, n.dur * px);
+    if(x + w < PR_GOUTTIERE || x > L) return;
+    var y = PR_REGLE + i * PR.hauteurPiste + 3;
+    var h = PR.hauteurPiste - 7;
+    if(x < PR_GOUTTIERE){ w -= (PR_GOUTTIERE - x); x = PR_GOUTTIERE; }
+    ct.fillStyle = (idx === PR.sel) ? "#ff6a3d" : ("rgba(255,150,80," + (0.35 + n.vel/255) + ")");
+    ct.fillRect(x, y, w, h);
+    if(idx === PR.sel){ ct.strokeStyle = "#fff"; ct.lineWidth = 1.5; ct.strokeRect(x, y, w, h); }
+  });
+  /* tête de lecture */
+  if(PR.lecture){
+    var tc = performance.now() - PR.t0;
+    var xc = PR_GOUTTIERE + (tc - PR.defil) * px;
+    if(xc >= PR_GOUTTIERE && xc <= L){
+      ct.fillStyle = "#3dff7a"; ct.fillRect(xc, 0, 2, H);
+    }
+  }
+}
+
+/* ---------- gestes ---------- */
+function prInstallerGestes(){
+  var cv = PR.cv, etat = null;
+  cv.addEventListener("pointerdown", function(e){
+    var r = cv.getBoundingClientRect();
+    var x = e.clientX - r.left, y = e.clientY - r.top;
+    cv.setPointerCapture(e.pointerId);
+    if(x < PR_GOUTTIERE || y < PR_REGLE){ etat = {mode:"defil", x0:e.clientX, d0:PR.defil}; return; }
+    var piste = Math.floor((y - PR_REGLE) / PR.hauteurPiste);
+    var t = PR.defil + (x - PR_GOUTTIERE) / PR.zoom;
+    var trouve = -1;
+    for(var i=PR.notes.length-1;i>=0;i--){
+      var n = PR.notes[i];
+      if(prIndexPiste(n) !== piste) continue;
+      if(t >= n.t - 20/PR.zoom && t <= n.t + n.dur) { trouve = i; break; }
+    }
+    if(trouve >= 0){
+      PR.sel = trouve;
+      etat = {mode:"note", x0:e.clientX, t0:PR.notes[trouve].t, i:trouve, bouge:false};
+    } else if(piste >= 0 && piste < PR.pistes.length){
+      var p = PR.pistes[piste];
+      PR.notes.push({t:prCaler(t), dur:Math.max(60, prPas()), note:p.note, canal:p.canal, vel:100});
+      PR.notes.sort(function(a,b){ return a.t - b.t; });
+      PR.sel = PR.notes.findIndex(function(n2){ return n2.t === prCaler(t) && n2.note === p.note && n2.canal === p.canal; });
+      etat = {mode:"rien"};
+      prEcho(p.canal, p.note);
+      H.cran();
+    }
+    prDessiner(); majPrUI();
+  });
+  cv.addEventListener("pointermove", function(e){
+    if(!etat) return;
+    if(etat.mode === "defil"){
+      PR.defil = Math.max(0, etat.d0 - (e.clientX - etat.x0) / PR.zoom);
+      prDessiner();
+    } else if(etat.mode === "note"){
+      var d = (e.clientX - etat.x0) / PR.zoom;
+      if(Math.abs(e.clientX - etat.x0) > 6){
+        etat.bouge = true;
+        PR.notes[etat.i].t = prCaler(etat.t0 + d);
+        prDessiner();
+      }
+    }
+  });
+  function fin(){ etat = null; }
+  cv.addEventListener("pointerup", fin);
+  cv.addEventListener("pointercancel", fin);
+}
+function prEcho(canal, note){
+  if(!ctx) audioInit();
+  var sauve = ENR.actif; ENR.actif = false;
+  var sauveIn = MIDI.in; MIDI.in = true;
+  try{ window.__midi(0x90 | canal, note, 100); }catch(e){}
+  MIDI.in = sauveIn; ENR.actif = sauve;
+}
+
+/* ---------- actions ---------- */
+function prAgir(quoi){
+  var n = PR.notes[PR.sel];
+  if(!n && quoi !== "caler"){ signal("CHOISISSEZ D'ABORD UNE NOTE"); return; }
+  var p = prPas();
+  if(quoi === "gauche") n.t = Math.max(0, n.t - p);
+  else if(quoi === "droite") n.t += p;
+  else if(quoi === "court") n.dur = Math.max(30, n.dur - p);
+  else if(quoi === "long") n.dur += p;
+  else if(quoi === "haut" || quoi === "bas"){
+    var i = prIndexPiste(n) + (quoi === "haut" ? -1 : 1);
+    if(i < 0 || i >= PR.pistes.length) return;
+    n.canal = PR.pistes[i].canal; n.note = PR.pistes[i].note;
+    prEcho(n.canal, n.note);
+  }
+  else if(quoi === "double"){
+    PR.notes.push({t:n.t + p, dur:n.dur, note:n.note, canal:n.canal, vel:n.vel});
+  }
+  else if(quoi === "supprimer"){
+    PR.notes.splice(PR.sel, 1); PR.sel = -1;
+  }
+  else if(quoi === "caler"){
+    PR.notes.forEach(function(x){ x.t = prCaler(x.t); });
+    signal("TOUT CALÉ SUR LA GRILLE");
+  }
+  PR.notes.sort(function(a,b){ return a.t - b.t; });
+  prDessiner(); majPrUI();
+  H.cran();
+}
+
+/* ---------- relecture ---------- */
+function prJouer(){
+  prArreter();
+  PR.lecture = true;
+  PR.t0 = performance.now() - PR.defil;
+  var sauveIn = MIDI.in;
+  PR.notes.forEach(function(n){
+    if(n.t + n.dur < PR.defil) return;
+    PR.tmr.push(setTimeout(function(){
+      var s = ENR.actif; ENR.actif = false; MIDI.in = true;
+      try{ window.__midi(0x90 | n.canal, n.note, n.vel); }catch(e){}
+      MIDI.in = sauveIn; ENR.actif = s;
+    }, Math.max(0, n.t - PR.defil)));
+  });
+  PR.tmr.push(setTimeout(function(){ prArreter(); }, prDuree() - PR.defil));
+  (function boucle(){
+    if(!PR.lecture) return;
+    prDessiner();
+    PR.anim = requestAnimationFrame(boucle);
+  })();
+  majPrUI();
+}
+function prArreter(){
+  PR.tmr.forEach(function(t){ clearTimeout(t); });
+  PR.tmr = [];
+  if(PR.anim) cancelAnimationFrame(PR.anim);
+  PR.anim = null;
+  PR.lecture = false;
+  midiSilence();
+  prDessiner(); majPrUI();
+}
+
+/* ---------- enregistrement des modifications ---------- */
+function prVersEvenements(){
+  var evts = [];
+  PR.notes.forEach(function(n){
+    evts.push([Math.round(n.t), 0x90 | n.canal, n.note, n.vel]);
+    evts.push([Math.round(n.t + n.dur), 0x80 | n.canal, n.note, 0]);
+  });
+  evts.sort(function(a,b){ return a[0] - b[0]; });
+  return evts;
+}
+function prGarder(){
+  var p = ENR.prises[PR.prise];
+  if(!p){ signal("AUCUNE PRISE CHOISIE"); return; }
+  p.evts = prVersEvenements();
+  p.duree = prDuree();
+  enrEcrire();
+  signal("PRISE MISE À JOUR · " + PR.notes.length + " NOTES");
+  H.inter();
+}
+/* ---------- report dans le motif de la machine ---------- */
+function prVersMotif(){
+  var m = S.modele, p = ENR.prises[PR.prise];
+  if(!p){ signal("AUCUNE PRISE CHOISIE"); return; }
+  var bpm = p.bpm || S.bpm;
+  var pas = (60000 / bpm) / 4;                 /* un pas de double croche */
+  var etats = {"em1":EM, "er1":ER, "er2":ER, "ea1":EA, "ea2":EA,
+               "es1":ES, "es2":ES, "emx":MX, "esx":SX}[m];
+  if(!etats){ signal("PAS DE MOTIF SUR CETTE MACHINE"); return; }
+  var pat = etats.pat, nb = pat.st.length, k, i;
+  for(k=0;k<nb;k++) for(i=0;i<16;i++) pat.st[k][i] = 0;
+  var places = 0, hors = 0;
+  PR.notes.forEach(function(n){
+    var pasIdx = Math.round(n.t / pas);
+    if(pasIdx < 0 || pasIdx > 15){ hors++; return; }
+    var k2 = (n.canal === MIDI.canal) ? (n.note - MIDI.base) : (10 + (n.canal - MIDI.canalSy));
+    if(k2 < 0 || k2 >= nb){ hors++; return; }
+    pat.st[k2][pasIdx] = 1;
+    if(pat.nt && n.canal !== MIDI.canal) pat.nt[k2][pasIdx] = n.note;
+    places++;
+  });
+  if(m === "em1"){ majTouches(); memEm(); }
+  else if(m[0]==="e" && m[1]==="r"){ majTouchesEr(); memEr(); }
+  else if(m[0]==="e" && m[1]==="a"){ majTouchesEa(); memEa(); }
+  else if(m === "esx"){ majTouchesSx(); memSx(); }
+  else if(m === "emx"){ majTouchesMx(); memMx(); }
+  else { majTouchesEs(); memEs(); }
+  signal(places + " NOTES POSÉES DANS LE MOTIF" + (hors ? (" · " + hors + " HORS MESURE") : ""));
+  H.inter();
+}
+
+/* ---------- interface ---------- */
+function majPrUI(){
+  var e = document.getElementById("pr-etat");
+  if(!e) return;
+  var n = PR.notes[PR.sel];
+  e.textContent = PR.notes.length + " notes · " + PR.pistes.length + " pistes"
+    + (n ? (" · choisie : " + prNomPiste(n) + " à " + (n.t/1000).toFixed(2) + " s") : " · aucune note choisie");
+  document.getElementById("pr-grille").textContent =
+    "GRILLE : " + (PR.grille === 0 ? "LIBRE" : (PR.grille === 2 ? "CROCHE" : PR.grille === 4 ? "DOUBLE" : "TRIPLE"));
+  document.getElementById("pr-jouer").textContent = PR.lecture ? "■ STOP" : "▶ JOUER";
+}
+function prRemplirListe(){
+  var sel = document.getElementById("pr-prise");
+  sel.innerHTML = "";
+  if(!ENR.prises.length){
+    var o = document.createElement("option");
+    o.textContent = "Aucune prise — passez par l'enregistreur";
+    sel.appendChild(o);
+    return;
+  }
+  ENR.prises.forEach(function(p, i){
+    var o = document.createElement("option");
+    o.value = i;
+    o.textContent = p.nom + " · " + dureeTexte(p.duree) + " · " + p.evts.length + " évén.";
+    sel.appendChild(o);
+  });
+}
+function ouvrirPr(){
+  enrCharger();
+  document.getElementById("pr").classList.add("show");
+  document.body.classList.add("note-ouverte");
+  prRemplirListe();
+  if(ENR.prises.length) prExtraire(0);
+  else { PR.notes = []; PR.prise = -1; prPistes(); }
+  if(PR.selMachine) PR.selMachine.value = S.modele;
+  if(!PR.cv){
+    PR.cv = document.getElementById("pr-canvas");
+    PR.ct = PR.cv.getContext("2d");
+    prInstallerGestes();
+  }
+  setTimeout(function(){ prDessiner(); majPrUI(); }, 30);
+}
+function fermerPr(){
+  prArreter();
+  document.getElementById("pr").classList.remove("show");
   document.body.classList.remove("note-ouverte");
 }
 
@@ -9856,6 +10343,13 @@ function ouvrirMenu(){
   stop();
   menu.classList.remove("hide");
   document.body.classList.add("menu-ouvert");
+  majVoileMenu();
+}
+function majVoileMenu(){
+  var v = document.getElementById("menu-voile");
+  if(!v) return;
+  var reste = menu.scrollHeight - menu.clientHeight - menu.scrollTop;
+  v.classList.toggle("vu", reste > 12);
 }
 function allerMachine(id){
   if(id === "em1") activerEm();
@@ -9894,6 +10388,9 @@ else if(memoire.modele === "esx") activerSx();
 else appliquerModele(memoire.modele);
 menu.classList.remove("hide");
 document.body.classList.add("menu-ouvert");
+menu.addEventListener("scroll", majVoileMenu);
+window.addEventListener("resize", majVoileMenu);
+setTimeout(majVoileMenu, 60);
 setTimeout(fit,500);
 </script>
 </body>
