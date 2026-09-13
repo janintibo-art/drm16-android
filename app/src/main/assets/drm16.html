@@ -2246,8 +2246,9 @@ body.tr7 .tr8-pas button.c0{background:linear-gradient(180deg,#f8b478,#e2802a)}
       <p>Branchez la carte USB-C vers MIDI, reliez la <b>sortie MIDI de la Korg</b> à l'entrée de la carte,
       puis cherchez l'appareil dans la notice, onglet Général. Jouez sur la Korg : ses notes déclenchent les
       parties de la machine choisie ci-dessous, <b>le son sort du téléphone</b>, et tout ce qui arrive est daté.</p>
-      <p>La relecture repasse par le même chemin : même machine, mêmes sons, même rythme. Chaque prise peut
-      être écrite en <b>fichier .mid</b> ordinaire, lisible par n'importe quel séquenceur.</p>
+      <p>La relecture repasse par le même chemin : même machine, mêmes sons, même rythme. Chaque prise s'écrit
+      en <b>fichier .mid de type 1</b> : une piste par son, chacune portant le nom de la partie — un
+      séquenceur les ouvre déjà triées au lieu d'un tas unique à démêler.</p>
 
       <h3>Machine qui fait le son</h3>
       <p><select id="enr-machine"></select></p>
@@ -2341,6 +2342,14 @@ body.tr7 .tr8-pas button.c0{background:linear-gradient(180deg,#f8b478,#e2802a)}
   boutons rend la réponse au gain non linéaire.</p>
   <p>Sur des sons <b>déjà traités</b>, l'écart tombe de 3,2 à 0,15 dB. Sur des sons bruts d'écart 28 dB,
   l'application le dit : les plus faibles ne peuvent pas monter assez, et il faut les traiter d'abord.</p>
+
+  <h3>Exporter pour la carte de l'ES-1</h3>
+  <p>Écrit tous les sons en <b>WAV 32 kHz, seize bits, mono</b>, nommés <code>00.WAV</code> à
+  <code>99.WAV</code>, plus un <code>names.txt</code> qui rappelle à quoi correspond chaque numéro. Il n'y
+  a plus qu'à copier le tout à la racine de la carte SmartMedia.</p>
+  <p>Ce sont les contraintes exactes de la machine : au-delà de cent fichiers, ou à un autre taux
+  d'échantillonnage, elle refuse la carte avec Er.4. Les sons d'une autre fréquence sont rééchantillonnés
+  à l'écriture.</p>
 
   <h3>Optimiser la mémoire</h3>
   <p>Repère les sons sans aigu et abaisse leur taux d'échantillonnage : un son grave n'a pas besoin de
@@ -10145,28 +10154,80 @@ function varlen(n){
   while(n > 0){ o.unshift((n & 0x7F) | 0x80); n >>= 7; }
   return o;
 }
+function nomMeta(nom){
+  var o = [0x00, 0xFF, 0x03], t = [];
+  for(var i=0;i<nom.length && i<40;i++) t.push(nom.charCodeAt(i) & 0x7F);
+  return o.concat(varlen(t.length), t);
+}
+function mtrk(corps){
+  var n = corps.length;
+  return [0x4D,0x54,0x72,0x6B, (n>>24)&0xFF, (n>>16)&0xFF, (n>>8)&0xFF, n&0xFF].concat(corps);
+}
+/* Type 1, une piste par son, chacune nommée : un séquenceur les ouvre déjà
+   triées au lieu d'un unique tas à démêler. L'idée vient de fabkorg. */
 function enrFichier(i){
   var p = ENR.prises[i];
   if(!p) return null;
   var div = 480, bpm = p.bpm || 120;
-  var parTic = 60000 / (bpm * div);            /* millisecondes par tic */
-  var piste = [], prec = 0, us = Math.round(60000000 / bpm);
-  piste = piste.concat([0x00, 0xFF, 0x51, 0x03, (us>>16)&0xFF, (us>>8)&0xFF, us&0xFF]);
+  var parTic = 60000 / (bpm * div);
+  var us = Math.round(60000000 / bpm);
+
+  /* piste de tête : tempo seul, comme le veut le format */
+  var tete = [0x00, 0xFF, 0x03].concat(varlen(p.nom.length),
+             p.nom.split("").map(function(c){ return c.charCodeAt(0) & 0x7F; }));
+  tete = tete.concat([0x00, 0xFF, 0x51, 0x03, (us>>16)&0xFF, (us>>8)&0xFF, us&0xFF],
+                     [0x00, 0xFF, 0x2F, 0x00]);
+  var pistes = [mtrk(tete)];
+
+  /* un groupe par couple canal et note */
+  var groupes = {}, ordre = [];
   p.evts.forEach(function(e){
-    var tic = Math.round(e[0] / parTic);
-    var d = Math.max(0, tic - prec);
-    prec = tic;
     var st = e[1] & 0xFF;
-    if(st < 0x80 || st >= 0xF0) return;        /* seuls les messages de canal vont dans le fichier */
-    piste = piste.concat(varlen(d), [st, e[2] & 0x7F]);
-    var t = st & 0xF0;
-    if(t !== 0xC0 && t !== 0xD0) piste.push(e[3] & 0x7F);
+    if(st < 0x80 || st >= 0xF0) return;
+    var cle = (st & 0x0F) + ":" + e[2];
+    if(!groupes[cle]){ groupes[cle] = []; ordre.push(cle); }
+    groupes[cle].push(e);
   });
-  piste = piste.concat([0x00, 0xFF, 0x2F, 0x00]);
-  var n = piste.length;
-  var tete = [0x4D,0x54,0x68,0x64, 0,0,0,6, 0,0, 0,1, (div>>8)&0xFF, div&0xFF];
-  var mtrk = [0x4D,0x54,0x72,0x6B, (n>>24)&0xFF, (n>>16)&0xFF, (n>>8)&0xFF, n&0xFF];
-  return new Uint8Array(tete.concat(mtrk).concat(piste));
+  ordre.sort(function(a, b){
+    var A = a.split(":"), B = b.split(":");
+    return (+A[0] - +B[0]) || (+B[1] - +A[1]);
+  });
+  ordre.forEach(function(cle){
+    var c = cle.split(":"), canal = +c[0], note = +c[1];
+    var corps = nomMeta(nomPisteMidi(canal, note));
+    var prec = 0;
+    groupes[cle].forEach(function(e){
+      var tic = Math.round(e[0] / parTic);
+      var d = Math.max(0, tic - prec);
+      prec = tic;
+      var st = e[1] & 0xFF;
+      corps = corps.concat(varlen(d), [st, e[2] & 0x7F]);
+      var t = st & 0xF0;
+      if(t !== 0xC0 && t !== 0xD0) corps.push(e[3] & 0x7F);
+    });
+    corps = corps.concat([0x00, 0xFF, 0x2F, 0x00]);
+    pistes.push(mtrk(corps));
+  });
+
+  var nb = pistes.length;
+  var entete = [0x4D,0x54,0x68,0x64, 0,0,0,6, 0,1, (nb>>8)&0xFF, nb&0xFF, (div>>8)&0xFF, div&0xFF];
+  var tout = entete;
+  pistes.forEach(function(t){ tout = tout.concat(t); });
+  return new Uint8Array(tout);
+}
+/* nom de piste : celui de la partie si la note en désigne une, sinon la note */
+function nomPisteMidi(canal, note){
+  if(canal === MIDI.canal){
+    var k = note - MIDI.base, m = S.modele;
+    if(k >= 0 && k < 9){
+      if(m === "es1" || m === "es2") return ES_PARTS[k].n;
+      if(m === "esx") return SX_DRUMS[k];
+      if(m === "emx") return "Drum " + MX_DRUMS[k];
+      if(m === "er1" || m === "er2") return ER_PARTS[k].n;
+      if(m === "em1" && EM_PARTS[k]) return EM_PARTS[k].nom;
+    }
+  }
+  return nomNote(note) + " ch" + (canal + 1);
 }
 function enrExporter(i){
   var o = enrFichier(i);
@@ -12308,6 +12369,7 @@ function bibRendreSons(corps){
   boutonBib(acts, "IMPORTER UN FICHIER", function(){ document.getElementById("bib-fichier").click(); });
   boutonBib(acts, "ÉGALISER LE KIT", function(){ bibEgaliser(); });
   boutonBib(acts, "OPTIMISER LA MÉMOIRE", function(){ bibOptimiser(); });
+  boutonBib(acts, "EXPORTER POUR LA CARTE ES-1", function(){ bibExportEs1(); });
   entete.appendChild(acts);
   corps.appendChild(entete);
 
@@ -12557,6 +12619,51 @@ function bibOptimiser(){
   majBibUI();
   signal(touches + " SONS ALLÉGÉS · " + gain + " % DE MÉMOIRE GAGNÉE");
   H.inter();
+}
+
+/* ---------- export vers la carte SmartMedia de l'ES-1 ----------
+   Contraintes de la machine, relevées dans KorgManager : WAV 32000 Hz,
+   8 ou 16 bits, nommés 00 à 99 à la racine, cent fichiers au plus. */
+function bibExportEs1(){
+  audioInit(); banqueEs();
+  var p = window.DRM16;
+  if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
+  var l = listeEch();
+  if(!l.length){ signal("AUCUN SON"); return; }
+  if(l.length > 100){
+    if(!window.confirm("L'ES-1 n'accepte que cent fichiers.\nLes " + (l.length - 100) +
+                       " derniers seront laissés de côté. Continuer ?")) return;
+    l = l.slice(0, 100);
+  }
+  var noms = [], ecrits = 0, rates = {};
+  l.forEach(function(id, i){
+    var b = ES.buf[id];
+    if(!b) return;
+    if(b.sampleRate !== 32000) b = reechantillonner32(b);   /* la machine n'accepte que ce taux */
+    rates[b.sampleRate] = (rates[b.sampleRate] || 0) + 1;
+    var nom = ("0" + i).slice(-2) + ".WAV";
+    var chemin = "";
+    try{ chemin = p.fichierSauver(nom, b64De(wavDe(b))); }catch(e){}
+    if(chemin){ ecrits++; noms.push(("0" + i).slice(-2) + "  " + nomBib(id)); }
+  });
+  if(ecrits){
+    try{ p.fichierSauver("names.txt", btoa(unescape(encodeURIComponent(noms.join("\n") + "\n")))); }catch(e){}
+  }
+  majBibUI();
+  signal(ecrits + " FICHIERS ÉCRITS EN 32 kHz · COPIEZ-LES À LA RACINE DE LA CARTE");
+  H.inter();
+}
+/* rééchantillonnage vers 32 kHz, vers le haut comme vers le bas */
+function reechantillonner32(buf){
+  var cible = 32000, d = buf.getChannelData(0);
+  var n = Math.max(1, Math.round(d.length * cible / buf.sampleRate));
+  var out = ctx.createBuffer(1, n, cible), o = out.getChannelData(0);
+  var pas = d.length / n;
+  for(var i=0;i<n;i++){
+    var q = i * pas, i0 = Math.floor(q), f = q - i0;
+    o[i] = d[i0] * (1 - f) + (d[Math.min(d.length-1, i0+1)] || d[i0]) * f;
+  }
+  return out;
 }
 
 function ouvrirBib(){

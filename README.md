@@ -244,6 +244,23 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
 
+## Deux exports (version 42)
+
+**Vers la carte de l'ES-1.** La bibliothèque écrit tous les sons en WAV 32 kHz, seize bits, mono, nommés
+`00.WAV` à `99.WAV`, plus un `names.txt` rappelant à quoi correspond chaque numéro. Ce sont les contraintes
+exactes relevées dans **KorgManager** : au-delà de cent fichiers ou à un autre taux, la machine refuse la
+carte avec Er.4. Les sons d'une autre fréquence sont rééchantillonnés à l'écriture, vers le haut comme vers
+le bas. Vérifié sur la banque entière : vingt-quatre fichiers, en-tête RIFF/WAVE, un canal, 32000 Hz,
+seize bits.
+
+**Fichier MIDI de type 1.** L'export passe du format 0 — tout dans une seule piste — au **format 1, une
+piste par son**, chacune nommée. L'idée vient de **fabkorg**, dont le mode ER-1 sépare les sons par numéro
+de note. Une piste de tête porte le tempo, comme le veut le format.
+
+Vérifié sur une prise mêlant percussions et mélodie : cinq pistes, nommées « Ma prise », « C4 ch1 »,
+« B », « 3/ST. », « 1/ST. » — les noms de parties de la machine quand la note en désigne une, le nom de
+note et le canal sinon.
+
 ## Traitement du son (version 41)
 
 Chaîne reprise de **MOC'TA BASS** (janintibo-art), transposée en traitement hors ligne dans la page :
