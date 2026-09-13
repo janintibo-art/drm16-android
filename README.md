@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Vingt machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+**Vingt et une machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
 en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -243,6 +243,30 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Roland TR-1000 (version 47)
+
+Dernière des sept, et la plus fournie. **Deux couches par instrument** : une voix analogique avec ses TUNE,
+DECAY et deux réglages propres, et une couche d'échantillon prise dans la bibliothèque, mélangées par un
+potard A/B. Dix instruments, cinquante potards, dix curseurs de niveau.
+
+**Le morphing.** SET A mémorise l'état de tous les potards, SET B un second, et le curseur MORPH interpole
+chaque réglage. Vérifié : avec A à 0,2 et B à 0,9, le curseur donne 0,2 — 0,375 — 0,55 — 0,725 — 0,9.
+Represser SET A ou SET B rend la main aux potards.
+
+**Les sous-pas.** SUB STEP change ce que font les seize touches : chacune règle le nombre de coups de son
+pas, de un à quatre. Mesuré sur un pas de 125 ms avec quatre sous-pas : déclenchements à 1,000, 1,031,
+1,063 et 1,094 s.
+
+**ANALOG FX ne touche que la couche analogique** — filtre passe-bas et saturation —, comme sur l'appareil
+où le circuit l'est réellement. Réverbération et délai reçoivent les deux couches.
+
+Les dix voix mesurées, aucune muette. Une mesure avec ANALOG FX engagé : crête 0,942, aucun échantillon
+saturé.
+
+**Un écart assumé** : les six potards assignables C1 à C6 de la vraie machine sont remplacés par les
+réglages fixes de chaque instrument. Sans écran de menu, des potards sans affectation visible n'auraient
+rien voulu dire.
 
 ## Arturia DrumBrute Impact (version 46)
 
