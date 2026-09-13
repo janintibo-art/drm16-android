@@ -1101,6 +1101,58 @@ body.vlc .akai,body.vlc .rtr,body.vlc .dmxb{display:none}
 .pick.pvlc{background:linear-gradient(165deg,#c9c6bd,#3a3833 55%,#6e6a60)}
 .pick.pvlc b{color:#ff9a5a;text-shadow:0 2px 0 #2a2622}
 .pick.pvlc span{color:#d6d2c8}
+/* ===================== ROLAND CR-5000 CompuRhythm ===================== */
+body.cr5 .crb{display:block}
+body.cr5 #unit,body.cr5 .em,body.cr5 .er,body.cr5 .ea,body.cr5 .es,body.cr5 .mx,body.cr5 .sx,
+body.cr5 .akai,body.cr5 .rtr,body.cr5 .dmxb,body.cr5 .korgv{display:none}
+.crb{display:none;width:100%;max-width:980px;border-radius:7px;padding:0;overflow:hidden;
+  background:#d9d7d0;box-shadow:0 16px 38px #000a}
+.cr-haut{background:linear-gradient(180deg,#e9e7e0,#dcd9d2);padding:12px 16px 10px;
+  display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;border-bottom:2px solid #b9b6ae}
+.cr-marque{font:700 13px/1 "Roboto Condensed",sans-serif-condensed,Arial;color:#d8622a;letter-spacing:1px}
+.cr-nom{font:900 20px/1 "Arial Black",Impact,sans-serif;color:#2f2f2d;letter-spacing:-.5px;cursor:pointer}
+.cr-nom small{display:block;font:700 7px/1.4 "Roboto Condensed",Arial;letter-spacing:1.6px;color:#6a6a64}
+.cr-kns{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.cr-kn{width:40px;flex:none;text-align:center;touch-action:none}
+.cr-kn .bt{width:34px;height:34px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#4a4842,#232220 55%,#111);
+  box-shadow:0 2px 5px #0008,inset 0 1px 1px #ffffff28}
+.cr-kn .bt i{position:absolute;left:50%;top:3px;width:2px;height:40%;margin-left:-1px;border-radius:1px;
+  background:#e8863a}
+.cr-kn em{display:block;margin-top:2px;font:700 6.5px/1.2 "Roboto Condensed",Arial;color:#3a3a36;
+  font-style:normal;letter-spacing:.3px}
+.cr-bas{background:linear-gradient(180deg,#cfcdc6,#c2bfb8);padding:11px 16px 14px}
+.cr-lig{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:9px}
+.cr-tit{font:700 7.5px/1.2 "Roboto Condensed",Arial;letter-spacing:1.6px;color:#4a4a44;
+  width:100%;margin-bottom:2px}
+.crk{border:0;border-radius:3px;padding:11px 9px;position:relative;
+  font:700 8.5px/1.1 "Roboto Condensed",Arial;letter-spacing:.4px;color:#2b2b28;
+  background:linear-gradient(180deg,#f0ece2,#d6d0c2);
+  box-shadow:0 3px 0 #8f8a80,0 4px 6px #0004,inset 0 1px 0 #fff}
+.crk.amb{background:linear-gradient(180deg,#f6c88e,#e09a4a)}
+.crk.vert{background:linear-gradient(180deg,#bfe0cf,#8cc4a8)}
+.crk.beige{background:linear-gradient(180deg,#efe6d2,#d8cbae)}
+.crk:active,.crk.on{background:linear-gradient(180deg,#ffb072,#d8622a);color:#2a1206;
+  transform:translateY(3px);box-shadow:0 0 0 #8f8a80,inset 0 1px 3px #0005}
+.crk i{position:absolute;left:50%;top:3px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;
+  background:#6a3a1a;opacity:.35}
+.crk.on i{background:#ff3a1a;opacity:1;box-shadow:0 0 6px #ff5a2a}
+.cr-ryt{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;flex:1;min-width:260px}
+.cr-ryt .crk{padding:13px 3px;font-size:8px}
+.cr-banq{display:flex;flex-direction:column;gap:4px;width:74px;flex:none}
+.cr-gros{padding:16px 20px;font-size:11px;letter-spacing:1px}
+.cr-lcd{background:#17120e;border-radius:3px;padding:6px 12px;min-width:150px;text-align:center}
+.cr-lcd b{display:block;font:800 14px/1.2 "Courier New",monospace;color:#ff8a3a}
+.cr-lcd u{display:block;text-decoration:none;font:700 7.5px/1.3 "Roboto Condensed",Arial;
+  letter-spacing:1.4px;color:#a8663a}
+@media (max-width:780px){
+  .cr-ryt{grid-template-columns:repeat(4,1fr)}
+  .cr-kn,.cr-kn .bt{width:31px} .cr-kn .bt{height:31px}
+}
+
+.pick.pcr5{background:linear-gradient(165deg,#e0a05a,#3a2a18 55%,#6a4a28)}
+.pick.pcr5 b{color:#ffd8a8;text-shadow:0 2px 0 #2a1c0e}
+.pick.pcr5 span{color:#d8c0a0}
 @media (max-height:560px){
   .unit{padding:18px 10px 4px}
   .grid{gap:6px}
@@ -2265,6 +2317,41 @@ body.vlc .akai,body.vlc .rtr,body.vlc .dmxb{display:none}
 
 
 
+
+<div class="crb" id="unit-cr5">
+
+  <div class="cr-haut">
+    <div>
+      <div class="cr-marque">Roland</div>
+      <div class="cr-nom" id="cr-notice">CompuRhythm CR-5000<small>MICRO COMPUTER CONTROLLED RHYTHM MACHINE</small></div>
+    </div>
+    <div class="cr-kns" id="cr-kns"></div>
+  </div>
+
+  <div class="cr-bas">
+
+    <div class="cr-lig">
+      <span class="cr-tit">ARRANGER</span>
+      <button class="crk" id="cr-register"><i></i>REGISTER</button>
+      <button class="crk" id="cr-crash"><i></i>CRASH</button>
+      <div id="cr-arr" style="display:flex;gap:5px;flex-wrap:wrap;flex:1"></div>
+      <button class="crk amb" id="cr-shuffle"><i></i>SHUFFLE</button>
+    </div>
+
+    <div class="cr-lig">
+      <div class="cr-banq" id="cr-banq"></div>
+      <div class="cr-ryt" id="cr-ryt"></div>
+      <div style="display:flex;flex-direction:column;gap:5px;width:104px;flex:none">
+        <div class="cr-lcd"><b id="cr-val">ROCK 1</b><u id="cr-lab">RHYTHM</u></div>
+        <button class="crk beige" id="cr-fill"><i></i>INTRO / FILL IN</button>
+      </div>
+      <button class="crk beige cr-gros" id="cr-start">START<br>STOP</button>
+    </div>
+
+  </div>
+</div>
+
+
 <div class="korgv" id="unit-vlc">
 
   <div class="em-jacks">
@@ -2457,6 +2544,7 @@ body.vlc .akai,body.vlc .rtr,body.vlc .dmxb{display:none}
   <button class="pick pes2" data-m="es2"><b>ES-1 mkII</b><span>KORG · ÉCHANTILLONNEUR · ISOLATOR, RESO. FILT.</span></button>
   <button class="pick pmx" data-m="emx"><b>ELECTRIBE EMX-1</b><span>KORG · 14 PARTIES · 3 EFFETS · VALVE FORCE</span></button>
   <button class="pick psx" data-m="esx"><b>ELECTRIBE ESX-1</b><span>KORG · ÉCHANTILLONNEUR · CLAVIER, STRETCH, VALVE FORCE</span></button>
+  <button class="pick pcr5" data-m="cr5"><b>ROLAND CR-5000</b><span>24 RYTHMES PRÉSÉLECTIONNÉS · ARRANGEUR · BREAKS</span></button>
   <button class="pick pvlc" data-m="vlc"><b>KORG volca sample</b><span>10 PARTIES · MOTIFS AU FORMAT KORG · MOUVEMENTS</span></button>
   <button class="pick pdmx" data-m="dmx"><b>OBERHEIM DMX</b><span>ÉCHANTILLONS HUIT BITS · JEU AU VOL · 24 TOUCHES</span></button>
   <button class="pick p808" data-m="tr808"><b>ROLAND TR-808</b><span>SYNTHÈSE ANALOGIQUE · 12 VOIX · 16 PAS</span></button>
@@ -2608,6 +2696,29 @@ body.vlc .akai,body.vlc .rtr,body.vlc .dmxb{display:none}
      <button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
   <p><button id="b-panique">PANIQUE · TOUT COUPER</button>
      <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
+  </div>
+
+  <div class="doc" id="note-cr5" data-titre="CR-5000">
+  <h3>Une boîte à présélections</h3>
+  <p>On ne programme rien sur une CR-5000 : on choisit un des <b>vingt-quatre rythmes</b>, répartis en
+  trois banques de huit, et on le sculpte. C'est la même famille que les DRM16 et DRM32, mais avec de quoi
+  intervenir sur ce qui joue.</p>
+
+  <h3>L'arrangeur</h3>
+  <p>Les six touches vertes <b>ajoutent un instrument par-dessus</b> le rythme choisi : cymbale toutes les
+  quatre ou huit croches, charley aux noires ou aux doubles, charley ouvert, conga. Elles se cumulent.
+  Mesuré sur ROCK 1 : douze coups par mesure, vingt-huit avec HH-16, trente-six en ajoutant la conga.</p>
+
+  <h3>Breaks</h3>
+  <p><b>INTRO / FILL IN</b> joue un break sur la mesure en cours, puis revient au rythme. <b>AUTO FILL</b>
+  le déclenche tout seul toutes les deux, quatre, huit, douze ou seize mesures. <b>CRASH</b> lance une
+  cymbale à la volée, et <b>SHUFFLE</b> retarde les temps pairs.</p>
+
+  <h3>Ce qui diffère</h3>
+  <p>La WALTZ, les SWING et le TANGO sont en <b>3/4 ou en ternaire</b>, douze pas au lieu de seize :
+  l'afficheur le rappelle. Sur l'appareil, INTRO/FILL IN et AUTO FILL sont des potards ; ici ce sont des
+  touches qui font défiler les valeurs, faute de place. Et le bouton REGISTER de la vraie machine, qui
+  mémorise les réglages de l'arrangeur, est devenu le sélecteur d'AUTO FILL.</p>
   </div>
 
   <div class="doc" id="note-vlc" data-titre="volca sample">
@@ -3097,10 +3208,10 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
 (function charger(){
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
-    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
     if(m.midi) memoire.midi = m.midi;
     /* ancien format : les machines vivaient dans le blob global, on les répartit une fois */
-    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc"].forEach(function(c){
+    ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","dmx","vlc","cr5"].forEach(function(c){
       if(m[c]){
         memoire[c] = m[c];
         try{ localStorage.setItem(MEM + "." + c, JSON.stringify(m[c])); }catch(e){}
@@ -3782,6 +3893,7 @@ function docDeLaMachine(){
   if(m === "tr808" || m === "tr909" || m === "tr707") return "note-808";
   if(m === "dmx") return "note-dmx";
   if(m === "vlc") return "note-vlc";
+  if(m === "cr5") return "note-cr5";
   return "note-general";
 }
 function montrerDoc(id){
@@ -3863,7 +3975,7 @@ document.getElementById("menu-pr").addEventListener("click", function(){
 (function machinePr(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"]];
   var sel = document.getElementById("pr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -3911,7 +4023,7 @@ document.getElementById("enr-rec").addEventListener("click", function(){
 (function menuEnregistreur(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
-    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"]];
+    ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"]];
   var sel = document.getElementById("enr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -3995,7 +4107,7 @@ window.addEventListener("pagehide", writeMem);
    Ce contrôle le dit tout de suite au lieu de laisser chercher. */
 (function collisionsDeClasses(){
   var corps = ["m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-               "tr8","tr9","tr7","dmx","vlc","menu-ouvert","note-ouverte"];
+               "tr8","tr9","tr7","dmx","vlc","cr5","menu-ouvert","note-ouverte"];
   var mauvaises = corps.filter(function(c){
     var e = document.querySelector("." + c);
     return e && e !== document.body;
@@ -5511,7 +5623,7 @@ function activerEm(){
   S.modele = "em1";
   MACHINE = MACHINE_EM;
   document.body.classList.add("em1");
-  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
+  document.body.classList.remove("m32","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
   chargerEm();
   construireFx();
   EM.choisirPartie(EM.sel);
@@ -6214,7 +6326,7 @@ function activerEr(v){
   ER.v = (v===2) ? 2 : 1;
   S.modele = "er" + ER.v;
   MACHINE = MACHINE_ER;
-  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
+  document.body.classList.remove("m32","em1","ea1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
   document.body.classList.add("er1");
   document.body.classList.toggle("mk2", ER.v===2);
   chargerEr();
@@ -6868,7 +6980,7 @@ function activerEa(v){
   EA.v = (v===2) ? 2 : 1;
   S.modele = "ea" + EA.v;
   MACHINE = MACHINE_EA;
-  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
+  document.body.classList.remove("m32","em1","er1","es1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
   document.body.classList.add("ea1");
   document.body.classList.toggle("mk2", EA.v===2);
   chargerEa();
@@ -7769,7 +7881,7 @@ function activerEs(v){
   ES.v = (v===2) ? 2 : 1;
   S.modele = "es" + ES.v;
   MACHINE=MACHINE_ES;
-  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
+  document.body.classList.remove("m32","em1","er1","ea1","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
   document.body.classList.add("es1");
   document.body.classList.toggle("mk2", ES.v===2);
   audioInit(); banqueEs(); busEffets(); chargerEchs();
@@ -8856,7 +8968,7 @@ function activerMx(){
   stop();
   S.modele="emx";
   MACHINE=MACHINE_MX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","mk2","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
   document.body.classList.add("emx");
   audioInit(); banqueEs(); mxAudio();
   chargerMx();
@@ -9896,7 +10008,7 @@ function activerSx(){
   stop();
   S.modele="esx";
   MACHINE=MACHINE_SX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
   document.body.classList.add("esx");
   audioInit(); banqueEs(); sxAudio(); chargerEchs();
   chargerSx();
@@ -12152,6 +12264,355 @@ function activerTr(modele){
   save(); fit(); setTimeout(fit, 120);
 }
 
+/* ===================== ROLAND CR-5000 =====================
+   Boîte à présélections de 1980 : on ne programme rien. On choisit un des
+   vingt-quatre rythmes, et l'ARRANGER y ajoute des instruments par-dessus.
+   Les instruments, dans l'ordre : grosse caisse, caisse claire, tom, rim shot,
+   conga, claves, cowbell, charley fermé, charley ouvert, cymbale, accent. */
+var CR_INSTR = ["bd","sd","tom","rim","cga","clv","cwb","hh","oh","cym","acc"];
+var CR_GROUPES = {bd:"bd", sd:"sd", tom:"sd", rim:"sd", cga:"cga", clv:"clv", cwb:"clv",
+                  hh:"cym", oh:"cym", cym:"cym"};
+/* Chaque rythme : nom, mesure (16 pas ou 12 pour les ternaires), puis les
+   lignes non vides. Les lettres marquent un pas, le point le silence. */
+var CR_RYTHMES = [
+  /* banque I */
+  {n:"WALTZ",    p:12, l:{bd:"x.....x.....", sd:"...x.....x..", hh:"x.xx.xx.xx.x", cwb:"............"}},
+  {n:"SWING 1",  p:12, l:{bd:"x.....x.....", sd:"...x.....x..", hh:"x.xx.xx.xx.x", rim:"............"}},
+  {n:"SWING 2",  p:12, l:{bd:"x.....x..x..", sd:"...x.....x..", hh:"x.xx.xx.xx.x", cym:"x..........."}},
+  {n:"S.ROCK",   p:16, l:{bd:"x..x..x...x.x...", sd:"....x.......x...", hh:"x.x.x.x.x.x.x.x."}},
+  {n:"TANGO",    p:16, l:{bd:"x..x..x.x.......", sd:"....x.......x...", clv:"x..x..x.x...x...", cga:"..x...x...x...x."}},
+  {n:"HABANERA", p:16, l:{bd:"x..x..x.x.......", cga:"x.x.x.x.x.x.x.x.", clv:"x.....x...x.....", cwb:"....x.......x..."}},
+  {n:"ENKA",     p:16, l:{bd:"x.......x.......", sd:"....x.......x...", tom:"..........x.x...", hh:"x.x.x.x.x.x.x.x."}},
+  {n:"BD-4",     p:16, l:{bd:"x...x...x...x...", hh:"x.x.x.x.x.x.x.x.", sd:"....x.......x..."}},
+  /* banque II */
+  {n:"ROCK 1",   p:16, l:{bd:"x.......x.......", sd:"....x.......x...", hh:"x.x.x.x.x.x.x.x."}},
+  {n:"ROCK 2",   p:16, l:{bd:"x.....x.x.....x.", sd:"....x.......x...", hh:"x.x.x.x.x.x.x.x."}},
+  {n:"ROCK 3",   p:16, l:{bd:"x..x..x...x.....", sd:"....x.......x...", hh:"xxxxxxxxxxxxxxxx"}},
+  {n:"ROCK 4",   p:16, l:{bd:"x...x.....x.x...", sd:"....x.......x...", hh:"x.x.x.x.x.x.x.x.", oh:"..............x."}},
+  {n:"ROCK 5",   p:16, l:{bd:"x.x.....x.x.....", sd:"....x.......x...", hh:"xxxxxxxxxxxxxxxx", cym:"x..............."}},
+  {n:"ROCK 6",   p:16, l:{bd:"x.....x...x.....", sd:"....x.......x...", tom:"............x.x.", hh:"x.x.x.x.x.x.x.x."}},
+  {n:"DISCO",    p:16, l:{bd:"x...x...x...x...", sd:"....x.......x...", hh:"x.x.x.x.x.x.x.x.", oh:"..x...x...x...x."}},
+  {n:"FOX TROT", p:16, l:{bd:"x...x...x...x...", sd:"..x...x...x...x.", hh:"x.x.x.x.x.x.x.x.", rim:"....x.......x..."}},
+  /* banque III */
+  {n:"SAMBA 1",  p:16, l:{bd:"x..x..x.x..x..x.", cga:"..x.x...x.x.x...", clv:"x..x..x...x..x..", hh:"x.x.x.x.x.x.x.x."}},
+  {n:"SAMBA 2",  p:16, l:{bd:"x..x..x.x..x..x.", cga:"x.xx.x.xx.xx.x.x", cwb:"....x.......x...", hh:"x.x.x.x.x.x.x.x."}},
+  {n:"MERENGUE", p:16, l:{bd:"x...x...x...x...", cga:"x.x.xx..x.x.xx..", clv:"..x...x...x...x.", rim:"....x.......x..."}},
+  {n:"MAMBO",    p:16, l:{bd:"x.....x.x.....x.", cga:"x.x.x.x.x.x.x.x.", cwb:"x...x...x...x...", clv:"..x..x..x...x..."}},
+  {n:"CHACHA",   p:16, l:{bd:"x...x...x...x...", cga:"..x...x...x...x.", clv:"x..x..x...x.x...", cwb:"....x.......x..."}},
+  {n:"RHUMBA",   p:16, l:{bd:"x.....x...x.....", cga:"..x...x...x...x.", clv:"x..x..x...x.x...", rim:"....x.......x..."}},
+  {n:"BEGUINE",  p:16, l:{bd:"x.....x.x.....x.", cga:"x.x.x.x.x.x.x.x.", clv:"x..x..x...x.x...", hh:"..x...x...x...x."}},
+  {n:"BOSSANOVA",p:16, l:{bd:"x..x..x.x..x..x.", rim:"x..x..x...x..x..", hh:"x.x.x.x.x.x.x.x.", cga:"....x.......x..."}}
+];
+/* L'arrangeur : chaque bouton pose un instrument par-dessus le rythme. */
+var CR_ARR = [
+  {id:"cy4",  nom:'CY-4"',   instr:"cym", m:"x.......x.......", m12:"x.....x....."},
+  {id:"cy8",  nom:'CY-8"',   instr:"cym", m:"x...............", m12:"x..........."},
+  {id:"hh4",  nom:'HH-4"',   instr:"hh",  m:"x...x...x...x...", m12:"x...x...x..."},
+  {id:"hh16", nom:'HH-16"',  instr:"hh",  m:"xxxxxxxxxxxxxxxx", m12:"xxxxxxxxxxxx"},
+  {id:"ohh",  nom:"OPEN HH", instr:"oh",  m:"..x...x...x...x.", m12:"..x...x...x."},
+  {id:"cga",  nom:"CONGA",   instr:"cga", m:"x.x.x.x.x.x.x.x.", m12:"x.x.x.x.x.x."}
+];
+var CR_FILL = {bd:"x.......x...x.x.", sd:"....x.x.x.xxx.xx", tom:"........x.x.x.x.", cym:"x..............."};
+var CR_MIDI = {bd:36, sd:38, tom:45, rim:37, cga:64, clv:75, cwb:56, hh:42, oh:46, cym:49};
+
+var CR5 = {ryt:0, banq:1, arr:{}, shuffle:false, fill:false, fillAuto:0, mesure:0,
+           niv:{bd:0.8, sd:0.8, cga:0.7, clv:0.7, cym:0.7, acc:0.6},
+           pos:-1, noeuds:{}, ohGain:null, reg:false};
+CR_ARR.forEach(function(a){ CR5.arr[a.id] = false; });
+
+function rythmeCr(){ return CR_RYTHMES[CR5.banq * 8 + CR5.ryt] || CR_RYTHMES[8]; }
+function sortieCr(g){
+  if(!CR5.noeuds[g]){
+    var n = ctx.createGain();
+    n.connect(master);
+    CR5.noeuds[g] = n;
+  }
+  return CR5.noeuds[g];
+}
+function voixCr(t, id, acc){
+  var grp = CR_GROUPES[id] || "bd";
+  var dest = sortieCr(grp);
+  dest.gain.setValueAtTime(1, t);
+  var niv = mv("niv", CR5.niv[grp === "sd" ? "sd" : grp === "cga" ? "cga" : grp === "clv" ? "clv"
+                             : grp === "cym" ? "cym" : "bd"]);
+  niv *= 0.85 * (acc ? (0.75 + mv("niv", CR5.niv.acc) * 0.6) : 0.72);
+  var g = ctx.createGain();
+  g.connect(dest);
+
+  if(id === "bd"){
+    var o = ctx.createOscillator(); o.type = "sine";
+    o.frequency.setValueAtTime(150, t);
+    o.frequency.exponentialRampToValueAtTime(52, t + 0.04);
+    trEnv(g, t, niv * 1.15, 0.24, 0.002);
+    o.connect(g); o.start(t); o.stop(t + 0.3);
+  }
+  else if(id === "sd"){
+    var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+    bp.frequency.value = 1900; bp.Q.value = 0.7;
+    var nb = trBruit(t, 0.13);
+    trEnv(g, t, niv * 1.1, 0.13, 0.001);
+    nb.connect(bp); bp.connect(g);
+    var ot = ctx.createOscillator(); ot.type = "triangle"; ot.frequency.value = 210;
+    var gt = ctx.createGain();
+    trEnv(gt, t, niv * 0.4, 0.07, 0.001);
+    ot.connect(gt); gt.connect(dest); ot.start(t); ot.stop(t + 0.1);
+  }
+  else if(id === "tom"){
+    var od = ctx.createOscillator(); od.type = "sine";
+    od.frequency.setValueAtTime(190, t);
+    od.frequency.exponentialRampToValueAtTime(105, t + 0.06);
+    trEnv(g, t, niv * 1.1, 0.26, 0.002);
+    od.connect(g); od.start(t); od.stop(t + 0.32);
+  }
+  else if(id === "rim"){
+    var orf = ctx.createOscillator(); orf.type = "triangle"; orf.frequency.value = 1500;
+    var br = ctx.createBiquadFilter(); br.type = "bandpass"; br.frequency.value = 1600; br.Q.value = 5;
+    var nr = trBruit(t, 0.02);
+    trEnv(g, t, niv * 1.0, 0.022, 0.0006);
+    orf.connect(g); nr.connect(br); br.connect(g);
+    orf.start(t); orf.stop(t + 0.04);
+  }
+  else if(id === "cga"){
+    var oc = ctx.createOscillator(); oc.type = "sine";
+    oc.frequency.setValueAtTime(340, t);
+    oc.frequency.exponentialRampToValueAtTime(230, t + 0.035);
+    trEnv(g, t, niv * 1.05, 0.17, 0.0015);
+    oc.connect(g); oc.start(t); oc.stop(t + 0.22);
+  }
+  else if(id === "clv"){
+    var ol = ctx.createOscillator(); ol.type = "sine"; ol.frequency.value = 2500;
+    trEnv(g, t, niv * 0.95, 0.05, 0.0008);
+    ol.connect(g); ol.start(t); ol.stop(t + 0.07);
+  }
+  else if(id === "cwb"){
+    var som = ctx.createGain(); som.gain.value = 0.4;
+    [560, 845].forEach(function(f){
+      var ob = ctx.createOscillator(); ob.type = "square"; ob.frequency.value = f;
+      ob.connect(som); ob.start(t); ob.stop(t + 0.26);
+    });
+    var bb = ctx.createBiquadFilter(); bb.type = "bandpass"; bb.frequency.value = 2700; bb.Q.value = 1.2;
+    trEnv(g, t, niv * 1.3, 0.2, 0.001);
+    som.connect(bb); bb.connect(g);
+  }
+  else {                                        /* charleys et cymbale */
+    var dh = (id === "hh") ? 0.035 : (id === "oh") ? 0.3 : 1.1;
+    var m = trMetal(t, dh, id === "cym" ? 360 : 880, 0.45);
+    var hp = ctx.createBiquadFilter(); hp.type = "highpass";
+    hp.frequency.value = (id === "cym") ? 3600 : 8200;
+    trEnv(g, t, niv * (id === "hh" ? 1.55 : 1.25), dh, 0.001);
+    m.connect(hp); hp.connect(g);
+    if(id === "hh" && CR5.ohGain){
+      try{ CR5.ohGain.gain.cancelScheduledValues(t);
+           CR5.ohGain.gain.setTargetAtTime(0.0001, t, 0.004); }catch(e){}
+    }
+    if(id === "oh") CR5.ohGain = g;
+  }
+  var n2 = CR_MIDI[id];
+  if(n2) midiNoteA(n2, t, acc ? 1 : 0.7, MIDI.canal, 0.12);
+}
+
+/* ---------- séquenceur ---------- */
+function longueurCr(){ return rythmeCr().p; }
+function scheduleCr(i, t){
+  var r = rythmeCr(), douze = (r.p === 12);
+  if(CR5.shuffle && i % 2 === 1) t += stepDur() * 0.22;
+  var source = (CR5.fill || (CR5.fillAuto && CR5.mesure > 0 && CR5.mesure % CR5.fillAuto === 0))
+               ? CR_FILL : r.l;
+  var acc = (i === 0);
+  CR_INSTR.forEach(function(id){
+    var ligne = source[id];
+    if(ligne && ligne.charAt(i) !== "." && ligne.charAt(i) !== "" && ligne.charAt(i) !== " ")
+      voixCr(t, id, acc);
+  });
+  CR_ARR.forEach(function(a){
+    if(!CR5.arr[a.id]) return;
+    var m = douze ? a.m12 : a.m;
+    if(m.charAt(i) === "x") voixCr(t, a.instr, acc);
+  });
+  if(!cache) queue.push({i:i, t:t});
+}
+function beatCr(i){ CR5.pos = i; }
+function arretCr(){
+  CR5.pos = -1; CR5.mesure = 0; CR5.fill = false;
+  var b = document.getElementById("cr-start");
+  if(b) b.classList.remove("on");
+  majCr();
+}
+function boucleCr(){
+  CR5.mesure++;
+  if(CR5.fill){ CR5.fill = false; majCr(); }
+}
+var MACHINE_CR = {schedule:scheduleCr, beat:beatCr, arret:arretCr, boucle:boucleCr,
+                  longueur:longueurCr};
+
+/* ---------- interface ---------- */
+var CR_KNOBS = [];
+(function construireCr(){
+  var kns = document.getElementById("cr-kns");
+  [["bd","BASS DRUM"],["sd","SNARE / TOM"],["cga","CONGA"],["clv","CLAVES / COWBELL"],
+   ["cym","CYMBAL / HI HAT"],["acc","ACCENT"],["vol","VOLUME"],["tempo","TEMPO"]].forEach(function(x){
+    var d = document.createElement("div");
+    d.className = "cr-kn";
+    d.innerHTML = '<div class="bt" id="cr-k-' + x[0] + '"><i></i></div><em>' + x[1] + '</em>';
+    kns.appendChild(d);
+  });
+
+  var arr = document.getElementById("cr-arr");
+  CR_ARR.forEach(function(a){
+    var b = document.createElement("button");
+    b.className = "crk vert";
+    b.innerHTML = '<i></i>' + a.nom;
+    b.dataset.a = a.id;
+    arr.appendChild(b);
+  });
+  arr.addEventListener("click", function(e){
+    var b2 = e.target.closest(".crk");
+    if(!b2) return;
+    CR5.arr[b2.dataset.a] = !CR5.arr[b2.dataset.a];
+    majCr(); memCr(); H.cran();
+  });
+
+  var banq = document.getElementById("cr-banq");
+  ["I","II","III"].forEach(function(n, i){
+    var b = document.createElement("button");
+    b.className = "crk " + ["amb","beige","vert"][i];
+    b.innerHTML = '<i></i>' + n;
+    b.dataset.b = i;
+    banq.appendChild(b);
+  });
+  banq.addEventListener("click", function(e){
+    var b3 = e.target.closest(".crk");
+    if(!b3) return;
+    CR5.banq = +b3.dataset.b;
+    majCr(); memCr(); H.inter();
+  });
+
+  var ryt = document.getElementById("cr-ryt");
+  for(var i=0;i<8;i++){
+    var b4 = document.createElement("button");
+    b4.className = "crk";
+    b4.dataset.r = i;
+    ryt.appendChild(b4);
+  }
+  ryt.addEventListener("click", function(e){
+    var b5 = e.target.closest(".crk");
+    if(!b5) return;
+    CR5.ryt = +b5.dataset.r;
+    majCr(); memCr(); H.inter();
+  });
+})();
+
+function knobCr(nom, etiq){
+  return knobEm("cr-k-" + nom, {min:0, max:1,
+    get:function(){ return CR5.niv[nom]; },
+    set:function(v){ CR5.niv[nom] = v; lcdCr(String(Math.round(v*100)), etiq, true); memCr(); }});
+}
+[["bd","BASS DRUM"],["sd","SNARE"],["cga","CONGA"],["clv","CLAVES"],["cym","CYMBAL"],
+ ["acc","ACCENT"]].forEach(function(x){ CR_KNOBS.push(knobCr(x[0], x[1])); });
+var kCrVol = knobEm("cr-k-vol", {min:0, max:1, get:function(){ return S.vol; },
+  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+    lcdCr(String(Math.round(v*100)), "VOLUME", true); saveSoon(); }});
+var kCrTempo = knobEm("cr-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 40) / 220; },
+  set:function(v){ S.bpm = Math.round(40 + v * 220); lcdCr(String(S.bpm), "TEMPO", true); saveSoon(); }});
+function majKnobsCr(){
+  CR_KNOBS.forEach(function(k){ k.maj(); });
+  kCrVol.maj(); kCrTempo.maj();
+}
+
+var crTmr = null;
+function lcdCr(v, l, fugace){
+  var a = document.getElementById("cr-val"), b = document.getElementById("cr-lab");
+  if(!a) return;
+  a.textContent = v; b.textContent = l;
+  clearTimeout(crTmr);
+  if(fugace) crTmr = setTimeout(majLcdCr, 1300);
+}
+function majLcdCr(){
+  var r = rythmeCr();
+  lcdCr(r.n, (r.p === 12 ? "3/4 · " : "4/4 · ") + ["I","II","III"][CR5.banq]);
+}
+function majCr(){
+  var i;
+  var bs = document.querySelectorAll("#cr-ryt .crk");
+  for(i=0;i<bs.length;i++){
+    var r = CR_RYTHMES[CR5.banq * 8 + i];
+    bs[i].innerHTML = '<i></i>' + (r ? r.n : "—");
+    bs[i].classList.toggle("on", i === CR5.ryt);
+  }
+  var bq = document.querySelectorAll("#cr-banq .crk");
+  for(i=0;i<bq.length;i++) bq[i].classList.toggle("on", i === CR5.banq);
+  CR_ARR.forEach(function(a){
+    var b = document.querySelector('#cr-arr .crk[data-a="' + a.id + '"]');
+    if(b) b.classList.toggle("on", !!CR5.arr[a.id]);
+  });
+  document.getElementById("cr-shuffle").classList.toggle("on", CR5.shuffle);
+  document.getElementById("cr-fill").classList.toggle("on", CR5.fill);
+  document.getElementById("cr-register").classList.toggle("on", CR5.reg);
+  document.getElementById("cr-crash").innerHTML = "<i></i>CRASH";
+  var f = document.getElementById("cr-register");
+  f.innerHTML = '<i></i>AUTO FILL ' + (CR5.fillAuto ? CR5.fillAuto : "OFF");
+  majLcdCr();
+}
+function memCr(){
+  memoire.cr5 = {ryt:CR5.ryt, banq:CR5.banq, arr:CR5.arr, shuffle:CR5.shuffle,
+                 fillAuto:CR5.fillAuto, niv:CR5.niv};
+  sauverMachine("cr5");
+}
+function chargerCr(){
+  var m = memLire("cr5");
+  if(!m) return;
+  if(typeof m.ryt === "number") CR5.ryt = Math.min(7, m.ryt);
+  if(typeof m.banq === "number") CR5.banq = Math.min(2, m.banq);
+  if(typeof m.fillAuto === "number") CR5.fillAuto = m.fillAuto;
+  CR5.shuffle = !!m.shuffle;
+  if(m.arr) for(var a in CR5.arr) CR5.arr[a] = !!m.arr[a];
+  if(m.niv) for(var n in CR5.niv) if(typeof m.niv[n] === "number") CR5.niv[n] = m.niv[n];
+}
+
+document.getElementById("cr-start").addEventListener("click", function(){
+  audioInit();
+  if(S.run){ stop(); H.stop(); } else { step = 0; CR5.mesure = 0; start(); H.start(); }
+  this.classList.toggle("on", S.run);
+});
+document.getElementById("cr-shuffle").addEventListener("click", function(){
+  CR5.shuffle = !CR5.shuffle; majCr(); memCr(); H.cran();
+});
+document.getElementById("cr-fill").addEventListener("click", function(){
+  audioInit();
+  CR5.fill = true;
+  majCr(); H.inter();
+  if(!S.run){ step = 0; start(); H.start(); document.getElementById("cr-start").classList.add("on"); }
+});
+document.getElementById("cr-register").addEventListener("click", function(){
+  var v = [0, 2, 4, 8, 12, 16];
+  CR5.fillAuto = v[(v.indexOf(CR5.fillAuto) + 1) % v.length];
+  majCr(); memCr(); H.cran();
+  signal(CR5.fillAuto ? ("BREAK AUTOMATIQUE TOUTES LES " + CR5.fillAuto + " MESURES")
+                      : "BREAK AUTOMATIQUE COUPÉ");
+});
+document.getElementById("cr-crash").addEventListener("click", function(){
+  audioInit();
+  voixCr(ctx.currentTime + 0.01, "cym", true);
+  H.inter();
+});
+document.getElementById("cr-notice").addEventListener("click", function(){ ouvrirNotice(); });
+
+var unitCr = document.getElementById("unit-cr5");
+function activerCr(){
+  stop();
+  S.modele = "cr5";
+  MACHINE = MACHINE_CR;
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
+                                 "tr8","tr9","tr7","dmx","vlc","cr5");
+  document.body.classList.add("cr5");
+  audioInit();
+  chargerCr();
+  CR5.noeuds = {}; CR5.ohGain = null; CR5.mesure = 0; CR5.fill = false;
+  majCr(); majKnobsCr();
+  actif = unitCr;
+  save(); fit(); setTimeout(fit, 120);
+}
+
 /* ===================== KORG volca sample =====================
    Dix parties, seize pas, dix motifs. Les onze potards et les cinq
    interrupteurs sont ceux du format de motif Korg, documenté dans le SDK
@@ -12566,7 +13027,7 @@ function activerVlc(){
   S.modele = "vlc";
   MACHINE = MACHINE_VLC;
   document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
-                                 "tr8","tr9","tr7","dmx","vlc");
+                                 "tr8","tr9","tr7","dmx","vlc","cr5");
   document.body.classList.add("vlc");
   audioInit(); banqueEs(); chargerEchs();
   chargerVlc();
@@ -13001,7 +13462,7 @@ function activerDmx(){
   stop();
   S.modele = "dmx";
   MACHINE = MACHINE_DMX;
-  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
+  document.body.classList.remove("m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
   document.body.classList.add("dmx");
   audioInit();
   chargerDmx();
@@ -14416,7 +14877,7 @@ function appliquerModele(id){
   stop();
   MACHINE = MACHINE_EHX;
   actif = unit;
-  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc");
+  document.body.classList.remove("em1","er1","ea1","es1","mk2","emx","esx","mpc","mpc2","tr8","tr9","tr7","dmx","vlc","cr5");
   S.modele = id;
   MODELE = MODELES[id];
   var r = memoire[id];
@@ -14459,7 +14920,8 @@ function majVoileMenu(){
   v.classList.toggle("vu", reste > 12);
 }
 function allerMachine(id){
-  if(id === "vlc") activerVlc();
+  if(id === "cr5") activerCr();
+  else if(id === "vlc") activerVlc();
   else if(id === "dmx") activerDmx();
   else if(id === "tr808") activerTr("tr808");
   else if(id === "tr909") activerTr("tr909");
@@ -14506,6 +14968,7 @@ else if(memoire.modele === "tr909") activerTr("tr909");
 else if(memoire.modele === "tr707") activerTr("tr707");
 else if(memoire.modele === "dmx") activerDmx();
 else if(memoire.modele === "vlc") activerVlc();
+else if(memoire.modele === "cr5") activerCr();
 else appliquerModele(memoire.modele);
 menu.classList.remove("hide");
 document.body.classList.add("menu-ouvert");

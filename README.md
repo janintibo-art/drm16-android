@@ -2,7 +2,7 @@
 
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
-**Dix-huit machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
+**Dix-neuf machines**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur
 en rouleau. Un menu au lancement choisit l'appareil ; on en change ensuite par la notice,
 derrière MODEL sur les Electro-Harmonix, derrière la référence EM-1 sur l'Electribe.
 
@@ -243,6 +243,30 @@ décalage, et la pose d'une réponse sur le convolueur — qui oblige Chromium �
 - **Niveau d'accent réglable** sur les cinq machines qui ont une piste d'accent : le bouton LEVEL de cette
   piste fixe la force des coups accentués au lieu de les pousser au maximum. La valeur par défaut redonne
   exactement le comportement précédent.
+
+## Roland CR-5000 CompuRhythm (version 45)
+
+Sixième machine de la liste, et une **boîte à présélections** : on ne programme rien, on choisit un des
+vingt-quatre rythmes — trois banques de huit — et on le sculpte. Même famille que les DRM16 et DRM32, mais
+avec de quoi intervenir sur ce qui joue.
+
+**L'arrangeur** est son idée maîtresse : six touches qui **ajoutent un instrument par-dessus** le rythme.
+Mesuré sur ROCK 1 en comptant les déclenchements : douze coups par mesure, vingt-huit avec HH-16,
+trente-six en ajoutant la conga.
+
+**Breaks** : INTRO/FILL IN sur la mesure en cours — dix-sept coups au lieu de douze, mesuré — et AUTO FILL
+toutes les deux à seize mesures. CRASH à la volée, SHUFFLE sur les temps pairs.
+
+Les vingt-quatre rythmes sont écrits un par un : WALTZ, SWING 1 et 2, S.ROCK, TANGO, HABANERA, ENKA, BD-4,
+les six ROCK, DISCO, FOX TROT, SAMBA 1 et 2, MERENGUE, MAMBO, CHACHA, RHUMBA, BEGUINE, BOSSANOVA. Les
+ternaires tournent en **douze pas** au lieu de seize, l'afficheur le rappelle.
+
+Dix voix de 1980, plus simples que celles de la 808. Six mesures mesurées avec la chaîne maîtresse :
+crêtes de 0,775 à 0,999, rien au-dessus de la pleine échelle.
+
+**Deux écarts assumés**, dits dans la notice : INTRO/FILL IN et AUTO FILL sont des potards sur l'appareil,
+ici des touches qui font défiler les valeurs ; et le bouton REGISTER, qui mémorise les réglages de
+l'arrangeur, est devenu le sélecteur d'AUTO FILL.
 
 ## Korg volca sample (version 44)
 
