@@ -1561,12 +1561,20 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
    le doigt pour ne pas gêner les jacks en dessous */
 #eur-cables{position:absolute;left:8px;top:9px;pointer-events:none;overflow:visible;z-index:6}
 .eur-piste{z-index:1}
-.eur-cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:5px;margin-top:8px;
-  max-height:150px;overflow-y:auto}
-.eur-cat button{padding:9px 4px;font-size:8px;text-align:left}
-.eur-cat button span{display:block;font-weight:400;font-size:7px;opacity:.72}
+/* Les libellés étaient à 8 px et les résumés à 7 : sur un téléphone, avec la
+   façade encore réduite par la mise à l'échelle, c'était indéchiffrable. On ne
+   choisit un module ou un montage qu'au début ou en changeant d'idée : autant
+   que ce moment-là soit confortable. Colonnes plus larges, texte plus grand,
+   et un cadre pour que le panneau se distingue du rack au-dessous. */
+.eur-cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:6px;
+  margin:0 0 9px;max-height:270px;overflow-y:auto;
+  padding:8px;border-radius:9px;background:#131317;border:1px solid #2a2a31}
+.eur-cat button{padding:10px 9px;font-size:11px;line-height:1.25;text-align:left;
+  letter-spacing:.6px;white-space:normal}
+.eur-cat button span{display:block;margin-top:3px;font-weight:400;font-size:9.5px;
+  line-height:1.35;letter-spacing:.2px;opacity:.68}
 .eur-fam{grid-column:1/-1;display:flex;gap:4px;flex-wrap:wrap;margin-bottom:2px}
-.eur-fam button{padding:7px 9px;font-size:7.5px}
+.eur-fam button{padding:8px 11px;font-size:9.5px}
 @media (max-width:780px){
   .eur-rack{min-height:210px}
   .eur-kn .bt{width:23px;height:23px}
@@ -2773,13 +2781,16 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     </div>
   </div>
 
+  <!-- Le catalogue vient AVANT le rack : on ne s'en sert qu'au début ou en
+       changeant d'idée, et tout en bas il fallait faire défiler la page pour
+       le voir, avec le rack qui le repoussait à mesure qu'il se remplissait. -->
+  <div class="eur-cat" id="eur-cat" style="display:none"></div>
+
   <div class="eur-rack" id="eur-rack">
     <svg id="eur-cables"></svg>
     <div class="eur-piste" id="eur-piste"></div>
   </div>
   <div class="eur-barre-h" id="eur-barre-h"><i></i></div>
-
-  <div class="eur-cat" id="eur-cat" style="display:none"></div>
 </div>
 
 
@@ -3652,7 +3663,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <li><b>RACK ▾</b> — quel meuble, et que met-on dessus. <b>RACK 1</b> ouvre la liste des huit racks, avec leur nom et leur
   contenu. <b>NOMMER</b> baptise celui en cours, jusqu'à vingt-deux caractères ; le bouton et l'afficheur
   montrent alors ce nom, et les confirmations aussi — on sait ce qu'on s'apprête à écraser.
-  <b>MONTAGES</b> ouvre les vingt patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
+  <b>MONTAGES</b> ouvre les vingt-quatre patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
   <b>EXEMPLE</b> remonte le patch de démonstration. <b>VIDER</b> repart d'un rack nu, après confirmation,
   et seul le rack courant est touché.</li>
   <li><b>PATCH ▾</b> — ce qu'on a monté dedans. <b>AJOUTER</b> ouvre le catalogue des quatre-vingt-neuf modules,
@@ -3679,6 +3690,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   rétrécir la façade, puis déplacez-la d'un doigt posé sur le châssis.</p>
 
   <h3>Vingt-quatre montages tout faits</h3>
+  <p>La liste s'ouvre <b>au-dessus du rack</b>, là où on la lit sans faire défiler la page.</p>
   <p>Un rack vide décourage : il faut connaître quatre-vingt-neuf modules et savoir lesquels vont ensemble avant
   d'entendre quoi que ce soit. <b>MONTAGES</b> donne des points de départ qui sonnent, rangés en cinq
   genres. Ils remplacent le rack courant — passez au rack suivant d'abord si vous tenez au vôtre.</p>
@@ -16878,7 +16890,7 @@ function majLcdEur(){
 /* ---------- catalogue ---------- */
 function eurCatalogue(){
   var c = document.getElementById("eur-cat");
-  if(c.style.display !== "none" && c.dataset.vue === "mod"){ c.style.display = "none"; return; }
+  if(c.style.display !== "none" && c.dataset.vue === "mod"){ montrerCat(c, false); return; }
   c.innerHTML = ""; c.dataset.vue = "mod";
   /* quatre-vingt-neuf modules en vrac seraient illisibles : on les range par
      familles, et l'onglet choisi décide de ce qu'on voit */
@@ -16888,7 +16900,7 @@ function eurCatalogue(){
     var b = document.createElement("button");
     b.textContent = f[1];
     b.className = (EUR.famille === f[0] || (!EUR.famille && f === EUR_FAM[0])) ? "on" : "";
-    b.addEventListener("click", function(){ EUR.famille = f[0]; c.style.display = "none"; eurCatalogue(); });
+    b.addEventListener("click", function(){ EUR.famille = f[0]; montrerCat(c, false); eurCatalogue(); });
     onglets.appendChild(b);
   });
   c.appendChild(onglets);
@@ -16907,7 +16919,7 @@ function eurCatalogue(){
     });
     c.appendChild(b);
   });
-  c.style.display = "grid";
+  montrerCat(c, true);
 }
 /* Huit racks au lieu d'un. Un vrai modulaire ne garde rien : on photographie
    son patch avant de le défaire. Ici RACK AU SORT et VIDER effaçaient le
@@ -16981,7 +16993,7 @@ function nommerRack(){
 /* La liste des huit, pour choisir sans les faire défiler un par un. */
 function listeRacks(){
   var c = document.getElementById("eur-cat");
-  if(c.style.display !== "none" && c.dataset.vue === "rack"){ c.style.display = "none"; return; }
+  if(c.style.display !== "none" && c.dataset.vue === "rack"){ montrerCat(c, false); return; }
   c.innerHTML = ""; c.dataset.vue = "rack";
   var m = memEurNormalise();
   for(var i=0;i<EUR_RACKS;i++){
@@ -16995,14 +17007,14 @@ function listeRacks(){
         (n === EUR.cur ? " · EN COURS" : "") + "</span>";
       if(n === EUR.cur) b.className = "on";
       b.addEventListener("click", function(){
-        c.style.display = "none";
+        montrerCat(c, false);
         if(n !== EUR.cur) changerRack(n);
         H.inter();
       });
       c.appendChild(b);
     })(i);
   }
-  c.style.display = "grid";
+  montrerCat(c, true);
 }
 function chargerEur(){
   var m = memEurNormalise();
@@ -17376,7 +17388,7 @@ function eurMonter(P){
 }
 function eurMontages(){
   var c = document.getElementById("eur-cat");
-  if(c.style.display !== "none" && c.dataset.vue === "mont"){ c.style.display = "none"; return; }
+  if(c.style.display !== "none" && c.dataset.vue === "mont"){ montrerCat(c, false); return; }
   c.innerHTML = ""; c.dataset.vue = "mont";
   var onglets = document.createElement("div");
   onglets.className = "eur-fam";
@@ -17385,7 +17397,7 @@ function eurMontages(){
     b.textContent = f[1];
     b.className = (EUR.montFam === f[0] || (!EUR.montFam && f === EUR_MONT_FAM[0])) ? "on" : "";
     b.addEventListener("click", function(){
-      EUR.montFam = f[0]; c.style.display = "none"; eurMontages();
+      EUR.montFam = f[0]; montrerCat(c, false); eurMontages();
     });
     onglets.appendChild(b);
   });
@@ -17401,13 +17413,13 @@ function eurMontages(){
                          (EUR.nom || ("RACK " + (EUR.cur + 1))) + " » ?\n\n" +
                          "Ce rack sera remplacé. Les sept autres ne sont pas touchés."))
         return;
-      c.style.display = "none";
+      montrerCat(c, false);
       eurMonter(P);
       H.inter();
     });
     c.appendChild(b);
   });
-  c.style.display = "grid";
+  montrerCat(c, true);
 }
 
 function eurHasard(){
@@ -17445,7 +17457,7 @@ function pleinEcran(oui){
   document.body.classList.toggle("plein", oui);
   if(oui) fermerTiroirsEur();
   var c = document.getElementById("eur-cat");
-  if(c) c.style.display = "none";
+  if(c) montrerCat(c, false);
   setTimeout(function(){ fit(); if(S.modele === "eur") eurCables(); }, 60);
 }
 document.getElementById("eur-plein").addEventListener("click", function(){
@@ -17506,6 +17518,17 @@ document.getElementById("sortir-plein").addEventListener("click", function(){
 
 /* Un seul tiroir ouvert à la fois : deux ouverts, et on retombe dans le
    fouillis qu'on vient d'enlever. Rouvrir le même le referme. */
+/* Depuis que le catalogue est AU-DESSUS du rack, l'ouvrir ou le fermer décale
+   tout ce qui suit : la façade change de hauteur et les câbles ne sont plus en
+   face de leurs prises. On passe donc toujours par ici. */
+function montrerCat(c, vu){
+  if(!c) return;
+  c.style.display = vu ? "grid" : "none";
+  setTimeout(function(){
+    fit(); eurCables();
+    if(window.eurMajBarre) window.eurMajBarre();
+  }, 40);
+}
 function fermerTiroirsEur(){
   ["rack","patch"].forEach(function(n){
     var g = document.getElementById("eur-grp-" + n), t = document.getElementById("eur-t-" + n);
@@ -17525,7 +17548,7 @@ function tiroirEur(nom){
   });
   /* le catalogue appartient au tiroir PATCH : il se referme avec lui */
   var c = document.getElementById("eur-cat");
-  if(c && !ouvert) c.style.display = "none";
+  if(c && !ouvert) montrerCat(c, false);
   /* la hauteur de la barre a changé : la façade et les câbles suivent */
   setTimeout(function(){ fit(); eurCables(); if(window.eurMajBarre) window.eurMajBarre(); }, 40);
 }

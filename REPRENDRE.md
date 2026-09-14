@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **85**.
+La version actuelle est la **86**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,22 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Catalogue au-dessus du rack — v86**
+
+`#eur-cat` était le dernier bloc de la façade, sous le rack **et** sous la barre de défilement : il fallait
+faire défiler la page pour le voir, et le rack le repoussait à mesure qu'il se remplissait. Or on ne s'en
+sert qu'au début ou en changeant d'idée. Il passe donc **juste sous les commandes**, avant le rack.
+
+Lisibilité : les libellés étaient à **8 px** et les résumés à **7**, sur une façade elle-même réduite par
+`fit()`. Passés à 11 et 9,5 px, colonnes de 148 px au lieu de 96, onglets de famille à 9,5 px, et un cadre
+pour distinguer le panneau du rack au-dessous.
+
+**Conséquence à ne pas rater** : le panneau étant maintenant **au-dessus**, l'ouvrir ou le fermer décale
+tout ce qui suit — la façade change de hauteur et les câbles ne sont plus en face de leurs prises. Les
+douze endroits qui touchaient `c.style.display` passent tous par **`montrerCat(c, vu)`**, qui rappelle
+`fit()`, `eurCables()` et `eurMajBarre()` après 40 ms. **Ne jamais écrire `c.style.display` directement** :
+vérifié, il n'en reste aucun hors de `montrerCat`.
 
 **La pause ne se mesure qu'à l'écran — v85**
 
