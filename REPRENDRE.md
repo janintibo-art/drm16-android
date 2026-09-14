@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **94**.
+La version actuelle est la **95**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,21 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**La bande noire de Nexus — v95**
+
+Signalé : en descendant tout en bas du cadre Nexus puis en remontant, une bande noire restait un instant.
+
+Cause : **une transformation CSS ne change pas la place occupée**. `ajusterNexus()` pose le cadre à 1180 px
+de large et `h / échelle` de haut, puis le réduit par `transform: scale()`. La hauteur de *mise en page*
+reste `h / échelle` — bien plus que la hauteur peinte — et la boîte se croyait donc défilable loin au-delà
+du contenu visible. Mesuré : en portrait 412 × 700, **1305 px de vide défilable**.
+
+`#nexus-boite{overflow:hidden}` suffit : le cadre est calculé pour remplir la boîte exactement, il n'y a
+rien à faire défiler à ce niveau. Nexus garde son propre défilement intérieur, à l'intérieur du cadre.
+
+**Ne pas appliquer la même chose à `#studio-boite`** : Studio n'est pas transformé, sa hauteur de travail
+de 760 px en paysage est réelle, et c'est bien la boîte qui doit défiler.
 
 **Démarrage et panneaux — v94**
 

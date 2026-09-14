@@ -201,6 +201,14 @@ body.m32 .read{color:#8fe8d8}
    réduit le cadre nous-mêmes. C'est exactement ce que le navigateur aurait
    fait de lui-même sur une page entière. */
 #nexus-cadre{transform-origin:top left}
+/* Une transformation ne change PAS la place occupée : le cadre garde sa hauteur
+   de mise en page (1180 px de large, donc très haut avant réduction) alors
+   qu'il n'est peint que sur la hauteur de la boîte. La boîte se croyait donc
+   défilable bien au-delà du contenu visible — d'où la bande noire qui restait
+   en bas puis disparaissait au repeint.
+   Le cadre étant calculé pour remplir la boîte exactement, il n'y a rien à
+   faire défiler ici : on coupe. Nexus garde son propre défilement intérieur. */
+#nexus-boite{overflow:hidden}
 #bib .note-bar b{color:#8ce3a0}
 #bib-nav{flex:none;display:flex;gap:6px;padding:9px 12px;background:#131316;border-bottom:1px solid #2c2c31}
 #bib #bib-nav button{flex:1;margin:0;padding:9px 6px;border:0;border-radius:20px;background:#2a2a30;
