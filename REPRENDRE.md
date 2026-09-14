@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **88**.
+La version actuelle est la **89**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,30 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Invités en paysage, et la machine d'archive — v89**
+
+*Deux défauts de mise en page, deux causes différentes.*
+- **NEXUS était coupé** : il déclare `<meta viewport content="width=1180">` et compte sur le navigateur
+  pour réduire. **Dans un cadre, cette déclaration est ignorée** — le contenu se dessinait à la largeur du
+  cadre et ses blocs à largeur minimale débordaient. `ajusterNexus()` refait le travail à la main : cadre
+  posé à 1180 px de large, hauteur calculée, puis `transform: scale()`. Rappelé à l'ouverture et sur
+  `resize`. Vérifié sur trois formats, le rendu remplit exactement la boîte.
+- **STUDIO ne défilait pas couché** : responsive, il tient debout, mais en paysage son en-tête mange toute
+  la hauteur et il ne reste rien à faire défiler. Hauteur de travail de 760 px en paysage, et c'est la
+  boîte `.invite-boite` qui défile.
+
+*Machine d'archive : de 8 à 128 motifs, plus un morceau.*
+- `ARCM_BANQUES` × `ARCM_PAR_BANQUE` = 8 × 16. Grille `#arcm-grille` ouverte par PTN.
+- **Mémoire éparse** : `memArcm` n'enregistre que les motifs non vides (`motifArcmVide`). Mesuré : deux
+  motifs remplis sur 128 tiennent en 3 Ko. **Ne pas revenir à un tableau plein** — 128 × 16 pistes
+  sérialisées feraient plusieurs centaines de kilo-octets pour presque rien.
+- **Trois formats lus** : v2 épars (`pleins`), ancien tableau de 8 (`motifs`), et rien du tout. Testé.
+- **Bascule en fin de mesure** : en lecture, toucher un pad remplit `ARCM.suivant` et `boucleArcm()`
+  applique le changement au tour suivant. À l'arrêt, chargement immédiat. C'est le comportement d'une
+  Electribe et il évite de couper la musique au milieu.
+- **Morceau** : `ARCM.chaine` est une suite d'index, `chainePos` avance d'une case par mesure et boucle.
+  Un même motif peut y figurer plusieurs fois. Enregistré avec le reste.
 
 **Deux projets invités dans le menu — v88**
 

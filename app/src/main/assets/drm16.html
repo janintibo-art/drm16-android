@@ -154,7 +154,25 @@ body.m32 .read{color:#8fe8d8}
    mégaoctet chacune concaténées dans une seule page se marcheraient dessus. */
 #studio .note-bar b{color:#c7a6ff}
 #nexus .note-bar b{color:#ffcf5c}
-.invite{flex:1;min-height:0;width:100%;border:0;display:block;background:#0b0b0d}
+/* Chaque invité a ses propres attentes de mise en page, et il faut les servir
+   séparément. */
+.invite-boite{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;background:#0b0b0d}
+.invite{width:100%;height:100%;border:0;display:block;background:#0b0b0d}
+
+/* STUDIO TIBO est responsive et tient debout en portrait. Couché, son en-tête
+   mange toute la hauteur disponible et il ne reste plus rien à faire défiler :
+   on lui donne donc une hauteur de travail et c'est la boîte qui défile. */
+@media (orientation:landscape){
+  #studio-cadre{height:760px}
+}
+
+/* NEXUS déclare une fenêtre de 1180 px de large et compte sur le navigateur
+   pour la réduire. Dans un cadre, cette déclaration est ignorée : il se
+   dessinait à la largeur du cadre, et ses blocs à largeur minimale débordaient
+   — d'où la partie coupée. On lui rend donc ses 1180 px pour de bon, et on
+   réduit le cadre nous-mêmes. C'est exactement ce que le navigateur aurait
+   fait de lui-même sur une page entière. */
+#nexus-cadre{transform-origin:top left}
 #bib .note-bar b{color:#8ce3a0}
 #bib-nav{flex:none;display:flex;gap:6px;padding:9px 12px;background:#131316;border-bottom:1px solid #2c2c31}
 #bib #bib-nav button{flex:1;margin:0;padding:9px 6px;border:0;border-radius:20px;background:#2a2a30;
@@ -1392,6 +1410,23 @@ body.arcm .t1kb{display:none}
   background:#8fe8b0}
 .arcm-kn em{display:block;margin-top:2px;font:700 7px/1.2 "Roboto Condensed",Arial;color:#9fc0ac;
   font-style:normal}
+/* La grille des motifs : huit banques de seize, comme sur une Electribe. Elle
+   ne s'ouvre qu'au besoin — pendant qu'on écrit un motif, elle ne sert pas. */
+.arcm-grille{display:none;margin-bottom:9px;padding:8px;border-radius:9px;
+  background:#131317;border:1px solid #2a2a31}
+.arcm-grille.vu{display:block}
+.arcm-banques{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:6px}
+.arcm-banques button{padding:8px 2px;font-size:9px}
+.arcm-pads{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.arcm-pads button{padding:11px 2px;font-size:9.5px;position:relative}
+/* trois états : vide, écrit, et le motif qui joue */
+.arcm-pads button.plein{background:#3a3a44;color:#fff}
+.arcm-pads button.on{background:var(--accent);color:#141014}
+.arcm-pads button.file{outline:2px solid var(--accent);outline-offset:-2px}
+.arcm-chaine{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:8px;
+  padding-top:8px;border-top:1px solid #26262d}
+.arcm-chaine b{flex:1;min-width:120px;font:700 9.5px/1.4 "Roboto Condensed",Arial;
+  letter-spacing:.8px;color:#9a9792}
 .arcm-sel{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:8px}
 .arcm-sel button{padding:9px 2px;font-size:7.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .arcm-sel button.vide{opacity:.4}
@@ -2859,11 +2894,23 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="arcm-accent">ACCENT</button>
     <button id="arcm-last">LAST 16</button>
     <button id="arcm-ptn">PTN 1</button>
+    <button id="arcm-song">MORCEAU</button>
     <button id="arcm-clear">CLEAR</button>
     <button id="arcm-kits">KITS</button>
     <button id="arcm-bib">BIBLIOTHÈQUE</button>
     <div class="arcm-kn" style="width:42px" id="arcm-k-tempo"><div class="bt">><i></i></div><em>TEMPO</em></div>
     <div class="arcm-kn" style="width:42px" id="arcm-k-vol"><div class="bt">><i></i></div><em>VOLUME</em></div>
+  </div>
+
+  <div class="arcm-grille" id="arcm-grille">
+    <div class="arcm-banques" id="arcm-banques"></div>
+    <div class="arcm-pads" id="arcm-pads"></div>
+    <div class="arcm-chaine">
+      <button id="arcm-ajouter">AJOUTER AU MORCEAU</button>
+      <button id="arcm-oter">ÔTER LE DERNIER</button>
+      <button id="arcm-vider-chaine">VIDER</button>
+      <b id="arcm-chaine-txt">MORCEAU VIDE</b>
+    </div>
   </div>
 
   <div class="arcm-sel" id="arcm-sel"></div>
@@ -3130,12 +3177,16 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
 <div id="studio">
   <div class="note-bar"><b>STUDIO TIBO</b><button id="studio-fermer">FERMER</button></div>
-  <iframe class="invite" id="studio-cadre" title="Studio Tibo"></iframe>
+  <div class="invite-boite" id="studio-boite">
+    <iframe class="invite" id="studio-cadre" title="Studio Tibo"></iframe>
+  </div>
 </div>
 
 <div id="nexus">
   <div class="note-bar"><b>NEXUS BEAT LAB</b><button id="nexus-fermer">FERMER</button></div>
-  <iframe class="invite" id="nexus-cadre" title="Nexus Beat Lab"></iframe>
+  <div class="invite-boite" id="nexus-boite">
+    <iframe class="invite" id="nexus-cadre" title="Nexus Beat Lab"></iframe>
+  </div>
 </div>
 
 <div id="bib">
@@ -3503,6 +3554,22 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   </div>
 
   <div class="doc" id="note-arcm" data-titre="MACHINE D'ARCHIVE">
+  <h3>Cent vingt-huit motifs et le morceau</h3>
+  <p>Le bouton <b>PTN</b> ouvre la grille : <b>huit banques de seize motifs</b>, soit cent vingt-huit en
+  tout. Un pad plus clair contient déjà quelque chose, le pad allumé est celui qui joue. C'est ce qui
+  change tout par rapport à un motif unique où l'on entassait tous les sons : on écrit des boucles courtes,
+  et on les assemble.</p>
+  <p>Pendant la <b>lecture</b>, toucher un motif le met en file — il prend la main à la <b>mesure
+  suivante</b>, jamais au milieu. À l'arrêt, il est chargé tout de suite. C'est la façon de faire d'une
+  Electribe, et elle permet de changer de partie en jouant sans casser le rythme.</p>
+  <p><b>MORCEAU</b> enchaîne les motifs. Choisissez un motif, touchez <b>AJOUTER AU MORCEAU</b>, répétez :
+  la suite s'affiche sous la grille. <b>MORCEAU</b> lance la lecture de cette suite, un motif par mesure,
+  et elle tourne en boucle. Un même motif peut y figurer plusieurs fois — c'est ainsi qu'on tient un refrain
+  sur quatre mesures. <b>ÔTER LE DERNIER</b> défait pas à pas, <b>VIDER</b> efface la suite sans toucher aux
+  motifs.</p>
+  <p>Tout est enregistré en continu, motifs et morceau compris. Seuls les motifs qui contiennent quelque
+  chose occupent de la place : cent vingt-huit emplacements ne coûtent rien tant qu'ils sont vides.</p>
+
   <h3>Quatre cent soixante-dix machines de plus</h3>
   <p>Celle-ci n'imite personne : elle prend les sons de n'importe quelle boîte à rythmes de la collection
   archive.org et en fait une machine jouable. Dans la bibliothèque, rayon <b>ARCHIVE</b>, le bouton
@@ -6000,7 +6067,24 @@ function ouvrirInvite(nom, source){
   if(!cadre.getAttribute("src")) cadre.setAttribute("src", source);
   panneau.classList.add("show");
   document.body.classList.add("note-ouverte");
+  if(nom === "nexus") setTimeout(ajusterNexus, 60);
 }
+/* On refait ici le travail que le navigateur fait pour une page entière quand
+   elle déclare une largeur de fenêtre : dessiner à 1180 px, puis réduire. */
+function ajusterNexus(){
+  var boite = document.getElementById("nexus-boite"), cadre = document.getElementById("nexus-cadre");
+  if(!boite || !cadre) return;
+  var L = 1180, dispo = boite.clientWidth, h = boite.clientHeight;
+  if(!dispo || !h) return;
+  var e = dispo / L;
+  cadre.style.width  = L + "px";
+  /* la hauteur en pixels de cadre qu'il faut pour remplir la boîte une fois réduite */
+  cadre.style.height = Math.round(h / e) + "px";
+  cadre.style.transform = "scale(" + e.toFixed(4) + ")";
+}
+window.addEventListener("resize", function(){
+  if(document.getElementById("nexus").classList.contains("show")) ajusterNexus();
+});
 function fermerInvite(nom){
   var panneau = document.getElementById(nom), cadre = document.getElementById(nom + "-cadre");
   panneau.classList.remove("show");
@@ -18100,8 +18184,24 @@ function motifArcm(){
   for(var i=0;i<16;i++) m.pistes.push(pisteArcm());
   return m;
 }
-var ARCM = {nom:"", motifs:[], cur:0, sel:0, accent:false, rec:false, pos:-1, noeuds:[], kits:[]};
-for(var amz=0; amz<8; amz++) ARCM.motifs.push(motifArcm());
+/* Huit motifs ne suffisaient pas pour construire un morceau : on refaisait
+   tout dans un seul, avec tous les sons dedans. Cent vingt-huit, rangés en
+   huit banques de seize, permettent d'écrire des boucles courtes et de les
+   enchaîner — c'est ainsi qu'on travaille sur une Electribe. */
+var ARCM_BANQUES = 8, ARCM_PAR_BANQUE = 16, ARCM_MOTIFS = ARCM_BANQUES * ARCM_PAR_BANQUE;
+var ARCM = {nom:"", motifs:[], cur:0, sel:0, accent:false, rec:false, pos:-1,
+            noeuds:[], kits:[], banque:0, suivant:-1,
+            chaine:[], chainePos:0, song:false};
+for(var amz=0; amz<ARCM_MOTIFS; amz++) ARCM.motifs.push(motifArcm());
+/* Un motif vide n'a rien à faire dans la mémoire : sur cent vingt-huit, la
+   plupart le resteront. On ne garde que ceux qui ont du contenu. */
+function motifArcmVide(m){
+  for(var i=0;i<m.pistes.length;i++){
+    var P = m.pistes[i];
+    if(P.pas || P.acc || P.ech) return false;
+  }
+  return true;
+}
 function motifArcmCur(){ return ARCM.motifs[ARCM.cur]; }
 function pisteArcmSel(){ return motifArcmCur().pistes[ARCM.sel]; }
 
@@ -18173,7 +18273,20 @@ function arretArcm(){
   var b = document.getElementById("arcm-play");
   if(b) b.classList.remove("on");
 }
-function boucleArcm(){ }
+function boucleArcm(){
+  /* Comme sur une Electribe : on choisit le motif suivant pendant que ça joue,
+     et il prend la main à la fin de la mesure, pas au milieu. */
+  if(ARCM.song && ARCM.chaine.length){
+    ARCM.chainePos = (ARCM.chainePos + 1) % ARCM.chaine.length;
+    ARCM.suivant = ARCM.chaine[ARCM.chainePos];
+  }
+  if(ARCM.suivant >= 0 && ARCM.suivant !== ARCM.cur){
+    ARCM.cur = ARCM.suivant;
+    majArcm(); majKnobsArcm();
+  }
+  ARCM.suivant = -1;
+  majGrilleArcm();
+}
 var MACHINE_ARCM = {schedule:scheduleArcm, beat:beatArcm, arret:arretArcm, boucle:boucleArcm,
                     longueur:function(){ return motifArcmCur().last; }};
 
@@ -18381,33 +18494,44 @@ function majArcm(){
   majLcdArcm();
 }
 function memArcm(){
-  memoire.arcm = {nom:ARCM.nom, cur:ARCM.cur, sel:ARCM.sel,
-    motifs:ARCM.motifs.map(function(m){
-      return {last:m.last, pistes:m.pistes.map(function(P){
-        return {ech:P.ech, nom:P.nom, pas:P.pas, acc:P.acc, niv:P.niv, pan:P.pan,
-                tune:P.tune, dec:P.dec, debut:P.debut, filt:P.filt};
-      })};
-    })};
+  var pleins = [];
+  ARCM.motifs.forEach(function(m, i){
+    if(motifArcmVide(m)) return;
+    pleins.push({i:i, last:m.last, pistes:m.pistes.map(function(P){
+      return {ech:P.ech, nom:P.nom, pas:P.pas, acc:P.acc, niv:P.niv, pan:P.pan,
+              tune:P.tune, dec:P.dec, debut:P.debut, filt:P.filt};
+    })});
+  });
+  memoire.arcm = {nom:ARCM.nom, cur:ARCM.cur, sel:ARCM.sel, banque:ARCM.banque,
+                  v:2, pleins:pleins, chaine:ARCM.chaine};
   sauverMachine("arcm");
 }
 function chargerArcm(){
   ARCM.motifs = [];
-  for(var i=0;i<8;i++) ARCM.motifs.push(motifArcm());
-  ARCM.nom = ""; ARCM.cur = 0; ARCM.sel = 0;
+  for(var i=0;i<ARCM_MOTIFS;i++) ARCM.motifs.push(motifArcm());
+  ARCM.nom = ""; ARCM.cur = 0; ARCM.sel = 0; ARCM.banque = 0; ARCM.suivant = -1;
   var m = memLire("arcm");
   if(m){
     if(m.nom) ARCM.nom = m.nom;
-    if(m.motifs && m.motifs.length === 8){
-      ARCM.motifs = m.motifs.map(function(o){
-        var r = motifArcm();
-        r.last = o.last || 16;
-        (o.pistes || []).forEach(function(P, k){
-          if(k >= 16) return;
-          for(var q in P) if(r.pistes[k][q] !== undefined) r.pistes[k][q] = P[q];
-        });
-        return r;
+    function poserMotif(r, o){
+      r.last = o.last || 16;
+      (o.pistes || []).forEach(function(P, k){
+        if(k >= 16) return;
+        for(var q in P) if(r.pistes[k][q] !== undefined) r.pistes[k][q] = P[q];
       });
     }
+    if(m.pleins){                       /* format à motifs épars, v2 */
+      m.pleins.forEach(function(o){
+        if(typeof o.i === "number" && o.i < ARCM_MOTIFS) poserMotif(ARCM.motifs[o.i], o);
+      });
+    } else if(m.motifs){                /* ancien format : huit motifs d'affilée */
+      m.motifs.forEach(function(o, i){
+        if(i < ARCM_MOTIFS) poserMotif(ARCM.motifs[i], o);
+      });
+    }
+    if(typeof m.banque === "number") ARCM.banque = Math.max(0, Math.min(ARCM_BANQUES - 1, m.banque));
+    if(m.chaine && m.chaine.length)
+      ARCM.chaine = m.chaine.filter(function(x){ return typeof x === "number" && x >= 0 && x < ARCM_MOTIFS; });
     if(typeof m.cur === "number") ARCM.cur = m.cur;
     if(typeof m.sel === "number") ARCM.sel = m.sel;
   }
@@ -18425,10 +18549,88 @@ document.getElementById("arcm-last").addEventListener("click", function(){
   m.last = v[(v.indexOf(m.last) + 1) % v.length];
   majArcm(); memArcm(); H.cran();
 });
+/* ---------- grille des motifs et morceau ----------
+   Un morceau, ici, est simplement une suite de numéros de motifs. On l'écrit
+   en ajoutant les motifs un par un, et la lecture passe au suivant à chaque
+   fin de mesure. C'est la façon de faire d'une Electribe, et elle suffit à
+   monter un titre entier sans quitter la machine. */
+function majGrilleArcm(){
+  var bq = document.getElementById("arcm-banques"), pads = document.getElementById("arcm-pads");
+  if(!bq || !pads) return;
+  if(!bq.childNodes.length){
+    for(var b=0; b<ARCM_BANQUES; b++) (function(n){
+      var e = document.createElement("button");
+      e.textContent = String.fromCharCode(65 + n);
+      e.addEventListener("click", function(){ ARCM.banque = n; majGrilleArcm(); H.cran(); });
+      bq.appendChild(e);
+    })(b);
+    for(var k=0; k<ARCM_PAR_BANQUE; k++) (function(n){
+      var e = document.createElement("button");
+      e.addEventListener("click", function(){
+        var i = ARCM.banque * ARCM_PAR_BANQUE + n;
+        if(S.run){
+          /* en lecture, on met en file : le motif prend la main à la mesure
+             suivante, sinon on couperait la musique au milieu */
+          ARCM.suivant = i;
+          lcdArcm("MOTIF " + (i + 1), "À LA MESURE SUIVANTE", true);
+        } else {
+          memArcm(); ARCM.cur = i; ARCM.suivant = -1;
+          majArcm(); majKnobsArcm();
+        }
+        majGrilleArcm(); H.inter();
+      });
+      pads.appendChild(e);
+    })(k);
+  }
+  var bs = bq.childNodes;
+  for(var i=0;i<bs.length;i++) bs[i].classList.toggle("on", i === ARCM.banque);
+  var ps = pads.childNodes;
+  for(i=0;i<ps.length;i++){
+    var idx = ARCM.banque * ARCM_PAR_BANQUE + i;
+    ps[i].textContent = String(idx + 1);
+    ps[i].classList.toggle("plein", !motifArcmVide(ARCM.motifs[idx]));
+    ps[i].classList.toggle("on", idx === ARCM.cur);
+    ps[i].classList.toggle("file", idx === ARCM.suivant && idx !== ARCM.cur);
+  }
+  var t = document.getElementById("arcm-chaine-txt");
+  if(t) t.textContent = ARCM.chaine.length
+    ? ("MORCEAU : " + ARCM.chaine.map(function(x){ return x + 1; }).join(" · ") +
+       (ARCM.song ? "  ▶ " + (ARCM.chainePos + 1) + "/" + ARCM.chaine.length : ""))
+    : "MORCEAU VIDE · AJOUTEZ DES MOTIFS";
+  var b2 = document.getElementById("arcm-song");
+  if(b2) b2.classList.toggle("on", ARCM.song);
+}
 document.getElementById("arcm-ptn").addEventListener("click", function(){
-  memArcm();
-  ARCM.cur = (ARCM.cur + 1) % 8;
-  majArcm(); majKnobsArcm(); H.inter();
+  var g = document.getElementById("arcm-grille");
+  g.classList.toggle("vu");
+  majGrilleArcm(); fit(); H.cran();
+});
+document.getElementById("arcm-song").addEventListener("click", function(){
+  if(!ARCM.chaine.length){ signal("LE MORCEAU EST VIDE"); return; }
+  ARCM.song = !ARCM.song;
+  if(ARCM.song){
+    ARCM.chainePos = 0;
+    ARCM.suivant = ARCM.chaine[0];
+    if(!S.run){ memArcm(); ARCM.cur = ARCM.chaine[0]; ARCM.suivant = -1; majArcm(); majKnobsArcm(); }
+  }
+  majGrilleArcm(); majArcm(); H.inter();
+  signal(ARCM.song ? "MORCEAU EN LECTURE" : "RETOUR AU MOTIF SEUL");
+});
+document.getElementById("arcm-ajouter").addEventListener("click", function(){
+  if(ARCM.chaine.length >= 128){ signal("MORCEAU COMPLET"); return; }
+  ARCM.chaine.push(ARCM.cur);
+  memArcm(); majGrilleArcm(); H.cran();
+});
+document.getElementById("arcm-oter").addEventListener("click", function(){
+  ARCM.chaine.pop();
+  if(ARCM.chainePos >= ARCM.chaine.length) ARCM.chainePos = 0;
+  if(!ARCM.chaine.length) ARCM.song = false;
+  memArcm(); majGrilleArcm(); H.cran();
+});
+document.getElementById("arcm-vider-chaine").addEventListener("click", function(){
+  if(ARCM.chaine.length && !window.confirm("Vider le morceau ?\n\nLes motifs eux-mêmes sont conservés.")) return;
+  ARCM.chaine = []; ARCM.chainePos = 0; ARCM.song = false;
+  memArcm(); majGrilleArcm(); H.inter();
 });
 document.getElementById("arcm-clear").addEventListener("click", function(){
   var P = pisteArcmSel();
