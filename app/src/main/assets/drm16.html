@@ -2892,6 +2892,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="arcm-play" style="padding:12px 16px">PLAY</button>
     <button id="arcm-rec">● REC</button>
     <button id="arcm-accent">ACCENT</button>
+    <button id="arcm-rev">◀ ENVERS</button>
     <button id="arcm-last">LAST 16</button>
     <button id="arcm-ptn">PTN 1</button>
     <button id="arcm-song">MORCEAU</button>
@@ -2922,6 +2923,14 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <div class="arcm-kn" id="arcm-k-dec"><div class="bt">><i></i></div><em>DECAY</em></div>
     <div class="arcm-kn" id="arcm-k-debut"><div class="bt">><i></i></div><em>START</em></div>
     <div class="arcm-kn" id="arcm-k-filt"><div class="bt">><i></i></div><em>FILTER</em></div>
+    <div class="arcm-kn" id="arcm-k-reso"><div class="bt">><i></i></div><em>RESO</em></div>
+    <div class="arcm-kn" id="arcm-k-ftype"><div class="bt">><i></i></div><em>TYPE</em></div>
+    <div class="arcm-kn" id="arcm-k-fin"><div class="bt">><i></i></div><em>END</em></div>
+    <div class="arcm-kn" id="arcm-k-drive"><div class="bt">><i></i></div><em>DRIVE</em></div>
+    <div class="arcm-kn" id="arcm-k-envoi"><div class="bt">><i></i></div><em>SEND</em></div>
+    <div class="arcm-kn" id="arcm-k-swing"><div class="bt">><i></i></div><em>SWING</em></div>
+    <div class="arcm-kn" id="arcm-k-echo"><div class="bt">><i></i></div><em>ECHO</em></div>
+    <div class="arcm-kn" id="arcm-k-verb"><div class="bt">><i></i></div><em>REVERB</em></div>
   </div>
 
   <div class="arcm-pas" id="arcm-pas"></div>
@@ -3554,6 +3563,27 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   </div>
 
   <div class="doc" id="note-arcm" data-titre="MACHINE D'ARCHIVE">
+  <h3>Travailler le son</h3>
+  <p>Chaque piste a ses réglages, indépendants des quinze autres. Les six premiers existaient déjà :
+  <b>LEVEL</b>, <b>PAN</b>, <b>TUNE</b>, <b>DECAY</b>, <b>START</b> et <b>FILTER</b>. S'y ajoutent :</p>
+  <ul>
+  <li><b>END</b> — avec START, il découpe le son. C'est ce qui permet de ne garder qu'une syllabe d'une
+  voix ou qu'un coup dans une boucle, sans passer par un éditeur.</li>
+  <li><b>RESO</b> — la résonance du filtre. Poussée, elle siffle juste avant la coupure et transforme le
+  filtre en instrument.</li>
+  <li><b>TYPE</b> — trois filtres en un potard : passe-bas, passe-bande, passe-haut. Le type change le son
+  bien plus qu'une coupure : un passe-haut sur une grosse caisse en fait une percussion sèche.</li>
+  <li><b>DRIVE</b> — saturation. Le niveau est rattrapé automatiquement, saturer fort remontant beaucoup
+  le volume.</li>
+  <li><b>SEND</b> — le départ vers l'écho et la réverbération, partagés par les seize pistes.</li>
+  <li><b>◀ ENVERS</b> — lit le son à l'envers. Sur une cymbale ou une voix, c'est le geste le plus rapide
+  pour obtenir quelque chose qu'on n'avait pas.</li>
+  </ul>
+  <p>Trois réglages valent pour la machine entière : <b>SWING</b>, qui retarde un pas sur deux — sans lui
+  un motif écrit à la grille reste raide quoi qu'on y mette —, puis <b>ECHO</b> et <b>REVERB</b>, qui
+  dosent les deux effets communs. Communs et non par piste : seize réverbérations séparées coûteraient
+  seize fois plus cher pour un résultat moins tenu, c'est aussi le choix qu'on fait sur une console.</p>
+
   <h3>Cent vingt-huit motifs et le morceau</h3>
   <p>Le bouton <b>PTN</b> ouvre la grille : <b>huit banques de seize motifs</b>, soit cent vingt-huit en
   tout. Un pad plus clair contient déjà quelque chose, le pad allumé est celui qui joue. C'est ce qui
@@ -18177,7 +18207,14 @@ var ARCM_ROLES = [
   {n:"FX",    re:/./}
 ];
 function pisteArcm(){
-  return {ech:"", nom:"", pas:0, acc:0, niv:0.8, pan:0, tune:0.5, dec:0.8, debut:0, filt:1};
+  return {ech:"", nom:"", pas:0, acc:0, niv:0.8, pan:0, tune:0.5, dec:0.8, debut:0, filt:1,
+          /* ajoutés en v90 : de quoi travailler le son sans quitter la machine */
+          fin:1,        /* point de fin, pour découper avec DEBUT              */
+          reso:0,       /* résonance du filtre                                  */
+          ftype:0,      /* passe-bas, passe-bande, passe-haut                    */
+          drive:0,      /* saturation                                            */
+          envoi:0,      /* départ vers écho et réverbération                     */
+          rev:false};   /* lecture à l'envers                                    */
 }
 function motifArcm(){
   var m = {pistes:[], last:16};
@@ -18191,20 +18228,71 @@ function motifArcm(){
 var ARCM_BANQUES = 8, ARCM_PAR_BANQUE = 16, ARCM_MOTIFS = ARCM_BANQUES * ARCM_PAR_BANQUE;
 var ARCM = {nom:"", motifs:[], cur:0, sel:0, accent:false, rec:false, pos:-1,
             noeuds:[], kits:[], banque:0, suivant:-1,
-            chaine:[], chainePos:0, song:false};
+            chaine:[], chainePos:0, song:false,
+            swing:0, echo:0.35, verb:0.4, fx:null, inv:null, courbes:null};
 for(var amz=0; amz<ARCM_MOTIFS; amz++) ARCM.motifs.push(motifArcm());
 /* Un motif vide n'a rien à faire dans la mémoire : sur cent vingt-huit, la
    plupart le resteront. On ne garde que ceux qui ont du contenu. */
 function motifArcmVide(m){
   for(var i=0;i<m.pistes.length;i++){
     var P = m.pistes[i];
-    if(P.pas || P.acc || P.ech) return false;
+    if(P.pas || P.acc || P.ech) return false;   /* les réglages seuls ne comptent pas */
   }
   return true;
 }
 function motifArcmCur(){ return ARCM.motifs[ARCM.cur]; }
 function pisteArcmSel(){ return motifArcmCur().pistes[ARCM.sel]; }
 
+/* Un départ d'effets commun : c'est ce qui manque le plus à un sampler sec.
+   Chaque piste y envoie ce qu'elle veut, l'écho et la réverbération sont
+   partagés — comme sur une vraie console, et pour la même raison : seize
+   réverbérations séparées coûteraient seize fois plus cher pour un résultat
+   moins cohérent. */
+function fxArcm(){
+  if(ARCM.fx) return ARCM.fx;
+  var e = ctx.createGain();
+  var d = ctx.createDelay(1.5), fb = ctx.createGain();
+  d.delayTime.value = 0.28; fb.gain.value = 0.35;
+  var c = ctx.createConvolver(), n = Math.floor(ctx.sampleRate * 1.6);
+  var b = ctx.createBuffer(2, n, ctx.sampleRate);
+  for(var ch=0; ch<2; ch++){
+    var q = b.getChannelData(ch);
+    for(var i=0;i<n;i++) q[i] = (Math.random()*2-1) * Math.pow(1 - i/n, 2.6);
+  }
+  c.buffer = b;
+  var gd = ctx.createGain(), gv = ctx.createGain();
+  gd.gain.value = 0.5; gv.gain.value = 0.4;
+  e.connect(d); d.connect(fb); fb.connect(d); d.connect(gd); gd.connect(master);
+  e.connect(c); c.connect(gv); gv.connect(master);
+  ARCM.fx = {e:e, d:d, fb:fb, gd:gd, gv:gv};
+  return ARCM.fx;
+}
+/* Un tampon lu à l'envers : on le fabrique une fois et on le garde. */
+function bufArcmInverse(nom, buf){
+  if(!ARCM.inv) ARCM.inv = {};
+  if(ARCM.inv[nom]) return ARCM.inv[nom];
+  var r = ctx.createBuffer(buf.numberOfChannels, buf.length, buf.sampleRate);
+  for(var c=0; c<buf.numberOfChannels; c++){
+    var src = buf.getChannelData(c), dst = r.getChannelData(c), n = buf.length;
+    for(var i=0;i<n;i++) dst[i] = src[n - 1 - i];
+  }
+  ARCM.inv[nom] = r;
+  return r;
+}
+/* Les courbes de saturation sont chères à construire : on les range par
+   crans, huit suffisent pour que le potard paraisse continu. */
+function courbeArcm(d){
+  if(!ARCM.courbes) ARCM.courbes = {};
+  var cran = Math.max(0, Math.min(8, Math.round(d * 8)));
+  if(ARCM.courbes[cran]) return ARCM.courbes[cran];
+  var n = 1024, c = new Float32Array(n), k = 1 + cran * 7;
+  for(var i=0;i<n;i++){
+    var x = i * 2 / n - 1;
+    c[i] = Math.tanh(x * k) / Math.tanh(k);
+  }
+  ARCM.courbes[cran] = c;
+  return c;
+}
 function sortieArcm(k){
   if(!ARCM.noeuds[k]){
     var g = ctx.createGain(), p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
@@ -18223,19 +18311,44 @@ function voixArcm(t, k, acc){
   n.g.gain.setValueAtTime(1, t);
   if(n.p) n.p.pan.setValueAtTime(P.pan, t);
   var src = ctx.createBufferSource();
-  src.buffer = buf;
+  /* à l'envers : le tampon retourné, le reste du calcul ne change pas */
+  src.buffer = P.rev ? bufArcmInverse(P.ech, buf) : buf;
   src.playbackRate.value = Math.pow(2, (P.tune - 0.5) * 2);
-  var f = ctx.createBiquadFilter(); f.type = "lowpass";
+  var f = ctx.createBiquadFilter();
+  /* trois filtres en un seul potard : le type change tout plus qu'une coupure */
+  var ty = Math.min(2, Math.round((P.ftype || 0) * 2));
+  f.type = ty === 0 ? "lowpass" : (ty === 1 ? "bandpass" : "highpass");
   f.frequency.value = Math.min(19000, 160 * Math.pow(115, P.filt));
+  f.Q.value = 0.7 + (P.reso || 0) * 18;
   var g = ctx.createGain();
+  /* DEBUT et FIN découpent le tampon : c'est ce qui permet de ne garder qu'un
+     morceau d'un son, sans passer par un éditeur. */
+  var fin = (typeof P.fin === "number") ? P.fin : 1;
   var dep = P.debut * buf.duration * 0.9;
-  var duree = Math.max(0.03, ((buf.duration - dep) / src.playbackRate.value) * Math.max(0.05, P.dec));
+  var stop = Math.max(dep + 0.02, fin * buf.duration);
+  var dispo = Math.max(0.02, stop - dep);
+  var duree = Math.max(0.03, (dispo / src.playbackRate.value) * Math.max(0.05, P.dec));
   var pic = mv("niv", P.niv) * (acc ? 1 : 0.68);
   g.gain.setValueAtTime(0.0001, t);
   g.gain.linearRampToValueAtTime(pic, t + 0.002);
   g.gain.setValueAtTime(pic, t + Math.max(0.005, duree - 0.02));
   g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.02, duree));
-  src.connect(f); f.connect(g); g.connect(n.g);
+  var apres = g;
+  if(P.drive > 0.02){
+    var sat = ctx.createWaveShaper();
+    sat.curve = courbeArcm(P.drive); sat.oversample = "2x";
+    var rattrape = ctx.createGain();
+    rattrape.gain.value = 1 - P.drive * 0.45;   /* saturer remonte le niveau */
+    g.connect(sat); sat.connect(rattrape);
+    apres = rattrape;
+  }
+  src.connect(f); f.connect(g);
+  apres.connect(n.g);
+  if(P.envoi > 0.02){
+    var env = ctx.createGain();
+    env.gain.value = P.envoi * 0.9;
+    apres.connect(env); env.connect(fxArcm().e);
+  }
   src.start(t, Math.min(dep, Math.max(0, buf.duration - 0.01)));
   src.stop(t + duree + 0.05);
   midiNoteA(MIDI.base + k, t, acc ? 1 : 0.7, MIDI.canal, duree);
@@ -18257,8 +18370,11 @@ function frapperArcm(k, acc){
 function scheduleArcm(i, t){
   var m = motifArcmCur();
   if(i >= m.last) return;
+  /* Le swing retarde un pas sur deux. Sans lui, un motif écrit à la grille
+     reste raide quoi qu'on y mette. */
+  var dt = (i % 2 === 1) ? ARCM.swing * 0.42 * stepDur() : 0;
   for(var k=0;k<16;k++){
-    if(m.pistes[k].pas & (1 << i)) voixArcm(t, k, !!(m.pistes[k].acc & (1 << i)));
+    if(m.pistes[k].pas & (1 << i)) voixArcm(t + dt, k, !!(m.pistes[k].acc & (1 << i)));
   }
   if(!cache) queue.push({i:i, t:t});
 }
@@ -18445,10 +18561,34 @@ function knobArcm(nom, etiq, min, max){
       memArcm();
     }});
 }
+/* Trois potards ne règlent pas la piste mais la machine entière : ils ont
+   donc leur propre fabrique, sans quoi ils suivraient la piste choisie. */
+function knobArcmGlobal(nom, etiq, appliquer){
+  return knobEm("arcm-k-" + nom, {min:0, max:1,
+    get:function(){ return ARCM[nom]; },
+    set:function(v){
+      ARCM[nom] = v;
+      if(appliquer) appliquer(v);
+      lcdArcm(String(Math.round(v * 100)), etiq, true);
+      memArcm();
+    }});
+}
 var kArcmNiv = knobArcm("niv", "LEVEL", 0, 1);
 var kArcmPan = knobArcm("pan", "PAN", -1, 1);
 var kArcmTune = knobArcm("tune", "TUNE", 0, 1);
 var kArcmDec = knobArcm("dec", "DECAY", 0.05, 1);
+var kArcmFin = knobArcm("fin", "END", 0.05, 1);
+var kArcmReso = knobArcm("reso", "RESO", 0, 1);
+var kArcmFtype = knobArcm("ftype", "TYPE", 0, 1);
+var kArcmDrive = knobArcm("drive", "DRIVE", 0, 1);
+var kArcmEnvoi = knobArcm("envoi", "SEND", 0, 1);
+var kArcmSwing = knobArcmGlobal("swing", "SWING");
+var kArcmEcho = knobArcmGlobal("echo", "ECHO", function(v){
+  if(ARCM.fx){ ARCM.fx.gd.gain.value = v; ARCM.fx.fb.gain.value = 0.15 + v * 0.45; }
+});
+var kArcmVerb = knobArcmGlobal("verb", "REVERB", function(v){
+  if(ARCM.fx) ARCM.fx.gv.gain.value = v;
+});
 var kArcmDebut = knobArcm("debut", "START", 0, 1);
 var kArcmFilt = knobArcm("filt", "FILTER", 0, 1);
 var kArcmVol = knobEm("arcm-k-vol", {min:0, max:1, get:function(){ return S.vol; },
@@ -18457,8 +18597,12 @@ var kArcmVol = knobEm("arcm-k-vol", {min:0, max:1, get:function(){ return S.vol;
 var kArcmTempo = knobEm("arcm-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 40) / 220; },
   set:function(v){ S.bpm = Math.round(40 + v*220); lcdArcm(String(S.bpm), "TEMPO", true); saveSoon(); }});
 function majKnobsArcm(){
-  [kArcmNiv, kArcmPan, kArcmTune, kArcmDec, kArcmDebut, kArcmFilt, kArcmVol, kArcmTempo]
+  [kArcmNiv, kArcmPan, kArcmTune, kArcmDec, kArcmDebut, kArcmFilt,
+   kArcmFin, kArcmReso, kArcmFtype, kArcmDrive, kArcmEnvoi,
+   kArcmSwing, kArcmEcho, kArcmVerb, kArcmVol, kArcmTempo]
     .forEach(function(k){ k.maj(); });
+  var b = document.getElementById("arcm-rev");
+  if(b) b.classList.toggle("on", !!pisteArcmSel().rev);
 }
 var arcmTmr = null;
 function lcdArcm(v, l, fugace){
@@ -18499,11 +18643,14 @@ function memArcm(){
     if(motifArcmVide(m)) return;
     pleins.push({i:i, last:m.last, pistes:m.pistes.map(function(P){
       return {ech:P.ech, nom:P.nom, pas:P.pas, acc:P.acc, niv:P.niv, pan:P.pan,
-              tune:P.tune, dec:P.dec, debut:P.debut, filt:P.filt};
+              tune:P.tune, dec:P.dec, debut:P.debut, filt:P.filt,
+              fin:P.fin, reso:P.reso, ftype:P.ftype, drive:P.drive,
+              envoi:P.envoi, rev:P.rev};
     })});
   });
   memoire.arcm = {nom:ARCM.nom, cur:ARCM.cur, sel:ARCM.sel, banque:ARCM.banque,
-                  v:2, pleins:pleins, chaine:ARCM.chaine};
+                  v:2, pleins:pleins, chaine:ARCM.chaine,
+                  swing:ARCM.swing, echo:ARCM.echo, verb:ARCM.verb};
   sauverMachine("arcm");
 }
 function chargerArcm(){
@@ -18530,6 +18677,9 @@ function chargerArcm(){
       });
     }
     if(typeof m.banque === "number") ARCM.banque = Math.max(0, Math.min(ARCM_BANQUES - 1, m.banque));
+    ["swing","echo","verb"].forEach(function(q){
+      if(typeof m[q] === "number") ARCM[q] = m[q];
+    });
     if(m.chaine && m.chaine.length)
       ARCM.chaine = m.chaine.filter(function(x){ return typeof x === "number" && x >= 0 && x < ARCM_MOTIFS; });
     if(typeof m.cur === "number") ARCM.cur = m.cur;
@@ -18604,6 +18754,12 @@ document.getElementById("arcm-ptn").addEventListener("click", function(){
   var g = document.getElementById("arcm-grille");
   g.classList.toggle("vu");
   majGrilleArcm(); fit(); H.cran();
+});
+document.getElementById("arcm-rev").addEventListener("click", function(){
+  var P = pisteArcmSel();
+  P.rev = !P.rev;
+  majKnobsArcm(); memArcm(); H.inter();
+  lcdArcm(P.rev ? "À L'ENVERS" : "À L'ENDROIT", P.nom || "PISTE " + (ARCM.sel + 1), true);
 });
 document.getElementById("arcm-song").addEventListener("click", function(){
   if(!ARCM.chaine.length){ signal("LE MORCEAU EST VIDE"); return; }
