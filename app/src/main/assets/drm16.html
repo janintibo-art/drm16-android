@@ -165,6 +165,15 @@ body.m32 .read{color:#8fe8d8}
   border:1px solid #2a2a31;font-size:13.5px;line-height:1.5;color:#b9b5ae}
 .syro-pas{margin:16px 0 0;padding-left:20px;font-size:13.5px;line-height:1.6;color:#9a9792}
 .syro-pas li{margin-bottom:7px}
+/* La vue qui défile : une bande par canal reçu, le temps de gauche à droite.
+   C'est ce qui manquait pour enregistrer un live — on ne voyait rien arriver. */
+#enr-vue{width:100%;height:auto;display:block;border-radius:9px;background:#0a0a0c;
+  border:1px solid #2a2a31;margin-bottom:10px}
+.enr-canal{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.enr-canal b{flex:none;width:74px;font:800 11px/1.3 "Roboto Condensed",Arial;letter-spacing:1px}
+.enr-canal select{flex:1;min-width:0;padding:8px;border-radius:6px;border:1px solid #3a3a42;
+  background:#1b1b1f;color:#e8e6e4;font-size:13px}
+.enr-canal i{flex:none;width:12px;height:12px;border-radius:3px}
 .syro-mot{display:none;padding:16px;border-radius:9px;background:#2a1a16;border:1px solid #5a3a2a;
   font-size:14px;line-height:1.6;color:#e8c6b4}
 #table .note-bar b{color:#7fd4ff}
@@ -3367,15 +3376,32 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <div class="note-corps">
     <div class="doc vu" style="max-width:620px">
       <h3>Comment ça marche</h3>
-      <p>Branchez la carte USB-C vers MIDI, reliez la <b>sortie MIDI de la Korg</b> à l'entrée de la carte,
-      puis cherchez l'appareil dans la notice, onglet Général. Jouez sur la Korg : ses notes déclenchent les
-      parties de la machine choisie ci-dessous, <b>le son sort du téléphone</b>, et tout ce qui arrive est daté.</p>
+      <p>Branchez la carte USB-C vers MIDI, reliez la <b>sortie MIDI</b> de vos machines à l'entrée de la
+      carte, puis cherchez l'appareil dans la notice, onglet Général. Jouez : les notes reçues déclenchent
+      les sons, <b>tout sort du téléphone</b>, et tout ce qui arrive est daté.</p>
+      <p><b>Toutes les sources sont enregistrées en même temps</b>, chacune sur son canal. Une boîte à
+      rythmes sur le canal 10, une basse sur le canal 2, un clavier sur le 1 : les trois arrivent ensemble,
+      la vue les montre côte à côte, et chacune peut jouer une machine différente. De quoi enregistrer un
+      live entier avec le téléphone pour seul matériel.</p>
       <p>La relecture repasse par le même chemin : même machine, mêmes sons, même rythme. Chaque prise s'écrit
       en <b>fichier .mid de type 1</b> : une piste par son, chacune portant le nom de la partie — un
       séquenceur les ouvre déjà triées au lieu d'un tas unique à démêler.</p>
 
-      <h3>Machine qui fait le son</h3>
-      <p><select id="enr-machine"></select></p>
+      <h3>Ce qui arrive</h3>
+      <p>Une bande par canal reçu, le temps de gauche à droite. Pendant l'enregistrement la vue défile sur
+      les huit dernières secondes, avec un trait orange qui marque l'instant présent ; à l'arrêt, elle montre
+      la prise entière. Chaque note est un trait : sa position dans la bande donne sa hauteur, son intensité
+      donne sa vélocité.</p>
+      <canvas id="enr-vue" width="900" height="240"></canvas>
+      <p id="enr-legende" style="opacity:.75;font-size:13px">Rien reçu pour le moment.</p>
+
+      <h3>Aiguillage des canaux</h3>
+      <p style="opacity:.85">Chaque canal MIDI reçu apparaît ici et peut jouer sa propre machine. Une boîte
+      à rythmes sur un canal, une basse sur un autre : tout sort du téléphone, chacune avec sa voix.</p>
+      <div id="enr-canaux"></div>
+
+      <h3>Machine par défaut</h3>
+      <p>Pour les canaux qu'on n'a pas aiguillés.<br><select id="enr-machine"></select></p>
 
       <h3>Enregistrement</h3>
       <p><button id="enr-rec">● ENREGISTRER</button></p>
@@ -5334,7 +5360,10 @@ var WAVX = {occupe:false, mesures:2};
    d'arriver aux modules qui les remplissent */
 var PR = {prise:-1, notes:[], pistes:[], sel:-1, grille:4, zoom:0.10, defil:0,
           lecture:false, tmr:[], t0:0, anim:null, cv:null, ct:null, hauteurPiste:26, selMachine:null};
-var ENR = {actif:false, depart:0, evts:[], prises:[], lecture:null, tmr:[], compteur:0};
+var ENR = {actif:false, depart:0, evts:[], prises:[], lecture:null, tmr:[], compteur:0,
+           canaux:{},        /* canal MIDI -> machine qui le joue            */
+           vus:{},           /* canal -> nombre de notes reçues, pour l'affichage */
+           t0vue:0, dessin:null};
 
 var S = {
   modele:"16", power:false, run:false,
@@ -6954,6 +6983,7 @@ document.getElementById("enr-rec").addEventListener("click", function(){
   var NOMS = [["16","DRM16"],["32","DRM32"],["em1","Electribe EM-1"],["er1","Electribe ER-1"],
     ["er2","ER-1 mkII"],["ea1","Electribe EA-1"],["ea2","EA-1 mkII"],["es1","Electribe ES-1"],
     ["es2","ES-1 mkII"],["emx","Electribe EMX-1"],["esx","Electribe ESX-1"],["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["tr808","Roland TR-808"],["tr909","Roland TR-909"],["tr707","Roland TR-707"],["dmx","Oberheim DMX"],["vlc","Korg volca sample"],["cr5","Roland CR-5000"],["dbi","DrumBrute Impact"],["t1k","Roland TR-1000"],["arcm","Machine d'archive"],["rd6","Behringer RD-6"],["td3","Behringer TD-3"],["eur","Eurorack"]];
+  MACHINES_ENR = NOMS;
   var sel = document.getElementById("enr-machine");
   NOMS.forEach(function(m){
     var o = document.createElement("option");
@@ -13224,7 +13254,10 @@ function rangMidi(r, note){
 function entreeNote(note, vel, canal){
   audioInit(); if(!ctx) return;
   var voix = GM_INV[note];
-  var m = S.modele, k, i;
+  /* Le canal était reçu puis ignoré : tout jouait sur la machine affichée.
+     Pour enregistrer un vrai live, chaque source doit garder sa voix — une
+     boîte à rythmes sur un canal, une basse sur un autre. */
+  var m = ENR.canaux[canal] || S.modele, k, i;
 
   if(m === "er1" || m === "er2"){
     busEffets();
@@ -13541,9 +13574,12 @@ function enrCharger(){
   try{
     var b = JSON.parse(localStorage.getItem(MEM + ".midirec") || "null");
     if(b && b.length) ENR.prises = b;
+    var c = JSON.parse(localStorage.getItem(MEM + ".midicanaux") || "{}");
+    if(c && typeof c === "object") ENR.canaux = c;
   }catch(e){}
 }
 function enrEcrire(){
+  try{ localStorage.setItem(MEM + ".midicanaux", JSON.stringify(ENR.canaux)); }catch(e){}
   try{ localStorage.setItem(MEM + ".midirec", JSON.stringify(ENR.prises)); }
   catch(e){ signal("MÉMOIRE PLEINE · PRISE NON GARDÉE"); }
 }
@@ -13582,9 +13618,15 @@ function enrArreter(){
 }
 /* appelé par la réception MIDI, avant tout traitement */
 function enrNoter(a,b,c){
+  /* On relève les canaux même à l'arrêt : c'est ce qui permet de voir arriver
+     les sources avant d'appuyer sur ENREGISTRER, et de les aiguiller. */
+  if(a >= 0xF8) return;                       /* horloge et temps réel : inutiles ici */
+  if((a & 0xF0) === 0x90 && c > 0){
+    var ca = a & 0x0F;
+    ENR.vus[ca] = (ENR.vus[ca] || 0) + 1;
+  }
   if(!ENR.actif) return;
   ENR.compteur++;
-  if(a >= 0xF8) return;                       /* horloge et temps réel : inutiles ici */
   if(ENR.evts.length > 20000) return;
   ENR.evts.push([Math.round(performance.now() - ENR.depart), a, b, c]);
 }
@@ -13730,6 +13772,138 @@ function dureeTexte(ms){
   var s = Math.round(ms/1000);
   return Math.floor(s/60) + ":" + ("0"+(s%60)).slice(-2);
 }
+/* Une couleur par canal, prise sur le cercle chromatique : seize teintes
+   également écartées, qu'on distingue sans les apprendre. */
+function couleurCanal(c){ return "hsl(" + ((c * 137) % 360) + ",70%,58%)"; }
+
+/* La liste des machines, partagée entre le menu « machine par défaut » et
+   l'aiguillage des canaux : une seule liste à tenir. Remplie à l'ouverture. */
+var MACHINES_ENR = [];
+
+/* Les canaux effectivement reçus, dans l'ordre. On n'affiche pas les seize :
+   quinze bandes vides ne disent rien. */
+function canauxEnr(){
+  var l = [];
+  for(var c=0;c<16;c++) if(ENR.vus[c]) l.push(c);
+  return l;
+}
+
+/* La vue. Pendant l'enregistrement elle défile sur une fenêtre de huit
+   secondes ; à l'arrêt elle montre la prise entière. Chaque note est un trait,
+   sa hauteur donne sa position dans la bande, sa vélocité son opacité. */
+function dessinerEnr(){
+  var cv = document.getElementById("enr-vue");
+  if(!cv) return;
+  var g = cv.getContext("2d");
+  var L = cv.width, H = cv.height;
+  g.clearRect(0, 0, L, H);
+  g.fillStyle = "#0a0a0c"; g.fillRect(0, 0, L, H);
+
+  var cans = canauxEnr();
+  var evts = ENR.evts;
+  if(!cans.length){
+    g.fillStyle = "#4a4a52";
+    g.font = "16px 'Roboto Condensed',Arial";
+    g.fillText("En attente de MIDI…", 16, H / 2);
+    return;
+  }
+  var FEN = 8000;                                  /* huit secondes de fenêtre */
+  var maintenant = ENR.actif ? performance.now() - ENR.depart : 0;
+  var t1, t0;
+  if(ENR.actif){ t1 = Math.max(FEN, maintenant); t0 = t1 - FEN; }
+  else {
+    var fin = evts.length ? evts[evts.length - 1][0] : FEN;
+    t0 = 0; t1 = Math.max(FEN, fin);
+  }
+  var duree = Math.max(1, t1 - t0);
+  var h = H / cans.length;
+
+  cans.forEach(function(c, i){
+    var y = i * h;
+    g.fillStyle = (i % 2) ? "#111115" : "#0d0d11";
+    g.fillRect(0, y, L, h);
+    g.fillStyle = couleurCanal(c);
+    g.globalAlpha = 0.5;
+    g.fillRect(0, y, 3, h);
+    g.globalAlpha = 1;
+    g.fillStyle = "#6a6a74";
+    g.font = "11px 'Roboto Condensed',Arial";
+    g.fillText("CANAL " + (c + 1), 9, y + 13);
+  });
+
+  for(var k=0;k<evts.length;k++){
+    var e = evts[k];
+    if(e[0] < t0 || e[0] > t1) continue;
+    if((e[1] & 0xF0) !== 0x90 || e[3] === 0) continue;
+    var ca = e[1] & 0x0F, rang = cans.indexOf(ca);
+    if(rang < 0) continue;
+    var x = ((e[0] - t0) / duree) * L;
+    var yb = rang * h;
+    /* la note place le trait dans la bande : grave en bas, aigu en haut */
+    var yy = yb + h - 6 - (Math.max(0, Math.min(127, e[2])) / 127) * (h - 12);
+    g.globalAlpha = 0.35 + (e[3] / 127) * 0.65;
+    g.fillStyle = couleurCanal(ca);
+    g.fillRect(x, yy, 3, 4);
+  }
+  g.globalAlpha = 1;
+
+  if(ENR.actif){
+    var xt = ((maintenant - t0) / duree) * L;
+    g.fillStyle = "#ff6a3d";
+    g.fillRect(xt - 1, 0, 2, H);
+  }
+}
+function boucleEnr(){
+  var p = document.getElementById("enr");
+  if(!p || !p.classList.contains("show")){ ENR.dessin = null; return; }
+  dessinerEnr();
+  ENR.dessin = requestAnimationFrame(boucleEnr);
+}
+function demarrerVueEnr(){
+  if(ENR.dessin) return;
+  ENR.dessin = requestAnimationFrame(boucleEnr);
+}
+
+/* La liste des canaux reçus, chacun avec sa machine. */
+function majCanauxEnr(){
+  var d = document.getElementById("enr-canaux");
+  if(!d) return;
+  var cans = canauxEnr();
+  if(!cans.length){
+    d.innerHTML = '<p style="opacity:.7">Aucun canal reçu pour le moment. Jouez sur une machine branchée.</p>';
+    return;
+  }
+  /* On ne refait la liste que si elle a changé : sinon on écraserait le choix
+     en cours pendant qu'on déroule un menu. */
+  var signature = cans.join(",");
+  if(d.dataset.sig === signature) return;
+  d.dataset.sig = signature;
+  d.innerHTML = "";
+  cans.forEach(function(c){
+    var r = document.createElement("div");
+    r.className = "enr-canal";
+    var pastille = document.createElement("i");
+    pastille.style.background = couleurCanal(c);
+    var t = document.createElement("b");
+    t.textContent = "CANAL " + (c + 1);
+    var sel = document.createElement("select");
+    var o0 = document.createElement("option");
+    o0.value = ""; o0.textContent = "— machine par défaut —";
+    sel.appendChild(o0);
+    MACHINES_ENR.forEach(function(m){
+      var o = document.createElement("option");
+      o.value = m[0]; o.textContent = m[1];
+      sel.appendChild(o);
+    });
+    sel.value = ENR.canaux[c] || "";
+    sel.addEventListener("change", function(){
+      if(sel.value) ENR.canaux[c] = sel.value; else delete ENR.canaux[c];
+      enrEcrire();
+    });
+    r.appendChild(pastille); r.appendChild(t); r.appendChild(sel);
+    d.appendChild(r);
+  });
+}
 function majEnrUI(){
   var b = document.getElementById("enr-rec");
   if(!b) return;
@@ -13740,6 +13914,15 @@ function majEnrUI(){
     ? ("En cours — " + ENR.evts.length + " événements")
     : (MIDI.ouvert < 0 ? "Aucun appareil MIDI ouvert. Cherchez-le dans la notice, onglet Général."
                        : "Prêt. Jouez sur la Korg : le son sort du téléphone.");
+  majCanauxEnr();
+  var lg = document.getElementById("enr-legende");
+  if(lg){
+    var cans = canauxEnr();
+    lg.textContent = cans.length
+      ? (cans.length + (cans.length > 1 ? " canaux reçus : " : " canal reçu : ") +
+         cans.map(function(c){ return c + 1; }).join(", "))
+      : "Rien reçu pour le moment.";
+  }
   var l = document.getElementById("enr-liste");
   l.innerHTML = "";
   if(!ENR.prises.length){
@@ -13772,6 +13955,7 @@ function ouvrirEnr(){
   document.getElementById("enr").classList.add("show");
   majNoteOuverte();
   majEnrUI();
+  demarrerVueEnr();
 }
 function fermerEnr(){
   document.getElementById("enr").classList.remove("show");

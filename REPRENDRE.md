@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **100**.
+La version actuelle est la **101**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,31 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Enregistreur MIDI multi-sources — v101**
+
+But : enregistrer un live entier avec le téléphone pour seul matériel.
+
+**La capture enregistrait déjà tout.** `enrNoter` garde `[temps, a, b, c]` pour chaque message, tous canaux
+confondus. Deux choses manquaient seulement.
+
+1. **`entreeNote(note, vel, canal)` recevait le canal et l'ignorait** : `var m = S.modele`, donc tout jouait
+   sur la machine affichée. Devenu `ENR.canaux[canal] || S.modele` — **une ligne**, et chaque source garde
+   sa voix. `ENR.canaux` est gardé dans `localStorage` sous `MEM + ".midicanaux"`.
+2. **Rien ne s'affichait.** `#enr-vue`, un canevas redessiné en `requestAnimationFrame` tant que le panneau
+   est ouvert : une bande par canal **réellement reçu** (`ENR.vus`), le temps de gauche à droite, une note
+   = un trait dont la position donne la hauteur et l'opacité la vélocité.
+   - Fenêtre glissante de **8 s** pendant l'enregistrement, avec trait de position ; **prise entière** à
+     l'arrêt. Vérifié aux trois cas.
+   - `ENR.vus` est rempli **même à l'arrêt** : c'est ce qui permet de voir arriver les sources et de les
+     aiguiller avant d'appuyer sur ENREGISTRER.
+   - `majCanauxEnr()` ne refait la liste **que si la signature des canaux change**, sinon on écraserait un
+     menu déroulant ouvert.
+   - Couleurs par pas de 137° sur le cercle chromatique : 16 teintes distinctes, vérifié.
+
+*Piège rencontré* : il y a **deux `var NOMS`** dans le fichier — celle du panneau MIDI et celle de
+l'enregistreur. Une ancre sur `var NOMS` en touche deux. `MACHINES_ENR` est rempli à partir de celle qui
+précède `enr-machine`.
 
 **Chapitre recentré sur le transfert — v100**
 
