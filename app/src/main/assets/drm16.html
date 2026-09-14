@@ -922,6 +922,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.paud{background:linear-gradient(165deg,#2f3a3a,#12181a 55%,#1e2628)}
 .pick.pstu{background:linear-gradient(165deg,#3a2f4a,#140f1a 55%,#6a4fa8)}
 .pick.ptab{background:linear-gradient(165deg,#28394a,#101820 55%,#2f7fb8)}
+.pick.pout{background:linear-gradient(165deg,#3f3524,#1a1610 55%,#8a6a2f)}
 .pick.pnex{background:linear-gradient(165deg,#4a3f28,#1a1610 55%,#a8801f)}
 .pick.pdoc b{color:#e8e4da;text-shadow:0 2px 0 #000}
 .pick.pdoc span{color:#a9a69e}
@@ -3371,6 +3372,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <button class="pick ppr" id="menu-pr"><b>TRAVAIL DU MIDI</b><span>ROULEAU PAR SON · RETOUCHER, CALER, REPORTER</span></button>
   <button class="pick penr" id="menu-enr"><b>ENREGISTREUR MIDI</b><span>JOUER SUR LA KORG · LE SON SORT DU TÉLÉPHONE</span></button>
   <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
+  <button class="pick pout" id="menu-outils"><b>VOS VRAIES MACHINES</b><span>TROIS OUTILS POUR LE MATÉRIEL QUE VOUS POSSÉDEZ</span></button>
   <button class="pick ptab" id="menu-table"><b>TABLE DE MIXAGE</b><span>PLUSIEURS MACHINES À LA FOIS · NIVEAUX ET PANORAMIQUE</span></button>
   <button class="pick pstu" id="menu-studio"><b>STUDIO TIBO</b><span>SÉQUENCEUR · PIANO ROLL · MIXEUR · EXPORT</span></button>
   <button class="pick pnex" id="menu-nexus"><b>NEXUS BEAT LAB</b><span>PADS ET SAMPLES 808, 909, DNB</span></button>
@@ -3706,6 +3708,52 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p><b>Enfin, la masse.</b> Si vous entendez un ronflement grave quand tout est branché, c'est une boucle
   de masse : deux appareils reliés à la fois par le secteur et par le signal. Branchez tout sur la même
   multiprise avant de chercher plus loin — cela règle le problème neuf fois sur dix.</p>
+  </div>
+
+  <div class="doc" id="note-outils" data-titre="VOS VRAIES MACHINES">
+  <h3>Trois outils, en dehors de cette application</h3>
+  <p>Cette application <b>simule</b> des machines. Les trois outils ci-dessous <b>servent celles que vous
+  possédez</b> : ils parlent à du matériel branché, par USB, par MIDI ou par le câble audio. C'est pour
+  cette raison qu'ils ne peuvent pas vivre ici — non par manque d'envie, mais parce qu'aucun d'eux ne
+  fonctionnerait dans une page web. Ils restent des applications à part, et c'est leur place.</p>
+
+  <div class="fmod"><b>ES-1 MANAGER</b>
+  <p>Gère la carte SmartMedia d'une <b>Electribe ES-1 mkII</b>, par un lecteur USB en OTG. Il extrait et
+  joue les échantillons contenus dans une banque <code>.es1</code>, liste ce qu'il y a sur la carte, et
+  surtout <b>prévient avant l'erreur</b> : un nom qui ne respecte pas la forme 00.WAV à 99.WAV, une racine
+  qui dépasse cent fichiers, un WAV qui n'est pas en 32000 Hz — la cause de l'erreur Er.4 que la machine
+  affiche sans expliquer.</p>
+  <span>Android · Kotlin, avec le décodeur libre es12wav · C'est le complément direct de la section
+  « Exporter pour la carte de l'ES-1 » de cette notice : ici on fabrique les fichiers, là-bas on les
+  installe.</span></div>
+
+  <div class="fmod"><b>FAB LA GROSSE BASSE</b>
+  <p>Enregistreur MIDI pour boîtes à rythmes réelles, en USB ou en Bluetooth. Son intérêt particulier est
+  le <b>mode ER-1</b> : l'Electribe·R envoie tous ses sons sur un seul canal et ne les distingue que par le
+  numéro de note, ce qui donne une piste illisible dans n'importe quel séquenceur. Ce mode crée
+  automatiquement <b>une piste par son</b> — grosse caisse, caisse claire, charley — avec solo et coupe-son
+  sur chacune.</p>
+  <span>Android · Kotlin · L'ENREGISTREUR MIDI de cette application fait un travail voisin, mais depuis le
+  téléphone vers le téléphone ; celui-ci enregistre ce que jouent vos machines.</span></div>
+
+  <div class="fmod"><b>MOC'TA BASS</b>
+  <p>Traite le son puis le transfère directement dans une <b>volca sample</b> par la prise SYNC IN. Il
+  existe pour une raison précise : le librarian officiel a un réglage de niveau qui plafonne à cent pour
+  cent, donc il ne sait que <b>baisser</b>. Un échantillon enregistré trop faible restait trop faible, sans
+  aucun recours. Celui-ci fait le travail avant l'envoi — sur une grosse caisse à −32,8 dB, vingt-sept
+  décibels récupérés sans écrêtage.</p>
+  <span>Android et Windows · Python, avec le SDK SYRO de Korg · La façade volca sample de cette application
+  imite la machine ; cet outil alimente la vraie.</span></div>
+
+  <h3>Pourquoi ils restent dehors</h3>
+  <p>Studio Tibo et Nexus Beat Lab ont pu rejoindre le menu parce qu'ils sont écrits dans le même langage
+  que cette application : une page web, qu'il suffit de poser à côté. Ces trois-là sont des applications
+  <b>natives</b> — deux en Kotlin, une en Python — et deux d'entre elles embarquent du code C compilé.
+  Les faire entrer ici demanderait de les réécrire entièrement, et elles perdraient au passage ce qui fait
+  leur intérêt : l'accès direct au matériel.</p>
+  <p>Des trois, l'<b>ES-1 Manager</b> est le seul qui pourrait un jour être réuni à cette application dans
+  un même paquet Android : il est léger et ne recouvre rien de ce qui existe ici. Les deux autres non —
+  l'un fait double emploi avec l'enregistreur MIDI, l'autre ne tourne pas du tout dans le même moteur.</p>
   </div>
 
   <div class="doc" id="note-arcm" data-titre="MACHINE D'ARCHIVE">
@@ -6522,6 +6570,7 @@ function fermerTable(){
   document.getElementById("table").classList.remove("show");
   majNoteOuverte();
 }
+document.getElementById("menu-outils").addEventListener("click", function(){ ouvrirNotice("note-outils"); H.inter(); });
 document.getElementById("menu-table").addEventListener("click", function(){ ouvrirTable(); H.inter(); });
 document.getElementById("table-fermer").addEventListener("click", function(){ fermerTable(); H.cran(); });
 document.getElementById("table-aide").addEventListener("click", function(){

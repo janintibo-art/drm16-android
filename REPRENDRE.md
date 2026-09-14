@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **95**.
+La version actuelle est la **96**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,31 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Trois outils pour le vrai matériel — v96**
+
+Trois dépôts examinés : **aucun n'est intégrable** comme l'ont été Studio Tibo et Nexus. Ceux-là étaient
+des pages web, qu'il suffisait de poser à côté. Ces trois-là sont natifs.
+
+| Projet | Écrit en | Verdict |
+|---|---|---|
+| **ES-1 Manager** (KorgManager) | Kotlin + exécutable C `es12wav`, USB OTG | pas embarquable — **mais fusionnable** un jour dans le même APK |
+| **Fab la grosse basse** (fabkorg) | Kotlin + Jetpack Compose, MIDI USB/BT | pas embarquable, et **fait double emploi** avec l'ENREGISTREUR MIDI |
+| **MOC'TA BASS** (volca-gain) | Python / Kivy + SDK SYRO en C | pas embarquable du tout — autre moteur d'exécution, comme tibrecord |
+
+Le point commun : **ils parlent à du matériel branché**. C'est ce qui fait leur intérêt et ce qui les
+empêche de vivre dans une page web.
+
+*Ce qui a été fait* : onglet de notice **VOS VRAIES MACHINES** et tuile du menu, qui les présentent à leur
+place — à côté des conseils de branchement réel de l'onglet TABLE DE MIXAGE. L'application simule des
+machines, ces outils servent celles qu'on possède ; le chapitre dit lequel prendre et quand.
+
+*Si on veut aller plus loin* : seul **ES-1 Manager** vaut une fusion. Dépendances légères (`appcompat`,
+`documentfile`, `material`), pas de Compose, et il complète l'export pour carte ES-1 déjà présent ici sans
+rien recouvrir. Il faudrait : fusionner son manifeste, renommer son paquet, reprendre le `CMakeLists` et
+l'étape du workflow qui clone `es12wav`, puis lancer son activité depuis le pont JS. **À ne tenter que
+prêt à itérer** : la compilation Android n'est pas vérifiable ici, et c'est le seul workflow qui marche
+aujourd'hui.
 
 **La bande noire de Nexus — v95**
 
