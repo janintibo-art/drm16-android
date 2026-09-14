@@ -308,6 +308,14 @@ body.m32 .read{color:#8fe8d8}
   letter-spacing:1.4px;box-shadow:0 3px 10px #0009,inset 0 0 0 1px #ffffff2e}
 #retour:active{background:#33333a}
 body.menu-ouvert #retour,body.note-ouverte #retour{display:none}
+/* Ce fichier fait un megaoctet, et la facade DRM16 est le PREMIER bloc du
+   corps : le navigateur la peint des qu'il l'a lue, soixante-dix kilooctets
+   avant d'atteindre le menu. D'ou une image de machine qui apparaissait une
+   seconde au lancement. On masque tout jusqu'a ce que le script ait decide
+   quoi montrer.
+   visibility et non display : les elements gardent leurs dimensions, et fit()
+   mesure des hauteurs des le demarrage. */
+body:not(.pret) > *{visibility:hidden}
 /* Plein écran : on efface tout ce qui n'est pas la machine. Sur un téléphone
    tenu debout, les deux boutons du haut et la barre de commandes du rack
    mangent le tiers de la hauteur. Un seul point de sortie, discret, en haut
@@ -6287,13 +6295,14 @@ function montrerDoc(id){
   docCourantId = id;
 }
 function ouvrirNotice(id){
+  fermerAutresPanneaux("note");
   noteEl.classList.add("show");
-  document.body.classList.add("note-ouverte");
+  majNoteOuverte();
   montrerDoc(id || docDeLaMachine());
 }
 function fermerNotice(){
   noteEl.classList.remove("show");
-  document.body.classList.remove("note-ouverte");
+  majNoteOuverte();
 }
 (function construireNav(){
   var docs = noteEl.querySelectorAll(".doc");
@@ -6309,6 +6318,32 @@ function fermerNotice(){
 })();
 document.getElementById("note-fermer").addEventListener("click", function(){ fermerNotice(); H.cran(); });
 document.getElementById("aide").addEventListener("click", function(){ ouvrirNotice(); H.inter(); });
+/* ---------- un seul panneau plein écran à la fois ----------
+   Ils sont sept maintenant, tous en position fixe et au même plan. Deux
+   ouverts en même temps se superposent, et refermer l'un enlevait la classe
+   « note-ouverte » alors que l'autre était encore là : les boutons du haut
+   réapparaissaient par-dessus. On passe donc par ces trois fonctions. */
+var PANNEAUX = ["note", "bib", "pr", "enr", "table", "studio", "nexus"];
+function panneauVisible(){
+  for(var i=0;i<PANNEAUX.length;i++){
+    var e = document.getElementById(PANNEAUX[i]);
+    if(e && e.classList.contains("show")) return PANNEAUX[i];
+  }
+  return "";
+}
+function fermerAutresPanneaux(sauf){
+  PANNEAUX.forEach(function(id){
+    if(id === sauf) return;
+    var e = document.getElementById(id);
+    if(e) e.classList.remove("show");
+  });
+}
+/* La classe du corps suit l'état réel, au lieu d'être posée et retirée à
+   l'aveugle par chaque panneau. */
+function majNoteOuverte(){
+  document.body.classList.toggle("note-ouverte", !!panneauVisible());
+}
+
 /* ---------- les deux projets invités ----------
    Chacun vit dans son propre document, chargé à la PREMIÈRE ouverture
    seulement : ce sont un demi-mégaoctet et cinq mégaoctets d'échantillons,
@@ -6335,16 +6370,18 @@ function ouvrirInvite(nom, source){
   if(!invitesDisponibles()){
     if(mot) mot.style.display = "block";
     cadre.style.display = "none";
+    fermerAutresPanneaux(nom);
     panneau.classList.add("show");
-    document.body.classList.add("note-ouverte");
+    majNoteOuverte();
     return;
   }
   if(mot) mot.style.display = "none";
   cadre.style.display = "block";
   stop();
   if(!cadre.getAttribute("src")) cadre.setAttribute("src", source);
+  fermerAutresPanneaux(nom);
   panneau.classList.add("show");
-  document.body.classList.add("note-ouverte");
+  majNoteOuverte();
   if(nom === "nexus") setTimeout(ajusterNexus, 60);
 }
 /* On refait ici le travail que le navigateur fait pour une page entière quand
@@ -6366,7 +6403,7 @@ window.addEventListener("resize", function(){
 function fermerInvite(nom){
   var panneau = document.getElementById(nom), cadre = document.getElementById(nom + "-cadre");
   panneau.classList.remove("show");
-  document.body.classList.remove("note-ouverte");
+  majNoteOuverte();
   if(!invitesDisponibles()) return;
   /* On coupe le son de l'invité en le rechargeant : sans cela il continuerait
      de jouer derrière, et on chercherait longtemps d'où vient ce rythme. */
@@ -6469,12 +6506,13 @@ function memSet(){
 function ouvrirTable(){
   audioInit();
   majTable();
+  fermerAutresPanneaux("table");
   document.getElementById("table").classList.add("show");
-  document.body.classList.add("note-ouverte");
+  majNoteOuverte();
 }
 function fermerTable(){
   document.getElementById("table").classList.remove("show");
-  document.body.classList.remove("note-ouverte");
+  majNoteOuverte();
 }
 document.getElementById("menu-table").addEventListener("click", function(){ ouvrirTable(); H.inter(); });
 document.getElementById("table-fermer").addEventListener("click", function(){ fermerTable(); H.cran(); });
@@ -13436,13 +13474,14 @@ function majEnrUI(){
   });
 }
 function ouvrirEnr(){
+  fermerAutresPanneaux("enr");
   document.getElementById("enr").classList.add("show");
-  document.body.classList.add("note-ouverte");
+  majNoteOuverte();
   majEnrUI();
 }
 function fermerEnr(){
   document.getElementById("enr").classList.remove("show");
-  document.body.classList.remove("note-ouverte");
+  majNoteOuverte();
 }
 
 /* ===================== AKAI MPC3000 / MPC2000 =====================
@@ -22665,13 +22704,14 @@ function ouvrirBib(){
   bibLire();
   arcCharger();
   audioInit(); banqueEs(); chargerEchs();   /* la banque doit exister pour être listée */
+  fermerAutresPanneaux("bib");
   document.getElementById("bib").classList.add("show");
-  document.body.classList.add("note-ouverte");
+  majNoteOuverte();
   majBibUI();
 }
 function fermerBib(){
   document.getElementById("bib").classList.remove("show");
-  document.body.classList.remove("note-ouverte");
+  majNoteOuverte();
 }
 
 /* ================= travail du MIDI : éditeur en rouleau =================
@@ -23019,8 +23059,9 @@ function prRemplirListe(){
 }
 function ouvrirPr(){
   enrCharger();
+  fermerAutresPanneaux("pr");
   document.getElementById("pr").classList.add("show");
-  document.body.classList.add("note-ouverte");
+  majNoteOuverte();
   prRemplirListe();
   if(ENR.prises.length) prExtraire(0);
   else { PR.notes = []; PR.prise = -1; prPistes(); }
@@ -23035,7 +23076,7 @@ function ouvrirPr(){
 function fermerPr(){
   prArreter();
   document.getElementById("pr").classList.remove("show");
-  document.body.classList.remove("note-ouverte");
+  majNoteOuverte();
 }
 
 /* ================= transfert exclusif vers une vraie Korg =================
@@ -23392,6 +23433,7 @@ menu.addEventListener("scroll", majVoileMenu);
 window.addEventListener("resize", majVoileMenu);
 setTimeout(majVoileMenu, 60);
 setTimeout(fit,500);
+document.body.classList.add("pret");   /* tout est en place : on peut montrer */
 </script>
 </body>
 </html>

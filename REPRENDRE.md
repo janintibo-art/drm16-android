@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **93**.
+La version actuelle est la **94**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,26 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Démarrage et panneaux — v94**
+
+*La façade DRM16 apparaissait une seconde au lancement.* Cause mesurée : `#unit` est le **premier** bloc
+du corps, à 10,2 % du fichier, et `#menu` arrive à 17,1 % — soixante-dix kilooctets plus loin. Le navigateur
+peint la façade dès qu'il l'a lue, bien avant d'atteindre le menu.
+
+`body:not(.pret) > *{visibility:hidden}` masque tout jusqu'à la fin du script, qui pose `pret`.
+**`visibility` et non `display`** : les éléments gardent leurs dimensions, et `fit()` mesure des hauteurs
+dès le démarrage — avec `display:none` il mesurerait zéro.
+
+*Sept panneaux plein écran, tous au même plan.* Deux ouverts en même temps se superposaient, et refermer
+l'un retirait `note-ouverte` alors que l'autre était encore là : les boutons du haut réapparaissaient
+par-dessus le panneau resté ouvert.
+
+- `PANNEAUX` liste les sept. `fermerAutresPanneaux(sauf)` est appelée par **les sept ouvertures**, vérifié.
+- `majNoteOuverte()` remplace les treize `add`/`remove` à l'aveugle : la classe du corps **suit l'état
+  réel** au lieu d'être posée et retirée par chaque panneau pour son propre compte.
+- **Tout nouveau panneau plein écran doit entrer dans `PANNEAUX`** et appeler ces deux fonctions.
+- Simulé : enchaînements normaux, et le cas à deux panneaux forcés où la classe doit être conservée.
 
 **Deux corrections signalées — v93**
 
