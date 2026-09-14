@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **78**.
+La version actuelle est la **79**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,29 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Déplacer une façade agrandie — v79**
+
+Signalé : difficile de faire glisser la machine de droite à gauche une fois zoomé. Deux causes.
+
+1. **Le déplacement à un doigt exige de tomber sur du fond** (`estCommande` doit être faux). Sur la MPC ou
+   l'Eurorack, presque tout est une commande : il n'y a quasiment rien à saisir.
+2. **Le déplacement à deux doigts existait déjà** — `ZOOM.tx` suit le centre des deux points — mais le
+   moindre écart involontaire changeait aussi le zoom. On ne pouvait pas déplacer sans redimensionner.
+
+Correctif : **zone morte de 9 % sur l'écartement**. Tant qu'on reste dedans, le geste ne fait que déplacer.
+Au-delà, le zoom s'engage et la référence est recalée (`d0 = d`, `z0 = z`) pour qu'il reparte de la valeur
+courante sans saut.
+
+**Le piège, trouvé au banc et pas à l'œil** : *les deux doigts ne bougent jamais dans le même événement*.
+À chaque `pointermove`, un seul point est à jour, l'autre est resté en arrière — l'écartement mesuré oscille
+donc au rythme du geste, et vingt pixels de glissement suffisaient à simuler dix pour cent de pincement.
+La zone morte seule ne servait à rien. Le zoom n'est donc évalué **que lorsque les deux doigts ont bougé
+depuis la dernière évaluation** (`ZOOM.vus`), le déplacement continuant entre-temps.
+**Ne pas simplifier en réévaluant le zoom à chaque message** : le défaut reviendrait aussitôt.
+
+Vérifié au banc : glissement parallèle pur → `z` inchangé à 2,000 et `tx` exact à −120 ; glissement avec
+5 % de tremblement → `z` inchangé ; vrai pincement → engagement à 9 %, progression continue.
 
 **Façades trop larges, et plein écran — v78**
 
