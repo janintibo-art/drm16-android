@@ -255,6 +255,21 @@ body.m32 .read{color:#8fe8d8}
   letter-spacing:1.4px;box-shadow:0 3px 10px #0009,inset 0 0 0 1px #ffffff2e}
 #retour:active{background:#33333a}
 body.menu-ouvert #retour,body.note-ouverte #retour{display:none}
+/* Plein écran : on efface tout ce qui n'est pas la machine. Sur un téléphone
+   tenu debout, les deux boutons du haut et la barre de commandes du rack
+   mangent le tiers de la hauteur. Un seul point de sortie, discret, en haut
+   à gauche — là où rien ne se trouve jamais. */
+body.plein #retour,body.plein #aide{display:none}
+/* On garde la ligne qui sert pendant qu'on joue — START, TEMPO, afficheur —
+   et on efface les trois rangées de commandes, qui ne servent qu'à monter le
+   patch. C'est ce qui rend le rack tenable en portrait. */
+body.plein .eur-bar button{display:none}
+body.plein .eur-bar #eur-play{display:block}
+#sortir-plein{display:none;position:fixed;top:8px;right:8px;z-index:15;
+  padding:9px 12px;border:0;border-radius:20px;background:#1e1e22cc;color:#cfd2d6;
+  font:800 11px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:1.4px}
+body.plein #sortir-plein{display:block}
+#sortir-plein:active{background:#33333a}
 #aide{position:fixed;top:8px;right:8px;z-index:14;padding:9px 13px;border:0;border-radius:20px;
   background:#1c1c20e0;color:#f0ede6;font:800 11px/1 "Roboto Condensed",sans-serif-condensed,Arial;
   letter-spacing:1.6px;box-shadow:0 3px 10px #0009,inset 0 0 0 1px #ffffff2e}
@@ -2588,6 +2603,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
 </div>
 
+<button id="sortir-plein">⤢ QUITTER LE PLEIN ÉCRAN</button>
 <button id="retour">☰ MENU</button>
 <button id="aide">NOTICE</button>
 
@@ -2721,6 +2737,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="eur-decable">DÉCÂBLER</button>
     <button id="eur-exemple">EXEMPLE</button>
     <button id="eur-vider">VIDER</button>
+    <button id="eur-plein">PLEIN ÉCRAN</button>
     <button id="eur-notice">NOTICE</button>
   </div>
 
@@ -3175,6 +3192,12 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>Chaque machine garde <b>ses propres motifs et ses propres sons</b>, enregistrés automatiquement.
   Le bouton <b>WRITE</b> fixe le motif en mémoire ; les réglages, eux, sont gardés en continu.</p>
 
+  <h3>Plein écran</h3>
+  <p>Le rack de l'Eurorack a un bouton <b>PLEIN ÉCRAN</b> qui efface tout ce qui ne sert qu'à monter le
+  patch — la barre de commandes et les deux boutons du haut — et garde START, le tempo et l'afficheur. Un
+  bouton discret en haut à droite ramène à l'affichage normal, et revenir au menu en sort de toute façon.
+  C'est surtout utile en tenant le téléphone debout, où chaque rangée de boutons compte.</p>
+
   <h3>Zoom et déplacement</h3>
   <p>Deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois. Deux doigts qui se rapprochent
   la <b>rétrécissent</b>, jusqu'à un peu moins de la moitié : utile sur les modules les plus hauts de
@@ -3589,6 +3612,9 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <li><b>DÉCÂBLER</b> retire tous les câbles mais garde les modules en place.</li>
   <li><b>EXEMPLE</b> remonte le patch de démonstration.</li>
   <li><b>VIDER</b> repart d'un rack nu, après confirmation. Seul le rack courant est touché.</li>
+  <li><b>PLEIN ÉCRAN</b> efface les douze boutons de la barre et les deux boutons du haut, et ne garde que
+  START, le tempo, l'afficheur et le rack. Sur un téléphone tenu debout, cela rend un tiers de la hauteur.
+  Pour revenir, touchez en haut à droite.</li>
   </ul>
 
   <h3>Deux rangées</h3>
@@ -5488,6 +5514,7 @@ var CLASSES_MACHINE = ["m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mp
                        "c1","c2","c3","c4","c5","t1","t2","t3","t4"];
 function poserMachine(){
   var d = document.body.classList, i;
+  d.remove("plein");          /* le plein écran ne survit pas au changement */
   for(i=0;i<CLASSES_MACHINE.length;i++) d.remove(CLASSES_MACHINE[i]);
   for(i=0;i<arguments.length;i++) if(arguments[i]) d.add(arguments[i]);
   /* le rack garde des oscillateurs en marche : on ferme son bus dès qu'on
@@ -6022,10 +6049,18 @@ function fit(){
   var aw = window.innerWidth - 4, ah = window.innerHeight - 4;
   if(!u.offsetHeight) return;
   var s = Math.min(1, ah/u.offsetHeight);
-  if(s < 0.995){
+  /* La largeur ne comptait que si la hauteur ne tenait pas. Une façade plus
+     large que l'écran mais assez courte n'était donc jamais réduite : tout ce
+     qui dépassait à droite restait hors d'atteinte — les pads de la MPC.
+     `scrollWidth` révèle ce débordement, que `offsetWidth` cache puisqu'il ne
+     rend que la largeur du bloc, pas celle de son contenu. */
+  var deborde = u.scrollWidth > u.offsetWidth + 1;
+  if(s < 0.995 || deborde){
     u.style.maxWidth = "none";
     u.style.flex = "0 0 auto";
-    u.style.width = Math.floor(aw/s) + "px";
+    /* on rend à la façade sa largeur naturelle avant de la réduire */
+    u.style.width = Math.max(u.scrollWidth, Math.floor(aw/s)) + "px";
+    if(u.scrollWidth > u.offsetWidth + 1) u.style.width = u.scrollWidth + "px";
     s = Math.min(aw/u.offsetWidth, ah/u.offsetHeight);
   }
   ZOOM.base = s;
@@ -16912,6 +16947,21 @@ document.getElementById("eur-vider").addEventListener("click", function(){
                      " » ?\n\nLes sept autres racks ne sont pas touchés.")) return;
   EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.attente = null; EUR.nom = "";
   eurBatir(); eurDessiner(); memEur(); majRackEur(); H.inter();
+});
+/* Le plein écran est général, pas propre au rack : toutes les façades y
+   gagnent. On refait la mise à l'échelle, la hauteur disponible ayant changé. */
+function pleinEcran(oui){
+  document.body.classList.toggle("plein", oui);
+  var c = document.getElementById("eur-cat");
+  if(c) c.style.display = "none";
+  setTimeout(function(){ fit(); if(S.modele === "eur") eurCables(); }, 60);
+}
+document.getElementById("eur-plein").addEventListener("click", function(){
+  pleinEcran(true); H.inter();
+  signal("TOUCHEZ EN HAUT À DROITE POUR REVENIR");
+});
+document.getElementById("sortir-plein").addEventListener("click", function(){
+  pleinEcran(false); H.cran();
 });
 document.getElementById("eur-mont").addEventListener("click", function(){ eurMontages(); H.cran(); });
 /* Le bouton ouvre la liste des huit. Passer au suivant reste possible d'un

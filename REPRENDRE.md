@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **77**.
+La version actuelle est la **78**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,25 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Façades trop larges, et plein écran — v78**
+
+*Bug : les pads de la MPC2000 étaient hors d'atteinte.* `fit()` ne tenait compte de la largeur **que si la
+hauteur ne tenait pas** : `s = Math.min(1, ah/offsetHeight)`, et la branche qui regarde la largeur n'était
+prise que si `s < 0.995`. Une façade plus large que l'écran mais assez courte n'était donc jamais réduite,
+et tout ce qui dépassait à droite restait inaccessible.
+
+Le débordement se détecte par **`scrollWidth > offsetWidth`** : `offsetWidth` ne rend que la largeur du
+bloc, pas celle de son contenu, donc il ne révèle rien. La branche est maintenant prise si la hauteur
+déborde **ou** si la largeur déborde, et la façade reçoit sa largeur naturelle avant d'être réduite.
+Une machine qui tenait déjà ne passe pas dans la branche : comportement inchangé pour elle.
+
+*Plein écran.* `body.plein` masque `#retour`, `#aide` et les douze boutons de `.eur-bar`, en gardant
+`#eur-play`, le potard de tempo et l'afficheur — sans quoi on ne pourrait plus lancer le séquenceur.
+Bouton d'entrée `eur-plein`, sortie par `#sortir-plein` (fixe, en haut à droite, hors de portée du START
+qui est à gauche). `poserMachine` retire la classe : **le plein écran ne survit pas à un changement de
+machine**, sinon on se retrouverait sans bouton MENU sur une façade qui n'a pas de quoi en sortir.
+`pleinEcran()` refait `fit()` et `eurCables()` après 60 ms, la hauteur disponible ayant changé.
 
 **Grand contrôle — v77**
 
