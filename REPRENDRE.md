@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **80**.
+La version actuelle est la **81**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,26 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Barre du rack réorganisée — v81**
+
+Treize boutons sur trois rangées : on ne trouvait rien. Le classement utile n'est pas thématique mais
+**temporel** — douze de ces boutons servent à *monter* le patch, jamais à en *jouer*.
+
+- `.eur-ligne` reste visible en permanence : START, TEMPO, afficheur, `⤢` plein écran, et deux onglets.
+- Deux tiroirs `.eur-grp` : **RACK** (quel patch : liste, nommer, montages, au sort, exemple, vider) et
+  **PATCH** (le contenu : ajouter, retirer, rangée, décâbler).
+- `tiroirEur(nom)` n'en laisse **qu'un seul ouvert** — deux ouverts et on retombe dans le fouillis qu'on
+  vient d'enlever. Rouvrir le même le referme. Le panneau `eur-cat` se referme avec eux.
+- La hauteur de la barre change en ouvrant un tiroir : `fit()` et `eurCables()` sont rappelés après 40 ms,
+  plus `eurMajBarre()`. **Ne pas oublier ces trois-là** si on ajoute un tiroir.
+- `fermerTiroirsEur()` est appelée par `activerEur` et par `pleinEcran(true)` : on revient toujours sur la
+  ligne de jeu.
+- **`eur-notice` supprimé** : il faisait double emploi avec le bouton NOTICE du haut, qui ouvre déjà
+  l'onglet de la machine courante via `docDeLaMachine()`.
+
+Vérifié : les quatorze boutons de la barre ont tous leur écouteur, et la simulation des tiroirs confirme
+l'exclusivité, la fermeture par rappui et le suivi du catalogue.
 
 **MPC2000 en une colonne, barre du rack — v80**
 

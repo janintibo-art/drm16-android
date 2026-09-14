@@ -265,6 +265,7 @@ body.plein #retour,body.plein #aide{display:none}
    patch. C'est ce qui rend le rack tenable en portrait. */
 body.plein .eur-bar button{display:none}
 body.plein .eur-bar #eur-play{display:block}
+body.plein .eur-grp{display:none}
 #sortir-plein{display:none;position:fixed;top:8px;right:8px;z-index:15;
   padding:9px 12px;border:0;border-radius:20px;background:#1e1e22cc;color:#cfd2d6;
   font:800 11px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:1.4px}
@@ -1472,7 +1473,18 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 .eurb{display:none;width:100%;max-width:1180px;border-radius:6px;padding:10px;position:relative;
   background:linear-gradient(180deg,#1a1c20,#111316);
   box-shadow:0 18px 40px #000b,inset 0 1px 0 #ffffff10}
-.eur-bar{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+/* Treize boutons sur trois rangées : on ne trouvait rien. Douze d'entre eux ne
+   servent qu'à MONTER le patch, jamais à en jouer. On garde donc une seule
+   ligne permanente — jouer, régler le tempo, lire l'afficheur — et deux tiroirs
+   qui ne s'ouvrent qu'au moment de construire. Un seul à la fois. */
+.eur-bar{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.eur-ligne{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.eur-grp{display:none;gap:5px;flex-wrap:wrap;align-items:center;
+  padding:6px;border-radius:8px;background:#141418;border:1px solid #26262d}
+.eur-grp.vu{display:flex}
+.eur-onglet{background:#1e2228}
+.eur-onglet.on{background:var(--accent);color:#0d0d10}
+.eur-ic{padding:10px 12px;font-size:14px;line-height:1}
 .eurb button{border:0;border-radius:4px;font:700 8.5px/1.1 "Roboto Condensed",Arial;letter-spacing:.5px;
   color:#d8dde4;background:linear-gradient(180deg,#454b55,#2c313a);
   box-shadow:0 2px 0 #14171b,0 3px 5px #0006,inset 0 1px 0 #ffffff1c;padding:10px 11px}
@@ -2737,21 +2749,28 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 <div class="eurb" id="unit-eur">
 
   <div class="eur-bar">
-    <button id="eur-play" style="padding:12px 16px">START</button>
-    <div class="eur-bkn" id="eur-k-tempo"><div class="bt"><i></i></div><em>TEMPO</em></div>
-    <div class="eur-lcd"><b id="eur-val">RACK VIDE</b><u id="eur-lab">AJOUTEZ UN MODULE</u></div>
-    <button id="eur-ptn">RACK 1</button>
-    <button id="eur-nom">NOMMER</button>
-    <button id="eur-ajout">AJOUTER</button>
-    <button id="eur-mont">MONTAGES</button>
-    <button id="eur-hasard">RACK AU SORT</button>
-    <button id="eur-suppr">RETIRER</button>
-    <button id="eur-rangee">RANGÉE</button>
-    <button id="eur-decable">DÉCÂBLER</button>
-    <button id="eur-exemple">EXEMPLE</button>
-    <button id="eur-vider">VIDER</button>
-    <button id="eur-plein">PLEIN ÉCRAN</button>
-    <button id="eur-notice">NOTICE</button>
+    <div class="eur-ligne">
+      <button id="eur-play" style="padding:12px 16px">START</button>
+      <div class="eur-bkn" id="eur-k-tempo"><div class="bt"><i></i></div><em>TEMPO</em></div>
+      <div class="eur-lcd"><b id="eur-val">RACK VIDE</b><u id="eur-lab">AJOUTEZ UN MODULE</u></div>
+      <button id="eur-plein" class="eur-ic" title="Plein écran">⤢</button>
+      <button id="eur-t-rack" class="eur-onglet">RACK ▾</button>
+      <button id="eur-t-patch" class="eur-onglet">PATCH ▾</button>
+    </div>
+    <div class="eur-grp" id="eur-grp-rack">
+      <button id="eur-ptn">RACK 1</button>
+      <button id="eur-nom">NOMMER</button>
+      <button id="eur-mont">MONTAGES</button>
+      <button id="eur-hasard">RACK AU SORT</button>
+      <button id="eur-exemple">EXEMPLE</button>
+      <button id="eur-vider">VIDER</button>
+    </div>
+    <div class="eur-grp" id="eur-grp-patch">
+      <button id="eur-ajout">AJOUTER</button>
+      <button id="eur-suppr">RETIRER</button>
+      <button id="eur-rangee">RANGÉE</button>
+      <button id="eur-decable">DÉCÂBLER</button>
+    </div>
   </div>
 
   <div class="eur-rack" id="eur-rack">
@@ -3612,30 +3631,24 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   </ul>
 
   <h3>La barre du haut</h3>
+  <p>Une seule ligne reste visible en permanence : ce qui sert à <b>jouer</b>. START lance et arrête
+  l'horloge, le potard <b>TEMPO</b> règle la vitesse de 40 à 220 — c'est le tempo général, partagé avec les
+  vingt-quatre autres machines —, et l'afficheur dit ce qui se passe. Le petit <b>⤢</b> passe en plein
+  écran.</p>
+  <p>Tout le reste ne sert qu'à <b>monter</b> le patch, jamais à en jouer : c'est rangé dans deux tiroirs
+  qui ne s'ouvrent qu'au besoin. Un seul à la fois ; rouvrir le même le referme.</p>
   <ul>
-  <li><b>START</b> lance et arrête l'horloge. Sans elle, rien ne se déclenche.</li>
-  <li><b>TEMPO</b>, le petit potard juste à côté, règle la vitesse de 40 à 220 à la noire. Il commande le
-  tempo général de l'application : le changer ici le change partout.</li>
-  <li><b>RACK 1</b> ouvre la liste des <b>huit racks</b>, avec pour chacun son nom, son nombre de modules
-  et de câbles. On y va directement. Le rack qu'on quitte est enregistré tel quel — un vrai modulaire ne
-  garde rien, on le photographie avant de le défaire.</li>
-  <li><b>NOMMER</b> donne un nom au rack courant, jusqu'à vingt-deux caractères. Le bouton et l'afficheur
-  montrent alors ce nom à la place du numéro, et les demandes de confirmation aussi : on sait ce qu'on
-  s'apprête à écraser. Un nom vide remet le numéro. Un montage pris dans <b>MONTAGES</b> nomme le rack
-  tout seul.</li>
-  <li><b>AJOUTER</b> ouvre le catalogue, rangé en huit onglets : quatre-vingt-un modules en vrac seraient
-  illisibles sur un téléphone.</li>
-  <li><b>MONTAGES</b> ouvre vingt patchs tout faits, rangés par genre. Voir plus bas.</li>
-  <li><b>RACK AU SORT</b> monte un ensemble complet et cohérent, décrit plus bas.</li>
-  <li><b>RETIRER</b> enlève le module choisi, et avec lui tous ses câbles.</li>
-  <li><b>RANGÉE</b> fait passer le module choisi sur l'autre rangée.</li>
-  <li><b>DÉCÂBLER</b> retire tous les câbles mais garde les modules en place.</li>
-  <li><b>EXEMPLE</b> remonte le patch de démonstration.</li>
-  <li><b>VIDER</b> repart d'un rack nu, après confirmation. Seul le rack courant est touché.</li>
-  <li><b>PLEIN ÉCRAN</b> efface les douze boutons de la barre et les deux boutons du haut, et ne garde que
-  START, le tempo, l'afficheur et le rack. Sur un téléphone tenu debout, cela rend un tiers de la hauteur.
-  Pour revenir, touchez en haut à droite.</li>
+  <li><b>RACK ▾</b> — quel patch. <b>RACK 1</b> ouvre la liste des huit racks, avec leur nom et leur
+  contenu. <b>NOMMER</b> baptise celui en cours, jusqu'à vingt-deux caractères ; le bouton et l'afficheur
+  montrent alors ce nom, et les confirmations aussi — on sait ce qu'on s'apprête à écraser.
+  <b>MONTAGES</b> ouvre les vingt patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
+  <b>EXEMPLE</b> remonte le patch de démonstration. <b>VIDER</b> repart d'un rack nu, après confirmation,
+  et seul le rack courant est touché.</li>
+  <li><b>PATCH ▾</b> — le contenu du rack. <b>AJOUTER</b> ouvre le catalogue des quatre-vingt-un modules,
+  rangé en huit onglets. <b>RETIRER</b> enlève le module choisi et ses câbles. <b>RANGÉE</b> le fait passer
+  sur l'autre rangée. <b>DÉCÂBLER</b> retire tous les câbles en gardant les modules.</li>
   </ul>
+  <p>La notice s'ouvre par le bouton <b>NOTICE</b> en haut de l'écran, comme sur toutes les machines.</p>
 
   <h3>La barre sous le rack</h3>
   <p>Sous les modules, une <b>poignée large comme le rack</b> le fait défiler de droite à gauche. Le rack se
@@ -17003,6 +17016,7 @@ document.getElementById("eur-vider").addEventListener("click", function(){
    gagnent. On refait la mise à l'échelle, la hauteur disponible ayant changé. */
 function pleinEcran(oui){
   document.body.classList.toggle("plein", oui);
+  if(oui) fermerTiroirsEur();
   var c = document.getElementById("eur-cat");
   if(c) c.style.display = "none";
   setTimeout(function(){ fit(); if(S.modele === "eur") eurCables(); }, 60);
@@ -17063,6 +17077,34 @@ document.getElementById("sortir-plein").addEventListener("click", function(){
   rack.addEventListener("scroll", function(){ if(prise === null) eurMajBarre(); });
 })();
 
+/* Un seul tiroir ouvert à la fois : deux ouverts, et on retombe dans le
+   fouillis qu'on vient d'enlever. Rouvrir le même le referme. */
+function fermerTiroirsEur(){
+  ["rack","patch"].forEach(function(n){
+    var g = document.getElementById("eur-grp-" + n), t = document.getElementById("eur-t-" + n);
+    if(g) g.classList.remove("vu");
+    if(t) t.classList.remove("on");
+  });
+}
+function tiroirEur(nom){
+  var ouvert = false;
+  ["rack","patch"].forEach(function(n){
+    var g = document.getElementById("eur-grp-" + n);
+    var t = document.getElementById("eur-t-" + n);
+    var vu = (n === nom) && !g.classList.contains("vu");
+    g.classList.toggle("vu", vu);
+    t.classList.toggle("on", vu);
+    if(vu) ouvert = true;
+  });
+  /* le catalogue appartient au tiroir PATCH : il se referme avec lui */
+  var c = document.getElementById("eur-cat");
+  if(c && !ouvert) c.style.display = "none";
+  /* la hauteur de la barre a changé : la façade et les câbles suivent */
+  setTimeout(function(){ fit(); eurCables(); if(window.eurMajBarre) window.eurMajBarre(); }, 40);
+}
+document.getElementById("eur-t-rack").addEventListener("click", function(){ tiroirEur("rack"); H.cran(); });
+document.getElementById("eur-t-patch").addEventListener("click", function(){ tiroirEur("patch"); H.cran(); });
+
 document.getElementById("eur-mont").addEventListener("click", function(){ eurMontages(); H.cran(); });
 /* Le bouton ouvre la liste des huit. Passer au suivant reste possible d'un
    seul geste depuis la liste, mais choisir directement vaut mieux quand ils
@@ -17073,7 +17115,6 @@ document.getElementById("eur-ptn").addEventListener("click", function(){
 document.getElementById("eur-nom").addEventListener("click", function(){
   nommerRack(); H.cran();
 });
-document.getElementById("eur-notice").addEventListener("click", function(){ ouvrirNotice(); });
 
 var kEurTempo = knobEm("eur-k-tempo", {min:0, max:1,
   get:function(){ return (S.bpm - 40) / 180; },
@@ -17099,6 +17140,7 @@ function activerEur(){
     eurExemple();
   else { eurBatir(); eurDessiner(); }
   kEurTempo.maj();
+  fermerTiroirsEur();          /* on revient toujours sur la ligne de jeu */
   actif = unitEur;
   save(); fit();
   setTimeout(function(){ fit(); eurCables(); }, 150);
