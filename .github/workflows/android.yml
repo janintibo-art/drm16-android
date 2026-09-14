@@ -30,6 +30,23 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
+      # Le transfert vers une vraie volca a besoin du Syro de Korg, compilé
+      # en WebAssembly. En « continue-on-error » : si Emscripten ou le dépôt de
+      # Korg fait défaut, l'APK se construit quand même et l'application dit
+      # simplement que le transfert n'est pas disponible.
+      - name: Compiler le Syro en WebAssembly
+        id: syro
+        continue-on-error: true
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.64
+          actions-cache-folder: emsdk-cache
+
+      - name: Construire syro.wasm
+        if: steps.syro.outcome == 'success'
+        continue-on-error: true
+        run: bash syro/construire.sh
+
       - name: Compiler l'APK de debug
         run: gradle assembleDebug --stacktrace --no-daemon
 

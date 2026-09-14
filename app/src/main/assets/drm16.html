@@ -145,9 +145,28 @@ body.m32 .read{color:#8fe8d8}
 .off .led.on,.off .led.beat{background:#1d2a33;box-shadow:inset 0 1px 2px #000c}
 
 /* ---------- notice ---------- */
-#note,#enr,#pr,#bib,#studio,#nexus,#table{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
+#note,#enr,#pr,#bib,#studio,#nexus,#table,#syro{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
   font:15px/1.6 system-ui,-apple-system,"Roboto",sans-serif}
-#note.show,#enr.show,#pr.show,#bib.show,#studio.show,#nexus.show,#table.show{display:flex;flex-direction:column}
+#note.show,#enr.show,#pr.show,#bib.show,#studio.show,#nexus.show,#table.show,#syro.show{display:flex;flex-direction:column}
+#syro .note-bar b{color:#ffcf5c}
+.syro-corps{flex:1;min-height:0;overflow:auto;padding:18px;max-width:560px;margin:0 auto;width:100%}
+.syro-corps label{display:block;font:800 10px/1.6 "Roboto Condensed",Arial;letter-spacing:1.4px;
+  color:#8a8780;margin-top:14px}
+.syro-corps label span{font-weight:400;letter-spacing:.4px;text-transform:none;color:#6f6c67}
+.syro-corps select,.syro-corps input[type=number]{width:100%;padding:10px;border-radius:7px;
+  border:1px solid #3a3a42;background:#1b1b1f;color:#e8e6e4;font-size:15px}
+.syro-corps input[type=range]{width:100%;margin:8px 0 0}
+.syro-ligne{display:flex;gap:8px;margin-top:16px}
+.syro-ligne button{flex:1;margin:0;padding:14px 10px;border:0;border-radius:8px;background:#2a2a30;
+  color:#cfcbc2;font:800 12px/1 "Roboto Condensed",Arial;letter-spacing:1.2px}
+#syro-envoyer{background:var(--accent);color:#140b07}
+#syro-compresse.on{background:var(--accent);color:#140b07}
+.syro-etat{margin:14px 0 0;padding:11px 13px;border-radius:8px;background:#16161a;
+  border:1px solid #2a2a31;font-size:13.5px;line-height:1.5;color:#b9b5ae}
+.syro-pas{margin:16px 0 0;padding-left:20px;font-size:13.5px;line-height:1.6;color:#9a9792}
+.syro-pas li{margin-bottom:7px}
+.syro-mot{display:none;padding:16px;border-radius:9px;background:#2a1a16;border:1px solid #5a3a2a;
+  font-size:14px;line-height:1.6;color:#e8c6b4}
 #table .note-bar b{color:#7fd4ff}
 .table-tete{flex:none;display:flex;gap:6px;flex-wrap:wrap;align-items:center;
   padding:10px 12px;background:#131316;border-bottom:1px solid #2c2c31}
@@ -923,6 +942,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.pstu{background:linear-gradient(165deg,#3a2f4a,#140f1a 55%,#6a4fa8)}
 .pick.ptab{background:linear-gradient(165deg,#28394a,#101820 55%,#2f7fb8)}
 .pick.pout{background:linear-gradient(165deg,#3f3524,#1a1610 55%,#8a6a2f)}
+.pick.psyr{background:linear-gradient(165deg,#4a3a20,#1a1408 55%,#d4941f)}
 .pick.pnex{background:linear-gradient(165deg,#4a3f28,#1a1610 55%,#a8801f)}
 .pick.pdoc b{color:#e8e4da;text-shadow:0 2px 0 #000}
 .pick.pdoc span{color:#a9a69e}
@@ -3230,6 +3250,35 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 </div>
 
 
+<div id="syro">
+  <div class="note-bar"><b>VERS UNE VRAIE VOLCA</b>
+    <button id="syro-aide">MODE D'EMPLOI</button>
+    <button id="syro-fermer">FERMER</button></div>
+  <div class="syro-corps">
+    <p class="syro-mot" id="syro-absent">Le transfert n'est pas disponible dans cette version :
+    le module Syro n'a pas pu être compilé. Tout le reste fonctionne normalement.</p>
+    <div id="syro-outils">
+      <label>SON À ENVOYER</label>
+      <select id="syro-son"></select>
+      <label>EMPLACEMENT DANS LA VOLCA</label>
+      <input type="number" id="syro-slot" min="0" max="99" value="0">
+      <label>NIVEAU <span id="syro-gain-txt">remonté au maximum</span></label>
+      <input type="range" id="syro-gain" min="0" max="1" step="0.01" value="1">
+      <div class="syro-ligne">
+        <button id="syro-compresse">COMPRESSÉ : NON</button>
+        <button id="syro-envoyer">ENVOYER</button>
+      </div>
+      <p class="syro-etat" id="syro-etat">Reliez la sortie casque à SYNC IN, volume à fond.</p>
+      <ol class="syro-pas">
+        <li>Câble jack 3,5 mm de la <b>sortie casque</b> vers <b>SYNC IN</b> de la volca.</li>
+        <li><b>Volume de l'appareil à fond</b>, et aucun égaliseur ni Bluetooth.</li>
+        <li>Touchez ENVOYER, puis <b>ne touchez plus à rien</b> jusqu'à la fin.</li>
+        <li>La volca affiche sa progression et redémarre quand c'est terminé.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
 <div id="table">
   <div class="note-bar"><b>TABLE DE MIXAGE</b>
     <button id="table-aide">CONSEILS</button>
@@ -3372,6 +3421,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <button class="pick ppr" id="menu-pr"><b>TRAVAIL DU MIDI</b><span>ROULEAU PAR SON · RETOUCHER, CALER, REPORTER</span></button>
   <button class="pick penr" id="menu-enr"><b>ENREGISTREUR MIDI</b><span>JOUER SUR LA KORG · LE SON SORT DU TÉLÉPHONE</span></button>
   <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
+  <button class="pick psyr" id="menu-syro"><b>VERS UNE VRAIE VOLCA</b><span>ENVOYER UN SON DANS UNE VOLCA SAMPLE PAR SYNC IN</span></button>
   <button class="pick pout" id="menu-outils"><b>VOS VRAIES MACHINES</b><span>TROIS OUTILS POUR LE MATÉRIEL QUE VOUS POSSÉDEZ</span></button>
   <button class="pick ptab" id="menu-table"><b>TABLE DE MIXAGE</b><span>PLUSIEURS MACHINES À LA FOIS · NIVEAUX ET PANORAMIQUE</span></button>
   <button class="pick pstu" id="menu-studio"><b>STUDIO TIBO</b><span>SÉQUENCEUR · PIANO ROLL · MIXEUR · EXPORT</span></button>
@@ -3743,7 +3793,29 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   aucun recours. Celui-ci fait le travail avant l'envoi — sur une grosse caisse à −32,8 dB, vingt-sept
   décibels récupérés sans écrêtage.</p>
   <span>Android et Windows · Python, avec le SDK SYRO de Korg · La façade volca sample de cette application
-  imite la machine ; cet outil alimente la vraie.</span></div>
+  imite la machine ; cet outil alimente la vraie. <b>Son transfert est désormais ici aussi</b> — voir plus
+  bas —, mais lui seul offre la chaîne de traitement complète et le mode morceau.</span></div>
+
+  <h3>Envoyer un son dans une vraie volca</h3>
+  <p>C'est la seule des trois capacités qui a pu venir jusqu'ici, et elle le doit à la façon dont MOC'TA
+  BASS était écrit : son enrobage du format Korg est en C, et il rend le flux complet en un appel. Ce C-là
+  se compile en <b>WebAssembly</b>, et la volca ne reçoit de toute façon pas un fichier mais <b>du son</b>.
+  Le reste suivait tout seul.</p>
+  <p>Menu, tuile <b>VERS UNE VRAIE VOLCA</b>. Choisissez un son de la bibliothèque, un emplacement de 0 à
+  99, un niveau, et lancez.</p>
+  <ol>
+  <li>Câble jack 3,5 mm de la <b>sortie casque</b> vers <b>SYNC IN</b> de la volca.</li>
+  <li><b>Volume à fond</b>, aucun égaliseur, aucun Bluetooth. Le signal est codé : le moindre traitement le
+  rend illisible. L'application court-circuite d'ailleurs tout son propre mélange pour l'envoyer.</li>
+  <li>Touchez ENVOYER et <b>ne touchez plus à rien</b> jusqu'à la fin. La volca affiche sa progression et
+  redémarre quand c'est terminé.</li>
+  </ol>
+  <p>Le réglage de <b>niveau</b> est ce qui justifiait l'existence de MOC'TA BASS : le librarian officiel
+  de Korg plafonne à cent pour cent, il ne sait donc que baisser, et un échantillon enregistré trop faible
+  restait trop faible. Ici, à fond, le son est remonté jusqu'à −0,2 dB sans écrêter — sur une grosse caisse
+  à −32,8 dB, cela fait plus de trente décibels récupérés.</p>
+  <p>Si la tuile annonce que le transfert n'est pas disponible, c'est que le module n'a pas pu être compilé
+  pour cette version. Rien d'autre n'en souffre.</p>
 
   <h3>Pourquoi ils restent dehors</h3>
   <p>Studio Tibo et Nexus Beat Lab ont pu rejoindre le menu parce qu'ils sont écrits dans le même langage
@@ -3751,6 +3823,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <b>natives</b> — deux en Kotlin, une en Python — et deux d'entre elles embarquent du code C compilé.
   Les faire entrer ici demanderait de les réécrire entièrement, et elles perdraient au passage ce qui fait
   leur intérêt : l'accès direct au matériel.</p>
+  <p>De MOC'TA BASS, une chose a pu passer : le <b>transfert</b>, parce qu'il reposait sur du C compilable
+  en WebAssembly. Le traitement du son, lui, est resté là-bas.</p>
   <p>Des trois, l'<b>ES-1 Manager</b> est le seul qui pourrait un jour être réuni à cette application dans
   un même paquet Android : il est léger et ne recouvre rien de ce qui existe ici. Les deux autres non —
   l'un fait double emploi avec l'enregistreur MIDI, l'autre ne tourne pas du tout dans le même moteur.</p>
@@ -6374,12 +6448,113 @@ function fermerNotice(){
 })();
 document.getElementById("note-fermer").addEventListener("click", function(){ fermerNotice(); H.cran(); });
 document.getElementById("aide").addEventListener("click", function(){ ouvrirNotice(); H.inter(); });
+/* ================= transfert vers une vraie volca sample =================
+   La volca ne reçoit pas de fichiers : elle reçoit du SON par sa prise SYNC IN.
+   Le format, le Syro, est du C fourni par Korg, compilé ici en WebAssembly.
+   Le module n'est chargé qu'au premier transfert — c'est un demi-mégaoctet qui
+   n'a rien à faire au démarrage — et s'il est absent, on le dit au lieu de
+   planter : la compilation WebAssembly peut échouer sans casser l'application. */
+var SYRO = {mod:null, chargement:null, dispo:null};
+
+function syroCharger(){
+  if(SYRO.mod) return Promise.resolve(SYRO.mod);
+  if(SYRO.chargement) return SYRO.chargement;
+  SYRO.chargement = new Promise(function(ok, non){
+    var sc = document.createElement("script");
+    sc.src = "syro/syro.js";
+    sc.onload = function(){
+      if(typeof SyroModule !== "function"){ non(new Error("module introuvable")); return; }
+      SyroModule().then(function(m){ SYRO.mod = m; SYRO.dispo = true; ok(m); }, non);
+    };
+    sc.onerror = function(){ SYRO.dispo = false; non(new Error("syro.js absent")); };
+    document.head.appendChild(sc);
+  });
+  return SYRO.chargement;
+}
+
+/* Un tampon audio de l'application vers du PCM 16 bits mono, ce qu'attend la
+   volca. On mélange les canaux et on applique le gain demandé, en écrêtant
+   proprement : c'est là que se joue la reprise de niveau. */
+function syroPcm(buf, gain){
+  var n = buf.length, src = buf.getChannelData(0);
+  var src2 = buf.numberOfChannels > 1 ? buf.getChannelData(1) : null;
+  var pcm = new Int16Array(n);
+  var pic = 0, i, v;
+  for(i=0;i<n;i++){
+    v = src2 ? (src[i] + src2[i]) * 0.5 : src[i];
+    if(Math.abs(v) > pic) pic = Math.abs(v);
+  }
+  /* gain 0..1 du potard : 0,5 laisse tel quel, 1 normalise à -0,2 dB */
+  var k = 1;
+  if(pic > 0.000001){
+    var vise = Math.pow(10, -0.2 / 20);
+    k = 1 + (vise / pic - 1) * Math.max(0, Math.min(1, (gain - 0.5) * 2));
+    if(gain < 0.5) k = 0.2 + gain * 1.6;
+  }
+  for(i=0;i<n;i++){
+    v = (src2 ? (src[i] + src2[i]) * 0.5 : src[i]) * k;
+    if(v > 1) v = 1; else if(v < -1) v = -1;
+    pcm[i] = Math.round(v * 32767);
+  }
+  return pcm;
+}
+
+/* Fabrique le flux de transfert. La structure doit correspondre EXACTEMENT à
+   VGData dans syro_wrap.c : six entiers de quatre octets puis un pointeur. */
+var SYRO_TAILLE = 28;
+function syroRendre(m, pcm, fs, slot, compresse){
+  var octets = pcm.length * 2;
+  var pData = m._malloc(octets);
+  m.HEAPU8.set(new Uint8Array(pcm.buffer, pcm.byteOffset, octets), pData);
+
+  var it = m._malloc(SYRO_TAILLE);
+  m.setValue(it +  0, 0,          "i32");   /* type : échantillon        */
+  m.setValue(it +  4, slot,       "i32");   /* emplacement 0..99         */
+  m.setValue(it +  8, 16,         "i32");   /* qualité                   */
+  m.setValue(it + 12, compresse ? 1 : 0, "i32");
+  m.setValue(it + 16, fs,         "i32");   /* fréquence                 */
+  m.setValue(it + 20, octets,     "i32");   /* taille en octets          */
+  m.setValue(it + 24, pData,      "i32");   /* pointeur vers le PCM      */
+
+  var pOut = m._malloc(4), pTrames = m._malloc(4);
+  var r = m.ccall("volcagain_render", "number",
+                  ["number","number","number","number"], [it, 1, pOut, pTrames]);
+  var res = null;
+  if(r === 0){
+    var adr = m.getValue(pOut, "i32"), trames = m.getValue(pTrames, "i32");
+    /* on copie AVANT de libérer : la mémoire du module est réutilisée aussitôt */
+    var brut = new Int16Array(m.HEAP16.buffer, adr, trames * 2).slice();
+    m.ccall("volcagain_free", null, ["number"], [adr]);
+    res = {data:brut, trames:trames};
+  }
+  m._free(pOut); m._free(pTrames); m._free(it); m._free(pData);
+  if(!res) throw new Error("le Syro a refusé (code " + r + ")");
+  return res;
+}
+
+/* Joue le flux à plein niveau et sans le moindre traitement : la volca écoute
+   un signal codé, tout égaliseur ou compresseur le rendrait illisible. On
+   court-circuite donc entièrement le mélange général. */
+function syroJouer(res, fs){
+  var b = ctx.createBuffer(2, res.trames, fs);
+  var g = b.getChannelData(0), d = b.getChannelData(1);
+  for(var i=0;i<res.trames;i++){
+    g[i] = res.data[i*2] / 32768;
+    d[i] = res.data[i*2+1] / 32768;
+  }
+  var src = ctx.createBufferSource();
+  src.buffer = b;
+  src.connect(ctx.destination);        /* pas par master : aucun traitement */
+  src.start();
+  return {src:src, duree:res.trames / fs};
+}
+
 /* ---------- un seul panneau plein écran à la fois ----------
    Ils sont sept maintenant, tous en position fixe et au même plan. Deux
    ouverts en même temps se superposent, et refermer l'un enlevait la classe
    « note-ouverte » alors que l'autre était encore là : les boutons du haut
    réapparaissaient par-dessus. On passe donc par ces trois fonctions. */
-var PANNEAUX = ["note", "bib", "pr", "enr", "table", "studio", "nexus"];
+var PANNEAUX = ["note", "bib", "pr", "enr", "table", "studio", "nexus", "syro"];
 function panneauVisible(){
   for(var i=0;i<PANNEAUX.length;i++){
     var e = document.getElementById(PANNEAUX[i]);
@@ -6570,6 +6745,91 @@ function fermerTable(){
   document.getElementById("table").classList.remove("show");
   majNoteOuverte();
 }
+/* ---------- le panneau de transfert ---------- */
+function syroEtat(t){ var e = document.getElementById("syro-etat"); if(e) e.textContent = t; }
+function ouvrirSyro(){
+  audioInit(); banqueEs(); chargerEchs();
+  var sel = document.getElementById("syro-son");
+  sel.innerHTML = "";
+  var l = [];
+  for(var k in ES.buf) if(ES.buf[k]) l.push(k);
+  l.sort();
+  l.forEach(function(id){
+    var o = document.createElement("option");
+    o.value = id; o.textContent = nomEch(id) + "  (" + id + ")";
+    sel.appendChild(o);
+  });
+  fermerAutresPanneaux("syro");
+  document.getElementById("syro").classList.add("show");
+  majNoteOuverte();
+  /* On tente le chargement tout de suite : mieux vaut annoncer l'absence
+     maintenant que devant un bouton qui ne répond pas. */
+  syroCharger().then(function(){
+    document.getElementById("syro-absent").style.display = "none";
+    document.getElementById("syro-outils").style.display = "block";
+  }, function(){
+    document.getElementById("syro-absent").style.display = "block";
+    document.getElementById("syro-outils").style.display = "none";
+  });
+}
+function fermerSyro(){
+  document.getElementById("syro").classList.remove("show");
+  majNoteOuverte();
+}
+document.getElementById("syro-fermer").addEventListener("click", function(){ fermerSyro(); H.cran(); });
+document.getElementById("syro-aide").addEventListener("click", function(){ ouvrirNotice("note-outils"); });
+document.getElementById("syro-compresse").addEventListener("click", function(){
+  this.classList.toggle("on");
+  this.textContent = this.classList.contains("on") ? "COMPRESSÉ : OUI" : "COMPRESSÉ : NON";
+  H.cran();
+});
+document.getElementById("syro-gain").addEventListener("input", function(){
+  var v = parseFloat(this.value);
+  document.getElementById("syro-gain-txt").textContent =
+    v > 0.98 ? "remonté au maximum" :
+    v > 0.52 ? "remonté en partie" :
+    v > 0.48 ? "tel quel" : "baissé";
+});
+document.getElementById("syro-envoyer").addEventListener("click", function(){
+  var b = this;
+  if(b.disabled) return;
+  var id = document.getElementById("syro-son").value;
+  var buf = ES.buf[id];
+  if(!buf){ syroEtat("Ce son n'est pas chargé."); return; }
+  var slot = Math.max(0, Math.min(99, parseInt(document.getElementById("syro-slot").value, 10) || 0));
+  var gain = parseFloat(document.getElementById("syro-gain").value);
+  var comp = document.getElementById("syro-compresse").classList.contains("on");
+  b.disabled = true;
+  syroEtat("Préparation du son…");
+  syroCharger().then(function(m){
+    var pcm = syroPcm(buf, gain);
+    syroEtat("Codage du transfert… cela peut prendre quelques secondes.");
+    /* On laisse l'écran se rafraîchir avant de bloquer : le codage se fait
+       d'un bloc et fige l'affichage le temps qu'il dure. */
+    setTimeout(function(){
+      try{
+        var res = syroRendre(m, pcm, Math.round(buf.sampleRate), slot, comp);
+        var j = syroJouer(res, ctx.sampleRate);
+        var fin = Math.ceil(j.duree);
+        syroEtat("Transfert en cours vers l'emplacement " + slot + " · " + fin +
+                 " secondes. Ne touchez plus à rien.");
+        setTimeout(function(){
+          syroEtat("Terminé. La volca redémarre, le son est dans l'emplacement " + slot + ".");
+          b.disabled = false;
+        }, j.duree * 1000 + 800);
+      }catch(e){
+        syroEtat("Échec : " + e.message);
+        b.disabled = false;
+      }
+    }, 60);
+  }, function(){
+    syroEtat("Le module Syro n'est pas disponible dans cette version.");
+    b.disabled = false;
+  });
+  H.inter();
+});
+
+document.getElementById("menu-syro").addEventListener("click", function(){ ouvrirSyro(); H.inter(); });
 document.getElementById("menu-outils").addEventListener("click", function(){ ouvrirNotice("note-outils"); H.inter(); });
 document.getElementById("menu-table").addEventListener("click", function(){ ouvrirTable(); H.inter(); });
 document.getElementById("table-fermer").addEventListener("click", function(){ fermerTable(); H.cran(); });

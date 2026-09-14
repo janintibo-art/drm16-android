@@ -4,3 +4,9 @@ local.properties
 *.apk
 *.keystore
 .idea/
+*.jks
+cle-base64.txt
+docs/*.apk
+# Le code de Korg est cloné à la compilation, jamais versionné (licence)
+syro/volcasample/
+app/src/main/assets/syro/

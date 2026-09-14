@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **96**.
+La version actuelle est la **97**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,34 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Transfert vers une vraie volca — v97**
+
+La capacité centrale de MOC'TA BASS est venue ici. Ce qui l'a permis : son `syro_wrap.c` est du **C pur**
+qui rend le flux complet **en un appel** — écrit à l'origine pour éviter des millions d'allers-retours
+depuis Python, et exactement ce qu'il faut pour WebAssembly. Et la volca reçoit du **son**, pas un fichier.
+
+- `syro/syro_wrap.c` repris tel quel, `syro/construire.sh` le compile avec Emscripten.
+  **Le SDK de Korg n'est jamais versionné** (sa licence l'interdit) : cloné à la compilation, et
+  `syro/volcasample/` comme `app/src/main/assets/syro/` sont dans `.gitignore`.
+- Le script **ne suppose pas la disposition du dépôt de Korg** : il cherche `korg_syro_volcasample.h` et
+  compile ce qui l'entoure. Si Korg réorganise, ça tient encore.
+- Étape ajoutée à `android.yml` et `publication.yml`, **en `continue-on-error`** : si Emscripten ou le
+  dépôt fait défaut, l'APK se construit quand même et l'application annonce simplement que le transfert
+  n'est pas disponible. **Ne pas retirer ce garde-fou.**
+
+*Côté application* :
+- `syroPcm()` mélange en mono et applique le gain. Vérifié : source à −32,8 dB remontée à −0,2 dB,
+  **+32,6 dB**, sans écrêtage ; un son déjà fort n'est pas saturé ; le silence ne divise pas par zéro.
+- `syroRendre()` — **la structure fait 28 octets** : six entiers de quatre puis un pointeur, dans l'ordre
+  exact de `VGData` dans `syro_wrap.c`. Toute modification de l'un doit suivre dans l'autre.
+  On **copie le résultat avant de libérer** : la mémoire du module est réutilisée aussitôt.
+- `syroJouer()` se branche sur **`ctx.destination`, pas sur `master`** : le signal est codé, le moindre
+  égaliseur ou limiteur le rendrait illisible. Ne pas le faire passer par la table de mixage.
+- Le module n'est chargé qu'à l'ouverture du panneau, et son absence est annoncée au lieu de planter.
+
+**Non vérifiable ici** : la compilation Emscripten elle-même, faute de réseau et de SDK. Le premier essai
+demandera peut-être une correction ; le rapport d'erreur est dans l'onglet Actions.
 
 **Trois outils pour le vrai matériel — v96**
 
