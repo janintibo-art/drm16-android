@@ -30,6 +30,10 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path bureau/dist | Out-Null
           Copy-Item app/src/main/assets/drm16.html bureau/dist/index.html
+          # Les deux projets invités voyagent avec : sans eux, la fenêtre
+          # afficherait le message « ils ne sont pas là ».
+          Copy-Item -Recurse -Force app/src/main/assets/studio bureau/dist/studio
+          Copy-Item -Recurse -Force app/src/main/assets/nexus  bureau/dist/nexus
           $v = (Select-String -Path app/build.gradle -Pattern "versionName\s+'([^']+)'").Matches[0].Groups[1].Value
           $conf = Get-Content bureau/src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
           $conf.version = "$v.0.0"

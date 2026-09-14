@@ -181,6 +181,11 @@ body.m32 .read{color:#8fe8d8}
    séparément. */
 .invite-boite{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;background:#0b0b0d}
 .invite{width:100%;height:100%;border:0;display:block;background:#0b0b0d}
+.invite-absent{display:none;padding:26px 20px;max-width:560px;margin:0 auto;color:#cfcbc2}
+.invite-absent b{display:block;font:800 17px/1.3 "Roboto Condensed",Arial;letter-spacing:1px;
+  color:var(--accent);margin-bottom:12px}
+.invite-absent p{font-size:14px;line-height:1.6;margin:0 0 12px}
+.invite-absent code{background:#221e24;padding:2px 6px;border-radius:4px;font-size:13px}
 
 /* STUDIO TIBO est responsive et tient debout en portrait. Couché, son en-tête
    mange toute la hauteur disponible et il ne reste plus rien à faire défiler :
@@ -3224,6 +3229,14 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 <div id="studio">
   <div class="note-bar"><b>STUDIO TIBO</b><button id="studio-fermer">FERMER</button></div>
   <div class="invite-boite" id="studio-boite">
+    <div class="invite-absent" id="studio-absent">
+      <b>STUDIO TIBO n'est pas là</b>
+      <p>Ce projet est un fichier séparé, livré <b>dans l'application Android</b>. Vous avez ouvert
+      <code>drm16.html</code> tout seul — les vingt-cinq machines et l'Eurorack fonctionnent, mais les
+      deux projets invités ne sont pas à côté du fichier.</p>
+      <p>Pour les retrouver : installez l'APK, ou placez le dossier <code>studio</code> à côté de
+      <code>drm16.html</code>.</p>
+    </div>
     <iframe class="invite" id="studio-cadre" title="Studio Tibo"></iframe>
   </div>
 </div>
@@ -3231,6 +3244,14 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 <div id="nexus">
   <div class="note-bar"><b>NEXUS BEAT LAB</b><button id="nexus-fermer">FERMER</button></div>
   <div class="invite-boite" id="nexus-boite">
+    <div class="invite-absent" id="nexus-absent">
+      <b>NEXUS BEAT LAB n'est pas là</b>
+      <p>Ce projet est un fichier séparé, livré <b>dans l'application Android</b>. Vous avez ouvert
+      <code>drm16.html</code> tout seul — les vingt-cinq machines et l'Eurorack fonctionnent, mais les
+      deux projets invités ne sont pas à côté du fichier.</p>
+      <p>Pour les retrouver : installez l'APK, ou placez le dossier <code>nexus</code> à côté de
+      <code>drm16.html</code>.</p>
+    </div>
     <iframe class="invite" id="nexus-cadre" title="Nexus Beat Lab"></iframe>
   </div>
 </div>
@@ -3425,6 +3446,10 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <li><b>NEXUS BEAT LAB</b> — seize pads et un séquenceur, avec de vrais <b>échantillons</b> 808, 909 et
   drum'n'bass, là où les vingt-cinq machines synthétisent tout.</li>
   </ul>
+  <p>Ces deux-là sont des <b>fichiers séparés</b>, livrés dans l'application Android et dans l'exécutable de
+  bureau. Le fichier <code>drm16.html</code> ouvert tout seul — depuis les téléchargements ou sur un
+  ordinateur — fonctionne entièrement pour les vingt-cinq machines et l'Eurorack, mais n'a pas ces deux
+  projets à côté de lui : il vous le dira clairement au lieu d'afficher une page cassée.</p>
   <p>Chacune tourne dans son propre document : elles gardent leurs réglages de leur côté et ne peuvent rien
   déranger ici. Ouvrir l'une <b>arrête le séquenceur</b> de la machine en cours — deux moteurs audio qui
   jouent ensemble se disputeraient la sortie. Fermer la referme complètement, son et tout.</p>
@@ -6291,9 +6316,32 @@ document.getElementById("aide").addEventListener("click", function(){ ouvrirNoti
 
    Deux moteurs audio qui jouent en même temps se disputeraient la sortie et
    feraient décrocher les deux : on arrête donc celui d'ici avant d'ouvrir. */
+/* Les deux projets invités sont des fichiers SÉPARÉS, posés à côté du nôtre
+   dans l'application. Le fichier drm16.html ouvert seul — depuis les
+   téléchargements, sur un ordinateur, n'importe où hors de l'application — est
+   autonome mais n'a personne à côté de lui : le cadre afficherait une page
+   d'erreur, ce qui ne dit rien à personne. On le dit clairement à la place. */
+function invitesDisponibles(){
+  /* Trois cas où ils sont là : l'application Android, l'exécutable de bureau
+     (qui sert ses fichiers par son propre protocole), et un vrai serveur.
+     Un fichier ouvert seul — file:// ou content:// — n'a personne à côté. */
+  if(location.href.indexOf("android_asset") >= 0) return true;
+  var p = location.protocol;
+  return p === "http:" || p === "https:" || p === "tauri:";
+}
 function ouvrirInvite(nom, source){
-  stop();
   var panneau = document.getElementById(nom), cadre = document.getElementById(nom + "-cadre");
+  var mot = document.getElementById(nom + "-absent");
+  if(!invitesDisponibles()){
+    if(mot) mot.style.display = "block";
+    cadre.style.display = "none";
+    panneau.classList.add("show");
+    document.body.classList.add("note-ouverte");
+    return;
+  }
+  if(mot) mot.style.display = "none";
+  cadre.style.display = "block";
+  stop();
   if(!cadre.getAttribute("src")) cadre.setAttribute("src", source);
   panneau.classList.add("show");
   document.body.classList.add("note-ouverte");
@@ -6319,6 +6367,7 @@ function fermerInvite(nom){
   var panneau = document.getElementById(nom), cadre = document.getElementById(nom + "-cadre");
   panneau.classList.remove("show");
   document.body.classList.remove("note-ouverte");
+  if(!invitesDisponibles()) return;
   /* On coupe le son de l'invité en le rechargeant : sans cela il continuerait
      de jouer derrière, et on chercherait longtemps d'où vient ce rythme. */
   try{ cadre.contentWindow.location.reload(); }catch(e){ cadre.removeAttribute("src"); }
@@ -6367,7 +6416,13 @@ function allerVoie(id){
   var T = {ehx:"16", em:"em1", er:"er1", ea:"ea1", es:"es1", mx:"emx", sx:"esx",
            mpc:"mpc3000", tr:"tr808", dmx:"dmx", vlc:"vlc", cr:"cr5", dbi:"dbi",
            t1k:"t1k", arcm:"arcm", td3:"td3", eur:"eur"};
-  if(T[id]) allerMachine(T[id]);
+  if(!T[id]) return;
+  /* La table s'ouvre DEPUIS le menu, qui reste derrière : sans cette fermeture
+     on refermait la table et on retombait sur le menu au lieu de la façade.
+     allerMachine n'a jamais fermé le menu, c'est la tuile qui s'en chargeait. */
+  document.body.classList.remove("menu-ouvert");
+  menu.classList.add("hide");
+  allerMachine(T[id]);
 }
 function majTable(){
   construireTable();
