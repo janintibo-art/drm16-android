@@ -1,0 +1,182 @@
+name: Publication
+
+# Une publication ne part JAMAIS toute seule : elle se déclenche sur une
+# étiquette de version (v83, v84…) ou à la main depuis l'onglet Actions.
+# Le workflow « APK », lui, continue de compiler à chaque poussée sans rien
+# publier — on n'annonce pas une version à chaque virgule corrigée.
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+concurrency:
+  group: publication-${{ github.ref }}
+  cancel-in-progress: false      # une publication en cours ne s'interrompt pas
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write            # nécessaire pour créer la version et y joindre l'APK
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Rétablir la clé de signature
+        env:
+          CLE: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$CLE" ]; then
+            echo "$CLE" | base64 -d > "$RUNNER_TEMP/cle.jks"
+            echo "KEYSTORE_FILE=$RUNNER_TEMP/cle.jks" >> "$GITHUB_ENV"
+            echo "Clé de publication en place."
+          else
+            echo "::warning::Aucune clé de publication (secret KEYSTORE_BASE64 absent)."
+            echo "::warning::L'APK sera signé avec la clé de debug : les mises à jour futures"
+            echo "::warning::ne pourront pas s'installer par-dessus. Voir PUBLIER.md."
+          fi
+
+      - name: Compiler l'APK de publication
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle assembleRelease --stacktrace --no-daemon
+
+      - name: Relever la version et nommer le fichier
+        id: version
+        run: |
+          V=$(grep -oP "versionName\s+'\K[^']+" app/build.gradle)
+          echo "v=$V" >> "$GITHUB_OUTPUT"
+          mkdir -p publication
+          # Deux noms : l'un daté pour l'archive, l'autre FIXE pour que le lien
+          # de la page de téléchargement ne change jamais.
+          cp app/build/outputs/apk/release/*.apk "publication/drm16-v$V.apk"
+          cp app/build/outputs/apk/release/*.apk "publication/drm16.apk"
+          # Le fichier autonome : c'est LA version PC la plus simple. Aucune
+          # compilation, il s'ouvre dans n'importe quel navigateur.
+          cp app/src/main/assets/drm16.html "publication/drm16.html"
+          ls -lh publication/
+
+      - name: Publier la version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ steps.version.outputs.v }}
+        run: |
+          ETIQ="${GITHUB_REF_NAME}"
+          [ "$ETIQ" = "main" ] && ETIQ="v$V"     # déclenchement à la main
+          cat > notes.md <<FIN
+          **Boîtes à rythmes autonomes — version $V**
+
+          Vingt-cinq machines et un rack Eurorack de quatre-vingt-neuf modules, hors ligne, sans compte.
+
+          ### Sur Android
+          1. Téléchargez \`drm16-v$V.apk\` ci-dessous.
+          2. Android demandera d'autoriser l'installation depuis cette source : c'est normal pour une
+             application distribuée hors du Play Store.
+          3. Si une version précédente est installée, celle-ci se met par-dessus sans perdre vos motifs.
+
+          Android 7 minimum. Aucune permission réseau n'est requise pour jouer.
+
+          ### Sur ordinateur
+          **Windows** : \`DRM16-installeur.exe\`, ajouté à cette version quelques minutes après l'APK.
+
+          **Tout autre système** : téléchargez \`drm16.html\` et ouvrez-le dans votre navigateur.
+          Un seul fichier, rien à installer — c'est la même application.
+
+          Sur ordinateur, le **MIDI** et la **bibliothèque de fichiers** ne sont pas disponibles :
+          ils passent par le pont natif d'Android. Tout le reste fonctionne, l'Eurorack compris,
+          et l'export WAV se fait par le téléchargement du navigateur.
+          Ouvert directement depuis le disque, \`drm16.html\` peut aussi se voir refuser la mémoire
+          locale par le navigateur : les motifs ne seraient alors pas conservés d'une session à l'autre.
+          L'installeur Windows n'a pas ce défaut.
+          FIN
+          gh release create "$ETIQ" \
+            --title "Version $V" \
+            --notes-file notes.md \
+            publication/drm16-v$V.apk publication/drm16.apk publication/drm16.html
+
+      - name: Rapports en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-publication
+          path: |
+            app/build/reports/
+            app/build/outputs/logs/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  windows:
+    # Ce poste attend que la version existe : il ne fait qu'y joindre l'exécutable.
+    needs: publier
+    runs-on: windows-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # La compilation Rust est longue la première fois, quelques minutes ensuite.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: bureau/src-tauri
+
+      - name: Poser le HTML comme page de la fenêtre
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path bureau/dist | Out-Null
+          Copy-Item app/src/main/assets/drm16.html bureau/dist/index.html
+          # La version du paquet doit suivre celle de l'application, et Windows
+          # exige trois nombres : on complète.
+          $v = (Select-String -Path app/build.gradle -Pattern "versionName\s+'([^']+)'").Matches[0].Groups[1].Value
+          $conf = Get-Content bureau/src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
+          $conf.version = "$v.0.0"
+          $conf | ConvertTo-Json -Depth 20 | Set-Content bureau/src-tauri/tauri.conf.json -Encoding utf8
+          Write-Host "Version du paquet : $v.0.0"
+
+      - name: Installer l'outil Tauri
+        run: cargo install tauri-cli --version "^2.0" --locked
+
+      - name: Compiler l'exécutable
+        working-directory: bureau/src-tauri
+        run: cargo tauri build
+
+      - name: Joindre l'exécutable à la version
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $exe = Get-ChildItem -Recurse -Filter "*-setup.exe" bureau/src-tauri/target/release/bundle |
+                 Select-Object -First 1
+          if (-not $exe) { throw "Aucun installeur produit." }
+          Copy-Item $exe.FullName "DRM16-installeur.exe"
+          $etiq = "${{ github.ref_name }}"
+          if ($etiq -eq "main") {
+            $v = (Select-String -Path app/build.gradle -Pattern "versionName\s+'([^']+)'").Matches[0].Groups[1].Value
+            $etiq = "v$v"
+          }
+          gh release upload $etiq "DRM16-installeur.exe" --clobber
+
+      - name: Rapports en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-windows
+          path: bureau/src-tauri/target/release/build/**/output
+          if-no-files-found: ignore
+          retention-days: 7

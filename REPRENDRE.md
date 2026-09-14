@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **86**.
+La version actuelle est la **87**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,34 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Version de bureau — v87**
+
+Le cœur est **un seul fichier HTML de 1 Mo sans aucune dépendance externe** : vérifié, aucun `src` ni
+`href` vers l'extérieur. Il tourne donc tel quel sur un ordinateur. Deux formes livrées :
+
+- **`drm16.html`** joint à chaque version : on l'ouvre dans n'importe quel navigateur, sur n'importe quel
+  système. Zéro compilation.
+- **`DRM16-installeur.exe`** pour Windows, construit par un second poste du workflow (`windows`, `needs:
+  publier`) avec **Tauri 2** : une fenêtre et un moteur web, exactement le rôle de `MainActivity.java`
+  côté Android. `bureau/src-tauri/`, cible `nsis`, profil release réglé au plus petit (`opt-level="s"`,
+  `lto`, `strip`) — le projet tient en 2 Mo sur Android, pas question d'en livrer 150.
+
+*Ce qui manque sur ordinateur, et pourquoi* : le **MIDI** et la **bibliothèque de fichiers** passent
+entièrement par `window.DRM16`, le pont natif Android — il n'y a **pas** de repli Web MIDI dans le HTML.
+L'export, lui, a déjà son chemin « hors Android » (`<a download>`), il fonctionne donc. Ajouter le MIDI sur
+PC voudrait dire écrire un chemin `navigator.requestMIDIAccess` en parallèle du pont : faisable, jamais
+commencé.
+
+*Piège de la mémoire* : `localStorage` est bien utilisé (via la variable `MEM`, pas une chaîne littérale —
+une recherche naïve ne le trouve pas). Lecture et écriture sont sous `try`, donc un navigateur qui refuse
+la mémoire locale à une page `file://` ne casse rien : les motifs ne sont simplement pas conservés.
+L'exécutable n'a pas ce défaut, son origine étant `tauri://localhost`.
+
+`verifier-bureau.sh` contrôle l'autonomie du HTML et la présence des cinq fichiers de la coque.
+
+**Le seul morceau que je n'ai pas pu essayer ici** : la compilation Tauri, faute de Rust et de réseau.
+Si le poste `windows` échoue, le poste `publier` a déjà fait son travail — l'APK et le HTML sont publiés.
 
 **Catalogue au-dessus du rack — v86**
 

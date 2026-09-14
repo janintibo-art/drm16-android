@@ -1,0 +1,23 @@
+# Coque de bureau : exactement le même rôle que MainActivity.java côté Android
+# — une fenêtre, un moteur web, et rien d'autre. Tout est dans le HTML.
+[package]
+name = "drm16"
+version = "0.1.0"
+edition = "2021"
+description = "Boites a rythmes autonomes"
+authors = ["tibo"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+# On vise le plus petit exécutable possible : le projet tient en 2 Mo sur
+# Android, on ne va pas en livrer 150 sur PC.
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
