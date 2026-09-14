@@ -3445,9 +3445,12 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <li><b>PIC … SOURCES DONT … À VENIR</b> — le maximum atteint pendant le jeu, et non la valeur de
   l'instant : ouvrir le menu arrête le séquenceur, une valeur instantanée n'y voudrait rien dire. « À
   venir » compte les sons déjà programmés mais pas encore joués.</li>
-  <li><b>PAUSE MAX</b> — le plus long trou entre deux tours de l'ordonnanceur. C'est la mesure la plus
-  parlante : au-delà d'environ 150 ms, le fil principal a été bloqué assez longtemps pour que le son
-  s'assèche. C'est cela qu'on entend comme un grésillement.</li>
+  <li><b>PAUSE MAX</b> — le plus long trou entre deux tours de l'ordonnanceur, <b>devant l'écran
+  seulement</b>. En arrière-plan, Android ralentit volontairement les minuteries de plusieurs secondes ;
+  ces trous-là sont réels mais ne s'entendent pas, ils ne sont donc pas comptés. Au-delà d'environ 150 ms,
+  le fil principal a été bloqué assez longtemps pour que le son s'assèche : c'est cela qu'on entend comme
+  un grésillement. Le nombre entre parenthèses dit combien de fois ce seuil a été franchi — un accident
+  isolé et des hoquets réguliers ne se soignent pas de la même façon.</li>
   <li><b>DÉCROCHAGES</b> — les fois où le retard a dépassé 0,4 s et où il a fallu tout recaler. Le nombre
   par minute compte davantage que le total.</li>
   </ul>
@@ -5232,7 +5235,7 @@ var VEILLE = {t:-1, fige:0};
    trou entre deux tours de l'ordonnanceur. Le fil principal bloqué, c'est le
    moteur audio qui s'assèche. */
 var AUDIT = {decroche:0, quand:0, relances:0,
-             pic:0, picAvenir:0, pause:0, tours:0, tDernier:0, tJeu:0};
+             pic:0, picAvenir:0, pause:0, trous:0, tours:0, tDernier:0, tJeu:0};
 function reveillerAudio(){
   if(!ctx || ctx.startRendering) return;
   if(ctx.state !== "running"){ try{ ctx.resume(); }catch(e){} }
@@ -5522,8 +5525,19 @@ function tick(){
   var maintenant = Date.now();
   if(AUDIT.tDernier){
     var trou = maintenant - AUDIT.tDernier;
-    if(trou > AUDIT.pause) AUDIT.pause = trou;
     AUDIT.tJeu += Math.min(trou, 1000);
+    /* On ne mesure la pause QUE devant l'écran. En arrière-plan, Android
+       ralentit les minuteries de plusieurs secondes pour économiser la
+       batterie : le trou est réel, mais il ne s'entend pas puisque personne
+       n'écoute, et il écrasait le maximum. Un relevé de 1713 ms venait de là
+       et non d'un blocage. */
+    if(!cache){
+      if(trou > AUDIT.pause) AUDIT.pause = trou;
+      /* un trou de plus de 150 ms assèche le moteur audio : c'est le seuil
+         au-delà duquel ça s'entend. On les compte, car un seul accident et
+         des hoquets réguliers ne se soignent pas pareil. */
+      if(trou > 150) AUDIT.trous++;
+    }
   }
   AUDIT.tDernier = maintenant;
   AUDIT.tours++;
@@ -5837,6 +5851,7 @@ function releveAudio(){
          " · " + Math.round(min * 10) / 10 + " MIN DE JEU" +
          " · PIC " + AUDIT.pic + " SOURCES DONT " + AUDIT.picAvenir + " À VENIR" +
          " · PAUSE MAX " + AUDIT.pause + " ms" +
+         (AUDIT.trous ? " (" + AUDIT.trous + " AU-DESSUS DE 150)" : " (AUCUN TROU)") +
          " · " + AUDIT.decroche + " DÉCROCHAGES" +
          (min > 0.2 ? " (" + (Math.round(AUDIT.decroche / min * 10) / 10) + " PAR MIN)" : "") +
          (AUDIT.relances ? " · " + AUDIT.relances + " RELANCES" : "");
@@ -6102,6 +6117,7 @@ document.querySelector(".model").addEventListener("click", function(){ ouvrirNot
 
 document.addEventListener("visibilitychange", function(){
   cache = document.hidden;
+  AUDIT.tDernier = 0;        /* le passage d'un état à l'autre n'est pas un trou */
   if(cache){
     writeMem();
     if(!S.bg){ stop(); return; }

@@ -8,12 +8,34 @@ android {
         applicationId 'fr.tibo.drm16'
         minSdk 24
         targetSdk 34
-        versionCode 83
-        versionName '83'
+        versionCode 85
+        versionName '85'
+    }
+
+    /* Une version publiée doit être signée par une clé STABLE : Android refuse
+       d'installer une mise à jour signée autrement, et il faudrait désinstaller
+       l'application — donc perdre tous les motifs. La clé arrive par variables
+       d'environnement (secrets GitHub), jamais par le dépôt.
+       Sans clé, on retombe sur celle de debug : la compilation locale et
+       l'intégration continue ordinaire continuent de fonctionner. */
+    signingConfigs {
+        publication {
+            def fichier = System.getenv('KEYSTORE_FILE')
+            if (fichier) {
+                storeFile file(fichier)
+                storePassword System.getenv('KEYSTORE_PASSWORD')
+                keyAlias System.getenv('KEY_ALIAS')
+                keyPassword System.getenv('KEY_PASSWORD')
+            }
+        }
     }
 
     buildTypes {
-        release { minifyEnabled false }
+        release {
+            minifyEnabled false
+            signingConfig System.getenv('KEYSTORE_FILE') ? signingConfigs.publication
+                                                         : signingConfigs.debug
+        }
     }
 
     compileOptions {

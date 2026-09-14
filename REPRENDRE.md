@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **83**.
+La version actuelle est la **85**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,52 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**La pause ne se mesure qu'à l'écran — v85**
+
+Relevé sur l'appareil, 7,5 min de jeu : `PIC 80 SOURCES DONT 13 À VENIR · PAUSE MAX 1713 ms ·
+2 DÉCROCHAGES (0,3 PAR MIN)`.
+
+Les sources sont **saines** : 80 au pic contre 1180 avant la v71, et 13 à venir, ce qui est la valeur
+normale pour l'anticipation de 0,22 s. Les décrochages sont rares. Mais 1713 ms de pause ne collait avec
+rien de tout cela.
+
+Explication : avec **LECTURE EN ARRIÈRE-PLAN** activée, `stop()` n'est pas appelé au passage en fond,
+`periode()` passe à 150 ms et le minuteur continue — mais **Android ralentit volontairement les minuteries
+en arrière-plan**, de plusieurs secondes. Le trou était réel et sans aucune conséquence : personne
+n'écoutait. Il écrasait le maximum et masquait la vraie valeur.
+
+- La pause n'est plus mesurée que si `!cache`.
+- `AUDIT.tDernier = 0` sur chaque `visibilitychange` : le passage d'un état à l'autre n'est pas un trou.
+- `AUDIT.trous` compte les franchissements de **150 ms** en avant-plan. **Un accident isolé et des hoquets
+  réguliers ne se soignent pas pareil** : le maximum seul ne permettait pas de les distinguer.
+
+**Troisième fois qu'un de mes instruments mesure autre chose que ce qu'il prétend** (sonde de propagation
+en v77, liste de sources en v83, minuterie d'arrière-plan ici). Avant de corriger le code sur la foi d'un
+relevé, vérifier que le relevé mesure bien ce qu'on croit.
+
+**Publication sur GitHub — v84**
+
+Quatre pièces ajoutées, rien de modifié dans l'application.
+
+- `app/build.gradle` : `signingConfigs.publication` lit la clé dans les **variables d'environnement**,
+  jamais dans le dépôt, et **retombe sur la clé de debug** si elles sont absentes — la compilation locale
+  et le workflow `android.yml` continuent donc de fonctionner sans rien changer.
+- `.github/workflows/publication.yml` : déclenché par une **étiquette `v*`**, pas par une poussée.
+  `android.yml` continue de compiler à chaque envoi sans rien publier. Joint **deux fichiers** à la
+  version : `drm16-vNN.apk` daté, et `drm16.apk` au nom fixe que vise le bouton de la page.
+  `concurrency` avec `cancel-in-progress: false` : une publication ne s'interrompt pas.
+- `docs/index.html` : page de téléchargement. **Elle construit ses liens depuis sa propre adresse**, donc
+  rien à modifier si le dépôt est renommé, et `releases/latest/download` pointe toujours vers la dernière
+  version sans qu'on y retouche. Vérifié sur trois adresses, dont l'ouverture locale où les liens restent
+  inertes au lieu de pointer n'importe où.
+- `publier.sh` : refuse de poser l'étiquette si des fichiers ne sont pas envoyés (l'étiquette pointerait
+  sur un autre code) ou si l'étiquette existe déjà.
+- `PUBLIER.md` : les trois réglages à faire une seule fois, et la question des marques.
+
+**Le point qui ne se rattrape pas** : la clé de signature. Android identifie une application par sa
+signature ; changer de clé oblige à désinstaller, donc à perdre tous les motifs de l'utilisateur.
+`drm16.jks` doit être conservé hors du téléphone. `.gitignore` couvre `*.jks` et `cle-base64.txt`.
 
 **Acide, hardtek, tribe, psychédélique — v83**
 
