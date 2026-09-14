@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **81**.
+La version actuelle est la **82**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,19 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Rack et patch expliqués — v82**
+
+Les deux onglets de la barre portent des mots proches. La notice les distingue maintenant à l'endroit où
+ils apparaissent, et pas seulement au glossaire : **le rack est le meuble, le patch est ce qu'on a monté
+dedans**. D'où le partage — RACK remplace en bloc (changer de rack, le nommer, y poser un montage, le
+vider), PATCH retouche ce qu'on a sous les yeux (ajouter, retirer, déplacer, décâbler).
+
+Entrée `Rack` ajoutée au glossaire, `Patch` précisée. Le glossaire est **alphabétique** : vérifié
+automatiquement après insertion, accents neutralisés pour le tri.
+
+Décidé avec l'utilisateur : **la TR-1000 et la DrumBrute gardent leurs rangées de boutons**, elles ne
+posent pas de problème à l'usage. Ne pas y appliquer les tiroirs de l'Eurorack.
 
 **Barre du rack réorganisée — v81**
 
