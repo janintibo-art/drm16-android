@@ -5,9 +5,18 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Une seule compilation à la fois : si vous poussez trois fois de suite,
+# les deux premières sont abandonnées au lieu d'attendre en file.
+# C'est ce qui bloquait le run #36.
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 25          # sans cela, un exécuteur coincé attend six heures
+
     steps:
       - uses: actions/checkout@v4
 
@@ -15,16 +24,44 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle           # évite de retélécharger Gradle à chaque fois
 
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
 
       - name: Compiler l'APK de debug
-        run: gradle assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace --no-daemon
 
       - uses: actions/upload-artifact@v4
         with:
           name: drm16-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      # La version PC ne coûte rien à produire : c'est le fichier HTML tel quel.
+      # Il n'y a aucune raison de ne l'avoir qu'au moment d'une publication.
+      - name: Joindre la version PC
+        run: |
+          mkdir -p pc
+          cp app/src/main/assets/drm16.html pc/drm16.html
+          ls -lh pc/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: drm16-pc-html
+          path: pc/drm16.html
+          if-no-files-found: error
+
+      # En cas d'échec, on récupère les rapports : l'erreur exacte est dedans,
+      # sans avoir à fouiller les journaux dans le navigateur.
+      - name: Rapports en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-echec
+          path: |
+            app/build/reports/
+            app/build/outputs/logs/
+          if-no-files-found: ignore
+          retention-days: 7

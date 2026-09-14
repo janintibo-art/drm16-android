@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **91**.
+La version actuelle est la **92**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,20 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Ce que produit chaque envoi — v92**
+
+Constat : seul l'APK sortait à chaque poussée. Le travail `publication.yml` ne se déclenche que sur une
+étiquette `v*`, donc la version PC et l'exécutable n'existaient qu'au moment d'une publication — qui
+n'arrive pas.
+
+- `android.yml` joint maintenant **`drm16.html`** en plus de l'APK. C'est le fichier tel quel, la copie ne
+  coûte rien : il n'y avait aucune raison de le réserver aux publications.
+- `windows.yml`, nouveau, **à la demande seulement** (`workflow_dispatch`). Compiler du Rust prend dix à
+  quinze minutes ; le faire à chaque virgule corrigée gâcherait le quota. La publication le produit de
+  toute façon à chaque version.
+- Les trois déclencheurs sont maintenant distincts et sans recouvrement : poussée → APK + HTML ;
+  à la demande → exécutable ; étiquette → version publiée complète. Tableau récapitulatif dans le README.
 
 **Table de mixage : plusieurs machines à la fois — v91**
 

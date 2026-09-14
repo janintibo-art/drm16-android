@@ -1,5 +1,23 @@
 # Boîtes à rythmes autonomes pour Android
 
+**[Télécharger l'application](../../releases/latest)** — Android 7 minimum, hors ligne, sans compte.
+Pour publier une nouvelle version, voir [PUBLIER.md](PUBLIER.md).
+
+### Ce que produit chaque envoi
+
+| Quand | Ce qu'on obtient | Où |
+|---|---|---|
+| À chaque `git push` | l'**APK** et la **version PC** (`drm16.html`) | Actions → APK → Artifacts |
+| À la demande | l'**exécutable Windows** | Actions → Exécutable Windows → Run workflow |
+| Sur une étiquette `vNN` | une **version publiée** : APK signé, HTML et exécutable | Releases |
+
+La version PC est le fichier HTML tel quel : on l'ouvre dans un navigateur, rien à installer.
+L'exécutable demande dix à quinze minutes de compilation Rust, d'où son lancement à la demande.
+
+> Projet personnel, sans lien avec Roland, Akai, Korg, Arturia, Behringer, Oberheim ni aucun autre
+> fabricant. Les noms d'appareils servent à dire de quoi le son s'inspire ; aucun échantillon ni aucun
+> circuit d'origine n'est utilisé — tout est synthétisé.
+
 Recréation des Electro-Harmonix DRM-16 (model 01) et DRM-32 (model 03), et des Korg Electribe EM-1, ER-1,
 EA-1, ES-1, de leurs versions mkII, de l'EMX-1 et de l'ESX-1, en application Android.
 **Vingt-quatre machines et un rack eurorack**, un menu au lancement, plus une bibliothèque, un enregistreur MIDI et un éditeur

@@ -1,0 +1,68 @@
+name: Exécutable Windows
+
+# À la demande seulement. Compiler du Rust prend dix à quinze minutes : le faire
+# à chaque virgule corrigée gâcherait le temps d'exécution pour rien. On lance
+# depuis l'onglet Actions quand on veut l'exécutable, et la publication le
+# produit de toute façon à chaque version.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  exe:
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: bureau/src-tauri
+
+      - name: Poser le HTML comme page de la fenêtre
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path bureau/dist | Out-Null
+          Copy-Item app/src/main/assets/drm16.html bureau/dist/index.html
+          $v = (Select-String -Path app/build.gradle -Pattern "versionName\s+'([^']+)'").Matches[0].Groups[1].Value
+          $conf = Get-Content bureau/src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
+          $conf.version = "$v.0.0"
+          $conf | ConvertTo-Json -Depth 20 | Set-Content bureau/src-tauri/tauri.conf.json -Encoding utf8
+          Write-Host "Version du paquet : $v.0.0"
+
+      - name: Installer l'outil Tauri
+        run: cargo install tauri-cli --version "^2.0" --locked
+
+      - name: Compiler l'exécutable
+        working-directory: bureau/src-tauri
+        run: cargo tauri build
+
+      - name: Récupérer l'installeur
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Recurse -Filter "*-setup.exe" bureau/src-tauri/target/release/bundle |
+                 Select-Object -First 1
+          if (-not $exe) { throw "Aucun installeur produit." }
+          New-Item -ItemType Directory -Force -Path sortie | Out-Null
+          Copy-Item $exe.FullName sortie/DRM16-installeur.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: drm16-windows
+          path: sortie/DRM16-installeur.exe
+          if-no-files-found: error
+
+      - name: Rapports en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-windows
+          path: bureau/src-tauri/target/release/build/**/output
+          if-no-files-found: ignore
+          retention-days: 7
