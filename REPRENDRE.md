@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **79**.
+La version actuelle est la **80**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,27 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**MPC2000 en une colonne, barre du rack — v80**
+
+*La MPC2000 restait large et courte sur un téléphone*, donc réduite à presque rien par `fit()`, avec la
+moitié de l'écran vide. La règle qui empile en une colonne **existait pourtant déjà** dans
+`@media (max-width:780px)` : `.mpc-corps{grid-template-columns:1fr}`. Mais `body.mpc2 .mpc-corps` compte
+**deux classes contre une** et l'emportait, requête média ou non. La MPC3000, elle, s'empilait correctement
+— d'où un défaut qui ne touchait qu'un modèle sur deux.
+
+Correctif : reprendre le même poids dans la requête, `.mpc-corps,body.mpc2 .mpc-corps{…}`.
+**Règle générale** : une règle de mise en page posée hors requête média avec deux classes ou plus doit être
+reprise nommément dans la requête. Un contrôle automatique a passé toutes les propriétés de mise en page
+(`grid-template-columns`, `flex-direction`, `display`) en revue : **aucun autre conflit du même genre**.
+
+*Barre de défilement sous le rack.* Le rack défilait déjà au doigt, mais il fallait tomber entre deux
+modules. `#eur-barre-h` est une poignée large comme le rack, dont la longueur reflète la part visible
+(`clientWidth / scrollWidth`) et la position le défilement. Elle ne s'affiche que si `scrollWidth -
+clientWidth > 8`. `window.eurMajBarre()` est rappelée par `eurDessiner` (différée de 30 ms, le temps que la
+mise en page soit faite) et par l'événement `scroll` du rack — mais **pas pendant qu'on tient la poignée**,
+sinon elle se battrait avec elle-même. Vérifié au banc : la poignée reste dans sa piste aux deux extrémités,
+au demi-pixel près.
 
 **Déplacer une façade agrandie — v79**
 

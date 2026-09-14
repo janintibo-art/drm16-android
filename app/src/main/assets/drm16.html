@@ -937,7 +937,11 @@ body.mpc2 .mpc-trans{background:#c8c8c8}
   background:linear-gradient(180deg,#fdfcf7,#b8b2a0);box-shadow:0 2px 4px #0006;top:47px}
 .mpc-mini{font:700 7.5px/1.3 "Roboto Condensed",Arial;letter-spacing:1px;color:#5a5a54;text-align:center}
 @media (max-width:780px){
-  .mpc-corps{grid-template-columns:1fr}
+  /* `body.mpc2 .mpc-corps` compte deux classes, `.mpc-corps` une seule : la
+     règle d'en haut l'emportait ici, et la MPC2000 restait en deux colonnes
+     sur un téléphone — large, courte, réduite à rien par la mise à l'échelle,
+     avec la moitié de l'écran vide. Il faut donc reprendre le même poids. */
+  .mpc-corps,body.mpc2 .mpc-corps{grid-template-columns:1fr}
   body.mpc .mpc-gauche,body.mpc .mpc-droite{order:0}
   .mpc-akai{font-size:21px} .mpc-nom b{font-size:23px}
   .mpc-grilles{display:none}
@@ -1497,6 +1501,15 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
    hauteur nulle tant qu'elle est vide, donc rien ne change pour un petit rack. */
 .eur-piste{display:flex;flex-direction:column;gap:7px;min-width:min-content;position:relative;z-index:1}
 .eur-rangee{display:flex;gap:5px;align-items:stretch;min-width:min-content}
+/* Faire défiler le rack demandait de trouver un bout de fond entre deux
+   modules — introuvable sur un rack bien rempli. Cette barre est une poignée
+   franche, large comme le rack, qu'on attrape sans viser. */
+.eur-barre-h{display:none;margin:7px 4px 0;height:26px;border-radius:13px;
+  background:#141418;border:1px solid #2a2a31;position:relative;touch-action:none}
+.eur-barre-h.vu{display:block}
+.eur-barre-h i{position:absolute;top:3px;left:0;height:18px;min-width:44px;border-radius:9px;
+  background:linear-gradient(180deg,#5a5f68,#33373d);box-shadow:0 1px 2px #0008}
+.eur-barre-h.prise i{background:linear-gradient(180deg,#7d858f,#454a52)}
 .eur-mod{flex:none;border-radius:3px;padding:6px 5px;position:relative;
   background:linear-gradient(180deg,#e8eaee,#cfd3d9);box-shadow:0 2px 6px #0008,inset 0 1px 0 #fff;
   display:flex;flex-direction:column}
@@ -2745,6 +2758,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <svg id="eur-cables"></svg>
     <div class="eur-piste" id="eur-piste"></div>
   </div>
+  <div class="eur-barre-h" id="eur-barre-h"><i></i></div>
 
   <div class="eur-cat" id="eur-cat" style="display:none"></div>
 </div>
@@ -3622,6 +3636,12 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   START, le tempo, l'afficheur et le rack. Sur un téléphone tenu debout, cela rend un tiers de la hauteur.
   Pour revenir, touchez en haut à droite.</li>
   </ul>
+
+  <h3>La barre sous le rack</h3>
+  <p>Sous les modules, une <b>poignée large comme le rack</b> le fait défiler de droite à gauche. Le rack se
+  déplace aussi au doigt, mais il faut pour cela tomber entre deux modules — introuvable sur un rack bien
+  rempli. La poignée s'attrape sans viser, et sa longueur dit du même coup quelle part du rack on voit :
+  courte, il reste beaucoup à découvrir. Elle disparaît quand tout tient à l'écran.</p>
 
   <h3>Deux rangées</h3>
   <p>Le rack tient sur <b>deux rangées</b>. Choisissez un module et appuyez sur <b>RANGÉE</b> pour le faire
@@ -16377,6 +16397,7 @@ function eurDessiner(){
   EUR_KNOBS.forEach(function(k){ k.maj(); });
   eurCables();
   majLcdEur();
+  if(window.eurMajBarre) setTimeout(window.eurMajBarre, 30);
 }
 /* les câbles sont dessinés par-dessus, en courbes molles comme de vrais fils */
 function eurCables(){
@@ -16993,6 +17014,55 @@ document.getElementById("eur-plein").addEventListener("click", function(){
 document.getElementById("sortir-plein").addEventListener("click", function(){
   pleinEcran(false); H.cran();
 });
+/* ---------- la barre de défilement du rack ----------
+   Le rack défile déjà au doigt, mais il faut pour cela tomber entre deux
+   modules. Cette poignée fait toute la largeur : on l'attrape sans viser, et
+   elle dit du même coup où l'on se trouve dans le rack. Elle ne se montre que
+   s'il y a quelque chose à faire défiler. */
+(function barreRack(){
+  var rack = document.getElementById("eur-rack");
+  var barre = document.getElementById("eur-barre-h");
+  var pouce = barre.querySelector("i");
+  var prise = null;
+  function trop(){ return rack.scrollWidth - rack.clientWidth; }
+  window.eurMajBarre = function(){
+    var d = trop();
+    barre.classList.toggle("vu", d > 8);
+    if(d <= 8) return;
+    var l = Math.max(44, barre.clientWidth * rack.clientWidth / rack.scrollWidth);
+    pouce.style.width = Math.round(l) + "px";
+    pouce.style.left = Math.round((barre.clientWidth - l) * rack.scrollLeft / d) + "px";
+  };
+  function viser(x){
+    var r = barre.getBoundingClientRect();
+    var l = pouce.offsetWidth;
+    var p = (x - r.left - l / 2) / Math.max(1, r.width - l);
+    rack.scrollLeft = Math.max(0, Math.min(1, p)) * trop();
+    eurMajBarre();
+  }
+  barre.addEventListener("pointerdown", function(e){
+    if(trop() <= 8) return;
+    prise = e.pointerId;
+    barre.setPointerCapture(e.pointerId);
+    barre.classList.add("prise");
+    viser(e.clientX);
+    e.preventDefault(); e.stopPropagation();
+  });
+  barre.addEventListener("pointermove", function(e){
+    if(prise !== e.pointerId) return;
+    viser(e.clientX);
+    e.preventDefault(); e.stopPropagation();
+  });
+  function lacher(e){
+    if(prise !== e.pointerId) return;
+    prise = null; barre.classList.remove("prise");
+  }
+  barre.addEventListener("pointerup", lacher);
+  barre.addEventListener("pointercancel", lacher);
+  /* le rack peut aussi défiler au doigt : la poignée suit */
+  rack.addEventListener("scroll", function(){ if(prise === null) eurMajBarre(); });
+})();
+
 document.getElementById("eur-mont").addEventListener("click", function(){ eurMontages(); H.cran(); });
 /* Le bouton ouvre la liste des huit. Passer au suivant reste possible d'un
    seul geste depuis la liste, mais choisir directement vaut mieux quand ils
