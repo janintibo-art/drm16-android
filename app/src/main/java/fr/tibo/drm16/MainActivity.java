@@ -297,6 +297,13 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         s.setDomStorageEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setAllowFileAccess(false);
+        /* Les projets invités chargent leurs échantillons par requête interne
+           depuis file:///android_asset/. Sans cette autorisation, la requête
+           est refusée et les kits restent muets, sans le moindre message.
+           Elle ne concerne QUE l'accès d'une page file:// à d'autres fichiers
+           file:// ; setAllowFileAccess reste à false, la page ne peut donc
+           toujours pas atteindre le reste du téléphone. */
+        s.setAllowFileAccessFromFileURLs(true);
         s.setAllowContentAccess(true);   // nécessaire aux URI content:// du sélecteur de fichiers
         s.setCacheMode(WebSettings.LOAD_NO_CACHE);
         s.setUseWideViewPort(false);
@@ -308,6 +315,12 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
+                /* Tout est bloqué sauf nos propres pages : sans cette exception,
+                   les cadres des projets invités resteraient vides, cette
+                   méthode étant aussi appelée pour les sous-cadres sur les
+                   versions récentes d'Android. */
+                String u = r.getUrl().toString();
+                if (u.startsWith("file:///android_asset/")) return false;
                 return true;
             }
 

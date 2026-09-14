@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **87**.
+La version actuelle est la **88**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,44 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Deux projets invités dans le menu — v88**
+
+Trois dépôts examinés. **Deux sont intégrables, un ne l'est pas.**
+
+- **Studio Tibo** (508 Ko, un seul fichier HTML) — station de production : séquenceur, piano roll, MIDI,
+  onze effets, mixeur, automation, export. Complément naturel des machines.
+- **Nexus Beat Lab** (292 Ko + 5,2 Mo d'échantillons WAV) — pads et séquenceur avec de **vrais
+  échantillons**, ce que DRM16 n'a pas.
+- **Tibrecord** — Python / Kivy / buildozer. **Pas intégrable** : autre langage, autre exécution. Il
+  faudrait le réécrire en web ou le laisser séparé.
+
+*Méthode : un `<iframe>` par invité, pas une fusion.* Trois applications d'un mégaoctet concaténées dans
+une page se marcheraient dessus — styles globaux, variables globales, contexte audio. Chaque invité garde
+son document. Vérifié avant de s'engager : aucun des deux n'utilise `window.top`, `parent` ni le plein
+écran, et les clés de stockage ne se croisent pas (`drm.reglages` ici, `_tibo_*` et `nbl-*` chez eux).
+
+*Chargement différé* : le `src` du cadre n'est posé qu'à la première ouverture. Cinq mégaoctets
+d'échantillons n'ont rien à faire au démarrage.
+
+*Deux pièges côté Android, tous deux silencieux* :
+- `setAllowFileAccess(false)` empêchait les requêtes internes de Nexus vers ses `samples/` : **kits muets,
+  sans message**. Corrigé par `setAllowFileAccessFromFileURLs(true)`, qui n'ouvre que l'accès d'une page
+  `file://` aux autres fichiers `file://` — `setAllowFileAccess` reste à `false`.
+- `shouldOverrideUrlLoading` renvoyait `true` pour tout, y compris les **sous-cadres** sur Android récent :
+  les cadres seraient restés vides. Exception ajoutée pour `file:///android_asset/`.
+
+*Deux moteurs audio ne jouent jamais ensemble* : `ouvrirInvite` appelle `stop()`, `fermerInvite` recharge
+le cadre pour couper le son de l'invité et rappelle `reveillerAudio()`.
+
+Les deux liens de polices Google de Studio Tibo ont été retirés : hors ligne ils ne faisaient que retarder
+l'affichage, la page ayant déjà ses polices de secours.
+
+**L'APK passe d'environ 2 Mo à environ 8 Mo**, presque entièrement à cause des échantillons de Nexus.
+
+*Piste pour plus tard* : servir les ressources par `WebViewAssetLoader` sur une origine `https://` donnerait
+un contexte sécurisé, donc le **Web MIDI** sur ordinateur. Attention, cela changerait l'origine de la page
+principale et **effacerait la mémoire des utilisateurs** — à ne faire que pour les invités.
 
 **Version de bureau — v87**
 

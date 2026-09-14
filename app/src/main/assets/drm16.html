@@ -145,9 +145,16 @@ body.m32 .read{color:#8fe8d8}
 .off .led.on,.off .led.beat{background:#1d2a33;box-shadow:inset 0 1px 2px #000c}
 
 /* ---------- notice ---------- */
-#note,#enr,#pr,#bib{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
+#note,#enr,#pr,#bib,#studio,#nexus{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
   font:15px/1.6 system-ui,-apple-system,"Roboto",sans-serif}
-#note.show,#enr.show,#pr.show,#bib.show{display:flex;flex-direction:column}
+#note.show,#enr.show,#pr.show,#bib.show,#studio.show,#nexus.show{display:flex;flex-direction:column}
+/* Les deux projets invités tournent dans leur propre document : chacun garde
+   ses styles, ses variables et son contexte audio, sans rien pouvoir casser
+   ici. C'est ce qui rend l'assemblage tenable — trois applications d'un
+   mégaoctet chacune concaténées dans une seule page se marcheraient dessus. */
+#studio .note-bar b{color:#c7a6ff}
+#nexus .note-bar b{color:#ffcf5c}
+.invite{flex:1;min-height:0;width:100%;border:0;display:block;background:#0b0b0d}
 #bib .note-bar b{color:#8ce3a0}
 #bib-nav{flex:none;display:flex;gap:6px;padding:9px 12px;background:#131316;border-bottom:1px solid #2c2c31}
 #bib #bib-nav button{flex:1;margin:0;padding:9px 6px;border:0;border-radius:20px;background:#2a2a30;
@@ -851,6 +858,8 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.penr span{color:#d9b5a6}
 .pick.pdoc{background:linear-gradient(165deg,#3a3a40,#141417 55%,#242429)}
 .pick.paud{background:linear-gradient(165deg,#2f3a3a,#12181a 55%,#1e2628)}
+.pick.pstu{background:linear-gradient(165deg,#3a2f4a,#140f1a 55%,#6a4fa8)}
+.pick.pnex{background:linear-gradient(165deg,#4a3f28,#1a1610 55%,#a8801f)}
 .pick.pdoc b{color:#e8e4da;text-shadow:0 2px 0 #000}
 .pick.pdoc span{color:#a9a69e}
 /* ===================== AKAI MPC3000 / MPC2000 ===================== */
@@ -3119,6 +3128,16 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 </div>
 
 
+<div id="studio">
+  <div class="note-bar"><b>STUDIO TIBO</b><button id="studio-fermer">FERMER</button></div>
+  <iframe class="invite" id="studio-cadre" title="Studio Tibo"></iframe>
+</div>
+
+<div id="nexus">
+  <div class="note-bar"><b>NEXUS BEAT LAB</b><button id="nexus-fermer">FERMER</button></div>
+  <iframe class="invite" id="nexus-cadre" title="Nexus Beat Lab"></iframe>
+</div>
+
 <div id="bib">
   <div class="note-bar"><b>BIBLIOTHÈQUE</b><button id="bib-fermer">FERMER</button></div>
   <div id="bib-nav">
@@ -3218,6 +3237,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <button class="pick ppr" id="menu-pr"><b>TRAVAIL DU MIDI</b><span>ROULEAU PAR SON · RETOUCHER, CALER, REPORTER</span></button>
   <button class="pick penr" id="menu-enr"><b>ENREGISTREUR MIDI</b><span>JOUER SUR LA KORG · LE SON SORT DU TÉLÉPHONE</span></button>
   <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
+  <button class="pick pstu" id="menu-studio"><b>STUDIO TIBO</b><span>SÉQUENCEUR · PIANO ROLL · MIXEUR · EXPORT</span></button>
+  <button class="pick pnex" id="menu-nexus"><b>NEXUS BEAT LAB</b><span>PADS ET SAMPLES 808, 909, DNB</span></button>
   <button class="pick paud" id="menu-audio"><b>ÉTAT DU SON</b><span>DÉCROCHAGES · SOURCES · RELANCER LE MOTEUR</span></button>
 </div>
 
@@ -3296,6 +3317,20 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   frappe pas.</p>
   <p>La CR-5000 n'enregistre rien : ses rythmes sont figés en usine, c'était tout le principe de la
   machine. L'Eurorack non plus, n'ayant pas de motif.</p>
+  <h3>Les deux projets invités</h3>
+  <p>Deux applications séparées vivent dans le menu, chacune dans sa propre page :</p>
+  <ul>
+  <li><b>STUDIO TIBO</b> — une station de production complète : séquenceur à pas, piano roll
+  multi-instruments, enregistrement micro et MIDI, onze effets d'insert, mixeur avec égaliseur et départs,
+  automation par courbes, arrangeur, export WAV et par pistes. C'est le complément naturel des machines :
+  elles fabriquent les sons, il les arrange.</li>
+  <li><b>NEXUS BEAT LAB</b> — seize pads et un séquenceur, avec de vrais <b>échantillons</b> 808, 909 et
+  drum'n'bass, là où les vingt-cinq machines synthétisent tout.</li>
+  </ul>
+  <p>Chacune tourne dans son propre document : elles gardent leurs réglages de leur côté et ne peuvent rien
+  déranger ici. Ouvrir l'une <b>arrête le séquenceur</b> de la machine en cours — deux moteurs audio qui
+  jouent ensemble se disputeraient la sortie. Fermer la referme complètement, son et tout.</p>
+
   <h3>Bibliothèque</h3>
   <p>Trois rayons. <b>SONS</b> réunit la banque interne et tous vos enregistrements : écouter, renommer,
   supprimer, importer un fichier, enregistrer au micro, et surtout <b>affecter</b> un son à la partie ou au
@@ -5952,6 +5987,38 @@ function fermerNotice(){
 })();
 document.getElementById("note-fermer").addEventListener("click", function(){ fermerNotice(); H.cran(); });
 document.getElementById("aide").addEventListener("click", function(){ ouvrirNotice(); H.inter(); });
+/* ---------- les deux projets invités ----------
+   Chacun vit dans son propre document, chargé à la PREMIÈRE ouverture
+   seulement : ce sont un demi-mégaoctet et cinq mégaoctets d'échantillons,
+   il n'y a aucune raison de les lire au démarrage de l'application.
+
+   Deux moteurs audio qui jouent en même temps se disputeraient la sortie et
+   feraient décrocher les deux : on arrête donc celui d'ici avant d'ouvrir. */
+function ouvrirInvite(nom, source){
+  stop();
+  var panneau = document.getElementById(nom), cadre = document.getElementById(nom + "-cadre");
+  if(!cadre.getAttribute("src")) cadre.setAttribute("src", source);
+  panneau.classList.add("show");
+  document.body.classList.add("note-ouverte");
+}
+function fermerInvite(nom){
+  var panneau = document.getElementById(nom), cadre = document.getElementById(nom + "-cadre");
+  panneau.classList.remove("show");
+  document.body.classList.remove("note-ouverte");
+  /* On coupe le son de l'invité en le rechargeant : sans cela il continuerait
+     de jouer derrière, et on chercherait longtemps d'où vient ce rythme. */
+  try{ cadre.contentWindow.location.reload(); }catch(e){ cadre.removeAttribute("src"); }
+  reveillerAudio();
+}
+document.getElementById("menu-studio").addEventListener("click", function(){
+  ouvrirInvite("studio", "studio/index.html"); H.inter();
+});
+document.getElementById("menu-nexus").addEventListener("click", function(){
+  ouvrirInvite("nexus", "nexus/index.html"); H.inter();
+});
+document.getElementById("studio-fermer").addEventListener("click", function(){ fermerInvite("studio"); H.cran(); });
+document.getElementById("nexus-fermer").addEventListener("click", function(){ fermerInvite("nexus"); H.cran(); });
+
 document.getElementById("menu-notices").addEventListener("click", function(){ ouvrirNotice("note-general"); H.inter(); });
 /* Le relevé était au fond de l'onglet GÉNÉRAL de la notice : personne ne l'y
    trouve. Ici il est à portée, et un second appui relance le moteur. */
