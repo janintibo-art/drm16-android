@@ -1,30 +1,60 @@
 #!/usr/bin/env bash
-# Compile le Syro de Korg en WebAssembly. Utilisé par le workflow, utilisable
-# à la main si emsdk est installé.
+# Compile le Syro de Korg en WebAssembly.
+# Chaque etape s'annonce : si ca echoue, le journal dit ou.
 set -e
 cd "$(dirname "$0")"
 
+echo "::group::1. Outils"
+emcc --version | head -1
+echo "::endgroup::"
+
+echo "::group::2. Code de Korg"
+# Jamais versionne : sa licence ne permet pas de le redistribuer.
 [ -d volcasample ] || git clone --depth 1 https://github.com/korginc/volcasample volcasample
+find volcasample -name '*.c' -o -name '*.h' | sort
+echo "::endgroup::"
 
-# On ne suppose pas la disposition du dépôt de Korg : on cherche l'en-tête
-# public et on compile ce qui l'entoure. Si Korg réorganise, ça tient encore.
+echo "::group::3. Reperage des sources"
+# On ne suppose pas la disposition du depot : on cherche l'en-tete public et on
+# compile ce qui l'entoure. Si Korg reorganise, ca tient encore.
 ENTETE=$(find volcasample -name korg_syro_volcasample.h | head -1)
-[ -n "$ENTETE" ] || { echo "En-tête Syro introuvable dans le dépôt de Korg."; exit 1; }
+[ -n "$ENTETE" ] || { echo "En-tete Syro introuvable."; exit 1; }
 SRC=$(dirname "$ENTETE")
-echo "Sources Syro : $SRC"
-ls "$SRC"/*.c
+echo "Dossier des sources : $SRC"
 
+# Le depot de Korg contient un programme d'exemple avec son propre main().
+# Compile avec le reste, Emscripten l'executerait au chargement du module et
+# le ferait sortir aussitot. On ecarte donc tout fichier qui a un main.
+SOURCES=""
+for f in "$SRC"/*.c; do
+  if grep -qE '^[[:space:]]*(int|void)[[:space:]]+main[[:space:]]*\(' "$f"; then
+    echo "  ecarte (contient main) : $(basename "$f")"
+  else
+    echo "  retenu                 : $(basename "$f")"
+    SOURCES="$SOURCES $f"
+  fi
+done
+[ -n "$SOURCES" ] || { echo "Aucune source Syro retenue."; exit 1; }
+echo "::endgroup::"
+
+echo "::group::4. Compilation"
 mkdir -p ../app/src/main/assets/syro
-
 emcc -O2 \
   -I"$SRC" \
-  "$SRC"/*.c syro_wrap.c \
+  $SOURCES syro_wrap.c \
   -o ../app/src/main/assets/syro/syro.js \
   -sMODULARIZE=1 \
   -sEXPORT_NAME=SyroModule \
   -sENVIRONMENT=web \
   -sALLOW_MEMORY_GROWTH=1 \
   -sEXPORTED_FUNCTIONS='["_volcagain_render","_volcagain_free","_volcagain_version","_malloc","_free"]' \
-  -sEXPORTED_RUNTIME_METHODS='["getValue","setValue","HEAP16","HEAPU8","UTF8ToString"]'
+  -sEXPORTED_RUNTIME_METHODS='["ccall","cwrap","getValue","setValue","UTF8ToString","HEAP16","HEAPU8"]'
+echo "::endgroup::"
 
+echo "::group::5. Resultat"
 ls -lh ../app/src/main/assets/syro/
+# Un module qui ne contient pas nos deux fonctions ne servirait a rien.
+grep -q "volcagain_render" ../app/src/main/assets/syro/syro.js \
+  && echo "volcagain_render present dans la glu." \
+  || { echo "volcagain_render ABSENT : exportation ratee."; exit 1; }
+echo "::endgroup::"

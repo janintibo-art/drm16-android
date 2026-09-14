@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **97**.
+La version actuelle est la **98**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,28 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Le Syro, deuxième essai — v98**
+
+Premier essai : la compilation a échoué, et le garde-fou a tenu — l'APK s'est construit, l'application a
+annoncé l'indisponibilité. Trois corrections, dont deux trouvées en relisant mon propre code sans même
+avoir le journal.
+
+1. **`ccall` n'était pas exporté.** Le code JS l'utilise pour appeler `volcagain_render`. Même avec une
+   compilation réussie, l'appel aurait échoué. Ajouté à `EXPORTED_RUNTIME_METHODS`, avec `cwrap`.
+2. **Le dépôt de Korg contient un programme d'exemple avec son propre `main()`.** Compilé avec le reste,
+   Emscripten l'exécuterait au chargement du module et le ferait sortir aussitôt. Le script **écarte
+   maintenant tout fichier contenant un `main`**, et dit lequel dans le journal.
+3. **Emscripten est installé à la main** (clone d'`emsdk`, `install`, `activate`, `emsdk_env.sh`) au lieu
+   d'une action tierce : une dépendance de moins, et un journal qui dit exactement où ça casse.
+
+*Le script s'annonce par étapes* (`::group::`) : outils, code de Korg avec la liste des fichiers trouvés,
+repérage des sources avec le détail retenu/écarté, compilation, puis **vérification que
+`volcagain_render` est bien dans la glu** — un module sans nos fonctions ne servirait à rien.
+
+*Côté application*, `syroCharger()` vérifie maintenant que le module est **complet** : `ccall`, `setValue`,
+`getValue`, les vues mémoire et `malloc`. Un module qui se charge mais à qui il manque une fonction est
+pire qu'un module absent — on s'en apercevrait au milieu d'un transfert. Le message nomme ce qui manque.
 
 **Transfert vers une vraie volca — v97**
 

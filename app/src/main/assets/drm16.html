@@ -6464,7 +6464,19 @@ function syroCharger(){
     sc.src = "syro/syro.js";
     sc.onload = function(){
       if(typeof SyroModule !== "function"){ non(new Error("module introuvable")); return; }
-      SyroModule().then(function(m){ SYRO.mod = m; SYRO.dispo = true; ok(m); }, non);
+      SyroModule().then(function(m){
+        /* Un module qui se charge mais à qui il manque une fonction est pire
+           qu'un module absent : on s'en aperçoit au milieu d'un transfert.
+           On vérifie tout de suite. */
+        var manque = [];
+        if(typeof m.ccall !== "function") manque.push("ccall");
+        if(typeof m.setValue !== "function") manque.push("setValue");
+        if(typeof m.getValue !== "function") manque.push("getValue");
+        if(!m.HEAPU8 || !m.HEAP16) manque.push("mémoire");
+        if(typeof m._malloc !== "function") manque.push("malloc");
+        if(manque.length){ non(new Error("module incomplet : " + manque.join(", "))); return; }
+        SYRO.mod = m; SYRO.dispo = true; ok(m);
+      }, non);
     };
     sc.onerror = function(){ SYRO.dispo = false; non(new Error("syro.js absent")); };
     document.head.appendChild(sc);
@@ -6767,8 +6779,12 @@ function ouvrirSyro(){
   syroCharger().then(function(){
     document.getElementById("syro-absent").style.display = "none";
     document.getElementById("syro-outils").style.display = "block";
-  }, function(){
-    document.getElementById("syro-absent").style.display = "block";
+  }, function(e){
+    var mot = document.getElementById("syro-absent");
+    mot.textContent = "Le transfert n'est pas disponible dans cette version : " +
+      (e && e.message ? e.message : "module absent") +
+      ". Tout le reste fonctionne normalement.";
+    mot.style.display = "block";
     document.getElementById("syro-outils").style.display = "none";
   });
 }
