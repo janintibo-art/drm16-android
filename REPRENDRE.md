@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **101**.
+La version actuelle est la **102**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,29 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Une piste par SON — v102**
+
+Correction de cap. La v101 faisait une bande par **canal** ; ce n'est pas ce qu'il fallait. Une Electribe —
+EMX, ESX, ER-1 — envoie **tous ses sons sur un seul canal** et ne les distingue que par le **numéro de
+note**. Une bande par canal ne montre donc qu'une ligne où tout se mélange.
+
+- `ENR.vus` est indexé `"canal:note"`, `ENR.canauxVus` garde le compte par canal pour l'aiguillage.
+- `pistesEnr()` rend une piste par couple canal + note, ou par canal selon `ENR.decoupe`. Bouton
+  `enr-decoupe` pour basculer : la vue par canal sert quand plusieurs machines jouent ensemble.
+- **Au-delà de 16 bandes**, seules les plus jouées sont affichées — au-delà on ne voit plus rien.
+
+*`nomSonPiste(canal, note)`* nomme le son **d'après la machine visée** : `ES_PARTS`, `SX_DRUMS`,
+`MX_DRUMS`, `ER_PARTS`, `EM_PARTS` pour les Electribe (base + rang) ; sinon `routageMidi(m).notes` pour
+trouver le rang, puis `TR.def.instr` ou `T1K_INSTR`. Chaque accès est sous `try` : une table absente ne
+casse rien, on retombe sur le nom General MIDI puis sur le numéro.
+
+**Piège de nommage** : il existait déjà un `nomSonEnr(note)` à **un seul argument**, qui donne le nom
+General MIDI. L'appeler avec deux arguments le faisait lire le canal comme une note. Le nouveau s'appelle
+`nomSonPiste` et se rabat sur l'ancien. **Vérifier les signatures avant de réutiliser un nom.**
+
+Vérifié au banc : une EMX sur le canal 10 donne quatre pistes nommées BD, HH C, CLAP, AGOGO ; tous les
+événements retrouvent leur piste ; la bascule par canal les regroupe sans en perdre un.
 
 **Enregistreur MIDI multi-sources — v101**
 

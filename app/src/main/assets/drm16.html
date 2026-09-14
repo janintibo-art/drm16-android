@@ -3388,12 +3388,16 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
       séquenceur les ouvre déjà triées au lieu d'un tas unique à démêler.</p>
 
       <h3>Ce qui arrive</h3>
-      <p>Une bande par canal reçu, le temps de gauche à droite. Pendant l'enregistrement la vue défile sur
-      les huit dernières secondes, avec un trait orange qui marque l'instant présent ; à l'arrêt, elle montre
-      la prise entière. Chaque note est un trait : sa position dans la bande donne sa hauteur, son intensité
-      donne sa vélocité.</p>
-      <canvas id="enr-vue" width="900" height="240"></canvas>
-      <p id="enr-legende" style="opacity:.75;font-size:13px">Rien reçu pour le moment.</p>
+      <p><b>Une bande par son</b>, et non par canal. C'est ce qu'il faut pour une Electribe : l'EMX, l'ESX
+      ou l'ER-1 envoient tous leurs sons sur un <b>seul</b> canal MIDI et ne les distinguent que par le
+      numéro de note. Une bande par canal ne montrerait qu'une ligne où tout se mélange.</p>
+      <p>Chaque son reçu prend donc sa propre bande, <b>nommée d'après la machine</b> qui le joue — BD,
+      SNARE, HH CLOSED plutôt que des numéros. Le temps va de gauche à droite, la hauteur du trait donne la
+      vélocité. Pendant l'enregistrement la vue défile sur les huit dernières secondes avec un trait orange
+      sur l'instant présent ; à l'arrêt, elle montre la prise entière.</p>
+      <p>Le bouton <b>PISTES</b> bascule entre une bande par son et une bande par canal. La seconde vue sert
+      quand plusieurs machines jouent ensemble et qu'on veut voir les sources plutôt que les instruments.
+      Au-delà de seize bandes, seules les plus jouées restent affichées.</p>
 
       <h3>Aiguillage des canaux</h3>
       <p style="opacity:.85">Chaque canal MIDI reçu apparaît ici et peut jouer sa propre machine. Une boîte
@@ -5362,7 +5366,9 @@ var PR = {prise:-1, notes:[], pistes:[], sel:-1, grille:4, zoom:0.10, defil:0,
           lecture:false, tmr:[], t0:0, anim:null, cv:null, ct:null, hauteurPiste:26, selMachine:null};
 var ENR = {actif:false, depart:0, evts:[], prises:[], lecture:null, tmr:[], compteur:0,
            canaux:{},        /* canal MIDI -> machine qui le joue            */
-           vus:{},           /* canal -> nombre de notes reçues, pour l'affichage */
+           vus:{},           /* "canal:note" -> nombre de coups reçus         */
+           canauxVus:{},     /* canal -> nombre de coups, pour l'aiguillage   */
+           decoupe:"son",    /* pistes par SON ou par CANAL                   */
            t0vue:0, dessin:null};
 
 var S = {
@@ -13622,8 +13628,12 @@ function enrNoter(a,b,c){
      les sources avant d'appuyer sur ENREGISTRER, et de les aiguiller. */
   if(a >= 0xF8) return;                       /* horloge et temps réel : inutiles ici */
   if((a & 0xF0) === 0x90 && c > 0){
+    /* Une Electribe envoie TOUS ses sons sur un seul canal et ne les distingue
+       que par le numéro de note. Compter par canal ne donnerait donc qu'une
+       seule piste pour toute la machine : on relève le couple canal + note. */
     var ca = a & 0x0F;
-    ENR.vus[ca] = (ENR.vus[ca] || 0) + 1;
+    ENR.vus[ca + ":" + b] = (ENR.vus[ca + ":" + b] || 0) + 1;
+    ENR.canauxVus[ca] = (ENR.canauxVus[ca] || 0) + 1;
   }
   if(!ENR.actif) return;
   ENR.compteur++;
@@ -13780,12 +13790,113 @@ function couleurCanal(c){ return "hsl(" + ((c * 137) % 360) + ",70%,58%)"; }
    l'aiguillage des canaux : une seule liste à tenir. Remplie à l'ouverture. */
 var MACHINES_ENR = [];
 
-/* Les canaux effectivement reçus, dans l'ordre. On n'affiche pas les seize :
-   quinze bandes vides ne disent rien. */
+/* Les noms des sons courants. Une boîte à rythmes qui suit la convention
+   générale se lit ainsi sans rien configurer. */
+var NOMS_SON = {bd:"Grosse caisse", sd:"Caisse claire", cp:"Clap", lt:"Tom",
+                hh:"Charley", oh:"Charley ouvert", rd:"Ride", cy:"Crash",
+                wb:"Wood block", cb:"Cowbell", sp:"Clave"};
+function nomSonEnr(note){
+  var g = GM_INV[note];
+  if(g && NOMS_SON[g]) return NOMS_SON[g];
+  return "Note " + note;
+}
+
+/* Le nom d'un son en tenant compte de la MACHINE qui le joue. Une EMX envoie
+   tous ses sons sur un canal et ne les distingue que par la note : c'est la
+   table de la machine visée qui sait dire « BD » plutôt que « Note 36 ».
+   Se rabat sur le nom General MIDI, puis sur le numéro. */
+function nomSonPiste(canal, note){
+  var m = ENR.canaux[canal] || S.modele;
+  /* Les Electribe : une base et neuf rangs, avec leurs vrais noms de partie. */
+  try{
+    var k = note - MIDI.base;
+    if(k >= 0 && k < 9){
+      if(m === "es1" || m === "es2") return ES_PARTS[k].n;
+      if(m === "esx") return SX_DRUMS[k];
+      if(m === "emx") return MX_DRUMS[k];
+      if(m === "er1" || m === "er2") return ER_PARTS[k].n;
+      if(m === "em1" && EM_PARTS[k]) return EM_PARTS[k].nom;
+    }
+  }catch(e){}
+  /* Les autres ont une table de notes : on y cherche le rang, puis son nom. */
+  try{
+    var r = routageMidi(m);
+    if(r && r.notes){
+      var i = r.notes.indexOf(note);
+      if(i >= 0){
+        if(m === "tr808" || m === "tr909" || m === "tr707" || m === "rd6")
+          return (TR.def.instr[i] && TR.def.instr[i].nom) || ("Voix " + (i + 1));
+        if(m === "t1k" && T1K_INSTR[i]) return T1K_INSTR[i].nom || ("Voix " + (i + 1));
+        return "Voix " + (i + 1);
+      }
+    }
+  }catch(e){}
+  try{ return nomSonEnr(note); }catch(e){}
+  return "Note " + note;
+}
+
+/* Les canaux effectivement reçus. Sert à l'aiguillage, pas à l'affichage. */
 function canauxEnr(){
   var l = [];
-  for(var c=0;c<16;c++) if(ENR.vus[c]) l.push(c);
+  for(var c=0;c<16;c++) if(ENR.canauxVus[c]) l.push(c);
   return l;
+}
+
+/* Les pistes à afficher. Par SON : un couple canal + note, c'est ce qu'il faut
+   pour une EMX ou une ER-1, qui envoient tout sur un canal. Par CANAL : une
+   bande par source, utile quand plusieurs machines jouent ensemble. */
+function pistesEnr(){
+  var l = [];
+  if(ENR.decoupe === "canal"){
+    canauxEnr().forEach(function(c){
+      l.push({cle:"c" + c, c:c, n:-1, nom:"CANAL " + (c + 1)});
+    });
+    return l;
+  }
+  for(var k in ENR.vus){
+    var p = k.split(":"), c = +p[0], n = +p[1];
+    l.push({cle:k, c:c, n:n, nom:nomSonPiste(c, n)});
+  }
+  l.sort(function(a, b){ return (a.c - b.c) || (a.n - b.n); });
+  return l;
+}
+/* À quelle piste appartient un événement. */
+function pisteDeEnr(pistes, canal, note){
+  for(var i=0;i<pistes.length;i++){
+    var p = pistes[i];
+    if(p.c !== canal) continue;
+    if(p.n < 0 || p.n === note) return i;
+  }
+  return -1;
+}
+
+/* Les pistes à montrer. Par SON : un couple canal + note par piste, ce qui
+   donne une ligne par son de la machine branchée. Par CANAL : une ligne par
+   canal, utile quand plusieurs appareils jouent ensemble.
+   On borne à trente-deux : au-delà les bandes seraient plus fines qu'un
+   trait, et un appareil déréglé pourrait en inventer cent vingt-huit. */
+function voiesEnr(){
+  var l = [], k;
+  if(ENR.decoupe === "canal"){
+    canauxEnr().forEach(function(c){ l.push({c:c, note:-1, cle:"c" + c}); });
+    return l;
+  }
+  for(k in ENR.vus){
+    var p = k.split(":");
+    l.push({c:+p[0], note:+p[1], cle:k, n:ENR.vus[k]});
+  }
+  /* triées par hauteur : on retrouve les graves en bas, comme sur un clavier */
+  l.sort(function(a, b){ return (a.c - b.c) || (a.note - b.note); });
+  if(l.length > 32) l.length = 32;
+  return l;
+}
+function titreVoie(v){
+  if(v.note < 0) return "CANAL " + (v.c + 1);
+  var plusieurs = canauxEnr().length > 1;
+  return nomSonEnr(v.note) + (plusieurs ? "  ·  c" + (v.c + 1) : "");
+}
+function couleurVoie(v){
+  return couleurCanal(v.note < 0 ? v.c : (v.note % 16));
 }
 
 /* La vue. Pendant l'enregistrement elle défile sur une fenêtre de huit
@@ -13796,54 +13907,57 @@ function dessinerEnr(){
   if(!cv) return;
   var g = cv.getContext("2d");
   var L = cv.width, H = cv.height;
-  g.clearRect(0, 0, L, H);
   g.fillStyle = "#0a0a0c"; g.fillRect(0, 0, L, H);
 
-  var cans = canauxEnr();
-  var evts = ENR.evts;
-  if(!cans.length){
+  var pistes = pistesEnr();
+  if(!pistes.length){
     g.fillStyle = "#4a4a52";
     g.font = "16px 'Roboto Condensed',Arial";
     g.fillText("En attente de MIDI…", 16, H / 2);
     return;
   }
+  /* Au-delà de seize pistes on ne verrait plus rien : on garde les plus
+     jouées, qui sont celles qui portent le morceau. */
+  if(pistes.length > 16){
+    pistes.sort(function(a, b){ return (ENR.vus[b.cle] || 0) - (ENR.vus[a.cle] || 0); });
+    pistes = pistes.slice(0, 16);
+    pistes.sort(function(a, b){ return (a.c - b.c) || (a.n - b.n); });
+  }
+
   var FEN = 8000;                                  /* huit secondes de fenêtre */
   var maintenant = ENR.actif ? performance.now() - ENR.depart : 0;
-  var t1, t0;
+  var evts = ENR.evts, t0, t1;
   if(ENR.actif){ t1 = Math.max(FEN, maintenant); t0 = t1 - FEN; }
   else {
     var fin = evts.length ? evts[evts.length - 1][0] : FEN;
     t0 = 0; t1 = Math.max(FEN, fin);
   }
   var duree = Math.max(1, t1 - t0);
-  var h = H / cans.length;
+  var h = H / pistes.length;
 
-  cans.forEach(function(c, i){
+  pistes.forEach(function(p, i){
     var y = i * h;
-    g.fillStyle = (i % 2) ? "#111115" : "#0d0d11";
+    g.fillStyle = (i % 2) ? "#121216" : "#0d0d11";
     g.fillRect(0, y, L, h);
-    g.fillStyle = couleurCanal(c);
-    g.globalAlpha = 0.5;
-    g.fillRect(0, y, 3, h);
-    g.globalAlpha = 1;
-    g.fillStyle = "#6a6a74";
-    g.font = "11px 'Roboto Condensed',Arial";
-    g.fillText("CANAL " + (c + 1), 9, y + 13);
+    g.fillStyle = couleurCanal(p.n < 0 ? p.c : p.n);
+    g.fillRect(0, y, 4, h);
+    g.fillStyle = "#8a8790";
+    g.font = "600 11px 'Roboto Condensed',Arial";
+    g.fillText(p.nom, 10, y + Math.min(14, h - 3));
   });
 
-  for(var k=0;k<evts.length;k++){
-    var e = evts[k];
+  for(var q=0;q<evts.length;q++){
+    var e = evts[q];
     if(e[0] < t0 || e[0] > t1) continue;
     if((e[1] & 0xF0) !== 0x90 || e[3] === 0) continue;
-    var ca = e[1] & 0x0F, rang = cans.indexOf(ca);
+    var rang = pisteDeEnr(pistes, e[1] & 0x0F, e[2]);
     if(rang < 0) continue;
     var x = ((e[0] - t0) / duree) * L;
-    var yb = rang * h;
-    /* la note place le trait dans la bande : grave en bas, aigu en haut */
-    var yy = yb + h - 6 - (Math.max(0, Math.min(127, e[2])) / 127) * (h - 12);
-    g.globalAlpha = 0.35 + (e[3] / 127) * 0.65;
-    g.fillStyle = couleurCanal(ca);
-    g.fillRect(x, yy, 3, 4);
+    /* la vélocité donne la hauteur du trait : un coup fort se voit */
+    var ht = Math.max(3, (e[3] / 127) * (h - 6));
+    g.globalAlpha = 0.45 + (e[3] / 127) * 0.55;
+    g.fillStyle = couleurCanal(pistes[rang].n < 0 ? pistes[rang].c : pistes[rang].n);
+    g.fillRect(x, rang * h + h - 3 - ht, 3, ht);
   }
   g.globalAlpha = 1;
 
@@ -13904,6 +14018,11 @@ function majCanauxEnr(){
     d.appendChild(r);
   });
 }
+document.getElementById("enr-decoupe").addEventListener("click", function(){
+  ENR.decoupe = (ENR.decoupe === "son") ? "canal" : "son";
+  this.textContent = (ENR.decoupe === "son") ? "PISTES : UNE PAR SON" : "PISTES : UNE PAR CANAL";
+  H.cran();
+});
 function majEnrUI(){
   var b = document.getElementById("enr-rec");
   if(!b) return;
@@ -13919,8 +14038,9 @@ function majEnrUI(){
   if(lg){
     var cans = canauxEnr();
     lg.textContent = cans.length
-      ? (cans.length + (cans.length > 1 ? " canaux reçus : " : " canal reçu : ") +
-         cans.map(function(c){ return c + 1; }).join(", "))
+      ? (pistesEnr().length + " sons reçus sur " + cans.length +
+         (cans.length > 1 ? " canaux (" : " canal (") +
+         cans.map(function(c){ return c + 1; }).join(", ") + ")")
       : "Rien reçu pour le moment.";
   }
   var l = document.getElementById("enr-liste");
