@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **99**.
+La version actuelle est la **100**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,24 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Chapitre recentré sur le transfert — v100**
+
+L'onglet VOS VRAIES MACHINES décrivait trois applications **qu'on ne peut pas télécharger** : elles ne sont
+pas publiées. Décrire un outil sans donner le moyen de l'obtenir n'aide personne.
+
+- Les trois fiches et le « pourquoi ils restent dehors » sont retirés, ainsi que la tuile `menu-outils`
+  et sa classe `.pout`.
+- **L'identifiant `note-outils` est conservé** : le bouton MODE D'EMPLOI du panneau de transfert
+  (`syro-aide`) pointe dessus. Le renommer casserait ce lien.
+- L'onglet s'appelle maintenant **VERS UNE VOLCA** et ne traite plus que du transfert : les trois étapes
+  de branchement, le réglage de niveau, le mode compressé, et ce que signifie l'indisponibilité.
+
+*À ne pas confondre* : les six mentions de MOC'TA BASS qui restent dans le fichier sont des **crédits**
+pour du travail réellement repris — la chaîne de traitement du son, le format des mouvements de potards.
+Elles n'ont rien à voir avec le chapitre supprimé et doivent rester.
+
+Si ces trois outils sont publiés un jour, le chapitre peut revenir — avec des liens, cette fois.
 
 **Le Syro compile — reste à le charger — v99**
 
