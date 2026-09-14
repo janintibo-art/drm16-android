@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **98**.
+La version actuelle est la **99**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,28 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Le Syro compile — reste à le charger — v99**
+
+Deuxième essai : **la compilation a réussi**. L'application disait alors « Failed to fetch », ce qui n'est
+pas une erreur de compilation mais de chargement — le module n'arrivait pas à aller chercher son propre
+`.wasm`.
+
+**Cause : `fetch()` ne prend pas en charge le protocole `file://` dans Chromium.** Pas partiellement, pas
+sous condition — pas du tout, quelle que soit l'autorisation accordée au WebView. `setAllowFileAccessFromFileURLs`
+sauve `XMLHttpRequest` — c'est ce qui fait marcher les kits de Nexus — mais pas `fetch`, et la glu
+d'Emscripten utilise `fetch`.
+
+Correctif : **`-sSINGLE_FILE=1`**. Le wasm est embarqué en base64 dans le `.js` : plus de fichier à côté,
+donc plus de requête du tout. Le script vérifie maintenant les deux choses — que `volcagain_render` est
+dans la glu, et qu'aucun `syro.wasm` ne traîne à côté, ce qui signifierait que l'option n'a pas pris.
+
+*Leçon à retenir pour tout ce qu'on ajoutera* : sous `file://`, **XHR oui, fetch non**. Une bibliothèque
+tierce qui charge une ressource par `fetch` échouera ici sans autre explication que « Failed to fetch ».
+
+*Rapport de compilation* : `continue-on-error` rend un échec presque invisible — une coche verte avec un
+point d'exclamation qu'on ne remarque pas. Une étape écrit désormais en tête du rapport si le transfert
+est dans l'APK ou non, avec la taille du module.
 
 **Le Syro, deuxième essai — v98**
 

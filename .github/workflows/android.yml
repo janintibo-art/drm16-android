@@ -50,6 +50,19 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           bash syro/construire.sh
 
+      # continue-on-error rend l'échec presque invisible : une coche verte avec
+      # un point d'exclamation qu'on ne remarque pas. On écrit donc noir sur
+      # blanc, en tête du rapport, si le transfert est dans cet APK ou non.
+      - name: État du transfert volca
+        if: always()
+        run: |
+          if [ -f app/src/main/assets/syro/syro.js ]; then
+            T=$(du -h app/src/main/assets/syro/syro.js | cut -f1)
+            echo "**Transfert volca : disponible** dans cet APK ($T)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**Transfert volca : absent** de cet APK — voir l'étape « Compiler le Syro »." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Compiler l'APK de debug
         run: gradle assembleDebug --stacktrace --no-daemon
 
