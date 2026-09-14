@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **82**.
+La version actuelle est la **83**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -40,7 +40,7 @@ sont sans accents (Termux).
 
 La notice est découpée en **onglets `.doc`** dans `#note-corps` ; la barre de navigation est construite
 toute seule à partir de leur `data-titre`. L'Eurorack en occupe trois : `note-eur` (les principes),
-`note-eurmod` (les 81 fiches), `note-eurpat` (huit patchs et le glossaire).
+`note-eurmod` (les 89 fiches), `note-eurpat` (huit patchs et le glossaire).
 
 Une seule page HTML porte toute l'application : `app/src/main/assets/drm16.html`, environ **890 ko**.
 Le Java ne sert que de pont vers Android.
@@ -59,9 +59,9 @@ Le Java ne sert que de pont vers Android.
 **Electro-Harmonix** DRM16, DRM32 · **Korg** Electribe EM-1, ER-1, EA-1, ES-1, ER-1 mkII, ES-1 mkII,
 EA-1 mkII, EMX-1, ESX-1, volca sample · **Akai** MPC3000, MPC2000 · **Roland** TR-808, TR-909, TR-707,
 CR-5000, TR-1000 · **Oberheim** DMX · **Arturia** DrumBrute Impact · **Behringer** RD-6, TD-3 ·
-**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (81 modules, deux rangées :
-9 horloges, 7 séquenceurs, 9 oscillateurs, 10 filtres, 9 modulations, 12 utilitaires, 14 traitements,
-11 percussions).
+**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (89 modules, deux rangées :
+9 horloges, 7 séquenceurs, 10 oscillateurs, 11 filtres, 10 modulations, 13 utilitaires, 15 traitements,
+14 percussions).
 
 ### Les outils
 
@@ -116,6 +116,32 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Acide, hardtek, tribe, psychédélique — v83**
+
+Huit modules et quatre montages, un par style demandé. 89 modules, 24 montages.
+
+- **ACID** (filtre) — le point de la version. Sur une 303, filtre, enveloppe et accent sont **un seul
+  circuit** : l'accent ouvre plus haut, tient plus longtemps et pousse la résonance. Entrées TRIG et ACC
+  séparées ; l'accent ne vaut **que pour la note qui suit** (`m.accent` remis à faux à la consommation).
+  Vérifié au banc : 2740 → 4360 Hz, Q 13,2 → 17,4, durée ×1,5, et retour à la normale au coup d'après.
+- **HOOVER** (osc) — cinq dents désaccordées, passe-bande creusant le timbre, chute de hauteur sur TRIG.
+  Sans câble dans TRIG ce n'est qu'une nappe.
+- **TEK KICK** (perc) — sinusoïde plongeante dans une `tanh` normalisée, passe-haut qui monte avec DRIVE.
+- **TRIBAL** (perc) — conga, bongo, djembé, tabla. Ce qui les sépare est la **décroissance** et le pli de
+  hauteur (`pli` 0,55 pour le tabla), pas la fréquence.
+- **ZAP** (perc) — chute de plusieurs octaves avec FM sur la porteuse.
+- **TRANCE GATE** (util) — huit motifs de 16 bits, `setTargetAtTime` pour la constante de SHAPE, DEPTH
+  fixant le plancher des creux. Entrée `rst` comme les séquenceurs.
+- **CLIP** (effet) — écrêtage **franc** (`Math.max/min`), à ne pas confondre avec DIST qui est doux.
+  Rattrapage de niveau automatique, sinon écrêter fort double le volume.
+- **RISER** (mod) — montée de 1 à 8 mesures calée sur `stepDur()`, avec une sortie **CV** parallèle.
+  Vérifié : 2,00 s pour une mesure à 120 BPM, 16,00 s pour huit.
+
+**Le contrôle des montages avait vieilli** : sa liste de sources sonores était écrite à la main et ignorait
+les nouveaux modules, d'où un faux « aucune source sonore » sur le montage TRIBE. Elle est maintenant
+**dérivée du catalogue** (familles `osc` et `perc`). Même leçon qu'en v77 avec la sonde de propagation :
+quand un contrôle se plaint après un ajout, suspecter le contrôle.
 
 **Rack et patch expliqués — v82**
 
