@@ -169,6 +169,15 @@ body.m32 .read{color:#8fe8d8}
    C'est ce qui manquait pour enregistrer un live — on ne voyait rien arriver. */
 #enr-vue{width:100%;height:auto;display:block;border-radius:9px;background:#0a0a0c;
   border:1px solid #2a2a31;margin-bottom:10px}
+/* Une ligne par piste : son nom, son coupe-son, son solo. */
+.enr-piste{display:flex;gap:6px;align-items:center;margin-bottom:5px}
+.enr-piste i{flex:none;width:11px;height:11px;border-radius:3px}
+.enr-piste b{flex:1;min-width:0;font:700 11.5px/1.3 "Roboto Condensed",Arial;letter-spacing:.6px;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#cfcbc2}
+.enr-piste button{flex:none;margin:0;padding:7px 11px;border:0;border-radius:6px;background:#26262d;
+  color:#b9b5ae;font:800 9.5px/1 "Roboto Condensed",Arial;letter-spacing:.8px}
+.enr-piste button.on{background:var(--accent);color:#140b07}
+.enr-piste button.coupe.on{background:#c0392b;color:#fff}
 .enr-canal{display:flex;gap:8px;align-items:center;margin-bottom:6px}
 .enr-canal b{flex:none;width:74px;font:800 11px/1.3 "Roboto Condensed",Arial;letter-spacing:1px}
 .enr-canal select{flex:1;min-width:0;padding:8px;border-radius:6px;border:1px solid #3a3a42;
@@ -3399,6 +3408,32 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
       quand plusieurs machines jouent ensemble et qu'on veut voir les sources plutôt que les instruments.
       Au-delà de seize bandes, seules les plus jouées restent affichées.</p>
 
+      <canvas id="enr-vue" width="900" height="300"></canvas>
+      <p id="enr-legende" style="opacity:.75;font-size:13px">Rien reçu pour le moment.</p>
+      <p><button id="enr-decoupe">PISTES : UNE PAR SON</button>
+      <button id="enr-attente">DÉPART : À LA PREMIÈRE NOTE</button>
+      <button id="enr-boucle">BOUCLE : NON</button></p>
+      <div id="enr-pistes"></div>
+
+      <h3>Coupe-son et solo</h3>
+      <p>Chaque piste a son <b>COUPE</b> et son <b>SOLO</b>. Attention, ils ne font pas que taire le son :
+      une piste coupée <b>n'entre pas dans la prise</b>. C'est voulu — cela permet d'écarter une source qui
+      parasite le live sans avoir à la débrancher. Le solo coupe toutes les autres, comme sur une table,
+      donc un seul à la fois.</p>
+
+      <h3>Départ et boucle</h3>
+      <p><b>DÉPART : À LA PREMIÈRE NOTE</b> date la prise depuis le premier coup joué, pas depuis l'appui
+      sur le bouton : les deux ou trois secondes de vide du début disparaissent d'elles-mêmes. Passez-le sur
+      <i>immédiat</i> si vous voulez garder ce silence.</p>
+      <p><b>BOUCLE</b> fait tourner la prise en relecture sans s'arrêter. Enregistrez huit mesures d'EMX,
+      lancez la boucle, et jouez par-dessus sur une autre machine.</p>
+
+      <h3>Le tempo</h3>
+      <p>Si la machine branchée envoie son <b>horloge MIDI</b>, l'application la mesure pendant
+      l'enregistrement et l'affiche. C'est ce tempo-là — celui de la machine, pas celui de l'application —
+      qui est écrit dans le fichier <b>.mid</b>. Sans cela le fichier annonce un tempo faux et rien ne tombe
+      sur la grille dans un séquenceur.</p>
+
       <h3>Aiguillage des canaux</h3>
       <p style="opacity:.85">Chaque canal MIDI reçu apparaît ici et peut jouer sa propre machine. Une boîte
       à rythmes sur un canal, une basse sur un autre : tout sort du téléphone, chacune avec sa voix.</p>
@@ -5369,6 +5404,9 @@ var ENR = {actif:false, depart:0, evts:[], prises:[], lecture:null, tmr:[], comp
            vus:{},           /* "canal:note" -> nombre de coups reçus         */
            canauxVus:{},     /* canal -> nombre de coups, pour l'aiguillage   */
            decoupe:"son",    /* pistes par SON ou par CANAL                   */
+           tics:[], tempo:0,  /* horloge reçue -> tempo réel de la machine      */
+           attente:true, vierge:false,   /* départ à la première note           */
+           solo:"", muet:{}, boucle:false,
            t0vue:0, dessin:null};
 
 var S = {
@@ -13183,6 +13221,7 @@ window.__midi = function(a,b,c){
   if(a === 0xFC || a === 0xFF){ if(S.run){ stop(); majPlayEm(); } return; }
   var t = a & 0xF0;
   if(t !== 0x90 || c === 0) return;
+  if(!passeEnr(a & 0x0F, b)) return;     /* piste coupée : ni son, ni prise */
   entreeNote(b, c/127, a & 0x0F);
 };
 function majPlayEm(){
@@ -13592,6 +13631,8 @@ function enrEcrire(){
 function enrDemarrer(){
   if(ENR.lecture) enrArreterLecture();
   ENR.evts = [];
+  ENR.tics = []; ENR.tempo = 0;
+  ENR.vierge = ENR.attente;      /* on attend la première note si l'option est mise */
   ENR.depart = performance.now();
   ENR.actif = true;
   majEnrUI();
@@ -13607,7 +13648,8 @@ function enrArreter(){
     ENR.prises.unshift({
       nom: "Prise " + (ENR.prises.length + 1),
       date: d.getDate() + "/" + (d.getMonth()+1) + " " + ("0"+d.getHours()).slice(-2) + "h" + ("0"+d.getMinutes()).slice(-2),
-      bpm: S.bpm,
+      bpm: ENR.tempo || S.bpm,       /* le tempo de la machine, pas celui d'ici */
+      tempoMesure: !!ENR.tempo,
       machine: S.modele,
       duree: duree,
       evts: ENR.evts
@@ -13623,10 +13665,38 @@ function enrArreter(){
   H.stop();
 }
 /* appelé par la réception MIDI, avant tout traitement */
+/* ---------- le tempo réel, mesuré sur l'horloge de la machine ----------
+   La prise gardait S.bpm, le tempo de l'application. Or c'est la machine
+   branchée qui mène : le fichier .mid annonçait donc un tempo faux, et rien ne
+   tombait sur la grille dans un séquenceur. L'horloge MIDI arrivait déjà — on
+   la jetait. Vingt-quatre tics par noire, il suffit de les compter. */
+function enrHorloge(){
+  var t = performance.now();
+  ENR.tics.push(t);
+  /* On garde quatre noires : assez pour être stable, assez court pour suivre
+     un tempo qui bouge. */
+  if(ENR.tics.length > 97) ENR.tics.shift();
+  if(ENR.tics.length < 25) return;
+  var n = ENR.tics.length - 1;
+  var parTic = (ENR.tics[n] - ENR.tics[0]) / n;
+  var bpm = 60000 / (parTic * 24);
+  if(bpm > 20 && bpm < 400) ENR.tempo = Math.round(bpm * 10) / 10;
+}
+
+/* Une piste coupée ne sonne pas ET n'entre pas dans la prise : c'est ce qu'on
+   veut quand une source parasite le live sans qu'on puisse la débrancher.
+   Le solo est un coupe-son sur toutes les autres, comme sur une table. */
+function passeEnr(canal, note){
+  var cle = ENR.decoupe === "canal" ? ("c" + canal) : (canal + ":" + note);
+  if(ENR.solo) return ENR.solo === cle;
+  return !ENR.muet[cle];
+}
+
 function enrNoter(a,b,c){
   /* On relève les canaux même à l'arrêt : c'est ce qui permet de voir arriver
      les sources avant d'appuyer sur ENREGISTRER, et de les aiguiller. */
-  if(a >= 0xF8) return;                       /* horloge et temps réel : inutiles ici */
+  if(a === 0xF8){ if(ENR.actif) enrHorloge(); return; }
+  if(a >= 0xF8) return;                       /* autres messages temps réel : inutiles ici */
   if((a & 0xF0) === 0x90 && c > 0){
     /* Une Electribe envoie TOUS ses sons sur un seul canal et ne les distingue
        que par le numéro de note. Compter par canal ne donnerait donc qu'une
@@ -13636,6 +13706,15 @@ function enrNoter(a,b,c){
     ENR.canauxVus[ca] = (ENR.canauxVus[ca] || 0) + 1;
   }
   if(!ENR.actif) return;
+  if((a & 0xF0) === 0x90 && c > 0 && !passeEnr(a & 0x0F, b)) return;
+  /* Départ à la première note : entre le doigt sur ENREGISTRER et le premier
+     coup il y a toujours deux ou trois secondes de vide. On date la prise
+     depuis la note, pas depuis le bouton. */
+  if(ENR.vierge && (a & 0xF0) === 0x90 && c > 0){
+    ENR.vierge = false;
+    ENR.depart = performance.now();
+  }
+  if(ENR.vierge) return;
   ENR.compteur++;
   if(ENR.evts.length > 20000) return;
   ENR.evts.push([Math.round(performance.now() - ENR.depart), a, b, c]);
@@ -13655,6 +13734,13 @@ function enrJouer(i){
     }, e[0]));
   });
   ENR.tmr.push(setTimeout(function(){
+    if(ENR.boucle && ENR.lecture === i){
+      /* On relance la même prise : c'est ce qui permet de jouer par-dessus
+         une boucle de huit mesures sans y revenir à la main. */
+      MIDI.in = etait;
+      enrJouer(i);
+      return;
+    }
     ENR.lecture = null; MIDI.in = etait; majEnrUI();
   }, p.duree + 200));
   majEnrUI();
@@ -14018,8 +14104,60 @@ function majCanauxEnr(){
     d.appendChild(r);
   });
 }
+/* La liste des pistes, avec coupe-son et solo. Reconstruite seulement quand
+   elle change : sinon on écraserait un appui en cours. */
+function majPistesEnr(){
+  var d = document.getElementById("enr-pistes");
+  if(!d) return;
+  var pistes = pistesEnr();
+  if(!pistes.length){ d.innerHTML = ""; d.dataset.sig = ""; return; }
+  var sig = pistes.map(function(p){ return p.cle; }).join(",") + "|" + ENR.solo +
+            "|" + Object.keys(ENR.muet).join(",");
+  if(d.dataset.sig === sig) return;
+  d.dataset.sig = sig;
+  d.innerHTML = "";
+  pistes.forEach(function(p){
+    var r = document.createElement("div");
+    r.className = "enr-piste";
+    var pa = document.createElement("i");
+    pa.style.background = couleurCanal(p.n < 0 ? p.c : p.n);
+    var t = document.createElement("b");
+    t.textContent = p.nom + (ENR.decoupe === "son" ? ("  ·  ch" + (p.c + 1)) : "");
+    var bm = document.createElement("button");
+    bm.className = "coupe" + (ENR.muet[p.cle] ? " on" : "");
+    bm.textContent = "COUPE";
+    bm.addEventListener("click", function(){
+      if(ENR.muet[p.cle]) delete ENR.muet[p.cle]; else ENR.muet[p.cle] = 1;
+      majPistesEnr(); H.cran();
+    });
+    var bs = document.createElement("button");
+    bs.className = (ENR.solo === p.cle ? "on" : "");
+    bs.textContent = "SOLO";
+    bs.addEventListener("click", function(){
+      ENR.solo = (ENR.solo === p.cle) ? "" : p.cle;
+      majPistesEnr(); H.cran();
+    });
+    r.appendChild(pa); r.appendChild(t); r.appendChild(bm); r.appendChild(bs);
+    d.appendChild(r);
+  });
+}
+document.getElementById("enr-attente").addEventListener("click", function(){
+  ENR.attente = !ENR.attente;
+  this.textContent = ENR.attente ? "DÉPART : À LA PREMIÈRE NOTE" : "DÉPART : IMMÉDIAT";
+  H.cran();
+});
+document.getElementById("enr-boucle").addEventListener("click", function(){
+  ENR.boucle = !ENR.boucle;
+  this.textContent = ENR.boucle ? "BOUCLE : OUI" : "BOUCLE : NON";
+  this.classList.toggle("on", ENR.boucle);
+  H.cran();
+});
 document.getElementById("enr-decoupe").addEventListener("click", function(){
   ENR.decoupe = (ENR.decoupe === "son") ? "canal" : "son";
+  /* Les identifiants de piste changent de forme : garder les coupe-son
+     couperait des pistes au hasard. */
+  ENR.solo = ""; ENR.muet = {};
+  majPistesEnr();
   this.textContent = (ENR.decoupe === "son") ? "PISTES : UNE PAR SON" : "PISTES : UNE PAR CANAL";
   H.cran();
 });
@@ -14029,8 +14167,12 @@ function majEnrUI(){
   b.textContent = ENR.actif ? "■ ARRÊTER" : "● ENREGISTRER";
   b.classList.toggle("on", ENR.actif);
   var etat = document.getElementById("enr-etat");
+  majPistesEnr();
   etat.textContent = ENR.actif
-    ? ("En cours — " + ENR.evts.length + " événements")
+    ? ("En cours — " + ENR.evts.length + " événements" +
+       (ENR.vierge ? " · en attente de la première note" : "") +
+       (ENR.tempo ? " · " + ENR.tempo + " BPM reçus" : "") +
+       (ENR.evts.length > 17000 ? " · ATTENTION, limite proche" : ""))
     : (MIDI.ouvert < 0 ? "Aucun appareil MIDI ouvert. Cherchez-le dans la notice, onglet Général."
                        : "Prêt. Jouez sur la Korg : le son sort du téléphone.");
   majCanauxEnr();

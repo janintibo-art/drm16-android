@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **102**.
+La version actuelle est la **103**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,30 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Enregistreur : tempo, départ, coupe-son, boucle — v103**
+
+Cinq améliorations, par ordre d'importance.
+
+1. **Tempo réel.** La prise gardait `S.bpm`, le tempo de l'application, alors que c'est la machine branchée
+   qui mène : le `.mid` exporté annonçait un tempo faux et rien ne tombait sur la grille. L'horloge MIDI
+   arrivait déjà et **on la jetait**. `enrHorloge()` garde les instants des tics (24 par noire, fenêtre de
+   quatre noires) et en tire le tempo. Vérifié à 92, 128 et 174 BPM : **écart nul**.
+2. **Départ à la première note** (`ENR.attente`, `ENR.vierge`). `ENR.depart` est recalé sur la première
+   note reçue ; **seules les notes ouvrent la prise**, pas les contrôleurs — sinon un mouvement de potard
+   avant de jouer rouvrirait le vide qu'on voulait couper.
+3. **Coupe-son et solo par piste** (`passeEnr`). Une piste coupée **n'entre pas dans la prise** et ne sonne
+   pas : le test est appliqué dans `enrNoter` *et* avant `entreeNote`. Le solo coupe les autres.
+   **La bascule son/canal remet `solo` et `muet` à zéro** : les clés passent de `"9:36"` à `"c9"`, les
+   garder couperait des pistes au hasard.
+4. **Relecture en boucle** (`ENR.boucle`) : `enrJouer` se rappelle lui-même en fin de prise.
+5. **Avertissement** à 17 000 événements, avant la limite de 20 000 — on pouvait l'atteindre sur un long
+   live sans être prévenu.
+
+*Incident à retenir* : le remplacement de la section « Ce qui arrive » de la notice en v102 **a emporté le
+canevas et le bouton PISTES**, qui se trouvaient entre deux `<h3>`. Remis. **Découper la notice entre deux
+titres est dangereux quand des commandes y sont intercalées** — vérifier les identifiants après coup, ce
+que fait déjà le contrôle html/js.
 
 **Une piste par SON — v102**
 
