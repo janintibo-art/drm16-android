@@ -145,9 +145,32 @@ body.m32 .read{color:#8fe8d8}
 .off .led.on,.off .led.beat{background:#1d2a33;box-shadow:inset 0 1px 2px #000c}
 
 /* ---------- notice ---------- */
-#note,#enr,#pr,#bib,#studio,#nexus{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
+#note,#enr,#pr,#bib,#studio,#nexus,#table{position:fixed;inset:0;background:#0e0e10;color:#e9e6df;display:none;z-index:16;
   font:15px/1.6 system-ui,-apple-system,"Roboto",sans-serif}
-#note.show,#enr.show,#pr.show,#bib.show,#studio.show,#nexus.show{display:flex;flex-direction:column}
+#note.show,#enr.show,#pr.show,#bib.show,#studio.show,#nexus.show,#table.show{display:flex;flex-direction:column}
+#table .note-bar b{color:#7fd4ff}
+.table-tete{flex:none;display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+  padding:10px 12px;background:#131316;border-bottom:1px solid #2c2c31}
+.table-tete b{flex:1;min-width:160px;font:700 11px/1.4 "Roboto Condensed",Arial;
+  letter-spacing:1px;color:#9a9792}
+.table-tete button{margin:0;padding:10px 14px;border:0;border-radius:7px;background:#2a2a30;
+  color:#cfcbc2;font:800 11px/1 "Roboto Condensed",Arial;letter-spacing:1.2px}
+.table-tete button.on{background:var(--accent);color:#140b07}
+/* Une tranche par machine, comme sur une table : on lit une colonne de haut en
+   bas et on sait tout de cette voie. */
+.table-voies{flex:1;min-height:0;overflow:auto;display:grid;gap:8px;padding:12px;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.voie{border:1px solid #2a2a31;border-radius:10px;padding:10px;background:#141418}
+.voie.jouee{border-color:var(--accent)}
+.voie>b{display:block;font:800 11px/1.3 "Roboto Condensed",Arial;letter-spacing:1.2px;
+  color:#e8e6e4;margin-bottom:8px}
+.voie .ligne{display:flex;gap:5px;margin-bottom:7px}
+.voie button{flex:1;margin:0;padding:8px 4px;border:0;border-radius:6px;background:#26262d;
+  color:#b9b5ae;font:800 9px/1 "Roboto Condensed",Arial;letter-spacing:.8px}
+.voie button.on{background:var(--accent);color:#140b07}
+.voie button.coupe.on{background:#c0392b;color:#fff}
+.voie label{display:block;font:700 8.5px/1.6 "Roboto Condensed",Arial;letter-spacing:1px;color:#8a8780}
+.voie input[type=range]{width:100%;margin:0 0 6px}
 /* Les deux projets invités tournent dans leur propre document : chacun garde
    ses styles, ses variables et son contexte audio, sans rien pouvoir casser
    ici. C'est ce qui rend l'assemblage tenable — trois applications d'un
@@ -877,6 +900,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.pdoc{background:linear-gradient(165deg,#3a3a40,#141417 55%,#242429)}
 .pick.paud{background:linear-gradient(165deg,#2f3a3a,#12181a 55%,#1e2628)}
 .pick.pstu{background:linear-gradient(165deg,#3a2f4a,#140f1a 55%,#6a4fa8)}
+.pick.ptab{background:linear-gradient(165deg,#28394a,#101820 55%,#2f7fb8)}
 .pick.pnex{background:linear-gradient(165deg,#4a3f28,#1a1610 55%,#a8801f)}
 .pick.pdoc b{color:#e8e4da;text-shadow:0 2px 0 #000}
 .pick.pdoc span{color:#a9a69e}
@@ -3184,6 +3208,19 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 </div>
 
 
+<div id="table">
+  <div class="note-bar"><b>TABLE DE MIXAGE</b>
+    <button id="table-aide">CONSEILS</button>
+    <button id="table-fermer">FERMER</button></div>
+  <div class="table-tete">
+    <button id="table-on">SET : ARRÊT</button>
+    <button id="table-play">LECTURE</button>
+    <button id="table-rien">TOUT COUPER</button>
+    <b id="table-etat">AUCUNE MACHINE CHOISIE</b>
+  </div>
+  <div class="table-voies" id="table-voies"></div>
+</div>
+
 <div id="studio">
   <div class="note-bar"><b>STUDIO TIBO</b><button id="studio-fermer">FERMER</button></div>
   <div class="invite-boite" id="studio-boite">
@@ -3297,6 +3334,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <button class="pick ppr" id="menu-pr"><b>TRAVAIL DU MIDI</b><span>ROULEAU PAR SON · RETOUCHER, CALER, REPORTER</span></button>
   <button class="pick penr" id="menu-enr"><b>ENREGISTREUR MIDI</b><span>JOUER SUR LA KORG · LE SON SORT DU TÉLÉPHONE</span></button>
   <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
+  <button class="pick ptab" id="menu-table"><b>TABLE DE MIXAGE</b><span>PLUSIEURS MACHINES À LA FOIS · NIVEAUX ET PANORAMIQUE</span></button>
   <button class="pick pstu" id="menu-studio"><b>STUDIO TIBO</b><span>SÉQUENCEUR · PIANO ROLL · MIXEUR · EXPORT</span></button>
   <button class="pick pnex" id="menu-nexus"><b>NEXUS BEAT LAB</b><span>PADS ET SAMPLES 808, 909, DNB</span></button>
   <button class="pick paud" id="menu-audio"><b>ÉTAT DU SON</b><span>DÉCROCHAGES · SOURCES · RELANCER LE MOTEUR</span></button>
@@ -3560,6 +3598,73 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <li><b>DÉCROCHAGES</b> — les fois où le retard a dépassé 0,4 s et où il a fallu tout recaler. Le nombre
   par minute compte davantage que le total.</li>
   </ul>
+  </div>
+
+  <div class="doc" id="note-table" data-titre="TABLE DE MIXAGE">
+  <h3>Faire jouer plusieurs machines ensemble</h3>
+  <p>La <b>TABLE DE MIXAGE</b>, dans le menu, présente une tranche par machine. Touchez <b>JOUER</b> sur
+  celles que vous voulez entendre, mettez <b>SET : EN MARCHE</b>, et lancez la lecture. Elles partagent le
+  tempo et repartent ensemble.</p>
+  <p>Chaque tranche a son <b>niveau</b>, sa <b>panoramique</b>, un <b>coupe-son</b> et un <b>solo</b>. Le
+  solo n'est pas un bouton de plus : c'est un coupe-son sur toutes les <i>autres</i> voies. C'est ainsi
+  qu'il fonctionne sur une vraie table, et c'est pourquoi on ne peut en avoir qu'un à la fois.</p>
+  <p>Deux limites, réelles et non des oublis. <b>Dix-sept moteurs, pas vingt-cinq machines</b> : la TR-808
+  et la 909 partagent le même moteur et la même mémoire de motifs, on joue l'une ou l'autre. Même chose
+  pour les deux MPC et les variantes d'Electribe. Et chaque machine garde <b>sa propre longueur de
+  motif</b> : un motif de seize pas tourne contre un de douze sans que l'un impose sa mesure à l'autre,
+  ce qui donne des croisements longs — c'est voulu.</p>
+
+  <h3>Les mêmes branchements, en vrai</h3>
+  <p>Tout ce qui précède se transpose. Voici comment, et pourquoi.</p>
+
+  <p><b>Ce qu'il vous faut.</b> Une table de mixage avec autant de voies que de machines — comptez deux
+  voies par machine stéréo, une seule si elle est mono. Un câble jack 6,35 par entrée. Et, si vos machines
+  doivent rester ensemble, de quoi les synchroniser : c'est le point suivant, et c'est le plus important.</p>
+
+  <p><b>La synchronisation, avant tout le reste.</b> Sans elle, deux boîtes lancées à la main dérivent en
+  quelques mesures, et aucun réglage de niveau n'y changera rien. Trois façons, par ordre de fiabilité :</p>
+  <ul>
+  <li><b>L'horloge MIDI.</b> Une machine mène — celle qui a le séquenceur le plus complet —, sa prise
+  <i>MIDI OUT</i> va dans le <i>MIDI IN</i> de la suivante, dont le <i>THRU</i> va à la troisième. Ne
+  chaînez pas plus de trois appareils ainsi : chaque THRU ajoute un retard qui finit par s'entendre.
+  Au-delà, il faut un boîtier de répartition MIDI, qui envoie à tous en même temps.</li>
+  <li><b>La synchro analogique</b>, les prises <i>SYNC IN/OUT</i> en jack 3,5 des volca, Pocket Operator
+  et DrumBrute. Une impulsion par pas, rien d'autre : pas de tempo, pas de départ, juste le battement. Très
+  fiable, très simple, mais la machine esclave ne sait pas où est le premier temps — il faut lancer au bon
+  moment.</li>
+  <li><b>Le DIN Sync</b> des vieilles Roland, une prise MIDI qui ne transporte pas de MIDI. Ne la reliez
+  jamais à une entrée MIDI ordinaire : les tensions n'ont rien à voir.</li>
+  </ul>
+
+  <p><b>Les niveaux, dans l'ordre.</b> C'est là qu'on perd le plus de temps quand on s'y prend mal.
+  Machine par machine : montez le gain d'entrée de la voie jusqu'à ce que le signal le plus fort fasse
+  clignoter l'indicateur de crête, puis redescendez d'un cran. Ensuite seulement, réglez le fader. Un gain
+  trop bas oblige à pousser le fader à fond et fait monter le souffle ; un gain trop haut sature avant même
+  le fader, et aucun réglage en aval ne rattrape ça.</p>
+
+  <p><b>La panoramique fait la place.</b> Deux machines au centre se masquent. La grosse caisse et la basse
+  restent au centre — ce sont elles qui portent l'énergie et le grave se localise mal de toute façon. Tout
+  le reste s'écarte : charleys d'un côté, percussions de l'autre, nappes largement ouvertes. Vous gagnerez
+  plus de clarté avec la panoramique qu'avec n'importe quel égaliseur.</p>
+
+  <p><b>Le grave est le vrai ennemi.</b> Trois machines qui sonnent bien seules font une bouillie ensemble,
+  presque toujours à cause du bas. Coupez le grave sur tout ce qui n'en a pas besoin : le filtre passe-haut
+  de la voie, vers 100 Hz, sur les charleys, les percussions et les nappes. Une seule machine garde le
+  grave. C'est le geste qui transforme le plus un mélange.</p>
+
+  <p><b>Les effets se partagent.</b> N'achetez pas une réverbération par machine : une seule, branchée sur
+  les <i>départs auxiliaires</i> de la table, et chaque voie y envoie ce qu'elle veut. C'est moins cher,
+  ça consomme moins, et surtout ça sonne plus cohérent — tout se retrouve dans le même espace. C'est
+  exactement le choix fait ici : l'écho et la réverbération de la machine d'archive sont communs aux seize
+  pistes, pour la même raison.</p>
+
+  <p><b>Le casque avant l'enregistrement.</b> Servez-vous du départ casque de la table pour préparer une
+  machine pendant que les autres jouent — chercher un son au milieu du morceau, sans que personne ne
+  l'entende. C'est l'équivalent du solo, mais dans l'autre sens.</p>
+
+  <p><b>Enfin, la masse.</b> Si vous entendez un ronflement grave quand tout est branché, c'est une boucle
+  de masse : deux appareils reliés à la fois par le secteur et par le signal. Branchez tout sur la même
+  multiprise avant de chercher plus loin — cela règle le problème neuf fois sur dix.</p>
   </div>
 
   <div class="doc" id="note-arcm" data-titre="MACHINE D'ARCHIVE">
@@ -5126,6 +5231,10 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
     if(typeof m.hum === "number"){ memoire.hum = m.hum; HUM.temps = m.hum; }
     if(typeof m.wav === "number"){ memoire.wav = m.wav; WAVX.mesures = m.wav; }
     if(m.midi) memoire.midi = m.midi;
+    /* On ne fait que retenir : SET est déclaré plus bas dans le fichier et
+       n'existe pas encore ici. C'est appliquerMemSet(), appelée après sa
+       déclaration, qui s'en sert. */
+    if(m.set) memoire.set = m.set;
     /* ancien format : les machines vivaient dans le blob global, on les répartit une fois */
     ["em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","rd6","td3","eur","dmx","vlc","cr5","dbi","t1k","arcm"].forEach(function(c){
       if(m[c]){
@@ -5192,7 +5301,7 @@ function writeMem(){
     localStorage.setItem(MEM, JSON.stringify({
       modele:memoire.modele, vol:memoire.vol, bpm:memoire.bpm, haptic:memoire.haptic,
       bg:memoire.bg, bass:memoire.bass, midi:memoire.midi, metro:memoire.metro,
-      hum:memoire.hum, wav:memoire.wav,
+      hum:memoire.hum, wav:memoire.wav, set:memoire.set,
       "16":memoire["16"], "32":memoire["32"]
     }));
     memEchec = false;
@@ -5449,10 +5558,10 @@ function batirAudio(){
   outBd = ctx.createGain(); outMix = ctx.createGain();
   if(ctx.createStereoPanner){
     panBd = ctx.createStereoPanner(); panMix = ctx.createStereoPanner();
-    outBd.connect(panBd); panBd.connect(master);
-    outMix.connect(panMix); panMix.connect(master);
+    outBd.connect(panBd); panBd.connect(busSet("ehx") || master);
+    outMix.connect(panMix); panMix.connect(busSet("ehx") || master);
   } else {
-    outBd.connect(master); outMix.connect(master);
+    outBd.connect(busSet("ehx") || master); outMix.connect(busSet("ehx") || master);
   }
   applyBass();
   pisterSources();
@@ -5700,7 +5809,21 @@ function tick(){
   while(nextT < ctx.currentTime + look()){
     var dh = decalageHumain();
     /* on ne recule jamais avant l'instant présent : le coup serait perdu */
-    MACHINE.schedule(step, Math.max(ctx.currentTime + 0.005, nextT + dh));
+    var tq = Math.max(ctx.currentTime + 0.005, nextT + dh);
+    MACHINE.schedule(step, tq);
+    /* Les autres machines du set tournent sur leur PROPRE longueur. Un compteur
+       qui ne repart jamais à zéro sert de référence commune : chacune y prend
+       son reste. C'est ce qui permet de faire tourner un motif de 16 pas
+       contre un de 12 sans que l'un impose sa mesure à l'autre. */
+    if(SET.on) SET_VOIES.forEach(function(v){
+      var M = moteurSet(v[0]);
+      if(!M || M === MACHINE || !SET.actives[v[0]]) return;
+      var L = M.longueur ? M.longueur() : 16;
+      var j = ((pasSet % L) + L) % L;
+      M.schedule(j, tq);
+      if(j === L - 1 && M.boucle) M.boucle();
+    });
+    pasSet++;
     if(METRO && step % 4 === 0) clicMetro(nextT, step === 0);
     nextT += stepDur();
     step = (step+1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
@@ -5710,7 +5833,8 @@ function tick(){
 function start(){
   audioInit();
   if(!ctx) return;
-  S.run=true; step=0; queue=[];
+  S.run=true; step=0; pasSet=0; queue=[];
+  if(SET.on) preparerSet();
   if(MIDI.sync && MIDI.ouvert >= 0){
     /* esclave : ce sont les tics reçus qui avancent le séquenceur */
     clearInterval(timer); timer = null;
@@ -5765,6 +5889,82 @@ function beatEhx(i){
 function arretEhx(){ led.classList.remove("beat"); }
 var MACHINE_EHX = {schedule:scheduleEhx, beat:beatEhx, arret:arretEhx};
 var MACHINE = MACHINE_EHX;
+
+/* ================= le set : plusieurs machines à la fois =================
+   Jusqu'ici une seule machine jouait, et sa sortie allait droit au mélange
+   général. Pour en faire tourner plusieurs ensemble il faut d'abord une voie
+   par machine — c'est exactement ce qu'on fait avec une vraie table : chaque
+   appareil a sa tranche, son niveau, sa panoramique, son coupe-son.
+
+   ATTENTION : dix-sept MOTEURS, pas vingt-cinq machines. La TR-808 et la 909
+   partagent le même moteur et la même mémoire de motifs ; on peut jouer l'une
+   ou l'autre, pas les deux. Même chose pour les deux MPC et les variantes
+   d'Electribe. C'est une limite réelle, pas un oubli. */
+var SET_VOIES = [
+  ["ehx","DRM16 · DRM32"], ["em","EM-1"],   ["er","ER-1"],  ["ea","EA-1"],
+  ["es","ES-1"],           ["mx","EMX-1"],  ["sx","ESX-1"], ["mpc","MPC"],
+  ["tr","TR · RD-6"],      ["dmx","DMX"],   ["vlc","VOLCA"],["cr","CR-5000"],
+  ["dbi","DRUMBRUTE"],     ["t1k","TR-1000"],["arcm","ARCHIVE"], ["td3","TD-3"],
+  ["eur","EURORACK"]
+];
+var SET = {on:false, actives:{}, niv:{}, pan:{}, mute:{}, solo:"", bus:{}};
+SET_VOIES.forEach(function(v){ SET.niv[v[0]] = 0.8; SET.pan[v[0]] = 0; SET.mute[v[0]] = false; });
+
+/* La voie d'une machine. Le contexte audio peut être remplacé — export hors
+   ligne, relance après une coupure — alors on le retient : un nœud fabriqué
+   dans un contexte mort ne se rebranche nulle part. */
+var pasSet = 0;
+/* Le moteur d'une voie. Il n'existe qu'une fois la machine construite : on ne
+   peut pas faire jouer une machine qu'on n'a jamais ouverte, ses nœuds audio
+   n'existent pas encore. preparerSet() s'en charge. */
+function moteurSet(id){
+  var T = {ehx:"MACHINE_EHX", em:"MACHINE_EM", er:"MACHINE_ER", ea:"MACHINE_EA",
+           es:"MACHINE_ES", mx:"MACHINE_MX", sx:"MACHINE_SX", mpc:"MACHINE_MPC",
+           tr:"MACHINE_TR", dmx:"MACHINE_DMX", vlc:"MACHINE_VLC", cr:"MACHINE_CR",
+           dbi:"MACHINE_DBI", t1k:"MACHINE_T1K", arcm:"MACHINE_ARCM",
+           td3:"MACHINE_TD3", eur:"MACHINE_EUR"};
+  try{ return eval(T[id]); }catch(e){ return null; }
+}
+/* Chaque machine construit ses nœuds audio la première fois qu'on la joue.
+   Dans un set, on ne passe pas par leur façade : il faut donc les réveiller
+   une par une avant de lancer, sinon la première mesure est muette. */
+function preparerSet(){
+  audioInit();
+  if(!ctx) return;
+  var reveil = {em:function(){ busEffets(); }, er:function(){ busEffets(); },
+                ea:function(){ busEffets(); }, es:function(){ busEffets(); },
+                mx:function(){ mxAudio(); },   sx:function(){ sxAudio(); },
+                td3:function(){ batirTd3(); }, t1k:function(){ if(typeof bâtirT1k === "function") bâtirT1k(); },
+                eur:function(){ if(!EUR.bus) eurBatir(); }};
+  SET_VOIES.forEach(function(v){
+    if(!SET.actives[v[0]]) return;
+    busSet(v[0]);
+    try{ if(reveil[v[0]]) reveil[v[0]](); }catch(e){}
+  });
+  majToutesVoiesSet();
+}
+function busSet(id){
+  if(!ctx) return null;
+  var b = SET.bus[id];
+  if(b && b.ctx === ctx) return b.g;
+  var g = ctx.createGain();
+  var p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+  if(p){ g.connect(p); p.connect(master); } else g.connect(master);
+  SET.bus[id] = {g:g, p:p, ctx:ctx};
+  majVoieSet(id);
+  return g;
+}
+function majVoieSet(id){
+  var b = SET.bus[id];
+  if(!b || b.ctx !== ctx) return;
+  /* Le solo n'est pas un bouton de plus : c'est un coupe-son sur toutes les
+     AUTRES voies. C'est ainsi qu'il marche sur une table, et c'est pour cela
+     qu'on ne peut pas en avoir deux à la fois. */
+  var passe = !SET.mute[id] && (!SET.solo || SET.solo === id);
+  b.g.gain.value = passe ? SET.niv[id] : 0;
+  if(b.p) b.p.pan.value = SET.pan[id];
+}
+function majToutesVoiesSet(){ SET_VOIES.forEach(function(v){ majVoieSet(v[0]); }); }
 
 /* ---------- quelle machine est affichée ----------
    Le CSS choisit l'unité visible d'après une classe posée sur <body>. Il ne
@@ -6124,6 +6324,125 @@ function fermerInvite(nom){
   try{ cadre.contentWindow.location.reload(); }catch(e){ cadre.removeAttribute("src"); }
   reveillerAudio();
 }
+/* ---------- la table de mixage ---------- */
+function construireTable(){
+  var c = document.getElementById("table-voies");
+  if(c.childNodes.length) return;
+  SET_VOIES.forEach(function(v){
+    var id = v[0];
+    var d = document.createElement("div");
+    d.className = "voie"; d.dataset.v = id;
+    d.innerHTML = "<b>" + v[1] + "</b>" +
+      '<div class="ligne"><button data-a="on">JOUER</button>' +
+      '<button data-a="mute" class="coupe">COUPE</button>' +
+      '<button data-a="solo">SOLO</button></div>' +
+      '<label>NIVEAU</label><input type="range" min="0" max="1" step="0.01" data-a="niv">' +
+      '<label>PANORAMIQUE</label><input type="range" min="-1" max="1" step="0.02" data-a="pan">' +
+      '<div class="ligne"><button data-a="voir">OUVRIR LA FAÇADE</button></div>';
+    c.appendChild(d);
+    d.addEventListener("click", function(e){
+      var b = e.target.closest("button"); if(!b) return;
+      var a = b.dataset.a;
+      if(a === "on"){
+        SET.actives[id] = !SET.actives[id];
+        if(SET.actives[id] && S.run) preparerSet();
+      }
+      else if(a === "mute"){ SET.mute[id] = !SET.mute[id]; }
+      else if(a === "solo"){ SET.solo = (SET.solo === id) ? "" : id; }
+      else if(a === "voir"){ fermerTable(); allerVoie(id); return; }
+      majToutesVoiesSet(); majTable(); memSet(); H.cran();
+    });
+    ["niv","pan"].forEach(function(q){
+      var r = d.querySelector('input[data-a="' + q + '"]');
+      r.addEventListener("input", function(){
+        SET[q][id] = parseFloat(r.value);
+        majVoieSet(id); memSet();
+      });
+    });
+  });
+}
+/* Ouvrir la façade d'une voie : on retrouve la machine du menu qui lui
+   correspond, puisqu'une voie peut en servir plusieurs. */
+function allerVoie(id){
+  var T = {ehx:"16", em:"em1", er:"er1", ea:"ea1", es:"es1", mx:"emx", sx:"esx",
+           mpc:"mpc3000", tr:"tr808", dmx:"dmx", vlc:"vlc", cr:"cr5", dbi:"dbi",
+           t1k:"t1k", arcm:"arcm", td3:"td3", eur:"eur"};
+  if(T[id]) allerMachine(T[id]);
+}
+function majTable(){
+  construireTable();
+  var n = 0;
+  SET_VOIES.forEach(function(v){
+    var id = v[0];
+    var d = document.querySelector('.voie[data-v="' + id + '"]');
+    if(!d) return;
+    if(SET.actives[id]) n++;
+    d.classList.toggle("jouee", !!SET.actives[id]);
+    d.querySelector('[data-a="on"]').classList.toggle("on", !!SET.actives[id]);
+    d.querySelector('[data-a="mute"]').classList.toggle("on", !!SET.mute[id]);
+    d.querySelector('[data-a="solo"]').classList.toggle("on", SET.solo === id);
+    d.querySelector('[data-a="niv"]').value = SET.niv[id];
+    d.querySelector('[data-a="pan"]').value = SET.pan[id];
+  });
+  document.getElementById("table-on").classList.toggle("on", SET.on);
+  document.getElementById("table-on").textContent = SET.on ? "SET : EN MARCHE" : "SET : ARRÊT";
+  document.getElementById("table-play").classList.toggle("on", S.run);
+  document.getElementById("table-etat").textContent = n
+    ? (n + " MACHINE" + (n > 1 ? "S" : "") + " DANS LE SET" +
+       (SET.solo ? " · SOLO SUR UNE VOIE" : ""))
+    : "AUCUNE MACHINE CHOISIE";
+}
+/* Appelée une fois SET déclaré, avec ce que charger() a mis de côté. */
+function appliquerMemSet(){
+  var m = memoire.set;
+  if(!m) return;
+  SET.on = !!m.on;
+  SET.solo = m.solo || "";
+  ["actives","niv","pan","mute"].forEach(function(q){
+    if(!m[q]) return;
+    SET_VOIES.forEach(function(v){
+      if(m[q][v[0]] !== undefined) SET[q][v[0]] = m[q][v[0]];
+    });
+  });
+}
+appliquerMemSet();
+function memSet(){
+  memoire.set = {on:SET.on, actives:SET.actives, niv:SET.niv, pan:SET.pan,
+                 mute:SET.mute, solo:SET.solo};
+  saveSoon();
+}
+function ouvrirTable(){
+  audioInit();
+  majTable();
+  document.getElementById("table").classList.add("show");
+  document.body.classList.add("note-ouverte");
+}
+function fermerTable(){
+  document.getElementById("table").classList.remove("show");
+  document.body.classList.remove("note-ouverte");
+}
+document.getElementById("menu-table").addEventListener("click", function(){ ouvrirTable(); H.inter(); });
+document.getElementById("table-fermer").addEventListener("click", function(){ fermerTable(); H.cran(); });
+document.getElementById("table-aide").addEventListener("click", function(){
+  fermerTable(); ouvrirNotice("note-table");
+});
+document.getElementById("table-on").addEventListener("click", function(){
+  SET.on = !SET.on;
+  if(SET.on) preparerSet();
+  majTable(); memSet(); H.inter();
+  signal(SET.on ? "SET EN MARCHE · LES MACHINES CHOISIES JOUENT ENSEMBLE"
+                : "SET ARRÊTÉ · SEULE LA MACHINE AFFICHÉE JOUE");
+});
+document.getElementById("table-play").addEventListener("click", function(){
+  if(S.run) stop(); else start();
+  majTable(); H.start();
+});
+document.getElementById("table-rien").addEventListener("click", function(){
+  SET_VOIES.forEach(function(v){ SET.actives[v[0]] = false; });
+  SET.solo = "";
+  majToutesVoiesSet(); majTable(); memSet(); H.inter();
+});
+
 document.getElementById("menu-studio").addEventListener("click", function(){
   ouvrirInvite("studio", "studio/index.html"); H.inter();
 });
@@ -7077,7 +7396,7 @@ function sortiePartie(k,t){
   if(!EM.noeuds[k]){
     var g = ctx.createGain(), pn = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     var s = ctx.createGain();
-    if(pn){ g.connect(pn); pn.connect(master); } else { g.connect(master); }
+    if(pn){ g.connect(pn); pn.connect(busSet("em") || master); } else { g.connect(busSet("em") || master); }
     busEffets();
     g.connect(s); s.connect(fxIn);
     EM.noeuds[k] = {g:g, p:pn, s:s};
@@ -7990,7 +8309,7 @@ function sortieEr(k,t){
     var s = ctx.createGain(), ls = ctx.createBiquadFilter();
     ls.type = "lowshelf"; ls.frequency.value = 95;
     g.connect(ls);
-    if(pn){ ls.connect(pn); pn.connect(master); } else { ls.connect(master); }
+    if(pn){ ls.connect(pn); pn.connect(busSet("er") || master); } else { ls.connect(busSet("er") || master); }
     busEffets();
     ls.connect(s); s.connect(dlyIn);
     ER.noeuds[k] = {g:g, p:pn, s:s, ls:ls};
@@ -8685,7 +9004,7 @@ var eaFx = null;
 function sortieEa(k,t){
   if(!EA.noeuds[k]){
     var g = ctx.createGain(), s = ctx.createGain();
-    g.connect(master);
+    g.connect(busSet("ea") || master);
     busEffets();
     g.connect(s); s.connect(dlyIn);
     EA.noeuds[k] = {g:g, s:s};
@@ -9443,7 +9762,7 @@ function sortieEs(k,t){
   if(!ES.noeuds[k]){
     var g = ctx.createGain(), pn = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     var s = ctx.createGain();
-    if(pn){ g.connect(pn); pn.connect(master); } else { g.connect(master); }
+    if(pn){ g.connect(pn); pn.connect(busSet("es") || master); } else { g.connect(busSet("es") || master); }
     busEffets();
     g.connect(s); s.connect(fxIn);
     var s2 = ctx.createGain(); g.connect(s2); s2.connect(dlyIn);
@@ -10254,7 +10573,7 @@ function mxAudio(){
   MX.tubeIn = ctx.createGain();
   MX.tubeNode = ctx.createWaveShaper(); MX.tubeNode.oversample = "4x";
   MX.tubeSortie = ctx.createGain();
-  MX.tubeIn.connect(MX.tubeNode); MX.tubeNode.connect(MX.tubeSortie); MX.tubeSortie.connect(master);
+  MX.tubeIn.connect(MX.tubeNode); MX.tubeNode.connect(MX.tubeSortie); MX.tubeSortie.connect(busSet("mx") || master);
   majTube();
   MX.entrees = []; MX.sorties = []; MX.regFx = [[],[],[]];
   for(var i=0;i<3;i++){
@@ -11333,7 +11652,7 @@ function sxAudio(){
   SX.tubeIn = ctx.createGain();
   SX.tubeNode = ctx.createWaveShaper(); SX.tubeNode.oversample = "4x";
   SX.tubeSortie = ctx.createGain();
-  SX.tubeIn.connect(SX.tubeNode); SX.tubeNode.connect(SX.tubeSortie); SX.tubeSortie.connect(master);
+  SX.tubeIn.connect(SX.tubeNode); SX.tubeNode.connect(SX.tubeSortie); SX.tubeSortie.connect(busSet("sx") || master);
   SX.entrees = []; SX.sorties = []; SX.regFx = [[],[],[]];
   for(var i=0;i<3;i++){ SX.entrees.push(ctx.createGain()); SX.sorties.push(ctx.createGain()); }
   majTubeSx(); cablerFxSx();
@@ -13127,7 +13446,7 @@ function sortieMpc(k){
   if(!MPC.noeuds) MPC.noeuds = [];
   if(!MPC.noeuds[k]){
     var g = ctx.createGain(), pn = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-    if(pn){ g.connect(pn); pn.connect(master); } else g.connect(master);
+    if(pn){ g.connect(pn); pn.connect(busSet("mpc") || master); } else g.connect(busSet("mpc") || master);
     MPC.noeuds[k] = {g:g, p:pn};
   }
   return MPC.noeuds[k];
@@ -13910,8 +14229,8 @@ function sortieRd6(){
     for(var i=0;i<n;i++){ var x = i * 2 / n - 1; c[i] = Math.tanh(x * 4); }
     d.curve = c; d.oversample = "2x";
     e.connect(lp);
-    lp.connect(sec); sec.connect(master);
-    lp.connect(d); d.connect(hum); hum.connect(master);
+    lp.connect(sec); sec.connect(busSet("tr") || master);
+    lp.connect(d); d.connect(hum); hum.connect(busSet("tr") || master);
     TR.bus = {e:e, lp:lp, sec:sec, hum:hum};
     majBusTr();
   }
@@ -16827,7 +17146,7 @@ function eurBatir(){
      pour de bon avant d'en fabriquer d'autres. */
   if(EUR.sources) EUR.sources.forEach(function(n){ try{ n.stop(); }catch(e){} });
   EUR.bus = eurGain(document.body.classList.contains("eur") ? 1 : 0);
-  EUR.bus.connect(master);
+  EUR.bus.connect(busSet("eur") || master);
   EUR.noeuds = [];
   COLLECTE = [];
   try{
@@ -17833,7 +18152,7 @@ function batirTd3(){
   o.connect(f1); f1.connect(f2); f2.connect(vca);
   vca.connect(sec); sec.connect(lp);
   vca.connect(sat); sat.connect(hum); hum.connect(lp);
-  lp.connect(master);
+  lp.connect(busSet("td3") || master);
   o.start();
   TD3.noeuds = {o:o, f1:f1, f2:f2, vca:vca, sec:sec, hum:hum, lp:lp};
   majTonTd3();
@@ -18262,8 +18581,8 @@ function fxArcm(){
   c.buffer = b;
   var gd = ctx.createGain(), gv = ctx.createGain();
   gd.gain.value = 0.5; gv.gain.value = 0.4;
-  e.connect(d); d.connect(fb); fb.connect(d); d.connect(gd); gd.connect(master);
-  e.connect(c); c.connect(gv); gv.connect(master);
+  e.connect(d); d.connect(fb); fb.connect(d); d.connect(gd); gd.connect(busSet("arcm") || master);
+  e.connect(c); c.connect(gv); gv.connect(busSet("arcm") || master);
   ARCM.fx = {e:e, d:d, fb:fb, gd:gd, gv:gv};
   return ARCM.fx;
 }
@@ -18296,7 +18615,7 @@ function courbeArcm(d){
 function sortieArcm(k){
   if(!ARCM.noeuds[k]){
     var g = ctx.createGain(), p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-    if(p){ g.connect(p); p.connect(master); } else g.connect(master);
+    if(p){ g.connect(p); p.connect(busSet("arcm") || master); } else g.connect(busSet("arcm") || master);
     ARCM.noeuds[k] = {g:g, p:p};
   }
   return ARCM.noeuds[k];
@@ -18889,7 +19208,7 @@ function bâtirT1k(){
   revIn.connect(rev); rev.connect(mix);
   var dly = ctx.createDelay(2), dlyIn2 = ctx.createGain(), fb = ctx.createGain();
   dlyIn2.connect(dly); dly.connect(fb); fb.connect(dly); dly.connect(mix);
-  mix.connect(master);
+  mix.connect(busSet("t1k") || master);
   T1K.noeuds = {mixA:mixA, mix:mix, filt:filt, secA:secA, humA:humA,
                 revIn:revIn, dlyIn:dlyIn2, dly:dly, fb:fb};
   majFxT1k();
@@ -19427,8 +19746,8 @@ function sortieDbi(){
     }
     d.curve = c; d.oversample = "2x";
     var sec = ctx.createGain(), hum = ctx.createGain();
-    g.connect(sec); sec.connect(master);
-    g.connect(d); d.connect(hum); hum.connect(master);
+    g.connect(sec); sec.connect(busSet("dbi") || master);
+    g.connect(d); d.connect(hum); hum.connect(busSet("dbi") || master);
     DBI.noeuds.out = g; DBI.noeuds.sec = sec; DBI.noeuds.hum = hum;
     majDistDbi();
   }
@@ -19925,7 +20244,7 @@ function rythmeCr(){ return CR_RYTHMES[CR5.banq * 8 + CR5.ryt] || CR_RYTHMES[8];
 function sortieCr(g){
   if(!CR5.noeuds[g]){
     var n = ctx.createGain();
-    n.connect(master);
+    n.connect(busSet("cr") || master);
     CR5.noeuds[g] = n;
   }
   return CR5.noeuds[g];
@@ -20264,14 +20583,14 @@ function reverbVlc(){
   }
   c.buffer = b;
   g.gain.value = 0.34;
-  g.connect(c); c.connect(master);
+  g.connect(c); c.connect(busSet("vlc") || master);
   VLC.reverb = g;
   return g;
 }
 function sortieVlc(k){
   if(!VLC.noeuds[k]){
     var g = ctx.createGain(), p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-    if(p){ g.connect(p); p.connect(master); } else g.connect(master);
+    if(p){ g.connect(p); p.connect(busSet("vlc") || master); } else g.connect(busSet("vlc") || master);
     VLC.noeuds[k] = {g:g, p:p};
   }
   return VLC.noeuds[k];
@@ -20704,7 +21023,7 @@ function dmxGoulot(){
 function dmxSortie(fam){
   if(!DMX.noeuds[fam]){
     var g = ctx.createGain();
-    g.connect(master);
+    g.connect(busSet("dmx") || master);
     DMX.noeuds[fam] = g;
   }
   return DMX.noeuds[fam];

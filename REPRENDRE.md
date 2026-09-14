@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **90**.
+La version actuelle est la **91**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,44 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Table de mixage : plusieurs machines à la fois — v91**
+
+Première étape de la grande évolution demandée. Le socle, pas encore l'écran.
+
+*Une voie par moteur.* `busSet(id)` rend un `gain → panner → master` par machine, `majVoieSet` applique
+niveau, panoramique, coupe-son et solo. **Le solo est un coupe-son sur les autres voies**, comme sur une
+table — d'où un seul solo à la fois. La voie retient son `ctx` : un nœud fabriqué dans un contexte mort ne
+se rebranche nulle part, et le contexte change à l'export et après une relance.
+
+*Routage.* **31 sorties** déplacées de `master` vers `busSet(...)`, dans 19 fonctions. Restent sur `master`,
+volontairement : les trois métronomes, les écoutes de bibliothèque, et le **retour d'effets des Electribe**
+(`busEffets`) — c'est un retour d'effets partagé, il a sa place hors des tranches, exactement comme sur une
+console. Vérifié : 17 voies, toutes reliées au mélange.
+
+*Transport.* `pasSet` est un compteur **qui ne repart jamais à zéro** ; chaque machine du set y prend son
+reste (`pasSet % sa longueur`). C'est ce qui permet à un motif de 16 pas de tourner contre un de 12 sans
+que l'un impose sa mesure. La machine affichée reste ordonnancée comme avant et est **exclue** du second
+tour, sinon elle jouerait deux fois. Vérifié au banc sur 26 pas.
+
+*`preparerSet()`* réveille les machines choisies : chacune construit ses nœuds à la première ouverture de
+sa façade, et dans un set on n'y passe pas — sans ce réveil, la première mesure serait muette.
+
+**Limite réelle, à ne pas prendre pour un oubli : dix-sept MOTEURS, pas vingt-cinq machines.** La TR-808 et
+la 909 partagent `MACHINE_TR` et la même mémoire de motifs. Les faire jouer ensemble supposerait de
+dédoubler leur état, ce qui est un autre chantier.
+
+*Mémoire* : `memoire.set` entre dans la sauvegarde générale. **`SET` est déclaré après `charger()`** :
+la relecture ne fait que mettre de côté, et `appliquerMemSet()` — appelée après la déclaration — applique.
+Ne pas remettre l'application dans `charger()`, elle planterait au démarrage.
+
+*Notice* : onglet **TABLE DE MIXAGE**, avec les conseils de branchement réel demandés — synchronisation
+(MIDI, sync analogique, DIN Sync), ordre gain/fader, panoramique, coupe du grave, effets partagés, écoute
+casque, boucles de masse.
+
+**Reste à faire pour la version PC** : plusieurs fenêtres. Tauri sait ouvrir plusieurs fenêtres chargeant
+la même page avec un paramètre (`?vue=table`, `?vue=eur`) ; il faudrait alors partager l'état entre
+fenêtres, ce que `localStorage` ne fait pas en direct. Chantier à part entière.
 
 **Machine d'archive : le son — v90**
 
