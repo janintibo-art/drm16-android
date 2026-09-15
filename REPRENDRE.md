@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **121**.
+La version actuelle est la **122**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,38 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Le son se coupait dès qu'un motif se chargeait — v122**
+
+Signalé sur la TR-707, et ce n'est pas propre à elle.
+
+*Cause.* Une boîte à rythmes pose jusqu'à seize frappes sur le **même pas**, attaques rigoureusement
+simultanées. Les crêtes s'additionnent donc **en amplitude**, pas en puissance : seize voix font seize fois
+la tension d'une seule, soit **+24 dB**. Le limiteur de sortie (seuil −1,2 dB, rapport 20, retour 90 ms)
+voyait ce dépassement, **plongeait de quinze décibels**, puis remontait en moins d'un dixième de seconde
+entre un pas chargé et un pas vide. D'où le son qui se coupe et revient.
+
+*Correction — à la source, pas au maître.* `TR.bus.att`, un gain inséré entre le bus des voix et la voie de
+mixage, réglé selon le nombre de frappes du pas, dans `scheduleTr`.
+
+**Le choix de l'exposant, `attenuationTr(n) = n^−0,75`** :
+- `1/n` garderait la crête rigoureusement constante — mais alors un pas chargé sonnerait **aussi fort**
+  qu'un pas à une frappe, ce qui est faux : un roulement complet *est* plus fort.
+- `1/√n` conserve la puissance, ce qui vaut pour des sources indépendantes, pas pour des attaques
+  simultanées.
+- **0,75 tient entre les deux.** Mesuré : la plongée du limiteur passe de **15,6 dB à 2,7 dB** sur huit
+  frappes, et chaque doublement du nombre de frappes gagne toujours **+1,5 dB** — la dynamique est
+  conservée.
+
+*Deux détails qui comptent* :
+- l'atténuation est posée **20 ms avant la frappe** (`t − 0.02`, borné par `maintenantAudio()`), sinon elle
+  arriverait après la crête d'attaque, donc trop tard pour servir ;
+- **`setTargetAtTime` et non `setValueAtTime`** (5 ms) : un saut net de gain ferait un clic sur les queues
+  longues, crash et ride. Et rien n'est posé si la valeur ne change pas.
+- Le flam double le nombre de frappes : il est compté.
+
+**À généraliser** : toute machine capable de frapper beaucoup de voix sur un même pas a ce défaut —
+DMX, DrumBrute, TR-1000, archive. Le mécanisme est celui-ci, il suffit de le reproduire.
 
 **KAOSS PAD : une source, et tout l'écran — v121**
 

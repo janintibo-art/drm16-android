@@ -16113,10 +16113,21 @@ function sortieRd6(){
     var n = 1024, c = new Float32Array(n);
     for(var i=0;i<n;i++){ var x = i * 2 / n - 1; c[i] = Math.tanh(x * 4); }
     d.curve = c; d.oversample = "2x";
+    /* Une boîte à rythmes peut poser seize frappes sur le MÊME pas, et leurs
+       attaques coïncident exactement. Les crêtes s'additionnent alors en
+       amplitude : seize voix font seize fois la tension d'une seule, soit
+       +24 dB. Le limiteur de sortie voyait donc un dépassement énorme, plongeait
+       de quinze décibels, et remontait en quatre-vingt-dix millisecondes — d'où
+       le son qui se coupe et revient dès qu'un motif se charge.
+
+       On ne corrige pas cela au maître : le mal est fait avant. On atténue à la
+       source, en fonction du nombre de frappes du pas. */
+    var att = ctx.createGain();
     e.connect(lp);
-    lp.connect(sec); sec.connect(busSet("tr") || master);
-    lp.connect(d); d.connect(hum); hum.connect(busSet("tr") || master);
-    TR.bus = {e:e, lp:lp, sec:sec, hum:hum};
+    lp.connect(sec); sec.connect(att);
+    lp.connect(d); d.connect(hum); hum.connect(att);
+    att.connect(busSet("tr") || master);
+    TR.bus = {e:e, lp:lp, sec:sec, hum:hum, att:att, dernier:1};
     majBusTr();
   }
   return TR.bus.e;
@@ -16755,12 +16766,40 @@ function frapperTr(k, acc){
     }
   }
 }
+/* Combien faut-il atténuer un pas qui porte n frappes.
+
+   1/n garderait la crête rigoureusement constante, mais alors un pas chargé
+   sonnerait aussi fort qu'un pas à une seule frappe — ce qui est faux : sur une
+   vraie machine, un roulement complet EST plus fort. 1/√n conserve la puissance,
+   ce qui vaut pour des sources indépendantes, pas pour des attaques simultanées.
+
+   L'exposant 0,75 tient entre les deux : la somme continue de monter avec le
+   nombre de frappes, mais plafonne juste sous le seuil du limiteur, qui n'a
+   donc plus rien à rattraper. */
+function attenuationTr(n){
+  return n <= 1 ? 1 : Math.pow(n, -0.75);
+}
 function scheduleTr(i, t){
   var p = TR.pat, v = TR.var2 ? "B" : "A";
   if(i >= (p.last || 16)) return;
   if(TR.shuffle && i % 2 === 1) t += stepDur() * TR.shuffle * 0.5;
   var acc = !!p[v][0][i];
-  for(var k=1;k<TR.def.instr.length;k++){
+  var n = 0, k;
+  for(k=1;k<TR.def.instr.length;k++) if(p[v][k][i]) n++;
+  if(TR.bus && TR.bus.att){
+    var a2 = attenuationTr(n * (TR.flam ? 2 : 1));
+    /* Posé un peu AVANT la frappe : l'ordonnanceur travaille en avance, on a
+       donc le temps. Sinon l'atténuation arriverait après la crête d'attaque,
+       c'est-à-dire trop tard pour servir à quelque chose. */
+    if(Math.abs(a2 - TR.bus.dernier) > 0.001){
+      var quand = Math.max(maintenantAudio(), t - 0.02);
+      /* une transition douce : un saut net de gain ferait un clic sur les
+         queues longues — cymbale crash, ride */
+      TR.bus.att.gain.setTargetAtTime(a2, quand, 0.005);
+      TR.bus.dernier = a2;
+    }
+  }
+  for(k=1;k<TR.def.instr.length;k++){
     if(!p[v][k][i]) continue;
     voixTr(t, k, acc);
     if(TR.flam) voixTr(t + 0.028, k, false);   /* le flam de la 909 */
