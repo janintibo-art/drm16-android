@@ -384,7 +384,7 @@ body.m32 .read{color:#8fe8d8}
   color:#140f0c;font-weight:800;letter-spacing:1px;font-size:14px}
 #note button.sec{background:#2f2f35;color:#eceae4;margin-top:6px;margin-right:6px}
 #note button[disabled]{opacity:.5}
-/* la notice de l'Eurorack decrit quatre-vingt-seize modules : sans mise en forme
+/* la notice de l'Eurorack decrit quatre-vingt-dix-neuf modules : sans mise en forme
    propre, la liste devient un mur de texte illisible sur un telephone */
 #note ol,#note ul{margin:0 0 10px;padding-left:20px}
 #note li{margin:0 0 5px}
@@ -4523,7 +4523,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>quatre-vingt-seize modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>quatre-vingt-dix-neuf modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
@@ -4577,7 +4577,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <b>MONTAGES</b> ouvre les vingt-quatre patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
   <b>EXEMPLE</b> remonte le patch de démonstration. <b>VIDER</b> repart d'un rack nu, après confirmation,
   et seul le rack courant est touché.</li>
-  <li><b>PATCH ▾</b> — ce qu'on a monté dedans. <b>AJOUTER</b> ouvre le catalogue des quatre-vingt-seize modules,
+  <li><b>PATCH ▾</b> — ce qu'on a monté dedans. <b>AJOUTER</b> ouvre le catalogue des quatre-vingt-dix-neuf modules,
   rangé en huit onglets. <b>RETIRER</b> enlève le module choisi et ses câbles. <b>RANGÉE</b> le fait passer
   sur l'autre rangée. <b>DÉCÂBLER</b> retire tous les câbles en gardant les modules.</li>
   </ul>
@@ -4602,7 +4602,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <h3>Vingt-quatre montages tout faits</h3>
   <p>La liste s'ouvre <b>au-dessus du rack</b>, là où on la lit sans faire défiler la page.</p>
-  <p>Un rack vide décourage : il faut connaître quatre-vingt-seize modules et savoir lesquels vont ensemble avant
+  <p>Un rack vide décourage : il faut connaître quatre-vingt-dix-neuf modules et savoir lesquels vont ensemble avant
   d'entendre quoi que ce soit. <b>MONTAGES</b> donne des points de départ qui sonnent, rangés en cinq
   genres. Ils remplacent le rack courant — passez au rack suivant d'abord si vous tenez au vôtre.</p>
   <ul>
@@ -4711,7 +4711,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>L'<b>export WAV</b> fonctionne aussi, et enregistre ce qui sort de l'OUTPUT du rack affiché.</p>
   </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
-  <p>Les quatre-vingt-seize modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
+  <p>Les quatre-vingt-dix-neuf modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
   potards, ses entrées et ses sorties. Les <b>sorties</b> sont les prises cerclées d'or.</p>
 
   <h3>Horloges · 9 modules</h3>
@@ -4815,7 +4815,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   l'oreille, et quand c'est bon on fige.</p>
   <span>Potards LEN, FREEZE · Entrées IN, CLK, RST · Sortie OUT</span></div>
 
-  <h3>Oscillateurs · 11 modules</h3>
+  <h3>Oscillateurs · 12 modules</h3>
   <p>Les sources de son. Tous sauf NOISE ont une entrée <b>V/OCT</b> : un volt de plus, une octave de plus.
   OCT couvre quatre octaves, FINE l'accord fin.</p>
   <div class="fmod"><b>VCO</b>
@@ -4847,6 +4847,16 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   neuvième ajoutée ; SPREAD les désaccorde légèrement pour élargir. Une seule entrée de hauteur transpose
   l'accord entier.</p>
   <span>Potards OCT, TYPE, SPREAD · Entrée V/OCT · Sortie OUT</span></div>
+  <div class="fmod"><b>CORAL</b>
+  <p>Une voix entière dans un seul module : oscillateurs, bruit, filtre résonant, enveloppe d'amplitude et
+  enveloppe de filtre. C'est l'inverse de la philosophie du modulaire — et c'est parfois exactement ce
+  qu'il faut. Une impulsion dans TRIG suffit à produire une note complète.</p>
+  <p><b>HARM</b> transpose les deux copies par intervalles <b>justes</b>, quinte puis octave, pas un
+  désaccord au hasard. <b>MORPH</b> les désaccorde légèrement et les écarte en stéréo : la largeur vient de
+  là, pas d'un effet ajouté après.</p>
+  <span>Potards OCT, HARM, TIMBRE, MORPH, FILTER, F.ENV, F.RESO, ATTACK, DECAY · Entrées TRIG, V/OCT ·
+  Sorties L, R</span></div>
+
   <div class="fmod"><b>PISTON HONDA</b>
   <p>Une table d'ondes à <b>trois axes</b>. X règle la pente des harmoniques, Y la balance entre rangs pairs
   et impairs, et <b>Z déphase les partiels</b> — l'onde perd sa symétrie sans changer de spectre, ce qui la
@@ -5087,7 +5097,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   CLK. Une seule séquence peut ainsi nourrir quatre voix à tour de rôle.</p>
   <span>Aucun potard · Entrées IN, CLK, RST · Sorties 1, 2, 3, 4</span></div>
 
-  <h3>Traitements · 17 modules</h3>
+  <h3>Traitements · 18 modules</h3>
   <p>Ils se placent après les voix, en général entre le mélangeur et la sortie. Tous ont une entrée IN et
   une sortie OUT, sauf RING qui a une entrée de modulation en plus. MIX dose le mélange entre le signal
   d'origine et le signal traité.</p>
@@ -5127,6 +5137,18 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   n'est pas un vrai granulateur — c'est un délai dont le temps saute sans arrêt —, mais le nuage y ressemble
   beaucoup.</p>
   <span>Potards SIZE, DENSITY, MIX · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod"><b>KAMIENIEC</b>
+  <p>Un phaser ne filtre pas : il fait <b>tourner la phase</b>. Douze cellules laissent tout passer mais
+  décalent chaque fréquence différemment, et c'est en réadditionnant au signal d'origine que les creux
+  apparaissent.</p>
+  <p>D'où les deux sorties : <b>A additionne, B soustrait</b>. Elles sont complémentaires — ce qui creuse
+  sur A bosse sur B. Envoyées à gauche et à droite, c'est l'image la plus large qu'on puisse tirer d'un
+  seul module.</p>
+  <p><b>MODE</b> choisit combien de cellules travaillent : deux, quatre, six ou douze. Moins de cellules,
+  moins de creux — un léger balancement au lieu d'un tourbillon. Le LFO est interne, et sa sortie est
+  disponible pour moduler autre chose au même rythme.</p>
+  <span>Potards MODE, RESO, LFO RATE, DEPTH, MIX · Entrées IN, EXT MOD · Sorties A, B, LFO</span></div>
+
   <div class="fmod"><b>PLASMA</b>
   <p>Une distorsion à tube à décharge : le signal traverse un arc électrique. Il n'y a pas de transition
   douce entre « pas de son » et « arc » — d'où une courbe presque verticale au centre, là où une saturation
@@ -5181,9 +5203,20 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   frappant au casque.</p>
   <span>Potards TIME, FEED, MIX · Entrée IN · Sortie OUT</span></div>
 
-  <h3>Percussions · 15 modules</h3>
+  <h3>Percussions · 16 modules</h3>
   <p>Des voix complètes : une impulsion sur TRIG suffit, pas besoin d'enveloppe ni de VCA. Les sept
   dernières partagent les mêmes trois réglages — TUNE l'accord, DECAY la longueur, LEVEL le niveau.</p>
+  <div class="fmod"><b>SQUID SALMPLE</b>
+  <p>Huit lecteurs d'échantillons, <b>une entrée chacun</b>. C'est tout le module, et c'est ce qui le rend
+  rapide : là où un échantillonneur ordinaire demande de choisir un son puis de le déclencher, ici chaque
+  prise <b>est</b> un son. Huit sorties d'horloges divisées câblées dessus donnent un rythme entier sans
+  toucher un seul réglage.</p>
+  <p><b>BANK</b> décale les huit ensemble dans la banque : un seul potard change tout le kit, ce qui est la
+  façon dont on s'en sert vraiment. <b>QUALITY</b> réduit la résolution — un escalier, pas une saturation :
+  le son devient granuleux au lieu de devenir gros. <b>REVERSE</b> retourne les huit.</p>
+  <p>Les sorties <b>1+2</b> et <b>3+4</b> sortent ces canaux du mélange, de quoi les traiter à part.</p>
+  <span>Potards BANK, QUALITY, ENV, REVERSE, V/OCT, LEVEL · Entrées 1 à 8 · Sorties 1+2, 3+4, MIX</span></div>
+
   <div class="fmod"><b>MUTANT HIHATS</b>
   <p>Le charley d'une 808 — six carrés désaccordés passés au passe-haut — mais saturé. Ce qui fait ce
   module, c'est l'<b>exclusivité</b> : le fermé coupe l'ouvert, net, comme une vraie pédale de charley.
@@ -17497,6 +17530,73 @@ chord: {nom:"CHORD", hp:64, res:"Quatre voix accordées", fam:"osc",
     return {e:{voct:voct}, s:{out:out}};
   }},
 
+coral: {nom:"CORAL", hp:92, res:"Une voix entière : oscillateur, filtre, deux enveloppes", fam:"osc",
+  kns:[["oct","OCT",0,1,0.45],["harm","HARM",0,1,0.4],["timbre","TIMBRE",0,1,0.2],
+       ["morph","MORPH",0,1,0.3],["cut","FILTER",0,1,0.6],["fenv","F.ENV",0,1,0.5],
+       ["reso","F.RESO",0,1,0.3],["atk","ATTACK",0,1,0.02],["dec","DECAY",0,1,0.45]],
+  jacks:[["trig","TRIG",0],["voct","V/OCT",0],["l","L",1],["r","R",1]],
+  creer:function(m){
+    /* Une voix complète dans un seul module : c'est l'inverse de la philosophie
+       du modulaire, et c'est parfois exactement ce qu'il faut. Tout est déjà
+       câblé à l'intérieur — une impulsion dans TRIG suffit à produire une note
+       entière, filtre et enveloppes compris.
+
+       MORPH désaccorde deux copies et les écarte en stéréo : c'est de là que
+       vient la largeur, pas d'un effet ajouté après. */
+    var base = 55, voct = eurGain(1200);
+    var som = eurGain(0.3);
+    var oscs = [];
+    [-1, 0, 1].forEach(function(d){
+      var o = ctx.createOscillator();
+      o.type = "sawtooth";
+      voct.connect(o.detune);
+      var p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      var g = eurGain(d === 0 ? 0.6 : 0.3);
+      o.connect(g);
+      if(p){ g.connect(p); p.connect(som); } else g.connect(som);
+      o.start();
+      oscs.push({o:o, g:g, p:p, d:d});
+    });
+    var bruit = eurBruit(), gb = eurGain(0);
+    bruit.connect(gb); gb.connect(som);
+
+    var f = ctx.createBiquadFilter(); f.type = "lowpass";
+    var vca = eurGain(0.0001);
+    som.connect(f); f.connect(vca);
+    var l = eurGain(1), r = eurGain(1);
+    vca.connect(l); vca.connect(r);
+
+    m.hz = base;
+    m.maj = function(){
+      m.hz = base * Math.pow(2, (m.p.oct - 0.5) * 4);
+      oscs.forEach(function(x){
+        /* HARM transpose les deux copies par intervalles justes : quinte et
+           octave, pas un désaccord au hasard. */
+        var mult = x.d === 0 ? 1 : (x.d < 0 ? 1 + m.p.harm * 0.5 : 1 + m.p.harm);
+        x.o.frequency.value = m.hz * mult * (1 + x.d * m.p.morph * 0.012);
+        if(x.p) x.p.pan.value = x.d * m.p.morph;
+      });
+      gb.gain.value = m.p.timbre * 0.25;
+      f.Q.value = 0.7 + m.p.reso * 16;
+    };
+    m.maj();
+    m.recevoir = function(t, entree){
+      if(entree !== "trig") return null;
+      var a = 0.002 + m.p.atk * 0.5, d = 0.05 + m.p.dec * 1.6;
+      vca.gain.cancelScheduledValues(t);
+      vca.gain.setValueAtTime(0.0001, t);
+      vca.gain.linearRampToValueAtTime(0.7, t + a);
+      vca.gain.exponentialRampToValueAtTime(0.0001, t + a + d);
+      var bas = 120 + m.p.cut * 5000;
+      var haut = Math.min(16000, bas + m.p.fenv * 9000);
+      f.frequency.cancelScheduledValues(t);
+      f.frequency.setValueAtTime(haut, t);
+      f.frequency.exponentialRampToValueAtTime(Math.max(60, bas), t + a + d * 0.8);
+      return null;
+    };
+    return {e:{trig:eurGain(1), voct:voct}, s:{l:l, r:r}};
+  }},
+
 piston: {nom:"PISTON HONDA", hp:76, res:"Table d'ondes à trois axes", fam:"osc",
   kns:[["oct","OCT",0,1,0.45],["x","X",0,1,0.3],["y","Y",0,1,0.4],["z","Z",0,1,0.2],["b","OSC B",0,1,0.35]],
   jacks:[["voct","V/OCT",0],["a","A",1],["b","B",1],["mix","MIX",1]],
@@ -18478,6 +18578,63 @@ grain: eurEffet("GRAIN", 64, "Texture par nuage de grains",
     m.maj();
   }),
 
+kamien: {nom:"KAMIENIEC", hp:76, res:"Rotateur de phase résonant, deux sorties opposées", fam:"effet",
+  kns:[["poles","MODE",0,1,0.5],["reso","RESO",0,1,0.4],
+       ["rate","LFO RATE",0,1,0.25],["depth","DEPTH",0,1,0.6],["mix","MIX",0,1,0.7]],
+  jacks:[["in","IN",0],["mod","EXT MOD",0],["a","A",1],["b","B",1],["lfo","LFO",1]],
+  creer:function(m){
+    /* Un phaser ne filtre pas : il fait TOURNER la phase. Douze cellules
+       passe-tout laissent tout passer mais décalent chaque fréquence
+       différemment ; c'est en réadditionnant au signal d'origine que les
+       creux apparaissent.
+
+       D'où les deux sorties : A additionne, B soustrait. Elles sont
+       complémentaires — ce qui creuse sur A bosse sur B. En stéréo, c'est
+       l'image la plus large qu'on puisse obtenir d'un seul module. */
+    var e = eurGain(1), cellules = [];
+    var pre = e;
+    for(var i=0;i<12;i++){
+      var ap = ctx.createBiquadFilter();
+      ap.type = "allpass"; ap.frequency.value = 500; ap.Q.value = 1;
+      pre.connect(ap); pre = ap;
+      cellules.push(ap);
+    }
+    var fin = pre;
+    var fb = eurGain(0);
+    fin.connect(fb); fb.connect(e);              /* la résonance */
+
+    var sec = eurGain(1), humA = eurGain(0), humB = eurGain(0);
+    var a = eurGain(1), b = eurGain(1);
+    e.connect(sec); sec.connect(a); sec.connect(b);
+    fin.connect(humA); humA.connect(a);
+    fin.connect(humB); humB.connect(b);          /* humB sera négatif */
+
+    var lfo = ctx.createOscillator(); lfo.type = "triangle";
+    var prof = eurGain(0), sortieLfo = eurGain(0.5);
+    lfo.connect(prof); lfo.connect(sortieLfo);
+    var modExt = eurGain(1200);
+    cellules.forEach(function(c){ prof.connect(c.frequency); modExt.connect(c.detune); });
+    lfo.start();
+
+    m.maj = function(){
+      /* MODE choisit combien de cellules travaillent : deux, quatre, six ou
+         douze. Moins de cellules, moins de creux — un léger balancement au
+         lieu d'un tourbillon. */
+      var actives = [2, 4, 6, 12][Math.min(3, Math.round(m.p.poles * 3))];
+      cellules.forEach(function(c, i){
+        c.frequency.value = i < actives ? (300 + i * 90) : 20000;
+      });
+      fb.gain.value = m.p.reso * 0.75;
+      lfo.frequency.value = 0.02 * Math.pow(400, m.p.rate);
+      prof.gain.value = m.p.depth * 1600;
+      sec.gain.value = 1 - m.p.mix * 0.5;
+      humA.gain.value = m.p.mix;
+      humB.gain.value = -m.p.mix;                /* l'opposé, d'où B */
+    };
+    m.maj();
+    return {e:{in:e, mod:modExt}, s:{a:a, b:b, lfo:sortieLfo}};
+  }},
+
 plasma: eurEffet("PLASMA", 68, "Distorsion à tube : ça ne sature pas, ça casse",
   [["volt","VOLTAGE",0,1,0.55],["niv","IN LVL",0,1,0.6],
    ["oct","OCTAVE",0,1,0],["bass","BASS",0,1,0.5],["treb","TREBLE",0,1,0.5],["mix","DRY/WET",0,1,0.8]],
@@ -18710,6 +18867,73 @@ pingpong: eurEffet("PING PONG", 72, "Écho qui rebondit d'une oreille à l'autre
   }),
 
 /* ================= percussions ================= */
+squid: {nom:"SQUID SALMPLE", hp:96, res:"Huit lecteurs d'échantillons, une entrée chacun", fam:"perc",
+  kns:[["banque","BANK",0,1,0],["qual","QUALITY",0,1,1],["dec","ENV",0,1,0.85],
+       ["rev","REVERSE",0,1,0],["tune","V/OCT",0,1,0.5],["niv","LEVEL",0,1,0.8]],
+  jacks:[["t1","1",0],["t2","2",0],["t3","3",0],["t4","4",0],
+         ["t5","5",0],["t6","6",0],["t7","7",0],["t8","8",0],
+         ["oi","1+2",1],["op","3+4",1],["mix","MIX",1]],
+  creer:function(m){
+    /* Huit canaux, huit entrées : c'est tout le module. Là où un sampler
+       ordinaire demande de choisir un son puis de le déclencher, ici chaque
+       prise EST un son. On câble huit sorties d'horloge divisée dessus et on a
+       un rythme entier sans toucher à un seul réglage.
+
+       BANK décale les huit ensemble dans la banque : un seul potard change tout
+       le kit, ce qui est la façon dont on s'en sert vraiment. */
+    var mix = eurGain(1), oi = eurGain(1), op = eurGain(1);
+    var forme = ctx.createWaveShaper();
+    var apres = eurGain(1);
+    forme.connect(apres); apres.connect(mix);
+    m.maj = function(){
+      /* QUALITY à fond : pas de courbe du tout, le son passe intact. En
+         dessous, un escalier de moins en moins fin — c'est une réduction de
+         résolution, pas une saturation. */
+      if(m.p.qual > 0.97){ forme.curve = null; }
+      else {
+        var marches = Math.max(2, Math.round(2 + m.p.qual * 60));
+        var n = 1024, c = new Float32Array(n);
+        for(var i=0;i<n;i++){
+          var x = i * 2 / n - 1;
+          c[i] = Math.round(x * marches) / marches;
+        }
+        forme.curve = c; forme.oversample = "none";
+      }
+      apres.gain.value = m.p.niv;
+    };
+    m.maj();
+    m.recevoir = function(t, entree){
+      var k = {t1:0, t2:1, t3:2, t4:3, t5:4, t6:5, t7:6, t8:7}[entree];
+      if(k === undefined) return null;
+      banqueEs();
+      var dec = Math.round(m.p.banque * (ES_BANQUE.length - 8));
+      var id = "b" + ((dec + k) % ES_BANQUE.length);
+      var buf = ES.buf[id];
+      if(!buf) return null;
+      var src = ctx.createBufferSource();
+      /* à l'envers : le tampon retourné, gardé en cache par le même mécanisme
+         que la machine d'archive */
+      src.buffer = (m.p.rev > 0.5) ? bufArcmInverse(id, buf) : buf;
+      src.playbackRate.value = Math.pow(2, (m.p.tune - 0.5) * 2);
+      var g = eurGain(0);
+      var d = Math.max(0.03, (buf.duration / src.playbackRate.value) * Math.max(0.04, m.p.dec));
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.9, t + 0.002);
+      g.gain.setValueAtTime(0.9, t + Math.max(0.005, d - 0.02));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      src.connect(g);
+      g.connect(forme);
+      /* les sorties par paires, comme sur la machine : de quoi traiter deux
+         canaux à part sans perdre le mélange */
+      g.connect(k < 2 ? oi : (k < 4 ? op : mix));
+      src.start(t); src.stop(t + d + 0.05);
+      return null;
+    };
+    var e = {};
+    ["t1","t2","t3","t4","t5","t6","t7","t8"].forEach(function(q){ e[q] = eurGain(1); });
+    return {e:e, s:{oi:oi, op:op, mix:mix}};
+  }},
+
 mutant: {nom:"MUTANT HIHATS", hp:64, res:"Charley 808 saturé, ouvert et fermé exclusifs", fam:"perc",
   kns:[["drive","DRIVE",0,1,0.4],["cut","CUTOFF",0,1,0.6],
        ["dec","DECAY",0,1,0.3],["niv","LEVEL",0,1,0.8]],
@@ -19339,7 +19563,7 @@ function eurCatalogue(){
   var c = document.getElementById("eur-cat");
   if(c.style.display !== "none" && c.dataset.vue === "mod"){ montrerCat(c, false); return; }
   c.innerHTML = ""; c.dataset.vue = "mod";
-  /* quatre-vingt-seize modules en vrac seraient illisibles : on les range par
+  /* quatre-vingt-dix-neuf modules en vrac seraient illisibles : on les range par
      familles, et l'onglet choisi décide de ce qu'on voit */
   var onglets = document.createElement("div");
   onglets.className = "eur-fam";
@@ -19519,7 +19743,7 @@ document.getElementById("eur-hasard").addEventListener("click", function(){ eurH
    de rythme, deux ou trois voix, un traitement et une sortie. Sans cette
    ossature on obtient un tas de modules qui ne sonne pas. */
 /* ================= montages tout faits =================
-   Un rack vide décourage : il faut connaître quatre-vingt-seize modules et savoir
+   Un rack vide décourage : il faut connaître quatre-vingt-dix-neuf modules et savoir
    lesquels vont ensemble avant d'entendre quoi que ce soit. Ces montages
    donnent un point de départ qui sonne, à défaire ensuite câble par câble —
    c'est la façon la plus rapide d'apprendre ce que fait chaque module.

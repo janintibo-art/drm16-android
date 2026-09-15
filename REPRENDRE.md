@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **117**.
+La version actuelle est la **118**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -59,9 +59,9 @@ Le Java ne sert que de pont vers Android.
 **Electro-Harmonix** DRM16, DRM32 · **Korg** Electribe EM-1, ER-1, EA-1, ES-1, ER-1 mkII, ES-1 mkII,
 EA-1 mkII, EMX-1, ESX-1, volca sample · **Akai** MPC3000, MPC2000 · **Roland** TR-808, TR-909, TR-707,
 CR-5000, TR-1000 · **Oberheim** DMX · **Arturia** DrumBrute Impact · **Behringer** RD-6, TD-3 ·
-**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (96 modules, deux rangées :
-9 horloges, 8 séquenceurs, 11 oscillateurs, 11 filtres, 12 modulations, 13 utilitaires, 17 traitements,
-15 percussions).
+**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (99 modules, deux rangées :
+9 horloges, 8 séquenceurs, 12 oscillateurs, 11 filtres, 12 modulations, 13 utilitaires, 18 traitements,
+16 percussions).
 
 ### Les outils
 
@@ -116,6 +116,26 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Trois modules de plus — v118**
+
+96 → 99.
+
+- **SQUID SALMPLE** (perc) — **huit entrées, une par canal** : chaque prise *est* un son, on n'en choisit
+  aucun. `BANK` décale les huit ensemble dans `ES_BANQUE`. `QUALITY` est une **réduction de résolution**
+  (escalier `Math.round(x·n)/n`), pas une saturation — vérifié : 5 paliers au minimum, aucune courbe au
+  maximum, le son passant alors intact. `REVERSE` réutilise `bufArcmInverse`, le cache de tampons
+  retournés de la machine d'archive.
+- **KAMIENIEC** (effet) — douze cellules passe-tout ; **A additionne le déphasé, B le soustrait**
+  (`humB.gain = −mix`). Les deux sorties sont complémentaires : ce qui creuse sur A bosse sur B.
+  `MODE` n'en active que 2, 4, 6 ou 12 — les inactives sont **poussées à 20 kHz**, donc inertes, plutôt
+  que débranchées : pas de reconstruction de graphe sur un tour de potard.
+- **CORAL** (osc) — voix complète. `HARM` transpose par intervalles **justes** (quinte, octave) ; `MORPH`
+  désaccorde ET écarte en stéréo par `StereoPanner`, la largeur venant de là et non d'un effet.
+
+*Piège du banc, deuxième fois* : `banqueEs`, `ES.buf` et `ES_BANQUE` manquaient au banc d'essai, d'où deux
+faux échecs successifs sur SQUID. **Le banc ne connaît que ce qu'on lui donne** — quand un module neuf
+échoue sur un symbole qui existe manifestement dans le fichier, compléter le banc avant de douter du code.
 
 **Sept modules Eurorack — v117**
 
