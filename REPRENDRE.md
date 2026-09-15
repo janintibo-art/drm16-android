@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **105**.
+La version actuelle est la **106**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,28 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Formes d'onde par piste — v106**
+
+*Défaut trouvé en chemin* : **la vue se vidait à l'arrêt.** `enrArreter` transférait les événements dans la
+prise puis faisait `ENR.evts = []` — le canevas devenait blanc, et la promesse « à l'arrêt elle montre la
+prise entière » était fausse depuis le début. `ENR.affiche` porte désormais la prise montrée, posée
+automatiquement à l'arrêt et par le bouton **VOIR**. `evtsAffiches()` et `pistesDe(evts)` en découlent.
+
+*Les ondes.* `ondesEnr()` rend **chaque piste séparément** hors ligne et garde son enveloppe.
+
+**L'économie décisive : `ONDE_TAUX = 8000` en MONO**, au lieu de 44 100 en stéréo. Une forme d'onde n'a
+besoin que de quelques centaines de colonnes ; le dessin est rigoureusement identique pour **onze fois
+moins d'échantillons** — 4,8 M au lieu de 53 M pour dix pistes d'une minute. **Ne pas « améliorer » en
+montant la qualité** : on ne verrait aucune différence et le calcul deviendrait intenable sur téléphone.
+
+- Les rendus s'enchaînent **un par un** (`suivante(k)`) : deux contextes hors ligne en parallèle se
+  disputeraient les mêmes variables globales de machine.
+- `enveloppe()` garde la **crête** de chaque tranche, pas la moyenne — une percussion sèche disparaîtrait
+  en moyenne. Vérifié : trois coups espacés retombent aux colonnes 0, 200 et 400 sur 600, crête 0,99.
+- `ENR.ondesPour` mémorise `nom + "/" + decoupe` : changer de prise **ou** de découpage invalide les ondes,
+  puisque les pistes ne sont plus les mêmes.
+- Au-delà de 16 pistes, refus explicite plutôt qu'un calcul interminable.
 
 **Enregistreur : allure de séquenceur — v105**
 

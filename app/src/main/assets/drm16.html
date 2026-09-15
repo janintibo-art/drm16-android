@@ -189,6 +189,7 @@ body.m32 .read{color:#8fe8d8}
 /* La bande de règle, laissée libre en haut de la colonne des noms pour que la
    première piste tombe en face de son étiquette. */
 .enr-espace{height:22px;border-bottom:1px solid #26262d}
+.enr-prise.vue{border-color:var(--accent)}
 .enr-tt{height:34px;display:flex;align-items:center;gap:4px;padding:0 5px;
   border-bottom:1px solid #1c1c22}
 .enr-tt i{flex:none;width:8px;height:16px;border-radius:2px}
@@ -3424,6 +3425,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="enr-decoupe">PISTES : PAR SON</button>
     <button id="enr-attente">DÉPART : 1re NOTE</button>
     <button id="enr-boucle">BOUCLE : NON</button>
+    <button id="enr-ondes">FORMES D'ONDE</button>
     <b id="enr-etat">Prêt.</b>
   </div>
 
@@ -3841,6 +3843,15 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>La disposition est celle d'un séquenceur : les <b>noms à gauche</b>, chacun avec son coupe-son
   <b>M</b> et son solo <b>S</b>, le <b>temps à droite</b> avec une règle en secondes. Les deux colonnes
   défilent ensemble.</p>
+
+  <h3>Voir les formes d'onde</h3>
+  <p>Les traits montrent des <b>notes</b>. Pour voir le <b>son</b>, comme dans un séquenceur : touchez
+  <b>VOIR</b> sur une prise pour l'afficher, puis <b>FORMES D'ONDE</b>. Chaque piste est alors rendue
+  séparément et son relief apparaît dans sa bande, les notes s'effaçant derrière.</p>
+  <p>Le calcul prend quelques secondes — c'est un rendu par piste. Il est refait si vous changez de prise
+  ou basculez entre pistes par son et par canal, puisque le découpage change.</p>
+  <p>La vue garde la dernière prise après l'arrêt : on peut la revoir, l'écouter et la rendre sans rien
+  relancer.</p>
 
   <h3>Coupe-son et solo</h3>
   <p>Chaque piste a son <b>COUPE</b> et son <b>SOLO</b>. Attention, ils ne font pas que taire le son :
@@ -5457,6 +5468,8 @@ var ENR = {actif:false, depart:0, evts:[], prises:[], lecture:null, tmr:[], comp
            tics:[], tempo:0,  /* horloge reçue -> tempo réel de la machine      */
            attente:true, vierge:false,   /* départ à la première note           */
            solo:"", muet:{}, boucle:false,
+           affiche:null,     /* la prise montrée dans la vue quand rien n'enregistre */
+           ondes:null, ondesPour:"", ondesOccupe:false,
            t0vue:0, dessin:null};
 
 var S = {
@@ -6990,6 +7003,7 @@ document.getElementById("menu-audio").addEventListener("click", function(){
     b.querySelector("span").textContent = "DÉCROCHAGES · SOURCES · RELANCER LE MOTEUR";
   }, 4000);
 });
+document.getElementById("enr-ondes").addEventListener("click", function(){ ondesEnr(); H.inter(); });
 document.getElementById("enr-aide").addEventListener("click", function(){
   fermerEnr(); ouvrirNotice("note-enr");
 });
@@ -13720,6 +13734,9 @@ function enrArreter(){
   } else {
     signal("RIEN N'EST ARRIVÉ · VÉRIFIEZ L'ENTRÉE MIDI");
   }
+  /* La vue se vidait à l'arrêt : les événements partaient dans la prise et le
+     tampon était effacé. On garde donc la dernière prise à l'écran. */
+  if(ENR.prises.length) montrerPriseEnr(0);
   ENR.evts = [];
   majEnrUI();
   H.stop();
@@ -14001,6 +14018,7 @@ function canauxEnr(){
    pour une EMX ou une ER-1, qui envoient tout sur un canal. Par CANAL : une
    bande par source, utile quand plusieurs machines jouent ensemble. */
 function pistesEnr(){
+  if(!ENR.actif && ENR.affiche) return pistesDe(ENR.affiche.evts);
   var l = [];
   if(ENR.decoupe === "canal"){
     canauxEnr().forEach(function(c){
@@ -14095,6 +14113,46 @@ function majTetesEnr(pistes){
   });
 }
 
+/* Ce que la vue montre : le tampon en cours d'enregistrement, ou la prise
+   choisie. Sans cela on ne pouvait rien revoir une fois l'enregistrement
+   terminé. */
+function evtsAffiches(){
+  if(ENR.actif) return ENR.evts;
+  if(ENR.affiche) return ENR.affiche.evts;
+  return ENR.evts;
+}
+function montrerPriseEnr(i){
+  var p = ENR.prises[i];
+  if(!p) return;
+  ENR.affiche = {evts:p.evts, duree:p.duree, nom:p.nom, idx:i};
+  ENR.ondes = null; ENR.ondesPour = "";     /* les ondes ne valent que pour une prise */
+  var d = document.getElementById("enr-tetes");
+  if(d) d.dataset.sig = "";
+  majEnrUI();
+}
+/* Les pistes tirées d'une liste d'événements, pour une prise déjà faite. */
+function pistesDe(evts){
+  var vus = {}, l = [];
+  evts.forEach(function(e){
+    if((e[1] & 0xF0) !== 0x90 || e[3] === 0) return;
+    vus[(e[1] & 0x0F) + ":" + e[2]] = 1;
+  });
+  if(ENR.decoupe === "canal"){
+    var can = {};
+    for(var k in vus) can[k.split(":")[0]] = 1;
+    Object.keys(can).forEach(function(c){
+      l.push({cle:"c" + c, c:+c, n:-1, nom:"CANAL " + (+c + 1)});
+    });
+  } else {
+    for(var k2 in vus){
+      var q = k2.split(":");
+      l.push({cle:k2, c:+q[0], n:+q[1], nom:nomSonPiste(+q[0], +q[1])});
+    }
+  }
+  l.sort(function(a, b){ return (a.c - b.c) || (a.n - b.n); });
+  return l;
+}
+
 function dessinerEnr(){
   var cv = document.getElementById("enr-vue");
   var boite = document.getElementById("enr-corps");
@@ -14123,7 +14181,7 @@ function dessinerEnr(){
 
   var FEN = 8000;
   var maintenant = ENR.actif ? performance.now() - ENR.depart : 0;
-  var evts = ENR.evts, t0, t1;
+  var evts = evtsAffiches(), t0, t1;
   if(ENR.actif){ t1 = Math.max(FEN, maintenant); t0 = t1 - FEN; }
   else {
     var fin = evts.length ? evts[evts.length - 1][0] : FEN;
@@ -14155,6 +14213,30 @@ function dessinerEnr(){
     g.fillText(sec + "s", x + 3, 14);
   }
 
+  /* Les formes d'onde, quand elles ont été calculées pour cette prise. */
+  var ondes = (!ENR.actif && ENR.affiche && ENR.ondes &&
+               ENR.ondesPour === (ENR.affiche.nom + "/" + ENR.decoupe)) ? ENR.ondes : null;
+  if(ondes){
+    var dureeTotale = Math.max(1, ENR.affiche.duree + 2000);
+    pistes.forEach(function(p, i){
+      var env = ondes[p.cle];
+      if(!env) return;
+      var y0 = ENR_REGLE + i * ENR_H, mi = y0 + ENR_H / 2, demi = ENR_H / 2 - 3;
+      g.fillStyle = couleurCanal(p.n < 0 ? p.c : p.n);
+      g.globalAlpha = 0.85;
+      for(var c=0;c<env.length;c++){
+        /* chaque colonne d'enveloppe couvre une tranche de la prise : on la
+           place selon la fenêtre affichée, qui peut être plus courte */
+        var tms = (c / env.length) * dureeTotale;
+        if(tms < t0 || tms > t1) continue;
+        var xx = ((tms - t0) / duree) * L;
+        var hh = Math.max(1, env[c] * demi);
+        g.fillRect(xx, mi - hh, Math.max(1, L / env.length + 0.5), hh * 2);
+      }
+      g.globalAlpha = 1;
+    });
+  }
+
   /* Les notes. */
   for(var q=0;q<evts.length;q++){
     var e = evts[q];
@@ -14164,7 +14246,7 @@ function dessinerEnr(){
     if(rang < 0) continue;
     var x2 = ((e[0] - t0) / duree) * L;
     var ht = Math.max(4, (e[3] / 127) * (ENR_H - 8));
-    g.globalAlpha = 0.5 + (e[3] / 127) * 0.5;
+    g.globalAlpha = (ondes ? 0.25 : 0.5 + (e[3] / 127) * 0.5);
     g.fillStyle = couleurCanal(pistes[rang].n < 0 ? pistes[rang].c : pistes[rang].n);
     g.fillRect(x2, ENR_REGLE + rang * ENR_H + ENR_H - 4 - ht, 3, ht);
   }
@@ -14278,13 +14360,15 @@ function majEnrUI(){
   }
   ENR.prises.forEach(function(p, i){
     var d = document.createElement("div");
-    d.className = "enr-prise" + (ENR.lecture === i ? " joue" : "");
+    d.className = "enr-prise" + (ENR.lecture === i ? " joue" : "") +
+                  ((ENR.affiche && ENR.affiche.idx === i) ? " vue" : "");
     d.innerHTML = '<b>' + p.nom + '</b><span>' + p.date + ' · ' + dureeTexte(p.duree) +
                   ' · ' + p.evts.length + ' évén. · ' + p.bpm + ' BPM' +
                   (p.tempoMesure ? ' (mesuré)' : '') + '</span>';
     var barre = document.createElement("div");
     barre.className = "enr-actions";
-    [["▶ JOUER", function(){ enrJouer(i); }],
+    [["VOIR", function(){ montrerPriseEnr(i); }],
+     ["▶ JOUER", function(){ enrJouer(i); }],
      ["■ STOP", function(){ enrArreterLecture(); }],
      [".MID", function(){ enrExporter(i); }],
      [".WAV", function(){ exporterPriseWav(i); }],
@@ -22857,6 +22941,92 @@ function allerMachineRendu(m){
   if(m === RENDU_MACHINE) return;
   RENDU_MACHINE = m;
   allerMachine(m);
+}
+
+/* ================= formes d'onde par piste =================
+   Pour dessiner une piste comme dans un séquenceur, il faut son SON, pas ses
+   notes. On rend donc chaque piste séparément hors ligne et on garde l'enveloppe.
+
+   Le calcul est lourd — un rendu par piste — mais il y a une économie
+   décisive : une forme d'onde n'a besoin que de quelques centaines de colonnes.
+   On rend donc en MONO à 8000 Hz au lieu de 44100 en stéréo, soit onze fois
+   moins d'échantillons, pour un dessin rigoureusement identique. */
+var ONDE_TAUX = 8000, ONDE_COLS = 600;
+
+function ondesEnr(){
+  var A = ENR.affiche;
+  if(!A){ signal("CHOISISSEZ D'ABORD UNE PRISE"); return; }
+  if(ENR.ondesOccupe || WAVX.occupe){ signal("UN CALCUL EST DÉJÀ EN COURS"); return; }
+  var pistes = pistesDe(A.evts);
+  if(!pistes.length){ signal("PRISE VIDE"); return; }
+  if(pistes.length > 16){ signal("TROP DE PISTES POUR LES ONDES"); return; }
+
+  ENR.ondesOccupe = true;
+  signal("CALCUL DES FORMES D'ONDE…");
+  var modele = S.modele;
+  var total = A.duree / 1000 + 2;
+  var ctxVrai = ctx, masterVrai = master, bruitVrai = noiseBuf, cacheVrai = cache;
+  var sortiesVraies = {outBd:outBd, outMix:outMix, panBd:panBd, panMix:panMix};
+  var resultat = {};
+
+  function remettre(){
+    ENR.ondesOccupe = false;
+    ctx = ctxVrai; master = masterVrai; noiseBuf = bruitVrai; cache = cacheVrai;
+    razNoeudsMachines();
+    outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
+    panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
+    try{ allerMachine(modele); }catch(e){}
+  }
+
+  /* Une piste à la fois, en chaîne : deux contextes hors ligne en parallèle se
+     disputeraient les mêmes variables globales de machine. */
+  function suivante(k){
+    if(k >= pistes.length){
+      remettre();
+      ENR.ondes = resultat; ENR.ondesPour = A.nom + "/" + ENR.decoupe;
+      signal("FORMES D'ONDE PRÊTES");
+      return;
+    }
+    var p = pistes[k];
+    var off;
+    try{ off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, Math.ceil(ONDE_TAUX * total), ONDE_TAUX); }
+    catch(e){ remettre(); signal("CALCUL IMPOSSIBLE ICI"); return; }
+    ctx = off; batirAudio(); cache = true;
+    RENDU_MACHINE = "";
+    try{
+      A.evts.forEach(function(e){
+        if((e[1] & 0xF0) !== 0x90 || e[3] === 0) return;
+        var canal = e[1] & 0x0F;
+        if(p.c !== canal) return;
+        if(p.n >= 0 && p.n !== e[2]) return;
+        OFF_T = 0.02 + e[0] / 1000;
+        try{
+          allerMachineRendu(ENR.canaux[canal] || modele);
+          entreeNote(e[2], e[3] / 127, canal);
+        }catch(err){}
+      });
+    }catch(e){}
+    OFF_T = -1;
+    off.startRendering().then(function(rendu){
+      resultat[p.cle] = enveloppe(rendu.getChannelData(0));
+      suivante(k + 1);
+    }, function(){ resultat[p.cle] = null; suivante(k + 1); });
+  }
+  suivante(0);
+}
+
+/* L'enveloppe : la crête de chaque tranche. C'est ce qu'on dessine, pas les
+   échantillons — à six cents colonnes pour une minute, chaque colonne couvre
+   huit cents échantillons. */
+function enveloppe(data){
+  var n = data.length, e = new Float32Array(ONDE_COLS);
+  var par = n / ONDE_COLS;
+  for(var i=0;i<ONDE_COLS;i++){
+    var a = Math.floor(i * par), b = Math.min(n, Math.floor((i + 1) * par)), m = 0;
+    for(var j=a;j<b;j++){ var v = data[j] < 0 ? -data[j] : data[j]; if(v > m) m = v; }
+    e[i] = m;
+  }
+  return e;
 }
 
 /* ================= la collection archive.org =================
