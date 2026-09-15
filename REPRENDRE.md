@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **119**.
+La version actuelle est la **120**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,28 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Sommaire des modules, et le KAOSS PAD — v120**
+
+*Sommaire.* L'onglet MODULES EUR. contenait déjà **les 103 fiches** — chacune nommée, expliquée, avec ses
+potards et ses prises. Ce qui manquait n'était pas le contenu mais la **carte** : 43 ko d'affilée sur un
+téléphone, c'est un mur. Ancre `fm-…` sur chaque fiche et sommaire par famille en tête. Vérifié :
+103 liens, 103 ancres, aucun orphelin ni doublon.
+
+*Vingt-neuvième machine : KORG KAOSS PAD.* La seule dont la commande principale est une **surface**.
+
+- Huit effets, tous bâtis **dans un graphe unique** monté une fois : `appliquerKp()` remet tout à neutre
+  puis n'active que ce que l'effet courant demande. **Ne pas reconstruire le graphe au changement
+  d'effet** — cela ferait un trou dans le son, et c'est justement pendant qu'on joue qu'on en change.
+- **Sans HOLD, l'effet meurt avec le doigt** (`KP.touche` tombe à `pointerup`). C'est ce qui rend la
+  machine vivante plutôt que réglable ; ce n'est pas un oubli.
+- **PAD MOTION** relève la position **dans `scheduleKp`**, donc au rythme du séquenceur : la boucle est
+  calée sur le tempo et retombe toujours en mesure, quelle que soit la vitesse du geste d'origine. C'est
+  le choix qui fait toute la différence avec un relevé au temps réel.
+- L'effet « VITESSE » module le temps d'un délai très court : pas de transposition véritable sans rendu,
+  mais c'est ainsi que les premières machines le faisaient.
+- **C'est un effet, pas une source** : seule, la machine est silencieuse. Elle se met dans un set avec une
+  autre, par la table de mixage. Dit dans la notice.
 
 **Quatre modules, et une vraie synchronisation dure — v119**
 
