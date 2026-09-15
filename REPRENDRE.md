@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **106**.
+La version actuelle est la **108**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,53 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Voir plusieurs machines à la fois — v108**
+
+L'idée est de l'utilisateur, et elle est bien meilleure que la mienne : **garder les façades à leur
+échelle** et les ranger côte à côte. Tout le problème que je croyais insoluble — mettre dix-sept façades à
+l'échelle — disparaît.
+
+**Le levier, trouvé en relisant le CSS** : une façade n'est pas montrée par sa classe, elle est **cachée
+par la classe des autres machines** (`body.mpc #unit`, `body.mpc .em`…). Sans aucune classe sur le corps,
+elles s'affichent donc **toutes**. `ouvrirEnsemble()` appelle `poserMachine()` sans argument, puis masque
+nommément celles qu'on ne veut pas (`.ens-cache`). Aucun changement au mécanisme existant.
+
+- Les façades étaient **filles directes du corps**, sans conteneur : `faireScene()` les regroupe une fois
+  au démarrage dans `#scene`, qui devient une boîte en `flex-wrap`. Vérifié avant de le faire : **aucun
+  sélecteur du fichier n'utilise « enfant direct du corps »**, et déplacer des nœuds ne perd aucun écouteur.
+- `#scene{display:contents}` hors mode ensemble : le conteneur est transparent pour la mise en page, rien
+  ne change en usage normal.
+- `.ens-cache` a besoin de `!important` : plusieurs façades sont montrées par un sélecteur d'identifiant,
+  qui l'emporterait sur une classe.
+- `draw()` fait avancer le curseur de **toutes** les machines du set, chacune sur `pasSet % sa longueur`.
+- `uniteDeVoie()` : les dix-sept voies pointent chacune vers une façade **distincte**, vérifié
+  automatiquement — ma première table était devinée et se trompait sur huit identifiants.
+- Refus explicite si aucune machine n'est choisie, plutôt qu'un écran vide.
+
+**La table devient une vraie console — v107**
+
+Les tranches n'avaient que niveau et panoramique. Elles ont maintenant la chaîne complète, **dans l'ordre
+où le signal la traverse** : entrée → **gain d'entrée** → grave → médium → aigu → **fader** → panoramique →
+**mesure** → mélange.
+
+- **Le gain d'entrée n'est pas un doublon du fader.** Il agit **avant** l'égaliseur et la mesure : c'est
+  lui qu'on règle d'abord. Le coupe-son fait tomber le fader et **laisse le gain intact** — en rouvrant,
+  le réglage est retrouvé. Vérifié.
+- Égaliseur trois bandes : `lowshelf` 180 Hz, `peaking` 1100 Hz (Q 0,9), `highshelf` 4200 Hz.
+  `dbEq(v)` : **0 → −26 dB, 0,5 → 0 dB, 1 → +6 dB**, la course d'une vraie table — asymétrique à dessein,
+  on coupe franchement et on remonte avec mesure. Ne pas la « corriger » en symétrique.
+- Bargraphes par `AnalyserNode` après le panoramique, lus en `requestAnimationFrame` tant que la table est
+  ouverte. **Le niveau monte instantanément et descend lissé** (`×0,82 + ×0,18`) : un indicateur qui
+  retombe d'un coup ne se lit pas.
+- Tranches **verticales**, table défilant horizontalement. `busSet` rend désormais **`b.e`** (l'entrée) et
+  non plus `b.g` : le routage des 31 sorties passe par `busSet(...)`, il reste donc juste.
+- `SET.trim/lo/md/hi` entrent dans la mémoire, avec relecture.
+
+**Reste à faire, demandé** : voir la table **et** les machines actives sur un même écran. Les façades sont
+affichées par une classe posée sur `<body>` (`CLASSES_MACHINE` + `poserMachine`) qui n'en autorise
+**qu'une seule** ; `fit()` ne met à l'échelle que `actif`, et `draw()` n'anime que `MACHINE`. C'est un
+chantier à part entière, à ne pas improviser.
 
 **Formes d'onde par piste — v106**
 

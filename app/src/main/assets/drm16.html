@@ -228,13 +228,38 @@ body.m32 .read{color:#8fe8d8}
 .table-tete button{margin:0;padding:10px 14px;border:0;border-radius:7px;background:#2a2a30;
   color:#cfcbc2;font:800 11px/1 "Roboto Condensed",Arial;letter-spacing:1.2px}
 .table-tete button.on{background:var(--accent);color:#140b07}
-/* Une tranche par machine, comme sur une table : on lit une colonne de haut en
-   bas et on sait tout de cette voie. */
-.table-voies{flex:1;min-height:0;overflow:auto;display:grid;gap:8px;padding:12px;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
-.voie{border:1px solid #2a2a31;border-radius:10px;padding:10px;background:#141418}
-.voie.jouee{border-color:var(--accent)}
-.voie>b{display:block;font:800 11px/1.3 "Roboto Condensed",Arial;letter-spacing:1.2px;
+/* Des tranches VERTICALES, comme sur une vraie console : le signal descend,
+   et on lit une colonne de haut en bas — gain d'entrée, égaliseur, mesure,
+   fader. La table défile horizontalement quand il y a plus de voies que de
+   largeur, exactement comme on ferait glisser une console devant soi. */
+.table-voies{flex:1;min-height:0;overflow:auto;display:flex;gap:7px;padding:12px;
+  align-items:stretch}
+.voie{flex:none;width:104px;display:flex;flex-direction:column;gap:6px;
+  border:1px solid #2a2a31;border-radius:9px;padding:9px 7px;background:#141418}
+.voie.jouee{border-color:var(--accent);background:#171419}
+.voie>b{display:block;height:26px;font:800 9.5px/1.25 "Roboto Condensed",Arial;
+  letter-spacing:.8px;color:#e8e6e4;overflow:hidden}
+.voie label{display:block;font:800 8px/1.5 "Roboto Condensed",Arial;letter-spacing:1px;
+  color:#7a7780;text-align:center}
+/* Les potards d'une console sont ronds ; ici des curseurs horizontaux, plus
+   sûrs au doigt sur une largeur de cent pixels. */
+.voie input[type=range]{width:100%;margin:0}
+.voie .eq{padding:6px 0;border-top:1px solid #23232a;border-bottom:1px solid #23232a}
+.voie .bas{margin-top:auto;display:flex;gap:6px;align-items:flex-end}
+/* Le bargraphe : vertical, à gauche du fader, comme sur toutes les consoles. */
+.voie .mes{flex:none;width:9px;height:112px;border-radius:3px;background:#0a0a0c;
+  border:1px solid #26262d;position:relative;overflow:hidden}
+.voie .mes i{position:absolute;left:0;right:0;bottom:0;height:0;
+  background:linear-gradient(0deg,#39c46a 0%,#39c46a 62%,#e8c13a 80%,#e05a30 100%)}
+.voie .fad{flex:1;height:112px;display:flex;align-items:center;justify-content:center}
+/* Un fader vertical : un curseur ordinaire, pivoté. */
+.voie .fad input{width:104px;transform:rotate(-90deg)}
+.voie .btns{display:flex;gap:4px}
+.voie button{flex:1;margin:0;padding:8px 2px;border:0;border-radius:6px;background:#26262d;
+  color:#b9b5ae;font:800 8.5px/1 "Roboto Condensed",Arial;letter-spacing:.5px}
+.voie button.on{background:var(--accent);color:#140b07}
+.voie button.coupe.on{background:#c0392b;color:#fff}
+.voie .ouvrir{width:100%;padding:7px 2px;font-size:8px}
   color:#e8e6e4;margin-bottom:8px}
 .voie .ligne{display:flex;gap:5px;margin-bottom:7px}
 .voie button{flex:1;margin:0;padding:8px 4px;border:0;border-radius:6px;background:#26262d;
@@ -396,6 +421,27 @@ body.menu-ouvert #retour,body.note-ouverte #retour{display:none}
    visibility et non display : les elements gardent leurs dimensions, et fit()
    mesure des hauteurs des le demarrage. */
 body:not(.pret) > *{visibility:hidden}
+
+/* ---------- voir plusieurs machines à la fois ----------
+   Le CSS cache une façade par la classe des AUTRES machines : sans aucune
+   classe sur le corps, elles s'affichent donc toutes. C'est le levier, et il
+   évite de toucher au mécanisme existant.
+
+   Les façades gardent leur taille d'origine et se rangent côte à côte, sur
+   autant de rangées qu'il faut. Aucune mise à l'échelle : c'est ce qui rend
+   ce mode simple et sûr, là où redimensionner dix-sept façades ne l'était
+   pas du tout. */
+#scene{display:contents}
+body.ensemble #scene{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;
+  padding:8px 8px 70px;overflow:auto}
+body.ensemble #scene > *{flex:none;max-width:none;transform:none !important}
+/* Le !important est nécessaire : plusieurs façades sont montrées par un
+   sélecteur d'identifiant, qui l'emporterait sur une simple classe. */
+body.ensemble .ens-cache{display:none !important}
+#ens-sortir{display:none;position:fixed;left:8px;bottom:8px;z-index:15;
+  padding:11px 15px;border:0;border-radius:20px;background:var(--accent);color:#140b07;
+  font:800 11px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:1.4px}
+body.ensemble #ens-sortir{display:block}
 /* Plein écran : on efface tout ce qui n'est pas la machine. Sur un téléphone
    tenu debout, les deux boutons du haut et la barre de commandes du rack
    mangent le tiers de la hauteur. Un seul point de sortie, discret, en haut
@@ -2798,6 +2844,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
 </div>
 
+<button id="ens-sortir">◀ REVENIR À LA TABLE</button>
 <button id="sortir-plein">⤢ QUITTER LE PLEIN ÉCRAN</button>
 <button id="retour">☰ MENU</button>
 <button id="aide">NOTICE</button>
@@ -3338,6 +3385,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <div class="table-tete">
     <button id="table-on">SET : ARRÊT</button>
     <button id="table-play">LECTURE</button>
+    <button id="table-ensemble">VOIR LES MACHINES</button>
     <button id="table-rien">TOUT COUPER</button>
     <b id="table-etat">AUCUNE MACHINE CHOISIE</b>
   </div>
@@ -3753,7 +3801,34 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>La <b>TABLE DE MIXAGE</b>, dans le menu, présente une tranche par machine. Touchez <b>JOUER</b> sur
   celles que vous voulez entendre, mettez <b>SET : EN MARCHE</b>, et lancez la lecture. Elles partagent le
   tempo et repartent ensemble.</p>
-  <p>Chaque tranche a son <b>niveau</b>, sa <b>panoramique</b>, un <b>coupe-son</b> et un <b>solo</b>. Le
+  <p>Chaque tranche se lit de haut en bas, dans l'ordre où le signal la traverse :</p>
+  <ul>
+  <li><b>GAIN</b> — le niveau d'entrée, avant tout le reste. Ce n'est pas un doublon du fader : c'est lui
+  qu'on règle d'abord, jusqu'à ce que le bargraphe monte franchement sans toucher le rouge. Trop bas, on
+  pousse le fader et on monte le souffle ; trop haut, on sature avant même d'avoir touché au fader.</li>
+  <li><b>AIGU, MÉDIUM, GRAVE</b> — l'égaliseur, de −26 à +6 dB comme sur une vraie table : on coupe
+  franchement, on remonte avec mesure. Le geste le plus utile est de <b>couper le grave</b> sur tout ce
+  qui n'en a pas besoin — charleys, percussions, nappes. Trois machines qui sonnent bien seules font une
+  bouillie ensemble, presque toujours à cause du bas.</li>
+  <li><b>PANORAMIQUE</b> — deux machines au centre se masquent. Grosse caisse et basse restent au centre,
+  tout le reste s'écarte.</li>
+  <li>Le <b>bargraphe</b> et le <b>fader</b>, côte à côte en bas, comme sur toutes les consoles.</li>
+  <li><b>COUPE</b> et <b>SOLO</b>. Le coupe-son fait tomber le fader mais laisse le gain d'entrée
+  intact : en rouvrant, on retrouve son réglage.</li>
+  </ul>
+  <p>La table défile horizontalement quand il y a plus de voies que de largeur, comme on ferait glisser
+  une console devant soi.</p>
+
+  <h3>Voir les machines</h3>
+  <p><b>VOIR LES MACHINES</b> affiche les façades de toutes les machines choisies, <b>côte à côte</b>, sur
+  autant de rangées qu'il faut. Elles gardent leur taille d'origine : on fait défiler pour atteindre les
+  unes et les autres, et chacune reste utilisable — on règle un potard sur une machine pendant qu'une autre
+  joue.</p>
+  <p>Les curseurs de pas avancent sur <b>toutes</b> les façades à l'écran, chacune sur sa propre longueur
+  de motif. C'est là qu'on voit vraiment tourner un motif de seize pas contre un de douze.</p>
+  <p>Un bouton en bas à gauche ramène à la table. Sur un téléphone, deux ou trois machines suffisent ; sur
+  un grand écran, c'est là que tout prend son sens.</p>
+  <p> Le
   solo n'est pas un bouton de plus : c'est un coupe-son sur toutes les <i>autres</i> voies. C'est ainsi
   qu'il fonctionne sur une vraie table, et c'est pourquoi on ne peut en avoir qu'un à la fois.</p>
   <p>Deux limites, réelles et non des oublis. <b>Dix-sept moteurs, pas vingt-cinq machines</b> : la TR-808
@@ -6139,7 +6214,18 @@ function draw(){
   if(!S.run) return;
   var now = ctx ? maintenantAudio() : 0, cur=-1;
   while(queue.length && queue[0].t <= now){ var e = queue.shift(); cur = e.i; T_PAS = e.t; }
-  if(cur>=0) MACHINE.beat(cur);
+  if(cur>=0){
+    MACHINE.beat(cur);
+    /* En vue d'ensemble, toutes les machines du set sont à l'écran : leurs
+       curseurs de pas doivent avancer, pas seulement celui de la machine
+       « courante ». */
+    if(ENS.actif) SET_VOIES.forEach(function(v){
+      var M = moteurSet(v[0]);
+      if(!M || M === MACHINE || !SET.actives[v[0]] || !M.beat) return;
+      var L = M.longueur ? M.longueur() : 16;
+      try{ M.beat(((pasSet - 1) % L + L) % L); }catch(e){}
+    });
+  }
   requestAnimationFrame(draw);
 }
 /* Le pas auquel rattacher une frappe : le courant si on est dans sa première
@@ -6175,8 +6261,14 @@ var SET_VOIES = [
   ["dbi","DRUMBRUTE"],     ["t1k","TR-1000"],["arcm","ARCHIVE"], ["td3","TD-3"],
   ["eur","EURORACK"]
 ];
-var SET = {on:false, actives:{}, niv:{}, pan:{}, mute:{}, solo:"", bus:{}};
-SET_VOIES.forEach(function(v){ SET.niv[v[0]] = 0.8; SET.pan[v[0]] = 0; SET.mute[v[0]] = false; });
+var SET = {on:false, actives:{}, niv:{}, pan:{}, mute:{}, solo:"", bus:{},
+           trim:{}, lo:{}, md:{}, hi:{}};
+SET_VOIES.forEach(function(v){
+  var k = v[0];
+  SET.niv[k] = 0.8; SET.pan[k] = 0; SET.mute[k] = false;
+  SET.trim[k] = 1;                       /* gain d'entrée au repos */
+  SET.lo[k] = 0.5; SET.md[k] = 0.5; SET.hi[k] = 0.5;   /* égaliseur à plat */
+});
 
 /* La voie d'une machine. Le contexte audio peut être remplacé — export hors
    ligne, relance après une coupure — alors on le retient : un nœud fabriqué
@@ -6211,16 +6303,36 @@ function preparerSet(){
   });
   majToutesVoiesSet();
 }
+/* Une vraie tranche de console, dans l'ordre où le signal la traverse :
+   entrée → gain d'entrée → grave → médium → aigu → fader → panoramique →
+   mesure → mélange général.
+
+   Le gain d'entrée n'est pas un doublon du fader : c'est lui qui règle le
+   niveau AVANT l'égaliseur et la mesure. Trop bas, on pousse le fader et on
+   monte le souffle ; trop haut, on sature avant même d'avoir touché au fader.
+   C'est la première chose qu'on règle sur une console, et la raison pour
+   laquelle les deux existent. */
 function busSet(id){
   if(!ctx) return null;
   var b = SET.bus[id];
-  if(b && b.ctx === ctx) return b.g;
-  var g = ctx.createGain();
+  if(b && b.ctx === ctx) return b.e;
+
+  var e = ctx.createGain();                         /* entrée et gain d'entrée */
+  var lo = ctx.createBiquadFilter(); lo.type = "lowshelf";  lo.frequency.value = 180;
+  var md = ctx.createBiquadFilter(); md.type = "peaking";   md.frequency.value = 1100; md.Q.value = 0.9;
+  var hi = ctx.createBiquadFilter(); hi.type = "highshelf"; hi.frequency.value = 4200;
+  var g = ctx.createGain();                         /* fader */
   var p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-  if(p){ g.connect(p); p.connect(master); } else g.connect(master);
-  SET.bus[id] = {g:g, p:p, ctx:ctx};
+  var an = ctx.createAnalyser(); an.fftSize = 256;
+
+  e.connect(lo); lo.connect(md); md.connect(hi); hi.connect(g);
+  if(p){ g.connect(p); p.connect(an); } else g.connect(an);
+  an.connect(master);
+
+  SET.bus[id] = {e:e, lo:lo, md:md, hi:hi, g:g, p:p, an:an, ctx:ctx,
+                 tampon:new Uint8Array(an.frequencyBinCount), niveau:0};
   majVoieSet(id);
-  return g;
+  return e;
 }
 function majVoieSet(id){
   var b = SET.bus[id];
@@ -6229,8 +6341,33 @@ function majVoieSet(id){
      AUTRES voies. C'est ainsi qu'il marche sur une table, et c'est pour cela
      qu'on ne peut pas en avoir deux à la fois. */
   var passe = !SET.mute[id] && (!SET.solo || SET.solo === id);
+  b.e.gain.value = SET.trim[id];
   b.g.gain.value = passe ? SET.niv[id] : 0;
   if(b.p) b.p.pan.value = SET.pan[id];
+  /* Les trois bandes vont de −26 à +6 dB, comme sur une table de mixage :
+     on coupe franchement, on remonte avec mesure. */
+  b.lo.gain.value = dbEq(SET.lo[id]);
+  b.md.gain.value = dbEq(SET.md[id]);
+  b.hi.gain.value = dbEq(SET.hi[id]);
+}
+/* 0 → −26 dB, 0,5 → 0 dB, 1 → +6 dB */
+function dbEq(v){ return v < 0.5 ? (v / 0.5 - 1) * 26 : (v - 0.5) / 0.5 * 6; }
+
+/* Le niveau de chaque voie, lu pour les bargraphes. Une valeur de crête
+   lissée à la descente : un indicateur qui retombe instantanément ne se lit
+   pas, l'œil n'a pas le temps. */
+function lireNiveauxSet(){
+  SET_VOIES.forEach(function(v){
+    var b = SET.bus[v[0]];
+    if(!b || b.ctx !== ctx) return;
+    b.an.getByteTimeDomainData(b.tampon);
+    var pic = 0;
+    for(var i=0;i<b.tampon.length;i++){
+      var d = Math.abs(b.tampon[i] - 128) / 128;
+      if(d > pic) pic = d;
+    }
+    b.niveau = pic > b.niveau ? pic : b.niveau * 0.82 + pic * 0.18;
+  });
 }
 function majToutesVoiesSet(){ SET_VOIES.forEach(function(v){ majVoieSet(v[0]); }); }
 
@@ -6758,6 +6895,66 @@ function fermerInvite(nom){
   try{ cadre.contentWindow.location.reload(); }catch(e){ cadre.removeAttribute("src"); }
   reveillerAudio();
 }
+/* ---------- voir plusieurs machines à la fois ----------
+   Les façades sont filles directes du corps, sans conteneur : on les regroupe
+   une fois pour toutes dans #scene, ce qui donne une boîte à ranger en
+   rangées. Déplacer des nœuds ne perd aucun écouteur, et aucun sélecteur du
+   fichier n'utilise « enfant direct du corps » — vérifié avant de le faire. */
+var ENS = {actif:false, retour:""};
+(function faireScene(){
+  var sc = document.createElement("div");
+  sc.id = "scene";
+  var prem = document.getElementById("unit");
+  if(!prem || !prem.parentNode) return;
+  prem.parentNode.insertBefore(sc, prem);
+  var l = document.querySelectorAll('[id^="unit"]');
+  for(var i=0;i<l.length;i++) sc.appendChild(l[i]);
+})();
+
+function unitesEns(){ 
+  var sc = document.getElementById("scene");
+  return sc ? sc.children : [];
+}
+/* Quelle façade appartient à quelle voie : l'inverse de allerVoie. */
+function uniteDeVoie(id){
+  var T = {ehx:"unit",      em:"unit-em1",  er:"unit-er1",  ea:"unit-ea1",
+           es:"unit-es1",    mx:"unit-emx",  sx:"unit-esx",  mpc:"unit-mpc",
+           tr:"unit-tr808",  dmx:"unit-dmx", vlc:"unit-vlc", cr:"unit-cr5",
+           dbi:"unit-dbi",   t1k:"unit-t1k", arcm:"unit-arcm", td3:"unit-td3",
+           eur:"unit-eur"};
+  return T[id] ? document.getElementById(T[id]) : null;
+}
+function ouvrirEnsemble(){
+  var choisies = SET_VOIES.filter(function(v){ return SET.actives[v[0]]; });
+  if(!choisies.length){ signal("CHOISISSEZ D'ABORD DES MACHINES"); return; }
+  preparerSet();
+  ENS.retour = S.modele;
+  fermerTable();
+  /* Sans classe de machine sur le corps, plus rien n'est caché : on repart de
+     là et on masque nommément ce qu'on ne veut pas voir. */
+  poserMachine();
+  var garder = {};
+  choisies.forEach(function(v){
+    var u = uniteDeVoie(v[0]);
+    if(u) garder[u.id] = 1;
+  });
+  var l = unitesEns();
+  for(var i=0;i<l.length;i++) l[i].classList.toggle("ens-cache", !garder[l[i].id]);
+  ENS.actif = true;
+  document.body.classList.add("ensemble");
+  signal(choisies.length + " MACHINES À L'ÉCRAN");
+}
+function fermerEnsemble(){
+  if(!ENS.actif) return;
+  ENS.actif = false;
+  document.body.classList.remove("ensemble");
+  var l = unitesEns();
+  for(var i=0;i<l.length;i++) l[i].classList.remove("ens-cache");
+  try{ allerMachine(ENS.retour || "16"); }catch(e){}
+  ouvrirTable();
+}
+document.getElementById("ens-sortir").addEventListener("click", function(){ fermerEnsemble(); H.cran(); });
+
 /* ---------- la table de mixage ---------- */
 function construireTable(){
   var c = document.getElementById("table-voies");
@@ -6766,13 +6963,22 @@ function construireTable(){
     var id = v[0];
     var d = document.createElement("div");
     d.className = "voie"; d.dataset.v = id;
+    /* L'ordre de haut en bas suit celui du signal : c'est ce qui rend une
+       console lisible sans mode d'emploi. */
     d.innerHTML = "<b>" + v[1] + "</b>" +
-      '<div class="ligne"><button data-a="on">JOUER</button>' +
-      '<button data-a="mute" class="coupe">COUPE</button>' +
-      '<button data-a="solo">SOLO</button></div>' +
-      '<label>NIVEAU</label><input type="range" min="0" max="1" step="0.01" data-a="niv">' +
+      '<div class="btns"><button data-a="on">JOUER</button></div>' +
+      '<label>GAIN</label><input type="range" min="0" max="2" step="0.02" data-a="trim">' +
+      '<div class="eq">' +
+        '<label>AIGU</label><input type="range" min="0" max="1" step="0.01" data-a="hi">' +
+        '<label>MÉDIUM</label><input type="range" min="0" max="1" step="0.01" data-a="md">' +
+        '<label>GRAVE</label><input type="range" min="0" max="1" step="0.01" data-a="lo">' +
+      '</div>' +
       '<label>PANORAMIQUE</label><input type="range" min="-1" max="1" step="0.02" data-a="pan">' +
-      '<div class="ligne"><button data-a="voir">OUVRIR LA FAÇADE</button></div>';
+      '<div class="bas"><div class="mes"><i data-m="1"></i></div>' +
+        '<div class="fad"><input type="range" min="0" max="1" step="0.01" data-a="niv"></div></div>' +
+      '<div class="btns"><button data-a="mute" class="coupe">COUPE</button>' +
+      '<button data-a="solo">SOLO</button></div>' +
+      '<button data-a="voir" class="ouvrir">OUVRIR</button>';
     c.appendChild(d);
     d.addEventListener("click", function(e){
       var b = e.target.closest("button"); if(!b) return;
@@ -6786,7 +6992,7 @@ function construireTable(){
       else if(a === "voir"){ fermerTable(); allerVoie(id); return; }
       majToutesVoiesSet(); majTable(); memSet(); H.cran();
     });
-    ["niv","pan"].forEach(function(q){
+    ["niv","pan","trim","lo","md","hi"].forEach(function(q){
       var r = d.querySelector('input[data-a="' + q + '"]');
       r.addEventListener("input", function(){
         SET[q][id] = parseFloat(r.value);
@@ -6821,8 +7027,10 @@ function majTable(){
     d.querySelector('[data-a="on"]').classList.toggle("on", !!SET.actives[id]);
     d.querySelector('[data-a="mute"]').classList.toggle("on", !!SET.mute[id]);
     d.querySelector('[data-a="solo"]').classList.toggle("on", SET.solo === id);
-    d.querySelector('[data-a="niv"]').value = SET.niv[id];
-    d.querySelector('[data-a="pan"]').value = SET.pan[id];
+    ["niv","pan","trim","lo","md","hi"].forEach(function(q){
+      var r = d.querySelector('[data-a="' + q + '"]');
+      if(r) r.value = SET[q][id];
+    });
   });
   document.getElementById("table-on").classList.toggle("on", SET.on);
   document.getElementById("table-on").textContent = SET.on ? "SET : EN MARCHE" : "SET : ARRÊT";
@@ -6838,7 +7046,7 @@ function appliquerMemSet(){
   if(!m) return;
   SET.on = !!m.on;
   SET.solo = m.solo || "";
-  ["actives","niv","pan","mute"].forEach(function(q){
+  ["actives","niv","pan","mute","trim","lo","md","hi"].forEach(function(q){
     if(!m[q]) return;
     SET_VOIES.forEach(function(v){
       if(m[q][v[0]] !== undefined) SET[q][v[0]] = m[q][v[0]];
@@ -6846,9 +7054,25 @@ function appliquerMemSet(){
   });
 }
 appliquerMemSet();
+/* Les bargraphes, tant que la table est ouverte. On ne redessine que la
+   hauteur : toucher au DOM plus que nécessaire ferait ramer la page. */
+function boucleTable(){
+  var p = document.getElementById("table");
+  if(!p || !p.classList.contains("show")){ SET.anim = null; return; }
+  lireNiveauxSet();
+  SET_VOIES.forEach(function(v){
+    var b = SET.bus[v[0]];
+    var e = document.querySelector('.voie[data-v="' + v[0] + '"] .mes i');
+    if(!e) return;
+    var n = (b && b.ctx === ctx) ? b.niveau : 0;
+    e.style.height = Math.round(Math.min(1, n) * 100) + "%";
+  });
+  SET.anim = requestAnimationFrame(boucleTable);
+}
 function memSet(){
   memoire.set = {on:SET.on, actives:SET.actives, niv:SET.niv, pan:SET.pan,
-                 mute:SET.mute, solo:SET.solo};
+                 mute:SET.mute, solo:SET.solo,
+                 trim:SET.trim, lo:SET.lo, md:SET.md, hi:SET.hi};
   saveSoon();
 }
 function ouvrirTable(){
@@ -6857,6 +7081,7 @@ function ouvrirTable(){
   fermerAutresPanneaux("table");
   document.getElementById("table").classList.add("show");
   majNoteOuverte();
+  if(!SET.anim) SET.anim = requestAnimationFrame(boucleTable);
 }
 function fermerTable(){
   document.getElementById("table").classList.remove("show");
@@ -6966,6 +7191,9 @@ document.getElementById("table-on").addEventListener("click", function(){
 document.getElementById("table-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
   majTable(); H.start();
+});
+document.getElementById("table-ensemble").addEventListener("click", function(){
+  ouvrirEnsemble(); H.inter();
 });
 document.getElementById("table-rien").addEventListener("click", function(){
   SET_VOIES.forEach(function(v){ SET.actives[v[0]] = false; });
