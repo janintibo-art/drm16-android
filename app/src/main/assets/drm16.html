@@ -1040,6 +1040,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.paud{background:linear-gradient(165deg,#2f3a3a,#12181a 55%,#1e2628)}
 .pick.pstu{background:linear-gradient(165deg,#3a2f4a,#140f1a 55%,#6a4fa8)}
 .pick.ptab{background:linear-gradient(165deg,#28394a,#101820 55%,#2f7fb8)}
+.pick.pmc{background:linear-gradient(165deg,#12201a,#080c0a 55%,#00c98a)}
 .pick.pstk{background:linear-gradient(165deg,#1e1e24,#0b0b0d 55%,#e8e04a)}
 .pick.pko{background:linear-gradient(165deg,#2a2a2a,#0e0e0e 55%,#ff6a00)}
 .pick.psyr{background:linear-gradient(165deg,#4a3a20,#1a1408 55%,#d4941f)}
@@ -1262,6 +1263,56 @@ body.tr7 .tr8-pas button.c0{background:linear-gradient(180deg,#f8b478,#e2802a)}
 .pick.p707{background:linear-gradient(165deg,#cfcdc8,#45443f 55%,#6e6c66)}
 .pick.p707 b{color:#f6f5f2;text-shadow:0 2px 0 #33322e}
 .pick.p707 span{color:#dbd9d3}
+/* La MC-101 : un bandeau, l'écran et le SCATTER en haut — c'est lui qu'on
+   cherche en jouant —, les pistes, les potards, puis les seize pas. */
+.mcb{display:none;max-width:600px;margin:0 auto;background:#0b0b0d;border-radius:12px;
+  padding:14px 16px 18px;border:1px solid #24242a}
+body.mc .mcb{display:block}
+.mc-haut{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.mc-marque{font:800 17px/1 "Roboto Condensed",Arial;color:#f0f0f2}
+.mc-gb{flex:1;font:700 8px/1 "Roboto Condensed",Arial;letter-spacing:2px;color:#6a6a72}
+.mc-nom{font:800 20px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#e8e8ea}
+.mc-tete{display:flex;gap:10px;align-items:stretch;margin-bottom:9px}
+.mc-lcd{flex:1;min-width:0;background:#0a0f0a;border:2px solid #2c3a2c;border-radius:4px;
+  padding:8px 10px;display:flex;align-items:baseline;gap:9px}
+.mc-lcd u{flex:none;text-decoration:none;font:700 8.5px/1 "Roboto Condensed",Arial;
+  letter-spacing:1.4px;color:#4a7a4a}
+.mc-lcd b{flex:1;font:800 20px/1 "Roboto Condensed",Arial;color:#7ee87e;
+  overflow:hidden;white-space:nowrap}
+#mc-scat{flex:none;margin:0;padding:10px 18px;border:0;border-radius:7px;background:#22222a;
+  color:#cfcfd4;font:800 11px/1 "Roboto Condensed",Arial;letter-spacing:1.4px}
+#mc-scat.on{background:#00c98a;color:#08120e}
+.mc-scatline{display:flex;gap:9px;align-items:center;margin-bottom:11px}
+.mc-scatline span{flex:none;width:104px;font:700 9.5px/1.2 "Roboto Condensed",Arial;color:#8a8a92}
+.mc-scatline input{flex:1;min-width:0;margin:0}
+.mc-scatline button{flex:none;margin:0;padding:8px 12px;border:0;border-radius:6px;
+  background:#22222a;color:#b9b9c0;font:800 9px/1 "Roboto Condensed",Arial}
+.mc-trks{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:11px}
+.mc-trks .mt{padding:11px 3px;border:0;border-radius:7px;background:#1c1c22;color:#b9b9c0;
+  font:800 10px/1.3 "Roboto Condensed",Arial}
+.mc-trks .mt em{display:block;margin-top:3px;font:400 7.5px/1.1 "Roboto Condensed",Arial;
+  font-style:normal;opacity:.6}
+.mc-trks .mt.sel{background:#2e2e38;color:#fff;box-shadow:inset 0 0 0 2px #00c98a}
+.mc-trks .mt.muet{opacity:.42}
+.mc-kns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:11px}
+.mc-kn{text-align:center}
+.mc-kn .bt{width:40px;height:40px;margin:0 auto;border-radius:50%;background:#1b1b21;
+  border:1px solid #32323a;position:relative}
+.mc-kn .bt i{position:absolute;left:50%;top:5px;width:2px;height:13px;margin-left:-1px;
+  background:#00c98a;border-radius:1px;display:block}
+.mc-kn em{display:block;margin-top:4px;font:700 7.5px/1.2 "Roboto Condensed",Arial;
+  font-style:normal;letter-spacing:.5px;color:#7a7a82}
+.mc-pads{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:10px}
+.mc-pads .mb{padding:14px 2px;border:0;border-radius:6px;background:#1c1c22;color:#8a8a92;
+  font:800 9.5px/1 "Roboto Condensed",Arial}
+.mc-pads .mb.on{background:#00c98a;color:#08120e}
+.mc-pads .mb.cur{background:#f2f2f4;color:#141418}
+.mc-cmd{display:flex;gap:6px;flex-wrap:wrap}
+.mc-cmd button{flex:1;min-width:76px;margin:0;padding:10px 4px;border:0;border-radius:7px;
+  background:#22222a;color:#cfcfd4;font:800 9.5px/1 "Roboto Condensed",Arial;letter-spacing:.9px}
+.mc-cmd button.on{background:#00c98a;color:#08120e}
+.mc-pied{margin-top:9px;font:400 10.5px/1.5 "Roboto Condensed",Arial;color:#7a7a82;text-align:center}
+
 /* La SmplTrek : un écran au centre, les potards à côté, les pas dessous, les
    pistes tout en bas — la lecture descend du son vers le rythme. */
 .stkb{display:none;max-width:560px;margin:0 auto;background:#0d0d0f;border-radius:14px;
@@ -3357,6 +3408,44 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 </div>
 
 
+<div class="mcb" id="unit-mc">
+  <div class="mc-haut">
+    <b class="mc-marque">Roland</b>
+    <span class="mc-gb">GROOVEBOX</span>
+    <b class="mc-nom" id="mc-notice">MC-101</b>
+  </div>
+
+  <div class="mc-tete">
+    <div class="mc-lcd"><u id="mc-lab">PISTE</u><b id="mc-val">1</b></div>
+    <button id="mc-scat">SCATTER</button>
+  </div>
+
+  <div class="mc-scatline">
+    <span id="mc-scat-nom">répétition</span>
+    <input type="range" id="mc-scat-prof" min="0" max="1" step="0.02" value="0.5">
+    <button id="mc-scat-type">TYPE</button>
+  </div>
+
+  <div class="mc-trks" id="mc-trks"></div>
+
+  <div class="mc-kns">
+    <div class="mc-kn" id="mc-k-cut"><div class="bt"><i></i></div><em>C1 · FILTRE</em></div>
+    <div class="mc-kn" id="mc-k-dec"><div class="bt"><i></i></div><em>C2 · DÉCLIN</em></div>
+    <div class="mc-kn" id="mc-k-niv"><div class="bt"><i></i></div><em>C3 · NIVEAU</em></div>
+    <div class="mc-kn" id="mc-k-note"><div class="bt"><i></i></div><em>C4 · NOTE</em></div>
+  </div>
+
+  <div class="mc-pads" id="mc-pads"></div>
+
+  <div class="mc-cmd">
+    <button id="mc-play">▶ PLAY</button>
+    <button id="mc-clip">CLIP 1</button>
+    <button id="mc-onde">ONDE</button>
+    <button id="mc-clear">EFFACER</button>
+  </div>
+  <div class="mc-pied"><span id="mc-etat">Les pads écrivent les pas de la piste choisie.</span></div>
+</div>
+
 <div class="stkb" id="unit-stk">
   <div class="stk-haut">
     <div class="stk-marque">SONICWARE</div>
@@ -3679,6 +3768,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <button class="pick ppr" id="menu-pr"><b>TRAVAIL DU MIDI</b><span>ROULEAU PAR SON · RETOUCHER, CALER, REPORTER</span></button>
   <button class="pick penr" id="menu-enr"><b>ENREGISTREUR MIDI</b><span>JOUER SUR LA KORG · LE SON SORT DU TÉLÉPHONE</span></button>
   <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
+  <button class="pick pick-m pmc" data-m="mc"><b>ROLAND MC-101</b><span>QUATRE PISTES · CLIPS · SCATTER EN DIRECT</span></button>
   <button class="pick pick-m pstk" data-m="stk"><b>SONICWARE SmplTrek</b><span>DIX PISTES · ÉCRAN À FORME D'ONDE · MOTIFS</span></button>
   <button class="pick pick-m pko" data-m="ko"><b>PO-33 K.O!</b><span>ÉCHANTILLONNEUR DE POCHE · EFFETS AU POING</span></button>
   <button class="pick psyr" id="menu-syro"><b>VERS UNE VRAIE VOLCA</b><span>ENVOYER UN SON DANS UNE VOLCA SAMPLE PAR SYNC IN</span></button>
@@ -4147,6 +4237,34 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>Le format Syro vient de Korg sous forme de code que l'application compile à part. Si cette compilation
   a échoué, la tuile le dit clairement au lieu de faire semblant. Rien d'autre n'en souffre : c'est une
   capacité en plus, pas une pièce dont le reste dépend.</p>
+  </div>
+
+  <div class="doc" id="note-mc" data-titre="MC-101">
+  <h3>Quatre pistes et des clips</h3>
+  <p>La piste 1 est <b>rythmique</b> — quatre instruments : grosse caisse, caisse claire, charley, clap.
+  Les trois autres sont <b>mélodiques</b>, avec leur forme d'onde et leur filtre. Chaque piste a
+  <b>quatre clips</b>, qu'on fait tourner avec le bouton CLIP.</p>
+  <p>Le potard <b>NOTE</b> choisit ce qu'on va écrire ; les pads posent ou retirent. Toucher un pas qui
+  contient déjà cette note l'efface. Toucher une piste déjà choisie la coupe.</p>
+
+  <h3>Le SCATTER</h3>
+  <p>C'est ce qui distingue cette machine d'un séquenceur. Le SCATTER <b>malaxe la mesure en direct</b> et
+  ne modifie rien : on le coupe, et tout revient exactement comme c'était. Il n'agit pas sur le son mais
+  sur <b>quel pas est joué</b> — c'est pourquoi on l'entend même sur une seule caisse claire.</p>
+  <ul>
+  <li><b>Répétition</b> — chaque groupe de quatre pas rejoue le premier.</li>
+  <li><b>À l'envers</b> — la mesure se lit de la fin vers le début.</li>
+  <li><b>Hachoir</b> — un pas sur deux est avalé.</li>
+  <li><b>Roulement</b> — chaque pas devient quatre coups serrés, en s'éteignant.</li>
+  <li><b>Moitié</b> — la mesure est jouée deux fois moins vite.</li>
+  <li><b>Saut</b> — on lit huit pas plus loin.</li>
+  <li><b>Gel</b> — un seul pas se répète sans fin.</li>
+  <li><b>Au hasard</b> — les pas sont tirés au sort dans la mesure.</li>
+  </ul>
+  <p>Le curseur de <b>profondeur</b> ne règle pas l'intensité mais <b>combien de pas sont touchés</b>, en
+  partant de la fin. À faible profondeur, seuls les derniers pas de la mesure se déforment : on obtient une
+  <b>cassure</b> juste avant le retour, au lieu d'un désordre permanent. C'est le réglage qui rend le
+  SCATTER musical.</p>
   </div>
 
   <div class="doc" id="note-stk" data-titre="SmplTrek">
@@ -6487,7 +6605,7 @@ var SET_VOIES = [
   ["es","ES-1"],           ["mx","EMX-1"],  ["sx","ESX-1"], ["mpc","MPC"],
   ["tr","TR · RD-6"],      ["dmx","DMX"],   ["vlc","VOLCA"],["cr","CR-5000"],
   ["dbi","DRUMBRUTE"],     ["t1k","TR-1000"],["arcm","ARCHIVE"], ["td3","TD-3"],
-  ["ko","K.O!"],           ["stk","SMPLTREK"], ["eur","EURORACK"]
+  ["ko","K.O!"],           ["stk","SMPLTREK"], ["mc","MC-101"], ["eur","EURORACK"]
 ];
 var SET = {on:false, actives:{}, niv:{}, pan:{}, mute:{}, solo:"", bus:{},
            trim:{}, lo:{}, md:{}, hi:{}};
@@ -6510,7 +6628,8 @@ function moteurSet(id){
            es:MACHINE_ES, mx:MACHINE_MX, sx:MACHINE_SX, mpc:MACHINE_MPC,
            tr:MACHINE_TR, dmx:MACHINE_DMX, vlc:MACHINE_VLC, cr:MACHINE_CR,
            dbi:MACHINE_DBI, t1k:MACHINE_T1K, arcm:MACHINE_ARCM,
-           ko:MACHINE_KO,   stk:MACHINE_STK, td3:MACHINE_TD3, eur:MACHINE_EUR};
+           ko:MACHINE_KO,   stk:MACHINE_STK, mc:MACHINE_MC,
+           td3:MACHINE_TD3, eur:MACHINE_EUR};
   return T[id] || null;
 }
 /* Chaque machine construit ses nœuds audio la première fois qu'on la joue.
@@ -6612,7 +6731,7 @@ function majToutesVoiesSet(){ SET_VOIES.forEach(function(v){ majVoieSet(v[0]); }
    voit. On efface maintenant tout, depuis un seul endroit. */
 var CLASSES_MACHINE = ["m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
                        "tr8","tr9","tr7","rd6","td3","eur","dmx","vlc","cr5","dbi",
-                       "t1k","arcm","ko","stk",
+                       "t1k","arcm","ko","stk","mc",
                        "c1","c2","c3","c4","c5","t1","t2","t3","t4"];
 /* Les modes d'affichage — plein écran, vue d'ensemble — ne survivent pas à un
    changement de machine. Le mode d'ensemble était le seul qu'on pouvait
@@ -6898,6 +7017,7 @@ function docDeLaMachine(){
   if(m === "arcm") return "note-arcm";
   if(m === "ko") return "note-ko";
   if(m === "stk") return "note-stk";
+  if(m === "mc") return "note-mc";
   return "note-general";
 }
 function montrerDoc(id){
@@ -7169,7 +7289,7 @@ function uniteDeVoie(id){
            es:"unit-es1",    mx:"unit-emx",  sx:"unit-esx",  mpc:"unit-mpc",
            tr:"unit-tr808",  dmx:"unit-dmx", vlc:"unit-vlc", cr:"unit-cr5",
            dbi:"unit-dbi",   t1k:"unit-t1k", arcm:"unit-arcm", ko:"unit-ko",
-           stk:"unit-stk",   td3:"unit-td3", eur:"unit-eur"};
+           stk:"unit-stk",   mc:"unit-mc",   td3:"unit-td3", eur:"unit-eur"};
   return T[id] ? document.getElementById(T[id]) : null;
 }
 function ouvrirEnsemble(){
@@ -7251,7 +7371,7 @@ function construireTable(){
 function allerVoie(id){
   var T = {ehx:"16", em:"em1", er:"er1", ea:"ea1", es:"es1", mx:"emx", sx:"esx",
            mpc:"mpc3000", tr:"tr808", dmx:"dmx", vlc:"vlc", cr:"cr5", dbi:"dbi",
-           t1k:"t1k", arcm:"arcm", ko:"ko", stk:"stk", td3:"td3", eur:"eur"};
+           t1k:"t1k", arcm:"arcm", ko:"ko", stk:"stk", mc:"mc", td3:"td3", eur:"eur"};
   if(!T[id]) return;
   /* La table s'ouvre DEPUIS le menu, qui reste derrière : sans cette fermeture
      on refermait la table et on retombait sur le menu au lieu de la façade.
@@ -7740,7 +7860,7 @@ function estCommande(t){
      l'étiquette sous le bouton doit compter comme une commande. Sans elle, la
      toucher déplacerait la façade au lieu de tourner le potard. */
   return !!t.closest("button,input,.knob,.bt,.em-dial,.toggle,.jack,.slot,.fsw,td,.mx-ruban,u,.pick," +
-                     ".kn,.mx-kn,.sx-kn,.mpc-kn,.arcm-kn,.t1k-kn,.dbi-kn,.tr8-kn,.td3-kn,.cr-kn,.vlc-kn,.stk-kn," +
+                     ".kn,.mx-kn,.sx-kn,.mpc-kn,.arcm-kn,.t1k-kn,.dbi-kn,.tr8-kn,.td3-kn,.cr-kn,.vlc-kn,.stk-kn,.mc-kn," +
                      ".eur-kn,.eur-bkn");
 }
 (function pincement(){
@@ -13822,6 +13942,10 @@ function routageMidi(m){
   /* Le K.O! : seize emplacements d'affilée à partir de la note de base.
      « base » est le NOMBRE de voix, pas un numéro de note — rangMidi fait
      note − MIDI.base et vérifie que le rang tombe dedans. */
+  if(m === "mc")
+    return {base:MC_PISTES, defaut:function(){ return MC.sel; },
+            jouer:function(k, vel){ voixMc(maintenantAudio() + 0.005, k, MC_GAMME[MC.note % 16], vel); }};
+
   if(m === "stk")
     return {base:STK_PISTES, defaut:function(){ return STK.sel; },
             jouer:function(k, vel){ voixStk(maintenantAudio() + 0.005, k, vel > 0.8); }};
@@ -20631,6 +20755,7 @@ function activerArcm(){
   chargerArcm();
   chargerKo();
   chargerStk();
+  chargerMc();
   debrancherTout(ARCM.noeuds); ARCM.noeuds = [];
   majArcm(); majKnobsArcm();
   actif = unitArcm;
@@ -23501,6 +23626,179 @@ function chargerKo(){
   });
 }
 
+/* ================= Roland MC-101 =================
+   Quatre pistes, des clips qu'on enchaîne, et surtout le SCATTER : un
+   malaxeur de motif qui agit EN DIRECT sans rien modifier. On le laisse
+   tourner, on tourne le bouton, et la mesure se déforme — puis on le coupe et
+   tout revient. C'est ce qui distingue cette machine d'un séquenceur : elle
+   n'écrit pas ce qu'elle fait.
+
+   Le SCATTER n'est donc pas un effet audio : il change QUEL pas est joué.
+   C'est pour cela qu'il s'entend même sur une seule caisse claire. */
+
+var MC_PISTES = 4, MC_CLIPS = 4;
+
+var MC_SCATTER = [
+  ["répétition", "chaque groupe de quatre pas rejoue le premier"],
+  ["à l'envers",  "la mesure se lit de la fin vers le début"],
+  ["hachoir",     "un pas sur deux est avalé"],
+  ["roulement",   "chaque pas devient quatre coups serrés"],
+  ["moitié",      "la mesure est jouée deux fois moins vite"],
+  ["saut",        "on lit huit pas plus loin"],
+  ["gel",         "le premier pas se répète sans fin"],
+  ["au hasard",   "les pas sont tirés au sort dans la mesure"]
+];
+/* Les notes des seize pads : deux octaves d'une gamme majeure, comme les pads
+   colorés de la machine. 0 veut dire silence. */
+var MC_GAMME = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26];
+
+function clipMc(){
+  var c = [];
+  for(var i=0;i<16;i++) c.push(-1);      /* -1 : pas vide */
+  return c;
+}
+function pisteMc(i){
+  var p = {type:(i === 0 ? "drum" : "synth"), onde:(i % 2 ? "sawtooth" : "square"),
+           cut:0.6, dec:0.4, niv:0.8, muet:false, oct:0, clip:0, clips:[]};
+  for(var c=0;c<MC_CLIPS;c++) p.clips.push(clipMc());
+  return p;
+}
+var MC = {pistes:[], sel:0, pos:-1, noeuds:null,
+          scatOn:false, scatType:0, scatProf:0.5, note:0};
+for(var mz=0; mz<MC_PISTES; mz++) MC.pistes.push(pisteMc(mz));
+
+function pisteMcSel(){ return MC.pistes[MC.sel]; }
+function clipMcCur(i){ var p = MC.pistes[i]; return p.clips[p.clip]; }
+
+function noeudsMc(){
+  if(MC.noeuds && MC.noeuds.ctx === ctx) return MC.noeuds;
+  var e = eurGain(1);
+  e.connect(busSet("mc") || master);
+  MC.noeuds = {ctx:ctx, e:e};
+  return MC.noeuds;
+}
+
+/* Une voix par piste. La première est percussive — la note choisit
+   l'instrument —, les trois autres sont mélodiques. */
+function voixMc(t, i, note, vel){
+  audioInit(); if(!ctx) return;
+  var P = MC.pistes[i], n = noeudsMc();
+  var g = ctx.createGain();
+  var pic = P.niv * (vel === undefined ? 1 : vel);
+  g.connect(n.e);
+
+  if(P.type === "drum"){
+    var quoi = note % 4;                       /* 0 grosse, 1 caisse, 2 charley, 3 clap */
+    var d = 0.06 + P.dec * (quoi === 0 ? 0.5 : 0.25);
+    if(quoi === 0){
+      var o = ctx.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(120, t);
+      o.frequency.exponentialRampToValueAtTime(45, t + 0.06);
+      g.gain.setValueAtTime(pic, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); o.start(t); o.stop(t + d + 0.02);
+    } else {
+      var b = eurBruit();
+      var f = ctx.createBiquadFilter();
+      f.type = (quoi === 2) ? "highpass" : "bandpass";
+      f.frequency.value = quoi === 2 ? 7000 : (quoi === 1 ? 1900 : 1200);
+      f.Q.value = quoi === 3 ? 1.2 : 0.8;
+      if(quoi === 2) d = 0.02 + P.dec * 0.12;
+      g.gain.setValueAtTime(pic * 0.8, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      b.connect(f); f.connect(g); b.stop(t + d + 0.05);
+    }
+    return;
+  }
+
+  var hz = 110 * Math.pow(2, (note + P.oct * 12) / 12);
+  var o2 = ctx.createOscillator();
+  o2.type = P.onde;
+  o2.frequency.value = hz;
+  var f2 = ctx.createBiquadFilter();
+  f2.type = "lowpass"; f2.Q.value = 6;
+  var haut = Math.min(14000, hz * 2 + P.cut * 7000);
+  var d2 = 0.05 + P.dec * 0.9;
+  f2.frequency.setValueAtTime(haut, t);
+  f2.frequency.exponentialRampToValueAtTime(Math.max(90, hz * 1.1), t + d2 * 0.8);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(pic * 0.45, t + 0.004);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + d2);
+  o2.connect(f2); f2.connect(g);
+  o2.start(t); o2.stop(t + d2 + 0.05);
+}
+
+/* Le SCATTER : quel pas jouer, et combien de fois. Il ne touche pas au motif —
+   c'est ce qui permet de le couper et de tout retrouver intact. */
+function scatterMc(i){
+  if(!MC.scatOn) return {pas:i, coups:1};
+  /* La profondeur décide combien de pas sont touchés : à faible profondeur,
+     seule la fin de la mesure est malmenée, ce qui donne une cassure au lieu
+     d'un chaos permanent. */
+  var seuil = Math.round((1 - MC.scatProf) * 16);
+  if(i < seuil) return {pas:i, coups:1};
+  switch(MC.scatType){
+    case 0: return {pas:(i & ~3), coups:1};
+    case 1: return {pas:15 - i, coups:1};
+    case 2: return (i % 2) ? {pas:-1, coups:0} : {pas:i, coups:1};
+    case 3: return {pas:i, coups:4};
+    case 4: return {pas:i >> 1, coups:1};
+    case 5: return {pas:(i + 8) % 16, coups:1};
+    case 6: return {pas:seuil, coups:1};
+    default: return {pas:Math.floor(Math.random() * 16), coups:1};
+  }
+}
+
+function scheduleMc(i, t){
+  var s = scatterMc(i);
+  if(s.pas < 0) { if(!cache) queue.push({i:i, t:t}); return; }
+  for(var k=0;k<MC_PISTES;k++){
+    var P = MC.pistes[k];
+    if(P.muet) continue;
+    var note = clipMcCur(k)[s.pas];
+    if(note < 0) continue;
+    for(var r=0;r<s.coups;r++)
+      voixMc(t + r * stepDur() / s.coups, k, note, 1 - r * 0.18);
+  }
+  if(!cache) queue.push({i:i, t:t});
+}
+function beatMc(i){
+  MC.pos = i;
+  var b = document.querySelectorAll("#mc-pads .mb");
+  for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i);
+}
+function arretMc(){
+  if(MC.noeuds && MC.noeuds.ctx === ctx){
+    try{ debrancherTout(MC.noeuds); }catch(e){}
+  }
+  MC.noeuds = null;
+}
+var MACHINE_MC = {schedule:scheduleMc, beat:beatMc, arret:arretMc,
+                  longueur:function(){ return 16; }};
+
+function memMc(){
+  memoire.mc = {sel:MC.sel, scatType:MC.scatType, scatProf:MC.scatProf, note:MC.note,
+    pistes:MC.pistes.map(function(P){
+      return {type:P.type, onde:P.onde, cut:P.cut, dec:P.dec, niv:P.niv,
+              muet:P.muet, oct:P.oct, clip:P.clip, clips:P.clips};
+    })};
+  sauverMachine("mc");
+}
+function chargerMc(){
+  var m = memLire("mc");
+  if(!m) return;
+  if(typeof m.sel === "number") MC.sel = Math.max(0, Math.min(MC_PISTES - 1, m.sel));
+  if(typeof m.scatType === "number") MC.scatType = Math.max(0, Math.min(MC_SCATTER.length - 1, m.scatType));
+  if(typeof m.scatProf === "number") MC.scatProf = m.scatProf;
+  if(typeof m.note === "number") MC.note = m.note;
+  if(m.pistes) m.pistes.forEach(function(o, i){
+    if(i >= MC_PISTES || !o) return;
+    var P = MC.pistes[i];
+    for(var q in o) if(q !== "clips" && P[q] !== undefined) P[q] = o[q];
+    if(o.clips && o.clips.length === MC_CLIPS) P.clips = o.clips;
+  });
+}
+
 /* ================= SmplTrek : dix pistes =================
    Ce n'est pas une boîte à rythmes de plus. Les vingt-six machines précédentes
    ont toutes le même modèle : un motif qui contient tout, sons compris. Ici les
@@ -23625,6 +23923,139 @@ function chargerStk(){
     STK.motifs[i].last = o.last || 16;
   });
 }
+
+/* ---------- la façade de la MC-101 ---------- */
+function nomNoteMc(n){
+  var N = ["DO","DO#","RÉ","RÉ#","MI","FA","FA#","SOL","SOL#","LA","LA#","SI"];
+  return N[((n % 12) + 12) % 12] + (n >= 12 ? "+" : "");
+}
+function majMc(){
+  var dp = document.getElementById("mc-pads");
+  if(!dp) return;
+  if(!dp.childNodes.length){
+    for(var i=0;i<16;i++) (function(k){
+      var b = document.createElement("button");
+      b.className = "mb"; b.textContent = String(k + 1);
+      b.addEventListener("click", function(){ padMc(k); });
+      dp.appendChild(b);
+    })(i);
+    var dt = document.getElementById("mc-trks");
+    for(var t=0;t<MC_PISTES;t++) (function(k){
+      var b = document.createElement("button");
+      b.className = "mt";
+      b.innerHTML = "<b>" + (k + 1) + "</b><em></em>";
+      b.addEventListener("click", function(){
+        if(MC.sel === k) MC.pistes[k].muet = !MC.pistes[k].muet;
+        else MC.sel = k;
+        majMc(); majKnobsMc(); memMc(); H.cran();
+      });
+      dt.appendChild(b);
+    })(t);
+  }
+  var P = pisteMcSel(), clip = clipMcCur(MC.sel), bs = dp.childNodes;
+  for(var k2=0;k2<16;k2++){
+    bs[k2].classList.toggle("on", clip[k2] >= 0);
+    bs[k2].textContent = clip[k2] >= 0
+      ? (P.type === "drum" ? ["GC","CC","CH","CL"][clip[k2] % 4] : nomNoteMc(clip[k2]))
+      : String(k2 + 1);
+  }
+  var ts = document.getElementById("mc-trks").childNodes;
+  for(var t2=0;t2<MC_PISTES;t2++){
+    ts[t2].classList.toggle("sel", t2 === MC.sel);
+    ts[t2].classList.toggle("muet", MC.pistes[t2].muet);
+    ts[t2].querySelector("em").textContent =
+      MC.pistes[t2].type === "drum" ? "RYTHME" : MC.pistes[t2].onde.slice(0, 4).toUpperCase();
+  }
+  var c = document.getElementById("mc-clip");
+  if(c) c.textContent = "CLIP " + (P.clip + 1);
+  var sc = document.getElementById("mc-scat");
+  if(sc) sc.classList.toggle("on", MC.scatOn);
+  var sn = document.getElementById("mc-scat-nom");
+  if(sn) sn.textContent = MC_SCATTER[MC.scatType][0];
+  var pl = document.getElementById("mc-play");
+  if(pl) pl.classList.toggle("on", S.run);
+  var lv = document.getElementById("mc-val"), ll = document.getElementById("mc-lab");
+  if(lv){
+    lv.textContent = MC.scatOn ? MC_SCATTER[MC.scatType][0].toUpperCase()
+      : (P.type === "drum" ? ["GROSSE","CAISSE","CHARLEY","CLAP"][MC.note % 4]
+                           : nomNoteMc(MC_GAMME[MC.note % 16]));
+    ll.textContent = MC.scatOn ? "SCATTER" : ("PISTE " + (MC.sel + 1));
+  }
+  var e = document.getElementById("mc-etat");
+  if(e) e.textContent = MC.scatOn
+    ? MC_SCATTER[MC.scatType][1] + " · le motif n'est pas modifié"
+    : "Le potard NOTE choisit ce qu'on écrit ; les pads posent ou retirent.";
+}
+function padMc(k){
+  audioInit();
+  var P = pisteMcSel(), clip = clipMcCur(MC.sel);
+  var note = P.type === "drum" ? (MC.note % 4) : MC_GAMME[MC.note % 16];
+  if(clip[k] === note) clip[k] = -1;          /* retoucher le même retire */
+  else { clip[k] = note; voixMc(maintenantAudio() + 0.005, MC.sel, note, 1); }
+  memMc(); majMc(); H.cran();
+}
+function knobMc(nom, etiq, min, max, get, set){
+  return knobEm("mc-k-" + nom, {min:min, max:max,
+    get:get || function(){ return pisteMcSel()[nom]; },
+    set:function(v){
+      if(set) set(v); else pisteMcSel()[nom] = v;
+      var e = document.getElementById("mc-etat");
+      if(e) e.textContent = etiq + " " + Math.round(v * 100);
+      majMc(); memMc();
+    }});
+}
+var kMcCut  = knobMc("cut",  "FILTRE", 0, 1);
+var kMcDec  = knobMc("dec",  "DÉCLIN", 0, 1);
+var kMcNiv  = knobMc("niv",  "NIVEAU", 0, 1);
+var kMcNote = knobMc("note", "NOTE", 0, 15,
+  function(){ return MC.note; }, function(v){ MC.note = Math.round(v); });
+function majKnobsMc(){ [kMcCut, kMcDec, kMcNiv, kMcNote].forEach(function(k){ k.maj(); }); }
+
+function activerMc(){
+  audioInit();
+  poserMachine("mc");
+  actif = document.getElementById("unit-mc");
+  MACHINE = MACHINE_MC;
+  S.modele = "mc";
+  noeudsMc();
+  majMc(); majKnobsMc();
+  fit();
+}
+document.getElementById("mc-play").addEventListener("click", function(){
+  if(S.run) stop(); else start();
+  majMc(); H.start();
+});
+document.getElementById("mc-scat").addEventListener("click", function(){
+  MC.scatOn = !MC.scatOn;
+  majMc(); memMc(); H.inter();
+});
+document.getElementById("mc-scat-type").addEventListener("click", function(){
+  MC.scatType = (MC.scatType + 1) % MC_SCATTER.length;
+  majMc(); memMc(); H.cran();
+});
+document.getElementById("mc-scat-prof").addEventListener("input", function(){
+  MC.scatProf = parseFloat(this.value);
+  memMc();
+});
+document.getElementById("mc-clip").addEventListener("click", function(){
+  var P = pisteMcSel();
+  P.clip = (P.clip + 1) % MC_CLIPS;
+  majMc(); memMc(); H.cran();
+});
+document.getElementById("mc-onde").addEventListener("click", function(){
+  var P = pisteMcSel();
+  if(P.type === "drum"){ signal("LA PISTE 1 EST RYTHMIQUE"); return; }
+  var O = ["sawtooth","square","triangle","sine"];
+  P.onde = O[(O.indexOf(P.onde) + 1) % O.length];
+  majMc(); memMc(); H.cran();
+});
+document.getElementById("mc-clear").addEventListener("click", function(){
+  if(!window.confirm("Effacer le clip " + (pisteMcSel().clip + 1) +
+                     " de la piste " + (MC.sel + 1) + " ?")) return;
+  var c = clipMcCur(MC.sel);
+  for(var i=0;i<16;i++) c[i] = -1;
+  memMc(); majMc(); H.inter();
+});
 
 /* ---------- la façade de la SmplTrek ---------- */
 var STK_MODE = "pas";       /* ce qu'écrivent les seize pads : pas ou motif */
@@ -25573,6 +26004,7 @@ function allerMachine(id){
   else if(id === "arcm") activerArcm();
   else if(id === "ko") activerKo();
   else if(id === "stk") activerStk();
+  else if(id === "mc") activerMc();
   else if(id === "t1k") activerT1k();
   else if(id === "dbi") activerDbi();
   else if(id === "cr5") activerCr();

@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **114**.
+La version actuelle est la **115**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,35 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Vingt-huitième machine : Roland MC-101 — v115**
+
+Quatre pistes (une rythmique, trois mélodiques), quatre clips chacune, et le **SCATTER**.
+
+*Le SCATTER ne modifie rien.* Il change **quel pas est joué**, pas le son : `scatterMc(i)` rend
+`{pas, coups}` et `scheduleMc` s'en sert pour lire le clip ailleurs. Le motif reste intact — on coupe et
+tout revient. C'est pour cela qu'il s'entend sur une seule caisse claire, là où un effet audio aurait
+besoin de matière.
+
+*La profondeur ne règle pas l'intensité mais **combien de pas sont touchés**, en partant de la fin* :
+`seuil = (1 − profondeur) × 16`. À faible profondeur, seuls les derniers pas se déforment — on obtient une
+**cassure avant le retour** au lieu d'un désordre permanent. C'est ce qui le rend musical, et il ne faut
+pas le « simplifier » en un réglage d'intensité.
+
+Les huit types vérifiés au banc sur une mesure témoin, la profondeur sur trois valeurs, et le clip
+recontrôlé intact après tous les passages.
+
+*Trois demandes, un verdict par machine* :
+- **MC-101** — faite.
+- **electribe sampler (2015, rouge)** — à faire. C'est **une autre machine que l'ESX-1** déjà présente :
+  seize parties au lieu de neuf, oscillateurs *et* échantillons, pavé tactile X/Y, motion sequencing.
+- **TR-909 de la troisième photo** — ce n'est pas la machine mais un **logiciel**. La 909 existe déjà ici
+  avec la disposition du matériel, une voix à la fois. Ce qu'apporte la photo est une **vue en grille** :
+  toutes les voix visibles, coupe-son et solo par voix, flam, shuffle, variations A/B. À faire comme une
+  **vue de la TR existante**, pas comme une machine de plus.
+
+*Contrôle amélioré* : `verifier-facades.py` tire maintenant la liste des classes de `CLASSES_MACHINE` —
+une machine ajoutée sans toucher au script est quand même contrôlée. 19 façades, toutes exclusives.
 
 **Deux façades s'affichaient ensemble — v114**
 

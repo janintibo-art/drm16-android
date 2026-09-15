@@ -41,8 +41,10 @@ for m in re.finditer(r'([^{}]+)\{([^}]*)\}', css):
     for part in m.group(1).split(","):
         regles.append((" ".join(part.split()), val, m.start()))
 
-classes=["em1","er1","ea1","es1","emx","esx","mpc","tr8","td3","eur","dmx","vlc",
-         "cr5","dbi","t1k","arcm","ko","stk"]
+# La liste des classes vient du code, pas d'ici : une machine ajoutee sans
+# toucher a ce fichier doit quand meme etre controlee.
+m=re.search(r'CLASSES_MACHINE\s*=\s*\[(.*?)\]', s, re.S)
+classes=re.findall(r'"([\w-]+)"', m.group(1)) if m else []
 montre={}
 for q,val,pos in regles:
     m2=re.fullmatch(r'body\.(\w+) ([#.][\w-]+)', q)
