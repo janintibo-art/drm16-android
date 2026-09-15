@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **116**.
+La version actuelle est la **117**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -59,9 +59,9 @@ Le Java ne sert que de pont vers Android.
 **Electro-Harmonix** DRM16, DRM32 · **Korg** Electribe EM-1, ER-1, EA-1, ES-1, ER-1 mkII, ES-1 mkII,
 EA-1 mkII, EMX-1, ESX-1, volca sample · **Akai** MPC3000, MPC2000 · **Roland** TR-808, TR-909, TR-707,
 CR-5000, TR-1000 · **Oberheim** DMX · **Arturia** DrumBrute Impact · **Behringer** RD-6, TD-3 ·
-**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (89 modules, deux rangées :
-9 horloges, 7 séquenceurs, 10 oscillateurs, 11 filtres, 10 modulations, 13 utilitaires, 15 traitements,
-14 percussions).
+**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (96 modules, deux rangées :
+9 horloges, 8 séquenceurs, 11 oscillateurs, 11 filtres, 12 modulations, 13 utilitaires, 17 traitements,
+15 percussions).
 
 ### Les outils
 
@@ -116,6 +116,31 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Sept modules Eurorack — v117**
+
+89 → 96. Chacun apporte un mécanisme, pas une variante.
+
+- **PLASMA** (effet) — `tanh` à très fort gain : la pente au centre devient verticale, ça **casse** au lieu
+  de saturer. L'**octave** vient d'un redressement (`|x|`), qui double exactement la fréquence apparente —
+  gratuit et juste. Rattrapage de niveau décroissant avec le drive.
+- **PLEXIPHON** (effet) — six peignes de longueurs premières entre elles **précédés de deux passe-tout**.
+  Ce sont eux qui font la différence entre six échos distincts et une matière. Réinjection bornée à 0,92.
+- **KERMIT** (mod) — deux LFO, et **C = A×B**, obtenu en branchant B sur le *gain* de A : une vraie
+  multiplication, sans nœud dédié. D = A+B. Ce n'est pas quatre LFO mais une famille.
+- **ABACUS** (mod) — quatre enveloppes aux réglages partagés, **plus leur somme**. `CURVE` bascule la
+  descente entre droite et exponentielle.
+- **PISTON HONDA** (osc) — table d'ondes à trois axes ; **Z déphase les partiels** (`re`/`im` de
+  `createPeriodicWave`), l'onde perd sa symétrie sans changer de spectre.
+- **MUTANT HIHATS** (perc) — réutilise `trMetal` (le banc métallique pré-calculé de la v72). Sa raison
+  d'être est l'**exclusivité** : `m.ouvert` garde le gain du charley ouvert en cours, coupé par
+  `setTargetAtTime` à la frappe suivante, ouverte ou fermée. Vérifié.
+- **STEPS** (seq) — six pas ; **GATES est un masque** qui tait un pas *sans effacer sa tension*. Entre dans
+  la liste des modules qui propagent une impulsion, vérifié par la sonde.
+
+*Piège du banc, pas du code* : `trMetal` n'était pas dans le banc d'essai, d'où un faux échec sur MUTANT.
+La fonction est bien dans le fichier, et une **déclaration de fonction est hissée** — sa position (64 %)
+avant ou après le catalogue (74 %) n'a aucune importance à l'appel. Banc complété.
 
 **Deux corrections signalées — v116**
 
