@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **103**.
+La version actuelle est la **105**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,53 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Enregistreur : allure de séquenceur — v105**
+
+Deux reproches justes : les explications étaient mêlées aux commandes, et l'affichage ne ressemblait pas à
+un séquenceur.
+
+*Séparation.* Tout le texte part dans un onglet de notice **`note-enr`**, ouvert par un bouton **MODE
+D'EMPLOI** en haut du panneau — même schéma que la table de mixage. Le panneau ne contient plus que des
+commandes : une barre de transport, la vue, puis l'aiguillage et les prises.
+
+*Allure de séquenceur.* `.enr-corps` est une boîte défilante contenant deux colonnes : `.enr-tetes`
+(noms + M + S, en `position:sticky` à gauche) et le canevas.
+
+**La clé de l'alignement : `ENR_H = 34` et `ENR_REGLE = 22`, en dur des deux côtés.** La hauteur de piste
+est **fixe**, le canevas grandit avec le nombre de pistes (`22 + n × 34`) et c'est la boîte qui défile.
+La colonne des noms commence par un `.enr-espace` de 22 px qui laisse passer la règle, ce qui met la
+première ligne en face de la première bande. Vérifié : dessin et HTML tombent au même pixel de la piste 0
+à la piste 15. **Changer une de ces deux valeurs oblige à changer l'autre.**
+
+- **La limite de seize pistes est levée** : la boîte défile, toutes les pistes reçues sont montrées.
+- Règle en secondes, graduation adaptée pour tenir environ seize repères quelle que soit la durée —
+  1 s sur huit secondes, 19 s sur cinq minutes.
+- `majPistesEnr()` n'est plus qu'un renvoi vers `majTetesEnr()` : l'ancienne liste empilée sous la vue a
+  disparu, ses appels restent valables.
+
+**Rendre une prise MIDI en WAV — v104**
+
+Une prise en `.mid` contient des **notes** : il faut la même application pour la réentendre. En `.wav` on
+repart avec le **son**. C'est ce qui rend le téléphone vraiment autonome pour enregistrer un live.
+
+`exporterPriseWav(i)` reprend exactement le schéma d'`exporterWav` — contexte hors ligne, `batirAudio()`,
+`remettre()` avec `razNoeudsMachines()` et restitution des quatre sorties de la DRM16. La différence : au
+lieu d'un motif répété, on déroule les événements datés, chacun sur la machine de son canal.
+
+**La pièce centrale : `maintenantAudio()`.** Un `OfflineAudioContext` n'a **pas d'horloge qui avance** —
+`currentTime` reste à zéro jusqu'au rendu. Toutes les notes se seraient superposées au premier instant.
+`OFF_T` porte l'instant voulu pendant la boucle de rendu, `-1` le reste du temps.
+**Les 108 `ctx.currentTime` du fichier sont passés par cette fonction.** C'est sans danger parce que la
+boucle de rendu est **synchrone** : aucun minuteur, aucune animation ne tourne pendant qu'`OFF_T` est posé.
+**Le test est `OFF_T >= 0` et non `> 0`** : zéro est un instant valide, sinon la première note serait perdue.
+
+Autres points :
+- `allerMachineRendu()` évite de reconstruire une façade à chaque note quand un live reste sur la même
+  machine. Sur un live qui alterne à chaque note, la reconstruction revient — accepté.
+- Les pistes **coupées ne sont pas rendues** : `passeEnr` est appliqué là aussi.
+- Bouton **NOMMER** sur chaque prise.
+- Le tempo affiché porte la mention « (mesuré) » quand il vient de l'horloge de la machine.
 
 **Enregistreur : tempo, départ, coupe-son, boucle — v103**
 

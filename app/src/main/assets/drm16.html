@@ -167,8 +167,42 @@ body.m32 .read{color:#8fe8d8}
 .syro-pas li{margin-bottom:7px}
 /* La vue qui défile : une bande par canal reçu, le temps de gauche à droite.
    C'est ce qui manquait pour enregistrer un live — on ne voyait rien arriver. */
-#enr-vue{width:100%;height:auto;display:block;border-radius:9px;background:#0a0a0c;
-  border:1px solid #2a2a31;margin-bottom:10px}
+/* Allure de séquenceur : en-têtes de pistes à gauche, temps à droite, les
+   deux défilant ensemble. La hauteur de piste est FIXE — c'est ce qui permet
+   d'aligner des lignes HTML sur un dessin, et de garder des pistes lisibles
+   quel qu'en soit le nombre. */
+.enr-tete{flex:none;display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+  padding:9px 12px;background:#131316;border-bottom:1px solid #2c2c31}
+.enr-tete button{margin:0;padding:9px 12px;border:0;border-radius:7px;background:#2a2a30;
+  color:#cfcbc2;font:800 10.5px/1 "Roboto Condensed",Arial;letter-spacing:1px}
+.enr-tete button.on{background:var(--accent);color:#140b07}
+#enr-rec{background:#c0392b;color:#fff}
+#enr-rec.on{background:#ff3b20;color:#fff}
+.enr-tete b{flex:1;min-width:140px;font:700 10.5px/1.4 "Roboto Condensed",Arial;
+  letter-spacing:.8px;color:#9a9792}
+.enr-corps{flex:none;display:flex;height:46vh;min-height:190px;overflow:auto;
+  background:#0a0a0c;border-bottom:1px solid #2c2c31}
+.enr-tetes{flex:none;width:132px;position:sticky;left:0;z-index:2;background:#111115;
+  border-right:1px solid #2a2a31}
+.enr-piste-vue{flex:1;min-width:0}
+#enr-vue{display:block}
+/* La bande de règle, laissée libre en haut de la colonne des noms pour que la
+   première piste tombe en face de son étiquette. */
+.enr-espace{height:22px;border-bottom:1px solid #26262d}
+.enr-tt{height:34px;display:flex;align-items:center;gap:4px;padding:0 5px;
+  border-bottom:1px solid #1c1c22}
+.enr-tt i{flex:none;width:8px;height:16px;border-radius:2px}
+.enr-tt b{flex:1;min-width:0;font:700 9.5px/1.15 "Roboto Condensed",Arial;letter-spacing:.3px;
+  color:#cfcbc2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.enr-tt button{flex:none;margin:0;padding:4px 5px;border:0;border-radius:4px;background:#26262d;
+  color:#8a8790;font:800 8px/1 "Roboto Condensed",Arial}
+.enr-tt button.on{background:var(--accent);color:#140b07}
+.enr-tt button.coupe.on{background:#c0392b;color:#fff}
+.enr-bas{flex:1;min-height:0;overflow:auto;padding:12px}
+.enr-bas label{display:block;font:800 10px/1.6 "Roboto Condensed",Arial;letter-spacing:1.4px;
+  color:#8a8780;margin:14px 0 6px}
+.enr-bas select{width:100%;padding:9px;border-radius:7px;border:1px solid #3a3a42;
+  background:#1b1b1f;color:#e8e6e4;font-size:14px}
 /* Une ligne par piste : son nom, son coupe-son, son solo. */
 .enr-piste{display:flex;gap:6px;align-items:center;margin-bottom:5px}
 .enr-piste i{flex:none;width:11px;height:11px;border-radius:3px}
@@ -3381,75 +3415,31 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 </div>
 
 <div id="enr">
-  <div class="note-bar"><b>ENREGISTREUR MIDI</b><button id="enr-fermer">FERMER</button></div>
-  <div class="note-corps">
-    <div class="doc vu" style="max-width:620px">
-      <h3>Comment ça marche</h3>
-      <p>Branchez la carte USB-C vers MIDI, reliez la <b>sortie MIDI</b> de vos machines à l'entrée de la
-      carte, puis cherchez l'appareil dans la notice, onglet Général. Jouez : les notes reçues déclenchent
-      les sons, <b>tout sort du téléphone</b>, et tout ce qui arrive est daté.</p>
-      <p><b>Toutes les sources sont enregistrées en même temps</b>, chacune sur son canal. Une boîte à
-      rythmes sur le canal 10, une basse sur le canal 2, un clavier sur le 1 : les trois arrivent ensemble,
-      la vue les montre côte à côte, et chacune peut jouer une machine différente. De quoi enregistrer un
-      live entier avec le téléphone pour seul matériel.</p>
-      <p>La relecture repasse par le même chemin : même machine, mêmes sons, même rythme. Chaque prise s'écrit
-      en <b>fichier .mid de type 1</b> : une piste par son, chacune portant le nom de la partie — un
-      séquenceur les ouvre déjà triées au lieu d'un tas unique à démêler.</p>
+  <div class="note-bar"><b>ENREGISTREUR MIDI</b>
+    <button id="enr-aide">MODE D'EMPLOI</button>
+    <button id="enr-fermer">FERMER</button></div>
 
-      <h3>Ce qui arrive</h3>
-      <p><b>Une bande par son</b>, et non par canal. C'est ce qu'il faut pour une Electribe : l'EMX, l'ESX
-      ou l'ER-1 envoient tous leurs sons sur un <b>seul</b> canal MIDI et ne les distinguent que par le
-      numéro de note. Une bande par canal ne montrerait qu'une ligne où tout se mélange.</p>
-      <p>Chaque son reçu prend donc sa propre bande, <b>nommée d'après la machine</b> qui le joue — BD,
-      SNARE, HH CLOSED plutôt que des numéros. Le temps va de gauche à droite, la hauteur du trait donne la
-      vélocité. Pendant l'enregistrement la vue défile sur les huit dernières secondes avec un trait orange
-      sur l'instant présent ; à l'arrêt, elle montre la prise entière.</p>
-      <p>Le bouton <b>PISTES</b> bascule entre une bande par son et une bande par canal. La seconde vue sert
-      quand plusieurs machines jouent ensemble et qu'on veut voir les sources plutôt que les instruments.
-      Au-delà de seize bandes, seules les plus jouées restent affichées.</p>
+  <div class="enr-tete">
+    <button id="enr-rec">● ENREGISTRER</button>
+    <button id="enr-decoupe">PISTES : PAR SON</button>
+    <button id="enr-attente">DÉPART : 1re NOTE</button>
+    <button id="enr-boucle">BOUCLE : NON</button>
+    <b id="enr-etat">Prêt.</b>
+  </div>
 
-      <canvas id="enr-vue" width="900" height="300"></canvas>
-      <p id="enr-legende" style="opacity:.75;font-size:13px">Rien reçu pour le moment.</p>
-      <p><button id="enr-decoupe">PISTES : UNE PAR SON</button>
-      <button id="enr-attente">DÉPART : À LA PREMIÈRE NOTE</button>
-      <button id="enr-boucle">BOUCLE : NON</button></p>
-      <div id="enr-pistes"></div>
+  <div class="enr-corps" id="enr-corps">
+    <div class="enr-tetes" id="enr-tetes"></div>
+    <div class="enr-piste-vue"><canvas id="enr-vue" width="900" height="300"></canvas></div>
+  </div>
 
-      <h3>Coupe-son et solo</h3>
-      <p>Chaque piste a son <b>COUPE</b> et son <b>SOLO</b>. Attention, ils ne font pas que taire le son :
-      une piste coupée <b>n'entre pas dans la prise</b>. C'est voulu — cela permet d'écarter une source qui
-      parasite le live sans avoir à la débrancher. Le solo coupe toutes les autres, comme sur une table,
-      donc un seul à la fois.</p>
-
-      <h3>Départ et boucle</h3>
-      <p><b>DÉPART : À LA PREMIÈRE NOTE</b> date la prise depuis le premier coup joué, pas depuis l'appui
-      sur le bouton : les deux ou trois secondes de vide du début disparaissent d'elles-mêmes. Passez-le sur
-      <i>immédiat</i> si vous voulez garder ce silence.</p>
-      <p><b>BOUCLE</b> fait tourner la prise en relecture sans s'arrêter. Enregistrez huit mesures d'EMX,
-      lancez la boucle, et jouez par-dessus sur une autre machine.</p>
-
-      <h3>Le tempo</h3>
-      <p>Si la machine branchée envoie son <b>horloge MIDI</b>, l'application la mesure pendant
-      l'enregistrement et l'affiche. C'est ce tempo-là — celui de la machine, pas celui de l'application —
-      qui est écrit dans le fichier <b>.mid</b>. Sans cela le fichier annonce un tempo faux et rien ne tombe
-      sur la grille dans un séquenceur.</p>
-
-      <h3>Aiguillage des canaux</h3>
-      <p style="opacity:.85">Chaque canal MIDI reçu apparaît ici et peut jouer sa propre machine. Une boîte
-      à rythmes sur un canal, une basse sur un autre : tout sort du téléphone, chacune avec sa voix.</p>
-      <div id="enr-canaux"></div>
-
-      <h3>Machine par défaut</h3>
-      <p>Pour les canaux qu'on n'a pas aiguillés.<br><select id="enr-machine"></select></p>
-
-      <h3>Enregistrement</h3>
-      <p><button id="enr-rec">● ENREGISTRER</button></p>
-      <p id="enr-etat" style="opacity:.85">—</p>
-
-      <h3>Prises</h3>
-      <div id="enr-liste"></div>
-      <p id="enr-chemin" style="opacity:.6;font-size:13px"></p>
-    </div>
+  <div class="enr-bas">
+    <label>MACHINE PAR DÉFAUT</label>
+    <select id="enr-machine"></select>
+    <label>AIGUILLAGE DES CANAUX</label>
+    <div id="enr-canaux"></div>
+    <label>PRISES</label>
+    <div id="enr-liste"></div>
+    <p id="enr-chemin" style="opacity:.7;font-size:12px"></p>
   </div>
 </div>
 
@@ -3822,6 +3812,66 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   de masse : deux appareils reliés à la fois par le secteur et par le signal. Branchez tout sur la même
   multiprise avant de chercher plus loin — cela règle le problème neuf fois sur dix.</p>
   </div>
+
+  <div class="doc" id="note-enr" data-titre="ENREGISTREUR MIDI">
+<h3>Comment ça marche</h3>
+  <p>Branchez la carte USB-C vers MIDI, reliez la <b>sortie MIDI</b> de vos machines à l'entrée de la
+  carte, puis cherchez l'appareil dans la notice, onglet Général. Jouez : les notes reçues déclenchent
+  les sons, <b>tout sort du téléphone</b>, et tout ce qui arrive est daté.</p>
+  <p><b>Toutes les sources sont enregistrées en même temps</b>, chacune sur son canal. Une boîte à
+  rythmes sur le canal 10, une basse sur le canal 2, un clavier sur le 1 : les trois arrivent ensemble,
+  la vue les montre côte à côte, et chacune peut jouer une machine différente. De quoi enregistrer un
+  live entier avec le téléphone pour seul matériel.</p>
+  <p>La relecture repasse par le même chemin : même machine, mêmes sons, même rythme. Chaque prise s'écrit
+  en <b>fichier .mid de type 1</b> : une piste par son, chacune portant le nom de la partie — un
+  séquenceur les ouvre déjà triées au lieu d'un tas unique à démêler.</p>
+
+  <h3>Ce qui arrive</h3>
+  <p><b>Une bande par son</b>, et non par canal. C'est ce qu'il faut pour une Electribe : l'EMX, l'ESX
+  ou l'ER-1 envoient tous leurs sons sur un <b>seul</b> canal MIDI et ne les distinguent que par le
+  numéro de note. Une bande par canal ne montrerait qu'une ligne où tout se mélange.</p>
+  <p>Chaque son reçu prend donc sa propre bande, <b>nommée d'après la machine</b> qui le joue — BD,
+  SNARE, HH CLOSED plutôt que des numéros. Le temps va de gauche à droite, la hauteur du trait donne la
+  vélocité. Pendant l'enregistrement la vue défile sur les huit dernières secondes avec un trait orange
+  sur l'instant présent ; à l'arrêt, elle montre la prise entière.</p>
+  <p>Le bouton <b>PISTES</b> bascule entre une bande par son et une bande par canal. La seconde vue sert
+  quand plusieurs machines jouent ensemble et qu'on veut voir les sources plutôt que les instruments.
+  Toutes les pistes reçues sont affichées, quel
+  que soit leur nombre : la vue défile.</p>
+  <p>La disposition est celle d'un séquenceur : les <b>noms à gauche</b>, chacun avec son coupe-son
+  <b>M</b> et son solo <b>S</b>, le <b>temps à droite</b> avec une règle en secondes. Les deux colonnes
+  défilent ensemble.</p>
+
+  <h3>Coupe-son et solo</h3>
+  <p>Chaque piste a son <b>COUPE</b> et son <b>SOLO</b>. Attention, ils ne font pas que taire le son :
+  une piste coupée <b>n'entre pas dans la prise</b>. C'est voulu — cela permet d'écarter une source qui
+  parasite le live sans avoir à la débrancher. Le solo coupe toutes les autres, comme sur une table,
+  donc un seul à la fois.</p>
+
+  <h3>Départ et boucle</h3>
+  <p><b>DÉPART : À LA PREMIÈRE NOTE</b> date la prise depuis le premier coup joué, pas depuis l'appui
+  sur le bouton : les deux ou trois secondes de vide du début disparaissent d'elles-mêmes. Passez-le sur
+  <i>immédiat</i> si vous voulez garder ce silence.</p>
+  <p><b>BOUCLE</b> fait tourner la prise en relecture sans s'arrêter. Enregistrez huit mesures d'EMX,
+  lancez la boucle, et jouez par-dessus sur une autre machine.</p>
+
+  <h3>Le tempo</h3>
+  <p>Si la machine branchée envoie son <b>horloge MIDI</b>, l'application la mesure pendant
+  l'enregistrement et l'affiche. C'est ce tempo-là — celui de la machine, pas celui de l'application —
+  qui est écrit dans le fichier <b>.mid</b>. Sans cela le fichier annonce un tempo faux et rien ne tombe
+  sur la grille dans un séquenceur.</p>
+
+  <h3>Repartir avec le son</h3>
+  <p>Chaque prise s'exporte de deux façons. En <b>.MID</b> vous repartez avec des <b>notes</b> : il faut
+  la même application, ou un séquenceur, pour les réentendre. En <b>.WAV</b> vous repartez avec le
+  <b>son</b> — un fichier qui s'écoute partout, se partage, s'envoie.</p>
+  <p>Le rendu rejoue la prise entière hors ligne, chaque note sur la machine à laquelle son canal est
+  aiguillé, et les pistes coupées ne sont pas rendues. Comptez quelques secondes pour une prise d'une
+  minute. La crête obtenue s'affiche à la fin : si elle est très basse, c'est que les machines jouaient
+  doucement, et il vaut mieux refaire la prise que de remonter le fichier après coup.</p>
+  <p><b>NOMMER</b> renomme une prise — « Prise 3 » ne dit plus rien trois jours après.</p>
+
+    </div>
 
   <div class="doc" id="note-outils" data-titre="VERS UNE VOLCA">
   <h3>Envoyer un son dans une vraie volca sample</h3>
@@ -5531,6 +5581,13 @@ function motFxEcrire(m, champ, val, enCours, pos){
 }
 
 /* ================= métronome ================= */
+/* Pendant un rendu hors ligne, le contexte n'a pas d'horloge qui avance :
+   maintenantAudio() resterait à zéro et toutes les notes se superposeraient au
+   premier instant. OFF_T porte alors l'instant voulu, et vaut -1 le reste du
+   temps — c'est-à-dire toujours, sauf pendant la boucle synchrone du rendu. */
+var OFF_T = -1;
+function maintenantAudio(){ return OFF_T >= 0 ? OFF_T : ctx.currentTime; }
+
 var METRO = false;
 function clicMetro(t, fort){
   if(!METRO || !ctx || !master) return;
@@ -5694,7 +5751,7 @@ function reveillerAudio(){
 function surveillerAudio(){
   if(!ctx || ctx.startRendering || !S.run){ VEILLE.t = -1; VEILLE.fige = 0; return; }
   if(ctx.state !== "running"){ reveillerAudio(); VEILLE.fige = 0; VEILLE.t = -1; return; }
-  var t = ctx.currentTime;
+  var t = maintenantAudio();
   if(t === VEILLE.t){
     /* quatre tours sans que l'horloge avance : le contexte est mort */
     if(++VEILLE.fige >= 4){ VEILLE.fige = 0; VEILLE.t = -1; refaireAudio(); }
@@ -5809,7 +5866,7 @@ function pisterSources(){
       var n = brut();
       var depart = n.start.bind(n);
       n.start = function(t){
-        SOURCES.push({n:n, t:(t === undefined ? ctx.currentTime : t)});
+        SOURCES.push({n:n, t:(t === undefined ? maintenantAudio() : t)});
         if(COLLECTE) COLLECTE.push(n);
         return depart.apply(n, arguments);
       };
@@ -5819,7 +5876,7 @@ function pisterSources(){
 }
 function couperSourcesFutures(){
   if(!ctx) return;
-  var now = ctx.currentTime, reste = [];
+  var now = maintenantAudio(), reste = [];
   for(var i=0;i<SOURCES.length;i++){
     var s = SOURCES[i];
     if(s.t > now + 0.002){ try{ s.n.stop(now); }catch(e){} }
@@ -5837,7 +5894,7 @@ function purgerSources(){
      Une seconde et demie suffit largement : l'anticipation de l'ordonnanceur
      est de 0,22 s en avant-plan, 1,2 s en arrière-plan. Tout ce qui est plus
      vieux ne sert plus à couper quoi que ce soit. */
-  var now = ctx.currentTime, reste = [];
+  var now = maintenantAudio(), reste = [];
   for(var i=0;i<SOURCES.length;i++) if(SOURCES[i].t > now - 1.5) reste.push(SOURCES[i]);
   SOURCES = reste;
 }
@@ -5995,19 +6052,19 @@ function tick(){
   midiSuivreTempo(); purgerSources();
   if(SOURCES.length > AUDIT.pic) AUDIT.pic = SOURCES.length;
   var av = 0;
-  for(var q=0;q<SOURCES.length;q++) if(SOURCES[q].t > ctx.currentTime) av++;
+  for(var q=0;q<SOURCES.length;q++) if(SOURCES[q].t > maintenantAudio()) av++;
   if(av > AUDIT.picAvenir) AUDIT.picAvenir = av;
-  if(nextT < ctx.currentTime - 0.4){
+  if(nextT < maintenantAudio() - 0.4){
     /* l'ordonnanceur a pris trop de retard : on recale. Chaque recalage
        s'entend comme un trou ou un grésillement, on les compte pour pouvoir
        le constater au lieu de le supposer. */
     AUDIT.decroche++; AUDIT.quand = Date.now();
-    nextT = ctx.currentTime + 0.08; queue=[];
+    nextT = maintenantAudio() + 0.08; queue=[];
   }
-  while(nextT < ctx.currentTime + look()){
+  while(nextT < maintenantAudio() + look()){
     var dh = decalageHumain();
     /* on ne recule jamais avant l'instant présent : le coup serait perdu */
-    var tq = Math.max(ctx.currentTime + 0.005, nextT + dh);
+    var tq = Math.max(maintenantAudio() + 0.005, nextT + dh);
     MACHINE.schedule(step, tq);
     /* Les autres machines du set tournent sur leur PROPRE longueur. Un compteur
        qui ne repart jamais à zéro sert de référence commune : chacune y prend
@@ -6041,12 +6098,12 @@ function start(){
     signal("EN ATTENTE DE L'HORLOGE EXTÉRIEURE");
     return;
   }
-  nextT = ctx.currentTime + 0.12;
+  nextT = maintenantAudio() + 0.12;
   var depart = nextT;                 /* tick() fait avancer nextT : on garde l'heure du premier pas */
   clearInterval(timer); timer = setInterval(tick, periode()); tick();
   draw();
   host(true);
-  midiHorloge(true, depart - ctx.currentTime);
+  midiHorloge(true, depart - maintenantAudio());
 }
 function stop(){
   S.run=false; clearInterval(timer); timer=null; queue=[];
@@ -6067,7 +6124,7 @@ var led = document.getElementById("led-power");
 var T_PAS = 0;
 function draw(){
   if(!S.run) return;
-  var now = ctx ? ctx.currentTime : 0, cur=-1;
+  var now = ctx ? maintenantAudio() : 0, cur=-1;
   while(queue.length && queue[0].t <= now){ var e = queue.shift(); cur = e.i; T_PAS = e.t; }
   if(cur>=0) MACHINE.beat(cur);
   requestAnimationFrame(draw);
@@ -6076,7 +6133,7 @@ function draw(){
    moitié, le suivant sinon. C'est ce que fait l'oreille. */
 function pasLePlusProche(pos, L){
   if(pos < 0 || !ctx || !L) return -1;
-  var f = (ctx.currentTime - T_PAS) / stepDur();
+  var f = (maintenantAudio() - T_PAS) / stepDur();
   var p = pos + (f > 0.5 ? 1 : 0);
   return ((p % L) + L) % L;
 }
@@ -6276,7 +6333,7 @@ ticksFor(document.getElementById("k-volume"),11);
 ticksFor(document.getElementById("k-tempo"),11);
 
 var kVol = knob("k-volume",{value:S.vol,min:0,max:1,on:function(v){
-  S.vol=v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  S.vol=v; if(master) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
   say("VOLUME "+Math.round(v*100)); saveSoon();
 }});
 var taps = [];
@@ -6370,7 +6427,7 @@ for(var t=0;t<odel.length;t++){
       if(!voix) return;
       if(!S.power){ say("POWER OFF"); return; }
       audioInit();
-      V[voix](ctx.currentTime + 0.02, 1);
+      V[voix](maintenantAudio() + 0.02, 1);
       H.cran();
       odel[i].classList.add("hit");
       setTimeout(function(){ odel[i].classList.remove("hit"); }, 150);
@@ -6408,7 +6465,7 @@ document.getElementById("b-panique").addEventListener("click", function(){
   stop();
   midiPanique();
   if(master && ctx){
-    var now = ctx.currentTime;
+    var now = maintenantAudio();
     master.gain.cancelScheduledValues(now);
     master.gain.setTargetAtTime(0.0001, now, 0.008);
     master.gain.setValueAtTime(0.0001, now+0.25);
@@ -6932,6 +6989,9 @@ document.getElementById("menu-audio").addEventListener("click", function(){
     b.dataset.arme = "";
     b.querySelector("span").textContent = "DÉCROCHAGES · SOURCES · RELANCER LE MOTEUR";
   }, 4000);
+});
+document.getElementById("enr-aide").addEventListener("click", function(){
+  fermerEnr(); ouvrirNotice("note-enr");
 });
 document.getElementById("enr-fermer").addEventListener("click", function(){ fermerEnr(); H.cran(); });
 document.getElementById("pr-fermer").addEventListener("click", function(){ fermerPr(); H.cran(); });
@@ -7549,7 +7609,7 @@ function irCache(sec){
   if(!IR_CACHE[cle]) IR_CACHE[cle] = irReverb(cle/8);
   return IR_CACHE[cle];
 }
-function ctp(param, v, lisse){ param.setTargetAtTime(v, ctx.currentTime, lisse === undefined ? 0.02 : lisse); }
+function ctp(param, v, lisse){ param.setTargetAtTime(v, maintenantAudio(), lisse === undefined ? 0.02 : lisse); }
 
 /* Construit un effet entre deux nœuds. Le registre reçoit aussi une fonction `maj`
    qui applique EDIT 1 et EDIT 2 aux nœuds déjà en place : tourner un bouton ne
@@ -7749,7 +7809,7 @@ function construireFxEntre(fxIn, fxOut, t, e1, e2, fxChaine){
       var ratio = Math.pow(2, demi/12);
       var fen = 0.045 + e2*0.075;
       var vit = Math.abs(1-ratio)/fen, sens = (ratio > 1) ? -1 : 1;
-      var t0 = ctx.currentTime;
+      var t0 = maintenantAudio();
       for(i=0;i<2;i++){
         var dl = ctx.createDelay(1), gg2 = ctx.createGain();
         gg2.gain.value = 0;
@@ -7866,7 +7926,7 @@ function sortiePartie(k,t){
   var niv = mv("lvl", EM.pat.lvl[k]), pano = mv("pan", EM.pat.pan[k]);
   /* les valeurs sont posées à l'heure du pas, pas à l'heure de l'écriture :
      l'ordonnanceur travaille jusqu'à 1,2 s d'avance */
-  var quand = (t === undefined) ? ctx.currentTime : t;
+  var quand = (t === undefined) ? maintenantAudio() : t;
   var lisse = !!(MOT && MOT.lisse);
   n.g.gain.cancelScheduledValues(quand);
   n.g.gain.setValueAtTime(niv, quand);
@@ -8177,8 +8237,8 @@ function toucheClavier(i){
   var k = EM.sel, p = EM.pat, n = noteClavier(i);
   if(!ctx) audioInit();
   busEffets();
-  if(EM_PARTS[k].synth) voixSynth(ctx.currentTime+0.01, k, n, 1);
-  else jouerTimbre(EM.pat.tim[k], ctx.currentTime+0.01, 1, sortiePartie(k, ctx.currentTime+0.01));
+  if(EM_PARTS[k].synth) voixSynth(maintenantAudio()+0.01, k, n, 1);
+  else jouerTimbre(EM.pat.tim[k], maintenantAudio()+0.01, 1, sortiePartie(k, maintenantAudio()+0.01));
   EM.note = n;
   if(!EM.protect && EM_PARTS[k].synth){
     if(EM.rec && S.run && EM.pos >= 0){
@@ -8373,12 +8433,12 @@ function knobEm(id, opt){
   return {maj:function(){ st.v = opt.get(); render(); }};
 }
 var kEmVol = knobEm("em-k-vol",{min:0,max:1,get:function(){return S.vol;},set:function(v){
-  S.vol=v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  S.vol=v; if(master) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
   lcd(String(Math.round(v*100)),"VOLUME",true); saveSoon();
 }});
 var kEmE1 = knobEm("em-k-e1",{min:0,max:1,get:function(){return EM.delayEdit?EM.dTime/1.2:EM.e1;},
   set:function(v){
-    if(EM.delayEdit){ EM.dTime = 0.03+v*1.1; if(dlyNode) dlyNode.delayTime.setTargetAtTime(EM.dTime,ctx.currentTime,0.05);
+    if(EM.delayEdit){ EM.dTime = 0.03+v*1.1; if(dlyNode) dlyNode.delayTime.setTargetAtTime(EM.dTime,maintenantAudio(),0.05);
       motFxEcrire(EM.pat.motFx, "dTime", v, EM.rec && S.run, EM.pos);
       lcd(Math.round(EM.dTime*1000)+"","DELAY TIME",true); }
     else { EM.e1=v; construireFx();
@@ -8388,8 +8448,8 @@ var kEmE1 = knobEm("em-k-e1",{min:0,max:1,get:function(){return EM.delayEdit?EM.
 var kEmE2 = knobEm("em-k-e2",{min:0,max:1,get:function(){return EM.delayEdit?EM.dDepth:EM.e2;},
   set:function(v){
     if(EM.delayEdit){ EM.dDepth=v;
-      if(dlyIn) dlyIn.gain.setTargetAtTime(v*0.6, ctx.currentTime, 0.05);
-      if(dlyFb) dlyFb.gain.setTargetAtTime(0.12+v*0.48, ctx.currentTime, 0.05);
+      if(dlyIn) dlyIn.gain.setTargetAtTime(v*0.6, maintenantAudio(), 0.05);
+      if(dlyFb) dlyFb.gain.setTargetAtTime(0.12+v*0.48, maintenantAudio(), 0.05);
       motFxEcrire(EM.pat.motFx, "dDep", v, EM.rec && S.run, EM.pos);
       lcd(String(Math.round(v*127)),"DELAY DEPTH",true); }
     else { EM.e2=v; construireFx();
@@ -8670,8 +8730,8 @@ function ecrireVol(k){
   busEffets();
   var part = EM_PARTS[k];
   if(!part.accent){
-    if(part.synth) voixSynth(ctx.currentTime+0.01, k, EM.note, 1);
-    else jouerTimbre(EM.pat.tim[k], ctx.currentTime+0.01, 1, sortiePartie(k, ctx.currentTime+0.01));
+    if(part.synth) voixSynth(maintenantAudio()+0.01, k, EM.note, 1);
+    else jouerTimbre(EM.pat.tim[k], maintenantAudio()+0.01, 1, sortiePartie(k, maintenantAudio()+0.01));
   }
   if(EM.rec && S.run && EM.pos >= 0){
     var i = (EM.pos + 1) % 16;
@@ -8776,7 +8836,7 @@ function sortieEr(k,t){
     ER.noeuds[k] = {g:g, p:pn, s:s, ls:ls};
   }
   var n = ER.noeuds[k], son = ER.pat.son[k];
-  var quand = (t === undefined) ? ctx.currentTime : t;
+  var quand = (t === undefined) ? maintenantAudio() : t;
   var niv = mv("lvl", son.lvl), pano = mv("pan", son.pan), bst = mv("boost", son.boost);
   var lisse = !!(MOT && MOT.lisse);
   n.g.gain.cancelScheduledValues(quand);
@@ -9004,7 +9064,7 @@ function majLcdEr(){
     var k=+bt.dataset.k;
     if(!ctx) audioInit();
     busEffets();
-    if(ER_PARTS[k].t !== "accent") voixEr(ctx.currentTime+0.01, k, 1);
+    if(ER_PARTS[k].t !== "accent") voixEr(maintenantAudio()+0.01, k, 1);
     if(ER.rec && S.run && ER.pos>=0 && !ER.protect){
       var j=(ER.pos+1)%(ER.pat.len||16);
       ER.pat.st[k][j]=1;
@@ -9147,7 +9207,7 @@ function knobEr(id, champ, min, max){
     }});
 }
 var kErVol = knobEm("er-k-vol",{min:0,max:1,get:function(){return S.vol;},set:function(v){
-  S.vol=v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  S.vol=v; if(master) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
   lcdEr(String(Math.round(v*100)),"VOLUME",true); saveSoon();
 }});
 var kErPitch = knobEr("er-k-pitch","pitch",0,1);
@@ -9165,7 +9225,7 @@ var kErModT  = knobEm("er-k-modt",{min:0,max:5,
     lcdEr(ER_MODS[Math.round(v)], "MOD TYPE", true);
   }});
 var kErDDep = knobEm("er-k-ddep",{min:0,max:1,get:function(){return ER.dDep;},set:function(v){
-  ER.dDep=v; if(dlyIn) dlyIn.gain.setTargetAtTime(v*0.6, ctx.currentTime, 0.05);
+  ER.dDep=v; if(dlyIn) dlyIn.gain.setTargetAtTime(v*0.6, maintenantAudio(), 0.05);
   motFxEcrire(ER.pat.motFx, "dDep", v, ER.rec && S.run, ER.pos); teleEr("dDep", v);
   lcdEr(String(Math.round(v*127)),"DELAY DEPTH",true);
 }});
@@ -9178,8 +9238,8 @@ function majDelaiEr(){
   if(!dlyNode) return;
   var t = ER.dTempo ? (60/S.bpm)*[0.25,0.375,0.5,0.75,1][Math.min(4,Math.floor(ER.dTime*5))]
                     : 0.03 + ER.dTime*1.1;
-  dlyNode.delayTime.setTargetAtTime(Math.min(1.1,t), ctx.currentTime, 0.05);
-  if(dlyFb) dlyFb.gain.setTargetAtTime(0.12+ER.dDep*0.48, ctx.currentTime, 0.05);
+  dlyNode.delayTime.setTargetAtTime(Math.min(1.1,t), maintenantAudio(), 0.05);
+  if(dlyFb) dlyFb.gain.setTargetAtTime(0.12+ER.dDep*0.48, maintenantAudio(), 0.05);
 }
 function majKnobsEr(){
   [kErPitch,kErModD,kErModS,kErDec,kErLvl,kErPan,kErBoost,kErModT].forEach(function(k){ k.maj(); });
@@ -9471,7 +9531,7 @@ function sortieEa(k,t){
     EA.noeuds[k] = {g:g, s:s};
   }
   var n = EA.noeuds[k], son = EA.pat.son[k];
-  var quand = (t === undefined) ? ctx.currentTime : t;
+  var quand = (t === undefined) ? maintenantAudio() : t;
   var niv = mv("lvl", son.lvl);
   var lisse = !!(MOT && MOT.lisse);
   n.g.gain.cancelScheduledValues(quand);
@@ -9485,13 +9545,13 @@ function majEffetEa(){
   var t;
   if(EA.fxType === 0){
     t = (60/S.bpm)*[0.25,0.375,0.5,0.75,1][Math.min(4,Math.floor(EA.fTime*5))];
-    if(dlyFb) dlyFb.gain.setTargetAtTime(0.15+EA.fDep*0.5, ctx.currentTime, 0.05);
+    if(dlyFb) dlyFb.gain.setTargetAtTime(0.15+EA.fDep*0.5, maintenantAudio(), 0.05);
   } else {
     t = 0.004 + EA.fTime*0.02;                 /* chorus / flanger */
-    if(dlyFb) dlyFb.gain.setTargetAtTime(0.35+EA.fDep*0.35, ctx.currentTime, 0.05);
+    if(dlyFb) dlyFb.gain.setTargetAtTime(0.35+EA.fDep*0.35, maintenantAudio(), 0.05);
   }
-  dlyNode.delayTime.setTargetAtTime(Math.min(1.1,t), ctx.currentTime, 0.05);
-  if(dlyIn) dlyIn.gain.setTargetAtTime(EA.fDep*0.6, ctx.currentTime, 0.05);
+  dlyNode.delayTime.setTargetAtTime(Math.min(1.1,t), maintenantAudio(), 0.05);
+  if(dlyIn) dlyIn.gain.setTargetAtTime(EA.fDep*0.6, maintenantAudio(), 0.05);
 }
 
 /* --- voix --- */
@@ -9722,7 +9782,7 @@ function clavierEa(i){
   var n = noteClavierEa(i);
   if(!ctx) audioInit();
   busEffets();
-  voixEa(ctx.currentTime+0.01, k, n, 1, 0.35);
+  voixEa(maintenantAudio()+0.01, k, n, 1, 0.35);
   EA.note = n;
   if(!EA.protect){
     if(EA.rec && S.run && EA.pos>=0){
@@ -9831,7 +9891,7 @@ function knobEa(id, champ, min, max, nom){
     }});
 }
 var kEaVol = knobEm("ea-k-vol",{min:0,max:1,get:function(){return S.vol;},set:function(v){
-  S.vol=v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  S.vol=v; if(master) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
   lcdEa(String(Math.round(v*100)),"VOLUME",true); saveSoon();
 }});
 var kEaPorta = knobEa("ea-k-porta","porta",0,1,"PORTAMENTO");
@@ -10230,7 +10290,7 @@ function sortieEs(k,t){
     ES.noeuds[k] = {g:g, p:pn, s:s, d:s2};
   }
   var n = ES.noeuds[k], son = ES.pat.son[k];
-  var quand = (t === undefined) ? ctx.currentTime : t;
+  var quand = (t === undefined) ? maintenantAudio() : t;
   var niv = mv("lvl", son.lvl), pano = mv("pan", son.pan);
   var lisse = !!(MOT && MOT.lisse);
   n.g.gain.cancelScheduledValues(quand);
@@ -10533,7 +10593,7 @@ function echantillonner(){
     var k=+b2.dataset.k;
     if(!ctx) audioInit();
     banqueEs(); busEffets();
-    if(k<9) jouerEs(ctx.currentTime+0.01, k, 1, ES.pos>=0?ES.pos:0);
+    if(k<9) jouerEs(maintenantAudio()+0.01, k, 1, ES.pos>=0?ES.pos:0);
     if(ES.rec && S.run && ES.pos>=0 && !ES.protect){
       var j=(ES.pos+1)%(ES.pat.len||16);
       ES.pat.st[k][j]=1;
@@ -10634,9 +10694,9 @@ function majDelaiEs(){
   if(!dlyNode) return;
   var t = ES.bpmSync ? (60/S.bpm)*[0.25,0.375,0.5,0.75,1][Math.min(4,Math.floor(ES.dTime*5))]
                      : 0.03 + ES.dTime*1.1;
-  dlyNode.delayTime.setTargetAtTime(Math.min(1.1,t), ctx.currentTime, 0.05);
-  if(dlyIn) dlyIn.gain.setTargetAtTime(ES.dDep*0.6, ctx.currentTime, 0.05);
-  if(dlyFb) dlyFb.gain.setTargetAtTime(0.12+ES.dDep*0.48, ctx.currentTime, 0.05);
+  dlyNode.delayTime.setTargetAtTime(Math.min(1.1,t), maintenantAudio(), 0.05);
+  if(dlyIn) dlyIn.gain.setTargetAtTime(ES.dDep*0.6, maintenantAudio(), 0.05);
+  if(dlyFb) dlyFb.gain.setTargetAtTime(0.12+ES.dDep*0.48, maintenantAudio(), 0.05);
 }
 
 /* --- mémoire --- */
@@ -10685,7 +10745,7 @@ function knobEs(id, champ, min, max, nom){
     }});
 }
 var kEsVol = knobEm("es-k-vol",{min:0,max:1,get:function(){return S.vol;},set:function(v){
-  S.vol=v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  S.vol=v; if(master) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
   lcdEs(String(Math.round(v*100)),"VOLUME",true); saveSoon();
 }});
 var kEsPitch = knobEs("es-k-pitch","pitch",-1,1,"PITCH/SPEED");
@@ -11102,7 +11162,7 @@ function sortieMx(k,t){
     MX.noeuds[k] = {g:g, p:pn, s:s, slot:-1};
   }
   var n = MX.noeuds[k], son = MX.pat.son[k];
-  var quand = (t===undefined) ? ctx.currentTime : t;
+  var quand = (t===undefined) ? maintenantAudio() : t;
   if(n.slot !== son.slot){
     try{ n.s.disconnect(); }catch(e){}
     n.s.connect(MX.entrees[son.slot||0]);
@@ -11513,8 +11573,8 @@ function majLcdMx(){
     if(k===9 || k===15) return;
     if(!ctx) audioInit();
     mxAudio();
-    if(k>=10) voixMxSynth(ctx.currentTime+0.01, k, MX.note, 1, 0.4);
-    else voixMxDrum(ctx.currentTime+0.01, k, 1);
+    if(k>=10) voixMxSynth(maintenantAudio()+0.01, k, MX.note, 1, 0.4);
+    else voixMxDrum(maintenantAudio()+0.01, k, 1);
     if(MX.rec && S.run && MX.pos>=0 && !MX.protect){
       var j=(MX.pos+1)%(MX.pat.len||16);
       MX.pat.st[k][j]=1;
@@ -11555,7 +11615,7 @@ function clavierMx(i){
   var p=MX.pat, k=MX.sel, n=noteClavierMx(i);
   if(!ctx) audioInit();
   mxAudio();
-  voixMxSynth(ctx.currentTime+0.01, k, n, 1, 0.4);
+  voixMxSynth(maintenantAudio()+0.01, k, n, 1, 0.4);
   MX.note=n;
   if(!MX.protect){
     if(MX.rec && S.run && MX.pos>=0){
@@ -11704,7 +11764,7 @@ function knobMx(id, champ, min, max, nom, synthSeul){
     }});
 }
 var kMxVol = knobEm("mx-k-vol",{min:0,max:1,get:function(){return S.vol;},set:function(v){
-  S.vol=v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  S.vol=v; if(master) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
   lcdMx(String(Math.round(v*100)),"MASTER VOLUME",true); saveSoon();
 }});
 var kMxTube = knobEm("mx-k-tube",{min:0,max:1,get:function(){return MX.tube;},set:function(v){
@@ -11799,7 +11859,7 @@ function majKnobsMx(){
     if(!ctx) audioInit();
     mxAudio();
     var k = (MX.sel>=10 && MX.sel!==15) ? MX.sel : 10;
-    voixMxSynth(ctx.currentTime+0.01, k, n, 1, 0.25);
+    voixMxSynth(maintenantAudio()+0.01, k, n, 1, 0.25);
     MX.note=n;
     lcdMx(nomNote(n), "ARPEGGIATOR", true);
   }
@@ -12164,7 +12224,7 @@ function sortieSx(k,t){
     SX.noeuds[k] = {g:g, p:pn, s:s, slot:-1};
   }
   var n = SX.noeuds[k], son = SX.pat.son[k];
-  var quand = (t===undefined) ? ctx.currentTime : t;
+  var quand = (t===undefined) ? maintenantAudio() : t;
   if(n.slot !== son.slot){
     try{ n.s.disconnect(); }catch(e){}
     n.s.connect(SX.entrees[son.slot||0]);
@@ -12450,8 +12510,8 @@ function majLcdSx(){
     if(k===9) return;
     if(!ctx) audioInit();
     sxAudio(); banqueEs();
-    if(k>=12) voixSxTranche(ctx.currentTime+0.01, k, 1, SX.pos>=0?SX.pos:0, SX.pat.len||16);
-    else voixSx(ctx.currentTime+0.01, k, 1, SX.pos>=0?SX.pos:0, k>=10?SX.note:undefined);
+    if(k>=12) voixSxTranche(maintenantAudio()+0.01, k, 1, SX.pos>=0?SX.pos:0, SX.pat.len||16);
+    else voixSx(maintenantAudio()+0.01, k, 1, SX.pos>=0?SX.pos:0, k>=10?SX.note:undefined);
     if(SX.rec && S.run && SX.pos>=0 && !SX.protect){
       var j=(SX.pos+1)%(SX.pat.len||16);
       SX.pat.st[k][j]=1;
@@ -12494,7 +12554,7 @@ function clavierSx(i){
   var p=SX.pat, k=SX.sel, n=noteClavierSx(i);
   if(!ctx) audioInit();
   sxAudio(); banqueEs();
-  voixSx(ctx.currentTime+0.01, k, 1, 0, n, 0.6);
+  voixSx(maintenantAudio()+0.01, k, 1, 0, n, 0.6);
   SX.note=n;
   if(!SX.protect){
     if(SX.rec && S.run && SX.pos>=0){
@@ -12645,7 +12705,7 @@ function knobSx(id, champ, min, max, nom){
     }});
 }
 var kSxVol = knobEm("sx-k-vol",{min:0,max:1,get:function(){return S.vol;},set:function(v){
-  S.vol=v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  S.vol=v; if(master) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
   lcdSx(String(Math.round(v*100)),"MASTER VOLUME",true); saveSoon();
 }});
 var kSxTube = knobEm("sx-k-tube",{min:0,max:1,get:function(){return SX.tube;},set:function(v){
@@ -12740,7 +12800,7 @@ function majKnobsSx(){
     if(!ctx) audioInit();
     sxAudio(); banqueEs();
     var k=(SX.sel>=10 && SX.sel<12) ? SX.sel : 10;
-    voixSx(ctx.currentTime+0.01, k, 1, 0, n, 0.35);
+    voixSx(maintenantAudio()+0.01, k, 1, 0, n, 0.35);
     SX.note=n;
     lcdSx(nomNote(n),"ARPEGGIATOR",true);
   }
@@ -13126,7 +13186,7 @@ function midiBrut(a,b,c){
 var midiAttente = [], midiOuvertes = [];
 function midiNoteA(note, t, vel, canal, duree){
   if(!midiPret() || !MIDI.out || note === undefined) return;
-  var d = Math.max(0, (t - ctx.currentTime)*1000);
+  var d = Math.max(0, (t - maintenantAudio())*1000);
   var ms = Math.max(40, Math.min(4000, (duree !== undefined ? duree*1000 : 90)));
   var id = setTimeout(function(){
     retirer(midiAttente, id);
@@ -13197,8 +13257,8 @@ function ticExterne(){
   if(!S.run || !ctx) return;
   if(SYNC.ticks % 6 === 0){
     if(SYNC.attente){ SYNC.attente = false; signal("HORLOGE REÇUE"); }
-    var t = ctx.currentTime + 0.03;      /* petite avance : elle absorbe la gigue du pont */
-    MACHINE.schedule(step, Math.max(ctx.currentTime + 0.005, t + decalageHumain()));
+    var t = maintenantAudio() + 0.03;      /* petite avance : elle absorbe la gigue du pont */
+    MACHINE.schedule(step, Math.max(maintenantAudio() + 0.005, t + decalageHumain()));
     if(METRO && step % 4 === 0) clicMetro(t, step === 0);
     step = (step+1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
     if(step === 0 && MACHINE.boucle) MACHINE.boucle();
@@ -13269,7 +13329,7 @@ function routageMidi(m){
       ids.push(id); notes.push(CR_MIDI[id]);
     }
     return {notes:notes, defaut:function(){ return 0; },
-            jouer:function(k, vel){ voixCr(ctx.currentTime + 0.01, ids[k], vel > 0.8); }};
+            jouer:function(k, vel){ voixCr(maintenantAudio() + 0.01, ids[k], vel > 0.8); }};
   }
 
   if(m === "arcm")
@@ -13308,7 +13368,7 @@ function entreeNote(note, vel, canal){
     busEffets();
     k = (note >= 36 && note <= 45) ? note-36 : ER.sel;
     if(k > 9) k = ER.sel;
-    if(ER_PARTS[k].t !== "accent") voixEr(ctx.currentTime+0.01, k, vel);
+    if(ER_PARTS[k].t !== "accent") voixEr(maintenantAudio()+0.01, k, vel);
     enregistrerEntree(ER, k, note, false);
     return;
   }
@@ -13316,28 +13376,28 @@ function entreeNote(note, vel, canal){
     banqueEs(); busEffets();
     k = (note >= 36 && note <= 44) ? note-36 : ES.sel;
     if(k > 8) k = ES.sel;
-    jouerEs(ctx.currentTime+0.01, k, vel, ES.pos >= 0 ? ES.pos : 0);
+    jouerEs(maintenantAudio()+0.01, k, vel, ES.pos >= 0 ? ES.pos : 0);
     enregistrerEntree(ES, k, note, false);
     return;
   }
   if(m === "ea1" || m === "ea2"){
     busEffets();
     k = (canal === 1) ? 1 : 0;
-    voixEa(ctx.currentTime+0.01, k, note, vel, 0.4);
+    voixEa(maintenantAudio()+0.01, k, note, vel, 0.4);
     enregistrerEntree(EA, k, note, true);
     return;
   }
   if(m === "emx"){
     mxAudio();
-    if(canal !== MIDI.canal){ k = 10 + Math.min(4, canal); voixMxSynth(ctx.currentTime+0.01, k, note, vel, 0.4); }
-    else { k = (note >= 36 && note <= 44) ? note-36 : MX.sel; if(k > 8) k = 0; voixMxDrum(ctx.currentTime+0.01, k, vel); }
+    if(canal !== MIDI.canal){ k = 10 + Math.min(4, canal); voixMxSynth(maintenantAudio()+0.01, k, note, vel, 0.4); }
+    else { k = (note >= 36 && note <= 44) ? note-36 : MX.sel; if(k > 8) k = 0; voixMxDrum(maintenantAudio()+0.01, k, vel); }
     enregistrerEntree(MX, k, note, k >= 10);
     return;
   }
   if(m === "esx"){
     sxAudio(); banqueEs();
-    if(canal !== MIDI.canal){ k = 10 + Math.min(1, canal); voixSx(ctx.currentTime+0.01, k, vel, 0, note, 0.5); }
-    else { k = (note >= 36 && note <= 44) ? note-36 : SX.sel; if(k > 8) k = 0; voixSx(ctx.currentTime+0.01, k, vel, SX.pos >= 0 ? SX.pos : 0); }
+    if(canal !== MIDI.canal){ k = 10 + Math.min(1, canal); voixSx(maintenantAudio()+0.01, k, vel, 0, note, 0.5); }
+    else { k = (note >= 36 && note <= 44) ? note-36 : SX.sel; if(k > 8) k = 0; voixSx(maintenantAudio()+0.01, k, vel, SX.pos >= 0 ? SX.pos : 0); }
     enregistrerEntree(SX, k, note, k >= 10 && k < 12);
     return;
   }
@@ -13347,8 +13407,8 @@ function entreeNote(note, vel, canal){
     if(canal !== MIDI.canal){ k = (canal === 1) ? 9 : 8; }
     else if(voix){ for(i=0;i<10;i++) if(EM_PARTS[i].v === voix){ k = i; break; } }
     if(k < 0) k = 8;
-    if(EM_PARTS[k].synth) voixSynth(ctx.currentTime+0.01, k, note, vel);
-    else jouerTimbre(EM.pat.tim[k], ctx.currentTime+0.01, vel, sortiePartie(k, ctx.currentTime+0.01));
+    if(EM_PARTS[k].synth) voixSynth(maintenantAudio()+0.01, k, note, vel);
+    else jouerTimbre(EM.pat.tim[k], maintenantAudio()+0.01, vel, sortiePartie(k, maintenantAudio()+0.01));
     if(EM.rec && S.run && EM.pos >= 0 && !EM.protect){
       var j = (EM.pos+1) % (EM.pat.len||16);
       EM.pat.st[k][j] = 1;
@@ -13366,7 +13426,7 @@ function entreeNote(note, vel, canal){
     /* la voix de la TD-3 est unique et permanente : si on ne coupe pas le
        glissando, une note reçue partirait de la hauteur du pas précédent */
     TD3.precSlide = false;
-    jouerTd3(ctx.currentTime + 0.01, {on:true, note:((demi % 12) + 12) % 12,
+    jouerTd3(maintenantAudio() + 0.01, {on:true, note:((demi % 12) + 12) % 12,
                                       oct:Math.max(-1, Math.min(1, oc)),
                                       acc:vel > 0.8, slide:false, tie:false}, 0.35);
     return;
@@ -13385,7 +13445,7 @@ function entreeNote(note, vel, canal){
   if(m === "eur") return;
 
   /* il ne reste que la DRM16 et la DRM32 */
-  if(voix && V[voix]) V[voix](ctx.currentTime+0.01, vel);
+  if(voix && V[voix]) V[voix](maintenantAudio()+0.01, vel);
 };
 /* enregistrement au vol, commun à toutes les machines */
 function enregistrerEntree(M, k, note, avecNote){
@@ -13751,6 +13811,15 @@ function enrArreterLecture(){
   ENR.tmr = [];
   if(ENR.lecture !== null){ ENR.lecture = null; midiSilence(); majEnrUI(); }
 }
+/* « Prise 3 » ne dit rien trois jours plus tard. */
+function enrNommer(i){
+  var p = ENR.prises[i];
+  if(!p) return;
+  var n = window.prompt("Nom de la prise :", p.nom);
+  if(n === null) return;
+  p.nom = n.trim().slice(0, 40) || p.nom;
+  enrEcrire(); majEnrUI(); H.cran();
+}
 function enrSupprimer(i){
   ENR.prises.splice(i, 1);
   enrEcrire(); majEnrUI(); H.inter();
@@ -13988,29 +14057,71 @@ function couleurVoie(v){
 /* La vue. Pendant l'enregistrement elle défile sur une fenêtre de huit
    secondes ; à l'arrêt elle montre la prise entière. Chaque note est un trait,
    sa hauteur donne sa position dans la bande, sa vélocité son opacité. */
+var ENR_H = 34, ENR_REGLE = 22;      /* hauteur d'une piste, hauteur de la règle */
+
+/* Les en-têtes de pistes, à gauche, alignés sur le dessin. */
+function majTetesEnr(pistes){
+  var d = document.getElementById("enr-tetes");
+  if(!d) return;
+  var sig = pistes.map(function(p){ return p.cle; }).join(",") + "|" + ENR.solo +
+            "|" + Object.keys(ENR.muet).join(",");
+  if(d.dataset.sig === sig) return;
+  d.dataset.sig = sig;
+  d.innerHTML = '<div class="enr-espace"></div>';
+  pistes.forEach(function(p){
+    var r = document.createElement("div");
+    r.className = "enr-tt";
+    var pa = document.createElement("i");
+    pa.style.background = couleurCanal(p.n < 0 ? p.c : p.n);
+    var t = document.createElement("b");
+    t.textContent = p.nom;
+    t.title = p.nom + " · canal " + (p.c + 1);
+    var bm = document.createElement("button");
+    bm.className = "coupe" + (ENR.muet[p.cle] ? " on" : "");
+    bm.textContent = "M";
+    bm.addEventListener("click", function(){
+      if(ENR.muet[p.cle]) delete ENR.muet[p.cle]; else ENR.muet[p.cle] = 1;
+      d.dataset.sig = ""; majTetesEnr(pistesEnr()); H.cran();
+    });
+    var bs = document.createElement("button");
+    bs.className = (ENR.solo === p.cle ? "on" : "");
+    bs.textContent = "S";
+    bs.addEventListener("click", function(){
+      ENR.solo = (ENR.solo === p.cle) ? "" : p.cle;
+      d.dataset.sig = ""; majTetesEnr(pistesEnr()); H.cran();
+    });
+    r.appendChild(pa); r.appendChild(t); r.appendChild(bm); r.appendChild(bs);
+    d.appendChild(r);
+  });
+}
+
 function dessinerEnr(){
   var cv = document.getElementById("enr-vue");
-  if(!cv) return;
-  var g = cv.getContext("2d");
-  var L = cv.width, H = cv.height;
-  g.fillStyle = "#0a0a0c"; g.fillRect(0, 0, L, H);
+  var boite = document.getElementById("enr-corps");
+  if(!cv || !boite) return;
 
   var pistes = pistesEnr();
+  majTetesEnr(pistes);
+
+  /* Le canevas prend la largeur restante et la hauteur des pistes : c'est la
+     boîte qui défile, pas le dessin qui se comprime. */
+  var L = Math.max(200, boite.clientWidth - 132);
+  var H = ENR_REGLE + Math.max(1, pistes.length) * ENR_H;
+  if(cv.width !== L) cv.width = L;
+  if(cv.height !== H) cv.height = H;
+  cv.style.width = L + "px"; cv.style.height = H + "px";
+
+  var g = cv.getContext("2d");
+  g.fillStyle = "#0a0a0c"; g.fillRect(0, 0, L, H);
+
   if(!pistes.length){
     g.fillStyle = "#4a4a52";
-    g.font = "16px 'Roboto Condensed',Arial";
-    g.fillText("En attente de MIDI…", 16, H / 2);
+    g.font = "14px 'Roboto Condensed',Arial";
+    g.fillText("En attente de MIDI…", 14, H / 2);
     return;
   }
-  /* Au-delà de seize pistes on ne verrait plus rien : on garde les plus
-     jouées, qui sont celles qui portent le morceau. */
-  if(pistes.length > 16){
-    pistes.sort(function(a, b){ return (ENR.vus[b.cle] || 0) - (ENR.vus[a.cle] || 0); });
-    pistes = pistes.slice(0, 16);
-    pistes.sort(function(a, b){ return (a.c - b.c) || (a.n - b.n); });
-  }
 
-  var FEN = 8000;                                  /* huit secondes de fenêtre */
+  var FEN = 8000;
   var maintenant = ENR.actif ? performance.now() - ENR.depart : 0;
   var evts = ENR.evts, t0, t1;
   if(ENR.actif){ t1 = Math.max(FEN, maintenant); t0 = t1 - FEN; }
@@ -14019,31 +14130,43 @@ function dessinerEnr(){
     t0 = 0; t1 = Math.max(FEN, fin);
   }
   var duree = Math.max(1, t1 - t0);
-  var h = H / pistes.length;
 
+  /* Les bandes, une par piste. */
   pistes.forEach(function(p, i){
-    var y = i * h;
-    g.fillStyle = (i % 2) ? "#121216" : "#0d0d11";
-    g.fillRect(0, y, L, h);
-    g.fillStyle = couleurCanal(p.n < 0 ? p.c : p.n);
-    g.fillRect(0, y, 4, h);
-    g.fillStyle = "#8a8790";
-    g.font = "600 11px 'Roboto Condensed',Arial";
-    g.fillText(p.nom, 10, y + Math.min(14, h - 3));
+    var y = ENR_REGLE + i * ENR_H;
+    g.fillStyle = (i % 2) ? "#101014" : "#0c0c10";
+    g.fillRect(0, y, L, ENR_H);
+    g.fillStyle = "#1c1c22";
+    g.fillRect(0, y + ENR_H - 1, L, 1);
   });
 
+  /* La règle : une graduation par seconde, chiffrée toutes les cinq. */
+  g.fillStyle = "#141418"; g.fillRect(0, 0, L, ENR_REGLE);
+  g.fillStyle = "#26262d"; g.fillRect(0, ENR_REGLE - 1, L, 1);
+  var s0 = Math.floor(t0 / 1000), s1 = Math.ceil(t1 / 1000);
+  var pas = Math.max(1, Math.round((s1 - s0) / 16));
+  g.font = "10px 'Roboto Condensed',Arial";
+  for(var sec = s0; sec <= s1; sec += pas){
+    var x = ((sec * 1000 - t0) / duree) * L;
+    if(x < 0 || x > L) continue;
+    g.fillStyle = "#2a2a33";
+    g.fillRect(x, ENR_REGLE, 1, H - ENR_REGLE);   /* la grille descend sur les pistes */
+    g.fillStyle = "#7a7780";
+    g.fillText(sec + "s", x + 3, 14);
+  }
+
+  /* Les notes. */
   for(var q=0;q<evts.length;q++){
     var e = evts[q];
     if(e[0] < t0 || e[0] > t1) continue;
     if((e[1] & 0xF0) !== 0x90 || e[3] === 0) continue;
     var rang = pisteDeEnr(pistes, e[1] & 0x0F, e[2]);
     if(rang < 0) continue;
-    var x = ((e[0] - t0) / duree) * L;
-    /* la vélocité donne la hauteur du trait : un coup fort se voit */
-    var ht = Math.max(3, (e[3] / 127) * (h - 6));
-    g.globalAlpha = 0.45 + (e[3] / 127) * 0.55;
+    var x2 = ((e[0] - t0) / duree) * L;
+    var ht = Math.max(4, (e[3] / 127) * (ENR_H - 8));
+    g.globalAlpha = 0.5 + (e[3] / 127) * 0.5;
     g.fillStyle = couleurCanal(pistes[rang].n < 0 ? pistes[rang].c : pistes[rang].n);
-    g.fillRect(x, rang * h + h - 3 - ht, 3, ht);
+    g.fillRect(x2, ENR_REGLE + rang * ENR_H + ENR_H - 4 - ht, 3, ht);
   }
   g.globalAlpha = 1;
 
@@ -14059,6 +14182,9 @@ function boucleEnr(){
   dessinerEnr();
   ENR.dessin = requestAnimationFrame(boucleEnr);
 }
+window.addEventListener("resize", function(){
+  if(document.getElementById("enr").classList.contains("show")) dessinerEnr();
+});
 function demarrerVueEnr(){
   if(ENR.dessin) return;
   ENR.dessin = requestAnimationFrame(boucleEnr);
@@ -14106,44 +14232,12 @@ function majCanauxEnr(){
 }
 /* La liste des pistes, avec coupe-son et solo. Reconstruite seulement quand
    elle change : sinon on écraserait un appui en cours. */
-function majPistesEnr(){
-  var d = document.getElementById("enr-pistes");
-  if(!d) return;
-  var pistes = pistesEnr();
-  if(!pistes.length){ d.innerHTML = ""; d.dataset.sig = ""; return; }
-  var sig = pistes.map(function(p){ return p.cle; }).join(",") + "|" + ENR.solo +
-            "|" + Object.keys(ENR.muet).join(",");
-  if(d.dataset.sig === sig) return;
-  d.dataset.sig = sig;
-  d.innerHTML = "";
-  pistes.forEach(function(p){
-    var r = document.createElement("div");
-    r.className = "enr-piste";
-    var pa = document.createElement("i");
-    pa.style.background = couleurCanal(p.n < 0 ? p.c : p.n);
-    var t = document.createElement("b");
-    t.textContent = p.nom + (ENR.decoupe === "son" ? ("  ·  ch" + (p.c + 1)) : "");
-    var bm = document.createElement("button");
-    bm.className = "coupe" + (ENR.muet[p.cle] ? " on" : "");
-    bm.textContent = "COUPE";
-    bm.addEventListener("click", function(){
-      if(ENR.muet[p.cle]) delete ENR.muet[p.cle]; else ENR.muet[p.cle] = 1;
-      majPistesEnr(); H.cran();
-    });
-    var bs = document.createElement("button");
-    bs.className = (ENR.solo === p.cle ? "on" : "");
-    bs.textContent = "SOLO";
-    bs.addEventListener("click", function(){
-      ENR.solo = (ENR.solo === p.cle) ? "" : p.cle;
-      majPistesEnr(); H.cran();
-    });
-    r.appendChild(pa); r.appendChild(t); r.appendChild(bm); r.appendChild(bs);
-    d.appendChild(r);
-  });
-}
+/* Les en-têtes remplacent l'ancienne liste de pistes : même rôle, mais alignés
+   sur le dessin plutôt qu'empilés en dessous. */
+function majPistesEnr(){ majTetesEnr(pistesEnr()); }
 document.getElementById("enr-attente").addEventListener("click", function(){
   ENR.attente = !ENR.attente;
-  this.textContent = ENR.attente ? "DÉPART : À LA PREMIÈRE NOTE" : "DÉPART : IMMÉDIAT";
+  this.textContent = ENR.attente ? "DÉPART : 1re NOTE" : "DÉPART : IMMÉDIAT";
   H.cran();
 });
 document.getElementById("enr-boucle").addEventListener("click", function(){
@@ -14158,7 +14252,7 @@ document.getElementById("enr-decoupe").addEventListener("click", function(){
      couperait des pistes au hasard. */
   ENR.solo = ""; ENR.muet = {};
   majPistesEnr();
-  this.textContent = (ENR.decoupe === "son") ? "PISTES : UNE PAR SON" : "PISTES : UNE PAR CANAL";
+  this.textContent = (ENR.decoupe === "son") ? "PISTES : PAR SON" : "PISTES : PAR CANAL";
   H.cran();
 });
 function majEnrUI(){
@@ -14176,15 +14270,6 @@ function majEnrUI(){
     : (MIDI.ouvert < 0 ? "Aucun appareil MIDI ouvert. Cherchez-le dans la notice, onglet Général."
                        : "Prêt. Jouez sur la Korg : le son sort du téléphone.");
   majCanauxEnr();
-  var lg = document.getElementById("enr-legende");
-  if(lg){
-    var cans = canauxEnr();
-    lg.textContent = cans.length
-      ? (pistesEnr().length + " sons reçus sur " + cans.length +
-         (cans.length > 1 ? " canaux (" : " canal (") +
-         cans.map(function(c){ return c + 1; }).join(", ") + ")")
-      : "Rien reçu pour le moment.";
-  }
   var l = document.getElementById("enr-liste");
   l.innerHTML = "";
   if(!ENR.prises.length){
@@ -14195,12 +14280,15 @@ function majEnrUI(){
     var d = document.createElement("div");
     d.className = "enr-prise" + (ENR.lecture === i ? " joue" : "");
     d.innerHTML = '<b>' + p.nom + '</b><span>' + p.date + ' · ' + dureeTexte(p.duree) +
-                  ' · ' + p.evts.length + ' évén. · ' + p.bpm + ' BPM</span>';
+                  ' · ' + p.evts.length + ' évén. · ' + p.bpm + ' BPM' +
+                  (p.tempoMesure ? ' (mesuré)' : '') + '</span>';
     var barre = document.createElement("div");
     barre.className = "enr-actions";
     [["▶ JOUER", function(){ enrJouer(i); }],
      ["■ STOP", function(){ enrArreterLecture(); }],
      [".MID", function(){ enrExporter(i); }],
+     [".WAV", function(){ exporterPriseWav(i); }],
+     ["NOMMER", function(){ enrNommer(i); }],
      ["SUPPRIMER", function(){ enrSupprimer(i); }]].forEach(function(x){
       var bb = document.createElement("button");
       bb.className = "sec";
@@ -14405,7 +14493,7 @@ var MACHINE_MPC = {schedule:scheduleMpc, beat:beatMpc, arret:arretMpc, boucle:bo
 function ticCourant(){
   if(MPC.pos < 0 || !ctx) return 0;
   var tp = ticParPas();
-  var frac = (ctx.currentTime - MPC.tStep) / stepDur();
+  var frac = (maintenantAudio() - MPC.tStep) / stepDur();
   frac = Math.max(0, Math.min(0.999, frac));
   return (MPC.pos * tp + frac * tp) % ticsMpc();
 }
@@ -14419,8 +14507,8 @@ function frapperPad(k, vel){
   audioInit();
   if(!ctx) return;
   var pi = pisteCourante();
-  if(pi.type === 0) jouerPad(ctx.currentTime + 0.005, k, vel);
-  else midiNoteA(MPC.pads[k].note, ctx.currentTime + 0.005, vel, pi.canal, 0.25);
+  if(pi.type === 0) jouerPad(maintenantAudio() + 0.005, k, vel);
+  else midiNoteA(MPC.pads[k].note, maintenantAudio() + 0.005, vel, pi.canal, 0.25);
   MPC.sel = k;
   if(MPC.attente){                          /* WAIT FOR KEY : la première frappe lance tout */
     MPC.attente = false;
@@ -14790,7 +14878,7 @@ function knobMpc(id, champ, min, max, nom){
     }});
 }
 var kMpcVol = knobEm("mpc-k-vol", {min:0, max:1, get:function(){ return S.vol; },
-  set:function(v){ S.vol = v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02); saveSoon(); }});
+  set:function(v){ S.vol = v; if(master) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02); saveSoon(); }});
 var kMpcGain = knobEm("mpc-k-gain", {min:0, max:1, get:function(){ return MPC.gain || 0.5; },
   set:function(v){ MPC.gain = v; }});
 var kMpcNiv  = knobMpc("mpc-k-niv", "niv", 0, 1, "LEVEL");
@@ -14829,7 +14917,7 @@ function majKnobsMpc(){
       if(!n){ majLcdMpc(); return; }
       MPC.evtSel = (MPC.evtSel + d + n) % n;
       var e = pl.evts[MPC.evtSel];
-      if(ctx && pl.type === 0) jouerPad(ctx.currentTime + 0.01, e.n, e.vel);
+      if(ctx && pl.type === 0) jouerPad(maintenantAudio() + 0.01, e.n, e.vel);
       majLcdMpc(); H.cran();
       return;
     }
@@ -14853,7 +14941,7 @@ function majKnobsMpc(){
       i = ((i < 0 ? 0 : i) + d + l.length) % l.length;
       p.ech = l[i];
       delete ES.inv[l[i]];
-      jouerPad(ctx ? ctx.currentTime + 0.01 : 0, MPC.sel, 0.9);
+      jouerPad(ctx ? maintenantAudio() + 0.01 : 0, MPC.sel, 0.9);
       majPadsMpc();
     }
     majLcdMpc(); H.cran();
@@ -15693,7 +15781,7 @@ function voixTr(t, k, acc){
 function frapperTr(k, acc){
   audioInit();
   if(!ctx || k < 1) return;
-  voixTr(ctx.currentTime + 0.005, k, acc);
+  voixTr(maintenantAudio() + 0.005, k, acc);
   if(S.run && TR.ecrit && TR.pat){
     var j = pasLePlusProche(TR.pos, TR.pat.last || 16);
     if(j >= 0){
@@ -15805,7 +15893,7 @@ function construireTr(){
     TR.pat[v][TR.sel][i2] = TR.pat[v][TR.sel][i2] ? 0 : 1;
     if(!S.run && TR.pat[v][TR.sel][i2]){
       audioInit();
-      voixTr(ctx.currentTime + 0.01, TR.sel, !!TR.pat[v][0][i2]);
+      voixTr(maintenantAudio() + 0.01, TR.sel, !!TR.pat[v][0][i2]);
     }
     majTr(); memTr(); H.cran();
   });
@@ -15818,7 +15906,7 @@ function construireTr(){
 })();
 
 var kTrVol = knobEm("tr8-k-vol", {min:0, max:1, get:function(){ return S.vol; },
-  set:function(v){ S.vol = v; if(master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  set:function(v){ S.vol = v; if(master) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
     lcdTr(String(Math.round(v*100)), "VOLUME", true); saveSoon(); }});
 var kTrTone = knobEm("tr8-k-tone", {min:0, max:1, get:function(){ return TR.tone; },
   set:function(v){ TR.tone = v; majBusTr(); lcdTr(String(Math.round(v*100)), "TONE", true); memTr(); }});
@@ -19074,8 +19162,8 @@ function arretTd3(){
   for(var j=0;j<16;j++) td3Pas[j].classList.remove("cur");
   if(TD3.noeuds){
     try{
-      TD3.noeuds.vca.gain.cancelScheduledValues(ctx.currentTime);
-      TD3.noeuds.vca.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.01);
+      TD3.noeuds.vca.gain.cancelScheduledValues(maintenantAudio());
+      TD3.noeuds.vca.gain.setTargetAtTime(0.0001, maintenantAudio(), 0.01);
     }catch(e){}
   }
   var b = document.getElementById("td3-play");
@@ -19122,7 +19210,7 @@ var TD3_KNOBS = [];
     audioInit();
     if(!S.run){
       TD3.precSlide = false;
-      jouerTd3(ctx.currentTime + 0.01, p, 0.35);
+      jouerTd3(maintenantAudio() + 0.01, p, 0.35);
     }
     majTd3(); memTd3(); H.cran();
   });
@@ -19158,7 +19246,7 @@ function knobTd3(nom, etiq){
 var kTd3Drive = knobEm("td3-k-drive", {min:0, max:1, get:function(){ return TD3.drive; },
   set:function(v){ TD3.drive = v; majTonTd3(); lcdTd3(String(Math.round(v*100)), "DRIVE", true); memTd3(); }});
 var kTd3Vol = knobEm("td3-k-vol", {min:0, max:1, get:function(){ return S.vol; },
-  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
     lcdTd3(String(Math.round(v*100)), "VOLUME", true); saveSoon(); }});
 var kTd3Tempo = knobEm("td3-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 40) / 220; },
   set:function(v){ S.bpm = Math.round(40 + v*220); lcdTd3(String(S.bpm), "TEMPO", true); saveSoon(); }});
@@ -19509,7 +19597,7 @@ function voixArcm(t, k, acc){
 function frapperArcm(k, acc){
   audioInit();
   if(!ctx) return;
-  voixArcm(ctx.currentTime + 0.005, k, acc);
+  voixArcm(maintenantAudio() + 0.005, k, acc);
   if(S.run && ARCM.rec){
     var m = motifArcmCur();
     var j = pasLePlusProche(ARCM.pos, m.last || 16);
@@ -19698,7 +19786,7 @@ function arcmSuite(m, choisis, i, motif){
       P.pas ^= (1 << i2);
       if(!S.run && (P.pas & (1 << i2))){
         audioInit();
-        voixArcm(ctx.currentTime + 0.01, ARCM.sel, !!(P.acc & (1 << i2)));
+        voixArcm(maintenantAudio() + 0.01, ARCM.sel, !!(P.acc & (1 << i2)));
       }
     }
     majArcm(); memArcm(); H.cran();
@@ -19745,7 +19833,7 @@ var kArcmVerb = knobArcmGlobal("verb", "REVERB", function(v){
 var kArcmDebut = knobArcm("debut", "START", 0, 1);
 var kArcmFilt = knobArcm("filt", "FILTER", 0, 1);
 var kArcmVol = knobEm("arcm-k-vol", {min:0, max:1, get:function(){ return S.vol; },
-  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
     lcdArcm(String(Math.round(v*100)), "VOLUME", true); saveSoon(); }});
 var kArcmTempo = knobEm("arcm-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 40) / 220; },
   set:function(v){ S.bpm = Math.round(40 + v*220); lcdArcm(String(S.bpm), "TEMPO", true); saveSoon(); }});
@@ -20188,7 +20276,7 @@ function voixT1k(t, k, acc){
 function frapperT1k(k, acc){
   audioInit();
   if(!ctx) return;
-  voixT1k(ctx.currentTime + 0.005, k, acc);
+  voixT1k(maintenantAudio() + 0.005, k, acc);
   if(S.run && T1K.rec){
     var m = motifT1kCur();
     var j = pasLePlusProche(T1K.pos, m.last || 16);
@@ -20299,7 +20387,7 @@ var T1K_KNOBS = [];
       m.pas[k] ^= (1 << i2);
       if(!S.run && (m.pas[k] & (1 << i2))){
         audioInit();
-        voixT1k(ctx.currentTime + 0.01, k, !!(m.acc[k] & (1 << i2)));
+        voixT1k(maintenantAudio() + 0.01, k, !!(m.acc[k] & (1 << i2)));
       }
     }
     majT1k(); memT1k(); H.cran();
@@ -20344,7 +20432,7 @@ var kT1kRev = knobFxT1k("t1k-k-rev", T1K.mfx, "rev", "REVERB");
 var kT1kDly = knobFxT1k("t1k-k-dly", T1K.mfx, "dly", "DELAY");
 var kT1kFb = knobFxT1k("t1k-k-fb", T1K.mfx, "fb", "FEEDBACK");
 var kT1kVol = knobEm("t1k-k-vol", {min:0, max:1, get:function(){ return S.vol; },
-  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
     lcdT1k(String(Math.round(v*100)), "VOLUME", true); saveSoon(); }});
 var kT1kTempo = knobEm("t1k-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 30) / 270; },
   set:function(v){ S.bpm = Math.round(30 + v*270); lcdT1k(String(S.bpm), "TEMPO", true); saveSoon(); }});
@@ -20491,7 +20579,7 @@ document.getElementById("t1k-ech").addEventListener("click", function(){
   var i = l.indexOf(I.ech);
   I.ech = l[((i < 0 ? 0 : i) + 1) % l.length];
   if(I.mix < 0.1) I.mix = 0.5;
-  voixT1k(ctx.currentTime + 0.01, T1K.sel, true);
+  voixT1k(maintenantAudio() + 0.01, T1K.sel, true);
   majT1k(); majKnobsT1k(); memT1k(); H.cran();
   signal("COUCHE B : " + nomBib(I.ech));
 });
@@ -20707,7 +20795,7 @@ function voixDbi(t, k, acc){
 function frapperDbi(k, acc){
   audioInit();
   if(!ctx) return;
-  voixDbi(ctx.currentTime + 0.005, k, acc);
+  voixDbi(maintenantAudio() + 0.005, k, acc);
   if(S.run && DBI.rec){
     var P = motifDbiCur().pistes[k];
     var j = pasLePlusProche(DBI.pos, P.len || 16);
@@ -20828,7 +20916,7 @@ var DBI_KNOBS = [];
       P.pas ^= (1 << i2);
       if(!S.run && (P.pas & (1 << i2))){
         audioInit();
-        voixDbi(ctx.currentTime + 0.01, DBI.sel, !!(P.acc & (1 << i2)));
+        voixDbi(maintenantAudio() + 0.01, DBI.sel, !!(P.acc & (1 << i2)));
       }
     }
     majDbi(); memDbi(); H.cran();
@@ -20854,7 +20942,7 @@ var kDbiRand = knobEm("dbi-k-random", {min:0, max:1, get:function(){ return DBI.
 var kDbiDrive = knobEm("dbi-k-drive", {min:0, max:1, get:function(){ return DBI.drive; },
   set:function(v){ DBI.drive = v; majDistDbi(); lcdDbi(String(Math.round(v*100)), "DISTORTION", true); memDbi(); }});
 var kDbiVol = knobEm("dbi-k-vol", {min:0, max:1, get:function(){ return S.vol; },
-  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
     lcdDbi(String(Math.round(v*100)), "MASTER", true); saveSoon(); }});
 var kDbiTempo = knobEm("dbi-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 30) / 270; },
   set:function(v){ S.bpm = Math.round(30 + v * 270); lcdDbi(String(S.bpm), "RATE", true); saveSoon(); }});
@@ -21265,7 +21353,7 @@ function knobCr(nom, etiq){
 [["bd","BASS DRUM"],["sd","SNARE"],["cga","CONGA"],["clv","CLAVES"],["cym","CYMBAL"],
  ["acc","ACCENT"]].forEach(function(x){ CR_KNOBS.push(knobCr(x[0], x[1])); });
 var kCrVol = knobEm("cr-k-vol", {min:0, max:1, get:function(){ return S.vol; },
-  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+  set:function(v){ S.vol = v; if(master && ctx) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
     lcdCr(String(Math.round(v*100)), "VOLUME", true); saveSoon(); }});
 var kCrTempo = knobEm("cr-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 40) / 220; },
   set:function(v){ S.bpm = Math.round(40 + v * 220); lcdCr(String(S.bpm), "TEMPO", true); saveSoon(); }});
@@ -21347,7 +21435,7 @@ document.getElementById("cr-register").addEventListener("click", function(){
 });
 document.getElementById("cr-crash").addEventListener("click", function(){
   audioInit();
-  voixCr(ctx.currentTime + 0.01, "cym", true);
+  voixCr(maintenantAudio() + 0.01, "cym", true);
   H.inter();
 });
 document.getElementById("cr-notice").addEventListener("click", function(){ ouvrirNotice(); });
@@ -21486,7 +21574,7 @@ function voixVlc(t, k, pas){
 function frapperVlc(k){
   audioInit();
   if(!ctx) return;
-  voixVlc(ctx.currentTime + 0.005, k);
+  voixVlc(maintenantAudio() + 0.005, k);
   if(S.run && VLC.recPas){
     var j = pasLePlusProche(VLC.pos, 16);
     if(j >= 0){
@@ -21629,7 +21717,7 @@ var VLC_KNOBS = [];
     P.pas ^= (1 << i2);
     if(!S.run && (P.pas & (1 << i2))){
       audioInit();
-      voixVlc(ctx.currentTime + 0.01, VLC.sel, i2);
+      voixVlc(maintenantAudio() + 0.01, VLC.sel, i2);
     }
     majVlc(); memVlc(); H.cran();
   });
@@ -21753,7 +21841,7 @@ document.getElementById("vlc-son").addEventListener("click", function(){
   var i = l.indexOf(P.ech);
   P.ech = l[((i < 0 ? 0 : i) + 1) % l.length];
   delete ES.inv[P.ech];
-  voixVlc(ctx.currentTime + 0.01, VLC.sel);
+  voixVlc(maintenantAudio() + 0.01, VLC.sel);
   majVlc(); memVlc(); H.cran();
 });
 document.getElementById("vlc-motif").addEventListener("click", function(){
@@ -22021,7 +22109,7 @@ var MACHINE_DMX = {schedule:scheduleDmx, beat:beatDmx, arret:arretDmx, boucle:bo
 function ticDmx(){
   if(DMX.pos < 0 || !ctx) return 0;
   var tp = DMX_TPQ / 4;
-  var f = Math.max(0, Math.min(0.999, (ctx.currentTime - DMX.tStep) / stepDur()));
+  var f = Math.max(0, Math.min(0.999, (maintenantAudio() - DMX.tStep) / stepDur()));
   return (DMX.pos * tp + f * tp) % ticsDmx();
 }
 function caleDmx(tic){
@@ -22033,7 +22121,7 @@ function caleDmx(tic){
 function frapperDmx(k){
   audioInit();
   if(!ctx) return;
-  voixDmx(ctx.currentTime + 0.005, k, 1);
+  voixDmx(maintenantAudio() + 0.005, k, 1);
   if(S.run && DMX.rec){
     var s = seqDmxCur();
     DMX.annule = s.evts.slice();
@@ -22072,7 +22160,7 @@ var DMX_FADERS = [["bass","BASS"],["snare","SNARE"],["hat","HI-HAT"],["toms","TO
     var nom = rail.dataset.f;
     if(nom === "vol"){
       S.vol = v;
-      if(master && ctx) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+      if(master && ctx) master.gain.setTargetAtTime(v, maintenantAudio(), 0.02);
       saveSoon();
     } else DMX.niv[nom] = v;
     rail.querySelector("b").style.top = Math.round(y * (r.height - 18)) + "px";
@@ -22668,6 +22756,107 @@ function exporterWav(){
     remettre();
     signal("RENDU ÉCHOUÉ");
   });
+}
+
+/* ================= rendre une prise MIDI en WAV =================
+   Une prise exportée en .mid contient des NOTES : il faut la même application
+   pour la réentendre. En WAV, on repart avec le SON — le téléphone devient
+   vraiment autonome pour enregistrer un live.
+
+   On rejoue les événements dans un contexte hors ligne, exactement comme
+   l'export du séquenceur. La différence : au lieu d'un motif qui se répète,
+   on déroule la liste des événements datés, chacun sur la machine à laquelle
+   son canal est aiguillé. */
+function exporterPriseWav(i){
+  var prise = ENR.prises[i];
+  if(!prise || !prise.evts.length){ signal("PRISE VIDE"); return; }
+  if(WAVX.occupe){ signal("UN RENDU EST DÉJÀ EN COURS"); return; }
+  audioInit();
+  if(!ctx){ signal("AUDIO INDISPONIBLE"); return; }
+  var pont = window.DRM16;
+  if(!pont || !pont.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
+
+  WAVX.occupe = true;
+  signal("RENDU DE LA PRISE…");
+  var modele = S.modele;
+  var total = prise.duree / 1000 + 3;            /* trois secondes pour les queues */
+  var taux = 44100;
+
+  var ctxVrai = ctx, masterVrai = master, bruitVrai = noiseBuf, cacheVrai = cache;
+  var sortiesVraies = {outBd:outBd, outMix:outMix, panBd:panBd, panMix:panMix};
+  var off;
+  try{ off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(taux * total), taux); }
+  catch(e){ WAVX.occupe = false; signal("RENDU IMPOSSIBLE SUR CET APPAREIL"); return; }
+
+  ctx = off;
+  batirAudio();
+  cache = true;
+
+  function remettre(){
+    WAVX.occupe = false;
+    ctx = ctxVrai; master = masterVrai; noiseBuf = bruitVrai; cache = cacheVrai;
+    razNoeudsMachines();
+    outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
+    panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
+    try{ allerMachine(modele); }catch(e){ signal("MACHINE À RECHARGER"); }
+  }
+
+  /* Le rendu hors ligne n'a pas d'horloge qui avance : entreeNote joue à
+     maintenantAudio(), qui reste à zéro. On décale donc la référence nous-mêmes,
+     en déplaçant temporairement l'instant de chaque note. */
+  var joues = 0, sautes = 0;
+  try{
+    prise.evts.forEach(function(e){
+      if((e[1] & 0xF0) !== 0x90 || e[3] === 0) return;
+      var canal = e[1] & 0x0F;
+      if(!passeEnr(canal, e[2])){ sautes++; return; }
+      var mach = ENR.canaux[canal] || prise.machine || modele;
+      OFF_T = 0.05 + e[0] / 1000;                /* l'instant de cette note */
+      try{
+        allerMachineRendu(mach);
+        entreeNote(e[2], e[3] / 127, canal);
+        joues++;
+      }catch(err){ sautes++; }
+    });
+  }catch(e){
+    OFF_T = -1; remettre();
+    signal("RENDU INTERROMPU · " + ((e && e.message) ? e.message.slice(0, 40) : ""));
+    return;
+  }
+  OFF_T = -1;
+  if(!joues){ remettre(); signal("AUCUNE NOTE À RENDRE"); return; }
+
+  off.startRendering().then(function(rendu){
+    var crete = 0, c0 = rendu.getChannelData(0);
+    for(var q=0;q<c0.length;q++){ var a = Math.abs(c0[q]); if(a > crete) crete = a; }
+    var ab = wavStereo(rendu);
+    remettre();
+    var nom = "drm-" + (prise.nom.replace(/[^A-Za-z0-9]/g, "") || "prise") + "-" +
+              Date.now().toString(36) + ".wav";
+    var chemin = "";
+    try{ chemin = pont.fichierSauver(nom, b64De(ab)); }catch(e){}
+    if(chemin){
+      signal(nom + " · " + Math.round(ab.byteLength / 1024) + " ko · " + joues + " notes · CRÊTE " +
+             (crete > 0 ? (20 * Math.log10(crete)).toFixed(1) : "-∞") + " dB");
+      var e2 = document.getElementById("enr-chemin");
+      if(e2) e2.textContent = "Dernier fichier : " + chemin;
+    } else signal("ÉCRITURE REFUSÉE");
+    majEnrUI();
+    H.inter();
+  }).catch(function(){
+    remettre();
+    signal("RENDU ÉCHOUÉ");
+  });
+}
+/* Changer de machine pendant un rendu sans toucher à l'affichage : allerMachine
+   reconstruit des façades, ce qui n'a aucun sens hors ligne et coûte cher quand
+   un live alterne entre deux machines à chaque note. On ne rebâtit donc que si
+   la machine change vraiment. */
+var RENDU_MACHINE = "";
+function allerMachineRendu(m){
+  if(m === RENDU_MACHINE) return;
+  RENDU_MACHINE = m;
+  allerMachine(m);
 }
 
 /* ================= la collection archive.org =================
