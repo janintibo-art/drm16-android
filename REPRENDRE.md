@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **120**.
+La version actuelle est la **121**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,27 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**KAOSS PAD : une source, et tout l'écran — v121**
+
+Deux reproches, le premier étant une **faute de conception de ma part**.
+
+*« Je n'arrive pas à sortir de son. »* Normal : j'en avais fait un **effet sans source**. Et j'avais mal
+lu la machine — sur un KP3, **A à D sont des banques d'échantillons**, pas des groupes d'effets. Je les
+avais câblées sur le choix de l'effet, ce qui privait la machine de la seule chose qui la fait sonner.
+Corrigé : quatre banques qui jouent en boucle, bouton `SON` pour changer l'échantillon de la banque
+choisie. La machine se suffit désormais à elle-même.
+- `banqueKp(k, allumer)` **relance toujours une source neuve** : un `BufferSource` arrêté ne se rallume
+  jamais, c'est la règle de Web Audio. Vérifié, y compris qu'éteindre n'en relance pas une.
+- `toutArreterKp()` dans `arretKp` : quitter la machine ne laisse aucune boucle tourner.
+
+*Le pavé était trop petit.* `body.kp .kpb` passe en colonne sur `min-height:82vh`, réglages en haut en
+lignes de quatre, **pavé en `flex:1`** — il prend toute la hauteur restante. Point du doigt agrandi à
+34 px.
+
+**La leçon** : avant de porter une machine, vérifier **à quoi servent ses commandes sur l'original**. Des
+banques d'échantillons transformées en sélecteur d'effet, ce n'est pas une simplification, c'est un
+contresens qui rend la machine muette.
 
 **Sommaire des modules, et le KAOSS PAD — v120**
 

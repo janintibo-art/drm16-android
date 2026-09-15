@@ -1274,50 +1274,52 @@ body.tr7 .tr8-pas button.c0{background:linear-gradient(180deg,#f8b478,#e2802a)}
 .pick.p707{background:linear-gradient(165deg,#cfcdc8,#45443f 55%,#6e6c66)}
 .pick.p707 b{color:#f6f5f2;text-shadow:0 2px 0 #33322e}
 .pick.p707 span{color:#dbd9d3}
-/* Le KAOSS PAD : le pavé occupe le centre et prend toute la place qu'il peut.
-   C'est la seule machine de l'application dont la commande principale est une
-   surface et non un bouton. */
-.kpb{display:none;max-width:560px;margin:0 auto;background:#12201a;border-radius:12px;
-  padding:14px 16px 18px;border:1px solid #1e3a2c}
-body.kp .kpb{display:block}
-body.kp #unit,body.kp .akai,body.kp .arcmb,body.kp .crb,body.kp .dbib,body.kp .dmxb,body.kp .ea,body.kp .em,body.kp .er,body.kp .es,body.kp .kob,body.kp .korgv,body.kp .mx,body.kp .rtr,body.kp .stkb,body.kp .sx,body.kp .t1kb,body.kp .mcb{display:none}
-body.m32 .kpb,body.em1 .kpb,body.er1 .kpb,body.ea1 .kpb,body.es1 .kpb,body.emx .kpb,body.esx .kpb,body.mk2 .kpb,body.mpc .kpb,body.mpc2 .kpb,body.tr8 .kpb,body.tr9 .kpb,body.tr7 .kpb,body.rd6 .kpb,body.td3 .kpb,body.eur .kpb,body.dmx .kpb,body.vlc .kpb,body.cr5 .kpb,body.dbi .kpb,body.t1k .kpb,body.arcm .kpb,body.ko .kpb,body.stk .kpb,body.mc .kpb,body.c1 .kpb,body.c2 .kpb,body.c3 .kpb,body.c4 .kpb,body.c5 .kpb,body.t1 .kpb,body.t2 .kpb,body.t3 .kpb,body.t4 .kpb{display:none}
-.kp-haut{display:flex;align-items:baseline;gap:10px;margin-bottom:11px}
+/* Le KAOSS PAD prend tout l'écran : réglages en haut, pavé en bas, aussi grand
+   que la place le permet. C'est la seule machine dont la commande principale
+   est une surface — la rétrécir pour faire tenir des boutons à côté serait la
+   priver de ce qui la rend jouable. */
+.kpb{display:none;max-width:680px;margin:0 auto;background:#12201a;border-radius:12px;
+  padding:12px 14px 14px;border:1px solid #1e3a2c}
+body.kp .kpb{display:flex;flex-direction:column;min-height:82vh}
+.kp-haut{flex:none;display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
 .kp-marque{font:800 17px/1 "Roboto Condensed",Arial;color:#f0f0f2}
-.kp-sous{flex:1;font:700 7.5px/1 "Roboto Condensed",Arial;letter-spacing:1.6px;color:#6a8a78}
+.kp-sous{flex:1;min-width:0;font:700 7.5px/1.2 "Roboto Condensed",Arial;letter-spacing:1.4px;
+  color:#6a8a78;overflow:hidden}
 .kp-nom{font:800 19px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#e8e8ea}
-.kp-banques{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
-.kp-banques button{padding:10px 3px;border:0;border-radius:6px;background:#1b2e24;color:#a8c0b4;
-  font:800 11px/1 "Roboto Condensed",Arial}
+.kp-reglages{flex:none;display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.kp-banques{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.kp-banques button{padding:12px 3px;border:0;border-radius:7px;background:#1b2e24;color:#a8c0b4;
+  font:800 12px/1.2 "Roboto Condensed",Arial}
+.kp-banques button em{display:block;margin-top:3px;font:400 7.5px/1.1 "Roboto Condensed",Arial;
+  font-style:normal;opacity:.7;overflow:hidden;white-space:nowrap}
 .kp-banques button.on{background:#e8344a;color:#fff}
-.kp-corps{display:flex;gap:10px;align-items:stretch;margin-bottom:11px}
-.kp-cote{flex:none;width:96px;display:flex;flex-direction:column;gap:6px}
-.kp-cote button{margin:0;padding:10px 3px;border:0;border-radius:6px;background:#1b2e24;
-  color:#a8c0b4;font:800 8.5px/1.2 "Roboto Condensed",Arial;letter-spacing:.6px}
-.kp-cote button.on{background:#e8344a;color:#fff}
-.kp-cote label{font:800 8px/1.4 "Roboto Condensed",Arial;letter-spacing:1.2px;color:#6a8a78}
-.kp-cote input{width:100%;margin:0}
-/* Le pavé : cadre rouge, grille, et la trace du geste enregistré. */
-.kp-pav{flex:1;min-width:0;aspect-ratio:1/1;position:relative;border-radius:5px;
+.kp-ligne{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.kp-ligne button{margin:0;padding:10px 3px;border:0;border-radius:6px;background:#1b2e24;
+  color:#a8c0b4;font:800 9px/1.2 "Roboto Condensed",Arial;letter-spacing:.5px}
+.kp-ligne button.on{background:#e8344a;color:#fff}
+.kp-prof-l{grid-template-columns:auto 1fr 1.4fr;align-items:center}
+.kp-prof-l label{font:800 8px/1.2 "Roboto Condensed",Arial;letter-spacing:1.2px;color:#6a8a78}
+.kp-prof-l input{width:100%;margin:0}
+.kp-lcd{background:#0a1410;border:1px solid #24483a;border-radius:4px;padding:5px 8px;
+  overflow:hidden}
+.kp-lcd b{display:block;font:800 9px/1.2 "Roboto Condensed",Arial;color:#7ee8a8;
+  white-space:nowrap;overflow:hidden}
+.kp-lcd u{display:block;margin-top:2px;text-decoration:none;
+  font:700 7.5px/1.2 "Roboto Condensed",Arial;color:#4a7a5e;white-space:nowrap;overflow:hidden}
+/* Le pavé prend TOUTE la hauteur restante. */
+.kp-pav{flex:1;min-height:200px;position:relative;border-radius:5px;
   background:#c8c8d2;border:5px solid #e8344a;overflow:hidden;touch-action:none;
   background-image:linear-gradient(#0002 1px,transparent 1px),
                    linear-gradient(90deg,#0002 1px,transparent 1px);
   background-size:12.5% 12.5%}
-.kp-pav i{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
-  background:#e8344a;box-shadow:0 0 16px #e8344a;display:none}
+.kp-pav i{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;
+  background:#e8344a;box-shadow:0 0 22px #e8344a;display:none}
 .kp-pav.vu i{display:block}
 .kp-pav u{position:absolute;inset:0;text-decoration:none;display:block}
-.kp-pav u span{position:absolute;width:5px;height:5px;margin:-2px 0 0 -2px;border-radius:50%;
+.kp-pav u span{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;
   background:#3a4a8a;opacity:.5}
-.kp-lcd{flex:1;min-height:0;background:#0a1410;border:2px solid #24483a;border-radius:4px;
-  padding:7px 8px;display:flex;flex-direction:column;justify-content:center;gap:3px}
-.kp-lcd b{font:800 9px/1.2 "Roboto Condensed",Arial;color:#7ee8a8}
-.kp-lcd u{text-decoration:none;font:700 8px/1.2 "Roboto Condensed",Arial;color:#4a7a5e}
-.kp-cmd{display:flex;gap:6px;flex-wrap:wrap}
-.kp-cmd button{flex:1;min-width:84px;margin:0;padding:10px 4px;border:0;border-radius:7px;
-  background:#1b2e24;color:#cfe0d6;font:800 9.5px/1 "Roboto Condensed",Arial;letter-spacing:.9px}
-.kp-cmd button.on{background:#e8344a;color:#fff}
-.kp-pied{margin-top:9px;font:400 10.5px/1.5 "Roboto Condensed",Arial;color:#6a8a78;text-align:center}
+.kp-pied{flex:none;margin-top:8px;font:400 10.5px/1.4 "Roboto Condensed",Arial;
+  color:#6a8a78;text-align:center}
 
 /* La MC-101 : un bandeau, l'écran et le SCATTER en haut — c'est lui qu'on
    cherche en jouant —, les pistes, les potards, puis les seize pas. */
@@ -3473,29 +3475,29 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <b class="kp-nom" id="kp-notice">KAOSS PAD</b>
   </div>
 
-  <div class="kp-banques" id="kp-banques"></div>
-
-  <div class="kp-corps">
-    <div class="kp-cote">
+  <div class="kp-reglages">
+    <div class="kp-banques" id="kp-banques"></div>
+    <div class="kp-ligne">
+      <button id="kp-son">SON</button>
+      <button id="kp-fx">EFFET</button>
       <button id="kp-hold">HOLD</button>
-      <button id="kp-motion">PAD MOTION</button>
-      <button id="kp-rejoue">REJOUER</button>
       <button id="kp-mute">MUTE</button>
     </div>
-    <div class="kp-pav" id="kp-pav"><i id="kp-point"></i><u id="kp-trace"></u></div>
-    <div class="kp-cote">
+    <div class="kp-ligne">
+      <button id="kp-motion">PAD MOTION</button>
+      <button id="kp-rejoue">REJOUER</button>
+      <button id="kp-effacer">EFFACER</button>
+      <button id="kp-play">▶ PLAY</button>
+    </div>
+    <div class="kp-ligne kp-prof-l">
       <label>FX DEPTH</label>
       <input type="range" id="kp-prof" min="0" max="1" step="0.01" value="0.8">
       <div class="kp-lcd"><b id="kp-val">PASSE-BAS RÉSONANT</b><u id="kp-lab">X · Y</u></div>
     </div>
   </div>
 
-  <div class="kp-cmd">
-    <button id="kp-play">▶ PLAY</button>
-    <button id="kp-fx">EFFET</button>
-    <button id="kp-effacer">EFFACER LE GESTE</button>
-  </div>
-  <div class="kp-pied"><span id="kp-etat">Touchez le pavé : l'effet suit le doigt.</span></div>
+  <div class="kp-pav" id="kp-pav"><i id="kp-point"></i><u id="kp-trace"></u></div>
+  <div class="kp-pied"><span id="kp-etat">Allumez une banque, puis touchez le pavé.</span></div>
 </div>
 
 <div class="mcb" id="unit-mc">
@@ -4332,27 +4334,32 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="doc" id="note-kp" data-titre="KAOSS PAD">
   <h3>Une machine qu'on touche</h3>
-  <p>Un carré, deux axes, et l'effet suit le doigt. Aucun potard ne fait ce que fait ce pavé, parce qu'on y
-  change <b>deux choses à la fois</b>, d'un seul geste, à la vitesse de la main.</p>
+  <p>Un grand carré, deux axes, et l'effet suit le doigt. Aucun potard ne fait ce que fait ce pavé, parce
+  qu'on y change <b>deux choses à la fois</b>, d'un seul geste, à la vitesse de la main. Il occupe donc
+  toute la hauteur de l'écran : le rétrécir pour faire tenir des boutons à côté reviendrait à le priver de
+  ce qui le rend jouable.</p>
+
+  <h3>D'abord, allumer une banque</h3>
+  <p><b>A à D</b> sont des banques d'échantillons, et <b>c'est elles qui font le son</b>. Touchez-en une :
+  elle joue en boucle. Retouchez-la : elle s'arrête. Le pavé ne fait que traiter ce qui passe — sans banque
+  allumée, il ne se passe rien, et c'est normal.</p>
+  <p><b>SON</b> change l'échantillon de la banque choisie, celle qui porte un liseré. Si elle joue, la
+  boucle repart aussitôt avec le nouveau son.</p>
+
+  <h3>Le pavé</h3>
   <p>Sans <b>HOLD</b>, l'effet meurt en même temps que le doigt : c'est ce qui rend cette machine vivante
   plutôt que réglable. Avec HOLD, il reste où on l'a laissé.</p>
-  <p>Huit effets, groupés par deux sur les banques <b>A à D</b>, ou parcourus un par un avec <b>EFFET</b>.
-  Ce que font X et Y est indiqué sous le nom, et change avec l'effet. <b>FX DEPTH</b> dose l'ensemble.</p>
+  <p>Huit effets, parcourus avec <b>EFFET</b>. Ce que font X et Y est indiqué sous le nom et change avec
+  l'effet. <b>FX DEPTH</b> dose l'ensemble. <b>MUTE</b> coupe la sortie.</p>
 
   <h3>Le geste enregistré</h3>
-  <p>C'est la signature de cette machine. <b>PAD MOTION</b> relève la position du doigt à chaque pas du
-  séquenceur pendant que ça joue ; <b>REJOUER</b> fait tourner le trajet en boucle. Le geste devient une
-  modulation qu'on ne saurait pas écrire, et qui continue toute seule pendant qu'on fait autre chose.</p>
+  <p>C'est la signature de cette machine. Lancez la lecture, touchez <b>PAD MOTION</b> et promenez le
+  doigt : la position est relevée à chaque pas du séquenceur. Arrêtez, puis <b>REJOUER</b> : le trajet
+  tourne en boucle. Le geste devient une modulation qu'on ne saurait pas écrire, et qui continue toute
+  seule pendant qu'on fait autre chose.</p>
   <p>Le relevé étant fait au rythme du séquenceur, la boucle est <b>calée sur le tempo</b> : elle retombe
-  toujours en mesure, quelle que soit la vitesse du geste d'origine. Le trajet enregistré s'affiche en
-  pointillés sur le pavé.</p>
-  <p><b>EFFACER LE GESTE</b> repart de zéro. <b>MUTE</b> coupe la sortie, ce qui sert à préparer un réglage
-  avant de le laisser entrer.</p>
-
-  <h3>Ce qu'elle traite</h3>
-  <p>Le KAOSS PAD est un <b>effet</b> : il ne produit rien de lui-même. Dans la table de mixage, mettez-le
-  dans le set avec une autre machine — il traitera ce qui passe. Seul, il reste silencieux, et c'est
-  normal.</p>
+  toujours en mesure, quelle que soit la vitesse du geste d'origine. Le trajet s'affiche en pointillés sur
+  le pavé. <b>EFFACER</b> repart de zéro.</p>
   </div>
 
   <div class="doc" id="note-mc" data-titre="MC-101">
@@ -24606,9 +24613,40 @@ var KP_EFFETS = [
   ["pitch",   "VITESSE",              "X la hauteur, Y le mélange"]
 ];
 
+/* Quatre banques d'échantillons, comme sur la machine : ce sont ELLES qui
+   font le son. Le pavé ne fait que le traiter. Sans cela on ouvre la machine
+   et rien ne sort — ce qui était le cas de ma première version. */
 var KP = {fx:0, x:0.5, y:0.5, tenu:false, touche:false,
           motion:[], enregistre:false, rejoue:false, mpos:0,
-          prof:0.8, noeuds:null, muet:false};
+          prof:0.8, noeuds:null, muet:false,
+          banques:[{ech:"b0", on:false}, {ech:"b3", on:false},
+                   {ech:"b6", on:false}, {ech:"b9", on:false}],
+          sel:0, sources:[null, null, null, null]};
+
+/* Une banque en boucle. On relance la source à chaque fois : un BufferSource
+   ne se rallume pas une fois arrêté, c'est la règle de Web Audio. */
+function banqueKp(k, allumer){
+  audioInit(); if(!ctx) return;
+  banqueEs();
+  var n = noeudsKp();
+  if(KP.sources[k]){
+    try{ KP.sources[k].stop(); }catch(e){}
+    KP.sources[k] = null;
+  }
+  KP.banques[k].on = !!allumer;
+  if(!allumer) return;
+  var buf = ES.buf[KP.banques[k].ech];
+  if(!buf) return;
+  var src = ctx.createBufferSource();
+  src.buffer = buf; src.loop = true;
+  var g = eurGain(0.55);
+  src.connect(g); g.connect(n.e);
+  src.start();
+  KP.sources[k] = src;
+}
+function toutArreterKp(){
+  for(var k=0;k<4;k++) banqueKp(k, false);
+}
 
 function noeudsKp(){
   if(KP.noeuds && KP.noeuds.ctx === ctx) return KP.noeuds;
@@ -24723,6 +24761,7 @@ function scheduleKp(i, t){
 }
 function beatKp(i){ KP.pos = i; }
 function arretKp(){
+  toutArreterKp();
   if(KP.noeuds && KP.noeuds.ctx === ctx){
     try{ debrancherTout(KP.noeuds); }catch(e){}
   }
@@ -24732,7 +24771,8 @@ var MACHINE_KP = {schedule:scheduleKp, beat:beatKp, arret:arretKp,
                   longueur:function(){ return 16; }};
 
 function memKp(){
-  memoire.kp = {fx:KP.fx, prof:KP.prof, motion:KP.motion};
+  memoire.kp = {fx:KP.fx, prof:KP.prof, motion:KP.motion, sel:KP.sel,
+                banques:KP.banques.map(function(b){ return {ech:b.ech}; })};
   sauverMachine("kp");
 }
 function chargerKp(){
@@ -24741,6 +24781,10 @@ function chargerKp(){
   if(typeof m.fx === "number") KP.fx = Math.max(0, Math.min(KP_EFFETS.length - 1, m.fx));
   if(typeof m.prof === "number") KP.prof = m.prof;
   if(m.motion && m.motion.length) KP.motion = m.motion;
+  if(typeof m.sel === "number") KP.sel = Math.max(0, Math.min(3, m.sel));
+  if(m.banques) m.banques.forEach(function(o, i){
+    if(i < 4 && o && o.ech) KP.banques[i].ech = o.ech;
+  });
 }
 
 /* ================= Roland MC-101 =================
@@ -25068,16 +25112,23 @@ function majKp(){
   if(!b.childNodes.length){
     ["A","B","C","D"].forEach(function(n, k){
       var e = document.createElement("button");
-      e.textContent = n;
+      e.innerHTML = n + "<em></em>";
       e.addEventListener("click", function(){
-        KP.fx = (k * 2) % KP_EFFETS.length;
-        appliquerKp(); majKp(); memKp(); H.cran();
+        /* Une banque allumée joue en boucle ; la retoucher l'éteint. Toucher
+           une banque éteinte la choisit AUSSI, pour que SON agisse dessus. */
+        KP.sel = k;
+        banqueKp(k, !KP.banques[k].on);
+        majKp(); memKp(); H.inter();
       });
       b.appendChild(e);
     });
   }
   var bs = b.childNodes;
-  for(var i=0;i<4;i++) bs[i].classList.toggle("on", Math.floor(KP.fx / 2) === i);
+  for(var i=0;i<4;i++){
+    bs[i].classList.toggle("on", KP.banques[i].on);
+    bs[i].style.boxShadow = (KP.sel === i) ? "inset 0 0 0 2px #e8344a" : "none";
+    bs[i].querySelector("em").textContent = nomEch(KP.banques[i].ech);
+  }
   var v = document.getElementById("kp-val"), l = document.getElementById("kp-lab");
   if(v){ v.textContent = KP_EFFETS[KP.fx][1]; l.textContent = KP_EFFETS[KP.fx][2]; }
   [["kp-hold", KP.tenu], ["kp-motion", KP.enregistre], ["kp-rejoue", KP.rejoue],
@@ -25085,8 +25136,10 @@ function majKp(){
     var e = document.getElementById(x[0]);
     if(e) e.classList.toggle("on", !!x[1]);
   });
+  var joue = KP.banques.some(function(x){ return x.on; });
   var et = document.getElementById("kp-etat");
-  if(et) et.textContent = KP.enregistre
+  if(et && !joue) et.textContent = "Allumez une banque A à D : c'est elle qui fait le son.";
+  else if(et) et.textContent = KP.enregistre
     ? "Le geste s'enregistre pendant la lecture. Retouchez PAD MOTION pour arrêter."
     : (KP.rejoue ? "Le geste tourne en boucle, calé sur le tempo."
     : (KP.tenu ? "HOLD : l'effet reste où le doigt l'a laissé."
@@ -25094,7 +25147,7 @@ function majKp(){
   majPavKp(); majTraceKp();
 }
 function activerKp(){
-  audioInit();
+  audioInit(); banqueEs(); chargerEchs();
   poserMachine("kp");
   actif = document.getElementById("unit-kp");
   MACHINE = MACHINE_KP;
@@ -25156,6 +25209,16 @@ document.getElementById("kp-mute").addEventListener("click", function(){
 document.getElementById("kp-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
   majKp(); H.start();
+});
+document.getElementById("kp-son").addEventListener("click", function(){
+  /* Le son suivant de la banque, pour la banque choisie. Si elle joue, on
+     relance sa boucle aussitôt pour l'entendre sans avoir à la rallumer. */
+  banqueEs();
+  var B = KP.banques[KP.sel];
+  var i = ES_BANQUE.indexOf(nomEch(B.ech));
+  B.ech = "b" + (((i < 0 ? 0 : i) + 1) % ES_BANQUE.length);
+  if(B.on) banqueKp(KP.sel, true);
+  majKp(); memKp(); H.cran();
 });
 document.getElementById("kp-fx").addEventListener("click", function(){
   KP.fx = (KP.fx + 1) % KP_EFFETS.length;
