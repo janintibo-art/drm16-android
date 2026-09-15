@@ -1040,6 +1040,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.paud{background:linear-gradient(165deg,#2f3a3a,#12181a 55%,#1e2628)}
 .pick.pstu{background:linear-gradient(165deg,#3a2f4a,#140f1a 55%,#6a4fa8)}
 .pick.ptab{background:linear-gradient(165deg,#28394a,#101820 55%,#2f7fb8)}
+.pick.pstk{background:linear-gradient(165deg,#1e1e24,#0b0b0d 55%,#e8e04a)}
 .pick.pko{background:linear-gradient(165deg,#2a2a2a,#0e0e0e 55%,#ff6a00)}
 .pick.psyr{background:linear-gradient(165deg,#4a3a20,#1a1408 55%,#d4941f)}
 .pick.pnex{background:linear-gradient(165deg,#4a3f28,#1a1610 55%,#a8801f)}
@@ -1262,7 +1263,50 @@ body.tr7 .tr8-pas button.c0{background:linear-gradient(180deg,#f8b478,#e2802a)}
 .pick.p707 b{color:#f6f5f2;text-shadow:0 2px 0 #33322e}
 .pick.p707 span{color:#dbd9d3}
 /* ===================== OBERHEIM DMX ===================== */
-body.dmx /* Le K.O! : un boîtier de poche, noir, étroit, où tout tient sur seize
+body.dmx /* La SmplTrek : un écran au centre, les potards à côté, les pas dessous, les
+   pistes tout en bas — la lecture descend du son vers le rythme. */
+.stkb{display:none;max-width:560px;margin:0 auto;background:#0d0d0f;border-radius:14px;
+  padding:14px 16px 18px;border:1px solid #26262c}
+body.stk .stkb{display:block}
+.stk-haut{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.stk-marque{font:800 11px/1 "Roboto Condensed",Arial;letter-spacing:3px;color:#8a8a90}
+.stk-nom{flex:1;font:800 22px/1 "Roboto Condensed",Arial;letter-spacing:.5px;color:#f0f0f2}
+.stk-prises{display:flex;gap:9px}
+.stk-prises span{font:700 8px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#5a5a62}
+.stk-mid{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+/* L'écran est jaune sur noir, comme celui de la machine. */
+#stk-ecran{flex:none;width:340px;max-width:60%;height:auto;border-radius:5px;
+  background:#0a0a06;border:2px solid #3a3a30}
+.stk-kns{flex:1;min-width:0;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;align-content:start}
+.stk-kn{text-align:center}
+.stk-kn .bt{width:42px;height:42px;margin:0 auto;border-radius:50%;background:#1d1d22;
+  border:1px solid #33333a;position:relative}
+.stk-kn .bt i{position:absolute;left:50%;top:5px;width:2px;height:14px;margin-left:-1px;
+  background:#e8e04a;border-radius:1px;display:block}
+.stk-kn em{display:block;margin-top:4px;font:700 8px/1.2 "Roboto Condensed",Arial;
+  font-style:normal;letter-spacing:.6px;color:#7a7a82}
+.stk-cmd{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.stk-cmd button{flex:1;min-width:76px;margin:0;padding:10px 4px;border:0;border-radius:7px;
+  background:#22222a;color:#cfcfd4;font:800 9.5px/1 "Roboto Condensed",Arial;letter-spacing:.9px}
+.stk-cmd button.on{background:#e8e04a;color:#141410}
+.stk-pads{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:9px}
+.stk-pads .sb{padding:13px 2px;border:0;border-radius:6px;background:#1d1d22;color:#8a8a92;
+  font:800 10px/1 "Roboto Condensed",Arial}
+.stk-pads .sb.on{background:#e8e04a;color:#141410}
+.stk-pads .sb.cur{background:#f6f6f0;color:#141410}
+/* Dix pistes, avec leur couleur : c'est ce qui permet de s'y retrouver
+   d'un coup d'œil, comme les pads colorés de la machine. */
+.stk-trks{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.stk-trks .st{padding:11px 2px;border:0;border-radius:6px;background:#1d1d22;color:#b9b9c0;
+  font:800 9px/1.3 "Roboto Condensed",Arial;position:relative;overflow:hidden}
+.stk-trks .st b{display:block;font-size:10px}
+.stk-trks .st em{display:block;margin-top:3px;font:400 7px/1.1 "Roboto Condensed",Arial;
+  font-style:normal;opacity:.65;white-space:nowrap;overflow:hidden}
+.stk-trks .st i{position:absolute;left:0;top:0;bottom:0;width:3px}
+.stk-trks .st.sel{background:#2e2e38;color:#fff}
+.stk-trks .st.muet{opacity:.42}
+.stk-pied{margin-top:9px;font:400 10.5px/1.5 "Roboto Condensed",Arial;color:#7a7a82;text-align:center}
+/* Le K.O! : un boîtier de poche, noir, étroit, où tout tient sur seize
    touches. On garde ses proportions — c'est une machine qu'on tient dans la
    main, elle n'a aucune raison de s'étaler. */
 .kob{display:none;max-width:420px;margin:0 auto;background:#111;border-radius:14px;
@@ -3304,6 +3348,37 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 </div>
 
 
+<div class="stkb" id="unit-stk">
+  <div class="stk-haut">
+    <div class="stk-marque">SONICWARE</div>
+    <b class="stk-nom" id="stk-notice">SmplTrek</b>
+    <div class="stk-prises"><span>IN</span><span>SYNC</span><span>OUT</span></div>
+  </div>
+
+  <div class="stk-mid">
+    <canvas id="stk-ecran" width="340" height="150"></canvas>
+    <div class="stk-kns">
+      <div class="stk-kn" id="stk-k-tune"><div class="bt"><i></i></div><em>A · TUNE</em></div>
+      <div class="stk-kn" id="stk-k-dec"><div class="bt"><i></i></div><em>B · DECAY</em></div>
+      <div class="stk-kn" id="stk-k-filt"><div class="bt"><i></i></div><em>C · FILTER</em></div>
+      <div class="stk-kn" id="stk-k-niv"><div class="bt"><i></i></div><em>D · LEVEL</em></div>
+      <div class="stk-kn" id="stk-k-pan"><div class="bt"><i></i></div><em>PAN</em></div>
+    </div>
+  </div>
+
+  <div class="stk-cmd">
+    <button id="stk-play">▶ PLAY</button>
+    <button id="stk-ptn">MOTIF 1</button>
+    <button id="stk-son">SON</button>
+    <button id="stk-solo">SOLO</button>
+    <button id="stk-clear">EFFACER</button>
+  </div>
+
+  <div class="stk-pads" id="stk-pads"></div>
+  <div class="stk-trks" id="stk-trks"></div>
+  <div class="stk-pied"><span id="stk-etat">Choisissez une piste, puis écrivez ses pas.</span></div>
+</div>
+
 <div class="kob" id="unit-ko">
   <div class="ko-haut">
     <div class="ko-poignee"></div>
@@ -3595,6 +3670,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <button class="pick ppr" id="menu-pr"><b>TRAVAIL DU MIDI</b><span>ROULEAU PAR SON · RETOUCHER, CALER, REPORTER</span></button>
   <button class="pick penr" id="menu-enr"><b>ENREGISTREUR MIDI</b><span>JOUER SUR LA KORG · LE SON SORT DU TÉLÉPHONE</span></button>
   <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
+  <button class="pick pick-m pstk" data-m="stk"><b>SONICWARE SmplTrek</b><span>DIX PISTES · ÉCRAN À FORME D'ONDE · MOTIFS</span></button>
   <button class="pick pick-m pko" data-m="ko"><b>PO-33 K.O!</b><span>ÉCHANTILLONNEUR DE POCHE · EFFETS AU POING</span></button>
   <button class="pick psyr" id="menu-syro"><b>VERS UNE VRAIE VOLCA</b><span>ENVOYER UN SON DANS UNE VOLCA SAMPLE PAR SYNC IN</span></button>
   <button class="pick ptab" id="menu-table"><b>TABLE DE MIXAGE</b><span>PLUSIEURS MACHINES À LA FOIS · NIVEAUX ET PANORAMIQUE</span></button>
@@ -4062,6 +4138,37 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>Le format Syro vient de Korg sous forme de code que l'application compile à part. Si cette compilation
   a échoué, la tuile le dit clairement au lieu de faire semblant. Rien d'autre n'en souffre : c'est une
   capacité en plus, pas une pièce dont le reste dépend.</p>
+  </div>
+
+  <div class="doc" id="note-stk" data-titre="SmplTrek">
+  <h3>Une station, pas une boîte à rythmes</h3>
+  <p>Les vingt-six autres machines ont toutes le même modèle : un motif qui contient tout, sons compris.
+  Ici c'est l'inverse, et c'est ce qui en fait une station multipiste : les <b>dix pistes persistent</b> —
+  leur son, leur hauteur, leur timbre, leur niveau — et les <b>huit motifs ne contiennent que les pas</b>.
+  On change de motif <b>sans perdre son mixage</b>.</p>
+
+  <h3>L'écran</h3>
+  <p>Il montre la <b>forme d'onde</b> du son de la piste choisie, et ses seize pas en dessous. Sur une
+  machine à échantillons, voir où le son commence et où il s'éteint vaut tous les réglages : on comprend
+  d'un coup d'œil pourquoi un DECAY court coupe une queue de caisse claire.</p>
+  <p>Ce dessin ne coûte rien, contrairement à celui de l'enregistreur MIDI : le son est déjà chargé, il n'y
+  a rien à calculer d'autre que son relief.</p>
+
+  <h3>Les pistes</h3>
+  <p>Les dix boutons du bas choisissent la piste. <b>Toucher une piste déjà choisie la coupe</b> — c'est le
+  geste le plus rapide pour retirer un élément en jouant. <b>SOLO</b> ne garde que la piste choisie.
+  <b>SON</b> passe au son suivant de la banque.</p>
+  <p>Les cinq potards agissent sur la piste choisie : <b>TUNE</b> la hauteur, <b>DECAY</b> la longueur,
+  <b>FILTER</b> la coupure, <b>LEVEL</b> le niveau, <b>PAN</b> la place. Ils suivent la piste, pas le
+  motif : c'est le principe de la machine.</p>
+
+  <h3>Écrire</h3>
+  <p>Les seize pads écrivent les pas de la piste choisie ; toucher un pas allumé l'éteint. Un pas qu'on
+  allume se fait entendre aussitôt, pour vérifier sans lancer la lecture.</p>
+  <p><b>MOTIF</b> bascule les pads sur le choix du motif, de 1 à 8. <b>EFFACER</b> vide les pas de la piste
+  choisie, après confirmation — les autres pistes ne sont pas touchées.</p>
+  <p>Les temps forts, un pas sur quatre, sont joués accentués. C'est ce qui donne une assise sans avoir
+  à écrire de vélocités.</p>
   </div>
 
   <div class="doc" id="note-ko" data-titre="PO-33 K.O!">
@@ -6371,7 +6478,7 @@ var SET_VOIES = [
   ["es","ES-1"],           ["mx","EMX-1"],  ["sx","ESX-1"], ["mpc","MPC"],
   ["tr","TR · RD-6"],      ["dmx","DMX"],   ["vlc","VOLCA"],["cr","CR-5000"],
   ["dbi","DRUMBRUTE"],     ["t1k","TR-1000"],["arcm","ARCHIVE"], ["td3","TD-3"],
-  ["ko","K.O!"],           ["eur","EURORACK"]
+  ["ko","K.O!"],           ["stk","SMPLTREK"], ["eur","EURORACK"]
 ];
 var SET = {on:false, actives:{}, niv:{}, pan:{}, mute:{}, solo:"", bus:{},
            trim:{}, lo:{}, md:{}, hi:{}};
@@ -6394,7 +6501,7 @@ function moteurSet(id){
            es:MACHINE_ES, mx:MACHINE_MX, sx:MACHINE_SX, mpc:MACHINE_MPC,
            tr:MACHINE_TR, dmx:MACHINE_DMX, vlc:MACHINE_VLC, cr:MACHINE_CR,
            dbi:MACHINE_DBI, t1k:MACHINE_T1K, arcm:MACHINE_ARCM,
-           ko:MACHINE_KO,   td3:MACHINE_TD3, eur:MACHINE_EUR};
+           ko:MACHINE_KO,   stk:MACHINE_STK, td3:MACHINE_TD3, eur:MACHINE_EUR};
   return T[id] || null;
 }
 /* Chaque machine construit ses nœuds audio la première fois qu'on la joue.
@@ -6496,7 +6603,7 @@ function majToutesVoiesSet(){ SET_VOIES.forEach(function(v){ majVoieSet(v[0]); }
    voit. On efface maintenant tout, depuis un seul endroit. */
 var CLASSES_MACHINE = ["m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
                        "tr8","tr9","tr7","rd6","td3","eur","dmx","vlc","cr5","dbi",
-                       "t1k","arcm","ko",
+                       "t1k","arcm","ko","stk",
                        "c1","c2","c3","c4","c5","t1","t2","t3","t4"];
 /* Les modes d'affichage — plein écran, vue d'ensemble — ne survivent pas à un
    changement de machine. Le mode d'ensemble était le seul qu'on pouvait
@@ -6781,6 +6888,7 @@ function docDeLaMachine(){
   if(m === "t1k") return "note-t1k";
   if(m === "arcm") return "note-arcm";
   if(m === "ko") return "note-ko";
+  if(m === "stk") return "note-stk";
   return "note-general";
 }
 function montrerDoc(id){
@@ -7052,7 +7160,7 @@ function uniteDeVoie(id){
            es:"unit-es1",    mx:"unit-emx",  sx:"unit-esx",  mpc:"unit-mpc",
            tr:"unit-tr808",  dmx:"unit-dmx", vlc:"unit-vlc", cr:"unit-cr5",
            dbi:"unit-dbi",   t1k:"unit-t1k", arcm:"unit-arcm", ko:"unit-ko",
-           td3:"unit-td3",   eur:"unit-eur"};
+           stk:"unit-stk",   td3:"unit-td3", eur:"unit-eur"};
   return T[id] ? document.getElementById(T[id]) : null;
 }
 function ouvrirEnsemble(){
@@ -7134,7 +7242,7 @@ function construireTable(){
 function allerVoie(id){
   var T = {ehx:"16", em:"em1", er:"er1", ea:"ea1", es:"es1", mx:"emx", sx:"esx",
            mpc:"mpc3000", tr:"tr808", dmx:"dmx", vlc:"vlc", cr:"cr5", dbi:"dbi",
-           t1k:"t1k", arcm:"arcm", ko:"ko", td3:"td3", eur:"eur"};
+           t1k:"t1k", arcm:"arcm", ko:"ko", stk:"stk", td3:"td3", eur:"eur"};
   if(!T[id]) return;
   /* La table s'ouvre DEPUIS le menu, qui reste derrière : sans cette fermeture
      on refermait la table et on retombait sur le menu au lieu de la façade.
@@ -7623,7 +7731,7 @@ function estCommande(t){
      l'étiquette sous le bouton doit compter comme une commande. Sans elle, la
      toucher déplacerait la façade au lieu de tourner le potard. */
   return !!t.closest("button,input,.knob,.bt,.em-dial,.toggle,.jack,.slot,.fsw,td,.mx-ruban,u,.pick," +
-                     ".kn,.mx-kn,.sx-kn,.mpc-kn,.arcm-kn,.t1k-kn,.dbi-kn,.tr8-kn,.td3-kn,.cr-kn,.vlc-kn," +
+                     ".kn,.mx-kn,.sx-kn,.mpc-kn,.arcm-kn,.t1k-kn,.dbi-kn,.tr8-kn,.td3-kn,.cr-kn,.vlc-kn,.stk-kn," +
                      ".eur-kn,.eur-bkn");
 }
 (function pincement(){
@@ -13705,6 +13813,10 @@ function routageMidi(m){
   /* Le K.O! : seize emplacements d'affilée à partir de la note de base.
      « base » est le NOMBRE de voix, pas un numéro de note — rangMidi fait
      note − MIDI.base et vérifie que le rang tombe dedans. */
+  if(m === "stk")
+    return {base:STK_PISTES, defaut:function(){ return STK.sel; },
+            jouer:function(k, vel){ voixStk(maintenantAudio() + 0.005, k, vel > 0.8); }};
+
   if(m === "ko")
     return {base:16, defaut:function(){ return KO.sel; },
             jouer:function(k, vel){ voixKo(maintenantAudio() + 0.005, k, vel); }};
@@ -20509,6 +20621,7 @@ function activerArcm(){
   audioInit(); banqueEs(); chargerEchs();
   chargerArcm();
   chargerKo();
+  chargerStk();
   debrancherTout(ARCM.noeuds); ARCM.noeuds = [];
   majArcm(); majKnobsArcm();
   actif = unitArcm;
@@ -23379,6 +23492,308 @@ function chargerKo(){
   });
 }
 
+/* ================= SmplTrek : dix pistes =================
+   Ce n'est pas une boîte à rythmes de plus. Les vingt-six machines précédentes
+   ont toutes le même modèle : un motif qui contient tout, sons compris. Ici les
+   PISTES persistent — leur son, leur niveau, leur timbre — et les MOTIFS ne
+   contiennent que les pas. On change de motif sans perdre son mixage, ce qui
+   est exactement ce qu'on attend d'une station multipiste.
+
+   Et un écran qui montre la forme d'onde de la piste choisie : sur une machine
+   à échantillons, voir où le son commence et finit vaut tous les réglages. */
+
+var STK_PISTES = 10, STK_MOTIFS = 8;
+
+function pisteStk(i){
+  return {ech:"b" + (i % 24), niv:0.8, pan:0, tune:0.5, dec:0.85, filt:1, muet:false};
+}
+function motifStk(){
+  var m = {pas:[], last:16};
+  for(var i=0;i<STK_PISTES;i++) m.pas.push(0);
+  return m;
+}
+var STK = {pistes:[], motifs:[], cur:0, sel:0, solo:-1, rec:false, pos:-1,
+           noeuds:null, chaine:[], chainePos:0, song:false, onde:null, ondePour:""};
+for(var sz=0; sz<STK_PISTES; sz++) STK.pistes.push(pisteStk(sz));
+for(var sz2=0; sz2<STK_MOTIFS; sz2++) STK.motifs.push(motifStk());
+
+function motifStkCur(){ return STK.motifs[STK.cur]; }
+function pisteStkSel(){ return STK.pistes[STK.sel]; }
+
+function noeudsStk(){
+  if(STK.noeuds && STK.noeuds.ctx === ctx) return STK.noeuds;
+  var e = eurGain(1);
+  e.connect(busSet("stk") || master);
+  STK.noeuds = {ctx:ctx, e:e};
+  return STK.noeuds;
+}
+
+/* Une piste coupée ne sonne pas ; le solo coupe toutes les autres. */
+function passeStk(i){
+  if(STK.solo >= 0) return STK.solo === i;
+  return !STK.pistes[i].muet;
+}
+
+function voixStk(t, i, acc){
+  audioInit(); if(!ctx) return;
+  banqueEs();
+  var P = STK.pistes[i];
+  var buf = ES.buf[P.ech];
+  if(!buf) return;
+  var n = noeudsStk();
+  var src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.playbackRate.value = Math.pow(2, (P.tune - 0.5) * 2);
+  var f = ctx.createBiquadFilter();
+  f.type = "lowpass";
+  f.frequency.value = Math.min(19000, 160 * Math.pow(115, P.filt));
+  var g = ctx.createGain();
+  var pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+  if(pan) pan.pan.value = P.pan;
+  var duree = Math.max(0.03, (buf.duration / src.playbackRate.value) * Math.max(0.05, P.dec));
+  var pic = P.niv * (acc ? 1 : 0.72);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(pic, t + 0.002);
+  g.gain.setValueAtTime(pic, t + Math.max(0.005, duree - 0.02));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.02, duree));
+  src.connect(f); f.connect(g);
+  if(pan){ g.connect(pan); pan.connect(n.e); } else g.connect(n.e);
+  src.start(t); src.stop(t + duree + 0.05);
+}
+
+function scheduleStk(i, t){
+  var m = motifStkCur();
+  if(i >= m.last) return;
+  for(var k=0;k<STK_PISTES;k++){
+    if(!(m.pas[k] & (1 << i))) continue;
+    if(!passeStk(k)) continue;
+    voixStk(t, k, (i % 4) === 0);
+  }
+  if(!cache) queue.push({i:i, t:t});
+}
+function beatStk(i){
+  STK.pos = i;
+  var b = document.querySelectorAll("#stk-pads .sb");
+  for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i);
+}
+function arretStk(){
+  if(STK.noeuds && STK.noeuds.ctx === ctx){
+    try{ debrancherTout(STK.noeuds); }catch(e){}
+  }
+  STK.noeuds = null;
+}
+function boucleStk(){
+  if(STK.song && STK.chaine.length){
+    STK.chainePos = (STK.chainePos + 1) % STK.chaine.length;
+    STK.cur = STK.chaine[STK.chainePos];
+    majStk();
+  }
+}
+var MACHINE_STK = {schedule:scheduleStk, beat:beatStk, arret:arretStk, boucle:boucleStk,
+                   longueur:function(){ return motifStkCur().last; }};
+
+function memStk(){
+  memoire.stk = {cur:STK.cur, sel:STK.sel, chaine:STK.chaine,
+    pistes:STK.pistes.map(function(P){
+      return {ech:P.ech, niv:P.niv, pan:P.pan, tune:P.tune, dec:P.dec, filt:P.filt, muet:P.muet};
+    }),
+    motifs:STK.motifs.map(function(m){ return {pas:m.pas, last:m.last}; })};
+  sauverMachine("stk");
+}
+function chargerStk(){
+  var m = memLire("stk");
+  if(!m) return;
+  if(typeof m.cur === "number") STK.cur = Math.max(0, Math.min(STK_MOTIFS - 1, m.cur));
+  if(typeof m.sel === "number") STK.sel = Math.max(0, Math.min(STK_PISTES - 1, m.sel));
+  if(m.chaine) STK.chaine = m.chaine.filter(function(x){ return x >= 0 && x < STK_MOTIFS; });
+  if(m.pistes) m.pistes.forEach(function(o, i){
+    if(i >= STK_PISTES || !o) return;
+    for(var q in o) if(STK.pistes[i][q] !== undefined) STK.pistes[i][q] = o[q];
+  });
+  if(m.motifs) m.motifs.forEach(function(o, i){
+    if(i >= STK_MOTIFS || !o) return;
+    if(o.pas && o.pas.length === STK_PISTES) STK.motifs[i].pas = o.pas.slice();
+    STK.motifs[i].last = o.last || 16;
+  });
+}
+
+/* ---------- la façade de la SmplTrek ---------- */
+var STK_MODE = "pas";       /* ce qu'écrivent les seize pads : pas ou motif */
+
+/* L'écran : la forme d'onde de la piste choisie, et ses seize pas dessous.
+   L'enveloppe se calcule directement sur le tampon — le son existe déjà, il
+   n'y a rien à rendre. C'est ce qui rend cet écran gratuit, là où celui de
+   l'enregistreur demandait un rendu par piste. */
+function dessinerStk(){
+  var cv = document.getElementById("stk-ecran");
+  if(!cv) return;
+  var g = cv.getContext("2d"), L = cv.width, H = cv.height;
+  g.fillStyle = "#0a0a06"; g.fillRect(0, 0, L, H);
+  var P = pisteStkSel(), buf = ES.buf[P.ech];
+  var hOnde = H - 34;
+
+  g.fillStyle = "#e8e04a";
+  g.font = "600 11px 'Roboto Condensed',Arial";
+  g.fillText("PISTE " + (STK.sel + 1) + "  ·  " + nomEch(P.ech), 8, 14);
+
+  if(buf){
+    if(STK.ondePour !== P.ech){
+      STK.onde = enveloppeBuf(buf, 170);
+      STK.ondePour = P.ech;
+    }
+    var env = STK.onde, mi = 22 + (hOnde - 22) / 2, demi = (hOnde - 26) / 2;
+    g.fillStyle = "#c8c03a";
+    for(var c=0;c<env.length;c++){
+      var x = 8 + (c / env.length) * (L - 16);
+      var h = Math.max(1, env[c] * demi);
+      g.fillRect(x, mi - h, Math.max(1, (L - 16) / env.length - 0.5), h * 2);
+    }
+    g.fillStyle = "#4a4a28";
+    g.fillRect(8, mi, L - 16, 1);
+  } else {
+    g.fillStyle = "#6a6a4a";
+    g.fillText("aucun son", 8, 60);
+  }
+
+  /* Les seize pas, en bas de l'écran : on voit le motif sans quitter le son. */
+  var m = motifStkCur(), y = H - 24;
+  for(var i=0;i<16;i++){
+    var xx = 8 + i * ((L - 16) / 16);
+    var w = (L - 16) / 16 - 2;
+    var actif2 = !!(m.pas[STK.sel] & (1 << i));
+    g.fillStyle = (i === STK.pos) ? "#f6f6f0" : (actif2 ? "#e8e04a" : "#26261c");
+    g.fillRect(xx, y, w, 16);
+  }
+}
+/* L'enveloppe d'un tampon déjà chargé : crête par tranche. */
+function enveloppeBuf(buf, cols){
+  var d = buf.getChannelData(0), n = d.length, e = new Float32Array(cols);
+  var par = n / cols;
+  for(var i=0;i<cols;i++){
+    var a = Math.floor(i * par), b = Math.min(n, Math.floor((i + 1) * par)), mx = 0;
+    for(var j=a;j<b;j++){ var v = d[j] < 0 ? -d[j] : d[j]; if(v > mx) mx = v; }
+    e[i] = mx;
+  }
+  return e;
+}
+
+function majStk(){
+  var dp = document.getElementById("stk-pads");
+  if(!dp) return;
+  if(!dp.childNodes.length){
+    for(var i=0;i<16;i++) (function(k){
+      var b = document.createElement("button");
+      b.className = "sb"; b.textContent = String(k + 1);
+      b.addEventListener("click", function(){ padStk(k); });
+      dp.appendChild(b);
+    })(i);
+    var dt = document.getElementById("stk-trks");
+    for(var t=0;t<STK_PISTES;t++) (function(k){
+      var b = document.createElement("button");
+      b.className = "st";
+      b.innerHTML = '<i></i><b>TRK ' + (k + 1) + '</b><em></em>';
+      b.addEventListener("click", function(){
+        if(STK.sel === k){ STK.pistes[k].muet = !STK.pistes[k].muet; }
+        else STK.sel = k;
+        STK.ondePour = "";
+        majStk(); majKnobsStk(); memStk(); H.cran();
+      });
+      dt.appendChild(b);
+    })(t);
+  }
+  var m = motifStkCur(), bs = dp.childNodes;
+  for(var k2=0;k2<16;k2++){
+    bs[k2].classList.toggle("on",
+      STK_MODE === "ptn" ? (k2 === STK.cur) : !!(m.pas[STK.sel] & (1 << k2)));
+    bs[k2].textContent = STK_MODE === "ptn" ? (k2 < STK_MOTIFS ? String(k2 + 1) : "·") : String(k2 + 1);
+  }
+  var ts = document.getElementById("stk-trks").childNodes;
+  for(var t2=0;t2<STK_PISTES;t2++){
+    var P = STK.pistes[t2];
+    ts[t2].classList.toggle("sel", t2 === STK.sel);
+    ts[t2].classList.toggle("muet", !passeStk(t2));
+    ts[t2].querySelector("i").style.background = couleurCanal(t2);
+    ts[t2].querySelector("em").textContent = nomEch(P.ech);
+  }
+  var bp = document.getElementById("stk-ptn");
+  if(bp){ bp.textContent = "MOTIF " + (STK.cur + 1); bp.classList.toggle("on", STK_MODE === "ptn"); }
+  var bs2 = document.getElementById("stk-solo");
+  if(bs2) bs2.classList.toggle("on", STK.solo === STK.sel);
+  var pl = document.getElementById("stk-play");
+  if(pl) pl.classList.toggle("on", S.run);
+  var et = document.getElementById("stk-etat");
+  if(et) et.textContent = STK_MODE === "ptn"
+    ? "Les pads choisissent le motif. Touchez MOTIF pour revenir aux pas."
+    : "Les pads écrivent les pas de la piste " + (STK.sel + 1) +
+      ". Retoucher une piste choisie la coupe.";
+  dessinerStk();
+}
+function padStk(k){
+  audioInit();
+  if(STK_MODE === "ptn"){
+    if(k < STK_MOTIFS){ STK.cur = k; majStk(); memStk(); H.inter(); }
+    return;
+  }
+  var m = motifStkCur();
+  m.pas[STK.sel] ^= (1 << k);
+  if(m.pas[STK.sel] & (1 << k)) voixStk(maintenantAudio() + 0.005, STK.sel, false);
+  memStk(); majStk(); H.cran();
+}
+function knobStk(nom, etiq, min, max){
+  return knobEm("stk-k-" + nom, {min:min, max:max,
+    get:function(){ return pisteStkSel()[nom]; },
+    set:function(v){
+      pisteStkSel()[nom] = v;
+      var e = document.getElementById("stk-etat");
+      if(e) e.textContent = etiq + " " + Math.round(v * 100) + " · piste " + (STK.sel + 1);
+      memStk();
+    }});
+}
+var kStkTune = knobStk("tune", "TUNE", 0, 1);
+var kStkDec  = knobStk("dec",  "DECAY", 0.05, 1);
+var kStkFilt = knobStk("filt", "FILTER", 0.05, 1);
+var kStkNiv  = knobStk("niv",  "LEVEL", 0, 1);
+var kStkPan  = knobStk("pan",  "PAN", -1, 1);
+function majKnobsStk(){
+  [kStkTune, kStkDec, kStkFilt, kStkNiv, kStkPan].forEach(function(k){ k.maj(); });
+}
+function activerStk(){
+  audioInit(); banqueEs(); chargerEchs();
+  poserMachine("stk");
+  actif = document.getElementById("unit-stk");
+  MACHINE = MACHINE_STK;
+  S.modele = "stk";
+  noeudsStk();
+  STK_MODE = "pas"; STK.ondePour = "";
+  majStk(); majKnobsStk();
+  fit();
+}
+document.getElementById("stk-play").addEventListener("click", function(){
+  if(S.run) stop(); else start();
+  majStk(); H.start();
+});
+document.getElementById("stk-ptn").addEventListener("click", function(){
+  STK_MODE = (STK_MODE === "ptn") ? "pas" : "ptn";
+  majStk(); H.cran();
+});
+document.getElementById("stk-solo").addEventListener("click", function(){
+  STK.solo = (STK.solo === STK.sel) ? -1 : STK.sel;
+  majStk(); memStk(); H.inter();
+});
+document.getElementById("stk-son").addEventListener("click", function(){
+  /* Le son suivant de la banque pour la piste choisie. */
+  var P = pisteStkSel();
+  var i = ES_BANQUE.indexOf(nomEch(P.ech));
+  P.ech = "b" + (((i < 0 ? 0 : i) + 1) % ES_BANQUE.length);
+  STK.ondePour = "";
+  memStk(); majStk(); H.cran();
+});
+document.getElementById("stk-clear").addEventListener("click", function(){
+  if(!window.confirm("Effacer les pas de la piste " + (STK.sel + 1) + " ?")) return;
+  motifStkCur().pas[STK.sel] = 0;
+  memStk(); majStk(); H.inter();
+});
+
 /* ---------- la façade du K.O! ---------- */
 var KO_MODE = "son";        /* ce que règlent les pads : son, motif, tempo */
 
@@ -25148,6 +25563,7 @@ function allerMachine(id){
   else if(id === "rd6") activerTr("rd6");
   else if(id === "arcm") activerArcm();
   else if(id === "ko") activerKo();
+  else if(id === "stk") activerStk();
   else if(id === "t1k") activerT1k();
   else if(id === "dbi") activerDbi();
   else if(id === "cr5") activerCr();

@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **112**.
+La version actuelle est la **113**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,26 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Vingt-septième machine : SmplTrek — v113**
+
+**Modèle de données nouveau dans l'application, et c'est tout l'intérêt.** Les vingt-six autres machines
+ont un motif qui contient tout, sons compris. Ici : `STK.pistes[10]` **persistent** (son, tune, decay,
+filtre, niveau, pan, coupe) et `STK.motifs[8]` ne portent **que les masques de pas**. On change de motif
+sans perdre son mixage — c'est ce qui distingue une station multipiste d'une boîte à rythmes.
+Vérifié au banc : changement de motif, réglages de piste intacts.
+
+*L'écran.* `enveloppeBuf(buf, cols)` calcule la crête par tranche **directement sur le tampon** : le son
+est déjà chargé, il n'y a **rien à rendre**. 44 100 échantillons en 9 ms. À ne pas confondre avec
+`ondesEnr()` de l'enregistreur, qui doit rendre chaque piste hors ligne parce que le son n'existe pas
+encore. `STK.ondePour` évite de recalculer tant que l'échantillon ne change pas.
+
+*Gestes* : toucher une piste déjà choisie la **coupe** ; un pas qu'on allume se fait entendre aussitôt ;
+un pas sur quatre est accentué, ce qui donne une assise sans écrire de vélocités.
+
+*Contrat rempli*, et le contrôle automatique vérifie maintenant que **les 19 voies de la table ont chacune
+un moteur, une façade et une machine** — c'est ce qui a rattrapé l'oubli de `uniteDeVoie`.
+`.stk-kn` ajouté à `estCommande`, sans quoi tourner un potard déplacerait la façade.
 
 **Vingt-sixième machine : PO-33 K.O! — v112**
 
