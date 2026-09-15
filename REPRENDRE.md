@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **110**.
+La version actuelle est la **111**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,26 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Une vue restait ouverte derrière le menu — v111**
+
+Signalé : ouvrir une machine depuis la table, revenir au menu, et la machine reste visible en arrière-plan.
+
+Cause : `poserMachine()` retirait `plein` mais **pas `ensemble`**, et `ouvrirMenu()` ne nettoyait rien. Le
+mode d'ensemble était donc le seul qu'on pouvait quitter **par le bouton MENU** sans le refermer : la
+classe restait posée, `#scene` restait en rangées, et toutes les façades non masquées restaient visibles
+derrière celle qu'on venait de choisir. `ENS.actif` restait vrai par-dessus le marché, donc `draw()`
+continuait d'animer les curseurs de machines invisibles.
+
+**`remettreVueAPlat()`** est maintenant le seul endroit qui défait une vue : classes `plein` et
+`ensemble`, `ENS.actif`, et les `.ens-cache` des façades. Appelée par **`poserMachine()`** et par
+**`ouvrirMenu()`**, qui referme aussi tous les panneaux. `fermerEnsemble()` s'en sert également.
+
+**Toute vue d'affichage ajoutée plus tard doit se défaire ici**, pas dans son propre coin — c'est
+exactement l'erreur qui a produit ce bug.
+
+Vérifié sur les trois chemins : quitter l'ensemble par MENU puis choisir une machine, passer directement
+d'une façade à l'autre depuis l'ensemble, et changer de machine depuis le plein écran.
 
 **Revue extérieure du code natif — v110**
 

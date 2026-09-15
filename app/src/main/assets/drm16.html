@@ -6386,9 +6386,27 @@ var CLASSES_MACHINE = ["m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mp
                        "tr8","tr9","tr7","rd6","td3","eur","dmx","vlc","cr5","dbi",
                        "t1k","arcm",
                        "c1","c2","c3","c4","c5","t1","t2","t3","t4"];
+/* Les modes d'affichage — plein écran, vue d'ensemble — ne survivent pas à un
+   changement de machine. Le mode d'ensemble était le seul qu'on pouvait
+   quitter par le bouton MENU sans le refermer : la classe restait posée, la
+   scène restait en rangées, et toutes les façades restaient visibles derrière
+   celle qu'on venait de choisir.
+
+   Un seul endroit remet tout à plat, appelé par poserMachine ET par
+   l'ouverture du menu : toute vue ajoutée plus tard doit passer par ici. */
+function remettreVueAPlat(){
+  var d = document.body.classList;
+  d.remove("plein");
+  d.remove("ensemble");
+  if(typeof ENS !== "undefined" && ENS){
+    ENS.actif = false;
+    var l = document.getElementById("scene");
+    if(l) for(var i=0;i<l.children.length;i++) l.children[i].classList.remove("ens-cache");
+  }
+}
 function poserMachine(){
   var d = document.body.classList, i;
-  d.remove("plein");          /* le plein écran ne survit pas au changement */
+  remettreVueAPlat();
   for(i=0;i<CLASSES_MACHINE.length;i++) d.remove(CLASSES_MACHINE[i]);
   for(i=0;i<arguments.length;i++) if(arguments[i]) d.add(arguments[i]);
   /* le rack garde des oscillateurs en marche : on ferme son bus dès qu'on
@@ -6946,10 +6964,7 @@ function ouvrirEnsemble(){
 }
 function fermerEnsemble(){
   if(!ENS.actif) return;
-  ENS.actif = false;
-  document.body.classList.remove("ensemble");
-  var l = unitesEns();
-  for(var i=0;i<l.length;i++) l[i].classList.remove("ens-cache");
+  remettreVueAPlat();
   try{ allerMachine(ENS.retour || "16"); }catch(e){}
   ouvrirTable();
 }
@@ -24708,6 +24723,10 @@ function appliquerModele(id){
 document.getElementById("retour").addEventListener("click", function(){ ouvrirMenu(); H.inter(); });
 function ouvrirMenu(){
   stop();
+  /* On revient au menu depuis n'importe où : plus aucune vue particulière ne
+     doit rester ouverte derrière, ni aucun panneau. */
+  remettreVueAPlat();
+  if(typeof fermerAutresPanneaux === "function"){ fermerAutresPanneaux(""); majNoteOuverte(); }
   menu.classList.remove("hide");
   document.body.classList.add("menu-ouvert");
   majVoileMenu();
