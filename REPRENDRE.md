@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **113**.
+La version actuelle est la **114**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,32 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Deux façades s'affichaient ensemble — v114**
+
+Signalé : la SmplTrek et le K.O! apparaissaient à côté d'une autre machine.
+
+**Deux fautes, la seconde bien pire que la première.**
+
+1. *Listes de masquage incomplètes.* Une façade est visible par défaut et **cachée par la classe des autres
+   machines** : `body.arcm` en cache quatorze. Mes deux nouvelles n'en cachaient **aucune**. Corrigé.
+
+2. *Une insertion de style tombée au milieu d'un sélecteur.* J'avais ancré sur **`.dmxb{`**, et
+   `s.index` a trouvé l'occurrence **à l'intérieur de `body.dmx .dmxb{display:block}`**. Mes 6 898 octets
+   de style se sont glissés entre `body.dmx ` et `.dmxb{`, ce qui a produit deux dégâts : la première
+   règle de mon bloc est devenue `body.dmx .stkb{…}`, et surtout **`.dmxb{display:block}` s'est retrouvée
+   seule**, rendant la DMX visible en permanence. Règle reconstituée, styles déplacés avant le chapitre.
+
+**C'est la troisième fois qu'une ancre trop courte frappe** (`if(m === "arcm")` en v112, `var NOMS` en
+v101). **Ancrer sur une ligne entière, jamais sur un fragment qui peut exister en sous-chaîne.**
+
+*`verifier-facades.py`* ajouté au dépôt : il recompose les règles CSS en dépliant les `@media` — leurs
+accolades imbriquées cassent toute analyse à plat — et calcule, par spécificité et ordre source, ce que le
+navigateur retiendrait. Il confirme que **chacune des dix-huit machines montre la sienne, et elle seule**.
+À relancer après toute nouvelle machine ou tout ajout de style.
+
+*Faux positif écarté* : le compte d'accolades du style est déséquilibré de −1, mais **il l'était déjà en
+v108** — ce n'est pas une régression.
 
 **Vingt-septième machine : SmplTrek — v113**
 

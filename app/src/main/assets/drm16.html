@@ -1262,12 +1262,13 @@ body.tr7 .tr8-pas button.c0{background:linear-gradient(180deg,#f8b478,#e2802a)}
 .pick.p707{background:linear-gradient(165deg,#cfcdc8,#45443f 55%,#6e6c66)}
 .pick.p707 b{color:#f6f5f2;text-shadow:0 2px 0 #33322e}
 .pick.p707 span{color:#dbd9d3}
-/* ===================== OBERHEIM DMX ===================== */
-body.dmx /* La SmplTrek : un écran au centre, les potards à côté, les pas dessous, les
+/* La SmplTrek : un écran au centre, les potards à côté, les pas dessous, les
    pistes tout en bas — la lecture descend du son vers le rythme. */
 .stkb{display:none;max-width:560px;margin:0 auto;background:#0d0d0f;border-radius:14px;
   padding:14px 16px 18px;border:1px solid #26262c}
 body.stk .stkb{display:block}
+body.m32 .kob,body.m32 .stkb,body.em1 .kob,body.em1 .stkb,body.er1 .kob,body.er1 .stkb,body.ea1 .kob,body.ea1 .stkb,body.es1 .kob,body.es1 .stkb,body.emx .kob,body.emx .stkb,body.esx .kob,body.esx .stkb,body.mk2 .kob,body.mk2 .stkb,body.mpc .kob,body.mpc .stkb,body.mpc2 .kob,body.mpc2 .stkb,body.tr8 .kob,body.tr8 .stkb,body.tr9 .kob,body.tr9 .stkb,body.tr7 .kob,body.tr7 .stkb,body.rd6 .kob,body.rd6 .stkb,body.td3 .kob,body.td3 .stkb,body.eur .kob,body.eur .stkb,body.dmx .kob,body.dmx .stkb,body.vlc .kob,body.vlc .stkb,body.cr5 .kob,body.cr5 .stkb,body.dbi .kob,body.dbi .stkb,body.t1k .kob,body.t1k .stkb,body.arcm .kob,body.arcm .stkb{display:none}
+body.stk #unit,body.stk .akai,body.stk .arcmb,body.stk .crb,body.stk .dbib,body.stk .dmxb,body.stk .ea,body.stk .em,body.stk .er,body.stk .es,body.stk .korgv,body.stk .mx,body.stk .rtr,body.stk .sx,body.stk .t1kb,body.stk .kob{display:none}
 .stk-haut{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
 .stk-marque{font:800 11px/1 "Roboto Condensed",Arial;letter-spacing:3px;color:#8a8a90}
 .stk-nom{flex:1;font:800 22px/1 "Roboto Condensed",Arial;letter-spacing:.5px;color:#f0f0f2}
@@ -1312,6 +1313,12 @@ body.stk .stkb{display:block}
 .kob{display:none;max-width:420px;margin:0 auto;background:#111;border-radius:14px;
   padding:14px 16px 18px;border:1px solid #2a2a2a}
 body.ko .kob{display:block}
+/* Une façade est visible par défaut et cachée par la classe des AUTRES
+   machines : toute nouvelle machine doit donc lister toutes celles qui
+   existaient avant elle, ET être ajoutée à la liste de chacune. C'est le
+   mécanisme le plus fragile du fichier — un contrôle automatique vérifie
+   maintenant qu'aucune machine n'en oublie. */
+body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .dmxb,body.ko .ea,body.ko .em,body.ko .er,body.ko .es,body.ko .korgv,body.ko .mx,body.ko .rtr,body.ko .sx,body.ko .t1kb{display:none}
 .ko-haut{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .ko-poignee{width:66px;height:16px;border-radius:9px;border:2px solid #3a3a3a}
 .ko-marque{font:400 11px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#8a8a8a}
@@ -1342,7 +1349,9 @@ body.ko .kob{display:block}
 .ko-pads .kb em{display:block;margin-top:5px;font:400 7px/1.1 "Roboto Condensed",Arial;
   font-style:normal;letter-spacing:.4px;opacity:.7;overflow:hidden;white-space:nowrap}
 .ko-pied{font:400 10.5px/1.5 "Roboto Condensed",Arial;color:#7a7a7a;text-align:center}
-.dmxb{display:block}
+
+/* ===================== OBERHEIM DMX ===================== */
+body.dmx .dmxb{display:block}
 body.dmx #unit,body.dmx .em,body.dmx .er,body.dmx .ea,body.dmx .es,body.dmx .mx,body.dmx .sx,
 body.dmx .akai,body.dmx .rtr{display:none}
 .dmxb{display:none;width:100%;max-width:1180px;border-radius:6px;padding:0;position:relative;
