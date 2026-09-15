@@ -1040,6 +1040,7 @@ body.esx #unit,body.esx .em,body.esx .er,body.esx .ea,body.esx .es,body.esx .mx{
 .pick.paud{background:linear-gradient(165deg,#2f3a3a,#12181a 55%,#1e2628)}
 .pick.pstu{background:linear-gradient(165deg,#3a2f4a,#140f1a 55%,#6a4fa8)}
 .pick.ptab{background:linear-gradient(165deg,#28394a,#101820 55%,#2f7fb8)}
+.pick.pko{background:linear-gradient(165deg,#2a2a2a,#0e0e0e 55%,#ff6a00)}
 .pick.psyr{background:linear-gradient(165deg,#4a3a20,#1a1408 55%,#d4941f)}
 .pick.pnex{background:linear-gradient(165deg,#4a3f28,#1a1610 55%,#a8801f)}
 .pick.pdoc b{color:#e8e4da;text-shadow:0 2px 0 #000}
@@ -1261,7 +1262,43 @@ body.tr7 .tr8-pas button.c0{background:linear-gradient(180deg,#f8b478,#e2802a)}
 .pick.p707 b{color:#f6f5f2;text-shadow:0 2px 0 #33322e}
 .pick.p707 span{color:#dbd9d3}
 /* ===================== OBERHEIM DMX ===================== */
-body.dmx .dmxb{display:block}
+body.dmx /* Le K.O! : un boîtier de poche, noir, étroit, où tout tient sur seize
+   touches. On garde ses proportions — c'est une machine qu'on tient dans la
+   main, elle n'a aucune raison de s'étaler. */
+.kob{display:none;max-width:420px;margin:0 auto;background:#111;border-radius:14px;
+  padding:14px 16px 18px;border:1px solid #2a2a2a}
+body.ko .kob{display:block}
+.ko-haut{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ko-poignee{width:66px;height:16px;border-radius:9px;border:2px solid #3a3a3a}
+.ko-marque{font:400 11px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#8a8a8a}
+.ko-tete{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.ko-nom{flex:none;font:800 26px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#f0f0f0}
+/* L'écran d'un pocket operator est un afficheur à cristaux, vert-gris et
+   contrasté : pas un écran couleur. */
+.ko-lcd{flex:1;min-width:0;background:#b9c4a8;border-radius:3px;padding:8px 10px;
+  border:2px solid #6f7a63;display:flex;align-items:baseline;gap:10px}
+.ko-lcd u{flex:none;text-decoration:none;font:700 9px/1 "Roboto Condensed",Arial;
+  letter-spacing:1.4px;color:#3c4435}
+.ko-lcd b{flex:1;font:800 26px/1 "Roboto Condensed",Arial;color:#1d2118}
+.ko-lcd i{flex:none;font:700 12px/1 "Roboto Condensed",Arial;font-style:normal;color:#3c4435}
+.ko-cmd,.ko-bas{display:flex;gap:7px;margin-bottom:11px}
+.ko-cmd button,.ko-bas button{flex:1;margin:0;padding:11px 4px;border:0;border-radius:7px;
+  background:#2a2a2a;color:#d8d8d8;font:800 9.5px/1 "Roboto Condensed",Arial;letter-spacing:1px}
+.ko-cmd button.on,.ko-bas button.on{background:#ff6a00;color:#141414}
+#ko-rec.on{background:#d81f1f;color:#fff}
+/* Quatre rangées de quatre : les huit premières mélodiques, les huit suivantes
+   percussives, comme sur la machine. */
+.ko-pads{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:11px}
+.ko-pads .kb{position:relative;padding:15px 4px 13px;border:0;border-radius:8px;
+  background:#2e2e2e;color:#cfcfcf;font:800 13px/1 "Roboto Condensed",Arial}
+.ko-pads .kb.mel{background:#343434}
+.ko-pads .kb.on{background:#ff6a00;color:#141414}
+.ko-pads .kb.sel{box-shadow:inset 0 0 0 2px #ff6a00}
+.ko-pads .kb.cur{background:#f2f2f2;color:#141414}
+.ko-pads .kb em{display:block;margin-top:5px;font:400 7px/1.1 "Roboto Condensed",Arial;
+  font-style:normal;letter-spacing:.4px;opacity:.7;overflow:hidden;white-space:nowrap}
+.ko-pied{font:400 10.5px/1.5 "Roboto Condensed",Arial;color:#7a7a7a;text-align:center}
+.dmxb{display:block}
 body.dmx #unit,body.dmx .em,body.dmx .er,body.dmx .ea,body.dmx .es,body.dmx .mx,body.dmx .sx,
 body.dmx .akai,body.dmx .rtr{display:none}
 .dmxb{display:none;width:100%;max-width:1180px;border-radius:6px;padding:0;position:relative;
@@ -3267,6 +3304,39 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 </div>
 
 
+<div class="kob" id="unit-ko">
+  <div class="ko-haut">
+    <div class="ko-poignee"></div>
+    <div class="ko-marque">pocket operator</div>
+  </div>
+  <div class="ko-tete">
+    <b class="ko-nom" id="ko-notice">K.O!</b>
+    <div class="ko-lcd">
+      <u id="ko-lab">SAMPLE</u>
+      <b id="ko-val">1</b>
+      <i id="ko-bpm">120</i>
+    </div>
+  </div>
+
+  <div class="ko-cmd">
+    <button id="ko-son">SOUND</button>
+    <button id="ko-ptn">PATTERN</button>
+    <button id="ko-bpm-b">BPM</button>
+    <button id="ko-rec">RECORD</button>
+  </div>
+
+  <div class="ko-pads" id="ko-pads"></div>
+
+  <div class="ko-bas">
+    <button id="ko-fx">FX</button>
+    <button id="ko-play">PLAY</button>
+    <button id="ko-write">WRITE</button>
+  </div>
+  <div class="ko-pied">
+    <span id="ko-etat">Touchez un pad pour l'entendre · WRITE pour écrire dans le motif</span>
+  </div>
+</div>
+
 <div class="dmxb" id="unit-dmx">
  <div class="dmx-in">
 
@@ -3525,6 +3595,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <button class="pick ppr" id="menu-pr"><b>TRAVAIL DU MIDI</b><span>ROULEAU PAR SON · RETOUCHER, CALER, REPORTER</span></button>
   <button class="pick penr" id="menu-enr"><b>ENREGISTREUR MIDI</b><span>JOUER SUR LA KORG · LE SON SORT DU TÉLÉPHONE</span></button>
   <button class="pick pdoc" id="menu-notices"><b>NOTICES</b><span>MODE D'EMPLOI DE CHAQUE MACHINE, EN FRANÇAIS</span></button>
+  <button class="pick pick-m pko" data-m="ko"><b>PO-33 K.O!</b><span>ÉCHANTILLONNEUR DE POCHE · EFFETS AU POING</span></button>
   <button class="pick psyr" id="menu-syro"><b>VERS UNE VRAIE VOLCA</b><span>ENVOYER UN SON DANS UNE VOLCA SAMPLE PAR SYNC IN</span></button>
   <button class="pick ptab" id="menu-table"><b>TABLE DE MIXAGE</b><span>PLUSIEURS MACHINES À LA FOIS · NIVEAUX ET PANORAMIQUE</span></button>
   <button class="pick pstu" id="menu-studio"><b>STUDIO TIBO</b><span>SÉQUENCEUR · PIANO ROLL · MIXEUR · EXPORT</span></button>
@@ -3991,6 +4062,47 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>Le format Syro vient de Korg sous forme de code que l'application compile à part. Si cette compilation
   a échoué, la tuile le dit clairement au lieu de faire semblant. Rien d'autre n'en souffre : c'est une
   capacité en plus, pas une pièce dont le reste dépend.</p>
+  </div>
+
+  <div class="doc" id="note-ko" data-titre="PO-33 K.O!">
+  <h3>Un échantillonneur de poche</h3>
+  <p>Seize emplacements, un séquenceur de seize pas, seize motifs. Tout tient sur seize touches, et c'est
+  volontaire : cette machine se joue plus qu'elle ne se programme.</p>
+  <p>Les seize touches ne se jouent pas toutes pareil. Les <b>huit premières</b> sont <b>mélodiques</b> :
+  c'est le même son, joué à huit hauteurs d'une gamme majeure. Les <b>huit dernières</b> sont des
+  <b>percussions</b> : un son par touche, à sa hauteur d'origine. C'est le partage de la vraie machine, et
+  il explique pourquoi on y fait des basses avec le même échantillon qu'une caisse claire.</p>
+
+  <h3>Les trois modes des touches</h3>
+  <ul>
+  <li><b>SOUND</b> — les touches jouent. Avec <b>RECORD</b> allumé, elles écrivent aussi dans le motif : en
+  lecture, la frappe se pose sur le pas le plus proche ; à l'arrêt, elle bascule le pas courant.</li>
+  <li><b>PATTERN</b> — les touches choisissent le motif, de 1 à 16.</li>
+  <li><b>FX</b> — les touches choisissent l'effet.</li>
+  </ul>
+  <p><b>WRITE</b> efface le motif courant, après confirmation. C'est le seul geste destructeur de la
+  machine.</p>
+
+  <h3>Les effets au poing</h3>
+  <p>C'est la signature du K.O!, et ce qui le rend vivant. On choisit un effet dans le mode FX, puis on
+  <b>maintient le bouton FX</b> pendant que ça joue : l'effet dure tant qu'on tient, et meurt dès qu'on
+  lâche. Rien ne s'écrit, rien ne se règle — c'est un geste.</p>
+  <ul>
+  <li><b>PASSE-BAS</b> et <b>PASSE-HAUT</b> — résonants, pour ouvrir ou fermer d'un coup.</li>
+  <li><b>BIT CRUSH</b> — seize marches. Ce n'est pas une saturation : le son devient granuleux au lieu de
+  devenir gros.</li>
+  <li><b>HACHOIR</b> — avale un pas sur deux.</li>
+  <li><b>ÉCHO</b> — un délai à la noire et demie, avec réinjection.</li>
+  <li><b>SATURATION</b> — celle-là fait grossir.</li>
+  <li><b>COUPURE</b> — le silence, tant qu'on tient. C'est le plus efficace des seize.</li>
+  <li><b>ROULEMENT</b> — chaque frappe en vaut quatre, serrées, en s'éteignant.</li>
+  </ul>
+  <p>HACHOIR et ROULEMENT n'agissent pas sur le son mais sur le <b>rythme</b> : ils changent ce qui est
+  joué, pas comment ça sonne. C'est pourquoi on les entend même sur un son très sec.</p>
+
+  <h3>En MIDI</h3>
+  <p>Les seize emplacements répondent à seize notes d'affilée à partir de la note de base réglée dans la
+  notice générale. La machine reçoit donc aussi bien un clavier qu'une grille de pads.</p>
   </div>
 
   <div class="doc" id="note-arcm" data-titre="MACHINE D'ARCHIVE">
@@ -6259,7 +6371,7 @@ var SET_VOIES = [
   ["es","ES-1"],           ["mx","EMX-1"],  ["sx","ESX-1"], ["mpc","MPC"],
   ["tr","TR · RD-6"],      ["dmx","DMX"],   ["vlc","VOLCA"],["cr","CR-5000"],
   ["dbi","DRUMBRUTE"],     ["t1k","TR-1000"],["arcm","ARCHIVE"], ["td3","TD-3"],
-  ["eur","EURORACK"]
+  ["ko","K.O!"],           ["eur","EURORACK"]
 ];
 var SET = {on:false, actives:{}, niv:{}, pan:{}, mute:{}, solo:"", bus:{},
            trim:{}, lo:{}, md:{}, hi:{}};
@@ -6282,7 +6394,7 @@ function moteurSet(id){
            es:MACHINE_ES, mx:MACHINE_MX, sx:MACHINE_SX, mpc:MACHINE_MPC,
            tr:MACHINE_TR, dmx:MACHINE_DMX, vlc:MACHINE_VLC, cr:MACHINE_CR,
            dbi:MACHINE_DBI, t1k:MACHINE_T1K, arcm:MACHINE_ARCM,
-           td3:MACHINE_TD3, eur:MACHINE_EUR};
+           ko:MACHINE_KO,   td3:MACHINE_TD3, eur:MACHINE_EUR};
   return T[id] || null;
 }
 /* Chaque machine construit ses nœuds audio la première fois qu'on la joue.
@@ -6384,7 +6496,7 @@ function majToutesVoiesSet(){ SET_VOIES.forEach(function(v){ majVoieSet(v[0]); }
    voit. On efface maintenant tout, depuis un seul endroit. */
 var CLASSES_MACHINE = ["m32","em1","er1","ea1","es1","emx","esx","mk2","mpc","mpc2",
                        "tr8","tr9","tr7","rd6","td3","eur","dmx","vlc","cr5","dbi",
-                       "t1k","arcm",
+                       "t1k","arcm","ko",
                        "c1","c2","c3","c4","c5","t1","t2","t3","t4"];
 /* Les modes d'affichage — plein écran, vue d'ensemble — ne survivent pas à un
    changement de machine. Le mode d'ensemble était le seul qu'on pouvait
@@ -6668,6 +6780,7 @@ function docDeLaMachine(){
   if(m === "dbi") return "note-dbi";
   if(m === "t1k") return "note-t1k";
   if(m === "arcm") return "note-arcm";
+  if(m === "ko") return "note-ko";
   return "note-general";
 }
 function montrerDoc(id){
@@ -6938,8 +7051,8 @@ function uniteDeVoie(id){
   var T = {ehx:"unit",      em:"unit-em1",  er:"unit-er1",  ea:"unit-ea1",
            es:"unit-es1",    mx:"unit-emx",  sx:"unit-esx",  mpc:"unit-mpc",
            tr:"unit-tr808",  dmx:"unit-dmx", vlc:"unit-vlc", cr:"unit-cr5",
-           dbi:"unit-dbi",   t1k:"unit-t1k", arcm:"unit-arcm", td3:"unit-td3",
-           eur:"unit-eur"};
+           dbi:"unit-dbi",   t1k:"unit-t1k", arcm:"unit-arcm", ko:"unit-ko",
+           td3:"unit-td3",   eur:"unit-eur"};
   return T[id] ? document.getElementById(T[id]) : null;
 }
 function ouvrirEnsemble(){
@@ -7021,7 +7134,7 @@ function construireTable(){
 function allerVoie(id){
   var T = {ehx:"16", em:"em1", er:"er1", ea:"ea1", es:"es1", mx:"emx", sx:"esx",
            mpc:"mpc3000", tr:"tr808", dmx:"dmx", vlc:"vlc", cr:"cr5", dbi:"dbi",
-           t1k:"t1k", arcm:"arcm", td3:"td3", eur:"eur"};
+           t1k:"t1k", arcm:"arcm", ko:"ko", td3:"td3", eur:"eur"};
   if(!T[id]) return;
   /* La table s'ouvre DEPUIS le menu, qui reste derrière : sans cette fermeture
      on refermait la table et on retombait sur le menu au lieu de la façade.
@@ -13588,6 +13701,13 @@ function routageMidi(m){
     return {notes:notes, defaut:function(){ return 0; },
             jouer:function(k, vel){ voixCr(maintenantAudio() + 0.01, ids[k], vel > 0.8); }};
   }
+
+  /* Le K.O! : seize emplacements d'affilée à partir de la note de base.
+     « base » est le NOMBRE de voix, pas un numéro de note — rangMidi fait
+     note − MIDI.base et vérifie que le rang tombe dedans. */
+  if(m === "ko")
+    return {base:16, defaut:function(){ return KO.sel; },
+            jouer:function(k, vel){ voixKo(maintenantAudio() + 0.005, k, vel); }};
 
   if(m === "arcm")
     return {base:motifArcmCur().pistes.length, defaut:function(){ return ARCM.sel; },
@@ -20388,6 +20508,7 @@ function activerArcm(){
   poserMachine("arcm");
   audioInit(); banqueEs(); chargerEchs();
   chargerArcm();
+  chargerKo();
   debrancherTout(ARCM.noeuds); ARCM.noeuds = [];
   majArcm(); majKnobsArcm();
   actif = unitArcm;
@@ -22928,6 +23049,11 @@ function sonsHasard(){
   else if(m === "vlc") pousse(motifVlcCur().parties.map(function(p){ return p.par; }), 10, null);
   else if(m === "mpc3000" || m === "mpc2000") pousse(MPC.pads, 64, ["pan","tune","dec","filt","debut"]);
   else if(m === "arcm") pousse(motifArcmCur().pistes, 16, ["pan","tune","dec","debut","filt"]);
+  else if(m === "ko"){
+    /* Les seize emplacements reçoivent les seize sons de la banque, au hasard. */
+    for(var kq=0; kq<16; kq++) KO.sons[kq] = "b" + Math.floor(Math.random() * ES_BANQUE.length);
+    majKo(); memKo();
+  }
   else if(m === "rd6"){
     /* la RD-6 n'a qu'un niveau par instrument : ce qui se tire, c'est son timbre */
     TR.tone = 0.25 + Math.random() * 0.7;
@@ -23089,6 +23215,285 @@ function exporterWav(){
     signal("RENDU ÉCHOUÉ");
   });
 }
+
+/* ================= Pocket Operator K.O! =================
+   Un échantillonneur de poche : seize emplacements, un séquenceur de seize
+   pas, seize motifs qu'on enchaîne. Deux moitiés qui ne se jouent pas pareil —
+   les huit premiers emplacements sont MÉLODIQUES (le même son à des hauteurs
+   différentes), les huit derniers sont des PERCUSSIONS (un son par touche).
+
+   Sa vraie signature n'est pas là : ce sont les EFFETS AU POING. On maintient
+   FX et on frappe un numéro ; l'effet dure tant qu'on tient. Rien ne s'écrit,
+   rien ne se règle — c'est un geste, pas un réglage. C'est ce qui fait qu'on
+   joue de cette machine au lieu de la programmer. */
+
+var KO_FX = [
+  ["", "AUCUN"],
+  ["lp",   "PASSE-BAS"],      ["hp",  "PASSE-HAUT"],
+  ["crush","BIT CRUSH"],      ["gate","HACHOIR"],
+  ["echo", "ÉCHO"],           ["sat", "SATURATION"],
+  ["stop", "COUPURE"],        ["roll","ROULEMENT"]
+];
+var KO_NOTES = [0, 2, 4, 5, 7, 9, 11, 12];   /* la gamme des huit touches mélodiques */
+
+function motifKo(){
+  var m = {pas:[], last:16};
+  for(var i=0;i<16;i++) m.pas.push(0);       /* un masque de 16 bits par emplacement */
+  return m;
+}
+var KO = {sons:[], motifs:[], cur:0, sel:0, fx:0, fxTenu:false,
+          rec:false, pos:-1, noeuds:null, chaine:[], chainePos:0, song:false};
+for(var kz=0; kz<16; kz++) KO.sons.push("b" + (kz % 24));
+for(var kz2=0; kz2<16; kz2++) KO.motifs.push(motifKo());
+
+function motifKoCur(){ return KO.motifs[KO.cur]; }
+
+/* La chaîne de sortie, avec ce qu'il faut pour les effets au poing. Elle est
+   bâtie une fois et gardée : refaire ces nœuds à chaque frappe coûterait cher
+   pour rien. */
+function noeudsKo(){
+  if(KO.noeuds && KO.noeuds.ctx === ctx) return KO.noeuds;
+  var e = eurGain(1);
+  var f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 20000;
+  var sat = ctx.createWaveShaper();
+  var g = eurGain(1);
+  var d = ctx.createDelay(0.6), fb = eurGain(0), mix = eurGain(0);
+  e.connect(f); f.connect(sat); sat.connect(g);
+  g.connect(d); d.connect(fb); fb.connect(d); d.connect(mix);
+  var out = eurGain(1);
+  g.connect(out); mix.connect(out);
+  out.connect(busSet("ko") || master);
+  KO.noeuds = {ctx:ctx, e:e, f:f, sat:sat, g:g, d:d, fb:fb, mix:mix, out:out};
+  appliquerFxKo();
+  return KO.noeuds;
+}
+
+/* Un effet au poing ne se règle pas : il s'applique ou non. On pose donc les
+   valeurs d'un coup, sans transition — c'est ce qui fait qu'on l'entend. */
+function appliquerFxKo(){
+  var n = KO.noeuds;
+  if(!n || n.ctx !== ctx) return;
+  var nom = KO.fxTenu ? KO_FX[KO.fx][0] : "";
+  n.f.type = "lowpass"; n.f.frequency.value = 20000; n.f.Q.value = 0.7;
+  n.sat.curve = null;
+  n.g.gain.value = 1;
+  n.fb.gain.value = 0; n.mix.gain.value = 0;
+  if(nom === "lp"){ n.f.frequency.value = 420; n.f.Q.value = 6; }
+  else if(nom === "hp"){ n.f.type = "highpass"; n.f.frequency.value = 900; n.f.Q.value = 4; }
+  else if(nom === "crush"){ n.sat.curve = courbeCrushKo(); n.sat.oversample = "none"; }
+  else if(nom === "sat"){ n.sat.curve = courbeArcm(0.85); n.sat.oversample = "2x"; n.g.gain.value = 0.55; }
+  else if(nom === "echo"){ n.d.delayTime.value = stepDur() * 1.5; n.fb.gain.value = 0.55; n.mix.gain.value = 0.7; }
+  else if(nom === "stop"){ n.g.gain.value = 0; }
+  /* HACHOIR et ROULEMENT n'agissent pas sur le son mais sur l'ordonnancement :
+     ils sont traités dans scheduleKo. */
+}
+/* Un escalier à seize marches : c'est la réduction de résolution, pas une
+   saturation. Le son devient granuleux au lieu de devenir gros. */
+var KO_CRUSH = null;
+function courbeCrushKo(){
+  if(KO_CRUSH) return KO_CRUSH;
+  var n = 1024, c = new Float32Array(n), marches = 16;
+  for(var i=0;i<n;i++){
+    var x = i * 2 / n - 1;
+    c[i] = Math.round(x * marches) / marches;
+  }
+  KO_CRUSH = c;
+  return c;
+}
+
+function voixKo(t, k, vel){
+  audioInit(); if(!ctx) return;
+  banqueEs();
+  var n = noeudsKo();
+  var buf = ES.buf[KO.sons[k]];
+  if(!buf) return;
+  var src = ctx.createBufferSource();
+  src.buffer = buf;
+  /* Les huit premiers emplacements montent la gamme : c'est le même son, joué
+     plus ou moins vite. Les huit derniers gardent leur hauteur. */
+  src.playbackRate.value = (k < 8) ? Math.pow(2, KO_NOTES[k] / 12) : 1;
+  var g = ctx.createGain();
+  var pic = 0.8 * (vel === undefined ? 1 : vel);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(pic, t + 0.002);
+  var d = Math.min(buf.duration / src.playbackRate.value, 1.6);
+  g.gain.setValueAtTime(pic, t + Math.max(0.01, d - 0.03));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  src.connect(g); g.connect(n.e);
+  src.start(t); src.stop(t + d + 0.05);
+}
+
+function scheduleKo(i, t){
+  var m = motifKoCur();
+  if(i >= m.last) return;
+  var nom = KO.fxTenu ? KO_FX[KO.fx][0] : "";
+  for(var k=0;k<16;k++){
+    if(!(m.pas[k] & (1 << i))) continue;
+    /* HACHOIR : une frappe sur deux est avalée. ROULEMENT : chaque frappe en
+       vaut quatre, serrées. Deux effets d'ordonnancement, pas de traitement. */
+    if(nom === "gate" && (i % 2)) continue;
+    if(nom === "roll"){
+      for(var r=0;r<4;r++) voixKo(t + r * stepDur() / 4, k, 1 - r * 0.15);
+    } else voixKo(t, k, 1);
+  }
+  if(!cache) queue.push({i:i, t:t});
+}
+
+function beatKo(i){
+  KO.pos = i;
+  var b = document.querySelectorAll("#ko-pads .kb");
+  for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i);
+}
+function arretKo(){
+  if(KO.noeuds && KO.noeuds.ctx === ctx){
+    try{ debrancherTout(KO.noeuds); }catch(e){}
+  }
+  KO.noeuds = null;
+}
+function boucleKo(){
+  if(KO.song && KO.chaine.length){
+    KO.chainePos = (KO.chainePos + 1) % KO.chaine.length;
+    KO.cur = KO.chaine[KO.chainePos];
+    majKo();
+  }
+}
+var MACHINE_KO = {schedule:scheduleKo, beat:beatKo, arret:arretKo, boucle:boucleKo,
+                  longueur:function(){ return motifKoCur().last; }};
+
+function memKo(){
+  memoire.ko = {sons:KO.sons, cur:KO.cur, sel:KO.sel, chaine:KO.chaine,
+                motifs:KO.motifs.map(function(m){ return {pas:m.pas, last:m.last}; })};
+  sauverMachine("ko");
+}
+function chargerKo(){
+  var m = memLire("ko");
+  if(!m) return;
+  if(m.sons && m.sons.length === 16) KO.sons = m.sons.slice();
+  if(typeof m.cur === "number") KO.cur = Math.max(0, Math.min(15, m.cur));
+  if(typeof m.sel === "number") KO.sel = Math.max(0, Math.min(15, m.sel));
+  if(m.chaine) KO.chaine = m.chaine.filter(function(x){ return x >= 0 && x < 16; });
+  if(m.motifs) m.motifs.forEach(function(o, i){
+    if(i >= 16 || !o) return;
+    if(o.pas && o.pas.length === 16) KO.motifs[i].pas = o.pas.slice();
+    KO.motifs[i].last = o.last || 16;
+  });
+}
+
+/* ---------- la façade du K.O! ---------- */
+var KO_MODE = "son";        /* ce que règlent les pads : son, motif, tempo */
+
+function lcdKo(val, lab){
+  var a = document.getElementById("ko-val"), b = document.getElementById("ko-lab");
+  if(a) a.textContent = val;
+  if(b) b.textContent = lab;
+  var c = document.getElementById("ko-bpm");
+  if(c) c.textContent = Math.round(S.bpm);
+}
+function majKo(){
+  var d = document.getElementById("ko-pads");
+  if(!d) return;
+  if(!d.childNodes.length){
+    for(var i=0;i<16;i++) (function(k){
+      var b = document.createElement("button");
+      b.className = "kb" + (k < 8 ? " mel" : "");
+      b.dataset.k = k;
+      b.innerHTML = (k + 1) + "<em></em>";
+      b.addEventListener("pointerdown", function(e){ padKo(k); e.preventDefault(); });
+      d.appendChild(b);
+    })(i);
+  }
+  var m = motifKoCur(), bs = d.childNodes;
+  for(var k=0;k<16;k++){
+    var b = bs[k];
+    var ecrit = KO_MODE === "son" ? !!m.pas[k] : false;
+    b.classList.toggle("on", KO_MODE === "ptn" ? (k === KO.cur)
+                            : (KO_MODE === "fx" ? (k < KO_FX.length && k === KO.fx) : ecrit));
+    b.classList.toggle("sel", KO_MODE === "son" && k === KO.sel);
+    b.querySelector("em").textContent =
+      KO_MODE === "son" ? nomEch(KO.sons[k]) :
+      KO_MODE === "ptn" ? ("motif " + (k + 1)) :
+      KO_MODE === "fx"  ? (k < KO_FX.length ? KO_FX[k][1] : "") : "";
+  }
+  ["son","ptn","fx"].forEach(function(q){
+    var t = {son:"ko-son", ptn:"ko-ptn", fx:"ko-fx"}[q];
+    var e = document.getElementById(t);
+    if(e) e.classList.toggle("on", KO_MODE === q);
+  });
+  var r = document.getElementById("ko-rec");
+  if(r) r.classList.toggle("on", KO.rec);
+  var p = document.getElementById("ko-play");
+  if(p) p.classList.toggle("on", S.run);
+  lcdKo(KO_MODE === "ptn" ? ("P" + (KO.cur + 1))
+      : KO_MODE === "fx" ? KO_FX[KO.fx][1]
+      : String(KO.sel + 1),
+      KO_MODE === "ptn" ? "PATTERN" : KO_MODE === "fx" ? "EFFET" : "SAMPLE");
+  var e2 = document.getElementById("ko-etat");
+  if(e2) e2.textContent =
+    KO_MODE === "fx" ? "Choisissez un effet, puis maintenez FX pendant que ça joue."
+    : KO_MODE === "ptn" ? "Touchez un motif pour y aller."
+    : (KO.rec ? "WRITE actif : les pads écrivent dans le motif."
+              : "Les pads jouent. WRITE pour écrire dans le motif.");
+}
+function padKo(k){
+  audioInit();
+  if(KO_MODE === "ptn"){ KO.cur = k; majKo(); memKo(); H.inter(); return; }
+  if(KO_MODE === "fx"){ KO.fx = Math.min(k, KO_FX.length - 1); majKo(); memKo(); H.cran(); return; }
+  KO.sel = k;
+  if(KO.rec){
+    /* Écriture au vol : on pose la frappe sur le pas le plus proche, comme sur
+       les autres machines. À l'arrêt, on bascule le pas courant. */
+    var m = motifKoCur();
+    var pos = S.run ? pasLePlusProche(KO.pos, m.last) : KO.pos;
+    if(pos >= 0) m.pas[k] ^= (1 << pos);
+    memKo();
+  }
+  voixKo(maintenantAudio() + 0.005, k, 1);
+  majKo();
+  H.inter();
+}
+function activerKo(){
+  audioInit(); banqueEs(); chargerEchs();
+  poserMachine("ko");
+  actif = document.getElementById("unit-ko");
+  MACHINE = MACHINE_KO;
+  S.modele = "ko";
+  noeudsKo();
+  KO_MODE = "son";
+  majKo();
+  fit();
+}
+document.getElementById("ko-son").addEventListener("click", function(){ KO_MODE = "son"; majKo(); H.cran(); });
+document.getElementById("ko-ptn").addEventListener("click", function(){ KO_MODE = "ptn"; majKo(); H.cran(); });
+document.getElementById("ko-fx").addEventListener("click", function(){ KO_MODE = "fx"; majKo(); H.cran(); });
+document.getElementById("ko-rec").addEventListener("click", function(){
+  KO.rec = !KO.rec; majKo(); H.inter();
+});
+document.getElementById("ko-play").addEventListener("click", function(){
+  if(S.run) stop(); else start();
+  majKo(); H.start();
+});
+document.getElementById("ko-write").addEventListener("click", function(){
+  /* Effacer le motif courant : c'est le seul geste destructeur de la machine,
+     il demande confirmation. */
+  if(!window.confirm("Effacer le motif " + (KO.cur + 1) + " ?")) return;
+  var m = motifKoCur();
+  for(var i=0;i<16;i++) m.pas[i] = 0;
+  memKo(); majKo(); H.inter();
+});
+document.getElementById("ko-bpm-b").addEventListener("click", function(){
+  lcdKo(Math.round(S.bpm), "TEMPO"); H.cran();
+});
+/* FX au poing : l'effet vit tant que le doigt est sur le bouton. C'est un
+   geste, pas un réglage — le relâcher doit le couper net. */
+(function fxTenuKo(){
+  var b = document.getElementById("ko-fx");
+  function prendre(){ KO.fxTenu = true; appliquerFxKo(); b.classList.add("on"); }
+  function lacher(){ if(!KO.fxTenu) return; KO.fxTenu = false; appliquerFxKo(); majKo(); }
+  b.addEventListener("pointerdown", function(){ if(KO_MODE === "fx") prendre(); });
+  b.addEventListener("pointerup", lacher);
+  b.addEventListener("pointercancel", lacher);
+  b.addEventListener("pointerleave", lacher);
+})();
 
 /* ================= rendre une prise MIDI en WAV =================
    Une prise exportée en .mid contient des NOTES : il faut la même application
@@ -24742,6 +25147,7 @@ function allerMachine(id){
   else if(id === "td3") activerTd3();
   else if(id === "rd6") activerTr("rd6");
   else if(id === "arcm") activerArcm();
+  else if(id === "ko") activerKo();
   else if(id === "t1k") activerT1k();
   else if(id === "dbi") activerDbi();
   else if(id === "cr5") activerCr();

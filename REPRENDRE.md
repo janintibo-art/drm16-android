@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **111**.
+La version actuelle est la **112**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,35 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Vingt-sixième machine : PO-33 K.O! — v112**
+
+Échantillonneur de poche. Seize emplacements — **huit mélodiques** (le même son sur une gamme majeure, par
+`playbackRate`) et **huit percussifs** —, séquenceur de seize pas, seize motifs.
+
+*Sa signature : les effets au poing.* `KO.fxTenu` vit entre `pointerdown` et `pointerup` sur le bouton FX ;
+`appliquerFxKo()` pose les valeurs **d'un coup, sans transition** — un effet au poing s'entend ou ne
+s'entend pas. Deux des huit (**HACHOIR**, **ROULEMENT**) n'agissent pas sur le son mais dans `scheduleKo` :
+ils changent ce qui est joué, pas comment ça sonne. Vérifié au banc.
+
+*Détails :*
+- `courbeCrushKo()` est un **escalier** (`Math.round(x·16)/16`), pas une saturation. 33 paliers.
+- `noeudsKo()` bâtit la chaîne **une fois** et la garde ; `arretKo` passe par `debrancherTout`.
+- L'écriture au vol réutilise `pasLePlusProche`, comme les autres machines.
+
+*Les dix points du contrat d'une machine*, tous remplis : `CLASSES_MACHINE`, tuile `data-m`, façade
+`#unit-ko`, `MACHINE_KO`, `allerMachine`, `docDeLaMachine`, `routageMidi`, `SET_VOIES` + `moteurSet`,
+`uniteDeVoie` + `allerVoie`, mémoire (`memKo`/`chargerKo` appelée au démarrage).
+
+**Deux pièges rencontrés, à retenir** :
+- `if(m === "arcm")` existe dans **`docDeLaMachine` ET `routageMidi`** : une insertion sur cette ancre
+  atterrit dans la première. Toujours ancrer sur la ligne complète.
+- Dans `routageMidi`, **`base` est le NOMBRE de voix**, pas un numéro de note : `rangMidi` fait
+  `note − MIDI.base` et vérifie `< r.base`. J'avais d'abord écrit `base:36`.
+
+**Reste à faire : le Sonicware SmplTrek.** Dix pistes, écran à forme d'onde, mode morceau — c'est une
+station portable, pas une boîte. Elle mérite sa propre version et un modèle de données à part : les
+machines existantes ont toutes un motif unique par voix, elle a des pistes qui s'enregistrent.
 
 **Une vue restait ouverte derrière le menu — v111**
 
