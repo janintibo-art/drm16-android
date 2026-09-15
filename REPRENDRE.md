@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **108**.
+La version actuelle est la **110**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,47 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Revue extérieure du code natif — v110**
+
+Un audit extérieur a porté sur le **Java**, la partie la moins travaillée jusqu'ici. Presque tout est
+retenu. Les défauts trouvés étaient réels et je ne les avais pas vus.
+
+*Lecture et écriture de fichiers.* `in.read(o)` en **un seul appel** ne garantit pas de remplir le
+tableau : troncature intermittente possible. `lireFichierComplet(File, max)` boucle et lève sur EOF.
+`ecrireAtomique()` centralise `.part` + `sync` + `rename`, avec nettoyage en `finally` — l'ancien code
+pouvait laisser des `.part` derrière lui. Plafonds de taille **avant** allocation (`depasseBase64` teste la
+longueur de la chaîne, donc avant le décodage).
+
+*Réseau.* `read(...) > 0` terminait la boucle sur un retour 0, pourtant légal : **téléchargement tronqué**.
+Corrigé en `!= -1`. Le protocole est revérifié **après** connexion : `HttpURLConnection` suit les
+redirections, une redirection https → http passait inaperçue. `reseau.shutdownNow()` et un drapeau
+`detruite` dans `onDestroy` : sans eux, un rappel touchait une WebView détruite.
+
+*`evaluateJavascript`* recevait des arguments assemblés à la main ; seul le message d'erreur était nettoyé,
+et pas des retours à la ligne. Passé par `JSONObject.quote`.
+
+*`startForegroundService` sur Android 8+* : `startService` depuis l'arrière-plan **lève une exception** avec
+`targetSdk 34`. Vérifié avant d'accepter : `PlaybackService` appelle bien `startForeground` dès
+`onStartCommand`, et `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_MEDIA_PLAYBACK` sont déclarées — sans quoi
+ce « correctif » aurait introduit un plantage.
+
+*MIDI.* Deux erreurs de norme, exactes : `envoyer` calculait les longueurs par famille, donc **F1 en 3
+octets et F6 en 3** au lieu de 2 et 1 ; et le running status **survivait à un System Common**, qui doit
+l'annuler. Ajoutés : garde de génération sur `openDevice` (rappel périmé après changement d'appareil),
+remise à zéro du parseur à la fermeture, et rejet d'un SysEx trop long au lieu d'en livrer un tronqué.
+
+*Côté page.* `moteurSet` n'utilise plus `eval` mais des références directes (la table est construite à
+l'appel, tous les `MACHINE_*` existent alors). Le nom d'une prise passe par `textContent` : il vient d'un
+`prompt`, un `<` cassait l'affichage.
+
+**Seul point écarté : `setSafeBrowsingEnabled(false)`, rétabli.** La WebView ne navigue jamais hors de ses
+propres ressources — `shouldOverrideUrlLoading` bloque tout le reste — donc SafeBrowsing n'a rien à
+vérifier et son initialisation ne fait que retarder le démarrage. **À rétablir si un jour la WebView charge
+une page distante.**
+
+*Piste retenue pour plus tard* : découper `drm16.html` en modules sources et regénérer un fichier unique.
+Le fichier fait 1,1 Mo et chaque ajout le rend plus difficile à naviguer.
 
 **Voir plusieurs machines à la fois — v108**
 

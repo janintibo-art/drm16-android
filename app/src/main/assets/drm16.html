@@ -6278,12 +6278,12 @@ var pasSet = 0;
    peut pas faire jouer une machine qu'on n'a jamais ouverte, ses nœuds audio
    n'existent pas encore. preparerSet() s'en charge. */
 function moteurSet(id){
-  var T = {ehx:"MACHINE_EHX", em:"MACHINE_EM", er:"MACHINE_ER", ea:"MACHINE_EA",
-           es:"MACHINE_ES", mx:"MACHINE_MX", sx:"MACHINE_SX", mpc:"MACHINE_MPC",
-           tr:"MACHINE_TR", dmx:"MACHINE_DMX", vlc:"MACHINE_VLC", cr:"MACHINE_CR",
-           dbi:"MACHINE_DBI", t1k:"MACHINE_T1K", arcm:"MACHINE_ARCM",
-           td3:"MACHINE_TD3", eur:"MACHINE_EUR"};
-  try{ return eval(T[id]); }catch(e){ return null; }
+  var T = {ehx:MACHINE_EHX, em:MACHINE_EM, er:MACHINE_ER, ea:MACHINE_EA,
+           es:MACHINE_ES, mx:MACHINE_MX, sx:MACHINE_SX, mpc:MACHINE_MPC,
+           tr:MACHINE_TR, dmx:MACHINE_DMX, vlc:MACHINE_VLC, cr:MACHINE_CR,
+           dbi:MACHINE_DBI, t1k:MACHINE_T1K, arcm:MACHINE_ARCM,
+           td3:MACHINE_TD3, eur:MACHINE_EUR};
+  return T[id] || null;
 }
 /* Chaque machine construit ses nœuds audio la première fois qu'on la joue.
    Dans un set, on ne passe pas par leur façade : il faut donc les réveiller
@@ -14590,9 +14590,14 @@ function majEnrUI(){
     var d = document.createElement("div");
     d.className = "enr-prise" + (ENR.lecture === i ? " joue" : "") +
                   ((ENR.affiche && ENR.affiche.idx === i) ? " vue" : "");
-    d.innerHTML = '<b>' + p.nom + '</b><span>' + p.date + ' · ' + dureeTexte(p.duree) +
-                  ' · ' + p.evts.length + ' évén. · ' + p.bpm + ' BPM' +
-                  (p.tempoMesure ? ' (mesuré)' : '') + '</span>';
+    var titre = document.createElement("b");
+    titre.textContent = p.nom;
+    var meta = document.createElement("span");
+    meta.textContent = p.date + ' · ' + dureeTexte(p.duree) +
+                       ' · ' + p.evts.length + ' évén. · ' + p.bpm + ' BPM' +
+                       (p.tempoMesure ? ' (mesuré)' : '');
+    d.appendChild(titre);
+    d.appendChild(meta);
     var barre = document.createElement("div");
     barre.className = "enr-actions";
     [["VOIR", function(){ montrerPriseEnr(i); }],

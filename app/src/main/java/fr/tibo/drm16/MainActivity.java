@@ -28,6 +28,7 @@ import android.webkit.WebViewClient;
 import android.os.Environment;
 
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,24 +37,33 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.json.JSONObject;
+
 /**
  * DRM16 : recreation autonome.
  * L'appareil complet (interface et moteur audio) tient dans assets/drm16.html.
- * Aucune requete reseau n'est autorisee : tout ce qui n'est pas file:///android_asset/ est bloque.
+ * La navigation WebView reste strictement locale. Les rares telechargements externes passent
+ * uniquement par le pont Java netCharger(), en HTTPS et avec une limite de taille.
  */
 public class MainActivity extends Activity implements Midi.Ecoute {
 
     private static final String PAGE = "file:///android_asset/drm16.html";
+    private static final long MAX_DOCUMENT_BYTES = 8L * 1024L * 1024L;
+    private static final long MAX_SAMPLE_BYTES = 32L * 1024L * 1024L;
+    private static final long MAX_DOCUMENT_SAVE_BYTES = 128L * 1024L * 1024L;
+    private static final int MAX_NETWORK_BYTES = 16 * 1024 * 1024;
 
     private WebView web;
     private AudioManager audio;
     private AudioFocusRequest demande;
     private boolean enLecture;
     private boolean permissionDemandee;
+    private volatile boolean detruite;
     private Midi midi;
     private final ExecutorService reseau = Executors.newFixedThreadPool(2);
     private ValueCallback<Uri[]> retourFichier;
@@ -123,11 +133,11 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         /** Ecrit un fichier dans Documents de l'application, visible par un gestionnaire de fichiers. */
         @JavascriptInterface public String fichierSauver(String nom, String b64) {
             try {
+                if (b64 == null || depasseBase64(b64, MAX_DOCUMENT_SAVE_BYTES)) return "";
                 File d = dossierDoc();
                 File cible = new File(d, propre(nom));
                 byte[] o = Base64.decode(b64, Base64.DEFAULT);
-                FileOutputStream f = new FileOutputStream(cible);
-                f.write(o); f.flush(); f.getFD().sync(); f.close();
+                if (o.length > MAX_DOCUMENT_SAVE_BYTES || !ecrireAtomique(cible, o)) return "";
                 return cible.getAbsolutePath();
             } catch (Exception e) { return ""; }
         }
@@ -135,51 +145,61 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             Deux plafonds : la taille annoncee et la taille reellement lue. */
         @JavascriptInterface public void netCharger(final String url, final String jeton,
                                                     final int maxOctets) {
+            if (detruite || reseau.isShutdown()) return;
             reseau.execute(new Runnable() { @Override public void run() {
                 String err = "";
                 byte[] o = null;
                 HttpURLConnection c = null;
                 try {
                     URL u = new URL(url);
-                    if (!"https".equals(u.getProtocol())) throw new IOException("https seulement");
+                    if (!"https".equalsIgnoreCase(u.getProtocol())) throw new IOException("https seulement");
                     c = (HttpURLConnection) u.openConnection();
                     c.setConnectTimeout(15000);
                     c.setReadTimeout(30000);
                     c.setInstanceFollowRedirects(true);
                     c.setRequestProperty("User-Agent", "DRM16-Android");
                     int code = c.getResponseCode();
-                    if (code != 200) throw new IOException("reponse " + code);
-                    int plafond = maxOctets > 0 ? maxOctets : 4 * 1024 * 1024;
-                    int annonce = c.getContentLength();
+                    if (code != HttpURLConnection.HTTP_OK) throw new IOException("reponse " + code);
+                    if (!"https".equalsIgnoreCase(c.getURL().getProtocol()))
+                        throw new IOException("redirection non https refusee");
+                    int plafond = maxOctets > 0 ? Math.min(maxOctets, MAX_NETWORK_BYTES)
+                                                : 4 * 1024 * 1024;
+                    long annonce = c.getContentLengthLong();
                     if (annonce > plafond) throw new IOException("trop gros : " + annonce);
-                    InputStream in = c.getInputStream();
-                    ByteArrayOutputStream b = new ByteArrayOutputStream();
-                    byte[] tampon = new byte[16384];
-                    int n, total = 0;
-                    while ((n = in.read(tampon)) > 0) {
-                        total += n;
-                        if (total > plafond) { in.close(); throw new IOException("trop gros"); }
-                        b.write(tampon, 0, n);
+                    try (InputStream in = c.getInputStream();
+                         ByteArrayOutputStream b = new ByteArrayOutputStream(
+                                 annonce > 0 ? (int) Math.min(annonce, plafond) : 16384)) {
+                        byte[] tampon = new byte[16384];
+                        int n, total = 0;
+                        while ((n = in.read(tampon)) != -1) {
+                            if (n == 0) continue;
+                            total += n;
+                            if (total > plafond) throw new IOException("trop gros");
+                            b.write(tampon, 0, n);
+                        }
+                        o = b.toByteArray();
                     }
-                    in.close();
-                    o = b.toByteArray();
                 } catch (Exception e) {
                     err = e.getMessage() == null ? e.toString() : e.getMessage();
                 } finally {
                     if (c != null) c.disconnect();
                 }
                 final String charge = (o == null) ? "" : Base64.encodeToString(o, Base64.NO_WRAP);
-                final String erreur = err.replace("\\", " ").replace("'", " ");
+                final String erreur = err;
                 runOnUiThread(new Runnable() { @Override public void run() {
-                    if (web == null) return;
-                    web.evaluateJavascript("window.__net&&__net('" + jeton + "','" + erreur +
-                                           "','" + charge + "')", null);
+                    if (detruite || web == null) return;
+                    String script = "window.__net&&__net("
+                            + JSONObject.quote(jeton == null ? "" : jeton) + ","
+                            + JSONObject.quote(erreur == null ? "" : erreur) + ","
+                            + JSONObject.quote(charge) + ")";
+                    web.evaluateJavascript(script, null);
                 }});
             }});
         }
         private File dossierDoc() {
             File d = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-            if (d == null) d = new File(getFilesDir(), "documents");
+            if (d != null && (d.exists() || d.mkdirs())) return d;
+            d = new File(getFilesDir(), "documents");
             if (!d.exists()) d.mkdirs();
             return d;
         }
@@ -188,6 +208,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             File d = dossierDoc();
             String[] l = d.list();
             if (l == null) return "";
+            Arrays.sort(l, String.CASE_INSENSITIVE_ORDER);
             StringBuilder sb = new StringBuilder();
             for (String n : l) {
                 if (ext != null && ext.length() > 0 && !n.endsWith(ext)) continue;
@@ -200,11 +221,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         @JavascriptInterface public String fichierCharger(String nom) {
             try {
                 File f = new File(dossierDoc(), propre(nom));
-                if (!f.exists() || f.length() > 8 * 1024 * 1024) return "";
-                byte[] o = new byte[(int) f.length()];
-                FileInputStream in = new FileInputStream(f);
-                int lu = in.read(o); in.close();
-                if (lu <= 0) return "";
+                byte[] o = lireFichierComplet(f, MAX_DOCUMENT_BYTES);
                 return Base64.encodeToString(o, Base64.NO_WRAP);
             } catch (Exception e) { return ""; }
         }
@@ -220,26 +237,19 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         }
         @JavascriptInterface public boolean echSauver(String nom, String b64) {
             try {
+                if (b64 == null || depasseBase64(b64, MAX_SAMPLE_BYTES)) return false;
                 File d = new File(getFilesDir(), "ech");
                 if (!d.exists() && !d.mkdirs()) return false;
                 byte[] o = Base64.decode(b64, Base64.DEFAULT);
+                if (o.length > MAX_SAMPLE_BYTES) return false;
                 File cible = new File(d, propre(nom) + ".wav");
-                File tmp = new File(d, propre(nom) + ".part");
-                FileOutputStream f = new FileOutputStream(tmp);
-                f.write(o); f.flush(); f.getFD().sync(); f.close();
-                if (cible.exists() && !cible.delete()) { tmp.delete(); return false; }
-                if (!tmp.renameTo(cible)) { tmp.delete(); return false; }
-                return true;
+                return ecrireAtomique(cible, o);
             } catch (Exception e) { return false; }
         }
         @JavascriptInterface public String echCharger(String nom) {
             try {
                 File f = new File(new File(getFilesDir(), "ech"), propre(nom) + ".wav");
-                if (!f.exists()) return "";
-                byte[] o = new byte[(int) f.length()];
-                FileInputStream in = new FileInputStream(f);
-                int lu = in.read(o); in.close();
-                if (lu <= 0) return "";
+                byte[] o = lireFichierComplet(f, MAX_SAMPLE_BYTES);
                 return Base64.encodeToString(o, Base64.NO_WRAP);
             } catch (Exception e) { return ""; }
         }
@@ -247,6 +257,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             File d = new File(getFilesDir(), "ech");
             String[] l = d.list();
             if (l == null) return "";
+            Arrays.sort(l, String.CASE_INSENSITIVE_ORDER);
             StringBuilder sb = new StringBuilder();
             for (String n : l) {
                 if (!n.endsWith(".wav")) continue;
@@ -258,6 +269,47 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         @JavascriptInterface public void echSupprimer(String nom) {
             try { new File(new File(getFilesDir(), "ech"), propre(nom) + ".wav").delete(); } catch (Exception ignored) {}
         }
+    }
+
+    private byte[] lireFichierComplet(File f, long maxOctets) throws IOException {
+        if (f == null || !f.isFile()) throw new IOException("fichier introuvable");
+        long taille = f.length();
+        if (taille < 0 || taille > maxOctets || taille > Integer.MAX_VALUE)
+            throw new IOException("fichier trop gros");
+        byte[] o = new byte[(int) taille];
+        try (FileInputStream in = new FileInputStream(f)) {
+            int pos = 0;
+            while (pos < o.length) {
+                int n = in.read(o, pos, o.length - pos);
+                if (n < 0) throw new EOFException("fichier tronque pendant la lecture");
+                if (n == 0) continue;
+                pos += n;
+            }
+        }
+        return o;
+    }
+
+    private boolean ecrireAtomique(File cible, byte[] o) throws IOException {
+        if (cible == null || o == null) return false;
+        File parent = cible.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) return false;
+        File tmp = new File(parent, cible.getName() + ".part-" + Thread.currentThread().getId());
+        try {
+            try (FileOutputStream f = new FileOutputStream(tmp)) {
+                f.write(o);
+                f.flush();
+                f.getFD().sync();
+            }
+            if (cible.exists() && !cible.delete()) return false;
+            return tmp.renameTo(cible);
+        } finally {
+            if (tmp.exists() && !tmp.equals(cible)) tmp.delete();
+        }
+    }
+
+    private boolean depasseBase64(String b64, long maxOctets) {
+        long maxChars = ((maxOctets + 2L) / 3L) * 4L + 8L;
+        return b64.length() > maxChars;
     }
 
     private String propre(String n) {
@@ -309,8 +361,13 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         s.setUseWideViewPort(false);
         s.setLoadWithOverviewMode(false);
         s.setSupportZoom(false);
-        s.setBuiltInZoomControls(false);
+        /* SafeBrowsing compare les adresses visitees a un service en ligne. Cette
+           page ne navigue JAMAIS ailleurs que dans ses propres ressources —
+           shouldOverrideUrlLoading bloque tout le reste — donc il n'a rien a
+           verifier ici, et son initialisation ne fait que retarder le demarrage.
+           Retablir ce reglage si un jour la WebView charge une page distante. */
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) s.setSafeBrowsingEnabled(false);
+        s.setBuiltInZoomControls(false);
 
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -338,6 +395,19 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             public void onPermissionRequest(final PermissionRequest demande) {
                 runOnUiThread(new Runnable() {
                     @Override public void run() {
+                        Uri origine = demande.getOrigin();
+                        String pageCourante = web == null ? null : web.getUrl();
+                        boolean locale = origine != null
+                                && "file".equalsIgnoreCase(origine.getScheme())
+                                && pageCourante != null
+                                && pageCourante.startsWith("file:///android_asset/");
+                        boolean microAutorise = Build.VERSION.SDK_INT < Build.VERSION_CODES.M
+                                || checkSelfPermission(Manifest.permission.RECORD_AUDIO)
+                                   == PackageManager.PERMISSION_GRANTED;
+                        if (!locale || !microAutorise) {
+                            demande.deny();
+                            return;
+                        }
                         List<String> ok = new ArrayList<>();
                         for (String r : demande.getResources()) {
                             if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r)) ok.add(r);
@@ -383,7 +453,8 @@ public class MainActivity extends Activity implements Midi.Ecoute {
                 return;
             }
             try {
-                startService(service);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(service);
+                else startService(service);
             } catch (Exception ignored) {
             }
         } else {
@@ -477,13 +548,13 @@ public class MainActivity extends Activity implements Midi.Ecoute {
     @Override
     protected void onPause() {
         super.onPause();
-        if (!enLecture) web.onPause();
+        if (!enLecture && web != null) web.onPause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        web.onResume();
+        if (web != null) web.onResume();
     }
 
     @Override
@@ -493,9 +564,22 @@ public class MainActivity extends Activity implements Midi.Ecoute {
 
     @Override
     protected void onDestroy() {
+        detruite = true;
         majLecture(false);
+        reseau.shutdownNow();
+        if (retourFichier != null) {
+            retourFichier.onReceiveValue(null);
+            retourFichier = null;
+        }
         if (midi != null) midi.fermer();
-        web.destroy();
+        if (web != null) {
+            web.removeJavascriptInterface("DRM16");
+            web.stopLoading();
+            web.loadUrl("about:blank");
+            web.removeAllViews();
+            web.destroy();
+            web = null;
+        }
         super.onDestroy();
     }
 }

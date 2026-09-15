@@ -37,6 +37,7 @@ public class Midi {
     private MidiDevice appareil;
     private MidiInputPort versAppareil;      // ce que nous écrivons
     private MidiOutputPort depuisAppareil;   // ce que nous lisons
+    private int generationOuverture;
 
     private Thread horloge;
     private volatile boolean horlogeActive;
@@ -46,6 +47,7 @@ public class Midi {
     /* état de l'analyse du flux entrant */
     private int statut = 0, attendu = 0, d1 = 0, recus = 0;
     private boolean enSysex = false;
+    private boolean sysexTropLong = false;
     private final ByteArrayOutputStream tampon = new ByteArrayOutputStream();
     private static final int SYSEX_MAX = 262144;
 
@@ -71,12 +73,19 @@ public class Midi {
     }
 
     public void ouvrir(final int idx) {
+        if (mm == null) liste();
         if (mm == null || idx < 0 || idx >= infos.length) return;
+        final MidiDeviceInfo info = infos[idx];
         fermer();
-        mm.openDevice(infos[idx], new MidiManager.OnDeviceOpenedListener() {
+        final int session = ++generationOuverture;
+        mm.openDevice(info, new MidiManager.OnDeviceOpenedListener() {
             @Override
             public void onDeviceOpened(MidiDevice device) {
                 if (device == null) return;
+                if (session != generationOuverture) {
+                    try { device.close(); } catch (IOException ignored) {}
+                    return;
+                }
                 appareil = device;
                 MidiDeviceInfo.PortInfo[] ports = device.getInfo().getPorts();
                 for (MidiDeviceInfo.PortInfo p : ports) {
@@ -92,11 +101,14 @@ public class Midi {
     }
 
     public void fermer() {
+        generationOuverture++;
         horlogeArret();
         try { if (depuisAppareil != null) { depuisAppareil.disconnect(recepteur); depuisAppareil.close(); } } catch (IOException ignored) {}
         try { if (versAppareil != null) versAppareil.close(); } catch (IOException ignored) {}
         try { if (appareil != null) appareil.close(); } catch (IOException ignored) {}
         depuisAppareil = null; versAppareil = null; appareil = null;
+        statut = 0; attendu = 0; d1 = 0; recus = 0;
+        enSysex = false; sysexTropLong = false; tampon.reset();
     }
 
     private final MidiReceiver recepteur = new MidiReceiver() {
@@ -107,35 +119,61 @@ public class Midi {
                 if (enSysex) {                   // un envoi exclusif est en cours
                     if (o == 0xF7) {
                         enSysex = false;
-                        tampon.write(0xF7);
-                        livrerSysex();
+                        if (!sysexTropLong && tampon.size() < SYSEX_MAX) {
+                            tampon.write(0xF7);
+                            livrerSysex();
+                        } else {
+                            tampon.reset();
+                        }
+                        sysexTropLong = false;
                     } else if (o >= 0xF8) {
                         livrer(o, 0, 0);         // les messages temps réel s'intercalent
-                    } else if (tampon.size() < SYSEX_MAX) {
+                    } else if (!sysexTropLong && tampon.size() < SYSEX_MAX - 1) {
                         tampon.write(o);
+                    } else {
+                        sysexTropLong = true;
                     }
                     continue;
                 }
                 if (o == 0xF0) {
                     enSysex = true;
+                    sysexTropLong = false;
                     tampon.reset();
                     tampon.write(0xF0);
                     statut = 0;
                     continue;
                 }
-                if (o >= 0xF8) {                 // temps réel : passe devant tout
+                if (o >= 0xF8) {                 // temps reel : n'annule jamais le running status
                     livrer(o, 0, 0);
                 } else if (o >= 0x80) {          // nouveau statut
-                    statut = o; recus = 0;
-                    int t = o & 0xF0;
-                    attendu = (t == 0xC0 || t == 0xD0) ? 1 : 2;
-                    if (o == 0xF1 || o == 0xF3) attendu = 1;
-                    if (o == 0xF2) attendu = 2;
-                    if (o >= 0xF4 && o <= 0xF7) { attendu = 0; livrer(o, 0, 0); statut = 0; }
-                } else if (statut != 0) {        // octet de données
-                    if (attendu == 1) { livrer(statut, o, 0); recus = 0; }
-                    else if (recus == 0) { d1 = o; recus = 1; }
-                    else { livrer(statut, d1, o); recus = 0; }
+                    recus = 0;
+                    if (o <= 0xEF) {             // messages de canal : running status autorise
+                        statut = o;
+                        int t = o & 0xF0;
+                        attendu = (t == 0xC0 || t == 0xD0) ? 1 : 2;
+                    } else if (o == 0xF1 || o == 0xF3) {
+                        statut = o; attendu = 1; // System Common : pas de running status ensuite
+                    } else if (o == 0xF2) {
+                        statut = o; attendu = 2;
+                    } else {
+                        attendu = 0;
+                        livrer(o, 0, 0);
+                        statut = 0;
+                    }
+                } else if (statut != 0) {        // octet de donnees
+                    if (attendu == 1) {
+                        int courant = statut;
+                        livrer(courant, o, 0);
+                        recus = 0;
+                        if (courant >= 0xF0) statut = 0;
+                    } else if (recus == 0) {
+                        d1 = o; recus = 1;
+                    } else {
+                        int courant = statut;
+                        livrer(courant, d1, o);
+                        recus = 0;
+                        if (courant >= 0xF0) statut = 0;
+                    }
                 }
             }
         }
@@ -166,9 +204,23 @@ public class Midi {
 
     public void envoyer(int a, int b, int c) {
         if (versAppareil == null) return;
-        int n = (a >= 0xF8) ? 1 : ((a & 0xF0) == 0xC0 || (a & 0xF0) == 0xD0 ? 2 : 3);
+        int statut = a & 0xFF;
+        int n;
+        if (statut >= 0xF8 || statut == 0xF4 || statut == 0xF5
+                || statut == 0xF6 || statut == 0xF7 || statut == 0xF0) {
+            n = 1;
+        } else if (statut == 0xF1 || statut == 0xF3) {
+            n = 2;
+        } else if (statut == 0xF2) {
+            n = 3;
+        } else if (statut >= 0x80 && statut <= 0xEF) {
+            int type = statut & 0xF0;
+            n = (type == 0xC0 || type == 0xD0) ? 2 : 3;
+        } else {
+            return;
+        }
         byte[] m = new byte[n];
-        m[0] = (byte) a;
+        m[0] = (byte) statut;
         if (n > 1) m[1] = (byte) (b & 0x7F);
         if (n > 2) m[2] = (byte) (c & 0x7F);
         try { versAppareil.send(m, 0, n); } catch (IOException ignored) {}
