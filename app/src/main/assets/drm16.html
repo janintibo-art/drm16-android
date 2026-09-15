@@ -384,7 +384,7 @@ body.m32 .read{color:#8fe8d8}
   color:#140f0c;font-weight:800;letter-spacing:1px;font-size:14px}
 #note button.sec{background:#2f2f35;color:#eceae4;margin-top:6px;margin-right:6px}
 #note button[disabled]{opacity:.5}
-/* la notice de l'Eurorack decrit quatre-vingt-dix-neuf modules : sans mise en forme
+/* la notice de l'Eurorack decrit cent trois modules : sans mise en forme
    propre, la liste devient un mur de texte illisible sur un telephone */
 #note ol,#note ul{margin:0 0 10px;padding-left:20px}
 #note li{margin:0 0 5px}
@@ -4523,7 +4523,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>quatre-vingt-dix-neuf modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>cent trois modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
@@ -4577,7 +4577,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <b>MONTAGES</b> ouvre les vingt-quatre patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
   <b>EXEMPLE</b> remonte le patch de démonstration. <b>VIDER</b> repart d'un rack nu, après confirmation,
   et seul le rack courant est touché.</li>
-  <li><b>PATCH ▾</b> — ce qu'on a monté dedans. <b>AJOUTER</b> ouvre le catalogue des quatre-vingt-dix-neuf modules,
+  <li><b>PATCH ▾</b> — ce qu'on a monté dedans. <b>AJOUTER</b> ouvre le catalogue des cent trois modules,
   rangé en huit onglets. <b>RETIRER</b> enlève le module choisi et ses câbles. <b>RANGÉE</b> le fait passer
   sur l'autre rangée. <b>DÉCÂBLER</b> retire tous les câbles en gardant les modules.</li>
   </ul>
@@ -4602,7 +4602,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <h3>Vingt-quatre montages tout faits</h3>
   <p>La liste s'ouvre <b>au-dessus du rack</b>, là où on la lit sans faire défiler la page.</p>
-  <p>Un rack vide décourage : il faut connaître quatre-vingt-dix-neuf modules et savoir lesquels vont ensemble avant
+  <p>Un rack vide décourage : il faut connaître cent trois modules et savoir lesquels vont ensemble avant
   d'entendre quoi que ce soit. <b>MONTAGES</b> donne des points de départ qui sonnent, rangés en cinq
   genres. Ils remplacent le rack courant — passez au rack suivant d'abord si vous tenez au vôtre.</p>
   <ul>
@@ -4711,7 +4711,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>L'<b>export WAV</b> fonctionne aussi, et enregistre ce qui sort de l'OUTPUT du rack affiché.</p>
   </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
-  <p>Les quatre-vingt-dix-neuf modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
+  <p>Les cent trois modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
   potards, ses entrées et ses sorties. Les <b>sorties</b> sont les prises cerclées d'or.</p>
 
   <h3>Horloges · 9 modules</h3>
@@ -4815,7 +4815,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   l'oreille, et quand c'est bon on fige.</p>
   <span>Potards LEN, FREEZE · Entrées IN, CLK, RST · Sortie OUT</span></div>
 
-  <h3>Oscillateurs · 12 modules</h3>
+  <h3>Oscillateurs · 14 modules</h3>
   <p>Les sources de son. Tous sauf NOISE ont une entrée <b>V/OCT</b> : un volt de plus, une octave de plus.
   OCT couvre quatre octaves, FINE l'accord fin.</p>
   <div class="fmod"><b>VCO</b>
@@ -4856,6 +4856,24 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   là, pas d'un effet ajouté après.</p>
   <span>Potards OCT, HARM, TIMBRE, MORPH, FILTER, F.ENV, F.RESO, ATTACK, DECAY · Entrées TRIG, V/OCT ·
   Sorties L, R</span></div>
+
+  <div class="fmod"><b>VCO 112</b>
+  <p>Deux oscillateurs, et une <b>vraie synchronisation dure</b>. Le point important : SYNC RATIO ne
+  désaccorde pas le second, il change le nombre de tours qu'il fait à l'intérieur d'un tour du premier. Les
+  deux restent donc toujours à la même hauteur fondamentale, et c'est le <b>timbre</b> qui bouge — voilà ce
+  qu'on entend d'une synchronisation, et pourquoi elle ne sonne jamais faux.</p>
+  <p>Faites tourner le potard pendant une note tenue : c'est le geste qui a fait la réputation de ce
+  procédé.</p>
+  <span>Potards OCT, FINE, SYNC RATIO, WIDTH, MIX · Entrée V/OCT · Sorties VCO 1, VCO 2, MIX</span></div>
+
+  <div class="fmod"><b>ENSEMBLE</b>
+  <p>Seize oscillateurs, mais pas un accord plaqué : ils se répartissent sur les degrés d'une
+  <b>gamme</b>, et SPREAD décide jusqu'où on monte. À zéro ils jouent tous la fondamentale — un unisson
+  très épais ; à fond ils couvrent trois octaves.</p>
+  <p>C'est ce qui le distingue d'un simple désaccord : les hauteurs restent <b>justes entre elles</b> quel
+  que soit le réglage. DETUNE ajoute par-dessus un léger flottement, étalé de part et d'autre pour que
+  l'ensemble reste centré. STEREO écarte les seize voix entre les deux sorties.</p>
+  <span>Potards ROOT, SPREAD, SCALE, BALANCE, DETUNE, WARP, STEREO · Entrée V/OCT · Sorties A, B</span></div>
 
   <div class="fmod"><b>PISTON HONDA</b>
   <p>Une table d'ondes à <b>trois axes</b>. X règle la pente des harmoniques, Y la balance entre rangs pairs
@@ -5032,7 +5050,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   Pour un balayage de filtre qui tombe pile sur la mesure, c'est lui et pas l'autre.</p>
   <span>Potards DIV, AMT · Sorties SINE, TRI, RAMP</span></div>
 
-  <h3>Utilitaires · 13 modules</h3>
+  <h3>Utilitaires · 14 modules</h3>
   <p>Rien de spectaculaire, et pourtant c'est ce qui manque toujours dans un vrai rack. Ils dosent,
   mélangent, distribuent.</p>
   <div class="fmod"><b>OUTPUT</b>
@@ -5053,6 +5071,15 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   la profondeur des creux — en deçà du maximum, le son ne disparaît plus tout à fait, il recule. Sur un
   CHORD ou une SUPERSAW, c'est la moitié du psychédélique.</p>
   <span>Potards PATTERN, DEPTH, SHAPE · Entrées IN, CLK, RST · Sortie OUT</span></div>
+
+  <div class="fmod"><b>HEAD</b>
+  <p>Un mélangeur quatre voies avec un <b>départ d'effets séparé</b>. Chaque voie envoie ce qu'elle veut
+  vers AUX OUT, en plus de son niveau normal : on branche une réverbération dessus et les quatre la
+  partagent dans des proportions différentes.</p>
+  <p>C'est ce qui manque à MIX 4 : sans départ, il faudrait une réverbération par voie — quatre fois plus
+  cher pour un résultat moins tenu. Le départ est pris <b>après</b> le niveau de voie, donc baisser une
+  voie baisse aussi ce qu'elle envoie à l'effet ; sinon un son coupé continuerait de résonner.</p>
+  <span>Potards 1 à 4, AUX 1 à 4, MAIN · Entrées IN 1 à 4 · Sorties AUX OUT, MAIN</span></div>
 
   <div class="fmod"><b>TRANSPOSE</b>
   <p>L'ATTENUV décale aussi, mais au jugé. Ici les crans tombent <b>exactement</b> sur l'octave et le
@@ -5203,9 +5230,18 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   frappant au casque.</p>
   <span>Potards TIME, FEED, MIX · Entrée IN · Sortie OUT</span></div>
 
-  <h3>Percussions · 16 modules</h3>
+  <h3>Percussions · 17 modules</h3>
   <p>Des voix complètes : une impulsion sur TRIG suffit, pas besoin d'enveloppe ni de VCA. Les sept
   dernières partagent les mêmes trois réglages — TUNE l'accord, DECAY la longueur, LEVEL le niveau.</p>
+  <div class="fmod"><b>BATTERING RAM</b>
+  <p>Ce qui fait une grosse caisse de module, ce n'est pas la sinusoïde plongeante — tout le monde l'a —
+  mais le <b>CLIC</b> : un bruit très court à l'attaque. Sans lui, la caisse disparaît dès qu'un autre son
+  joue ; avec lui, elle traverse n'importe quel mélange, même très bas.</p>
+  <p><b>DRIVE TYPE</b> donne trois caractères : doux, franc, ou en escalier. La sortie <b>ENVLP</b> rend
+  l'enveloppe de la frappe — envoyez-la dans un VCA sur une autre voie et vous obtenez un vrai ducking,
+  calé au coup près.</p>
+  <span>Potards PITCH, DECAY, DRIVE, DRIVE TYPE, CLICK, HPF · Entrée TRIG · Sorties OUT, ENVLP</span></div>
+
   <div class="fmod"><b>SQUID SALMPLE</b>
   <p>Huit lecteurs d'échantillons, <b>une entrée chacun</b>. C'est tout le module, et c'est ce qui le rend
   rapide : là où un échantillonneur ordinaire demande de choisir un son puis de le déclencher, ici chaque
@@ -16998,6 +17034,40 @@ function eurEffet(nom, hp, res, kns, bati){
       return {e:{in:e}, s:{out:out}};
     }};
 }
+/* Un cycle de synchronisation dure, rendu une fois pour toutes.
+   La synchronisation dure n'existe pas en Web Audio : aucun oscillateur ne
+   permet de remettre sa phase à zéro sur commande. Mais une onde synchronisée
+   est PÉRIODIQUE — elle se répète à la fréquence du maître —, donc on peut
+   dessiner un seul de ses cycles dans un tampon et le lire en boucle. C'est
+   exact, pas une approximation, et ça ne coûte qu'un lecteur de tampon. */
+var SYNC_BUFS = {};
+function bufSyncEur(rapport){
+  var cle = Math.round(rapport * 20) / 20;      /* par crans de 0,05 */
+  if(SYNC_BUFS[cle] && SYNC_BUFS[cle].sr === ctx.sampleRate) return SYNC_BUFS[cle].b;
+  var n = Math.max(64, Math.round(ctx.sampleRate / 55));   /* un cycle à 55 Hz */
+  var b = ctx.createBuffer(1, n, ctx.sampleRate);
+  var d = b.getChannelData(0);
+  /* Une dent de scie dessinée bêtement replie tout son spectre : ses
+     harmoniques montent à l'infini et reviennent en bas sous forme de
+     sifflements inharmoniques, d'autant plus que le tampon est lu vite.
+     La correction ci-dessous arrondit les deux échantillons qui entourent
+     chaque rupture — c'est le minimum pour que la synchronisation reste
+     mordante sans devenir sale. */
+  var dt = cle / n;
+  function lisser(t){
+    if(t < dt){ t /= dt; return t + t - t * t - 1; }
+    if(t > 1 - dt){ t = (t - 1) / dt; return t * t + t + t + 1; }
+    return 0;
+  }
+  for(var i=0;i<n;i++){
+    /* la dent de scie de l'esclave, remise à zéro à chaque tour du maître */
+    var ph = (i / n) * cle, fr = ph - Math.floor(ph);
+    d[i] = 2 * fr - 1 - lisser(fr);
+  }
+  SYNC_BUFS[cle] = {b:b, sr:ctx.sampleRate};
+  return b;
+}
+
 var EUR_CAT = {
 
 /* ================= sortie et horloges ================= */
@@ -17595,6 +17665,106 @@ coral: {nom:"CORAL", hp:92, res:"Une voix entière : oscillateur, filtre, deux e
       return null;
     };
     return {e:{trig:eurGain(1), voct:voct}, s:{l:l, r:r}};
+  }},
+
+vco112: {nom:"VCO 112", hp:80, res:"Deux oscillateurs, et une vraie synchronisation dure", fam:"osc",
+  kns:[["oct","OCT",0,1,0.45],["fin","FINE",0,1,0.5],
+       ["rap","SYNC RATIO",0,1,0.25],["pw","WIDTH",0,1,0.5],["mix","MIX 1·2",0,1,0.5]],
+  jacks:[["voct","V/OCT",0],["o1","VCO 1",1],["o2","VCO 2",1],["mix","MIX",1]],
+  creer:function(m){
+    /* VCO 1 est le maître, VCO 2 le suit. SYNC RATIO ne désaccorde pas VCO 2 :
+       il change le nombre de tours qu'il fait à l'intérieur d'un tour du
+       maître. Les deux restent donc TOUJOURS à la même hauteur fondamentale,
+       et c'est le timbre qui bouge — voilà ce qu'on entend d'une
+       synchronisation, et pourquoi elle n'est jamais fausse. */
+    var base = 55, voct = eurGain(1200);
+    var o1 = ctx.createOscillator();
+    o1.type = "sawtooth";
+    voct.connect(o1.detune);
+    o1.start();
+    var g1 = eurGain(0.35);
+    o1.connect(g1);
+
+    var src = ctx.createBufferSource();
+    src.loop = true;
+    src.buffer = bufSyncEur(1);
+    var g2 = eurGain(0.35);
+    src.connect(g2);
+    src.start();
+    /* le lecteur n'a pas d'entrée de hauteur : on le détune comme un
+       oscillateur, ce que playbackRate ne permet pas, d'où le calcul direct */
+    var mix = eurGain(0.5);
+    g1.connect(mix); g2.connect(mix);
+
+    m.maj = function(){
+      var hz = base * Math.pow(2, (m.p.oct - 0.5) * 4) * Math.pow(2, (m.p.fin - 0.5) / 6);
+      o1.frequency.value = hz;
+      src.playbackRate.value = hz / 55;
+      var r = 1 + m.p.rap * 7;                  /* de 1 à 8 tours */
+      src.buffer = bufSyncEur(r);
+      g1.gain.value = 0.35 * (1 - m.p.mix);
+      g2.gain.value = 0.35 * m.p.mix;
+    };
+    m.maj();
+    return {e:{voct:voct}, s:{o1:g1, o2:g2, mix:mix}};
+  }},
+
+ensemble: {nom:"ENSEMBLE", hp:92, res:"Seize oscillateurs accordés sur une gamme", fam:"osc",
+  kns:[["oct","ROOT",0,1,0.4],["spread","SPREAD",0,1,0.4],["gamme","SCALE",0,1,0.3],
+       ["bal","BALANCE",0,1,0.5],["det","DETUNE",0,1,0.2],["warp","WARP",0,1,0.3],
+       ["stereo","STEREO",0,1,0.7]],
+  jacks:[["voct","V/OCT",0],["a","OUT A",1],["b","OUT B",1]],
+  creer:function(m){
+    /* Seize oscillateurs, mais pas un accord plaqué : ils sont répartis sur les
+       degrés d'une GAMME, et SPREAD décide combien on en monte. À zéro ils
+       jouent tous la fondamentale — c'est un unisson épais ; à fond ils
+       couvrent trois octaves de la gamme choisie.
+
+       C'est la différence avec un simple désaccord : ici les hauteurs restent
+       justes entre elles, quel que soit le réglage. */
+    var N = 16, base = 55, voct = eurGain(1200);
+    var GAMMES = [
+      [0,4,7,12,16,19,24,28],            /* accord majeur */
+      [0,3,7,10,12,15,19,22],            /* mineur septième */
+      [0,2,4,7,9,12,14,16],              /* pentatonique */
+      [0,7,12,19,24,31,36,43]            /* quintes : le plus ouvert */
+    ];
+    var a = eurGain(0.18), b = eurGain(0.18);
+    var voix = [];
+    for(var i=0;i<N;i++){
+      var o = ctx.createOscillator();
+      o.type = "sawtooth";
+      voct.connect(o.detune);
+      var g = eurGain(0.5);
+      var p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      o.connect(g);
+      if(p){ g.connect(p); p.connect(a); p.connect(b); }
+      else { g.connect(a); g.connect(b); }
+      o.start();
+      voix.push({o:o, g:g, p:p, i:i});
+    }
+    m.maj = function(){
+      var hz = base * Math.pow(2, (m.p.oct - 0.5) * 4);
+      var G = GAMMES[Math.min(3, Math.round(m.p.gamme * 3))];
+      var haut = Math.max(1, Math.round(m.p.spread * (G.length - 1)));
+      voix.forEach(function(v){
+        var deg = G[Math.round((v.i / (N - 1)) * haut) % G.length];
+        var oct = Math.floor(((v.i / (N - 1)) * haut) / G.length);
+        var f = hz * Math.pow(2, (deg + oct * 12) / 12);
+        /* le désaccord s'étale de part et d'autre : les voix paires montent,
+           les impaires descendent, l'ensemble reste centré */
+        f *= 1 + ((v.i % 2) ? -1 : 1) * m.p.det * 0.02 * (1 + v.i / N);
+        v.o.frequency.value = f;
+        v.o.type = m.p.warp > 0.66 ? "square" : (m.p.warp > 0.33 ? "sawtooth" : "triangle");
+        /* BALANCE : au milieu tout le monde joue, aux extrêmes on ne garde
+           qu'une moitié de l'essaim */
+        var poids = (v.i % 2) ? m.p.bal : (1 - m.p.bal);
+        v.g.gain.value = 0.18 + poids * 0.7;
+        if(v.p) v.p.pan.value = ((v.i / (N - 1)) * 2 - 1) * m.p.stereo;
+      });
+    };
+    m.maj();
+    return {e:{voct:voct}, s:{a:a, b:b}};
   }},
 
 piston: {nom:"PISTON HONDA", hp:76, res:"Table d'ondes à trois axes", fam:"osc",
@@ -18283,6 +18453,44 @@ tgate: {nom:"TRANCE GATE", hp:64, sombre:true, res:"Hache le son en croches et e
     return {e:{in:e, clk:eurGain(1), rst:eurGain(1)}, s:{out:g}};
   }},
 
+head: {nom:"HEAD", hp:84, sombre:true, res:"Quatre voies avec départ d'effets séparé", fam:"util",
+  kns:[["n1","1",0,1,0.7],["n2","2",0,1,0.7],["n3","3",0,1,0.7],["n4","4",0,1,0.7],
+       ["a1","AUX 1",0,1,0],["a2","AUX 2",0,1,0],["a3","AUX 3",0,1,0],["a4","AUX 4",0,1,0],
+       ["main","MAIN",0,1,0.8]],
+  jacks:[["i1","IN 1",0],["i2","IN 2",0],["i3","IN 3",0],["i4","IN 4",0],
+         ["aux","AUX OUT",1],["out","MAIN",1]],
+  creer:function(m){
+    /* Un mélangeur ordinaire additionne. Celui-ci a un DÉPART séparé : chaque
+       voie envoie ce qu'elle veut vers AUX OUT, en plus de son niveau normal.
+       On branche une réverbération dessus, et les quatre voies la partagent
+       dans des proportions différentes.
+
+       C'est ce qui manque à MIX 4 : sans départ, il faut une réverbération par
+       voie — quatre fois plus cher pour un résultat moins tenu. C'est le même
+       raisonnement que la table de mixage de l'application. */
+    var e = {}, out = eurGain(0.8), aux = eurGain(1);
+    var voies = [];
+    for(var i=1;i<=4;i++){
+      var ent = eurGain(1), gn = eurGain(0.7), ga = eurGain(0);
+      ent.connect(gn); gn.connect(out);
+      ent.connect(ga); ga.connect(aux);
+      e["i" + i] = ent;
+      voies.push({n:gn, a:ga, i:i});
+    }
+    m.maj = function(){
+      voies.forEach(function(v){
+        v.n.gain.value = m.p["n" + v.i];
+        /* le départ est pris APRÈS le niveau de voie : baisser une voie baisse
+           aussi ce qu'elle envoie à l'effet, comme sur une console en
+           post-fader — sinon un son coupé continuerait de résonner */
+        v.a.gain.value = m.p["a" + v.i] * m.p["n" + v.i];
+      });
+      out.gain.value = m.p.main;
+    };
+    m.maj();
+    return {e:e, s:{aux:aux, out:out}};
+  }},
+
 trans: {nom:"TRANSPOSE", hp:56, res:"Transpose juste, en octaves et en demi-tons", fam:"util",
   kns:[["oct","OCT",0,1,0.5],["semi","SEMI",0,1,0.5]],
   jacks:[["in","IN",0],["out","OUT",1]],
@@ -18867,6 +19075,68 @@ pingpong: eurEffet("PING PONG", 72, "Écho qui rebondit d'une oreille à l'autre
   }),
 
 /* ================= percussions ================= */
+ram: {nom:"BATTERING RAM", hp:72, res:"Grosse caisse : chute, saturation, clic", fam:"perc",
+  kns:[["pitch","PITCH",0,1,0.35],["dec","DECAY",0,1,0.5],["drive","DRIVE",0,1,0.45],
+       ["type","DRIVE TYPE",0,1,0],["clic","CLICK",0,1,0.4],["hpf","HPF",0,1,0.2]],
+  jacks:[["trig","TRIG",0],["out","OUT",1],["env","ENVLP",1]],
+  creer:function(m){
+    /* Ce qui fait une grosse caisse de module, ce n'est pas la sinusoïde
+       plongeante — tout le monde l'a — mais le CLIC : un bruit très court à
+       l'attaque. Sans lui, la caisse disparaît dès qu'un autre son joue ;
+       avec lui, elle traverse n'importe quel mélange, même très bas.
+
+       La sortie ENVLP rend l'enveloppe : de quoi faire plonger autre chose au
+       même moment, ce qui est la façon d'obtenir un vrai ducking. */
+    var out = eurGain(1), env = eurConst(0);
+    var sat = ctx.createWaveShaper();
+    var hp = ctx.createBiquadFilter(); hp.type = "highpass";
+    var som = eurGain(1);
+    som.connect(sat); sat.connect(hp); hp.connect(out);
+    m.maj = function(){
+      hp.frequency.value = 20 + m.p.hpf * 90;
+      var n = 1024, c = new Float32Array(n);
+      var k = 1 + m.p.drive * 40;
+      var dur = Math.min(2, Math.round(m.p.type * 2));
+      for(var i=0;i<n;i++){
+        var x = i * 2 / n - 1;
+        /* trois caractères : doux, franc, en escalier */
+        c[i] = dur === 0 ? Math.tanh(x * k) / Math.tanh(k)
+             : dur === 1 ? Math.max(-1, Math.min(1, x * k))
+             : Math.round(Math.tanh(x * k) * 12) / 12;
+      }
+      sat.curve = c; sat.oversample = "2x";
+    };
+    m.maj();
+    m.recevoir = function(t, entree){
+      if(entree !== "trig") return null;
+      var f0 = 34 + m.p.pitch * 46, d = 0.12 + m.p.dec * 0.95;
+      var o = ctx.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(f0 * 9, t);
+      o.frequency.exponentialRampToValueAtTime(f0, t + 0.045);
+      var g = eurGain(0);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(1, t + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(som);
+      o.start(t); o.stop(t + d + 0.05);
+      if(m.p.clic > 0.02){
+        var b = eurBruit();
+        var bp = ctx.createBiquadFilter();
+        bp.type = "bandpass"; bp.frequency.value = 1800; bp.Q.value = 0.8;
+        var gc = eurGain(0);
+        gc.gain.setValueAtTime(m.p.clic * 0.8, t);
+        gc.gain.exponentialRampToValueAtTime(0.0001, t + 0.012);
+        b.connect(bp); bp.connect(gc); gc.connect(som);
+        b.stop(t + 0.05);
+      }
+      env.offset.cancelScheduledValues(t);
+      env.offset.setValueAtTime(1, t);
+      env.offset.linearRampToValueAtTime(0, t + d);
+      return null;
+    };
+    return {e:{trig:eurGain(1)}, s:{out:out, env:env}};
+  }},
+
 squid: {nom:"SQUID SALMPLE", hp:96, res:"Huit lecteurs d'échantillons, une entrée chacun", fam:"perc",
   kns:[["banque","BANK",0,1,0],["qual","QUALITY",0,1,1],["dec","ENV",0,1,0.85],
        ["rev","REVERSE",0,1,0],["tune","V/OCT",0,1,0.5],["niv","LEVEL",0,1,0.8]],
@@ -19563,7 +19833,7 @@ function eurCatalogue(){
   var c = document.getElementById("eur-cat");
   if(c.style.display !== "none" && c.dataset.vue === "mod"){ montrerCat(c, false); return; }
   c.innerHTML = ""; c.dataset.vue = "mod";
-  /* quatre-vingt-dix-neuf modules en vrac seraient illisibles : on les range par
+  /* cent trois modules en vrac seraient illisibles : on les range par
      familles, et l'onglet choisi décide de ce qu'on voit */
   var onglets = document.createElement("div");
   onglets.className = "eur-fam";
@@ -19743,7 +20013,7 @@ document.getElementById("eur-hasard").addEventListener("click", function(){ eurH
    de rythme, deux ou trois voix, un traitement et une sortie. Sans cette
    ossature on obtient un tas de modules qui ne sonne pas. */
 /* ================= montages tout faits =================
-   Un rack vide décourage : il faut connaître quatre-vingt-dix-neuf modules et savoir
+   Un rack vide décourage : il faut connaître cent trois modules et savoir
    lesquels vont ensemble avant d'entendre quoi que ce soit. Ces montages
    donnent un point de départ qui sonne, à défaire ensuite câble par câble —
    c'est la façon la plus rapide d'apprendre ce que fait chaque module.

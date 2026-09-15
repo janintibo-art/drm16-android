@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **118**.
+La version actuelle est la **119**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -59,9 +59,9 @@ Le Java ne sert que de pont vers Android.
 **Electro-Harmonix** DRM16, DRM32 · **Korg** Electribe EM-1, ER-1, EA-1, ES-1, ER-1 mkII, ES-1 mkII,
 EA-1 mkII, EMX-1, ESX-1, volca sample · **Akai** MPC3000, MPC2000 · **Roland** TR-808, TR-909, TR-707,
 CR-5000, TR-1000 · **Oberheim** DMX · **Arturia** DrumBrute Impact · **Behringer** RD-6, TD-3 ·
-**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (99 modules, deux rangées :
-9 horloges, 8 séquenceurs, 12 oscillateurs, 11 filtres, 12 modulations, 13 utilitaires, 18 traitements,
-16 percussions).
+**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (103 modules, deux rangées :
+9 horloges, 8 séquenceurs, 14 oscillateurs, 11 filtres, 12 modulations, 14 utilitaires, 18 traitements,
+17 percussions).
 
 ### Les outils
 
@@ -116,6 +116,29 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Quatre modules, et une vraie synchronisation dure — v119**
+
+99 → 103.
+
+**Le morceau de bravoure : `bufSyncEur`.** La synchronisation dure n'existe pas en Web Audio — aucun
+oscillateur ne permet de remettre sa phase à zéro. Mais **une onde synchronisée est périodique** : elle se
+répète à la fréquence du maître. On dessine donc **un seul de ses cycles** dans un tampon et on le lit en
+boucle. C'est **exact**, pas une approximation, et ça ne coûte qu'un `BufferSource`.
+- Cache par crans de 0,05 : 51 tampons au pire, 3 ko chacun.
+- **Correction de repliement** (polyBLEP) sur les deux échantillons entourant chaque rupture : sans elle
+  une dent de scie brute replie tout son spectre, d'autant plus que le tampon est lu vite. Mesuré :
+  l'énergie du haut du spectre passe de 6,7 % à 3,4 % au rapport 4. Le mordant reste.
+- `SYNC RATIO` change le **nombre de tours**, pas la hauteur : les deux oscillateurs restent à la même
+  fondamentale, seul le timbre bouge. C'est ce qui fait qu'une synchronisation ne sonne jamais faux.
+
+Les trois autres : **ENSEMBLE** (16 oscillateurs répartis sur les degrés d'une gamme, donc justes entre
+eux quel que soit SPREAD), **BATTERING RAM** (le clic fait la caisse, plus une sortie d'enveloppe pour le
+ducking), **HEAD** (mélangeur à départ d'effets **post-fader**, ce qui manquait à MIX 4).
+
+**Piège rencontré** : la fonction d'aide `bufSyncEur` avait été insérée **à l'intérieur de l'objet
+`EUR_CAT`**, où seules des entrées `clé: valeur` sont permises — erreur de syntaxe immédiate. Une fonction
+d'aide se pose **avant** `var EUR_CAT = {`, jamais entre deux modules.
 
 **Trois modules de plus — v118**
 
