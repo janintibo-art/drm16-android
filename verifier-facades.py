@@ -46,10 +46,16 @@ for m in re.finditer(r'([^{}]+)\{([^}]*)\}', css):
 m=re.search(r'CLASSES_MACHINE\s*=\s*\[(.*?)\]', s, re.S)
 classes=re.findall(r'"([\w-]+)"', m.group(1)) if m else []
 montre={}
+facades=set()
 for q,val,pos in regles:
     m2=re.fullmatch(r'body\.(\w+) ([#.][\w-]+)', q)
-    if m2 and val=="block" and m2.group(1) in classes: montre.setdefault(m2.group(1), m2.group(2))
-facades=sorted(set(montre.values()))
+    if not m2 or m2.group(1) not in classes: continue
+    # TOUTE facade citee compte, pas seulement celles qu'une classe MONTRE :
+    # la DRM16 est visible SANS classe, elle n'apparait donc jamais en
+    # « display:block ». C'est ce trou qui a laisse passer la MC-101.
+    facades.add(m2.group(2))
+    if val=="block": montre.setdefault(m2.group(1), m2.group(2))
+facades=sorted(facades)
 def spec(q): return (q.count('#'), len(re.findall(r'\.[\w-]+', q)))
 def visible(cl, fac):
     best=None

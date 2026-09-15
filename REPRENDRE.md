@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **115**.
+La version actuelle est la **116**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -116,6 +116,27 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Deux corrections signalées — v116**
+
+*1. Du texte brut au milieu de la TR-909.* `<div class="bt"> style="width:44px;height:44px">` — la balise
+était **déjà fermée** avant l'attribut, qui s'affichait donc comme du texte. Séquelle de la **v71**, quand
+j'ai déplacé les identifiants de potards du `.bt` vers le bloc conteneur : l'attribut de taille est resté
+orphelin sur `tr8-k-tempo` et `tr8-k-vol`. Réparé, et vérifié qu'il n'en reste **aucun autre** dans le
+fichier (recherche de tout `>` suivi d'un attribut).
+
+*2. La MC-101 s'affichait avec la DRM16.* `body.mc` ne cachait **rien** — la même faute qu'en v114.
+
+**Mais le vrai défaut est dans le contrôle, qui n'a rien vu.** `verifier-facades.py` ne considérait comme
+façade que les éléments ayant une règle `body.X … {display:block}`. Or **la DRM16 est visible sans aucune
+classe** : `#unit` n'apparaît jamais en `display:block`, il n'était donc pas dans la liste des façades à
+tester. Le contrôle vérifiait consciencieusement tout… sauf la seule façade qui manquait.
+
+Corrigé : **toute façade citée dans une règle `body.X …` compte**, qu'elle soit montrée ou cachée.
+20 façades au lieu de 19. Et j'ai vérifié que le contrôle **attrape bien le défaut** en le recréant sur une
+copie — sans quoi je n'aurais aucune raison de croire qu'il protège de quoi que ce soit.
+
+**Un contrôle qui passe n'a de valeur que si on l'a vu échouer.**
 
 **Vingt-huitième machine : Roland MC-101 — v115**
 
