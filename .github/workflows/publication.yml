@@ -29,6 +29,11 @@ jobs:
           java-version: '17'
           cache: gradle
 
+      # Contrôles automatiques AVANT tout le reste (v134) : une faute détectée ici
+      # coûte une minute au lieu de toute la compilation. Détail : outils/controles.sh
+      - name: Contrôles automatiques
+        run: bash outils/controles.sh
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'

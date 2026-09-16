@@ -6,3 +6,4 @@
 # courant du depot et affiche dans le journal la ligne
 #     COMMIT KORG : <commit> (NON FIGE)
 # C'est ce commit qu'il faut inscrire ici, seul sur sa ligne.
+b0ed615f18c230a18b378d9ddc6a936971597e4e

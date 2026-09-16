@@ -26,6 +26,11 @@ jobs:
           java-version: '17'
           cache: gradle           # évite de retélécharger Gradle à chaque fois
 
+      # Contrôles automatiques AVANT tout le reste (v134) : une faute détectée ici
+      # coûte une minute au lieu de toute la compilation. Détail : outils/controles.sh
+      - name: Contrôles automatiques
+        run: bash outils/controles.sh
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
@@ -65,6 +70,21 @@ jobs:
 
       - name: Compiler l'APK de debug
         run: gradle assembleDebug --stacktrace --no-daemon
+
+      # Lint d'Android (v134) : informatif pour l'instant. Il ne bloque pas, son
+      # rapport est joint au run ; on décidera quoi rendre bloquant après l'avoir lu.
+      - name: Lint Android (informatif)
+        continue-on-error: true
+        run: gradle lintDebug --no-daemon
+
+      - name: Joindre le rapport de lint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-lint
+          path: app/build/reports/lint-results-debug.*
+          if-no-files-found: ignore
+          retention-days: 14
 
       - uses: actions/upload-artifact@v4
         with:

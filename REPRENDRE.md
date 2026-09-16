@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **133**.
+La version actuelle est la **134**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 133** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 134** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -112,6 +112,10 @@ les neuf premiers. Fait trois fois dans la même journée. **Appliquer chaque mo
 depuis `Midi.java` alors que `MainActivity` n'a pas de champ `ui`. Utiliser `verif-java.py`, qui repère
 tout identifiant employé comme objet sans être déclaré ni importé.
 
+**Contrôles automatiques (v134)** : `bash outils/controles.sh` enchaîne façades, charge, HTML extérieur,
+identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tests Java. GitHub Actions le lance
+**avant** toute compilation, dans les deux workflows. Dans Termux : `pkg install python nodejs openjdk-17`.
+
 **Contrôle systématique avant livraison** : les vingt-cinq machines dans trois formats d'écran
 (393×851, 880×400, 360×640), lecture effective, aucune erreur de page, aucun débordement.
 
@@ -123,6 +127,29 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Contrôles automatiques avant compilation — v134**
+
+`outils/controles.sh`, lancé par `android.yml` et `publication.yml` juste après l'installation de Java,
+**avant** Syro et Gradle. S'arrête au premier échec :
+1. `verifier-facades.py` 2. `verifier-charge.py` 3. `verifier-html.py`
+4. **`verifier-ids.py`** (nouveau) — identifiants posés deux fois dans le HTML écrit en dur (903, aucun doublon)
+5. **`outils/verifier-js.py`** (nouveau) — `node --check` de chaque bloc de script, ligne de départ indiquée
+6. **Java** : `outils/java/Verif.java` compile toutes les sources de l'application avec des **classes Android
+   simulées** (`outils/java/android-simule/`, signatures seulement), puis lance `TestFichiers` et `TestMidi`
+   (`outils/java/tests/`). Si le code se met à utiliser une API Android absente des simulations : ajouter sa
+   signature là, rien d'autre. `verif-java.py` (contrôle par texte) est dépassé par cette compilation.
+Chaque contrôle a été **vu échouer** : faute de syntaxe JS, identifiant en double, sources extérieures (v132),
+faute Java (v128), voie non protégée (v124).
+
+**Lint Android** ajouté après la compilation, **informatif** (`continue-on-error`), rapport joint au run
+(`rapport-lint`). À lire avant de décider ce qui deviendra bloquant.
+
+**Syro figé** : `syro/korg-commit.txt` porte `b0ed615f18c230a18b378d9ddc6a936971597e4e`, relevé sur le run
+de la v133.
+
+**Reste** (v135) : test de la page dans un vrai navigateur en CI, et mise à jour des versions des actions
+GitHub (versions à relever en ligne).
 
 **Syro : code Korg figé sur un commit — v133**
 
@@ -142,8 +169,7 @@ le reste est commentaire).
 inscrit alors que le dépôt est passé en v2 → c'est bien **v1** qui est compilé ; dossier resté sur v2 → arrêt ;
 commit inexistant → arrêt, dossier nettoyé.
 
-**À faire juste après** : relever le commit affiché par le premier run et l'inscrire dans `korg-commit.txt`
-(livraison v133 bis).
+**Fait en v134** : commit relevé sur le premier run et inscrit — `b0ed615f18c230a18b378d9ddc6a936971597e4e`.
 
 **Aucun nom extérieur interprété comme du HTML — v132**
 
