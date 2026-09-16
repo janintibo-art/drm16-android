@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **141**.
+La version actuelle est la **142**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 141** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 142** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,22 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**W5 bis : ouverture MIDI sur un fil à part — v142**
+
+*Constat v141* : `midir` compile ; l'exécuteur GitHub a un appareil, **« Microsoft GS Wavetable Synth »** ;
+mais son ouverture n'a pas été confirmée à la page dans les 4 s (1 échec sur 26).
+
+*Cause probable* : `ouvrir_id` s'exécutait **à l'intérieur** de la requête synchrone de la page, et envoyait
+`__midiEtat` pendant que la page attendait encore sa réponse. Android, lui, poste l'ouverture
+(`runOnUiThread`) et rend la main aussitôt.
+
+*Correction* : `midiOuvrir`, `midiOuvrirId` et `midiFermer` lancent leur travail sur **un fil à part**
+(`hote.rs`) ; l'événement arrive ensuite, comme sur Android.
+
+*Diagnostic ajouté* : l'autotest note chaque événement `__midiEtat` reçu et demande l'état à Rust
+(`midiOuvertId`) ; en cas d'échec, le rapport dit donc si l'ouverture a raté ou si l'événement s'est perdu.
+Attente portée à 6 s.
 
 **W5 : MIDI sous Windows — v141**
 

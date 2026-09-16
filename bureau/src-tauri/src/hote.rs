@@ -76,16 +76,21 @@ fn appeler(nom: &str, a: &[Value]) -> Option<Value> {
         "midiListe" => json!(m::liste()),
         "midiAppareils" => json!(m::appareils()),
         "midiOuvertId" => json!(m::ouvert_id()),
+        // Ouvrir et fermer se font sur un fil à part, comme sur Android (runOnUiThread) :
+        // la page reprend la main aussitôt, et l'événement arrive ensuite par
+        // __midiEtat — jamais depuis l'intérieur de la requête en cours (v142).
         "midiOuvrir" => {
-            m::ouvrir(entier(a, 0));
+            let i = entier(a, 0);
+            std::thread::spawn(move || m::ouvrir(i));
             Value::Null
         }
         "midiOuvrirId" => {
-            m::ouvrir_id(entier(a, 0));
+            let id = entier(a, 0);
+            std::thread::spawn(move || m::ouvrir_id(id));
             Value::Null
         }
         "midiFermer" => {
-            m::fermer_signale();
+            std::thread::spawn(m::fermer_signale);
             Value::Null
         }
         "midiEnvoyer" => {

@@ -6261,10 +6261,15 @@ var HOST = (function(){
         try{ liste = h.midiAppareils().split("\n").filter(Boolean); }catch(e){}
         if(!liste.length){ t(true, "MIDI : aucun appareil sur cette machine, essais d'ouverture sautés"); return; }
         var c = liste[0].split("\t"), id = parseInt(c[1], 10);
+        /* on note chaque événement reçu : en cas d'échec, le rapport dit si
+           l'ouverture a raté (côté Rust) ou si l'événement n'est pas arrivé */
+        var recus = [], avant = window.__midiEtat;
+        window.__midiEtat = function(e){ recus.push(e && e.evt); return avant(e); };
         h.midiOuvrirId(id);
-        return attendreQue(function(){ return MIDI.ouvertId === id; }, 4000).then(function(ouvert){
-          t(ouvert, "MIDI : « " + c[0] + " » ouvert, confirmé par __midiEtat");
-          if(!ouvert) return;
+        return attendreQue(function(){ return MIDI.ouvertId === id; }, 6000).then(function(ouvert){
+          t(ouvert, "MIDI : « " + c[0] + " » ouvert, confirmé par __midiEtat (reçus : " +
+                    (recus.join(",") || "aucun") + " · côté Rust : " + h.midiOuvertId() + ")");
+          if(!ouvert){ window.__midiEtat = avant; return; }
           var sansErreur = true;
           try{
             h.midiEnvoyer(0x90, 60, 1); h.midiEnvoyer(0x80, 60, 0);
@@ -6279,7 +6284,10 @@ var HOST = (function(){
             h.midiHorloge(false, 0);
             h.midiFermer();
             return attendreQue(function(){ return MIDI.ouvertId === -1; }, 3000);
-          }).then(function(ferme){ t(ferme, "MIDI : horloge lancée puis arrêtée, appareil fermé"); });
+          }).then(function(ferme){
+            window.__midiEtat = avant;
+            t(ferme, "MIDI : horloge lancée puis arrêtée, appareil fermé (reçus : " + recus.join(",") + ")");
+          });
         });
       }
       /* réseau (v140) : la réponse revient plus tard, par window.__net */
