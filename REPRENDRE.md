@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **122**.
+La version actuelle est la **123**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,11 +38,16 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
+**Chiffres au 123** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
+fichier HTML de 1,25 Mo.
+
+
 La notice est découpée en **onglets `.doc`** dans `#note-corps` ; la barre de navigation est construite
 toute seule à partir de leur `data-titre`. L'Eurorack en occupe trois : `note-eur` (les principes),
-`note-eurmod` (les 89 fiches), `note-eurpat` (huit patchs et le glossaire).
+`note-eurmod` (les 103 fiches, avec sommaire cliquable), `note-eurpat` (huit patchs et le glossaire).
 
-Une seule page HTML porte toute l'application : `app/src/main/assets/drm16.html`, environ **890 ko**.
+Une seule page HTML porte toute l'application : `app/src/main/assets/drm16.html`, environ **1,25 Mo**.
 Le Java ne sert que de pont vers Android.
 
 | Fichier | Rôle |
@@ -54,14 +59,14 @@ Le Java ne sert que de pont vers Android.
 | `app/src/main/AndroidManifest.xml` | permissions |
 | `.github/workflows/android.yml` | compilation |
 
-### Les vingt-cinq machines
+### Les trente machines
 
 **Electro-Harmonix** DRM16, DRM32 · **Korg** Electribe EM-1, ER-1, EA-1, ES-1, ER-1 mkII, ES-1 mkII,
 EA-1 mkII, EMX-1, ESX-1, volca sample · **Akai** MPC3000, MPC2000 · **Roland** TR-808, TR-909, TR-707,
 CR-5000, TR-1000 · **Oberheim** DMX · **Arturia** DrumBrute Impact · **Behringer** RD-6, TD-3 ·
 **Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (103 modules, deux rangées :
 9 horloges, 8 séquenceurs, 14 oscillateurs, 11 filtres, 12 modulations, 14 utilitaires, 18 traitements,
-17 percussions).
+17 percussions). · **Teenage Engineering** PO-33 K.O! · **Sonicware** SmplTrek · **Roland** MC-101 · **Korg** KAOSS PAD
 
 ### Les outils
 
@@ -116,6 +121,34 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Le défaut de charge, corrigé sur TOUTES les machines — v123**
+
+La v122 ne corrigeait que la TR. Un relevé automatique a montré que **treize autres machines** pouvaient
+lancer de huit à seize voix sur un même pas sans protection : ARCM et K.O! (16), SmplTrek, MC-101, MPC,
+EMX (16), ESX (14), EM-1, ER-1, TR-1000, volca (10), ES-1 (9), DrumBrute (8).
+
+**Le mécanisme est désormais unique et vit dans la voie de mixage**, pas dans les machines :
+`busSet(id)` crée un nœud `att` en tête de tranche et **rend celui-ci** au lieu de `e`.
+`attenuerVoie(id, n, t)` le règle ; `attenuationPas(n) = n^−0,75`.
+
+**L'idée qui débloque tout** : les ordonnanceurs programment **à l'avance**. On peut donc compter les voix
+*pendant* la boucle et poser l'atténuation *après*, avant que le son ne joue. **Aucun pré-comptage n'est
+nécessaire**, et les conditions les plus tordues — hasard de la DrumBrute, longueurs de piste séparées —
+sont traitées sans effort.
+
+La TR a été **alignée sur ce mécanisme commun** ; son `TR.bus.att` et `attenuationTr` ont disparu. Deux
+mécanismes pour le même défaut auraient été un piège de maintenance.
+
+*Précaution prise lors de l'édition en masse des 14 ordonnanceurs* : l'insertion du compteur se fait par
+l'opérateur virgule (`CHARGE_N++, voix(...)`), dont la **priorité est très basse**. Placé après un `&&`,
+un `||` ou un `?`, il ferait sauter la condition et la voix jouerait toujours. Les 20 sites ont été
+vérifiés un par un : aucun n'est dans ce cas, et `verifier-charge.py` le revérifie à chaque passage.
+
+**`verifier-charge.py`** ajouté au dépôt. Il recense les ordonnanceurs depuis `schedule:`, distingue ceux
+qui bouclent sur des voix de ceux qui n'en jouent qu'une, contrôle que l'atténuation est posée **après**
+les voix, et vérifie la priorité de l'opérateur virgule. **Vu échouer** sur une copie dont on avait retiré
+une protection.
 
 **Le son se coupait dès qu'un motif se chargeait — v122**
 

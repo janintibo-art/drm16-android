@@ -6926,9 +6926,18 @@ function preparerSet(){
 function busSet(id){
   if(!ctx) return null;
   var b = SET.bus[id];
-  if(b && b.ctx === ctx) return b.e;
+  if(b && b.ctx === ctx) return b.att;
 
+  /* L'atténuation de charge, tout en amont de la tranche. Une machine qui pose
+     n frappes sur le même pas voit ses crêtes s'additionner EN AMPLITUDE : le
+     limiteur de sortie plongeait alors de quinze décibels et remontait aussitôt,
+     d'où un son qui se coupe et revient dès qu'un motif se charge.
+
+     Elle est ici, dans la voie de mixage, et non dans chaque machine : toutes en
+     profitent, et il n'y a qu'un mécanisme à tenir. */
+  var att = ctx.createGain();
   var e = ctx.createGain();                         /* entrée et gain d'entrée */
+  att.connect(e);
   var lo = ctx.createBiquadFilter(); lo.type = "lowshelf";  lo.frequency.value = 180;
   var md = ctx.createBiquadFilter(); md.type = "peaking";   md.frequency.value = 1100; md.Q.value = 0.9;
   var hi = ctx.createBiquadFilter(); hi.type = "highshelf"; hi.frequency.value = 4200;
@@ -6940,10 +6949,10 @@ function busSet(id){
   if(p){ g.connect(p); p.connect(an); } else g.connect(an);
   an.connect(master);
 
-  SET.bus[id] = {e:e, lo:lo, md:md, hi:hi, g:g, p:p, an:an, ctx:ctx,
-                 tampon:new Uint8Array(an.frequencyBinCount), niveau:0};
+  SET.bus[id] = {att:att, e:e, lo:lo, md:md, hi:hi, g:g, p:p, an:an, ctx:ctx,
+                 tampon:new Uint8Array(an.frequencyBinCount), niveau:0, charge:1};
   majVoieSet(id);
-  return e;
+  return att;                                       /* on entre par l'atténuation */
 }
 function majVoieSet(id){
   var b = SET.bus[id];
@@ -6961,6 +6970,38 @@ function majVoieSet(id){
   b.md.gain.value = dbEq(SET.md[id]);
   b.hi.gain.value = dbEq(SET.hi[id]);
 }
+/* Combien atténuer un pas qui porte n frappes.
+
+   1/n garderait la crête rigoureusement constante — mais alors un pas chargé
+   sonnerait AUSSI FORT qu'un pas à une seule frappe, ce qui est faux : un
+   roulement complet est plus fort. 1/√n conserve la puissance, ce qui vaut pour
+   des sources indépendantes, pas pour des attaques simultanées.
+
+   L'exposant 0,75 tient entre les deux : la somme continue de monter avec le
+   nombre de frappes — +1,5 dB à chaque doublement — mais plafonne juste sous le
+   seuil du limiteur, qui n'a donc plus rien à rattraper. */
+function attenuationPas(n){
+  return n <= 1 ? 1 : Math.pow(n, -0.75);
+}
+
+/* Appelée par un ordonnanceur APRÈS avoir programmé ses voix. C'est possible
+   parce que tout se programme à l'avance : au moment où l'on compte, le son
+   n'a pas encore joué. Aucun pré-comptage n'est donc nécessaire, et les
+   conditions les plus tordues — hasard, longueurs de piste séparées — sont
+   traitées sans effort. */
+function attenuerVoie(id, n, t){
+  var b = SET.bus[id];
+  if(!b || b.ctx !== ctx || !b.att) return;
+  var a = attenuationPas(n);
+  if(Math.abs(a - b.charge) < 0.001) return;        /* rien à faire : pas de clic */
+  b.charge = a;
+  /* Posée un peu AVANT la frappe, sinon elle arriverait après la crête
+     d'attaque. Et en transition douce : un saut net ferait un clic sur les
+     queues longues — cymbale crash, ride, nappe. */
+  var quand = Math.max(maintenantAudio(), t - 0.02);
+  b.att.gain.setTargetAtTime(a, quand, 0.005);
+}
+
 /* 0 → −26 dB, 0,5 → 0 dB, 1 → +6 dB */
 function dbEq(v){ return v < 0.5 ? (v / 0.5 - 1) * 26 : (v - 0.5) / 0.5 * 6; }
 
@@ -8873,6 +8914,7 @@ function enregMotion(champ, val){
 
 /* --- séquenceur de l'EM-1 --- */
 function scheduleEm(i,t){
+  var CHARGE_N = 0;
   var p = EM.pat;
   var vfx = motFxValeur(p.motFx, i, p.len);
   if(vfx !== null) appliquerMotFxEm(vfx, p.motFx.p);
@@ -8892,16 +8934,17 @@ function scheduleEm(i,t){
       var tt = t + j*stepDur()/n;
       if(part.synth){
         var dEm = EM.pat.amp[k] ? (0.06 + EM.egTime()*1.1) : stepDur()*0.9;
-        voixSynth(tt,k,p.nt[k][i],vel);
+        CHARGE_N++, voixSynth(tt,k,p.nt[k][i],vel);
         midiNoteA(p.nt[k][i], tt, vel, MIDI.canalSy + (k===9?1:0), dEm);
       } else {
-        jouerTimbre(p.tim[k], tt, vel, sortiePartie(k,tt));
+        CHARGE_N++, jouerTimbre(p.tim[k], tt, vel, sortiePartie(k,tt));
         midiNoteA(MIDI.base + k, tt, vel, MIDI.canal);
       }
     }
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
+  attenuerVoie("em", CHARGE_N, t);
 }
 var beatsEls = [], keysEls = [];
 function beatEm(i){
@@ -9834,6 +9877,7 @@ function appliquerMotFxEr(v, champ){
   else { ER.dTime = v; majDelaiEr(); }
 }
 function scheduleEr(i,t){
+  var CHARGE_N = 0;
   var p = ER.pat;
   var vfx = motFxValeur(p.motFx, i, p.len);
   if(vfx !== null) appliquerMotFxEr(vfx, p.motFx.p);
@@ -9847,11 +9891,12 @@ function scheduleEr(i,t){
     if(soloEr && !ER.solo[k]) continue;
     MOT = motionEr(k,i);
     var velEr = acc ? velAccent(p.son[10].lvl) : 0.72;
-    voixEr(t, k, velEr);
+    CHARGE_N++, voixEr(t, k, velEr);
     midiNoteA(MIDI.base+k, t, velEr, MIDI.canal);
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
+  attenuerVoie("er", CHARGE_N, t);
 }
 var erBeats = [], erKeys = [];
 function beatEr(i){
@@ -10532,6 +10577,7 @@ function dureeEa(k,i){
   return d;
 }
 function scheduleEa(i,t){
+  var CHARGE_N = 0;
   var p = EA.pat;
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   for(var k=0;k<2;k++){
@@ -10540,11 +10586,12 @@ function scheduleEa(i,t){
     if(p.tie[k][prec] && p.st[k][prec]) continue;   /* tenue : pas de nouvelle attaque */
     MOT = motionEa(k,i);
     var dEa = dureeEa(k,i);
-    voixEa(t, k, p.nt[k][i], 1, dEa);
+    CHARGE_N++, voixEa(t, k, p.nt[k][i], 1, dEa);
     midiNoteA(p.nt[k][i], t, 1, MIDI.canalSy + k, dEa);
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
+  attenuerVoie("ea", CHARGE_N, t);
 }
 var eaBeats = [], eaKeys = [];
 function beatEa(i){
@@ -11220,6 +11267,7 @@ function enregMotionEs(champ, val){
   m.v[ES.pos] = val;
 }
 function scheduleEs(i,t){
+  var CHARGE_N = 0;
   var p = ES.pat;
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   var acc = p.st[9][i];
@@ -11232,11 +11280,12 @@ function scheduleEs(i,t){
     if(soloActif && !ES.solo[k]) continue;
     MOT = motionEs(k,i);
     var n = p.son[k].roll ? (p.rollN||4) : 1;
-    for(var j=0;j<n;j++) jouerEs(t + j*stepDur()/n, k, acc?velAcc:0.75, i);
+    for(var j=0;j<n;j++) CHARGE_N++, jouerEs(t + j*stepDur()/n, k, acc?velAcc:0.75, i);
     midiNoteA(MIDI.base+k, t, acc?velAcc:0.75, MIDI.canal);
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
+  attenuerVoie("es", CHARGE_N, t);
 }
 var esBeats=[], esKeys=[];
 function beatEs(i){
@@ -12265,6 +12314,7 @@ function appliquerMotFxMx(v){
   if(!majFxMx(sl)) cablerFxMx();
 }
 function scheduleMx(i,t){
+  var CHARGE_N = 0;
   var p = MX.pat, k;
   var vfx = motFxValeur(p.motFx, i, p.len);
   if(vfx !== null) appliquerMotFxMx(vfx);
@@ -12285,16 +12335,17 @@ function scheduleMx(i,t){
       var tt = t + j*stepDur()/n;
       if(synth){
         var d = p.son[k].amp ? (0.05 + p.son[k].eg*1.3) : stepDur()*0.95;
-        voixMxSynth(tt, k, p.nt[k][i], vel, d);
+        CHARGE_N++, voixMxSynth(tt, k, p.nt[k][i], vel, d);
         midiNoteA(p.nt[k][i], tt, vel, Math.min(15, MIDI.canalSy + k-10), d);
       } else {
-        voixMxDrum(tt, k, vel);
+        CHARGE_N++, voixMxDrum(tt, k, vel);
         midiNoteA(MIDI.base+k, tt, vel, MIDI.canal);
       }
     }
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
+  attenuerVoie("mx", CHARGE_N, t);
 }
 var mxBeats=[], mxKeys=[];
 function beatMx(i){
@@ -13201,6 +13252,7 @@ function appliquerMotFxSx(v){
   if(!majFxSx(sl)) cablerFxSx();
 }
 function scheduleSx(i,t){
+  var CHARGE_N = 0;
   var p = SX.pat, k;
   var vfx = motFxValeur(p.motFx, i, p.len);
   if(vfx !== null) appliquerMotFxSx(vfx);
@@ -13221,20 +13273,21 @@ function scheduleSx(i,t){
         var buf = tampon(p.son[k]);
         if(buf){
           var L = p.len||16;
-          voixSxTranche(tt, k, acc?velAccent(p.son[9].lvl):0.8, i, L);
+          CHARGE_N++, voixSxTranche(tt, k, acc?velAccent(p.son[9].lvl):0.8, i, L);
         }
       } else if(k>=10){
         var dSx = p.son[k].amp ? (0.03 + p.son[k].eg*1.4) : stepDur()*0.95;
-        voixSx(tt, k, acc?velAccent(p.son[9].lvl):0.8, i, p.nt[k][i], p.son[k].amp ? null : stepDur()*0.95);
+        CHARGE_N++, voixSx(tt, k, acc?velAccent(p.son[9].lvl):0.8, i, p.nt[k][i], p.son[k].amp ? null : stepDur()*0.95);
         midiNoteA(p.nt[k][i], tt, acc?velAccent(p.son[9].lvl):0.8, k-10, dSx);
       } else {
-        voixSx(tt, k, acc?velAccent(p.son[9].lvl):0.75, i);
+        CHARGE_N++, voixSx(tt, k, acc?velAccent(p.son[9].lvl):0.75, i);
         midiNoteA(MIDI.base+k, tt, acc?velAccent(p.son[9].lvl):0.75, MIDI.canal);
       }
     }
     MOT = null;
   }
   if(!cache) queue.push({i:i,t:t});
+  attenuerVoie("sx", CHARGE_N, t);
 }
 /* une partie étirée découpe l'échantillon en autant de tranches que de pas :
    la hauteur ne bouge pas, seule la position avance */
@@ -15380,6 +15433,7 @@ function ticsMpc(){ return MPC.seq.mesures * 4 * MPC_TPQ; }
 function pasMpc(){ return MPC.seq.mesures * 16; }
 function ticParPas(){ return MPC_TPQ / 4; }
 function scheduleMpc(i, t){
+  var CHARGE_N = 0;
   if(MPC.amorce > 0){                       /* décompte avant enregistrement */
     MPC.tStep = t;
     if(i % 4 === 0) clicMetroMpc(t, i === 0);
@@ -15403,11 +15457,12 @@ function scheduleMpc(i, t){
       var e = pi.evts[j];
       if(e.tic < deb || e.tic >= fin) continue;
       var quand = t + ((e.tic - deb) / tp) * duree;
-      if(pi.type === 0) jouerPad(quand, e.n, e.vel);
+      if(pi.type === 0) CHARGE_N++, jouerPad(quand, e.n, e.vel);
       else midiNoteA(e.n, quand, e.vel, pi.canal, duree * 0.9);
     }
   }
   if(!cache) queue.push({i:i, t:t});
+  attenuerVoie("mpc", CHARGE_N, t);
 }
 function beatMpc(i){
   MPC.pos = i;
@@ -16120,14 +16175,11 @@ function sortieRd6(){
        de quinze décibels, et remontait en quatre-vingt-dix millisecondes — d'où
        le son qui se coupe et revient dès qu'un motif se charge.
 
-       On ne corrige pas cela au maître : le mal est fait avant. On atténue à la
-       source, en fonction du nombre de frappes du pas. */
-    var att = ctx.createGain();
+       La correction est commune à toutes les machines : voir attenuerVoie. */
     e.connect(lp);
-    lp.connect(sec); sec.connect(att);
-    lp.connect(d); d.connect(hum); hum.connect(att);
-    att.connect(busSet("tr") || master);
-    TR.bus = {e:e, lp:lp, sec:sec, hum:hum, att:att, dernier:1};
+    lp.connect(sec); sec.connect(busSet("tr") || master);
+    lp.connect(d); d.connect(hum); hum.connect(busSet("tr") || master);
+    TR.bus = {e:e, lp:lp, sec:sec, hum:hum};
     majBusTr();
   }
   return TR.bus.e;
@@ -16766,44 +16818,18 @@ function frapperTr(k, acc){
     }
   }
 }
-/* Combien faut-il atténuer un pas qui porte n frappes.
-
-   1/n garderait la crête rigoureusement constante, mais alors un pas chargé
-   sonnerait aussi fort qu'un pas à une seule frappe — ce qui est faux : sur une
-   vraie machine, un roulement complet EST plus fort. 1/√n conserve la puissance,
-   ce qui vaut pour des sources indépendantes, pas pour des attaques simultanées.
-
-   L'exposant 0,75 tient entre les deux : la somme continue de monter avec le
-   nombre de frappes, mais plafonne juste sous le seuil du limiteur, qui n'a
-   donc plus rien à rattraper. */
-function attenuationTr(n){
-  return n <= 1 ? 1 : Math.pow(n, -0.75);
-}
 function scheduleTr(i, t){
   var p = TR.pat, v = TR.var2 ? "B" : "A";
   if(i >= (p.last || 16)) return;
   if(TR.shuffle && i % 2 === 1) t += stepDur() * TR.shuffle * 0.5;
   var acc = !!p[v][0][i];
   var n = 0, k;
-  for(k=1;k<TR.def.instr.length;k++) if(p[v][k][i]) n++;
-  if(TR.bus && TR.bus.att){
-    var a2 = attenuationTr(n * (TR.flam ? 2 : 1));
-    /* Posé un peu AVANT la frappe : l'ordonnanceur travaille en avance, on a
-       donc le temps. Sinon l'atténuation arriverait après la crête d'attaque,
-       c'est-à-dire trop tard pour servir à quelque chose. */
-    if(Math.abs(a2 - TR.bus.dernier) > 0.001){
-      var quand = Math.max(maintenantAudio(), t - 0.02);
-      /* une transition douce : un saut net de gain ferait un clic sur les
-         queues longues — cymbale crash, ride */
-      TR.bus.att.gain.setTargetAtTime(a2, quand, 0.005);
-      TR.bus.dernier = a2;
-    }
-  }
   for(k=1;k<TR.def.instr.length;k++){
     if(!p[v][k][i]) continue;
-    voixTr(t, k, acc);
-    if(TR.flam) voixTr(t + 0.028, k, false);   /* le flam de la 909 */
+    voixTr(t, k, acc); n++;
+    if(TR.flam){ voixTr(t + 0.028, k, false); n++; }   /* le flam de la 909 */
   }
+  attenuerVoie("tr", n, t);
   if(!cache) queue.push({i:i, t:t});
 }
 var trPas = [];
@@ -21310,15 +21336,17 @@ function frapperArcm(k, acc){
   }
 }
 function scheduleArcm(i, t){
+  var CHARGE_N = 0;
   var m = motifArcmCur();
   if(i >= m.last) return;
   /* Le swing retarde un pas sur deux. Sans lui, un motif écrit à la grille
      reste raide quoi qu'on y mette. */
   var dt = (i % 2 === 1) ? ARCM.swing * 0.42 * stepDur() : 0;
   for(var k=0;k<16;k++){
-    if(m.pistes[k].pas & (1 << i)) voixArcm(t + dt, k, !!(m.pistes[k].acc & (1 << i)));
+    if(m.pistes[k].pas & (1 << i)) CHARGE_N++, voixArcm(t + dt, k, !!(m.pistes[k].acc & (1 << i)));
   }
   if(!cache) queue.push({i:i, t:t});
+  attenuerVoie("arcm", CHARGE_N, t);
 }
 var arcmPas = [];
 function beatArcm(i){
@@ -21996,6 +22024,7 @@ function frapperT1k(k, acc){
 /* ---------- séquenceur, avec sous-pas ---------- */
 var T1K_FILL = [0x8888, 0x2222, 0x0F00, 0x00F0, 0, 0x1010, 0xAAAA, 0x0100, 0x0001, 0];
 function scheduleT1k(i, t){
+  var CHARGE_N = 0;
   var m = motifT1kCur();
   if(i >= m.last) return;
   var pas = T1K.fill ? T1K_FILL : m.pas;
@@ -22003,9 +22032,10 @@ function scheduleT1k(i, t){
     if(!(pas[k] & (1 << i))) continue;
     var acc = !!(m.acc[k] & (1 << i));
     var sub = T1K.fill ? 1 : (m.sub[k][i] || 1);
-    for(var r=0;r<sub;r++) voixT1k(t + (stepDur() * r / sub), k, acc && r === 0);
+    for(var r=0;r<sub;r++) CHARGE_N++, voixT1k(t + (stepDur() * r / sub), k, acc && r === 0);
   }
   if(!cache) queue.push({i:i, t:t});
+  attenuerVoie("t1k", CHARGE_N, t);
 }
 var t1kPas = [];
 function beatT1k(i){
@@ -22532,6 +22562,7 @@ function ppcmDbi(a, b){
   return a / x * b;
 }
 function scheduleDbi(i, t){
+  var CHARGE_N = 0;
   var m = motifDbiCur();
   if(DBI.swing && i % 2 === 1) t += stepDur() * DBI.swing * 0.5;
   for(var k=0;k<8;k++){
@@ -22546,12 +22577,13 @@ function scheduleDbi(i, t){
     }
     if(!joue) continue;
     var acc = !!(P.acc & (1 << s));
-    voixDbi(t, k, acc);
+    CHARGE_N++, voixDbi(t, k, acc);
     if(DBI.roller && k === DBI.sel){
-      voixDbi(t + stepDur() / 2, k, false);     /* roulement sur la piste choisie */
+      CHARGE_N++, voixDbi(t + stepDur() / 2, k, false);     /* roulement sur la piste choisie */
     }
   }
   if(!cache) queue.push({i:i, t:t});
+  attenuerVoie("dbi", CHARGE_N, t);
 }
 var dbiPas = [];
 function beatDbi(i){
@@ -23291,12 +23323,14 @@ function frapperVlc(k){
 
 /* ---------- séquenceur ---------- */
 function scheduleVlc(i, t){
+  var CHARGE_N = 0;
   var m = motifVlcCur();
   if(!(m.actif & (1 << i))) return;            /* pas désactivé par ACTIVE STEP */
   for(var k=0;k<10;k++){
-    if(m.parties[k].pas & (1 << i)) voixVlc(t, k, i);
+    if(m.parties[k].pas & (1 << i)) CHARGE_N++, voixVlc(t, k, i);
   }
   if(!cache) queue.push({i:i, t:t});
+  attenuerVoie("vlc", CHARGE_N, t);
 }
 var vlcPas = [];
 function beatVlc(i){
@@ -24576,6 +24610,7 @@ function voixKo(t, k, vel){
 }
 
 function scheduleKo(i, t){
+  var CHARGE_N = 0;
   var m = motifKoCur();
   if(i >= m.last) return;
   var nom = KO.fxTenu ? KO_FX[KO.fx][0] : "";
@@ -24585,10 +24620,11 @@ function scheduleKo(i, t){
        vaut quatre, serrées. Deux effets d'ordonnancement, pas de traitement. */
     if(nom === "gate" && (i % 2)) continue;
     if(nom === "roll"){
-      for(var r=0;r<4;r++) voixKo(t + r * stepDur() / 4, k, 1 - r * 0.15);
-    } else voixKo(t, k, 1);
+      for(var r=0;r<4;r++) CHARGE_N++, voixKo(t + r * stepDur() / 4, k, 1 - r * 0.15);
+    } else CHARGE_N++, voixKo(t, k, 1);
   }
   if(!cache) queue.push({i:i, t:t});
+  attenuerVoie("ko", CHARGE_N, t);
 }
 
 function beatKo(i){
@@ -24950,6 +24986,7 @@ function scatterMc(i){
 }
 
 function scheduleMc(i, t){
+  var CHARGE_N = 0;
   var s = scatterMc(i);
   if(s.pas < 0) { if(!cache) queue.push({i:i, t:t}); return; }
   for(var k=0;k<MC_PISTES;k++){
@@ -24958,9 +24995,10 @@ function scheduleMc(i, t){
     var note = clipMcCur(k)[s.pas];
     if(note < 0) continue;
     for(var r=0;r<s.coups;r++)
-      voixMc(t + r * stepDur() / s.coups, k, note, 1 - r * 0.18);
+      CHARGE_N++, voixMc(t + r * stepDur() / s.coups, k, note, 1 - r * 0.18);
   }
   if(!cache) queue.push({i:i, t:t});
+  attenuerVoie("mc", CHARGE_N, t);
 }
 function beatMc(i){
   MC.pos = i;
@@ -25069,14 +25107,16 @@ function voixStk(t, i, acc){
 }
 
 function scheduleStk(i, t){
+  var CHARGE_N = 0;
   var m = motifStkCur();
   if(i >= m.last) return;
   for(var k=0;k<STK_PISTES;k++){
     if(!(m.pas[k] & (1 << i))) continue;
     if(!passeStk(k)) continue;
-    voixStk(t, k, (i % 4) === 0);
+    CHARGE_N++, voixStk(t, k, (i % 4) === 0);
   }
   if(!cache) queue.push({i:i, t:t});
+  attenuerVoie("stk", CHARGE_N, t);
 }
 function beatStk(i){
   STK.pos = i;
