@@ -287,7 +287,7 @@ class CoqueSimulee:
         if nom == 'midiEnvoyer': self.midi_envois.append(tuple(a)); return None
         if nom == 'midiSysex':
             m = base64.b64decode(a[0]); return self.midi_ouvert >= 0 and len(m) >= 3 and m[0] == 0xF0 and m[-1] == 0xF7
-        if nom in ('midiHorloge', 'midiTempo'): return None
+        if nom in ('midiHorloge', 'midiTempo', 'pleinEcran'): return None
         raise KeyError(nom)
     @staticmethod
     def telecharger(url, max_):
@@ -326,7 +326,7 @@ async def bureau(nav):
                                                               "appareils": [{"nom": "Synthé test", "id": 1}]})
         await pg.wait_for_timeout(250)
     r = await pg.evaluate("() => ({p: HOST.plateforme, n: Object.keys(HOST).filter(k => typeof HOST[k] === 'function').length})")
-    ok(r["p"] == "bureau" and r["n"] == 27, "plateforme bureau, 26 fonctions natives + HOST.a (%s)" % r)
+    ok(r["p"] == "bureau" and r["n"] == 28, "plateforme bureau, 26 fonctions du pont + plein écran + HOST.a (%s)" % r)
     ok(coque.rapport.get("ok") is True, "l'autotest de la page passe contre la coque simulée")
     for ligne in str(coque.rapport.get("texte", "")).split("\n"):
         if "MIDI" in ligne: print("      " + ligne)
@@ -380,7 +380,12 @@ async def projet(nav):
     ok(r["lignes"] == 1, "le projet apparaît dans le rayon SAUVEGARDES")
     async with pg.expect_navigation():
         await pg.evaluate("(n) => projetOuvrirDocument(n)", r["nom"])
-    await pg.wait_for_timeout(1500)
+    await pg.wait_for_load_state("load")
+    try:   # sous charge, la page rechargée peut mettre un peu plus longtemps à se remettre en place
+        await pg.wait_for_function("() => typeof S !== 'undefined' && S.modele === 'kp'", timeout=10000)
+    except Exception:
+        pass
+    await pg.wait_for_timeout(300)
     r2 = await pg.evaluate("""() => ({modele: S.modele, bpm: S.bpm, son: HOST.echListe().split('\\n').indexOf('u-essai') >= 0,
       securite: Object.keys(__F).some(n => n.indexOf('avant-ouverture-') === 0)})""")
     ok(r2["modele"] == "kp" and r2["bpm"] == 133, "après ouverture : KAOSS PAD et 133 BPM retrouvés (%s, %s)" % (r2["modele"], r2["bpm"]))
@@ -399,10 +404,70 @@ async def projet(nav):
     ok(not err, "aucune erreur de page, même avec un son abîmé dans la bibliothèque %s" % err[:1])
     await ctx.close()
 
+async def confort(nav):
+    print("\n11. Confort sur ordinateur : clavier, molette, glisser-déposer (v146)")
+    ctx = await nav.new_context(viewport={"width": 1180, "height": 860})
+    await ctx.add_init_script(PONT)
+    pg = await ctx.new_page()
+    err = []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+    await pg.goto(PAGE); await pg.wait_for_timeout(1500)
+    # comme un vrai choix au menu : la tuile referme le menu
+    await pg.evaluate("() => { audioInit(); document.querySelector('.pick[data-m=er1]').click(); }")
+    await pg.wait_for_timeout(300)
+    await pg.keyboard.press(" ")
+    lance = await pg.evaluate("() => S.run")
+    await pg.keyboard.press(" ")
+    arrete = await pg.evaluate("() => !S.run")
+    ok(lance and arrete, "Espace lance puis arrête la machine affichée")
+    await pg.evaluate("() => { var i = document.createElement('input'); i.id = '__saisie'; document.body.appendChild(i); i.focus(); }")
+    await pg.keyboard.press(" ")
+    ok(not await pg.evaluate("() => S.run"), "Espace dans un champ de saisie ne lance rien")
+    await pg.evaluate("() => { document.getElementById('__saisie').remove(); ouvrirNotice(); }")
+    await pg.keyboard.press("Escape")
+    ok(await pg.evaluate("() => panneauVisible() === ''"), "Échap ferme la notice")
+    await pg.keyboard.press("Control+s")
+    ok(await pg.evaluate("() => Object.keys(__F).some(n => /^projet-.*\\.drm16$/.test(n))"), "Ctrl+S enregistre un projet")
+    await pg.evaluate("() => { ER.pat.son[ER.sel].pitch = 0.5; majKnobsEr(); }")
+    await pg.hover("#er-k-pitch")
+    await pg.mouse.wheel(0, -100)
+    haut = await pg.evaluate("() => ER.pat.son[ER.sel].pitch")
+    await pg.mouse.wheel(0, 100); await pg.mouse.wheel(0, 100)
+    bas = await pg.evaluate("() => ER.pat.son[ER.sel].pitch")
+    ok(abs(haut - 0.525) < 1e-6 and abs(bas - 0.475) < 1e-6, "molette sur un potard : +1/40 puis −2/40 (%.3f, %.3f)" % (haut, bas))
+    await pg.evaluate("() => { ER.pat.son[ER.sel].modT = 1; majKnobsEr(); }")
+    await pg.hover("#er-k-modt")
+    await pg.mouse.wheel(0, -40); await pg.mouse.wheel(0, -40)
+    un = await pg.evaluate("() => ER.pat.son[ER.sel].modT")
+    await pg.mouse.wheel(0, -40)
+    deux = await pg.evaluate("() => ER.pat.son[ER.sel].modT")
+    ok(un == 1 and deux == 2, "sélecteur à positions : un cran entier de molette pour changer (%s, %s)" % (un, deux))
+    r = await pg.evaluate("""async () => {
+      audioInit(); banqueEs();
+      var avant = Object.keys(ES.buf).length, msg = [], sg = signal; signal = function(t){ msg.push(t); };
+      var ab = wavDe(ctx.createBuffer(1, 8000, 32000));
+      var dt = new DataTransfer();
+      dt.items.add(new File([ab], 'caisse claire.wav', {type: 'audio/wav'}));
+      dt.items.add(new File(['bonjour'], 'notes.txt', {type: 'text/plain'}));
+      var cible = document.body;
+      cible.dispatchEvent(new DragEvent('dragenter', {dataTransfer: dt, bubbles: true}));
+      var cadre = document.body.classList.contains('depot');
+      cible.dispatchEvent(new DragEvent('drop', {dataTransfer: dt, bubbles: true, cancelable: true}));
+      await new Promise(r => setTimeout(r, 800));
+      signal = sg;
+      return {cadre: cadre, apres: !document.body.classList.contains('depot'),
+              ajout: Object.keys(ES.buf).length - avant, msg: msg,
+              nom: Object.keys(BIB.noms).map(k => BIB.noms[k]).indexOf('caisse claire') >= 0}; }""")
+    ok(r["cadre"] and r["apres"], "le cadre « DÉPOSEZ ICI » apparaît puis disparaît")
+    ok(r["ajout"] == 1 and r["nom"], "un fichier son déposé rejoint la bibliothèque")
+    ok(any("NON RECONNU : NOTES.TXT" in m for m in r["msg"]), "un fichier inconnu est signalé (%s)" % r["msg"])
+    ok(not err, "aucune erreur de page %s" % err[:1])
+    await ctx.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet):
+        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort):
             try:
                 await t(nav)
             except Exception as e:

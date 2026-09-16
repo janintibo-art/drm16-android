@@ -559,8 +559,12 @@ document.getElementById("menu-bib").addEventListener("click", function(){
 })();
 document.getElementById("bib-fichier").addEventListener("change", function(){
   var f = this.files && this.files[0];
-  if(!f){ return; }
-  if(f.size > 40*1024*1024){ signal("FICHIER TROP GROS · 40 Mo AU PLUS"); this.value=""; return; }
+  this.value = "";
+  if(f) importerSonFichier(f);
+});
+/* Un fichier son choisi ou déposé (v146 : aussi par glisser-déposer) */
+function importerSonFichier(f){
+  if(f.size > 40*1024*1024){ signal("FICHIER TROP GROS · 40 Mo AU PLUS"); return; }
   audioInit(); banqueEs();
   f.arrayBuffer().then(function(ab){
     return new Promise(function(res,rej){ ctx.decodeAudioData(ab,res,rej); });
@@ -574,8 +578,7 @@ document.getElementById("bib-fichier").addEventListener("change", function(){
     bibEcrire(); sauverEch(id, court); majBibUI();
     signal("IMPORTÉ : " + BIB.noms[id]);
   }).catch(function(){ signal("FICHIER ILLISIBLE"); });
-  this.value = "";
-});
+}
 document.getElementById("menu-pr").addEventListener("click", function(){
   document.body.classList.remove("menu-ouvert");
   menu.classList.add("hide");

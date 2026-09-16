@@ -447,7 +447,7 @@ var kErDec   = knobEr("er-k-dec","dec",0,1);
 var kErLvl   = knobEr("er-k-lvl","lvl",0,1);
 var kErPan   = knobEr("er-k-pan","pan",-1,1);
 var kErBoost = knobEr("er-k-boost","boost",0,1);
-var kErModT  = knobEm("er-k-modt",{min:0,max:5,
+var kErModT  = knobEm("er-k-modt",{min:0,max:5,pas:1,
   get:function(){ return ER.pat.son[ER.sel].modT; },
   set:function(v){
     ER.pat.son[ER.sel].modT = Math.round(v);

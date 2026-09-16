@@ -111,6 +111,12 @@ fn appeler(nom: &str, a: &[Value]) -> Option<Value> {
             Value::Null
         }
 
+        // propre à l'ordinateur (v146)
+        "pleinEcran" => {
+            crate::fenetre::basculer_plein_ecran();
+            Value::Null
+        }
+
         "echDossier" => json!(f::dossier_ech().to_string_lossy()),
         "echSauver" => json!(f::ech_sauver(&texte(a, 0), &texte(a, 1))),
         "echCharger" => json!(f::ech_charger(&texte(a, 0))),

@@ -909,6 +909,27 @@ function knobEm(id, opt){
     memEm();
   });
   el.addEventListener("pointercancel", function(){ st.drag=false; });
+  /* molette de la souris (v146) : un cran de molette = un quarantième de la
+     course (opt.pas s'il est donné, pour un sélecteur à positions) ; Maj affine
+     dix fois. Le cran se mesure à l'amplitude : un pavé tactile, qui envoie
+     beaucoup de petits événements, ne s'emballe pas. */
+  el.addEventListener("wheel", function(e){
+    if(!e.deltaY) return;
+    e.preventDefault();
+    var crans = -e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 100 : 1) / 100;
+    var pas = opt.pas || (opt.max - opt.min) / 40;
+    if(e.shiftKey && !opt.pas) pas /= 10;
+    if(opt.pas){                        /* sélecteur : on attend un cran entier */
+      st.acc = (st.acc || 0) + crans;
+      crans = st.acc > 0 ? Math.floor(st.acc) : Math.ceil(st.acc);
+      st.acc -= crans;
+      if(!crans) return;
+    }
+    st.v = Math.max(opt.min, Math.min(opt.max, opt.get() + crans * pas));
+    render(); opt.set(st.v);
+    clearTimeout(st.tMem);
+    st.tMem = setTimeout(memEm, 400);
+  }, {passive:false});
   render();
   return {maj:function(){ st.v = opt.get(); render(); }};
 }

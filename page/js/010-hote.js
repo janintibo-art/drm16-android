@@ -49,7 +49,8 @@ var HOST = (function(){
       if(x.status !== 200) throw new Error("hôte " + nom + " : " + x.status);
       return JSON.parse(x.responseText).r;
     };
-    BUREAU.forEach(function(n){
+    /* et ce qui n'existe que sur ordinateur (hors pont Android) */
+    BUREAU.concat(["pleinEcran"]).forEach(function(n){
       h[n] = function(){ return natif(n, arguments); };
     });
     installerAutotest(h, natif);
@@ -111,6 +112,7 @@ var HOST = (function(){
         t(!!ctx && latenceChoisie() === "balanced", "audio : moteur démarré, latence " + latenceChoisie() +
           (ctx ? " · " + ctx.sampleRate + " Hz · sortie " + Math.round(((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000) + " ms" : ""));
         t(getComputedStyle(document.querySelector("button")).cursor === "pointer", "souris : curseur de bouton");
+        t(HOST.a("pleinEcran") && typeof boutonLectureVisible === "function", "clavier : raccourcis et plein écran branchés");
         /* projet .drm16 (v145) : écrit, relu et reconnu — sans l'ouvrir, qui rechargerait la page */
         var projet = projetEnregistrer("autotest", true);
         var relu = projet ? projetValider(texteDeB64(h.fichierCharger(projet))) : null;

@@ -43,6 +43,23 @@ function knob(id, opt){
     }
   });
   el.addEventListener("pointercancel", function(){ st.drag=false; });
+  /* molette (v146) */
+  el.addEventListener("wheel", function(e){
+    if(!e.deltaY || PINCE) return;
+    e.preventDefault();
+    var crans = -e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 100 : 1) / 100;
+    if(opt.steps){
+      st.acc = (st.acc || 0) + crans;
+      var n = st.acc > 0 ? Math.floor(st.acc) : Math.ceil(st.acc);
+      st.acc -= n;
+      var nv = Math.max(0, Math.min(opt.steps - 1, st.v + n));
+      if(nv !== st.v){ st.v = nv; render(); opt.on(st.v); H.cran(); }
+    }else{
+      var pas = (opt.max - opt.min) / (e.shiftKey ? 400 : 40);
+      st.v = Math.max(opt.min, Math.min(opt.max, st.v + crans * pas));
+      render(); opt.on(st.v);
+    }
+  }, {passive:false});
   render();
   return {set:function(v){ st.v=v; render(); }, get:function(){ return st.v; }};
 }

@@ -505,6 +505,11 @@ body.menu-ouvert #menu-voile.vu{opacity:1}
 /* version de bureau (v144) : on joue à la souris */
 [data-hote="bureau"] button,[data-hote="bureau"] .pick{cursor:pointer}
 @media (hover:hover){[data-hote="bureau"] button:hover{filter:brightness(1.12)}}
+/* glisser-déposer (v146) : le cadre dit qu'on peut lâcher */
+body.depot::after{content:"DÉPOSEZ ICI · PROJET .DRM16 OU FICHIER SON";position:fixed;inset:10px;z-index:9999;
+  display:flex;align-items:center;justify-content:center;border:3px dashed #e6b84a;border-radius:14px;
+  background:rgba(12,12,14,.72);color:#e6b84a;font:700 16px/1.3 "Roboto Condensed",Arial,sans-serif;
+  letter-spacing:1px;text-align:center;pointer-events:none}
 /* ===================== ELECTRIBE EM-1 ===================== */
 .em{display:none;width:100%;max-width:1120px;border-radius:14px;padding:16px 16px 14px;
   background:linear-gradient(165deg,#5a5d60,#3d4043 30%,#2f3235 70%,#43464a);
@@ -4021,6 +4026,10 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   32 kHz. Mesuré : une grosse caisse à 70 Hz descend à 8 kHz, soit les trois quarts de sa place rendus,
   sans différence audible. Un son brillant ou du bruit restent intacts.</p>
 
+  <p><b>Sur ordinateur</b> : <b>Espace</b> lance ou arrête la machine affichée, <b>Échap</b> ferme le panneau
+  ouvert, <b>F11</b> passe en plein écran, <b>Ctrl+S</b> enregistre le projet, <b>Ctrl+O</b> en ouvre un.
+  La <b>molette</b> tourne le potard sous la souris (<b>Maj</b> pour affiner). Un projet <b>.drm16</b> ou un
+  fichier son peut être <b>glissé</b> sur la fenêtre : le projet s'ouvre, le son rejoint la bibliothèque.</p>
   <p><b>PROJETS</b> (en tête du rayon SAUVEGARDES) : <b>ENREGISTRER LE PROJET</b> met tout l'état de
   l'application — réglages, motifs de chaque machine, set, prises MIDI, sons de la bibliothèque — dans un seul
   fichier <b>.drm16</b>, qui s'ouvre aussi bien sur Android que sur ordinateur. <b>OUVRIR</b> remplace tout
@@ -6203,7 +6212,8 @@ var HOST = (function(){
       if(x.status !== 200) throw new Error("hôte " + nom + " : " + x.status);
       return JSON.parse(x.responseText).r;
     };
-    BUREAU.forEach(function(n){
+    /* et ce qui n'existe que sur ordinateur (hors pont Android) */
+    BUREAU.concat(["pleinEcran"]).forEach(function(n){
       h[n] = function(){ return natif(n, arguments); };
     });
     installerAutotest(h, natif);
@@ -6265,6 +6275,7 @@ var HOST = (function(){
         t(!!ctx && latenceChoisie() === "balanced", "audio : moteur démarré, latence " + latenceChoisie() +
           (ctx ? " · " + ctx.sampleRate + " Hz · sortie " + Math.round(((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000) + " ms" : ""));
         t(getComputedStyle(document.querySelector("button")).cursor === "pointer", "souris : curseur de bouton");
+        t(HOST.a("pleinEcran") && typeof boutonLectureVisible === "function", "clavier : raccourcis et plein écran branchés");
         /* projet .drm16 (v145) : écrit, relu et reconnu — sans l'ouvrir, qui rechargerait la page */
         var projet = projetEnregistrer("autotest", true);
         var relu = projet ? projetValider(texteDeB64(h.fichierCharger(projet))) : null;
@@ -7382,6 +7393,23 @@ function knob(id, opt){
     }
   });
   el.addEventListener("pointercancel", function(){ st.drag=false; });
+  /* molette (v146) */
+  el.addEventListener("wheel", function(e){
+    if(!e.deltaY || PINCE) return;
+    e.preventDefault();
+    var crans = -e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 100 : 1) / 100;
+    if(opt.steps){
+      st.acc = (st.acc || 0) + crans;
+      var n = st.acc > 0 ? Math.floor(st.acc) : Math.ceil(st.acc);
+      st.acc -= n;
+      var nv = Math.max(0, Math.min(opt.steps - 1, st.v + n));
+      if(nv !== st.v){ st.v = nv; render(); opt.on(st.v); H.cran(); }
+    }else{
+      var pas = (opt.max - opt.min) / (e.shiftKey ? 400 : 40);
+      st.v = Math.max(opt.min, Math.min(opt.max, st.v + crans * pas));
+      render(); opt.on(st.v);
+    }
+  }, {passive:false});
   render();
   return {set:function(v){ st.v=v; render(); }, get:function(){ return st.v; }};
 }
@@ -8201,8 +8229,12 @@ document.getElementById("menu-bib").addEventListener("click", function(){
 })();
 document.getElementById("bib-fichier").addEventListener("change", function(){
   var f = this.files && this.files[0];
-  if(!f){ return; }
-  if(f.size > 40*1024*1024){ signal("FICHIER TROP GROS · 40 Mo AU PLUS"); this.value=""; return; }
+  this.value = "";
+  if(f) importerSonFichier(f);
+});
+/* Un fichier son choisi ou déposé (v146 : aussi par glisser-déposer) */
+function importerSonFichier(f){
+  if(f.size > 40*1024*1024){ signal("FICHIER TROP GROS · 40 Mo AU PLUS"); return; }
   audioInit(); banqueEs();
   f.arrayBuffer().then(function(ab){
     return new Promise(function(res,rej){ ctx.decodeAudioData(ab,res,rej); });
@@ -8216,8 +8248,7 @@ document.getElementById("bib-fichier").addEventListener("change", function(){
     bibEcrire(); sauverEch(id, court); majBibUI();
     signal("IMPORTÉ : " + BIB.noms[id]);
   }).catch(function(){ signal("FICHIER ILLISIBLE"); });
-  this.value = "";
-});
+}
 document.getElementById("menu-pr").addEventListener("click", function(){
   document.body.classList.remove("menu-ouvert");
   menu.classList.add("hide");
@@ -9621,6 +9652,27 @@ function knobEm(id, opt){
     memEm();
   });
   el.addEventListener("pointercancel", function(){ st.drag=false; });
+  /* molette de la souris (v146) : un cran de molette = un quarantième de la
+     course (opt.pas s'il est donné, pour un sélecteur à positions) ; Maj affine
+     dix fois. Le cran se mesure à l'amplitude : un pavé tactile, qui envoie
+     beaucoup de petits événements, ne s'emballe pas. */
+  el.addEventListener("wheel", function(e){
+    if(!e.deltaY) return;
+    e.preventDefault();
+    var crans = -e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 100 : 1) / 100;
+    var pas = opt.pas || (opt.max - opt.min) / 40;
+    if(e.shiftKey && !opt.pas) pas /= 10;
+    if(opt.pas){                        /* sélecteur : on attend un cran entier */
+      st.acc = (st.acc || 0) + crans;
+      crans = st.acc > 0 ? Math.floor(st.acc) : Math.ceil(st.acc);
+      st.acc -= crans;
+      if(!crans) return;
+    }
+    st.v = Math.max(opt.min, Math.min(opt.max, opt.get() + crans * pas));
+    render(); opt.set(st.v);
+    clearTimeout(st.tMem);
+    st.tMem = setTimeout(memEm, 400);
+  }, {passive:false});
   render();
   return {maj:function(){ st.v = opt.get(); render(); }};
 }
@@ -10411,7 +10463,7 @@ var kErDec   = knobEr("er-k-dec","dec",0,1);
 var kErLvl   = knobEr("er-k-lvl","lvl",0,1);
 var kErPan   = knobEr("er-k-pan","pan",-1,1);
 var kErBoost = knobEr("er-k-boost","boost",0,1);
-var kErModT  = knobEm("er-k-modt",{min:0,max:5,
+var kErModT  = knobEm("er-k-modt",{min:0,max:5,pas:1,
   get:function(){ return ER.pat.son[ER.sel].modT; },
   set:function(v){
     ER.pat.son[ER.sel].modT = Math.round(v);
@@ -28151,6 +28203,107 @@ window.addEventListener("resize", majVoileMenu);
 setTimeout(majVoileMenu, 60);
 setTimeout(fit,500);
 document.body.classList.add("pret");   /* tout est en place : on peut montrer */
+/* ================= confort sur ordinateur (v146) =================
+   Clavier, glisser-déposer et plein écran. Rien de tout cela ne gêne le
+   téléphone : sans clavier ni souris, ces écouteurs ne se déclenchent jamais.
+
+   Raccourcis (jamais pendant une saisie dans un champ) :
+     Espace       lecture / arrêt de la machine affichée (le même bouton qu'à l'écran)
+     Échap        ferme le panneau ouvert (notice, bibliothèque, table…)
+     F11          plein écran
+     Ctrl+S       enregistre le projet .drm16
+     Ctrl+O       ouvre un projet (choix du fichier)
+   Glisser-déposer : un projet .drm16 s'ouvre, un fichier son rejoint la
+   bibliothèque. */
+
+function champDeSaisie(t){
+  return !!t && (t.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName || ""));
+}
+function visible(el){
+  return !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden";
+}
+/* Le bouton de lecture de ce qui est à l'écran : chaque machine a le sien
+   (em-play, tr8-start, fsw pour la DRM16…), la table de mixage aussi. */
+function boutonLectureVisible(){
+  var p = panneauVisible();
+  if(p && p !== "table") return null;
+  if(!p && !menu.classList.contains("hide")) return null;
+  var l = document.querySelectorAll(p === "table" ? "#table-play" : "#fsw,[id$='-play'],[id$='-start']");
+  for(var i=0;i<l.length;i++) if(visible(l[i]) && !l[i].closest("#table")) return l[i];
+  return p === "table" && l[0] && visible(l[0]) ? l[0] : null;
+}
+function basculerPleinEcran(){
+  if(HOST.pleinEcran){ try{ HOST.pleinEcran(); }catch(e){} return; }
+  try{
+    if(document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen();
+  }catch(e){}
+}
+document.addEventListener("keydown", function(e){
+  if(champDeSaisie(e.target) || e.defaultPrevented) return;
+  var ctrl = e.ctrlKey || e.metaKey, touche = (e.key || "").toLowerCase();
+  if(e.key === " " && !ctrl && !e.altKey){
+    var b = boutonLectureVisible();
+    if(b){ e.preventDefault(); b.click(); }
+    return;
+  }
+  if(e.key === "Escape"){
+    var p = panneauVisible(), f = p && document.getElementById(p + "-fermer");
+    if(f){ e.preventDefault(); f.click(); }
+    return;
+  }
+  if(e.key === "F11"){ e.preventDefault(); basculerPleinEcran(); return; }
+  if(ctrl && !e.altKey && touche === "s"){
+    e.preventDefault();
+    if(projetEnregistrer("projet") && panneauVisible() === "bib") majBibUI();
+    return;
+  }
+  if(ctrl && !e.altKey && touche === "o"){ e.preventDefault(); projetOuvrirFichierExterne(); }
+});
+
+/* ---------- glisser-déposer ---------- */
+function glisseDesFichiers(e){
+  var t = e.dataTransfer && e.dataTransfer.types;
+  return !!t && Array.prototype.indexOf.call(t, "Files") >= 0;
+}
+var DEPOT = {profondeur:0};
+document.addEventListener("dragenter", function(e){
+  if(!glisseDesFichiers(e)) return;
+  DEPOT.profondeur++;
+  document.body.classList.add("depot");
+});
+document.addEventListener("dragleave", function(e){
+  if(!glisseDesFichiers(e)) return;
+  DEPOT.profondeur = Math.max(0, DEPOT.profondeur - 1);
+  if(!DEPOT.profondeur) document.body.classList.remove("depot");
+});
+document.addEventListener("dragover", function(e){
+  if(!glisseDesFichiers(e)) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "copy";
+});
+document.addEventListener("drop", function(e){
+  if(!glisseDesFichiers(e)) return;
+  e.preventDefault();
+  DEPOT.profondeur = 0;
+  document.body.classList.remove("depot");
+  var fs = Array.prototype.slice.call(e.dataTransfer.files || []);
+  var projet = fs.filter(function(f){ return /\.drm16$/i.test(f.name); })[0];
+  if(projet){                         /* un projet remplace tout : il passe seul */
+    if(projet.size > PROJET_MAX){ signal("PROJET TROP GROS"); return; }
+    var r = new FileReader();
+    r.onload = function(){ projetOuvrir(String(r.result), projet.name); };
+    r.onerror = function(){ signal("LECTURE IMPOSSIBLE"); };
+    r.readAsText(projet, "utf-8");
+    return;
+  }
+  var inconnus = [];
+  fs.forEach(function(f){
+    if(/^audio\//.test(f.type) || /\.(wav|wave|aif|aiff|mp3|ogg|oga|flac|m4a)$/i.test(f.name)) importerSonFichier(f);
+    else inconnus.push(f.name);
+  });
+  if(inconnus.length) signal("FICHIER NON RECONNU : " + inconnus.join(", ").toUpperCase());
+});
 </script>
 </body>
 </html>

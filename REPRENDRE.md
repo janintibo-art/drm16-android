@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **145**.
+La version actuelle est la **146**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 145** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 146** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,36 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**W8 : confort sur ordinateur — v146**
+
+*Constat v145* : projet écrit et relu par la vraie coque Windows, 0 échec. **W7 close.**
+
+*Clavier* (`page/js/665-clavier-et-souris.js`, jamais pendant une saisie) :
+- **Espace** : lecture/arrêt de ce qui est à l'écran — on clique le bouton de la machine (`fsw`, `*-play`,
+  `*-start`, `table-play`), pour garder ses remises à zéro propres. Rien quand le menu ou un panneau (autre que
+  la table) est ouvert.
+- **Échap** : ferme le panneau ouvert par son bouton `<panneau>-fermer`.
+- **F11** : plein écran — `HOST.pleinEcran` sur ordinateur (Rust `basculer_plein_ecran`, sur un fil à part),
+  `requestFullscreen` ailleurs. `pleinEcran` est ajouté à HOST **en plus** de la liste du pont Android.
+- **Ctrl+S** : enregistre le projet ; **Ctrl+O** : ouvre un projet.
+
+*Molette* sur les potards : `knobEm` (presque toutes les machines) et `knob` (DRM16). Un cran de molette
+(100 unités de `deltaY`) = 1/40 de la course, **Maj** = 1/400 ; le mouvement est proportionnel, un pavé tactile
+ne s'emballe donc pas. Les sélecteurs à positions accumulent jusqu'au cran entier (`opt.pas`, posé sur
+MOD TYPE de l'ER-1 ; `opt.steps` pour la DRM16). Enregistrement 400 ms après le dernier cran.
+
+*Glisser-déposer* : un **.drm16** s'ouvre (seul, il remplace tout) ; un **fichier son** rejoint la
+bibliothèque — l'import est sorti dans `importerSonFichier(f)` (`210-…`), commun au bouton et au dépôt ; un
+fichier inconnu est signalé. Cadre « DÉPOSEZ ICI » (`body.depot`). **`dragDropEnabled: false`** dans
+`tauri.conf.json` : sans cela, Tauri capte les fichiers et la page ne les voit jamais.
+
+*Écarté* : le double-clic pour remettre un potard à sa valeur d'origine — aucune valeur d'origine n'est connue
+par potard, et un toucher sur certains potards a déjà un sens (afficher leur valeur).
+
+*Tests* : bloc 11 (Espace, Espace dans un champ, Échap, Ctrl+S, molette ±1/40, cadre de dépôt, son déposé
+importé, fichier inconnu signalé). Le bloc 10 attend désormais que la page rechargée soit prête (il a échoué
+une fois sous charge). Autotest Windows : raccourcis et plein écran branchés.
 
 **W7 : le projet .drm16 — v145**
 
