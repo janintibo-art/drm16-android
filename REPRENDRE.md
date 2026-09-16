@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **132**.
+La version actuelle est la **133**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 132** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 133** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -123,6 +123,27 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Syro : code Korg figé sur un commit — v133**
+
+*Défaut.* `construire.sh` clonait l'état **courant** du dépôt Korg : le même commit DRM16, recompilé plus
+tard, pouvait embarquer un Syro différent. (Emscripten, lui, était déjà figé en 3.1.64.)
+
+*Correction.* `syro/korg-commit.txt` porte le commit attendu (première ligne de 40 caractères hexadécimaux,
+le reste est commentaire).
+- **Commit inscrit** : `git init` + `fetch --depth 1` de **ce commit précis** + vérification `rev-parse`.
+  Commit introuvable ou dossier `volcasample` resté sur un autre commit → arrêt avec un message clair
+  (l'étape est en `continue-on-error` : l'APK se construit quand même, sans transfert volca).
+- **Rien d'inscrit** (état livré en v133) : clonage de l'état courant, sans bloquer, et affichage de
+  `COMMIT KORG : <commit> (NON FIGE)` dans le journal, en avertissement et dans le résumé du run.
+- `KORG_DEPOT` permet de pointer ailleurs (servi aux essais).
+
+*Vérifié* avec un faux dépôt Korg et un faux `emcc` : sans commit → avertissement et compilation ; commit v1
+inscrit alors que le dépôt est passé en v2 → c'est bien **v1** qui est compilé ; dossier resté sur v2 → arrêt ;
+commit inexistant → arrêt, dossier nettoyé.
+
+**À faire juste après** : relever le commit affiché par le premier run et l'inscrire dans `korg-commit.txt`
+(livraison v133 bis).
 
 **Aucun nom extérieur interprété comme du HTML — v132**
 

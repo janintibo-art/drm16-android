@@ -1,0 +1,8 @@
+# Commit du depot https://github.com/korginc/volcasample utilise pour compiler
+# le Syro. construire.sh ne lit que la premiere ligne de 40 caracteres
+# hexadecimaux ; tout le reste est ignore.
+#
+# Tant qu'aucun commit n'est inscrit ci-dessous, la compilation prend l'etat
+# courant du depot et affiche dans le journal la ligne
+#     COMMIT KORG : <commit> (NON FIGE)
+# C'est ce commit qu'il faut inscrire ici, seul sur sa ligne.

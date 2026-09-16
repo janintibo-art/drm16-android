@@ -12,6 +12,18 @@ compilation** par le workflow, jamais versionné, jamais commité :
 
 C'est la même règle que dans le projet MOC'TA BASS, d'où vient `syro_wrap.c`.
 
+## Un code figé
+
+Le dépôt de Korg est pris sur **un commit précis**, inscrit dans `korg-commit.txt`,
+et vérifié avant compilation : le même commit DRM16 donne toujours le même Syro.
+Tant qu'aucun commit n'y est inscrit, la compilation prend l'état courant et
+affiche dans le journal et le résumé du run :
+
+    COMMIT KORG : <commit> (NON FIGE)
+
+C'est ce commit qu'il faut inscrire dans `korg-commit.txt`. Le compilateur
+Emscripten est lui aussi figé (3.1.64) dans les workflows.
+
 ## Ce que fait `syro_wrap.c`
 
 Le SDK rend **une trame à la fois**. Appeler ça depuis JavaScript ferait des
