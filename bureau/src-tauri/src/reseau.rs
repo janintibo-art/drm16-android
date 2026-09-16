@@ -7,17 +7,14 @@
 //! par le même rappel que sur Android : window.__net(jeton, erreur, base64).
 
 use std::io::Read;
-use std::sync::OnceLock;
 use std::time::Duration;
 
 use base64::{engine::general_purpose::STANDARD, Engine as _};
-use tauri::{AppHandle, Manager};
+
+use crate::fenetre::{chaine_js, executer};
 
 const MAX_RESEAU: u64 = 16 * 1024 * 1024;
 const PAR_DEFAUT: u64 = 4 * 1024 * 1024;
-
-/// Posée au démarrage (main.rs) : de quoi joindre la fenêtre depuis un autre fil.
-pub static APPLI: OnceLock<AppHandle> = OnceLock::new();
 
 pub fn charger(url: String, jeton: String, max: i64) {
     std::thread::spawn(move || {
@@ -67,20 +64,11 @@ fn telecharger(url: &str, max: i64) -> Result<Vec<u8>, String> {
     Ok(o)
 }
 
-fn chaine_js(s: &str) -> String {
-    serde_json::Value::String(s.to_string()).to_string()
-}
-
 fn rendre(jeton: &str, erreur: &str, charge: &str) {
-    let script = format!(
+    executer(&format!(
         "window.__net&&__net({},{},{})",
         chaine_js(jeton),
         chaine_js(erreur),
         chaine_js(charge)
-    );
-    if let Some(appli) = APPLI.get() {
-        for fenetre in appli.webview_windows().values() {
-            let _ = fenetre.eval(&script);
-        }
-    }
+    ));
 }

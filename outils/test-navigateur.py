@@ -230,6 +230,7 @@ class CoqueSimulee:
     def __init__(self):
         self.docs, self.ech, self.ecr, self.rapport = {}, {}, {}, {}
         self.reseau = []   # téléchargements demandés, rendus plus tard par window.__net
+        self.midi_ouvert, self.evenements, self.midi_envois = -1, [], []   # état MIDI simulé (v141)
     @staticmethod
     def propre(n):
         p = re.sub(r'[^A-Za-z0-9_.-]', '_', n)
@@ -259,6 +260,20 @@ class CoqueSimulee:
         if nom == 'echListe': return '\n'.join(sorted(self.ech))
         if nom == 'echSupprimer': self.ech.pop(P(a[0]), None); return None
         if nom == 'netCharger': self.reseau.append(tuple(a)); return None
+        # MIDI : un appareil simulé, « Synthé test », identifiant 1
+        if nom == 'midiDispo': return True
+        if nom == 'midiListe': return 'Synthé test'
+        if nom == 'midiAppareils': return 'Synthé test\t1'
+        if nom == 'midiOuvertId': return self.midi_ouvert
+        if nom in ('midiOuvrir', 'midiOuvrirId'):
+            self.midi_ouvert = 1; self.evenements.append(('ouvert', 'Synthé test')); return None
+        if nom == 'midiFermer':
+            if self.midi_ouvert >= 0: self.midi_ouvert = -1; self.evenements.append(('ferme', ''))
+            return None
+        if nom == 'midiEnvoyer': self.midi_envois.append(tuple(a)); return None
+        if nom == 'midiSysex':
+            m = base64.b64decode(a[0]); return self.midi_ouvert >= 0 and len(m) >= 3 and m[0] == 0xF0 and m[-1] == 0xF7
+        if nom in ('midiHorloge', 'midiTempo'): return None
         raise KeyError(nom)
     @staticmethod
     def telecharger(url, max_):
@@ -269,7 +284,7 @@ class CoqueSimulee:
         return ('', base64.b64encode(corps).decode())
 
 async def bureau(nav):
-    print("\n8. Version de bureau, côté page : HOST par requêtes synchrones, réseau et autotest (v139-v140)")
+    print("\n8. Version de bureau, côté page : HOST par requêtes synchrones, réseau, MIDI et autotest (v139-v141)")
     coque = CoqueSimulee()
     ctx = await nav.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Edg/130")
     async def servir(route, req):
@@ -291,10 +306,16 @@ async def bureau(nav):
             url, jeton, max_ = coque.reseau.pop(0)
             erreur_net, b64 = coque.telecharger(url, max_)
             await pg.evaluate("(a) => window.__net(a[0], a[1], a[2])", [jeton, erreur_net, b64])
+        while coque.evenements:
+            evt, nom = coque.evenements.pop(0)
+            await pg.evaluate("(e) => window.__midiEtat(e)", {"evt": evt, "nom": nom, "ouvert": coque.midi_ouvert,
+                                                              "appareils": [{"nom": "Synthé test", "id": 1}]})
         await pg.wait_for_timeout(250)
     r = await pg.evaluate("() => ({p: HOST.plateforme, n: Object.keys(HOST).filter(k => typeof HOST[k] === 'function').length})")
-    ok(r["p"] == "bureau" and r["n"] == 16, "plateforme bureau, 15 fonctions natives + HOST.a (%s)" % r)
+    ok(r["p"] == "bureau" and r["n"] == 27, "plateforme bureau, 26 fonctions natives + HOST.a (%s)" % r)
     ok(coque.rapport.get("ok") is True, "l'autotest de la page passe contre la coque simulée")
+    for ligne in str(coque.rapport.get("texte", "")).split("\n"):
+        if "MIDI" in ligne: print("      " + ligne)
     if not coque.rapport.get("ok") or err:
         print("    " + str(coque.rapport.get("texte", "aucun rapport")).replace("\n", "\n    "))
         print("    erreurs :", err)

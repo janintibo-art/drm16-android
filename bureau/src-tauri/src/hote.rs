@@ -16,6 +16,7 @@ use serde_json::{json, Value};
 use tauri::http::{Request, Response, StatusCode};
 
 use crate::fichiers as f;
+use crate::midi as m;
 
 pub fn repondre(requete: Request<Vec<u8>>) -> Response<Vec<u8>> {
     let nom = requete.uri().path().trim_start_matches('/').to_string();
@@ -36,6 +37,14 @@ pub fn repondre(requete: Request<Vec<u8>>) -> Response<Vec<u8>> {
 
 fn texte(a: &[Value], i: usize) -> String {
     a.get(i).and_then(|v| v.as_str()).unwrap_or("").to_string()
+}
+
+fn entier(a: &[Value], i: usize) -> i64 {
+    a.get(i).and_then(|v| v.as_f64()).map(|f| f as i64).unwrap_or(0)
+}
+
+fn reel(a: &[Value], i: usize) -> f64 {
+    a.get(i).and_then(|v| v.as_f64()).unwrap_or(0.0)
 }
 
 fn booleen(a: &[Value], i: usize) -> bool {
@@ -59,6 +68,41 @@ fn appeler(nom: &str, a: &[Value]) -> Option<Value> {
         "netCharger" => {
             let max = a.get(2).and_then(|v| v.as_i64()).unwrap_or(0);
             crate::reseau::charger(texte(a, 0), texte(a, 1), max);
+            Value::Null
+        }
+
+        // MIDI (v141) — voir midi.rs
+        "midiDispo" => json!(m::dispo()),
+        "midiListe" => json!(m::liste()),
+        "midiAppareils" => json!(m::appareils()),
+        "midiOuvertId" => json!(m::ouvert_id()),
+        "midiOuvrir" => {
+            m::ouvrir(entier(a, 0));
+            Value::Null
+        }
+        "midiOuvrirId" => {
+            m::ouvrir_id(entier(a, 0));
+            Value::Null
+        }
+        "midiFermer" => {
+            m::fermer_signale();
+            Value::Null
+        }
+        "midiEnvoyer" => {
+            m::envoyer(entier(a, 0), entier(a, 1), entier(a, 2));
+            Value::Null
+        }
+        "midiSysex" => json!(m::sysex(&texte(a, 0))),
+        "midiHorloge" => {
+            if booleen(a, 0) {
+                m::horloge_depart(reel(a, 1));
+            } else {
+                m::horloge_arret();
+            }
+            Value::Null
+        }
+        "midiTempo" => {
+            m::tempo(reel(a, 0));
             Value::Null
         }
 

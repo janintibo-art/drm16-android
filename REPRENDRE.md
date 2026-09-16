@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **140**.
+La version actuelle est la **141**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 140** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 141** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,33 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**W5 : MIDI sous Windows — v141**
+
+*Constat v140* : réseau validé sur l'exécuteur (http refusé, archive.org 238 octets, plafond), 0 échec.
+
+*`bureau/src-tauri/src/midi.rs`* — traduction de `Midi.java`, `MidiOctets.java` et des fonctions `midi*` :
+- Client **`midir` 0.10** (WinMM). Un « appareil » est un **nom de port** : la liste est l'union des entrées et
+  des sorties ; chaque nom reçoit un **identifiant stable pour la session** ; ouvrir un appareil ouvre l'entrée
+  et la sortie de ce nom.
+- **Branchements** : Windows ne prévient pas ; un fil relit la liste toutes les **1,5 s** et envoie les mêmes
+  événements qu'Android à `__midiEtat` (`ajout`, `retrait`, `perdu` avec fermeture, `ouvert`, `echec`, `ferme`).
+- **Envoi** : `longueur()` et `sysex_complet()` reprennent exactement `MidiOctets` (tests Rust dans le module) ;
+  un exclusif de plusieurs messages part message par message.
+- **Réception** : Windows livre des messages entiers ; `__midi(a,b,c)`, ou `__midiSysex(base64)` pour un
+  exclusif complet de 256 Ko au plus.
+- **Horloge** : fil dédié, génération numérotée comme en Java ; **`timeBeginPeriod(1)`** (WinMM) pour une
+  minuterie à la milliseconde — sans cela Windows ne réveille un fil que toutes les 15,6 ms.
+- `fenetre.rs` (nouveau) regroupe l'envoi de script à la page (`executer`, `chaine_js`, `APPLI`), utilisé par
+  `reseau.rs` et `midi.rs`.
+
+*Page* : la liste `BUREAU` est désormais **tout le pont sauf `micro`** (W6). Autotest : MIDI disponible, et si
+l'exécuteur a un appareil — ouverture confirmée par `__midiEtat`, note, F0 seul ignoré, exclusif complet envoyé
+et incomplet refusé, horloge, fermeture ; sinon les essais d'ouverture sont sautés et le rapport le dit.
+Test navigateur, bloc 8 : un appareil simulé « Synthé test » parcourt tout ce chemin.
+
+*Limite* : aucun vrai appareil MIDI n'est branché sur l'exécuteur GitHub ; l'essai avec la carte USB reste à
+faire sur un PC.
 
 **W4 : réseau sous Windows — v140**
 

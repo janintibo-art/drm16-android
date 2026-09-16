@@ -6180,12 +6180,8 @@ var HOST = (function(){
     });
   } else if(window.__TAURI_INTERNALS__ || window.__TAURI__){
     h.plateforme = "bureau";
-    var BUREAU = [
-      "playing", "fichierSauver", "fichierOuvrir", "fichierAjouter", "fichierFermer",
-      "fichierListe", "fichierCharger", "fichierSupprimer", "fichierDossier",
-      "echDossier", "echSauver", "echCharger", "echListe", "echSupprimer",
-      "netCharger"
-    ];
+    /* tout le pont Android, sauf le micro (W6) */
+    var BUREAU = FONCTIONS.filter(function(n){ return n !== "micro"; });
     /* Tauri sert un protocole maison en http://<nom>.localhost/ sous Windows */
     var base = /Windows|Android/.test(navigator.userAgent) ? "http://drm16.localhost/" : "drm16://localhost/";
     var natif = function(nom, args){
@@ -6249,8 +6245,43 @@ var HOST = (function(){
         var inconnu = false;
         try{ natif("inexistante", []); }catch(e){ inconnu = true; }
         t(inconnu, "une fonction inconnue est refusée");
-        t(HOST.plateforme === "bureau" && !HOST.a("midiEnvoyer"), "plateforme bureau, MIDI pas encore offert");
+        t(HOST.plateforme === "bureau" && HOST.a("midiEnvoyer") && !HOST.a("micro"), "plateforme bureau : tout le pont sauf le micro");
+        t(h.midiDispo() === true && typeof h.midiAppareils() === "string", "MIDI disponible, liste : " + JSON.stringify(h.midiListe()));
       }catch(e){ t(false, "exception : " + e.message); }
+      /* MIDI (v141) : sur le premier appareil qui a une sortie, s'il y en a un */
+      function pause(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+      function attendreQue(cond, ms){
+        var t0 = Date.now();
+        return new Promise(function(r){
+          (function boucle(){ if(cond() || Date.now() - t0 > ms) r(cond()); else setTimeout(boucle, 50); })();
+        });
+      }
+      function essaiMidi(){
+        var liste = [];
+        try{ liste = h.midiAppareils().split("\n").filter(Boolean); }catch(e){}
+        if(!liste.length){ t(true, "MIDI : aucun appareil sur cette machine, essais d'ouverture sautés"); return; }
+        var c = liste[0].split("\t"), id = parseInt(c[1], 10);
+        h.midiOuvrirId(id);
+        return attendreQue(function(){ return MIDI.ouvertId === id; }, 4000).then(function(ouvert){
+          t(ouvert, "MIDI : « " + c[0] + " » ouvert, confirmé par __midiEtat");
+          if(!ouvert) return;
+          var sansErreur = true;
+          try{
+            h.midiEnvoyer(0x90, 60, 1); h.midiEnvoyer(0x80, 60, 0);
+            h.midiEnvoyer(0xF0, 0, 0); h.midiEnvoyer(0x42, 0, 0);
+          }catch(e){ sansErreur = false; }
+          t(sansErreur, "MIDI : note envoyée, F0 seul et octet de donnée ignorés sans erreur");
+          t(h.midiSysex(btoa("\xF0\x7E\x7F\x06\x01\xF7")) === true, "MIDI : exclusif complet envoyé");
+          t(h.midiSysex(btoa("\xF0\x7E\x7F")) === false, "MIDI : exclusif incomplet refusé");
+          h.midiTempo(130);
+          h.midiHorloge(true, 130);
+          return pause(400).then(function(){
+            h.midiHorloge(false, 0);
+            h.midiFermer();
+            return attendreQue(function(){ return MIDI.ouvertId === -1; }, 3000);
+          }).then(function(ferme){ t(ferme, "MIDI : horloge lancée puis arrêtée, appareil fermé"); });
+        });
+      }
       /* réseau (v140) : la réponse revient plus tard, par window.__net */
       function attendre(url, max){
         return netCharger(url, max).then(function(b64){ return {ok:true, taille:atob(b64).length}; },
@@ -6264,7 +6295,7 @@ var HOST = (function(){
         t(!r[0].ok && /https/.test(r[0].erreur), "réseau : http refusé (" + r[0].erreur + ")");
         t(r[1].ok && r[1].taille > 10, "réseau : archive.org répond (" + (r[1].ok ? r[1].taille + " octets" : r[1].erreur) + ")");
         t(!r[2].ok && /trop gros/.test(r[2].erreur), "réseau : plafond respecté (" + r[2].erreur + ")");
-      }, function(e){ t(false, "réseau : " + e); }).then(function(){
+      }, function(e){ t(false, "réseau : " + e); }).then(essaiMidi).then(function(){
         t(!erreurs.length, "aucune erreur JavaScript " + erreurs.slice(0, 3).join(" | "));
         try{ natif("autotestFin", [ok, l.join("\n")]); }catch(e){}
       });
