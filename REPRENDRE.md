@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **131**.
+La version actuelle est la **132**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 131** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 132** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -123,6 +123,26 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Aucun nom extérieur interprété comme du HTML — v132**
+
+*Relevé.* 74 écritures `innerHTML`, passées une à une. Presque toutes posent des constantes (listes de
+paramètres, noms de modules, de montages, de rythmes). **Deux** recevaient une chaîne venue de l'extérieur :
+- le nom de l'échantillon sur l'ESX (`majLedsSx`, `nomEch`) — renommé par l'utilisateur ou venu d'archive.org ;
+- le nom du rack dans la liste des racks Eurorack (`listeRacks`, `nomRack`) — saisi par l'utilisateur.
+**Vérifié que c'était un vrai défaut** : un nom `<img src=x onerror=…>` y **exécutait du code** en v131.
+
+*Correction.*
+- `texteApresLed(el, texte)` : la LED `<i></i>` en HTML fixe, puis le texte en nœud texte. Utilisée pour le
+  nom et les informations de l'échantillon ESX.
+- Liste des racks construite en `textContent` + `<span>` créé.
+- Trace du PAD MOTION : les coordonnées lues en mémoire sont converties en nombres bornés avant d'être écrites.
+Après correction, le même nom s'affiche tel quel, aucune balise n'est créée, aucun code ne s'exécute.
+
+*`verifier-html.py`* (nouveau) : cherche dans chaque `innerHTML` / `outerHTML` / `insertAdjacentHTML` les
+sources extérieures connues (`nomEch`, `nomBib`, `nomRack`, `BIB.noms`, `ES.noms`, `EUR.nom`, noms MIDI,
+`ARC.`, prises, `prompt`, `.name`, `KP.motion`…), texte fixe entre guillemets exclu. **Vu échouer** sur la v131
+(les deux sites). **Règle** : toute nouvelle donnée nommée par l'utilisateur s'ajoute à `SOURCES`.
 
 **MIDI : branchement à chaud, témoin, reconnexion — v131**
 

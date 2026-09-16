@@ -11207,6 +11207,13 @@ function banqueEs(){
     if(!ES.buf["b"+i]) ES.buf["b"+i] = genEch(i);
   }
 }
+/* Une étiquette « LED + texte » dont le texte vient de l'extérieur (v132) :
+   la LED est posée en HTML fixe, le texte en nœud texte. */
+function texteApresLed(el, texte){
+  if(!el) return;
+  el.innerHTML = "<i></i>";
+  el.appendChild(document.createTextNode(String(texte)));
+}
 function nomEch(id){
   if(!id) return "---";
   if(BIB && BIB.noms && BIB.noms[id]) return BIB.noms[id];
@@ -13598,9 +13605,11 @@ function majLedsSx(){
   document.getElementById("sx-mute").classList.toggle("on", !!SX.mute[k]);
   document.getElementById("sx-solo").classList.toggle("on", !!SX.solo[k]);
   var buf = ES.buf[son.ech];
-  document.getElementById("sx-ech-nom").innerHTML='<i></i>'+nomEch(son.ech);
-  document.getElementById("sx-ech-info").innerHTML='<i></i>'+
-    (buf ? (buf.duration.toFixed(2)+" s · "+Math.round(buf.sampleRate/1000)+" kHz") : "vide");
+  /* v132 : le nom d'un échantillon vient de l'utilisateur ou d'archive.org —
+     jamais interprété comme du HTML */
+  texteApresLed(document.getElementById("sx-ech-nom"), nomEch(son.ech));
+  texteApresLed(document.getElementById("sx-ech-info"),
+    buf ? (buf.duration.toFixed(2)+" s · "+Math.round(buf.sampleRate/1000)+" kHz") : "vide");
   var m=SX.pat.mot[k], mode=m?m.mode||0:0;
   document.getElementById("sx-smooth").classList.toggle("on", mode===1);
   document.getElementById("sx-trig").classList.toggle("on", mode===2);
@@ -20301,10 +20310,14 @@ function listeRacks(){
       var o = (n === EUR.cur) ? rackCourant() : m.racks[n];
       var b = document.createElement("button");
       var nb = (o && o.mods) ? o.mods.length : 0;
-      b.innerHTML = nomRack(n, o) + "<span>" +
+      /* v132 : le nom d'un rack est saisi par l'utilisateur */
+      b.textContent = nomRack(n, o);
+      var sp = document.createElement("span");
+      sp.textContent =
         (nb ? (nb + " modules" + ((o.cables || []).length ? " · " + o.cables.length + " câbles" : ""))
             : "vide") +
-        (n === EUR.cur ? " · EN COURS" : "") + "</span>";
+        (n === EUR.cur ? " · EN COURS" : "");
+      b.appendChild(sp);
       if(n === EUR.cur) b.className = "on";
       b.addEventListener("click", function(){
         montrerCat(c, false);
@@ -25397,7 +25410,9 @@ function majTraceKp(){
   var pas = KP.motion.length > 60 ? 2 : 1, h = "";
   for(var i=0;i<KP.motion.length;i+=pas){
     var m = KP.motion[i];
-    h += '<span style="left:' + (m[0]*100) + '%;top:' + ((1-m[1])*100) + '%"></span>';
+    /* v132 : le geste vient de la mémoire ; on n'écrit que des nombres */
+    var gx = Math.max(0, Math.min(1, +m[0] || 0)), gy = Math.max(0, Math.min(1, +m[1] || 0));
+    h += '<span style="left:' + (gx*100) + '%;top:' + ((1-gy)*100) + '%"></span>';
   }
   t.innerHTML = h;
 }
