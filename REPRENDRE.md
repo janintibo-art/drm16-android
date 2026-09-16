@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **150**.
+La version actuelle est la **151**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 150** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 151** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,19 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Test du projet rendu fiable — v151**
+
+*Constat* : le run de la v150 a échoué au **bloc 10** (ouverture d'un projet) : après rechargement, la page
+repartait de zéro (DRM16, 120 BPM, aucun « avant-ouverture »). Rien à voir avec la v150. Reproduit ici **trois
+fois sur dix** : la page était ouverte en `file://`, et Chromium y perd parfois le stockage local au
+rechargement.
+
+*Correction du test* : `servir_page(ctx, csp)` sert les fichiers sur **`http://tauri.localhost/`** (vraie origine
+http) ; le bloc 10 l'utilise, le bloc 8 aussi (avec la politique de sécurité). **Dix passages sur dix** réussis.
+
+*Prudence côté application* : `projetOuvrir` attend **1 s** (au lieu de 0,3) avant de recharger la page. Sur
+le téléphone, ouvrir un projet reste **à essayer à la main** : enregistrer, changer quelques réglages, rouvrir.
 
 **B3 : la chaîne de sortie — v150**
 

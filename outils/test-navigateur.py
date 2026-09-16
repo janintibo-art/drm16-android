@@ -63,6 +63,25 @@ window.DRM16 = {
 };
 """
 
+async def servir_page(ctx, csp=None):
+    """Sert app/src/main/assets sur http://tauri.localhost/ (comme Tauri), avec
+    ou sans politique de sécurité. Une vraie origine http garde un stockage
+    local stable d'un rechargement à l'autre ; en file://, Chromium le perd
+    parfois (vu : bloc 10 en échec trois fois sur dix)."""
+    racine = os.path.abspath("app/src/main/assets")
+    types = {".html": "text/html; charset=utf-8", ".js": "text/javascript", ".png": "image/png",
+             ".wav": "audio/wav", ".json": "application/json", ".css": "text/css"}
+    async def page(route, req):
+        chemin = req.url.split("//", 1)[1].split("/", 1)[1].split("?")[0] or "drm16.html"
+        f = os.path.normpath(os.path.join(racine, chemin))
+        if not f.startswith(racine) or not os.path.isfile(f):
+            await route.fulfill(status=404, body=""); return
+        entetes = {"Content-Type": types.get(os.path.splitext(f)[1], "application/octet-stream")}
+        if csp: entetes["Content-Security-Policy"] = csp
+        await route.fulfill(status=200, body=open(f, "rb").read(), headers=entetes)
+    await ctx.route(re.compile(r'^http://tauri\.localhost/'), page)
+    return "http://tauri.localhost/drm16.html"
+
 async def nouvelle_page(nav, pont=False, largeur=393, hauteur=851):
     pg = await nav.new_page(viewport={"width": largeur, "height": hauteur})
     erreurs = []
@@ -315,25 +334,13 @@ async def bureau(nav):
     # MÊME politique de sécurité (lue dans tauri.conf.json) — pour qu'un blocage
     # se voie ici plutôt que sur un PC.
     conf = json.load(open("bureau/src-tauri/tauri.conf.json", encoding="utf-8"))
-    csp = conf["app"]["security"]["csp"]
-    racine = os.path.abspath("app/src/main/assets")
-    types = {".html": "text/html; charset=utf-8", ".js": "text/javascript", ".png": "image/png",
-             ".wav": "audio/wav", ".json": "application/json", ".css": "text/css"}
-    async def page_tauri(route, req):
-        chemin = req.url.split("//", 1)[1].split("/", 1)[1].split("?")[0] or "drm16.html"
-        f = os.path.normpath(os.path.join(racine, chemin))
-        if not f.startswith(racine) or not os.path.isfile(f):
-            await route.fulfill(status=404, body=""); return
-        await route.fulfill(status=200, body=open(f, "rb").read(),
-                            headers={"Content-Type": types.get(os.path.splitext(f)[1], "application/octet-stream"),
-                                     "Content-Security-Policy": csp})
-    await ctx.route(re.compile(r'^http://tauri\.localhost/'), page_tauri)
+    adresse = await servir_page(ctx, conf["app"]["security"]["csp"])
     await ctx.add_init_script("window.__TAURI_INTERNALS__ = {};")
     pg = await ctx.new_page()
     err, refus = [], []
     pg.on("pageerror", lambda e: err.append(str(e)))
     pg.on("console", lambda m: refus.append(m.text) if "Content Security Policy" in m.text else None)
-    await pg.goto("http://tauri.localhost/drm16.html")
+    await pg.goto(adresse)
     for _ in range(80):
         if coque.rapport: break
         while coque.reseau:
@@ -427,10 +434,11 @@ async def projet(nav):
     print("\n10. Projet .drm16 : enregistrer, ouvrir, refuser un fichier abîmé (v145)")
     ctx = await nav.new_context(viewport={"width": 393, "height": 851})
     await ctx.add_init_script(PONT)
+    adresse = await servir_page(ctx)          # origine http : stockage stable au rechargement
     pg = await ctx.new_page()
     err = []
     pg.on("pageerror", lambda e: err.append(str(e)))
-    await pg.goto(PAGE); await pg.wait_for_timeout(1500)
+    await pg.goto(adresse); await pg.wait_for_timeout(1500)
     r = await pg.evaluate("""() => {
       audioInit(); allerMachine('kp'); S.bpm = 133; memKp(); writeMem();
       HOST.echSauver('u-essai', b64De(wavDe(ctx.createBuffer(1, 3200, 32000))));

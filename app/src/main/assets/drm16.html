@@ -27434,7 +27434,9 @@ function projetOuvrir(texte, nom){
     signal("MÉMOIRE PLEINE · PROJET INCOMPLET");
   }
   signal("PROJET OUVERT" + (rates ? " · " + rates + " SON(S) NON ÉCRIT(S)" : ""));
-  setTimeout(function(){ location.reload(); }, rates ? 1500 : 300);
+  /* une seconde avant de recharger (v151) : le temps que le navigateur range ce
+     qui vient d'être écrit — prudence, le test l'a vu perdu en file:// */
+  setTimeout(function(){ location.reload(); }, rates ? 1500 : 1000);
   return true;
 }
 
