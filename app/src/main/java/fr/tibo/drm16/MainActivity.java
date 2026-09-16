@@ -428,7 +428,8 @@ public class MainActivity extends Activity implements Midi.Ecoute {
     private String propre(String n) {
         if (n == null) return "x";
         String p = n.replaceAll("[^A-Za-z0-9_.-]", "_");
-        return p.isEmpty() ? "x" : p;
+        /* v139 : « . » et « .. » designent un dossier, jamais un fichier */
+        return (p.isEmpty() || p.equals(".") || p.equals("..")) ? "x" : p;
     }
 
     /** Message recu d'un appareil MIDI : transmis tel quel a la page. */

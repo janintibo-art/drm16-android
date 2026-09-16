@@ -9,7 +9,7 @@
 #   pip install playwright==1.56.0 && python -m playwright install --with-deps chromium
 #   python3 outils/test-navigateur.py
 #
-import asyncio, os, sys
+import asyncio, base64, json, os, re, sys
 from playwright.async_api import async_playwright
 
 PAGE = "file://" + os.path.abspath("app/src/main/assets/drm16.html")
@@ -224,10 +224,73 @@ async def hote(nav):
     ok(not err and not err2, "aucune erreur de page")
     await pg.close()
 
+# Imitation de la coque Rust (bureau/src-tauri/src/hote.rs et fichiers.rs), pour
+# essayer le côté page de la version de bureau sans Windows.
+class CoqueSimulee:
+    def __init__(self):
+        self.docs, self.ech, self.ecr, self.rapport = {}, {}, {}, {}
+    @staticmethod
+    def propre(n):
+        p = re.sub(r'[^A-Za-z0-9_.-]', '_', n)
+        return 'x' if p in ('', '.', '..') else p
+    def appeler(self, nom, a):
+        P = self.propre
+        if nom == 'autotest': return True
+        if nom == 'autotestFin': self.rapport.update(ok=a[0], texte=a[1]); return None
+        if nom == 'playing': return None
+        if nom == 'fichierSauver': self.docs[P(a[0])] = base64.b64decode(a[1]); return 'C:/DRM16/' + P(a[0])
+        if nom == 'fichierOuvrir': j = 'j%d' % len(self.ecr); self.ecr[j] = (P(a[0]), bytearray()); return j
+        if nom == 'fichierAjouter':
+            if a[0] not in self.ecr or len(a[1]) > 1100000: return False
+            self.ecr[a[0]][1].extend(base64.b64decode(a[1])); return True
+        if nom == 'fichierFermer':
+            e = self.ecr.pop(a[0], None)
+            if not e or not a[1]: return ''
+            self.docs[e[0]] = bytes(e[1]); return 'C:/DRM16/' + e[0]
+        if nom == 'fichierListe':
+            return '\n'.join('%s\t%d\t1700000000000' % (n, len(v)) for n, v in sorted(self.docs.items()) if n.endswith(a[0]))
+        if nom == 'fichierCharger': n = P(a[0]); return base64.b64encode(self.docs[n]).decode() if n in self.docs else ''
+        if nom == 'fichierSupprimer': return self.docs.pop(P(a[0]), None) is not None
+        if nom == 'fichierDossier': return 'C:/DRM16'
+        if nom == 'echDossier': return 'C:/AppData/DRM16/ech'
+        if nom == 'echSauver': self.ech[P(a[0])] = a[1]; return True
+        if nom == 'echCharger': return self.ech.get(P(a[0]), '')
+        if nom == 'echListe': return '\n'.join(sorted(self.ech))
+        if nom == 'echSupprimer': self.ech.pop(P(a[0]), None); return None
+        raise KeyError(nom)
+
+async def bureau(nav):
+    print("\n8. Version de bureau, côté page : HOST par requêtes synchrones et autotest (v139)")
+    coque = CoqueSimulee()
+    ctx = await nav.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Edg/130")
+    async def servir(route, req):
+        try:
+            r = coque.appeler(req.url.rsplit('/', 1)[-1], json.loads(req.post_data or '[]'))
+            await route.fulfill(status=200, body=json.dumps({'r': r}),
+                                headers={'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'})
+        except KeyError:
+            await route.fulfill(status=404, body='{}', headers={'Access-Control-Allow-Origin': '*'})
+    await ctx.route(re.compile(r'^http://drm16\.localhost/'), servir)
+    await ctx.add_init_script("window.__TAURI_INTERNALS__ = {};")
+    pg = await ctx.new_page()
+    err = []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+    await pg.goto(PAGE)
+    for _ in range(60):
+        if coque.rapport: break
+        await pg.wait_for_timeout(250)
+    r = await pg.evaluate("() => ({p: HOST.plateforme, n: Object.keys(HOST).filter(k => typeof HOST[k] === 'function').length})")
+    ok(r["p"] == "bureau" and r["n"] == 15, "plateforme bureau, 14 fonctions natives + HOST.a (%s)" % r)
+    ok(coque.rapport.get("ok") is True, "l'autotest de la page passe contre la coque simulée")
+    if not coque.rapport.get("ok"):
+        print("    " + str(coque.rapport.get("texte", "aucun rapport")).replace("\n", "\n    "))
+    ok(not err, "aucune erreur de page %s" % err[:1])
+    await ctx.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote):
+        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau):
             try:
                 await t(nav)
             except Exception as e:

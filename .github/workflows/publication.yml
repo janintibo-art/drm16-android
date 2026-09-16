@@ -216,6 +216,30 @@ jobs:
         working-directory: bureau/src-tauri
         run: cargo tauri build
 
+      # Essai de la vraie application (v139) : la page se teste elle-même dans
+      # WebView2, contre la coque Rust, puis l'application quitte avec 0 ou 1.
+      # Non bloquant tant qu'on n'a pas vu comment l'exécuteur affiche une fenêtre.
+      - name: Essai automatique de l'application
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem bureau/src-tauri/target/release -Filter *.exe |
+                 Where-Object { $_.Name -notlike "*setup*" } | Select-Object -First 1
+          if (-not $exe) { throw "Exécutable introuvable." }
+          $env:DRM16_AUTOTEST = Join-Path $PWD "autotest.txt"
+          $env:DRM16_DOSSIER = Join-Path $PWD "autotest-dossier"
+          $p = Start-Process $exe.FullName -PassThru
+          $null = $p.Handle
+          if (-not $p.WaitForExit(120000)) { $p.Kill(); throw "L'application n'a pas rendu son rapport en deux minutes." }
+          if (Test-Path autotest.txt) { Get-Content autotest.txt } else { Write-Host "Aucun rapport écrit." }
+          if (Test-Path autotest.txt) {
+            "### Essai automatique (Windows)" >> $env:GITHUB_STEP_SUMMARY
+            '```' >> $env:GITHUB_STEP_SUMMARY
+            Get-Content autotest.txt >> $env:GITHUB_STEP_SUMMARY
+            '```' >> $env:GITHUB_STEP_SUMMARY
+          }
+          if ($p.ExitCode -ne 0) { throw "Essai en échec (code $($p.ExitCode))." }
+
       - name: Joindre l'exécutable à la version
         shell: pwsh
         env:

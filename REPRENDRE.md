@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **138**.
+La version actuelle est la **139**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 138** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 139** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,40 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**W3 : fichiers et échantillons sous Windows — v139**
+
+*Le problème de fond.* La page appelle le pont Android **de façon synchrone** (« `chemin = p.fichierSauver(…)` »),
+alors que les commandes Tauri sont asynchrones. Plutôt que de réécrire des dizaines d'appels, la version de
+bureau garde le synchrone :
+- **Côté page** (`page/js/010-hote.js`) : pour chaque fonction de la liste `BUREAU`, HOST envoie une
+  **requête XMLHttpRequest synchrone** `POST http://drm16.localhost/<fonction>` (sous Windows ; `drm16://`
+  ailleurs), arguments en JSON, en `text/plain` pour éviter toute requête préalable. Réponse : `{"r": …}`.
+  Les fonctions pas encore écrites côté Rust (MIDI, réseau, micro) restent absentes.
+- **Côté Rust** (`bureau/src-tauri/src/`) : `main.rs` enregistre le protocole `drm16` ; **`hote.rs`** le sert
+  (aiguillage par nom, 404 pour une fonction inconnue, `Access-Control-Allow-Origin: *` car la page vient de
+  `http://tauri.localhost`) ; **`fichiers.rs`** traduit fidèlement `MainActivity`/`Fichiers.java` : mêmes
+  plafonds (8 / 64 / 32 Mo), mêmes formats de liste, écriture par morceaux (4 au plus, 768 Ko), remplacement
+  sans perte (`rename` remplace sous Windows, repli par `.bak`), orphelins récupérés, noms techniques cachés.
+  Dépendances ajoutées : `serde_json`, `base64 0.22`, `dirs 5`.
+- **Emplacements** : documents dans **Documents\DRM16**, échantillons dans **%APPDATA%\DRM16\ech**.
+  `DRM16_DOSSIER` les remplace par un dossier d'essai.
+- `propre()` refuse désormais « . » et « .. » (Rust, et Java par la même occasion).
+
+*Essai automatique de la vraie application.* Avec la variable `DRM16_AUTOTEST`, la page se teste elle-même au
+démarrage (18 contrôles : aller-retour de fichiers, liste, morceaux, 3 Mo, suppression, noms dangereux,
+échantillons, machines ouvertes, fonction inconnue refusée, aucune erreur JS) et rend son rapport à la coque,
+qui quitte avec 0 ou 1. Étape « Essai automatique de l'application » dans `windows.yml` et `publication.yml`,
+rapport dans le résumé du run — **non bloquante** tant qu'on n'a pas vu l'exécuteur Windows ouvrir une fenêtre.
+
+*Test navigateur, bloc 8* : la même page, avec un agent « Windows » et une **coque simulée en Python** qui
+imite `hote.rs`/`fichiers.rs` : plateforme `bureau`, 14 fonctions, autotest entièrement vert.
+
+*Correction au passage* : depuis la v137, le bloc HOST placé avant `"use strict"` avait **désactivé le mode
+strict** de tout le script. `"use strict"` est de nouveau la première instruction (en tête de
+`010-hote.js`) ; tous les tests passent en mode strict.
+
+*Limite* : le Rust n'est pas compilé ici — c'est le run « Exécutable Windows » qui le dira.
 
 **Les sources de la page sont découpées — v138**
 
