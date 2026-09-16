@@ -140,6 +140,7 @@ js/600-rendre-une-prise-midi-en-wav.js
 js/610-formes-d-onde-par-piste.js
 js/620-la-collection-archive-org.js
 js/630-bibliotheque.js
+js/635-projet-drm16.js
 js/640-travail-du-midi-editeur-en-rouleau.js
 js/650-transfert-exclusif-vers-une-vraie-korg.js
 js/660-choix-du-modele.js

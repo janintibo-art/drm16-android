@@ -4021,6 +4021,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   32 kHz. Mesuré : une grosse caisse à 70 Hz descend à 8 kHz, soit les trois quarts de sa place rendus,
   sans différence audible. Un son brillant ou du bruit restent intacts.</p>
 
+  <p><b>PROJETS</b> (en tête du rayon SAUVEGARDES) : <b>ENREGISTRER LE PROJET</b> met tout l'état de
+  l'application — réglages, motifs de chaque machine, set, prises MIDI, sons de la bibliothèque — dans un seul
+  fichier <b>.drm16</b>, qui s'ouvre aussi bien sur Android que sur ordinateur. <b>OUVRIR</b> remplace tout
+  par le contenu du projet ; l'état d'avant est d'abord enregistré en « avant-ouverture », pour revenir en
+  arrière. <b>OUVRIR UN FICHIER…</b> va chercher un projet ailleurs : téléchargements, clé USB, pièce jointe.</p>
   <p><b>SAUVEGARDES</b> lit <b>tout ce que contient la machine branchée</b> — motifs, chansons, réglages
   généraux — et l'écrit en vrais fichiers .syx dans le dossier Documents de l'application. Renvoyez une
   sauvegarde pour remettre la machine exactement comme elle était. À faire avant toute expérience : un
@@ -6260,6 +6265,12 @@ var HOST = (function(){
         t(!!ctx && latenceChoisie() === "balanced", "audio : moteur démarré, latence " + latenceChoisie() +
           (ctx ? " · " + ctx.sampleRate + " Hz · sortie " + Math.round(((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000) + " ms" : ""));
         t(getComputedStyle(document.querySelector("button")).cursor === "pointer", "souris : curseur de bouton");
+        /* projet .drm16 (v145) : écrit, relu et reconnu — sans l'ouvrir, qui rechargerait la page */
+        var projet = projetEnregistrer("autotest", true);
+        var relu = projet ? projetValider(texteDeB64(h.fichierCharger(projet))) : null;
+        t(!!projet && relu && typeof relu === "object" && relu.format === "drm16-projet",
+          "projet .drm16 écrit et relu : " + (projet || "rien") + (typeof relu === "string" ? " (" + relu + ")" : ""));
+        if(projet) h.fichierSupprimer(projet);
       }catch(e){ t(false, "exception : " + e.message); }
       /* MIDI (v141) : sur le premier appareil qui a une sortie, s'il y en a un */
       function pause(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
@@ -6415,6 +6426,9 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
   S.haptic = memoire.haptic; S.bg = memoire.bg; S.bass = memoire.bass;
 })();
 var saveTmr = null, machineTmr = {}, memEchec = false;
+/* v145 : vrai pendant l'ouverture d'un projet — l'ancien état ne doit plus
+   être écrit, même par le « pagehide » du rechargement */
+var PROJET_EN_COURS = false;
 
 /* chaque machine a sa propre clé : écrire un motif ne réécrit plus les onze */
 function cleMachine(id){ return MEM + "." + id; }
@@ -6426,7 +6440,7 @@ function memLire(id){
   return memoire[id];
 }
 function ecrireMachine(id){
-  if(!memoire[id]) return;
+  if(!memoire[id] || PROJET_EN_COURS) return;
   try{
     localStorage.setItem(cleMachine(id), JSON.stringify(memoire[id]));
     memEchec = false;
@@ -6444,6 +6458,7 @@ function viderMachines(){
 }
 function writeMem(){
   clearTimeout(saveTmr); saveTmr = null;
+  if(PROJET_EN_COURS) return;
   viderMachines();
   try{
     memoire.modele = S.modele;
@@ -11657,11 +11672,14 @@ function chargerEchs(){
     if(!b64) return;
     var bin = atob(b64), ab = new ArrayBuffer(bin.length), o = new Uint8Array(ab);
     for(var i=0;i<bin.length;i++) o[i]=bin.charCodeAt(i);
-    ctx.decodeAudioData(ab, function(buf){
+    var decode = ctx.decodeAudioData(ab, function(buf){
       ES.buf[id]=buf;
       if(ES.noms[id]===undefined) ES.noms[id]="mic";
       majLedsEs();
     }, function(){});
+    /* v145 : un son abîmé ne doit pas lever d'erreur non rattrapée (la promesse
+       rendue par decodeAudioData est rejetée en plus du rappel d'erreur) */
+    if(decode && decode.catch) decode.catch(function(){});
   });
 }
 /* un son peut servir dans plusieurs motifs et sur les trois échantillonneurs */
@@ -26947,6 +26965,9 @@ function bibRendrePrises(corps){
   });
 }
 function bibRendreSauvegardes(corps){
+  projetRendre(corps);   /* v145 : les projets .drm16 d'abord */
+  var hm = document.createElement("h3"); hm.textContent = "Machines Korg branchées";
+  corps.appendChild(hm);
   var p1 = document.createElement("p");
   p1.innerHTML = "Une sauvegarde lit <b>tout ce que contient la machine branchée</b> et l'écrit en fichier " +
     ".syx dans le dossier Documents de l'application. Renvoyez-la pour remettre la machine comme avant.";
@@ -27178,6 +27199,197 @@ function fermerBib(){
   majNoteOuverte();
 }
 
+/* ================= projet .drm16 (v145) =================
+   Un fichier unique qui contient TOUT l'état de l'application : réglages,
+   motifs de chaque machine, set, prises MIDI, noms de la bibliothèque… (toutes
+   les clés « drm.reglages* » du stockage de la page), plus les échantillons de
+   l'utilisateur. Le même fichier s'ouvre sur Android et sur ordinateur.
+
+   Format (JSON, UTF-8) :
+     { "format": "drm16-projet", "version": 1, "date": "…", "plateforme": "…",
+       "memoire": { "<clé>": "<valeur telle que stockée>" , … },
+       "sons":    { "<nom>": "<WAV en Base64>", … } }
+
+   Ouvrir un projet REMPLACE l'état courant ; l'état courant est d'abord
+   enregistré en « avant-ouverture-….drm16 », puis la page est rechargée.
+   Plafond : 16 Mo, le même dans les deux ponts (Java et Rust). */
+var PROJET_FORMAT = "drm16-projet";
+var PROJET_VERSION = 1;
+var PROJET_MAX = 16 * 1024 * 1024;
+
+function projetHorodatage(){
+  var d = new Date();
+  function z(n){ return ("0" + n).slice(-2); }
+  return d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + "-" + z(d.getHours()) + z(d.getMinutes()) + z(d.getSeconds());
+}
+
+/* L'état complet, prêt à écrire. sautes : les sons laissés de côté faute de place. */
+function projetContenu(){
+  writeMem();
+  var memoireProjet = {};
+  for(var i=0;i<localStorage.length;i++){
+    var k = localStorage.key(i);
+    if(k === MEM || k.indexOf(MEM + ".") === 0) memoireProjet[k] = localStorage.getItem(k);
+  }
+  var total = JSON.stringify(memoireProjet).length, sons = {}, sautes = [];
+  if(HOST.echListe && HOST.echCharger){
+    var noms = "";
+    try{ noms = HOST.echListe() || ""; }catch(e){}
+    noms.split("\n").forEach(function(n){
+      if(!n) return;
+      var b = "";
+      try{ b = HOST.echCharger(n) || ""; }catch(e){}
+      if(!b) return;
+      if(total + b.length > PROJET_MAX - 65536){ sautes.push(n); return; }
+      sons[n] = b; total += b.length + n.length + 8;
+    });
+  }
+  return {
+    doc: {format:PROJET_FORMAT, version:PROJET_VERSION, date:new Date().toISOString(),
+          plateforme:HOST.plateforme, memoire:memoireProjet, sons:sons},
+    sautes: sautes
+  };
+}
+
+/* Enregistre le projet dans les documents ; rend le nom écrit, ou "" */
+function projetEnregistrer(prefixe, silencieux){
+  if(!HOST.fichierSauver){ if(!silencieux) signal("ÉCRITURE IMPOSSIBLE ICI"); return ""; }
+  var c = projetContenu();
+  var octets = new TextEncoder().encode(JSON.stringify(c.doc));
+  if(octets.length > PROJET_MAX){ if(!silencieux) signal("PROJET TROP GROS"); return ""; }
+  var nom = (prefixe || "projet") + "-" + projetHorodatage() + ".drm16";
+  var chemin = ecrireDocument(HOST, nom, octets);
+  if(!chemin){ if(!silencieux) signal("ÉCRITURE REFUSÉE"); return ""; }
+  if(!silencieux){
+    signal("PROJET ENREGISTRÉ · " + octetsTexte(octets.length) +
+           (c.sautes.length ? " · " + c.sautes.length + " SON(S) LAISSÉ(S) DE CÔTÉ, PLACE INSUFFISANTE" : ""));
+  }
+  return nom;
+}
+
+/* Rend le projet validé, ou un texte qui dit ce qui ne va pas */
+function projetValider(texte){
+  var d;
+  try{ d = JSON.parse(texte); }catch(e){ return "FICHIER ILLISIBLE"; }
+  if(!d || typeof d !== "object" || d.format !== PROJET_FORMAT) return "CE N'EST PAS UN PROJET DRM16";
+  if(typeof d.version !== "number" || d.version < 1) return "PROJET ABÎMÉ";
+  if(d.version > PROJET_VERSION) return "PROJET D'UNE VERSION PLUS RÉCENTE · METTEZ L'APPLICATION À JOUR";
+  var m = d.memoire;
+  if(!m || typeof m !== "object" || typeof m[MEM] !== "string") return "PROJET INCOMPLET";
+  for(var k in m){
+    if(!Object.prototype.hasOwnProperty.call(m, k)) continue;
+    if(k !== MEM && k.indexOf(MEM + ".") !== 0) return "PROJET ABÎMÉ (CLÉ INCONNUE)";
+    if(typeof m[k] !== "string") return "PROJET ABÎMÉ (VALEUR)";
+    try{ JSON.parse(m[k]); }catch(e){ return "PROJET ABÎMÉ (VALEUR ILLISIBLE)"; }
+  }
+  var s = d.sons || {};
+  if(typeof s !== "object") return "PROJET ABÎMÉ (SONS)";
+  for(var n in s){
+    if(!Object.prototype.hasOwnProperty.call(s, n)) continue;
+    if(!/^[A-Za-z0-9_.-]{1,64}$/.test(n)) return "PROJET ABÎMÉ (NOM DE SON)";
+    if(typeof s[n] !== "string" || s[n].indexOf("UklGR") !== 0) return "PROJET ABÎMÉ (SON « " + n + " »)";
+  }
+  d.sons = s;
+  return d;
+}
+
+/* Remplace tout l'état par celui du projet, puis recharge la page */
+function projetOuvrir(texte, nom){
+  var d = projetValider(texte);
+  if(typeof d === "string"){ signal(d); return false; }
+  var nbSons = Object.keys(d.sons).length;
+  if(!window.confirm("Ouvrir le projet « " + (nom || "sans nom") + " » ?\n\n" +
+                     "Il remplace tout : réglages, motifs, set, prises" +
+                     (nbSons ? ", et " + nbSons + " son(s) de la bibliothèque" : "") + ".\n" +
+                     "L'état actuel est d'abord enregistré en « avant-ouverture »."))
+    return false;
+  if(S.run) stop();
+  projetEnregistrer("avant-ouverture", true);
+  /* plus aucune écriture de l'ancien état, même au déchargement de la page */
+  PROJET_EN_COURS = true;
+  var ecrits = 0, rates = 0;
+  for(var n in d.sons){
+    var ok = false;
+    try{ ok = !!(HOST.echSauver && HOST.echSauver(n, d.sons[n])); }catch(e){}
+    if(ok) ecrits++; else rates++;
+  }
+  var anciennes = [];
+  for(var i=0;i<localStorage.length;i++){
+    var k = localStorage.key(i);
+    if(k === MEM || k.indexOf(MEM + ".") === 0) anciennes.push(k);
+  }
+  anciennes.forEach(function(k){ localStorage.removeItem(k); });
+  try{
+    for(var c in d.memoire) localStorage.setItem(c, d.memoire[c]);
+  }catch(e){
+    signal("MÉMOIRE PLEINE · PROJET INCOMPLET");
+  }
+  signal("PROJET OUVERT" + (rates ? " · " + rates + " SON(S) NON ÉCRIT(S)" : ""));
+  setTimeout(function(){ location.reload(); }, rates ? 1500 : 300);
+  return true;
+}
+
+function projetOuvrirDocument(nom){
+  if(!HOST.fichierCharger){ signal("LECTURE IMPOSSIBLE ICI"); return; }
+  var b64 = "";
+  try{ b64 = HOST.fichierCharger(nom) || ""; }catch(e){}
+  if(!b64){ signal("LECTURE REFUSÉE"); return; }
+  projetOuvrir(texteDeB64(b64), BIB.noms["f:" + nom] || nom);
+}
+
+/* Un fichier choisi ailleurs : téléchargements, clé USB, pièce jointe… */
+function projetOuvrirFichierExterne(){
+  var e = document.getElementById("projet-fichier");
+  if(!e){
+    e = document.createElement("input");
+    e.type = "file"; e.id = "projet-fichier"; e.style.display = "none";
+    /* aucun filtre : Android ne connaît pas l'extension .drm16 et n'afficherait rien */
+    e.addEventListener("change", function(){
+      var f = e.files && e.files[0];
+      e.value = "";
+      if(!f) return;
+      if(f.size > PROJET_MAX){ signal("PROJET TROP GROS"); return; }
+      var r = new FileReader();
+      r.onload = function(){ projetOuvrir(String(r.result), f.name); };
+      r.onerror = function(){ signal("LECTURE IMPOSSIBLE"); };
+      r.readAsText(f, "utf-8");
+    });
+    document.body.appendChild(e);
+  }
+  e.click();
+}
+
+/* La section « Projets » en tête du rayon SAUVEGARDES */
+function projetRendre(corps){
+  var h = document.createElement("h3"); h.textContent = "Projets DRM16";
+  corps.appendChild(h);
+  var p = document.createElement("p");
+  p.textContent = "Un projet garde tout l'état de l'application — réglages, motifs de chaque machine, set, " +
+    "prises MIDI et sons de la bibliothèque — dans un seul fichier .drm16, qui s'ouvre aussi bien sur " +
+    "Android que sur ordinateur.";
+  corps.appendChild(p);
+  var acts = document.createElement("div"); acts.className = "bib-actions";
+  boutonBib(acts, "ENREGISTRER LE PROJET", function(){ projetEnregistrer("projet"); majBibUI(); }, false);
+  boutonBib(acts, "OUVRIR UN FICHIER…", projetOuvrirFichierExterne, false);
+  corps.appendChild(acts);
+  bibFichiers(".drm16").forEach(function(f){
+    var d = new Date(f.date);
+    var li = ligneBib(BIB.noms["f:" + f.nom] || f.nom,
+      octetsTexte(f.taille) + " · " + d.getDate() + "/" + (d.getMonth()+1) + " " +
+      ("0"+d.getHours()).slice(-2) + "h" + ("0"+d.getMinutes()).slice(-2));
+    var a = document.createElement("div"); a.className = "bib-actions";
+    boutonBib(a, "OUVRIR", function(){ projetOuvrirDocument(f.nom); });
+    boutonBib(a, "RENOMMER", function(){
+      renommer("Nom du projet", BIB.noms["f:" + f.nom] || f.nom, function(v){
+        if(v) BIB.noms["f:" + f.nom] = v; else delete BIB.noms["f:" + f.nom];
+        bibEcrire(); majBibUI();
+      });
+    });
+    boutonBib(a, "SUPPRIMER", function(){ bibSupprimerFichier(f.nom); });
+    li.appendChild(a);
+    corps.appendChild(li);
+  });
+}
 /* ================= travail du MIDI : éditeur en rouleau =================
    Une prise est convertie en notes (début, durée, hauteur), une piste par son.
    On y ajoute, déplace, allonge, transpose, puis on renvoie vers un fichier .mid

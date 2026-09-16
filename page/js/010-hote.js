@@ -111,6 +111,12 @@ var HOST = (function(){
         t(!!ctx && latenceChoisie() === "balanced", "audio : moteur démarré, latence " + latenceChoisie() +
           (ctx ? " · " + ctx.sampleRate + " Hz · sortie " + Math.round(((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000) + " ms" : ""));
         t(getComputedStyle(document.querySelector("button")).cursor === "pointer", "souris : curseur de bouton");
+        /* projet .drm16 (v145) : écrit, relu et reconnu — sans l'ouvrir, qui rechargerait la page */
+        var projet = projetEnregistrer("autotest", true);
+        var relu = projet ? projetValider(texteDeB64(h.fichierCharger(projet))) : null;
+        t(!!projet && relu && typeof relu === "object" && relu.format === "drm16-projet",
+          "projet .drm16 écrit et relu : " + (projet || "rien") + (typeof relu === "string" ? " (" + relu + ")" : ""));
+        if(projet) h.fichierSupprimer(projet);
       }catch(e){ t(false, "exception : " + e.message); }
       /* MIDI (v141) : sur le premier appareil qui a une sortie, s'il y en a un */
       function pause(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }

@@ -24,7 +24,14 @@ def ok(cond, msg):
 
 # Un pont Android simulé : fichiers en mémoire, MIDI piloté par le test.
 PONT = r"""
-window.__F = {}; window.__J = {};
+window.__J = {};
+/* fichiers et sons gardés d'un chargement à l'autre (le bloc 10 recharge la page) */
+function __enc(o){ var b = ''; for(var i=0;i<o.length;i++) b += String.fromCharCode(o[i]); return btoa(b); }
+window.__F = {}; window.__E = {};
+try{ var __P = JSON.parse(localStorage.getItem('__pont') || '{}');
+  Object.keys(__P.f || {}).forEach(function(n){ __F[n] = __dec(__P.f[n]); }); __E = __P.e || {}; }catch(e){}
+function __garder(){ var f = {}; Object.keys(__F).forEach(function(n){ f[n] = __enc(__F[n]); });
+  try{ localStorage.setItem('__pont', JSON.stringify({f:f, e:__E})); }catch(e){} }
 window.__M = {devs:[{nom:'volca sample',id:7},{nom:'ES-1 <USB>',id:9}], ouvert:-1, journal:[]};
 function __dec(b){ var s=atob(b), o=new Uint8Array(s.length); for(var i=0;i<s.length;i++) o[i]=s.charCodeAt(i); return o; }
 function __etat(evt, nom){ setTimeout(function(){ window.__midiEtat && __midiEtat({evt:evt, nom:nom, ouvert:__M.ouvert, appareils:__M.devs.slice()}); }, 20); }
@@ -32,12 +39,19 @@ window.__brancher = function(d){ __M.devs.push(d); __etat('ajout', d.nom); };
 window.__debrancher = function(id){ var d=__M.devs.filter(x=>x.id===id)[0]; __M.devs=__M.devs.filter(x=>x.id!==id);
   if(__M.ouvert===id){ __M.ouvert=-1; __etat('perdu', d.nom); } else __etat('retrait', d.nom); };
 window.DRM16 = {
-  fichierSauver:function(n,b){ __F[n]=__dec(b); return '/doc/'+n; },
+  fichierSauver:function(n,b){ __F[n]=__dec(b); __garder(); return '/doc/'+n; },
+  fichierListe:function(ext){ return Object.keys(__F).filter(n=>n.endsWith(ext)).map(n=>n+'\t'+__F[n].length+'\t'+Date.now()).join('\n'); },
+  fichierCharger:function(n){ return __F[n] ? __enc(__F[n]) : ''; },
+  fichierSupprimer:function(n){ var a = !!__F[n]; delete __F[n]; __garder(); return a; },
+  echSauver:function(n,b){ __E[n]=b; __garder(); return true; },
+  echCharger:function(n){ return __E[n] || ''; },
+  echListe:function(){ return Object.keys(__E).sort().join('\n'); },
+  echSupprimer:function(n){ delete __E[n]; __garder(); },
   fichierOuvrir:function(n){ var j='j'+Math.random(); __J[j]={n:n,p:[],t:0,max:/\.wav$/i.test(n)?64*1048576:8*1048576}; return j; },
   fichierAjouter:function(j,b){ var e=__J[j]; if(!e||b.length>1100000) return false; var o=__dec(b);
     if(e.t+o.length>e.max){ delete __J[j]; return false; } e.p.push(o); e.t+=o.length; return true; },
   fichierFermer:function(j,v){ var e=__J[j]; delete __J[j]; if(!e||!v) return ''; var o=new Uint8Array(e.t),k=0;
-    e.p.forEach(function(x){o.set(x,k);k+=x.length;}); __F[e.n]=o; __F[e.n].morceaux=e.p.length; return '/doc/'+e.n; },
+    e.p.forEach(function(x){o.set(x,k);k+=x.length;}); __F[e.n]=o; __garder(); __F[e.n].morceaux=e.p.length; return '/doc/'+e.n; },
   midiDispo:function(){return true;}, midiListe:function(){return __M.devs.map(d=>d.nom).join('\n');},
   midiAppareils:function(){return __M.devs.map(d=>d.nom+'\t'+d.id).join('\n');},
   midiOuvertId:function(){return __M.ouvert;},
@@ -342,10 +356,53 @@ async def reglages(nav):
     ok(not err, "aucune erreur de page %s" % err[:1])
     await ctx.close()
 
+async def projet(nav):
+    print("\n10. Projet .drm16 : enregistrer, ouvrir, refuser un fichier abîmé (v145)")
+    ctx = await nav.new_context(viewport={"width": 393, "height": 851})
+    await ctx.add_init_script(PONT)
+    pg = await ctx.new_page()
+    err = []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+    await pg.goto(PAGE); await pg.wait_for_timeout(1500)
+    r = await pg.evaluate("""() => {
+      audioInit(); allerMachine('kp'); S.bpm = 133; memKp(); writeMem();
+      HOST.echSauver('u-essai', b64De(wavDe(ctx.createBuffer(1, 3200, 32000))));
+      var nom = projetEnregistrer('projet');
+      var doc = JSON.parse(new TextDecoder().decode(__F[nom]));
+      /* on change tout, puis on ouvre le projet */
+      allerMachine('tr909'); S.bpm = 90; writeMem(); HOST.echSupprimer('u-essai');
+      window.confirm = function(){ return true; };
+      var liste = document.createElement('div'); BIB.onglet = 2; projetRendre(liste);
+      return {nom: nom, format: doc.format, cles: Object.keys(doc.memoire).length, son: !!doc.sons['u-essai'],
+              lignes: liste.querySelectorAll('.bib-ligne').length}; }""")
+    ok(r["nom"].startswith("projet-") and r["format"] == "drm16-projet" and r["cles"] >= 2 and r["son"],
+       "projet enregistré : %d clés de mémoire et le son de l'utilisateur" % r["cles"])
+    ok(r["lignes"] == 1, "le projet apparaît dans le rayon SAUVEGARDES")
+    async with pg.expect_navigation():
+        await pg.evaluate("(n) => projetOuvrirDocument(n)", r["nom"])
+    await pg.wait_for_timeout(1500)
+    r2 = await pg.evaluate("""() => ({modele: S.modele, bpm: S.bpm, son: HOST.echListe().split('\\n').indexOf('u-essai') >= 0,
+      securite: Object.keys(__F).some(n => n.indexOf('avant-ouverture-') === 0)})""")
+    ok(r2["modele"] == "kp" and r2["bpm"] == 133, "après ouverture : KAOSS PAD et 133 BPM retrouvés (%s, %s)" % (r2["modele"], r2["bpm"]))
+    ok(r2["son"], "après ouverture : le son de l'utilisateur est revenu")
+    ok(r2["securite"], "l'état remplacé a d'abord été enregistré en « avant-ouverture »")
+    r3 = await pg.evaluate("""() => { var m = []; var sg = signal; signal = function(t){ m.push(t); };
+      var cas = ['pas du json', '{}', JSON.stringify({format:'drm16-projet', version:9, memoire:{}}),
+                 JSON.stringify({format:'drm16-projet', version:1, memoire:{'drm.reglages':'{}', 'autre':'1'}}),
+                 JSON.stringify({format:'drm16-projet', version:1, memoire:{'drm.reglages':'{}'}, sons:{'../x':'UklGR'}})];
+      var ouverts = cas.map(c => projetOuvrir(c, 'essai'));
+      signal = sg; return {ouverts: ouverts, messages: m, bpm: S.bpm}; }""")
+    ok(not any(r3["ouverts"]) and len(r3["messages"]) == 5 and r3["bpm"] == 133,
+       "5 fichiers abîmés refusés sans rien toucher : " + " / ".join(r3["messages"]))
+    r4 = await pg.evaluate("""async () => { HOST.echSauver('u-abime', btoa('RIFF----pas un son')); audioInit(); chargerEchs();
+      await new Promise(r => setTimeout(r, 500)); HOST.echSupprimer('u-abime'); return true; }""")
+    ok(not err, "aucune erreur de page, même avec un son abîmé dans la bibliothèque %s" % err[:1])
+    await ctx.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages):
+        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet):
             try:
                 await t(nav)
             except Exception as e:

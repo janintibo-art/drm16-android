@@ -317,6 +317,9 @@ function bibRendrePrises(corps){
   });
 }
 function bibRendreSauvegardes(corps){
+  projetRendre(corps);   /* v145 : les projets .drm16 d'abord */
+  var hm = document.createElement("h3"); hm.textContent = "Machines Korg branchées";
+  corps.appendChild(hm);
   var p1 = document.createElement("p");
   p1.innerHTML = "Une sauvegarde lit <b>tout ce que contient la machine branchée</b> et l'écrit en fichier " +
     ".syx dans le dossier Documents de l'application. Renvoyez-la pour remettre la machine comme avant.";

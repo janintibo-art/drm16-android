@@ -351,11 +351,14 @@ function chargerEchs(){
     if(!b64) return;
     var bin = atob(b64), ab = new ArrayBuffer(bin.length), o = new Uint8Array(ab);
     for(var i=0;i<bin.length;i++) o[i]=bin.charCodeAt(i);
-    ctx.decodeAudioData(ab, function(buf){
+    var decode = ctx.decodeAudioData(ab, function(buf){
       ES.buf[id]=buf;
       if(ES.noms[id]===undefined) ES.noms[id]="mic";
       majLedsEs();
     }, function(){});
+    /* v145 : un son abîmé ne doit pas lever d'erreur non rattrapée (la promesse
+       rendue par decodeAudioData est rejetée en plus du rappel d'erreur) */
+    if(decode && decode.catch) decode.catch(function(){});
   });
 }
 /* un son peut servir dans plusieurs motifs et sur les trois échantillonneurs */

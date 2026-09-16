@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **144**.
+La version actuelle est la **145**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 144** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 145** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,39 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**W7 : le projet .drm16 — v145**
+
+*Constat v144* : sous Windows, micro présent, moteur audio en latence moyenne (44,1 kHz, **42 ms** de sortie),
+curseur ; 0 échec. **W6 close.**
+
+*Le format* (`page/js/635-projet-drm16.js`) — un seul fichier JSON UTF-8, le même sur Android et sur PC :
+`{"format":"drm16-projet","version":1,"date","plateforme","memoire":{clé: valeur},"sons":{nom: WAV Base64}}`.
+- `memoire` : **toutes** les clés `drm.reglages` et `drm.reglages.*` du stockage de la page, telles quelles
+  (réglages, chaque machine, set, prises MIDI, noms de la bibliothèque, archive…).
+- `sons` : les échantillons de l'utilisateur (`echListe`/`echCharger`). S'il n'y a plus de place, les derniers
+  sont laissés de côté et le message le dit.
+- **Plafond 16 Mo**, en écriture ET en lecture : `MAX_PROJET_BYTES` (Java) et `MAX_PROJET` (Rust), par
+  l'extension `.drm16` dans `plafondDocument` et à la lecture de `fichierCharger`. L'écriture passe par
+  `ecrireDocument` (morceaux).
+
+*Ouvrir* : validation complète avant de toucher à quoi que ce soit (`projetValider` : JSON, format, version —
+un projet d'une version plus récente est refusé avec un message —, clés limitées au préfixe, valeurs JSON
+lisibles, noms de sons sûrs, sons commençant par « RIFF ») ; confirmation ; l'état courant est d'abord
+enregistré en **`avant-ouverture-….drm16`** ; `PROJET_EN_COURS` bloque toute écriture de l'ancien état (même au
+déchargement de la page) ; sons écrits, anciennes clés retirées, nouvelles posées, page rechargée.
+
+*Interface* : en tête du rayon **SAUVEGARDES** de la bibliothèque — ENREGISTRER LE PROJET, OUVRIR UN FICHIER…
+(sans filtre d'extension : Android ne connaît pas `.drm16`), et la liste des projets (OUVRIR, RENOMMER,
+SUPPRIMER). Paragraphe ajouté dans la notice Général.
+
+*Au passage* : `chargerEchs` (`280-electribe-es-1.js`) — un son abîmé dans la bibliothèque levait une erreur
+non rattrapée (la promesse de `decodeAudioData` est rejetée en plus du rappel d'erreur) ; elle est rattrapée.
+
+*Tests* : bloc 10 du test navigateur (pont simulé qui garde ses fichiers d'un chargement à l'autre) :
+enregistrement avec un son, présence dans le rayon, ouverture et rechargement — KAOSS PAD, 133 BPM et son
+retrouvés, « avant-ouverture » écrit —, **5 fichiers abîmés refusés sans rien toucher**, son abîmé sans erreur.
+Autotest Windows : projet écrit, relu et reconnu par la vraie coque Rust.
 
 **W6 : micro, latence, souris — v144**
 

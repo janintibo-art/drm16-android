@@ -49,6 +49,9 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
   S.haptic = memoire.haptic; S.bg = memoire.bg; S.bass = memoire.bass;
 })();
 var saveTmr = null, machineTmr = {}, memEchec = false;
+/* v145 : vrai pendant l'ouverture d'un projet — l'ancien état ne doit plus
+   être écrit, même par le « pagehide » du rechargement */
+var PROJET_EN_COURS = false;
 
 /* chaque machine a sa propre clé : écrire un motif ne réécrit plus les onze */
 function cleMachine(id){ return MEM + "." + id; }
@@ -60,7 +63,7 @@ function memLire(id){
   return memoire[id];
 }
 function ecrireMachine(id){
-  if(!memoire[id]) return;
+  if(!memoire[id] || PROJET_EN_COURS) return;
   try{
     localStorage.setItem(cleMachine(id), JSON.stringify(memoire[id]));
     memEchec = false;
@@ -78,6 +81,7 @@ function viderMachines(){
 }
 function writeMem(){
   clearTimeout(saveTmr); saveTmr = null;
+  if(PROJET_EN_COURS) return;
   viderMachines();
   try{
     memoire.modele = S.modele;

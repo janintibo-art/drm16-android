@@ -61,6 +61,8 @@ public class MainActivity extends Activity implements Midi.Ecoute {
        Avant : ecriture 128 Mo, lecture 8 Mo. */
     private static final long MAX_DOCUMENT_BYTES = 8L * 1024L * 1024L;
     private static final long MAX_EXPORT_AUDIO_BYTES = 64L * 1024L * 1024L;   /* 6 min en stereo 44,1 kHz */
+    /* v145 : un projet .drm16 (etat complet et sons) est ecrit ET relu : meme plafond dans les deux sens */
+    private static final long MAX_PROJET_BYTES = 16L * 1024L * 1024L;
     private static final long MAX_SAMPLE_BYTES = 32L * 1024L * 1024L;
     private static final int MAX_NETWORK_BYTES = 16 * 1024 * 1024;
     /* Un morceau d'ecriture par etapes : 786 432 octets, soit 1 048 576 caracteres
@@ -306,8 +308,11 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         }
         @JavascriptInterface public String fichierCharger(String nom) {
             try {
-                File f = Fichiers.lisible(new File(dossierDoc(), propre(nom)));
-                byte[] o = lireFichierComplet(f, MAX_DOCUMENT_BYTES);
+                String p = propre(nom);
+                File f = Fichiers.lisible(new File(dossierDoc(), p));
+                /* un .wav n'est jamais relu par l'application : il garde le plafond des documents */
+                long max = p.toLowerCase(java.util.Locale.ROOT).endsWith(".drm16") ? MAX_PROJET_BYTES : MAX_DOCUMENT_BYTES;
+                byte[] o = lireFichierComplet(f, max);
                 return Base64.encodeToString(o, Base64.NO_WRAP);
             } catch (Exception e) { return ""; }
         }
@@ -408,8 +413,10 @@ public class MainActivity extends Activity implements Midi.Ecoute {
 
     /** Plafond d'un document selon son type : voir les constantes. */
     private long plafondDocument(String nom) {
-        return nom.toLowerCase(java.util.Locale.ROOT).endsWith(".wav")
-                ? MAX_EXPORT_AUDIO_BYTES : MAX_DOCUMENT_BYTES;
+        String n = nom.toLowerCase(java.util.Locale.ROOT);
+        if (n.endsWith(".wav")) return MAX_EXPORT_AUDIO_BYTES;
+        if (n.endsWith(".drm16")) return MAX_PROJET_BYTES;
+        return MAX_DOCUMENT_BYTES;
     }
 
     private void abandonnerEcriture(String jeton) {

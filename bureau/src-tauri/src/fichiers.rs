@@ -19,6 +19,7 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 const MAX_DOCUMENT: u64 = 8 * 1024 * 1024;
 const MAX_EXPORT_AUDIO: u64 = 64 * 1024 * 1024;
 const MAX_SAMPLE: u64 = 32 * 1024 * 1024;
+const MAX_PROJET: u64 = 16 * 1024 * 1024; // v145 : projet .drm16, écrit et relu
 const MAX_MORCEAU_B64: usize = 1_100_000;
 const MAX_ECRITURES: usize = 4;
 
@@ -59,7 +60,18 @@ fn propre(n: &str) -> String {
 }
 
 fn plafond_document(nom: &str) -> u64 {
-    if nom.to_ascii_lowercase().ends_with(".wav") { MAX_EXPORT_AUDIO } else { MAX_DOCUMENT }
+    let n = nom.to_ascii_lowercase();
+    if n.ends_with(".wav") {
+        MAX_EXPORT_AUDIO
+    } else if n.ends_with(".drm16") {
+        MAX_PROJET
+    } else {
+        MAX_DOCUMENT
+    }
+}
+
+fn plafond_lecture(nom: &str) -> u64 {
+    if nom.to_ascii_lowercase().ends_with(".drm16") { MAX_PROJET } else { MAX_DOCUMENT }
 }
 
 fn nom_technique(n: &str) -> bool {
@@ -297,8 +309,9 @@ pub fn liste(ext: &str) -> String {
 }
 
 pub fn charger(nom: &str) -> String {
-    let f = lisible(&dossier_doc().join(propre(nom)));
-    lire_complet(&f, MAX_DOCUMENT).map(|o| STANDARD.encode(o)).unwrap_or_default()
+    let p = propre(nom);
+    let f = lisible(&dossier_doc().join(&p));
+    lire_complet(&f, plafond_lecture(&p)).map(|o| STANDARD.encode(o)).unwrap_or_default()
 }
 
 pub fn supprimer(nom: &str) -> bool {
