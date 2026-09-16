@@ -38,7 +38,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -53,10 +55,18 @@ import org.json.JSONObject;
 public class MainActivity extends Activity implements Midi.Ecoute {
 
     private static final String PAGE = "file:///android_asset/drm16.html";
+    /* Plafonds de taille (v128). Regle : tout document que l'application ECRIT et
+       peut RELIRE a le meme plafond dans les deux sens. Seuls les rendus audio
+       (.wav), jamais relus par l'application, ont un plafond a part.
+       Avant : ecriture 128 Mo, lecture 8 Mo. */
     private static final long MAX_DOCUMENT_BYTES = 8L * 1024L * 1024L;
+    private static final long MAX_EXPORT_AUDIO_BYTES = 64L * 1024L * 1024L;   /* 6 min en stereo 44,1 kHz */
     private static final long MAX_SAMPLE_BYTES = 32L * 1024L * 1024L;
-    private static final long MAX_DOCUMENT_SAVE_BYTES = 128L * 1024L * 1024L;
     private static final int MAX_NETWORK_BYTES = 16 * 1024 * 1024;
+    /* Un morceau d'ecriture par etapes : 786 432 octets, soit 1 048 576 caracteres
+       en Base64. Un peu de marge pour les retours a la ligne eventuels. */
+    private static final int MAX_MORCEAU_B64 = 1100000;
+    private static final int MAX_ECRITURES = 4;
 
     private WebView web;
     private AudioManager audio;
@@ -67,6 +77,14 @@ public class MainActivity extends Activity implements Midi.Ecoute {
     private Midi midi;
     private final ExecutorService reseau = Executors.newFixedThreadPool(2);
     private ValueCallback<Uri[]> retourFichier;
+    /* Ecritures par morceaux en cours, par jeton. Un gros rendu n'est plus
+       transmis en une seule chaine Base64 : c'etait plusieurs centaines de Mo en
+       memoire au meme moment (chaine JS, chaine Java en UTF-16, octets decodes). */
+    private static final class Ecriture {
+        File cible; File tmp; FileOutputStream flux; long total; long max;
+    }
+    private final Map<String, Ecriture> ecritures = new HashMap<>();
+    private long compteurEcritures;
     private static final int REQ_FICHIER = 7, REQ_MICRO = 8;
 
     private final AudioManager.OnAudioFocusChangeListener ecouteFocus =
@@ -133,13 +151,72 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         /** Ecrit un fichier dans Documents de l'application, visible par un gestionnaire de fichiers. */
         @JavascriptInterface public String fichierSauver(String nom, String b64) {
             try {
-                if (b64 == null || depasseBase64(b64, MAX_DOCUMENT_SAVE_BYTES)) return "";
-                File d = dossierDoc();
-                File cible = new File(d, propre(nom));
+                String p = propre(nom);
+                long max = plafondDocument(p);
+                if (b64 == null || depasseBase64(b64, max)) return "";
+                File cible = new File(dossierDoc(), p);
                 byte[] o = Base64.decode(b64, Base64.DEFAULT);
-                if (o.length > MAX_DOCUMENT_SAVE_BYTES || !ecrireAtomique(cible, o)) return "";
+                if (o.length > max || !ecrireAtomique(cible, o)) return "";
                 return cible.getAbsolutePath();
             } catch (Exception e) { return ""; }
+        }
+        /** Ecriture par morceaux : ouvre un fichier temporaire et rend un jeton
+            (chaine vide en cas de refus). */
+        @JavascriptInterface public String fichierOuvrir(String nom) {
+            try {
+                String p = propre(nom);
+                File cible = new File(dossierDoc(), p);
+                Ecriture e = new Ecriture();
+                String jeton;
+                synchronized (ecritures) {
+                    if (ecritures.size() >= MAX_ECRITURES) return "";
+                    compteurEcritures++;
+                    jeton = Long.toString(System.currentTimeMillis(), 36) + "-" + compteurEcritures;
+                    e.cible = cible;
+                    e.max = plafondDocument(p);
+                    e.tmp = new File(cible.getParentFile(), p + ".part-" + jeton);
+                    e.flux = new FileOutputStream(e.tmp);
+                    ecritures.put(jeton, e);
+                }
+                return jeton;
+            } catch (Exception ex) { return ""; }
+        }
+        /** Ajoute un morceau. Au moindre refus, l'ecriture entiere est abandonnee. */
+        @JavascriptInterface public boolean fichierAjouter(String jeton, String b64) {
+            Ecriture e;
+            synchronized (ecritures) { e = ecritures.get(jeton); }
+            if (e == null) return false;
+            try {
+                if (b64 == null || b64.length() > MAX_MORCEAU_B64) throw new IOException("morceau refuse");
+                byte[] o = Base64.decode(b64, Base64.DEFAULT);
+                if (e.total + o.length > e.max) throw new IOException("fichier trop gros");
+                e.flux.write(o);
+                e.total += o.length;
+                return true;
+            } catch (Exception ex) {
+                abandonnerEcriture(jeton);
+                return false;
+            }
+        }
+        /** Termine : valider remplace le fichier final et rend son chemin ;
+            sinon le temporaire est efface. */
+        @JavascriptInterface public String fichierFermer(String jeton, boolean valider) {
+            Ecriture e;
+            synchronized (ecritures) { e = ecritures.remove(jeton); }
+            if (e == null) return "";
+            boolean ok = false;
+            try {
+                e.flux.flush();
+                e.flux.getFD().sync();
+                e.flux.close();
+                if (valider) ok = remplacer(e.tmp, e.cible);
+            } catch (Exception ex) {
+                ok = false;
+            } finally {
+                try { e.flux.close(); } catch (Exception ignored) {}
+                if (e.tmp.exists()) e.tmp.delete();
+            }
+            return ok ? e.cible.getAbsolutePath() : "";
         }
         /** Telechargement sur un fil separe : la page est prevenue quand c'est fini.
             Deux plafonds : la taille annoncee et la taille reellement lue. */
@@ -211,6 +288,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             Arrays.sort(l, String.CASE_INSENSITIVE_ORDER);
             StringBuilder sb = new StringBuilder();
             for (String n : l) {
+                if (n.contains(".part-")) continue;          /* ecriture interrompue */
                 if (ext != null && ext.length() > 0 && !n.endsWith(ext)) continue;
                 File f = new File(d, n);
                 if (sb.length() > 0) sb.append("\n");
@@ -300,11 +378,30 @@ public class MainActivity extends Activity implements Midi.Ecoute {
                 f.flush();
                 f.getFD().sync();
             }
-            if (cible.exists() && !cible.delete()) return false;
-            return tmp.renameTo(cible);
+            return remplacer(tmp, cible);
         } finally {
             if (tmp.exists() && !tmp.equals(cible)) tmp.delete();
         }
+    }
+
+    /** Met le temporaire a la place du fichier final. Renforce en v129. */
+    private boolean remplacer(File tmp, File cible) {
+        if (cible.exists() && !cible.delete()) return false;
+        return tmp.renameTo(cible);
+    }
+
+    /** Plafond d'un document selon son type : voir les constantes. */
+    private long plafondDocument(String nom) {
+        return nom.toLowerCase(java.util.Locale.ROOT).endsWith(".wav")
+                ? MAX_EXPORT_AUDIO_BYTES : MAX_DOCUMENT_BYTES;
+    }
+
+    private void abandonnerEcriture(String jeton) {
+        Ecriture e;
+        synchronized (ecritures) { e = ecritures.remove(jeton); }
+        if (e == null) return;
+        try { e.flux.close(); } catch (Exception ignored) {}
+        try { e.tmp.delete(); } catch (Exception ignored) {}
     }
 
     private boolean depasseBase64(String b64, long maxOctets) {
@@ -572,6 +669,9 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             retourFichier = null;
         }
         if (midi != null) midi.fermer();
+        String[] ouvertes;
+        synchronized (ecritures) { ouvertes = ecritures.keySet().toArray(new String[0]); }
+        for (String j : ouvertes) abandonnerEcriture(j);
         if (web != null) {
             web.removeJavascriptInterface("DRM16");
             web.stopLoading();

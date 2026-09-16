@@ -24454,6 +24454,7 @@ function exporterWav(){
   audioInit();                                 /* sans contexte de départ, rien à remettre en place après */
   if(!ctx){ signal("AUDIO INDISPONIBLE"); return; }
   writeMem();                                  /* les dernières retouches doivent être en mémoire */
+  if(refusWavTropLong((MACHINE.longueur ? MACHINE.longueur() : 16) * WAVX.mesures * stepDur() + 2.5, 44100)) return;
 
   WAVX.occupe = true;
   signal("RENDU EN COURS…");
@@ -24511,7 +24512,7 @@ function exporterWav(){
     remettre();
     var nom = "drm-" + modele + "-" + WAVX.mesures + "mes-" + Date.now().toString(36) + ".wav";
     var chemin = "";
-    try{ chemin = window.DRM16.fichierSauver(nom, b64De(ab)); }catch(e){}
+    chemin = ecrireDocument(window.DRM16, nom, ab);
     if(chemin){
       signal(nom + " · " + Math.round(ab.byteLength / 1024) + " ko · CRÊTE " +
              (crete > 0 ? (20 * Math.log10(crete)).toFixed(1) : "-∞") + " dB");
@@ -25843,6 +25844,7 @@ function exporterPriseWav(i){
   if(!ctx){ signal("AUDIO INDISPONIBLE"); return; }
   var pont = window.DRM16;
   if(!pont || !pont.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
+  if(refusWavTropLong(prise.duree / 1000 + 3, 44100)) return;
 
   WAVX.occupe = true;
   signal("RENDU DE LA PRISE…");
@@ -25902,7 +25904,7 @@ function exporterPriseWav(i){
     var nom = "drm-" + (prise.nom.replace(/[^A-Za-z0-9]/g, "") || "prise") + "-" +
               Date.now().toString(36) + ".wav";
     var chemin = "";
-    try{ chemin = pont.fichierSauver(nom, b64De(ab)); }catch(e){}
+    chemin = ecrireDocument(pont, nom, ab);
     if(chemin){
       signal(nom + " · " + Math.round(ab.byteLength / 1024) + " ko · " + joues + " notes · CRÊTE " +
              (crete > 0 ? (20 * Math.log10(crete)).toFixed(1) : "-∞") + " dB");
@@ -26760,7 +26762,7 @@ function bibExportEs1(){
     rates[b.sampleRate] = (rates[b.sampleRate] || 0) + 1;
     var nom = ("0" + i).slice(-2) + ".WAV";
     var chemin = "";
-    try{ chemin = p.fichierSauver(nom, b64De(wavDe(b))); }catch(e){}
+    chemin = ecrireDocument(p, nom, wavDe(b));
     if(chemin){ ecrits++; noms.push(("0" + i).slice(-2) + "  " + nomBib(id)); }
   });
   if(ecrits){
@@ -27174,6 +27176,37 @@ function b64VersOctets(b64){
   var bin = atob(b64), o = new Uint8Array(bin.length);
   for(var i=0;i<bin.length;i++) o[i] = bin.charCodeAt(i);
   return o;
+}
+/* ---------- écriture des gros documents (v128) ----------
+   Un rendu WAV part par morceaux de 768 Ko au lieu d'une seule chaîne Base64 :
+   la mémoire n'en contient jamais plus d'un à la fois. Chaque morceau fait un
+   multiple de trois octets, pour que ses Base64 se suivent sans remplissage.
+   Le plafond est le même que côté Java : un rendu trop long est refusé AVANT
+   d'être calculé, au lieu d'être calculé pour rien puis refusé. */
+var MAX_EXPORT_AUDIO = 64 * 1024 * 1024;
+var MORCEAU_ECRITURE = 3 * 262144;
+function tailleWavStereo(secondes, taux){ return 44 + Math.ceil(secondes * taux) * 4; }
+function refusWavTropLong(secondes, taux){
+  if(tailleWavStereo(secondes, taux) <= MAX_EXPORT_AUDIO) return false;
+  var maxS = Math.floor((MAX_EXPORT_AUDIO - 44) / 4 / taux);
+  function mn(s){ s = Math.ceil(s); return Math.floor(s / 60) + " MIN " + ("0" + (s % 60)).slice(-2); }
+  signal("TROP LONG : " + mn(secondes) + " · " + mn(maxS) + " AU PLUS");
+  return true;
+}
+function ecrireDocument(p, nom, donnees){
+  var o = donnees instanceof Uint8Array ? donnees : new Uint8Array(donnees);
+  if(p.fichierOuvrir && p.fichierAjouter && p.fichierFermer){
+    var j = "";
+    try{ j = p.fichierOuvrir(nom) || ""; }catch(e){}
+    if(!j) return "";
+    var ok = true;
+    for(var i=0; i<o.length && ok; i+=MORCEAU_ECRITURE){
+      try{ ok = !!p.fichierAjouter(j, octetsVersB64(o.subarray(i, i + MORCEAU_ECRITURE))); }
+      catch(e){ ok = false; }
+    }
+    try{ return p.fichierFermer(j, ok) || ""; }catch(e){ return ""; }
+  }
+  try{ return p.fichierSauver(nom, octetsVersB64(o)) || ""; }catch(e){ return ""; }
 }
 function octetsVersB64(o){
   var s = "", pas = 0x8000;

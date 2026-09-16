@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **127**.
+La version actuelle est la **128**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 127** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 128** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -121,6 +121,42 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Stockage : plafonds cohérents et écriture par morceaux — v128**
+
+*Défaut.* `fichierSauver` acceptait 128 Mo, `fichierCharger` n'en relisait que 8 : l'application pouvait
+écrire un document qu'elle refusait ensuite de lire. Et un gros rendu voyageait en **une seule chaîne
+Base64** : chaîne JS, chaîne Java (UTF-16, deux octets par caractère), octets décodés — plusieurs centaines
+de Mo au même moment pour un fichier de 128 Mo.
+
+*Règle adoptée* (`plafondDocument` dans `MainActivity`) :
+- tout document que l'application **relit** (`.syx`, `.dat`, `.mid`…) : **8 Mo dans les deux sens** ;
+- les **rendus audio** (`.wav`, jamais relus par l'application) : **64 Mo**, soit 6 min 20 s en stéréo
+  44,1 kHz 16 bits ;
+- échantillons (32 Mo) et réseau (16 Mo) : inchangés, déjà cohérents.
+`MAX_DOCUMENT_SAVE_BYTES` a disparu.
+
+*Écriture par morceaux* — trois fonctions du pont : `fichierOuvrir(nom)` → jeton, `fichierAjouter(jeton, b64)`,
+`fichierFermer(jeton, valider)` → chemin. Morceaux de 768 Ko (multiple de 3 : les Base64 se suivent sans
+remplissage), au plus quatre écritures ouvertes, abandon complet au moindre refus, temporaires `.part-…`
+effacés, invisibles dans `fichierListe` et fermés dans `onDestroy`. Le remplacement final passe par
+`remplacer(tmp, cible)`, seul endroit à renforcer en v129.
+
+Côté page, `ecrireDocument(p, nom, octets)` choisit les morceaux si le pont les connaît, sinon
+`fichierSauver` (pont plus ancien). Utilisée par les trois écritures audio : export de boucle, export de
+prise, carte ES-1. Les petits documents restent sur `fichierSauver`.
+
+*Refus avant calcul.* `refusWavTropLong(secondes, taux)` est appelée **avant** le rendu dans `exporterWav`
+et `exporterPriseWav` : « TROP LONG : 7 MIN 03 · 6 MIN 20 AU PLUS », au lieu de calculer plusieurs minutes
+de son pour finir sur « ÉCRITURE REFUSÉE ».
+
+*Vérifié* : 2,5 Mo transmis en 4 morceaux et reconstitués à l'octet près ; repli sur `fichierSauver` ;
+fichier vide ; export TR-909 de 2 mesures à la taille exacte attendue ; boucle de 6 min 27 et prise de
+7 min refusées sans rendu.
+
+*Compilation Java de contrôle.* Le Java est désormais **compilé ici avant livraison** : le compilateur du
+JDK, avec des classes Android simulées (signatures seulement). Il a été vu échouer sur un `ui.post()`
+introduit exprès. Il rejoindra le dépôt avec les contrôles automatiques (v134).
 
 **KAOSS PAD : RÉDUCTION mélange vraiment, PAD MOTION part du premier point — v127**
 
