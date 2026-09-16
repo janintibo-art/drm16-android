@@ -153,6 +153,34 @@ async () => {
 }
 """
 
+# Repliement (v153) : part d'énergie qui n'est PAS sur les harmoniques de la
+# note — des oscillateurs de l'API, puis d'une saturation forte selon son
+# suréchantillonnage. Fréquences choisies pour tomber juste sur la fenêtre.
+REPLIEMENT = r"""
+async () => {
+  async function mesure(fab, f){
+    var sr = 44100, off = new OfflineAudioContext(1, sr, sr);
+    var src = fab(off, f), g = off.createGain(); g.gain.value = 0.5; src.connect(g); g.connect(off.destination);
+    var d = (await off.startRendering()).getChannelData(0).subarray(4410), tot = 0;
+    for (var i = 0; i < d.length; i++) tot += d[i] * d[i];
+    tot /= d.length;
+    function p(fr){ var re = 0, im = 0; for (var i = 0; i < d.length; i++){ var a = 2 * Math.PI * fr * i / sr; re += d[i] * Math.cos(a); im += d[i] * Math.sin(a); }
+      var A = 2 * Math.hypot(re, im) / d.length; return A * A / 2; }
+    var h = 0; for (var k = 1; k * f < sr / 2; k++) h += p(k * f);
+    return 10 * Math.log10(Math.max(tot - h, 1e-12) / tot);
+  }
+  var R = {osc: [], sat: []};
+  for (var t of ["sawtooth", "square", "triangle"]) for (var f of [440, 1760])
+    R.osc.push([t, f, await mesure(function(off, f){ var o = off.createOscillator(); o.type = t; o.frequency.value = f; o.start(); return o; }, f)]);
+  for (var os of ["none", "2x", "4x"]) for (var f of [440, 1760])
+    R.sat.push([os, f, await mesure(function(off, f){ var o = off.createOscillator(); o.frequency.value = f; o.start();
+      var w = off.createWaveShaper(), c = new Float32Array(1025);
+      for (var i = 0; i < 1025; i++){ var x = i * 2 / 1024 - 1; c[i] = Math.tanh(x * 20) / Math.tanh(20); }
+      w.curve = c; w.oversample = os; o.connect(w); return w; }, f)]);
+  return R;
+}
+"""
+
 async def mesurer(nav, m):
     res = {"voix": [], "ensemble": None, "motif": None, "erreurs": []}
     # une seule page par machine : chaque rendu refait son propre contexte hors ligne
@@ -234,6 +262,18 @@ def rapport(tout, ancien):
         L += ["Grave, relatif à 100 Hz : " + " · ".join("%d Hz %+.1f dB" % (a, g[a] - g[100]) for a in sorted(g)) + ".", "",
               "Plafond absolu (rafale de coups à +12 dBFS) : **%+.2f dBFS**. Nappe à −12 dBFS après un coup à +6 dBFS : creux de %.2f dB." %
               (ch["plafond"], ch["pompage"]["creux_db"])]
+    rp = tout.get("_repliement")
+    if rp:
+        L += ["", "## Repliement", "",
+              "Part d'énergie hors des harmoniques de la note (plus c'est bas, mieux c'est).", "",
+              "| Source | 440 Hz | 1 760 Hz |", "|---|---|---|"]
+        for tab, nom in (("osc", "oscillateur %s"), ("sat", "saturation forte, suréchantillonnage %s")):
+            vus = []
+            for a, _, _ in rp[tab]:
+                if a in vus: continue
+                vus.append(a)
+                v = dict((f, x) for b, f, x in rp[tab] if b == a)
+                L.append("| %s | %.0f dB | %.0f dB |" % (nom % a, v[440], v[1760]))
     L += ["", "Moteur seul, rien ne jouant : crête %s dBFS (−120 = silence parfait ; −65,7 avant la v152, décalage de l'écrêteur)." % f(tout.get("_moteur", {}).get("crete"))]
     L += ["", "## Détail par voix", ""]
     for m, r in tout.items():
@@ -273,6 +313,7 @@ async def main():
         await pg.add_init_script("Math.random = (function(){ var a = 7; return function(){ a = (a * 16807) % 2147483647; return a / 2147483647; }; })();")
         await pg.goto(PAGE); await pg.wait_for_timeout(700)
         tout["_chaine"] = await pg.evaluate(CHAINE)
+        tout["_repliement"] = await pg.evaluate(REPLIEMENT)
         await pg.close()
         # référence : le moteur seul, sans aucune machine qui joue
         pg = await nav.new_page()

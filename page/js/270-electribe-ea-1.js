@@ -139,6 +139,7 @@ function voixEa(t,k,note,vel,duree){
     var n2 = 1025, cd=new Float32Array(n2), niv2=6;
     for(var i=0;i<n2;i++){ var x=i*2/(n2-1)-1; cd[i]=Math.round(x*niv2)/niv2; }
     var wd = ctx.createWaveShaper(); wd.curve = cd;
+    wd.oversample = "none";                      /* voulu : la réduction replie */
     entree.connect(wd); wd.connect(lp);
   } else {
     entree.connect(lp);

@@ -9025,6 +9025,7 @@ function construireFxEntre(fxIn, fxOut, t, e1, e2, fxChaine){
   } else if(t===7){                            /* Decimator */
     var bits = 1 + Math.round((1-e1)*10);
     var wd = ctx.createWaveShaper(); wd.curve = courbeBits(bits);
+    wd.oversample = "none";                      /* voulu : le Decimator replie */
     var ld = ctx.createBiquadFilter(); ld.type="lowpass"; ld.frequency.value = 400 + (1-e2)*9000;
     fxIn.connect(wd); wd.connect(ld); ld.connect(fxOut); fxChaine.push(wd,ld);
     var bAct = bits;
@@ -10973,6 +10974,7 @@ function voixEa(t,k,note,vel,duree){
     var n2 = 1025, cd=new Float32Array(n2), niv2=6;
     for(var i=0;i<n2;i++){ var x=i*2/(n2-1)-1; cd[i]=Math.round(x*niv2)/niv2; }
     var wd = ctx.createWaveShaper(); wd.curve = cd;
+    wd.oversample = "none";                      /* voulu : la réduction replie */
     entree.connect(wd); wd.connect(lp);
   } else {
     entree.connect(lp);
@@ -17060,6 +17062,7 @@ function voix909(t, k, acc){
     var som2 = ctx.createGain(); som2.gain.value = 1;
     m.connect(som2); gn2.connect(som2);
     var bits = ctx.createWaveShaper();
+    bits.oversample = "none";                  /* voulu : les échantillons 6 bits de la 909 replient */
     bits.curve = courbeBits(6);                 /* le grain six bits de la 909 */
     var hp3 = ctx.createBiquadFilter(); hp3.type = "highpass"; hp3.frequency.value = hpf;
     var niv2 = (id === "OH") ? mv("niv", kn[8].niv) * (acc ? 1 : 0.6) * (0.35 + kn[0].niv * 0.9) : niv;
@@ -17098,6 +17101,7 @@ var TR707_MIDI = [0, 36, 35, 38, 40, 41, 45, 48, 37, 56, 39, 54, 42, 46, 49, 51]
 function pcm707(t, dur){
   var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 9500;
   var bits = ctx.createWaveShaper(); bits.curve = courbeBits(12);
+  bits.oversample = "none";                    /* voulu : le PCM 12 bits de la 707 */
   lp.connect(bits);
   return {entree:lp, sortie:bits};
 }
@@ -18263,6 +18267,7 @@ wave: {nom:"MODEL", hp:76, res:"Oscillateur à modèles", fam:"osc",
     o1.start(); o2.start();
     var g2 = eurGain(0.5);
     var fold = ctx.createWaveShaper();
+    fold.oversample = "4x";   /* v153 : le repliement d'onde crée beaucoup d'harmoniques aiguës */
     var voct = eurGain(1200);
     voct.connect(o1.detune); voct.connect(o2.detune);
     o1.connect(fold); fold.connect(out);
@@ -19483,6 +19488,7 @@ bits: eurEffet("BITS", 52, "Réduction de définition",
   [["b","BITS",0,1,0.5]],
   function(m, e, out){
     var sh = ctx.createWaveShaper();
+    sh.oversample = "none";                      /* voulu : BITS replie, c'est son rôle */
     e.connect(sh); sh.connect(out);
     m.maj = function(){
       var n = Math.max(2, Math.round(2 + (1 - m.p.b) * 12));
@@ -19639,6 +19645,7 @@ plasma: eurEffet("PLASMA", 68, "Distorsion à tube : ça ne sature pas, ça cass
        négatives double la fréquence apparente. C'est gratuit et c'est exact. */
     var ent = eurGain(1), forme = ctx.createWaveShaper();
     var red = ctx.createWaveShaper(), gOct = eurGain(0);
+    red.oversample = "2x";                     /* v153 : le redresseur crée des harmoniques aiguës */
     var bs = ctx.createBiquadFilter(); bs.type = "lowshelf";  bs.frequency.value = 200;
     var tr = ctx.createBiquadFilter(); tr.type = "highshelf"; tr.frequency.value = 3000;
     var sec = eurGain(1), hum = eurGain(0), som = eurGain(1);
@@ -20160,6 +20167,7 @@ drum: {nom:"DRUM", hp:72, sombre:true, res:"Voix de percussion réglable", fam:"
       o.frequency.setValueAtTime(f0 * 4.5, t);
       o.frequency.exponentialRampToValueAtTime(f0, t + 0.03);
       var sh = ctx.createWaveShaper();
+      sh.oversample = "2x";     /* v153 : saturation par frappe, sans repliement audible */
       var dr = 1 + m.p.drive * 8;
       sh.curve = eurCourbe(function(x){ return Math.tanh(x * dr) / Math.tanh(dr); });
       var g = eurGain(0);
@@ -23011,7 +23019,7 @@ function voixDbi(t, k, acc){
     var sh = ctx.createWaveShaper();
     var n2 = 513, c2 = new Float32Array(n2), dr = 1 + p.drive * 6;
     for(var i=0;i<n2;i++){ var x2 = i*2/(n2-1)-1; c2[i] = Math.tanh(x2*dr)/Math.tanh(dr); }
-    sh.curve = c2;
+    sh.curve = c2; sh.oversample = "2x";   /* v153 */
     trEnv(g, t, niv * 1.15, dec, 0.001);
     o.connect(sh); sh.connect(g); o.start(t); o.stop(t + dec + 0.05);
   }
@@ -24259,6 +24267,7 @@ for(var dz=0; dz<8; dz++) DMX.seqs.push(seqDmx(dz + 1));
 function dmxGoulot(){
   var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 10500;
   var bits = ctx.createWaveShaper(); bits.curve = courbeBits(8);
+  bits.oversample = "none";                    /* voulu : le goulot 8 bits de la DMX */
   lp.connect(bits);
   return {entree:lp, sortie:bits};
 }
@@ -25316,6 +25325,7 @@ function noeudsKp(){
      chaque changement d'effet ferait un trou dans le son. */
   var f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 20000;
   var crush = ctx.createWaveShaper();
+  crush.oversample = "none";                   /* voulu : RÉDUCTION replie, c'est son effet */
   var d = ctx.createDelay(1.2), fb = eurGain(0), dmix = eurGain(0);
   var conv = ctx.createConvolver(), vmix = eurGain(0);
   var n = Math.floor(ctx.sampleRate * 1.8), b = ctx.createBuffer(2, n, ctx.sampleRate);

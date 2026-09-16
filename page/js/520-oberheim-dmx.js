@@ -40,6 +40,7 @@ for(var dz=0; dz<8; dz++) DMX.seqs.push(seqDmx(dz + 1));
 function dmxGoulot(){
   var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 10500;
   var bits = ctx.createWaveShaper(); bits.curve = courbeBits(8);
+  bits.oversample = "none";                    /* voulu : le goulot 8 bits de la DMX */
   lp.connect(bits);
   return {entree:lp, sortie:bits};
 }

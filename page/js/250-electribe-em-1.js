@@ -169,6 +169,7 @@ function construireFxEntre(fxIn, fxOut, t, e1, e2, fxChaine){
   } else if(t===7){                            /* Decimator */
     var bits = 1 + Math.round((1-e1)*10);
     var wd = ctx.createWaveShaper(); wd.curve = courbeBits(bits);
+    wd.oversample = "none";                      /* voulu : le Decimator replie */
     var ld = ctx.createBiquadFilter(); ld.type="lowpass"; ld.frequency.value = 400 + (1-e2)*9000;
     fxIn.connect(wd); wd.connect(ld); ld.connect(fxOut); fxChaine.push(wd,ld);
     var bAct = bits;

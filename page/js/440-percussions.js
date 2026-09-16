@@ -301,6 +301,7 @@ drum: {nom:"DRUM", hp:72, sombre:true, res:"Voix de percussion réglable", fam:"
       o.frequency.setValueAtTime(f0 * 4.5, t);
       o.frequency.exponentialRampToValueAtTime(f0, t + 0.03);
       var sh = ctx.createWaveShaper();
+      sh.oversample = "2x";     /* v153 : saturation par frappe, sans repliement audible */
       var dr = 1 + m.p.drive * 8;
       sh.curve = eurCourbe(function(x){ return Math.tanh(x * dr) / Math.tanh(dr); });
       var g = eurGain(0);

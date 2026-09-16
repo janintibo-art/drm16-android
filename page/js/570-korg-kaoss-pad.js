@@ -63,6 +63,7 @@ function noeudsKp(){
      chaque changement d'effet ferait un trou dans le son. */
   var f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 20000;
   var crush = ctx.createWaveShaper();
+  crush.oversample = "none";                   /* voulu : RÉDUCTION replie, c'est son effet */
   var d = ctx.createDelay(1.2), fb = eurGain(0), dmix = eurGain(0);
   var conv = ctx.createConvolver(), vmix = eurGain(0);
   var n = Math.floor(ctx.sampleRate * 1.8), b = ctx.createBuffer(2, n, ctx.sampleRate);

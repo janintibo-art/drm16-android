@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **152**.
+La version actuelle est la **153**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 152** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 153** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,27 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**B5 : le repliement — v153**
+
+*Mesure* (nouvelle section « Repliement » du banc : énergie hors des harmoniques de la note) :
+- **Oscillateurs de l'API** (dent de scie, carré, triangle) : −72 à −92 dB. Chromium les produit déjà à bande
+  limitée : **rien à faire**, contrairement à ce que supposait l'analyse.
+- **Saturation forte** : −19 dB à 1,76 kHz **sans** suréchantillonnage, −38 en 2x, −69 en 4x. Or la valeur par
+  défaut de l'API est **sans**.
+
+*Relevé des 36 étages de mise en forme* : 11 ne déclaraient rien (donc sans suréchantillonnage).
+- **Repliement non voulu, corrigé** : repli d'onde Eurorack (**4x**), saturation de la grosse caisse Eurorack
+  et de la DrumBrute (**2x**, par frappe), redresseur Eurorack (**2x**).
+- **Repliement voulu, écrit noir sur blanc** (`oversample = "none"` et commentaire) : Decimator de l'EM-1,
+  réduction de l'EA-1, PCM 6 bits de la 909 et 12 bits de la 707, goulot 8 bits de la DMX, BITS de l'Eurorack,
+  RÉDUCTION du KAOSS PAD.
+- **Saturations de voie** (TR, TD-3, TR-1000, DrumBrute) : **laissées en 2x**. Le 4x est nettement meilleur
+  sur le papier, mais ces étages traitent tout le son de la machine en permanence, et l'écrêteur de sortie a
+  déjà dû passer de 4x à 2x pour supprimer des grésillements sur le téléphone. À essayer à l'oreille plus tard.
+
+*Contrôle* : `verifier-courbes.py` exige désormais que **chaque** étage déclare son suréchantillonnage — vu
+échouer sur la page d'avant (34 manques).
 
 **B4 : réglages sans clic, courbes centrées — v152**
 

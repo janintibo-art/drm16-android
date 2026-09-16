@@ -91,7 +91,7 @@ function voixDbi(t, k, acc){
     var sh = ctx.createWaveShaper();
     var n2 = 513, c2 = new Float32Array(n2), dr = 1 + p.drive * 6;
     for(var i=0;i<n2;i++){ var x2 = i*2/(n2-1)-1; c2[i] = Math.tanh(x2*dr)/Math.tanh(dr); }
-    sh.curve = c2;
+    sh.curve = c2; sh.oversample = "2x";   /* v153 */
     trEnv(g, t, niv * 1.15, dec, 0.001);
     o.connect(sh); sh.connect(g); o.start(t); o.stop(t + dec + 0.05);
   }

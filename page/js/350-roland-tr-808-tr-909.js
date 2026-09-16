@@ -342,6 +342,7 @@ function voix909(t, k, acc){
     var som2 = ctx.createGain(); som2.gain.value = 1;
     m.connect(som2); gn2.connect(som2);
     var bits = ctx.createWaveShaper();
+    bits.oversample = "none";                  /* voulu : les échantillons 6 bits de la 909 replient */
     bits.curve = courbeBits(6);                 /* le grain six bits de la 909 */
     var hp3 = ctx.createBiquadFilter(); hp3.type = "highpass"; hp3.frequency.value = hpf;
     var niv2 = (id === "OH") ? mv("niv", kn[8].niv) * (acc ? 1 : 0.6) * (0.35 + kn[0].niv * 0.9) : niv;
@@ -380,6 +381,7 @@ var TR707_MIDI = [0, 36, 35, 38, 40, 41, 45, 48, 37, 56, 39, 54, 42, 46, 49, 51]
 function pcm707(t, dur){
   var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 9500;
   var bits = ctx.createWaveShaper(); bits.curve = courbeBits(12);
+  bits.oversample = "none";                    /* voulu : le PCM 12 bits de la 707 */
   lp.connect(bits);
   return {entree:lp, sortie:bits};
 }

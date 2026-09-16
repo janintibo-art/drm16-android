@@ -31,6 +31,7 @@ wave: {nom:"MODEL", hp:76, res:"Oscillateur à modèles", fam:"osc",
     o1.start(); o2.start();
     var g2 = eurGain(0.5);
     var fold = ctx.createWaveShaper();
+    fold.oversample = "4x";   /* v153 : le repliement d'onde crée beaucoup d'harmoniques aiguës */
     var voct = eurGain(1200);
     voct.connect(o1.detune); voct.connect(o2.detune);
     o1.connect(fold); fold.connect(out);

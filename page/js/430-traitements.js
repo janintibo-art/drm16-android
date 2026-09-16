@@ -75,6 +75,7 @@ bits: eurEffet("BITS", 52, "Réduction de définition",
   [["b","BITS",0,1,0.5]],
   function(m, e, out){
     var sh = ctx.createWaveShaper();
+    sh.oversample = "none";                      /* voulu : BITS replie, c'est son rôle */
     e.connect(sh); sh.connect(out);
     m.maj = function(){
       var n = Math.max(2, Math.round(2 + (1 - m.p.b) * 12));
@@ -231,6 +232,7 @@ plasma: eurEffet("PLASMA", 68, "Distorsion à tube : ça ne sature pas, ça cass
        négatives double la fréquence apparente. C'est gratuit et c'est exact. */
     var ent = eurGain(1), forme = ctx.createWaveShaper();
     var red = ctx.createWaveShaper(), gOct = eurGain(0);
+    red.oversample = "2x";                     /* v153 : le redresseur crée des harmoniques aiguës */
     var bs = ctx.createBiquadFilter(); bs.type = "lowshelf";  bs.frequency.value = 200;
     var tr = ctx.createBiquadFilter(); tr.type = "highshelf"; tr.frequency.value = 3000;
     var sec = eurGain(1), hum = eurGain(0), som = eurGain(1);
