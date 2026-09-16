@@ -10,3 +10,5 @@ docs/*.apk
 # Le code de Korg est cloné à la compilation, jamais versionné (licence)
 syro/volcasample/
 app/src/main/assets/syro/
+# Fabrique par bureau/preparer.sh a partir des assets Android
+bureau/dist/

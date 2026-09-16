@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **135**.
+La version actuelle est la **136**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 135** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 136** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -127,6 +127,39 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Phase W — version Windows. W1 : une page préparée une seule fois, Syro compris — v136**
+
+*Défauts.* La page de l'exécutable était copiée à la main dans **deux** workflows (PowerShell), sans le Syro :
+celui-ci n'est compilé que sous Linux, et le poste Windows repartait du dépôt. L'installation d'Emscripten
+était recopiée trois fois. Cargo restait en 0.1.0, Tauri en 1.0.0 dans le dépôt, et les textes annonçaient
+« vingt-cinq machines, quatre-vingt-neuf modules ».
+
+*Correction.*
+- **`bureau/preparer.sh`**, seul fabricant de `bureau/dist` : copie de **tous** les assets, `drm16.html` →
+  `index.html`, vérification de `index.html`, `studio/`, `nexus/` (bloquant) et de `syro/syro.js`
+  (avertissement, ou bloquant avec `EXIGER_SYRO=1`), puis version de l'application recopiée dans
+  `tauri.conf.json` et `Cargo.toml` (`136` → `136.0.0`). Résumé du run : version et présence du Syro.
+  `bureau/dist/` est ignoré par git.
+- **`outils/installer-emscripten.sh`** (à sourcer) : la version 3.1.64 n'est plus écrite qu'ici.
+- **`windows.yml` en deux postes** : `preparer` (Linux : contrôles, Syro, `preparer.sh`, artefact
+  `bureau-prepare` = `dist/` + les deux fichiers de version) puis `exe` (Windows : `download-artifact@v8`
+  sous `bureau/`, vérification de la page reçue, Tauri). **`publication.yml`** : même principe, la page est
+  préparée par le poste `publier` juste après le Syro.
+- Descriptions sans chiffres qui vieillissent (installeur, notes de version). Cargo et Tauri en 136.0.0 dans
+  le dépôt. Taille minimale de fenêtre **gardée à 380×520** : la page est conçue et testée pour 360 px.
+- **`verifier-bureau.sh`** revu : coque complète, plus aucune copie manuelle vers `bureau/dist`, les deux
+  workflows appellent `preparer.sh`. Ajouté en **étape 7 de `outils/controles.sh`**. Vu échouer sur l'ancien
+  `windows.yml`.
+- Versions relevées en ligne : `download-artifact` **v8**, `Swatinem/rust-cache` **v2** (2.9.2, inchangé),
+  `tauri-cli` : la dernière est une 3.0 alpha — on **reste en Tauri 2** (`^2.0`).
+
+*Vérifié ici* : `preparer.sh` sur une copie (99 fichiers, 7 Mo ; versions recopiées ; Syro exigé absent →
+échec ; `nexus` manquant → échec), YAML des trois workflows, tous les contrôles. **Non vérifié** : la
+compilation Windows elle-même (pas de Rust ici) — lancer « Exécutable Windows » depuis l'onglet Actions.
+
+**Suite de la phase W** : W2 couche `HOST` · W3 fichiers et échantillons · W4 réseau · W5 MIDI ·
+W6 micro, latence, `body.desktop` · W7 format `.drm16` · W8 confort PC · W9 sécurité et matrice de parité.
 
 **Test dans un vrai navigateur, actions à jour — v135 (fin de la phase A)**
 

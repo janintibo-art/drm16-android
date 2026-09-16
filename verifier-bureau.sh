@@ -15,14 +15,24 @@ else
 fi
 
 echo "--- la coque de bureau est-elle complète ? ---"
-for f in bureau/src-tauri/Cargo.toml bureau/src-tauri/build.rs bureau/src-tauri/src/main.rs \
+for f in bureau/preparer.sh bureau/src-tauri/Cargo.toml bureau/src-tauri/build.rs bureau/src-tauri/src/main.rs \
          bureau/src-tauri/tauri.conf.json bureau/src-tauri/icons/icon.ico; do
   [ -f "$f" ] && echo "  ok   $f" || { echo "  MANQUE $f"; ok=0; }
 done
 
-echo "--- le HTML n'est-il copié qu'à un seul endroit ? ---"
-n=$(grep -c "app/src/main/assets/drm16.html" .github/workflows/publication.yml || true)
-echo "  cité $n fois dans le workflow de publication (attendu : 2, l'autonome et la fenêtre)"
+echo "--- bureau/dist n'est-il fabriqué que par preparer.sh ? ---"
+# v136 : plus aucun workflow ne copie le HTML à la main vers bureau/dist.
+if grep -n "bureau/dist/index.html" .github/workflows/*.yml | grep -qi "copy-item\|cp "; then
+  echo "  ATTENTION : une copie manuelle subsiste :"
+  grep -n "bureau/dist/index.html" .github/workflows/*.yml | grep -i "copy-item\|cp "
+  ok=0
+else
+  echo "  oui."
+fi
+for w in windows publication; do
+  if grep -q "bureau/preparer.sh" ".github/workflows/$w.yml"; then echo "  ok   $w.yml appelle preparer.sh"
+  else echo "  MANQUE : $w.yml n'appelle pas preparer.sh"; ok=0; fi
+done
 
 echo
 [ "$ok" = 1 ] && echo "Tout est en place." || { echo "Des points à régler ci-dessus."; exit 1; }

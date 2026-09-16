@@ -75,14 +75,7 @@ jobs:
         continue-on-error: true
         run: |
           set -e
-          echo "::group::Installer Emscripten"
-          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
-          cd "$RUNNER_TEMP/emsdk"
-          ./emsdk install 3.1.64
-          ./emsdk activate 3.1.64
-          source ./emsdk_env.sh
-          echo "::endgroup::"
-          cd "$GITHUB_WORKSPACE"
+          source outils/installer-emscripten.sh
           bash syro/construire.sh
 
       # continue-on-error rend l'échec presque invisible : une coche verte avec
@@ -130,7 +123,7 @@ jobs:
           cat > notes.md <<FIN
           **Boîtes à rythmes autonomes — version $V**
 
-          Vingt-cinq machines et un rack Eurorack de quatre-vingt-neuf modules, hors ligne, sans compte.
+          Boîtes à rythmes, échantillonneurs et rack Eurorack, hors ligne, sans compte.
 
           ### Sur Android
           1. Téléchargez \`drm16-v$V.apk\` ci-dessous.
@@ -157,6 +150,21 @@ jobs:
             --title "Version $V" \
             --notes-file notes.md \
             publication/drm16-v$V.apk publication/drm16.apk publication/drm16.html
+
+      # La page de la version Windows est préparée ICI, sous Linux, où le Syro
+      # vient d'être compilé : le poste Windows n'a plus qu'à la reprendre (v136).
+      - name: Préparer bureau/dist
+        run: bash bureau/preparer.sh
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bureau-prepare
+          path: |
+            bureau/dist/
+            bureau/src-tauri/tauri.conf.json
+            bureau/src-tauri/Cargo.toml
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Rapports en cas d'échec
         if: failure()
@@ -187,22 +195,19 @@ jobs:
         with:
           workspaces: bureau/src-tauri
 
-      - name: Poser le HTML comme page de la fenêtre
+      - uses: actions/download-artifact@v8
+        with:
+          name: bureau-prepare
+          path: bureau
+
+      - name: Vérifier la page reçue
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path bureau/dist | Out-Null
-          Copy-Item app/src/main/assets/drm16.html bureau/dist/index.html
-          # Les deux projets invités voyagent avec : sans eux, la fenêtre
-          # afficherait le message « ils ne sont pas là ».
-          Copy-Item -Recurse -Force app/src/main/assets/studio bureau/dist/studio
-          Copy-Item -Recurse -Force app/src/main/assets/nexus  bureau/dist/nexus
-          # La version du paquet doit suivre celle de l'application, et Windows
-          # exige trois nombres : on complète.
-          $v = (Select-String -Path app/build.gradle -Pattern "versionName\s+'([^']+)'").Matches[0].Groups[1].Value
-          $conf = Get-Content bureau/src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
-          $conf.version = "$v.0.0"
-          $conf | ConvertTo-Json -Depth 20 | Set-Content bureau/src-tauri/tauri.conf.json -Encoding utf8
-          Write-Host "Version du paquet : $v.0.0"
+          foreach ($f in "bureau/dist/index.html", "bureau/dist/studio/index.html", "bureau/dist/nexus/index.html") {
+            if (-not (Test-Path $f)) { throw "Absent : $f" }
+          }
+          if (Test-Path "bureau/dist/syro/syro.js") { Write-Host "Transfert volca : présent." }
+          else { Write-Host "::warning::Transfert volca absent de cet exécutable." }
 
       - name: Installer l'outil Tauri
         run: cargo install tauri-cli --version "^2.0" --locked

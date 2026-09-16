@@ -4,6 +4,10 @@ name: Exécutable Windows
 # à chaque virgule corrigée gâcherait le temps d'exécution pour rien. On lance
 # depuis l'onglet Actions quand on veut l'exécutable, et la publication le
 # produit de toute façon à chaque version.
+#
+# Deux postes (v136) : Linux prépare la page (contrôles, Syro, bureau/dist),
+# Windows ne fait que compiler. Le Syro ne se compile que sous Linux : c'est ce
+# partage qui le met enfin dans l'exécutable.
 on:
   workflow_dispatch:
 
@@ -12,33 +16,70 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  preparer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Contrôles automatiques
+        run: bash outils/controles.sh
+
+      - name: Compiler le Syro en WebAssembly
+        continue-on-error: true
+        run: |
+          set -e
+          source outils/installer-emscripten.sh
+          bash syro/construire.sh
+
+      - name: Préparer bureau/dist
+        run: bash bureau/preparer.sh
+
+      # Le dossier de la page ET les deux fichiers dont la version vient d'être
+      # mise à jour : téléchargés sous bureau/, ils retrouvent leur place.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bureau-prepare
+          path: |
+            bureau/dist/
+            bureau/src-tauri/tauri.conf.json
+            bureau/src-tauri/Cargo.toml
+          if-no-files-found: error
+          retention-days: 3
+
   exe:
+    needs: preparer
     runs-on: windows-latest
     timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v7
 
+      - uses: actions/download-artifact@v8
+        with:
+          name: bureau-prepare
+          path: bureau
+
+      - name: Vérifier la page reçue
+        shell: pwsh
+        run: |
+          foreach ($f in "bureau/dist/index.html", "bureau/dist/studio/index.html", "bureau/dist/nexus/index.html") {
+            if (-not (Test-Path $f)) { throw "Absent : $f" }
+          }
+          if (Test-Path "bureau/dist/syro/syro.js") { Write-Host "Transfert volca : présent." }
+          else { Write-Host "::warning::Transfert volca absent de cet exécutable." }
+          Select-String -Path bureau/src-tauri/tauri.conf.json -Pattern '"version"'
+
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: bureau/src-tauri
-
-      - name: Poser le HTML comme page de la fenêtre
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path bureau/dist | Out-Null
-          Copy-Item app/src/main/assets/drm16.html bureau/dist/index.html
-          # Les deux projets invités voyagent avec : sans eux, la fenêtre
-          # afficherait le message « ils ne sont pas là ».
-          Copy-Item -Recurse -Force app/src/main/assets/studio bureau/dist/studio
-          Copy-Item -Recurse -Force app/src/main/assets/nexus  bureau/dist/nexus
-          $v = (Select-String -Path app/build.gradle -Pattern "versionName\s+'([^']+)'").Matches[0].Groups[1].Value
-          $conf = Get-Content bureau/src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
-          $conf.version = "$v.0.0"
-          $conf | ConvertTo-Json -Depth 20 | Set-Content bureau/src-tauri/tauri.conf.json -Encoding utf8
-          Write-Host "Version du paquet : $v.0.0"
 
       - name: Installer l'outil Tauri
         run: cargo install tauri-cli --version "^2.0" --locked

@@ -38,5 +38,9 @@ java -cp "$SORTIE" fr.tibo.drm16.TestMidi
 rm -rf "$SORTIE"
 fin
 
+etape "7. Version de bureau : coque complete, page fabriquee par preparer.sh"
+bash verifier-bureau.sh
+fin
+
 echo
 echo "Tous les controles sont passes."
