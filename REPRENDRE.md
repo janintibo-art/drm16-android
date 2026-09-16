@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **128**.
+La version actuelle est la **129**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 128** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 129** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -56,6 +56,7 @@ Le Java ne sert que de pont vers Android.
 | `.../java/fr/tibo/drm16/MainActivity.java` | WebView, pont JS, micro, fichiers, réseau |
 | `.../java/fr/tibo/drm16/Midi.java` | API MIDI Android, SysEx |
 | `.../java/fr/tibo/drm16/PlaybackService.java` | service de premier plan |
+| `.../java/fr/tibo/drm16/Fichiers.java` | remplacement sûr des fichiers, sans dépendance Android |
 | `app/src/main/AndroidManifest.xml` | permissions |
 | `.github/workflows/android.yml` | compilation |
 
@@ -121,6 +122,27 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Remplacement de fichier sans perte possible — v129**
+
+*Défaut.* `ecrireAtomique` **supprimait** l'ancien fichier puis renommait le nouveau à sa place : si le
+renommage échouait, les deux versions étaient perdues.
+
+*Correction* — nouvelle classe **`Fichiers.java`**, sans aucune dépendance Android :
+- `remplacer(tmp, cible)` tente d'abord `renameTo` seul. Sous Android c'est `rename(2)`, qui **remplace la
+  cible de façon atomique** : l'ancien ou le nouveau existe à tout instant. Supprimer d'abord, comme avant,
+  était donc inutile en plus d'être dangereux.
+- En cas d'échec, repli : l'ancien est **mis de côté en `.bak`** (jamais supprimé), le nouveau prend sa
+  place, et seulement alors le `.bak` est effacé. Si le nouveau ne passe pas, l'ancien est remis.
+- `lisible(cible)` (dans `fichierCharger`, `echCharger`) et `recupererDossier(d)` (dans `fichierListe`,
+  `echListe`) remettent en place un `.bak` orphelin laissé par un arrêt brutal ; un `.bak` périmé est effacé.
+- `nomTechnique(n)` cache `.part-…` et `.bak` des listes. Les suppressions effacent aussi le `.bak`.
+Toutes les écritures (`fichierSauver`, `echSauver`, écriture par morceaux) passent par là.
+
+*Vérifié avec de vrais fichiers* (JDK, sans Android) : remplacement direct ; premier renommage refusé puis
+repli réussi ; nouveau fichier impossible à poser → ancien intact et aucun `.bak` qui traîne ; ancien
+impossible à mettre de côté → rien touché ; arrêt brutal simulé → ancien récupéré ; `.bak` périmé effacé.
+Le programme de test (`TestFichiers`) rejoindra le dépôt en v134. `MainActivity` compile.
 
 **Stockage : plafonds cohérents et écriture par morceaux — v128**
 

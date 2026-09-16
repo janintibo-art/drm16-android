@@ -283,12 +283,13 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         /** Liste des fichiers de Documents portant l'extension demandee, avec leur taille. */
         @JavascriptInterface public String fichierListe(String ext) {
             File d = dossierDoc();
+            Fichiers.recupererDossier(d);
             String[] l = d.list();
             if (l == null) return "";
             Arrays.sort(l, String.CASE_INSENSITIVE_ORDER);
             StringBuilder sb = new StringBuilder();
             for (String n : l) {
-                if (n.contains(".part-")) continue;          /* ecriture interrompue */
+                if (Fichiers.nomTechnique(n)) continue;       /* ecriture en cours ou interrompue */
                 if (ext != null && ext.length() > 0 && !n.endsWith(ext)) continue;
                 File f = new File(d, n);
                 if (sb.length() > 0) sb.append("\n");
@@ -298,14 +299,17 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         }
         @JavascriptInterface public String fichierCharger(String nom) {
             try {
-                File f = new File(dossierDoc(), propre(nom));
+                File f = Fichiers.lisible(new File(dossierDoc(), propre(nom)));
                 byte[] o = lireFichierComplet(f, MAX_DOCUMENT_BYTES);
                 return Base64.encodeToString(o, Base64.NO_WRAP);
             } catch (Exception e) { return ""; }
         }
         @JavascriptInterface public boolean fichierSupprimer(String nom) {
-            try { return new File(dossierDoc(), propre(nom)).delete(); }
-            catch (Exception e) { return false; }
+            try {
+                File f = new File(dossierDoc(), propre(nom));
+                Fichiers.sauvegarde(f).delete();
+                return f.delete();
+            } catch (Exception e) { return false; }
         }
         @JavascriptInterface public String fichierDossier() {
             return dossierDoc().getAbsolutePath();
@@ -326,13 +330,14 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         }
         @JavascriptInterface public String echCharger(String nom) {
             try {
-                File f = new File(new File(getFilesDir(), "ech"), propre(nom) + ".wav");
+                File f = Fichiers.lisible(new File(new File(getFilesDir(), "ech"), propre(nom) + ".wav"));
                 byte[] o = lireFichierComplet(f, MAX_SAMPLE_BYTES);
                 return Base64.encodeToString(o, Base64.NO_WRAP);
             } catch (Exception e) { return ""; }
         }
         @JavascriptInterface public String echListe() {
             File d = new File(getFilesDir(), "ech");
+            Fichiers.recupererDossier(d);
             String[] l = d.list();
             if (l == null) return "";
             Arrays.sort(l, String.CASE_INSENSITIVE_ORDER);
@@ -345,7 +350,11 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             return sb.toString();
         }
         @JavascriptInterface public void echSupprimer(String nom) {
-            try { new File(new File(getFilesDir(), "ech"), propre(nom) + ".wav").delete(); } catch (Exception ignored) {}
+            try {
+                File f = new File(new File(getFilesDir(), "ech"), propre(nom) + ".wav");
+                Fichiers.sauvegarde(f).delete();
+                f.delete();
+            } catch (Exception ignored) {}
         }
     }
 
@@ -384,10 +393,10 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         }
     }
 
-    /** Met le temporaire a la place du fichier final. Renforce en v129. */
+    /** Met le temporaire a la place du fichier final, sans jamais perdre l'ancien :
+        voir Fichiers.remplacer (v129). */
     private boolean remplacer(File tmp, File cible) {
-        if (cible.exists() && !cible.delete()) return false;
-        return tmp.renameTo(cible);
+        return Fichiers.remplacer(tmp, cible);
     }
 
     /** Plafond d'un document selon son type : voir les constantes. */
