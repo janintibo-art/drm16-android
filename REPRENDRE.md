@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **136**.
+La version actuelle est la **137**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 136** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 137** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -127,6 +127,26 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**W2 : la couche HOST — v137**
+
+La page ne touche plus `window.DRM16` : elle passe par **`HOST`**, déclaré **en tête du script** (bloc
+`HÔTE … FIN HÔTE`).
+- `HOST` porte **les mêmes noms** que le pont Android (liste `FONCTIONS`, 27 noms). Sur Android, chaque
+  fonction délègue à `window.DRM16`. **Une fonction que la plateforme n'offre pas n'existe pas dans HOST** :
+  tous les tests existants `if(!p || !p.fichierSauver)` gardent leur sens (« ÉCRITURE IMPOSSIBLE ICI »).
+- `HOST.plateforme` : `android`, `bureau` (Tauri détecté ; ses fonctions arriveront en W3 à W5) ou
+  `navigateur`. `HOST.a(nom)` dit si une fonction existe. `<html data-hote="…">` pour le style (W6).
+- 22 accès remplacés : 20 `window.DRM16` → `HOST`, plus `DRM16.playing` et `pont()` (MIDI).
+- Les rappels de Java vers la page (`__midi`, `__midiEtat`, `__midiSysex`, `__net`) ne changent pas : la
+  version de bureau appellera les mêmes.
+- **`verifier-hote.py`** (étape 3 bis des contrôles) : aucun accès au pont hors du bloc, et `FONCTIONS` égale
+  exactement la liste des `@JavascriptInterface` de `MainActivity.java`. **Règle** : une fonction ajoutée au
+  pont s'ajoute à `FONCTIONS`, sinon le contrôle échoue. Vu échouer (nom mal orthographié).
+- Test navigateur, bloc 7 : sans pont → `navigateur`, aucune fonction, message d'impossibilité ; avec le pont
+  simulé → `android`, seules ses fonctions, appel aller-retour.
+
+Aucun changement de comportement sur Android.
 
 **Phase W — version Windows. W1 : une page préparée une seule fois, Syro compris — v136**
 

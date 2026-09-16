@@ -207,10 +207,27 @@ async def html_exterieur(nav):
     ok(not err, "aucune erreur de page")
     await pg.close()
 
+async def hote(nav):
+    print("\n7. Couche HOST : plateforme et fonctions offertes (v137)")
+    pg, err = await nouvelle_page(nav)
+    r = await pg.evaluate("() => ({p: HOST.plateforme, sauver: HOST.a('fichierSauver'), attr: document.documentElement.dataset.hote})")
+    ok(r["p"] == "navigateur" and not r["sauver"] and r["attr"] == "navigateur", "sans pont : plateforme navigateur, aucune fonction native")
+    r = await pg.evaluate("""() => { var m = []; var sg = signal; signal = function(t){ m.push(t); };
+      allerMachine('vlc'); document.getElementById('vlc-export').click(); signal = sg; return m.join('|'); }""")
+    ok(r == "ÉCRITURE IMPOSSIBLE ICI", "sans pont : l'export volca le dit (%s)" % r)
+    await pg.close()
+    pg, err2 = await nouvelle_page(nav, pont=True)
+    r = await pg.evaluate("""() => ({p: HOST.plateforme, sauver: HOST.a('fichierSauver'), micro: HOST.a('micro'),
+      ecrit: HOST.fichierSauver('t.mid', btoa('abc')), recu: __F['t.mid'] ? __F['t.mid'].length : 0})""")
+    ok(r["p"] == "android" and r["sauver"] and not r["micro"], "avec pont : plateforme android, seules les fonctions du pont existent")
+    ok(r["ecrit"] == "/doc/t.mid" and r["recu"] == 3, "avec pont : l'appel traverse HOST et revient")
+    ok(not err and not err2, "aucune erreur de page")
+    await pg.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur):
+        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote):
             try:
                 await t(nav)
             except Exception as e:

@@ -6141,6 +6141,44 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 </div>
 
 <script>
+/* ================= HÔTE (v137) =================
+   La page ne parle plus directement au pont Android : elle parle à HOST, qui
+   porte les MÊMES noms de fonctions. Sur Android, chaque fonction délègue à
+   window.DRM16. Une fonction que la plateforme n'offre pas n'existe tout
+   simplement pas dans HOST : les tests « if(!p || !p.fichierSauver) » de la page
+   gardent donc leur sens, et « ÉCRITURE IMPOSSIBLE ICI » s'affiche là où il faut.
+
+   HOST.plateforme : "android", "bureau" (Tauri, services natifs à venir en W3 à
+   W5) ou "navigateur" (le fichier ouvert tel quel). HOST.a(nom) dit si une
+   fonction est offerte.
+
+   Règle : window.DRM16 n'apparaît NULLE PART ailleurs que dans ce bloc
+   (vérifié par verifier-hote.py, qui compare aussi la liste ci-dessous aux
+   fonctions @JavascriptInterface de MainActivity.java). */
+var HOST = (function(){
+  var FONCTIONS = [
+    "playing", "midiDispo", "midiListe", "midiOuvrir", "midiAppareils", "midiOuvertId",
+    "midiOuvrirId", "midiFermer", "midiEnvoyer", "midiHorloge", "midiSysex", "midiTempo",
+    "micro", "fichierSauver", "fichierOuvrir", "fichierAjouter", "fichierFermer", "netCharger",
+    "fichierListe", "fichierCharger", "fichierSupprimer", "fichierDossier", "echDossier", "echSauver",
+    "echCharger", "echListe", "echSupprimer"
+  ];
+  var h = {plateforme:"navigateur", fonctions:FONCTIONS};
+  var android = window.DRM16;
+  if(android){
+    h.plateforme = "android";
+    FONCTIONS.forEach(function(n){
+      if(typeof android[n] !== "function") return;
+      h[n] = function(){ return android[n].apply(android, arguments); };
+    });
+  } else if(window.__TAURI_INTERNALS__ || window.__TAURI__){
+    h.plateforme = "bureau";
+  }
+  h.a = function(n){ return typeof h[n] === "function"; };
+  try{ document.documentElement.setAttribute("data-hote", h.plateforme); }catch(e){}
+  return h;
+})();
+/* ================= FIN HÔTE ================= */
 "use strict";
 /* ================= état ================= */
 var BIB = {noms:{}, onglet:0, cible:{machine:"es1", partie:0}, preset:"punch"};
@@ -6326,7 +6364,7 @@ window.__drmSignal = signal;
 
 /* ================= pont vers Android ================= */
 function host(on){
-  try{ if(window.DRM16 && DRM16.playing) DRM16.playing(!!on); }catch(e){}
+  try{ if(HOST.playing) HOST.playing(!!on); }catch(e){}
 }
 
 /* ================= retour haptique ================= */
@@ -11408,7 +11446,7 @@ function b64De(ab){
   return btoa(s);
 }
 function sauverEch(id, buf){
-  var p = window.DRM16;
+  var p = HOST;
   if(!p || !p.echSauver) return false;
   var ok = false;
   try{ ok = !!p.echSauver(id, b64De(wavDe(buf))); }catch(e){ ok = false; }
@@ -11416,7 +11454,7 @@ function sauverEch(id, buf){
   return ok;
 }
 function chargerEchs(){
-  var p = window.DRM16;
+  var p = HOST;
   if(!p || !p.echListe) return;
   var l = "";
   try{ l = p.echListe() || ""; }catch(e){}
@@ -11454,7 +11492,7 @@ function usagesEch(id){
   return n;
 }
 function supprimerEch(id){
-  var p = window.DRM16;
+  var p = HOST;
   if(p && p.echSupprimer) try{ p.echSupprimer(id); }catch(e){}
   delete ES.buf[id]; delete ES.inv[id]; delete ES.noms[id];
 }
@@ -11475,7 +11513,7 @@ function poserEch(k, buf, quoi){
 function echantillonner(){
   if(ES_REC.mr){ try{ ES_REC.mr.stop(); }catch(e){} return; }
   audioInit(); banqueEs();
-  var p = window.DRM16;
+  var p = HOST;
   if(p && p.micro){
     var ok = false;
     try{ ok = !!p.micro(); }catch(e){}
@@ -13921,7 +13959,7 @@ document.getElementById("sx-sampling").addEventListener("click", function(){ ech
 function echantillonnerSx(){
   if(ES_REC.mr){ try{ ES_REC.mr.stop(); }catch(e){} return; }
   audioInit(); banqueEs(); sxAudio();
-  var p = window.DRM16;
+  var p = HOST;
   if(p && p.micro){
     var ok=false;
     try{ ok = !!p.micro(); }catch(e){}
@@ -14147,7 +14185,7 @@ var GM = {bd:36, sd:38, cp:39, lt:45, hh:42, oh:46, rd:51, cy:49, wb:76, cb:56, 
 var GM_INV = {};
 for(var gk in GM) GM_INV[GM[gk]] = gk;
 
-function pont(){ return (window.DRM16 && DRM16.midiEnvoyer) ? DRM16 : null; }
+function pont(){ return HOST.midiEnvoyer ? HOST : null; }
 function midiPret(){ return MIDI.dispo && MIDI.ouvert >= 0 && pont(); }
 function midiBrut(a,b,c){
   var p = pont(); if(!p) return;
@@ -15014,7 +15052,7 @@ function nomPisteMidi(canal, note){
 function enrExporter(i){
   var o = enrFichier(i);
   if(!o){ signal("PRISE INTROUVABLE"); return; }
-  var p = window.DRM16;
+  var p = HOST;
   var nom = "drm-" + (ENR.prises[i].nom.replace(/[^A-Za-z0-9]/g,"") || "prise") + "-" + i + ".mid";
   if(p && p.fichierSauver){
     var chemin = "";
@@ -23753,7 +23791,7 @@ document.getElementById("vlc-motif").addEventListener("click", function(){
   majVlc(); majKnobsVlc(); memVlc(); H.inter();
 });
 document.getElementById("vlc-export").addEventListener("click", function(){
-  var p = window.DRM16;
+  var p = HOST;
   if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
   var o = octetsVlc();
   var nom = "volca-ptn-" + (VLC.cur + 1) + ".dat";
@@ -23763,7 +23801,7 @@ document.getElementById("vlc-export").addEventListener("click", function(){
   H.inter();
 });
 document.getElementById("vlc-import").addEventListener("click", function(){
-  var p = window.DRM16;
+  var p = HOST;
   if(!p || !p.fichierListe){ signal("LECTURE IMPOSSIBLE ICI"); return; }
   var l = bibFichiers(".dat");
   if(!l.length){ signal("AUCUN .dat DANS DOCUMENTS"); return; }
@@ -24588,7 +24626,7 @@ function wavStereo(buf){
 }
 function exporterWav(){
   if(WAVX.occupe) return;
-  var p = window.DRM16;
+  var p = HOST;
   if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
   if(!MACHINE || !MACHINE.schedule){ signal("AUCUNE MACHINE À RENDRE"); return; }
   if(S.run){ stop(); H.stop(); }
@@ -24653,7 +24691,7 @@ function exporterWav(){
     remettre();
     var nom = "drm-" + modele + "-" + WAVX.mesures + "mes-" + Date.now().toString(36) + ".wav";
     var chemin = "";
-    chemin = ecrireDocument(window.DRM16, nom, ab);
+    chemin = ecrireDocument(HOST, nom, ab);
     if(chemin){
       signal(nom + " · " + Math.round(ab.byteLength / 1024) + " ko · CRÊTE " +
              (crete > 0 ? (20 * Math.log10(crete)).toFixed(1) : "-∞") + " dB");
@@ -25985,7 +26023,7 @@ function exporterPriseWav(i){
   if(WAVX.occupe){ signal("UN RENDU EST DÉJÀ EN COURS"); return; }
   audioInit();
   if(!ctx){ signal("AUDIO INDISPONIBLE"); return; }
-  var pont = window.DRM16;
+  var pont = HOST;
   if(!pont || !pont.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
   if(refusWavTropLong(prise.duree / 1000 + 3, 44100)) return;
 
@@ -26177,7 +26215,7 @@ window.__net = function(jeton, erreur, b64){
 };
 function netCharger(url, maxOctets){
   return new Promise(function(ok, rej){
-    var p = window.DRM16;
+    var p = HOST;
     if(!p || !p.netCharger){ rej("pont réseau indisponible"); return; }
     var jeton = "n" + (++ARC.jeton);
     ARC_ATTENTE[jeton] = {ok:ok, rej:rej};
@@ -26483,7 +26521,7 @@ function bibIndexReel(m, k){
 
 /* ---------- rayon des sauvegardes de machine ---------- */
 function bibFichiers(ext){
-  var p = window.DRM16, l = [];
+  var p = HOST, l = [];
   if(!p || !p.fichierListe) return l;
   var t = "";
   try{ t = p.fichierListe(ext) || ""; }catch(e){}
@@ -26514,7 +26552,7 @@ function bibDemanderSauvegarde(){
 }
 /* appelé par la réception exclusive pour les envois volumineux */
 function bibRecevoirSauvegarde(o, type, fonction){
-  var p = window.DRM16;
+  var p = HOST;
   if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE"); return false; }
   var quoi = {0x4C:"motifs", 0x57:"chansons", 0x51:"reglages", 0x40:"motif"}[fonction] || "donnees";
   var d = new Date();
@@ -26533,7 +26571,7 @@ function bibRecevoirSauvegarde(o, type, fonction){
   return false;
 }
 function bibRenvoyer(nom){
-  var p = window.DRM16;
+  var p = HOST;
   if(!p || !p.fichierCharger){ signal("LECTURE IMPOSSIBLE"); return; }
   if(!window.confirm("Renvoyer « " + nom + " » vers la machine ?\n\nElle sera remise dans l'état de cette sauvegarde.")) return;
   if(S.run) stop();
@@ -26551,7 +26589,7 @@ function bibRenvoyer(nom){
   signal("RENVOYÉ : " + o.length + " OCTETS");
 }
 function bibSupprimerFichier(nom){
-  var p = window.DRM16;
+  var p = HOST;
   if(!window.confirm("Supprimer « " + nom + " » ?")) return;
   try{ if(p && p.fichierSupprimer) p.fichierSupprimer(nom); }catch(e){}
   majBibUI(); H.inter();
@@ -26752,7 +26790,7 @@ function bibRendreSauvegardes(corps){
   var p3 = document.createElement("p");
   p3.style.opacity = ".6";
   p3.style.fontSize = "12.5px";
-  var pj = window.DRM16;
+  var pj = HOST;
   var dossier = "";
   try{ dossier = (pj && pj.fichierDossier) ? pj.fichierDossier() : ""; }catch(e){}
   p3.textContent = dossier ? ("Dossier : " + dossier) : "";
@@ -26761,7 +26799,7 @@ function bibRendreSauvegardes(corps){
 function bibMicro(){
   if(ES_REC.mr){ try{ ES_REC.mr.stop(); }catch(e){} return; }
   audioInit(); banqueEs();
-  var p = window.DRM16;
+  var p = HOST;
   if(p && p.micro){
     var ok = false;
     try{ ok = !!p.micro(); }catch(e){}
@@ -26893,7 +26931,7 @@ function bibOptimiser(){
    8 ou 16 bits, nommés 00 à 99 à la racine, cent fichiers au plus. */
 function bibExportEs1(){
   audioInit(); banqueEs();
-  var p = window.DRM16;
+  var p = HOST;
   if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
   var l = listeEch();
   if(!l.length){ signal("AUCUN SON"); return; }
@@ -27389,7 +27427,7 @@ function huit_vers_sept(src, deb, fin){
   return out;
 }
 function excEnvoyerBrut(octets){
-  var p = window.DRM16;
+  var p = HOST;
   if(!p || !p.midiSysex){ signal("PONT MIDI INDISPONIBLE"); return false; }
   if(MIDI.ouvert < 0){ signal("AUCUN APPAREIL MIDI OUVERT"); return false; }
   var parti;

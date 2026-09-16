@@ -22,6 +22,10 @@ etape "3. Aucun nom exterieur interprete comme du HTML"
 python3 verifier-html.py
 fin
 
+etape "3 bis. La page ne parle au pont Android qu'a travers HOST"
+python3 verifier-hote.py
+fin
+
 etape "4. Aucun identifiant HTML en double"
 python3 verifier-ids.py
 fin
