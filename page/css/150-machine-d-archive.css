@@ -1,0 +1,65 @@
+/* ===================== MACHINE D'ARCHIVE ===================== */
+body.arcm .arcmb{display:block}
+body.arcm #unit,body.arcm .em,body.arcm .er,body.arcm .ea,body.arcm .es,body.arcm .mx,body.arcm .sx,
+body.arcm .akai,body.arcm .rtr,body.arcm .dmxb,body.arcm .korgv,body.arcm .crb,body.arcm .dbib,
+body.arcm .t1kb{display:none}
+.arcmb{display:none;width:100%;max-width:1080px;border-radius:8px;padding:13px 15px 15px;
+  background:linear-gradient(168deg,#2f3a34,#232b27 45%,#1d2420 75%,#2a332e);
+  box-shadow:0 18px 40px #000b,inset 0 1px 0 #ffffff15}
+.arcm-tete{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.arcm-nom{font:800 19px/1.15 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:.5px;
+  color:#d8ecd8;cursor:pointer}
+.arcm-nom small{display:block;font:700 7.5px/1.5 "Roboto Condensed",Arial;letter-spacing:2px;color:#7fa88c}
+.arcm-lcd{margin-left:auto;background:#0c1310;border-radius:4px;padding:6px 12px;min-width:150px}
+.arcm-lcd b{display:block;font:800 13px/1.25 "Courier New",monospace;color:#7fe0a0}
+.arcm-lcd u{display:block;text-decoration:none;font:700 7.5px/1.3 "Roboto Condensed",Arial;
+  letter-spacing:1.3px;color:#4f9068}
+.arcmb button{border:0;border-radius:4px;font:700 8.5px/1.1 "Roboto Condensed",Arial;letter-spacing:.5px;
+  color:#d4e4d8;background:linear-gradient(180deg,#4a5a50,#2f3a34);
+  box-shadow:0 2px 0 #161d19,0 3px 5px #0006,inset 0 1px 0 #ffffff1c;padding:10px 10px}
+.arcmb button:active,.arcmb button.on{background:linear-gradient(180deg,#8fe8b0,#35a868);color:#052616;
+  transform:translateY(2px);box-shadow:0 0 0 #161d19,inset 0 1px 3px #0005}
+.arcm-bar{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:9px}
+.arcm-kns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.arcm-kn{width:46px;text-align:center;touch-action:none}
+.arcm-kn .bt{width:36px;height:36px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#5a6b60,#2c352f 55%,#151a17);
+  box-shadow:0 2px 5px #0008,inset 0 1px 1px #ffffff28}
+.arcm-kn .bt i{position:absolute;left:50%;top:3px;width:2px;height:40%;margin-left:-1px;border-radius:1px;
+  background:#8fe8b0}
+.arcm-kn em{display:block;margin-top:2px;font:700 7px/1.2 "Roboto Condensed",Arial;color:#9fc0ac;
+  font-style:normal}
+/* La grille des motifs : huit banques de seize, comme sur une Electribe. Elle
+   ne s'ouvre qu'au besoin — pendant qu'on écrit un motif, elle ne sert pas. */
+.arcm-grille{display:none;margin-bottom:9px;padding:8px;border-radius:9px;
+  background:#131317;border:1px solid #2a2a31}
+.arcm-grille.vu{display:block}
+.arcm-banques{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:6px}
+.arcm-banques button{padding:8px 2px;font-size:9px}
+.arcm-pads{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.arcm-pads button{padding:11px 2px;font-size:9.5px;position:relative}
+/* trois états : vide, écrit, et le motif qui joue */
+.arcm-pads button.plein{background:#3a3a44;color:#fff}
+.arcm-pads button.on{background:var(--accent);color:#141014}
+.arcm-pads button.file{outline:2px solid var(--accent);outline-offset:-2px}
+.arcm-chaine{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:8px;
+  padding-top:8px;border-top:1px solid #26262d}
+.arcm-chaine b{flex:1;min-width:120px;font:700 9.5px/1.4 "Roboto Condensed",Arial;
+  letter-spacing:.8px;color:#9a9792}
+.arcm-sel{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:8px}
+.arcm-sel button{padding:9px 2px;font-size:7.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.arcm-sel button.vide{opacity:.4}
+.arcm-pas{display:grid;grid-template-columns:repeat(16,1fr);gap:4px}
+.arcm-pas button{padding:15px 0;position:relative;background:linear-gradient(180deg,#3a473f,#232b27)}
+.arcm-pas button.act{background:linear-gradient(180deg,#8fe8b0,#35a868)}
+.arcm-pas button.hors{opacity:.35}
+.arcm-pas button.cur::after{content:"";position:absolute;left:50%;top:4px;width:6px;height:6px;
+  margin-left:-3px;border-radius:50%;background:#fff;box-shadow:0 0 7px #fff}
+@media (max-width:780px){
+  .arcm-sel{grid-template-columns:repeat(4,1fr)}
+  .arcm-pas button{padding:11px 0}
+}
+
+.pick.parcm{background:linear-gradient(165deg,#35a868,#0f1a14 55%,#1d3a28)}
+.pick.parcm b{color:#9fe8b8;text-shadow:0 2px 0 #0a1a10}
+.pick.parcm span{color:#b8d8c4}

@@ -1,0 +1,264 @@
+  <div class="doc" id="note-general" data-titre="GÉNÉRAL">
+  <h3>Revenir au menu</h3>
+  <p>Le bouton <b>☰ MENU</b>, en haut à droite à côté de NOTICE, ramène au choix des machines depuis
+  n'importe laquelle. La lecture s'arrête et les réglages sont gardés.</p>
+  <h3>L'application</h3>
+  <p>Onze boîtes à rythmes recréées, <b>entièrement hors ligne</b> : aucun accès réseau, aucun échantillon
+  téléchargé. Tous les sons sont synthétisés ou échantillonnés sur l'appareil. La permission Internet n'est
+  même pas demandée.</p>
+  <p>Chaque machine garde <b>ses propres motifs et ses propres sons</b>, enregistrés automatiquement.
+  Le bouton <b>WRITE</b> fixe le motif en mémoire ; les réglages, eux, sont gardés en continu.</p>
+
+  <h3>Plein écran</h3>
+  <p>Le rack de l'Eurorack a un bouton <b>PLEIN ÉCRAN</b> qui efface tout ce qui ne sert qu'à monter le
+  patch — la barre de commandes et les deux boutons du haut — et garde START, le tempo et l'afficheur. Un
+  bouton discret en haut à droite ramène à l'affichage normal, et revenir au menu en sort de toute façon.
+  C'est surtout utile en tenant le téléphone debout, où chaque rangée de boutons compte.</p>
+
+  <h3>Zoom et déplacement</h3>
+  <p>Deux doigts qui s'écartent agrandissent la façade, jusqu'à quatre fois. Deux doigts qui se rapprochent
+  la <b>rétrécissent</b>, jusqu'à un peu moins de la moitié : utile sur les modules les plus hauts de
+  l'Eurorack, qu'aucun écran de téléphone ne montre en entier.</p>
+  <p>Pour la <b>déplacer</b>, le plus simple est de <b>glisser à deux doigts</b>, où que ce soit — sur les
+  potards, sur les boutons, n'importe où. Tant que l'écartement des doigts ne change pas franchement, la
+  façade se contente de suivre : on peut donc la faire glisser de droite à gauche sans toucher au zoom. Sur
+  une façade chargée comme la MPC ou l'Eurorack, c'est bien plus commode que de chercher un bout de fond
+  libre.</p>
+  <p>Un seul doigt posé <b>sur le fond</b> — châssis, bandeaux de titre, espaces entre les blocs — déplace
+  aussi, quand la façade est agrandie. Un doigt sur une commande règle la commande, comme d'habitude. Deux
+  appuis brefs sur le fond remettent à plat.</p>
+
+  <h3>Réglages</h3>
+  <p>Le <b>métronome</b> marque les temps pendant la lecture, plus fort sur le premier ; il ne passe ni par
+  les effets ni par les niveaux de parties, et n'est pas envoyé en MIDI.</p>
+  <p>Le <b>retour haptique</b> donne une vibration différente selon la commande. La <b>lecture en
+  arrière-plan</b> laisse le rythme tourner quand on quitte l'application, avec une notification ; la couper
+  arrête la lecture à la sortie. <b>PANIQUE</b> coupe tout, ferme les notes MIDI ouvertes et rétablit le volume.</p>
+
+  <h3>MIDI</h3>
+  <p>Branchez une carte USB-C vers MIDI puis cherchez les appareils ci-dessous. En <b>sortie</b>, chaque coup
+  part en note : percussions sur le canal réglable, parties mélodiques sur les canaux 1 et 2. L'<b>horloge</b>
+  et les messages de départ et d'arrêt peuvent entraîner un autre appareil.</p>
+  <p>En <b>entrée</b>, les vingt-cinq machines répondent, chacune à sa façon. Les six Electribe prennent les
+  notes 36 à 44 sur leurs parties de percussion et les autres canaux sur leurs parties mélodiques. Les dix
+  boîtes à rythmes — TR-808, 909, 707, RD-6, MPC, DMX, volca, CR-5000, DrumBrute, TR-1000, machine
+  d'archive — acceptent <b>exactement les notes qu'elles émettent</b> : une note de grosse caisse tombe sur
+  la grosse caisse, sans réglage. Brancher deux machines de l'application l'une sur l'autre fonctionne donc
+  d'office. La TD-3 est mélodique : la note reçue est la note jouée, sur deux octaves autour du do médian.
+  L'Eurorack ne répond pas, n'ayant pas de voix fixes.</p>
+  <p>Une note que la machine ne connaît pas joue la <b>voix choisie à l'écran</b> : n'importe quel clavier
+  reste utilisable sans rien accorder. Une vélocité supérieure à 100 vaut accent.</p>
+  <p>À l'<b>enregistrement</b>, tout rentre dans le motif, sur toutes les machines qui en ont un.
+  Voir ci-dessous.</p>
+
+  <h3>Jouer un motif à la main</h3>
+  <p>Sur seize machines, frapper un instrument pendant la lecture l'inscrit dans le motif, que la frappe
+  vienne du doigt ou d'un clavier MIDI. La frappe se cale sur le <b>pas le plus proche</b> — le pas courant
+  si on est dans sa première moitié, le suivant sinon — parce qu'on tape presque toujours un peu après le
+  temps qu'on vise.</p>
+  <p>Ce qui arme l'écriture change d'une machine à l'autre, en suivant l'original :</p>
+  <ul>
+  <li><b>TR-808, 909, 707, RD-6</b> : le mode <b>PATTERN WRITE</b>, comme sur les vraies.</li>
+  <li><b>DrumBrute Impact, TR-1000, machine d'archive, MPC, DMX</b> : le bouton <b>REC</b>.</li>
+  <li><b>volca sample</b> : le bouton <b>REC PAS</b>. À ne pas confondre avec <b>MOTION</b> juste à côté,
+  qui enregistre les mouvements de potards — les deux fonctionnent ensemble.</li>
+  <li><b>Les six Electribe</b> : leur propre REC, comme avant.</li>
+  </ul>
+  <p>Le bouton <b>ACCENT</b>, là où il existe, s'applique à la frappe : la note est écrite accentuée. Sur la
+  TR, l'accent tombe sur la ligne d'accent du motif, comme il se doit — et la ligne d'accent elle-même ne se
+  frappe pas.</p>
+  <p>La CR-5000 n'enregistre rien : ses rythmes sont figés en usine, c'était tout le principe de la
+  machine. L'Eurorack non plus, n'ayant pas de motif.</p>
+  <h3>Les deux projets invités</h3>
+  <p>Deux applications séparées vivent dans le menu, chacune dans sa propre page :</p>
+  <ul>
+  <li><b>STUDIO TIBO</b> — une station de production complète : séquenceur à pas, piano roll
+  multi-instruments, enregistrement micro et MIDI, onze effets d'insert, mixeur avec égaliseur et départs,
+  automation par courbes, arrangeur, export WAV et par pistes. C'est le complément naturel des machines :
+  elles fabriquent les sons, il les arrange.</li>
+  <li><b>NEXUS BEAT LAB</b> — seize pads et un séquenceur, avec de vrais <b>échantillons</b> 808, 909 et
+  drum'n'bass, là où les vingt-cinq machines synthétisent tout.</li>
+  </ul>
+  <p>Ces deux-là sont des <b>fichiers séparés</b>, livrés dans l'application Android et dans l'exécutable de
+  bureau. Le fichier <code>drm16.html</code> ouvert tout seul — depuis les téléchargements ou sur un
+  ordinateur — fonctionne entièrement pour les vingt-cinq machines et l'Eurorack, mais n'a pas ces deux
+  projets à côté de lui : il vous le dira clairement au lieu d'afficher une page cassée.</p>
+  <p>Chacune tourne dans son propre document : elles gardent leurs réglages de leur côté et ne peuvent rien
+  déranger ici. Ouvrir l'une <b>arrête le séquenceur</b> de la machine en cours — deux moteurs audio qui
+  jouent ensemble se disputeraient la sortie. Fermer la referme complètement, son et tout.</p>
+
+  <h3>Bibliothèque</h3>
+  <p>Trois rayons. <b>SONS</b> réunit la banque interne et tous vos enregistrements : écouter, renommer,
+  supprimer, importer un fichier, enregistrer au micro, et surtout <b>affecter</b> un son à la partie ou au
+  pad de votre choix — la machine visée est chargée toute seule.</p>
+  <p><b>PRISES MIDI</b> reprend les enregistrements : jouer, renommer, exporter en .mid, ou les ouvrir
+  directement dans l'éditeur en rouleau.</p>
+  <h3>Traiter les sons</h3>
+  <p>Chaîne reprise de <b>MOC'TA BASS</b> : offset continu, passe-haut, coupe des silences, porte de bruit,
+  accentuation de l'attaque, compression, saturation, mise à niveau en <b>LUFS</b>, fondus et limiteur à
+  anticipation. Six préréglages — <i>doux, punch, max, loop, sub, voix</i> — appliqués aux sons enregistrés
+  ou importés, et par le bouton <b>TRAITER</b> de chaque son.</p>
+  <p>Deux règles de son auteur, gardées telles quelles : la saturation passe <b>avant</b> la mise à niveau,
+  sinon elle déplace le niveau qu'on vient de caler ; et le gain supplémentaire <b>déplace la cible</b> au
+  lieu de s'ajouter après, sinon le limiteur le reprend aussitôt. Mesuré sur un coup de grosse caisse
+  enregistré à −50 LUFS : <b>+32 dB</b> en <i>doux</i>, <b>+40 dB</b> en <i>max</i>, crête à −0,19 dB,
+  aucun écrêtage.</p>
+
+  <h3>Égaliser le kit</h3>
+  <p>Aligne le niveau perçu de toutes les parties de la machine affichée, pour que les pads répondent
+  pareil. La mesure se fait en sonie pondérée, et l'opération est répétée quatre fois : la courbe des
+  boutons rend la réponse au gain non linéaire.</p>
+  <p>Sur des sons <b>déjà traités</b>, l'écart tombe de 3,2 à 0,15 dB. Sur des sons bruts d'écart 28 dB,
+  l'application le dit : les plus faibles ne peuvent pas monter assez, et il faut les traiter d'abord.</p>
+
+  <h3>La collection archive.org</h3>
+  <p>Le quatrième rayon ouvre la <b>collection de boîtes à rythmes de l'Internet Archive</b> :
+  470 machines, 48 000 échantillons, en accès libre. On cherche une machine, on écoute ses sons un par
+  un, et on importe ceux qu'on veut dans la bibliothèque.</p>
+  <p>Le dépôt sert les fichiers <b>un par un depuis l'intérieur des archives</b> : rien n'est téléchargé
+  en entier, seulement le son écouté ou importé — quelques dizaines de kilooctets. Trois plafonds
+  protègent la connexion : 3 Mo pour la liste des machines, 2 Mo pour le contenu d'une machine, 3 Mo par
+  son.</p>
+  <p>Les sons importés passent par le <b>traitement choisi plus haut</b> et sont rééchantillonnés à
+  32 kHz, comme les enregistrements au micro. Ils portent le nom de leur machine — « Oberheim BD1 ».</p>
+  <p>Vous y trouverez les vraies machines dont l'application propose des recréations : Electro-Harmonix
+  DRM-15, DRM-16 et DRM-32, les Electribe, les MPC, les TR-808, 909 et 707, l'Oberheim DMX, la volca
+  sample. De quoi comparer ma synthèse aux enregistrements d'origine.</p>
+
+  <h3>Exporter pour la carte de l'ES-1</h3>
+  <p>Écrit tous les sons en <b>WAV 32 kHz, seize bits, mono</b>, nommés <code>00.WAV</code> à
+  <code>99.WAV</code>, plus un <code>names.txt</code> qui rappelle à quoi correspond chaque numéro. Il n'y
+  a plus qu'à copier le tout à la racine de la carte SmartMedia.</p>
+  <p>Ce sont les contraintes exactes de la machine : au-delà de cent fichiers, ou à un autre taux
+  d'échantillonnage, elle refuse la carte avec Er.4. Les sons d'une autre fréquence sont rééchantillonnés
+  à l'écriture.</p>
+
+  <h3>Optimiser la mémoire</h3>
+  <p>Repère les sons sans aigu et abaisse leur taux d'échantillonnage : un son grave n'a pas besoin de
+  32 kHz. Mesuré : une grosse caisse à 70 Hz descend à 8 kHz, soit les trois quarts de sa place rendus,
+  sans différence audible. Un son brillant ou du bruit restent intacts.</p>
+
+  <p><b>SAUVEGARDES</b> lit <b>tout ce que contient la machine branchée</b> — motifs, chansons, réglages
+  généraux — et l'écrit en vrais fichiers .syx dans le dossier Documents de l'application. Renvoyez une
+  sauvegarde pour remettre la machine exactement comme elle était. À faire avant toute expérience : un
+  transfert de motif ne s'annule pas tout seul.</p>
+
+  <h3>Travail du MIDI</h3>
+  <p>La tuile <b>TRAVAIL DU MIDI</b> ouvre un éditeur en rouleau, <b>une piste par son</b> : les parties de
+  percussion portent leur nom, les notes mélodiques leur hauteur et leur canal. Toucher une case vide ajoute
+  une note, toucher une note la choisit, la faire glisser la déplace ; glisser sur la règle ou sur la marge
+  fait défiler. Les boutons du bas déplacent, allongent, transposent d'une piste, doublent ou suppriment.</p>
+  <p><b>TOUT CALER</b> aligne toutes les notes sur la grille choisie — double croche, croche ou triolet.
+  <b>GARDER</b> réécrit la prise, <b>.MID</b> l'exporte, et <b>VERS LE MOTIF</b> reporte les notes dans le
+  motif de la machine choisie : de là, le transfert par exclusif les emmène dans la vraie Korg.</p>
+
+  <h3>Enregistreur MIDI</h3>
+  <p>La tuile <b>ENREGISTREUR MIDI</b> du menu ouvre une page à part : on y choisit la machine qui fait le
+  son, on lance l'enregistrement, et tout ce qui arrive par l'entrée MIDI est daté à la milliseconde.
+  Jouez sur la Korg, le son sort du téléphone. La relecture repasse par le même chemin, et chaque prise
+  s'écrit en <b>fichier .mid</b> ordinaire dans le dossier Documents de l'application.</p>
+
+  <h3>Travailler avec une vraie Electribe</h3>
+  <p><b>Du téléphone vers la machine.</b> Branchez la carte, cherchez l'appareil, laissez <b>SORTIE</b> active
+  et mettez <b>HORLOGE : ENVOYÉE</b>. Réglez la <b>note de base</b> et les <b>canaux</b> pour qu'ils
+  correspondent à ce qu'attend votre machine — sur la plupart des Electribe, les parties de percussion suivent
+  les notes à partir de do1 (36). Mettez ensuite la Korg en enregistrement temps réel et lancez la lecture
+  ici : elle reçoit le départ, l'horloge et les notes, et enregistre le motif au fil de la mesure.</p>
+  <p><b>De la machine vers le téléphone.</b> Mettez <b>HORLOGE : SUIVIE</b>. Le séquenceur de l'application
+  s'arrête d'avancer tout seul : ce sont les tics reçus qui le font avancer, un pas tous les six tics, et le
+  tempo affiché se déduit de ce qui arrive. Lancez la Korg, les deux partent ensemble et restent ensemble.
+  L'application n'envoie alors plus d'horloge, pour ne pas se battre avec la machine qui mène.</p>
+  <p>Dans les deux sens, <b>ENTRÉE</b> active permet aussi de jouer les parties de l'application depuis les
+  touches de la Korg, et d'enregistrer au vol avec REC.</p>
+
+  <h3>Décalage humain</h3>
+  <p>Un séquenceur tombe exactement sur la grille ; un batteur non. Ce réglage déplace chaque pas d'un peu
+  de hasard, tiré une fois par pas : tous les instruments d'un même pas bougent ensemble, comme une main
+  qui arrive un peu tôt ou un peu trop tard.</p>
+  <p>Quelques millisecondes suffisent pour un groove ; au-delà de trente, c'est un batteur fatigué. Zéro
+  rend la machine parfaitement droite, ce qui est juste pour une 808 et mortel pour un hip-hop.</p>
+  <p><button class="sec" id="b-hum">DÉCALAGE : 0 ms</button>
+     <button class="sec" id="b-hasard">TIRER LES SONS AU SORT</button></p>
+  <p style="opacity:.75;font-size:13px">Le tirage au sort ne touche <b>que les réglages de sons</b> de la
+  machine affichée : le motif reste intact. C'est fait pour trouver, pas pour ranger.</p>
+
+  <h3>Exporter le motif en WAV</h3>
+  <p>Le motif de la machine affichée est rendu <b>hors ligne, plus vite que le temps réel</b>, avec toute
+  sa chaîne d'effets et le limiteur de sortie, puis écrit en WAV stéréo seize bits dans le dossier
+  Documents. Choisissez le nombre de mesures, appuyez, et le fichier est là.</p>
+  <p>Deux secondes et demie sont ajoutées à la fin pour laisser mourir les réverbérations et les cymbales.
+  Le message final donne la taille et la crête atteinte.</p>
+  <p><button class="sec" id="b-wav-mes">MESURES : 2</button>
+     <button class="sec" id="b-wav">EXPORTER EN WAV</button></p>
+  <p id="wav-chemin" style="opacity:.6;font-size:12.5px"></p>
+
+  <h3>Transfert d'un motif vers une vraie Korg</h3>
+  <p>Deux machines reconnues : l'<b>ES-1</b> et l'<b>electribe de 2015</b>. Les autres utilisent des formats
+  que je n'ai pas ; branchez-en une et la reconnaissance se fait toute seule.</p>
+  <p>La méthode n'invente rien : on <b>demande d'abord son motif courant à la machine</b>, on garde ses
+  octets comme gabarit, et on ne réécrit que ce dont on connaît la place exacte. Les numéros d'échantillons
+  restent les siens.</p>
+  <p>Vers un <b>ES-1</b>, depuis l'ES-1 de l'application, le transfert porte la grille des neuf parties et
+  de l'accent, les niveaux, panoramiques, hauteurs et filtres, les interrupteurs lecture inversée, roulement
+  et effet, les mouvements de boutons, le type et les réglages de l'effet, le délai, le swing et le tempo.
+  Vers une <b>electribe de 2015</b>, depuis n'importe quelle machine, il porte la grille de pas et les notes.</p>
+  <p>Le motif part dans sa <b>mémoire d'édition</b>, jamais dans un emplacement rangé : rien n'est écrasé
+  tant que vous n'appuyez pas sur Write sur la machine elle-même. La lecture est arrêtée d'office, les
+  Electribe n'acceptant rien pendant qu'elles tournent.</p>
+  <h3>Tourner un potard</h3>
+  <p>Sur toutes les machines, la <b>poignée est le bloc entier</b> : le bouton et son étiquette. Sur les
+  rangées de petits potards — TR-1000, DrumBrute, CR-5000, Eurorack — cela triple la surface à viser.</p>
+  <p><b>S'écarter sur le côté affine le réglage</b>, jusqu'à dix fois. Posez le doigt, éloignez-le
+  horizontalement, puis montez ou descendez. Un glissé droit reste franc. <b>Toucher sans tourner</b>
+  affiche le nom du potard et sa valeur, sans rien changer.</p>
+
+  <h3>Piloter la machine au doigt</h3>
+  <p>Quand ce réglage est actif, tourner un bouton dans l'application envoie le message correspondant à la
+  machine branchée : elle suit en direct. <b>ES-1</b> et <b>EMX-1</b> sont adressés partie par partie ;
+  sur l'<b>ER-1</b>, les messages s'appliquent à la partie choisie sur la machine elle-même, son
+  implémentation ne permettant pas de la désigner à distance.</p>
+  <p><button class="sec" id="b-tele"></button></p>
+
+  <p><button class="sec" id="b-exc-lire">LIRE LE MOTIF DE LA MACHINE</button>
+     <button class="sec" id="b-exc-envoi" disabled>ENVOYER LE MOTIF</button></p>
+  <p id="exc-etat" style="opacity:.8">Aucun gabarit. Lisez d'abord le motif courant de la machine.</p>
+
+  <p style="margin-top:14px">Les appareils MIDI apparaissent <b>d'eux-mêmes</b> quand on les branche. Touchez-en un
+  pour l'ouvrir, retouchez-le pour le fermer. Le témoin dit s'il est réellement connecté ; le dernier appareil
+  choisi est rouvert tout seul quand il revient, même après un redémarrage.</p>
+  <p><button class="sec" id="b-midi-scan">CHERCHER LES APPAREILS MIDI</button></p>
+  <div id="midi-liste"></div>
+  <p id="midi-etat" class="midi-etat"></p>
+  <p><button class="sec" id="b-midi-out"></button>
+     <button class="sec" id="b-midi-in"></button></p>
+  <p><button class="sec" id="b-midi-clk"></button>
+     <button class="sec" id="b-midi-sync"></button></p>
+  <p><button class="sec" id="b-midi-ch"></button>
+     <button class="sec" id="b-midi-chsy"></button>
+     <button class="sec" id="b-midi-base"></button></p>
+  <p><button class="sec" id="b-metro">MÉTRONOME</button>
+     <button class="sec" id="b-haptic">RETOUR HAPTIQUE</button>
+     <button class="sec" id="b-bg">LECTURE EN ARRIÈRE-PLAN</button></p>
+  <p><button id="b-panique">PANIQUE · TOUT COUPER</button>
+     <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
+  <p><button class="sec" id="b-audio-etat">ÉTAT DU MOTEUR AUDIO</button>
+     <button class="sec" id="b-audio-relance">RELANCER LE MOTEUR AUDIO</button></p>
+  <p>Ce relevé est aussi dans le <b>menu</b>, tuile <b>ÉTAT DU SON</b> : plus simple à trouver qu'au fond
+  de cette page. Un second appui sur la tuile, dans les quatre secondes, relance le moteur.</p>
+  <p>Les chiffres se lisent ainsi :</p>
+  <ul>
+  <li><b>MIN DE JEU</b> — le temps réellement joué depuis l'ouverture. Tout le reste s'y rapporte.</li>
+  <li><b>PIC … SOURCES DONT … À VENIR</b> — le maximum atteint pendant le jeu, et non la valeur de
+  l'instant : ouvrir le menu arrête le séquenceur, une valeur instantanée n'y voudrait rien dire. « À
+  venir » compte les sons déjà programmés mais pas encore joués.</li>
+  <li><b>PAUSE MAX</b> — le plus long trou entre deux tours de l'ordonnanceur, <b>devant l'écran
+  seulement</b>. En arrière-plan, Android ralentit volontairement les minuteries de plusieurs secondes ;
+  ces trous-là sont réels mais ne s'entendent pas, ils ne sont donc pas comptés. Au-delà d'environ 150 ms,
+  le fil principal a été bloqué assez longtemps pour que le son s'assèche : c'est cela qu'on entend comme
+  un grésillement. Le nombre entre parenthèses dit combien de fois ce seuil a été franchi — un accident
+  isolé et des hoquets réguliers ne se soignent pas de la même façon.</li>
+  <li><b>DÉCROCHAGES</b> — les fois où le retard a dépassé 0,4 s et où il a fallu tout recaler. Le nombre
+  par minute compte davantage que le total.</li>
+  </ul>
+  </div>
+

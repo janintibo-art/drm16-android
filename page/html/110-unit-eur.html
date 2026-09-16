@@ -1,0 +1,40 @@
+<div class="eurb" id="unit-eur">
+
+  <div class="eur-bar">
+    <div class="eur-ligne">
+      <button id="eur-play" style="padding:12px 16px">START</button>
+      <div class="eur-bkn" id="eur-k-tempo"><div class="bt"><i></i></div><em>TEMPO</em></div>
+      <div class="eur-lcd"><b id="eur-val">RACK VIDE</b><u id="eur-lab">AJOUTEZ UN MODULE</u></div>
+      <button id="eur-plein" class="eur-ic" title="Plein écran">⤢</button>
+      <button id="eur-t-rack" class="eur-onglet">RACK ▾</button>
+      <button id="eur-t-patch" class="eur-onglet">PATCH ▾</button>
+    </div>
+    <div class="eur-grp" id="eur-grp-rack">
+      <button id="eur-ptn">RACK 1</button>
+      <button id="eur-nom">NOMMER</button>
+      <button id="eur-mont">MONTAGES</button>
+      <button id="eur-hasard">RACK AU SORT</button>
+      <button id="eur-exemple">EXEMPLE</button>
+      <button id="eur-vider">VIDER</button>
+    </div>
+    <div class="eur-grp" id="eur-grp-patch">
+      <button id="eur-ajout">AJOUTER</button>
+      <button id="eur-suppr">RETIRER</button>
+      <button id="eur-rangee">RANGÉE</button>
+      <button id="eur-decable">DÉCÂBLER</button>
+    </div>
+  </div>
+
+  <!-- Le catalogue vient AVANT le rack : on ne s'en sert qu'au début ou en
+       changeant d'idée, et tout en bas il fallait faire défiler la page pour
+       le voir, avec le rack qui le repoussait à mesure qu'il se remplissait. -->
+  <div class="eur-cat" id="eur-cat" style="display:none"></div>
+
+  <div class="eur-rack" id="eur-rack">
+    <svg id="eur-cables"></svg>
+    <div class="eur-piste" id="eur-piste"></div>
+  </div>
+  <div class="eur-barre-h" id="eur-barre-h"><i></i></div>
+</div>
+
+

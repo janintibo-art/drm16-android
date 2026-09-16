@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **137**.
+La version actuelle est la **138**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 137** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 138** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -52,7 +52,8 @@ Le Java ne sert que de pont vers Android.
 
 | Fichier | Rôle |
 |---|---|
-| `app/src/main/assets/drm16.html` | interface, audio, séquenceurs, tout |
+| `page/` | **les sources de la page**, découpées par thème — c'est ICI qu'on modifie (v138) |
+| `app/src/main/assets/drm16.html` | la page **assemblée** par `outils/assembler.py` — ne jamais la modifier directement |
 | `.../java/fr/tibo/drm16/MainActivity.java` | WebView, pont JS, micro, fichiers, réseau |
 | `.../java/fr/tibo/drm16/Midi.java` | API MIDI Android, SysEx |
 | `.../java/fr/tibo/drm16/PlaybackService.java` | service de premier plan |
@@ -127,6 +128,28 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Les sources de la page sont découpées — v138**
+
+`drm16.html` (27 751 lignes) est désormais **assemblé** à partir de **144 sources** rangées dans `page/` :
+- `page/html/` — en-tête, une façade par fichier (`unit-em1.html`…), menus, outils, et la notice découpée par
+  onglet (`note-kp.html`…) ;
+- `page/css/` — la base, puis une feuille par famille de machines (les plus récentes — K.O!, MC-101,
+  SmplTrek, KAOSS PAD — sont encore dans `170-eurorack.css`, à séparer quand on y touchera) ;
+- `page/js/` — `010-hote.js` en tête, puis un fichier par machine ou par grand thème (MIDI, enregistreur,
+  Eurorack en neuf fichiers, bibliothèque…). Le plus long : `250-electribe-em-1.js`, 1 252 lignes.
+- `page/ordre.txt` — l'ordre d'assemblage. Les numéros des noms (010, 020…) ne servent qu'à la lecture ;
+  **c'est `ordre.txt` qui fait foi**. Pour insérer un fichier : le créer, l'ajouter à sa place dans `ordre.txt`.
+
+**`outils/assembler.py`** recolle les sources **octet pour octet**, sans rien transformer : le découpage de la
+v138 redonne exactement le `drm16.html` de la v137 (vérifié par `cmp`). `--verifier` échoue si `drm16.html`
+ne correspond pas aux sources et **indique le fichier et la ligne** de la première différence ; il refuse aussi
+une source absente de `ordre.txt` ou un fichier sans retour à la ligne final. C'est l'**étape 0** de
+`outils/controles.sh`.
+
+**Règle** : on modifie `page/`, on lance `python3 outils/assembler.py`, et on livre les sources modifiées
+**avec** `drm16.html`. Le fichier assemblé reste dans le dépôt : l'APK, l'exécutable Windows et le test
+navigateur s'en servent tel quel. Rien ne change dans les commandes de mise à jour.
 
 **W2 : la couche HOST — v137**
 

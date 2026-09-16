@@ -1,0 +1,59 @@
+/* ===================== OBERHEIM DMX ===================== */
+body.dmx .dmxb{display:block}
+body.dmx #unit,body.dmx .em,body.dmx .er,body.dmx .ea,body.dmx .es,body.dmx .mx,body.dmx .sx,
+body.dmx .akai,body.dmx .rtr{display:none}
+.dmxb{display:none;width:100%;max-width:1180px;border-radius:6px;padding:0;position:relative;
+  background:#2b2d31;box-shadow:0 18px 40px #000a;overflow:hidden;
+  border-left:16px solid #6b4526;border-right:16px solid #6b4526}
+.dmx-in{padding:14px 16px 16px;
+  background:repeating-linear-gradient(180deg,#2b2d31 0 9px,#3a6ea8 9px 10px)}
+.dmx-tete{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px}
+.dmx-nom{font:900 46px/0.9 "Arial Black",Impact,sans-serif;letter-spacing:-2px;
+  color:#2b2d31;-webkit-text-stroke:1.5px #e8eaee;cursor:pointer}
+.dmx-lcd{margin-left:auto;background:#1a0a08;border:2px solid #55575c;border-radius:2px;
+  padding:7px 14px;min-width:150px;text-align:center}
+.dmx-lcd b{display:block;font:900 17px/1 "Courier New",monospace;color:#ff3a2a;
+  text-shadow:0 0 9px #ff2a1a;letter-spacing:2px}
+.dmx-faders{display:flex;gap:10px;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
+.dmx-f{flex:1;min-width:44px;text-align:center}
+.dmx-f .rail{height:96px;width:26px;margin:0 auto;border-radius:3px;position:relative;
+  background:linear-gradient(90deg,#1c1e21,#35373c 45%,#1c1e21);
+  box-shadow:inset 0 2px 6px #000c;touch-action:none}
+.dmx-f .rail b{position:absolute;left:-5px;right:-5px;height:18px;border-radius:3px;
+  background:linear-gradient(180deg,#4a4c52,#232529 60%,#3a3c42);
+  box-shadow:0 3px 6px #000a,inset 0 1px 0 #ffffff30;top:40px}
+.dmx-f em{display:block;margin-top:5px;font:700 8px/1.2 "Roboto Condensed",Arial;letter-spacing:1.2px;
+  color:#cfd4dc;font-style:normal}
+.dmx-grille{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.dmx-col{display:flex;flex-direction:column;gap:6px}
+.dmx-col>span{font:700 7.5px/1.2 "Roboto Condensed",Arial;letter-spacing:1.4px;color:#8fb4dc;
+  text-align:center;min-height:10px}
+.dmxk{border:0;border-radius:3px;padding:15px 2px 6px;position:relative;touch-action:none;
+  background:linear-gradient(180deg,#42454b,#1e2024 70%,#2a2c31);
+  box-shadow:0 3px 0 #131417,0 4px 7px #0007,inset 0 1px 0 #ffffff22;
+  font:700 7px/1 "Roboto Condensed",Arial;letter-spacing:.4px;color:#aeb6c2}
+.dmxk:active,.dmxk.on{background:linear-gradient(180deg,#7fb0e4,#2f6ea8);color:#06131f;
+  transform:translateY(3px);box-shadow:0 0 0 #131417,inset 0 2px 5px #0006}
+.dmxk i{position:absolute;left:0;right:0;top:4px;font-style:normal;font-size:6.5px;color:#6f7785}
+.dmxk.on i{color:#0a2233}
+.dmx-bas{display:flex;gap:8px;align-items:flex-start;margin-top:12px;flex-wrap:wrap}
+.dmx-num{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:126px;flex:none}
+.dmx-num .dmxk{padding:10px 2px;font-size:11px}
+.dmx-cmd{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;flex:1;min-width:200px}
+.dmx-play{background:linear-gradient(180deg,#f2f2ee,#c8c8c2);color:#1a1a18;padding:20px 8px;
+  border:0;border-radius:3px;box-shadow:0 3px 0 #6a6a66,0 4px 7px #0007;
+  font:800 10px/1.1 "Roboto Condensed",Arial;letter-spacing:1px}
+.dmx-play.on{background:linear-gradient(180deg,#9fd8a8,#3aa050)}
+.dmx-rec{background:linear-gradient(180deg,#8a2a20,#5a140c);color:#f0c8c2}
+.dmx-rec.on{background:linear-gradient(180deg,#ff7a68,#e02a14);box-shadow:0 0 12px #ff4a2a90}
+.dmx-marque{text-align:right;font:italic 700 15px/1 Georgia,serif;color:#e8eaee;margin-top:10px}
+@media (max-width:780px){
+  .dmxb{border-left-width:8px;border-right-width:8px}
+  .dmx-nom{font-size:32px}
+  .dmx-grille{grid-template-columns:repeat(4,1fr)}
+  .dmx-f .rail{height:70px}
+}
+
+.pick.pdmx{background:linear-gradient(165deg,#3a6ea8,#171a1f 55%,#2b2d31)}
+.pick.pdmx b{color:#dfe6f2;text-shadow:0 2px 0 #10131a}
+.pick.pdmx span{color:#a9bdd8}

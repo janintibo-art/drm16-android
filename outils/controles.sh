@@ -10,6 +10,10 @@ cd "$(dirname "$0")/.."
 etape(){ echo; echo "::group::$1"; }
 fin(){ echo "::endgroup::"; }
 
+etape "0. drm16.html correspond exactement aux sources de page/"
+python3 outils/assembler.py --verifier
+fin
+
 etape "1. Facades : chaque machine montre la sienne"
 python3 verifier-facades.py
 fin

@@ -1,0 +1,227 @@
+  <div class="doc" id="note-eur" data-titre="EURORACK">
+  <h3>Qu'est-ce qu'un Eurorack ?</h3>
+  <p>C'est un <b>format de synthétiseur en pièces détachées</b>. Dieter Doepfer l'a défini en 1995 avec son
+  système A-100, et il s'est imposé partout depuis. Le principe est simple : au lieu d'acheter un synthé
+  fini, on achète des <b>modules</b> — un oscillateur ici, un filtre là, une enveloppe ailleurs — et on les
+  visse côte à côte dans un boîtier, le <b>rack</b>. Chaque module remplit une fonction, et une seule.</p>
+  <p>Le format tient en trois mesures. Les façades font toutes <b>128,5 mm de haut</b>, ce qu'on appelle 3U.
+  Leur largeur se compte en <b>HP</b>, un pas de 5,08 mm : un module de 8 HP fait quatre centimètres de
+  large. Et l'alimentation passe par une nappe à seize broches qui distribue du <b>±12 V</b> à tout le monde.
+  Tant qu'un constructeur respecte ces trois choses, son module entre dans n'importe quel rack, à côté de
+  ceux de n'importe qui d'autre. C'est de là que vient l'abondance : plusieurs milliers de modules
+  existent, faits par des centaines d'ateliers.</p>
+
+  <h3>Rien n'est câblé d'avance</h3>
+  <p>Dans un synthé du commerce, le chemin du son est décidé à l'usine : l'oscillateur entre dans le filtre,
+  le filtre entre dans l'ampli, et on ne discute pas. Dans un Eurorack, <b>ce chemin n'existe pas</b>. Les
+  modules sont alimentés mais isolés les uns des autres. Il faut les relier soi-même, avec de petits câbles
+  à fiches de 3,5 mm qu'on pique d'une prise à l'autre.</p>
+  <p>C'est tout l'intérêt et toute la difficulté. Un rack allumé mais non câblé ne fait <b>aucun bruit</b>.
+  En échange, on peut brancher la sortie d'un filtre dans l'entrée de fréquence d'un oscillateur, ce
+  qu'aucun synthé fini ne permettra jamais.</p>
+
+  <h3>Tout est tension</h3>
+  <p>Le deuxième principe est moins visible mais plus important : <b>audio et commandes circulent dans les
+  mêmes câbles</b>. Rien ne distingue un fil qui porte une note d'un fil qui porte un réglage. C'est le même
+  courant, les mêmes prises, et on peut donc écouter une commande ou piloter un réglage avec un son.</p>
+  <p>Trois mots reviennent sans arrêt :</p>
+  <ul>
+  <li><b>CV</b>, pour <i>control voltage</i> — une tension qui règle quelque chose : une hauteur, une
+  coupure de filtre, un volume.</li>
+  <li><b>Gate</b> — une tension qui monte et reste haute tant qu'une note est tenue. Elle dit
+  <i>maintenant, et jusqu'à nouvel ordre</i>.</li>
+  <li><b>Trigger</b> — la même chose en très bref, une impulsion. Elle dit seulement <i>maintenant</i>.</li>
+  </ul>
+  <p>Et une convention par-dessus tout : le <b>1 V par octave</b>. Ajouter un volt à l'entrée de hauteur
+  d'un oscillateur monte sa note d'une octave, ajouter un douzième de volt la monte d'un demi-ton. Cette
+  règle date des synthés Moog des années soixante ; elle est ce qui permet à un séquenceur d'une marque
+  d'accorder juste un oscillateur d'une autre.</p>
+
+  <h3>Ce que fait ce rack-ci</h3>
+  <p>L'application reprend le modèle au complet : <b>cent trois modules</b>, un rack à remplir, des
+  câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
+  sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
+  exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
+  <p>Il y a des différences avec un vrai rack, autant les dire. La rangée est <b>unique</b> et défile
+  horizontalement ; la largeur en HP dessine la façade mais ne limite rien, on peut ajouter des modules sans
+  fin. Il n'y a <b>pas de polyphonie</b> : chaque oscillateur est une voix. Une entrée n'accepte
+  <b>qu'un seul câble</b>, comme sur un vrai modulaire, alors qu'une sortie peut en alimenter plusieurs.
+  Enfin il n'y a pas de normalisation : aucune prise n'est reliée en sous-main à une autre.</p>
+
+  <h3>Câbler au doigt</h3>
+  <p>Touchez une <b>sortie</b> — les prises cerclées d'or, en bas des façades —, elle s'allume. Touchez
+  ensuite une <b>entrée</b> : le câble est posé, et il pend en courbe comme un vrai fil. Toucher une entrée
+  déjà câblée retire son câble. Poser un câble sur une entrée occupée remplace le précédent.</p>
+  <p>Pas de glisser-déposer : sur un téléphone, deux touchers valent mieux qu'un geste tenu, qui rate une
+  fois sur trois.</p>
+
+  <h3>Régler un module</h3>
+  <p>Toucher la façade d'un module le <b>choisit</b> : son cadre s'éclaire et l'afficheur rappelle à quoi il
+  sert. Les potards se tournent en glissant le doigt de haut en bas ; l'afficheur montre alors la valeur, de
+  <b>0 à 100</b>, et le nom du réglage en dessous. Cette valeur est une position, pas une unité : 50 sur le
+  FREQ d'un filtre ne veut pas dire 50 Hz.</p>
+  <p>Trois choses rendent ces petits potards maniables :</p>
+  <ul>
+  <li>La <b>prise est plus large que le bouton</b> : l'étiquette dessous fait partie de la poignée, ce qui
+  triple la surface à viser. C'est vrai sur les vingt-cinq machines.</li>
+  <li><b>S'écarter sur le côté affine le réglage.</b> Posez le doigt, éloignez-le horizontalement, puis
+  montez ou descendez : le potard bouge jusqu'à dix fois plus lentement. C'est le geste des logiciels de
+  studio, et le seul moyen de viser juste sur un bouton de six millimètres. Un glissé droit reste franc.</li>
+  <li><b>Toucher sans tourner</b> affiche le nom du potard et sa valeur, sans rien changer.</li>
+  </ul>
+
+  <h3>La barre du haut</h3>
+  <p>Une seule ligne reste visible en permanence : ce qui sert à <b>jouer</b>. START lance et arrête
+  l'horloge, le potard <b>TEMPO</b> règle la vitesse de 40 à 220 — c'est le tempo général, partagé avec les
+  vingt-quatre autres machines —, et l'afficheur dit ce qui se passe. Le petit <b>⤢</b> passe en plein
+  écran.</p>
+  <p>Tout le reste ne sert qu'à <b>monter</b> le patch, jamais à en jouer : c'est rangé dans deux tiroirs
+  qui ne s'ouvrent qu'au besoin. Un seul à la fois ; rouvrir le même le referme.</p>
+  <p>Les deux mots méritent d'être distingués, car ils se ressemblent :</p>
+  <p>Le <b>rack</b>, c'est le <b>meuble</b> — le boîtier et tout ce qu'il contient. Il y en a huit, gardés
+  séparément, et on passe de l'un à l'autre comme on changerait de studio. Le <b>patch</b>, c'est ce qu'on
+  <b>a monté dedans</b> : les modules posés et les câbles entre eux.</p>
+  <p>D'où le partage des deux tiroirs. <b>RACK</b> répond à <i>sur lequel de mes huit racks je travaille,
+  et qu'est-ce que je mets dessus en bloc</i> — en changer, le nommer, y poser un montage tout fait, le
+  vider. <b>PATCH</b> répond à <i>qu'est-ce que je change dans celui que j'ai sous les yeux</i> — ajouter un
+  module, en retirer un, le déplacer, tout décâbler. Le premier remplace, le second retouche.</p>
+  <ul>
+  <li><b>RACK ▾</b> — quel meuble, et que met-on dessus. <b>RACK 1</b> ouvre la liste des huit racks, avec leur nom et leur
+  contenu. <b>NOMMER</b> baptise celui en cours, jusqu'à vingt-deux caractères ; le bouton et l'afficheur
+  montrent alors ce nom, et les confirmations aussi — on sait ce qu'on s'apprête à écraser.
+  <b>MONTAGES</b> ouvre les vingt-quatre patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
+  <b>EXEMPLE</b> remonte le patch de démonstration. <b>VIDER</b> repart d'un rack nu, après confirmation,
+  et seul le rack courant est touché.</li>
+  <li><b>PATCH ▾</b> — ce qu'on a monté dedans. <b>AJOUTER</b> ouvre le catalogue des cent trois modules,
+  rangé en huit onglets. <b>RETIRER</b> enlève le module choisi et ses câbles. <b>RANGÉE</b> le fait passer
+  sur l'autre rangée. <b>DÉCÂBLER</b> retire tous les câbles en gardant les modules.</li>
+  </ul>
+  <p>La notice s'ouvre par le bouton <b>NOTICE</b> en haut de l'écran, comme sur toutes les machines.</p>
+
+  <h3>La barre sous le rack</h3>
+  <p>Sous les modules, une <b>poignée large comme le rack</b> le fait défiler de droite à gauche. Le rack se
+  déplace aussi au doigt, mais il faut pour cela tomber entre deux modules — introuvable sur un rack bien
+  rempli. La poignée s'attrape sans viser, et sa longueur dit du même coup quelle part du rack on voit :
+  courte, il reste beaucoup à découvrir. Elle disparaît quand tout tient à l'écran.</p>
+
+  <h3>Deux rangées</h3>
+  <p>Le rack tient sur <b>deux rangées</b>. Choisissez un module et appuyez sur <b>RANGÉE</b> pour le faire
+  passer de l'une à l'autre ; les câbles suivent. Au-delà de huit modules, <b>MONTAGES</b> et <b>RACK AU
+  SORT</b> répartissent d'eux-mêmes, en coupant la chaîne en deux : le signal se lit de gauche à droite,
+  puis en dessous. La seconde rangée reste invisible tant qu'elle est vide.</p>
+
+  <h3>Quand la façade est trop haute</h3>
+  <p>Le SEQ 16 porte dix-sept potards : même rangés sur <b>deux colonnes</b>, comme le fait la machine dès
+  qu'un module en compte plus de six, il reste plus haut que l'écran. Pincez alors à deux doigts pour
+  rétrécir la façade, puis déplacez-la d'un doigt posé sur le châssis.</p>
+
+  <h3>Vingt-quatre montages tout faits</h3>
+  <p>La liste s'ouvre <b>au-dessus du rack</b>, là où on la lit sans faire défiler la page.</p>
+  <p>Un rack vide décourage : il faut connaître cent trois modules et savoir lesquels vont ensemble avant
+  d'entendre quoi que ce soit. <b>MONTAGES</b> donne des points de départ qui sonnent, rangés en cinq
+  genres. Ils remplacent le rack courant — passez au rack suivant d'abord si vous tenez au vôtre.</p>
+  <ul>
+  <li><b>RYTHMES</b> — <i>Kick 4 au sol</i>, la grosse caisse sur chaque temps avec charley à contretemps ;
+  <i>Polyrythme euclidien</i>, trois densités qui se recroisent lentement ; <i>Roulements</i>, une caisse
+  claire qui part en roulement une fois sur trois.</li>
+  <li><b>BASSES</b> — <i>Basse acide</i>, le filtre résonant balayé par l'enveloppe ; <i>Mélodie sans fin</i>,
+  le registre à décalage remis en gamme ; <i>Cloches FM</i>, où l'enveloppe ouvre le timbre et non le
+  volume.</li>
+  <li><b>AMBIANCES</b> — <i>Nappe ambiante</i>, un bourdon qui respire et sonne même à l'arrêt ;
+  <i>Île flottante</i>, deux tensions qui errent sans se répéter ; <i>Vent et métal</i>, une nappe entière
+  tirée du bruit, sans le moindre oscillateur.</li>
+  <li><b>TEXTURES</b> — <i>Le rack qui parle</i>, deux résonances de voix humaine ; <i>Nappe qui s'écarte</i>,
+  où la grosse caisse creuse la nappe à chaque frappe ; <i>Machine cassée</i>, où plus rien n'est accordé.</li>
+  <li><b>STYLES</b> — douze genres montés au plus près. <i>Acide 303</i>, où la piste d'accent est câblée à
+  part pour que certaines notes ressortent ; <i>Hardtek</i>, grosse caisse saturée jusqu'à devenir une note
+  et nappe qui plonge ; <i>Tribe</i>, trois peaux sur des densités euclidiennes qui ne retombent jamais
+  ensemble ; <i>Psychédélique</i>, nappe hachée en doubles-croches avec zaps et montée sur quatre mesures.
+  Et les huit premiers : <i>Dub</i>, un accord lancé dans un écho qui n'en
+  finit pas ; <i>Techno de Détroit</i>, accords balayés au tempo ; <i>Jungle</i> à 168 ; <i>Drone</i>, sans
+  horloge ni note ; <i>École de Berlin</i>, seize pas et un filtre qui s'ouvre sur plusieurs mesures ;
+  <i>Industriel</i> ; <i>Lo-fi</i>, où la hauteur flotte ; <i>Phases</i>, deux séquences de longueurs
+  différentes qui se décalent l'une de l'autre.</li>
+  </ul>
+  <p>Chaque montage règle aussi le <b>tempo</b> qui lui va. Et le meilleur usage n'est pas de les écouter :
+  c'est de <b>débrancher un câble à la fois</b> pour entendre ce qui disparaît. On apprend plus vite ainsi
+  qu'en lisant les fiches.</p>
+
+  <h3>Le premier patch</h3>
+  <p><b>EXEMPLE</b> monte la chaîne classique de tout synthé — celle-là même qui est figée à l'usine dans
+  les vingt-quatre autres machines. Huit modules, neuf câbles :</p>
+  <div class="enc">
+  <p><b>CLOCK OUT → SEQ 8 CLK</b> — l'horloge fait avancer le séquenceur d'un pas.<br>
+  <b>SEQ 8 CV → VCO V/OCT</b> — le pas courant donne sa hauteur à l'oscillateur.<br>
+  <b>SEQ 8 GATE → ENVELOPE GATE</b> — le même pas déclenche l'enveloppe.<br>
+  <b>VCO SAW → VCF IN</b> — la dent de scie entre dans le filtre.<br>
+  <b>VCF OUT → VCA IN</b> — le filtre entre dans l'ampli.<br>
+  <b>ENVELOPE OUT → VCA CV</b> — l'enveloppe ouvre et ferme l'ampli : c'est elle qui donne sa forme à
+  la note.<br>
+  <b>ENVELOPE OUT → VCF CV</b> — la même enveloppe balaye aussi le filtre, d'où le petit <i>ouaou</i>
+  à chaque note.<br>
+  <b>VCA OUT → ECHO IN</b>, puis <b>ECHO OUT → OUTPUT IN</b> — le traitement, puis le casque.</p>
+  </div>
+  <p>Écoutez-le, puis <b>débranchez un câble à la fois</b> pour entendre ce qui disparaît. Retirez celui de
+  l'enveloppe vers le VCA : le son devient un bourdon continu. Retirez celui du séquenceur vers le VCO :
+  toutes les notes deviennent la même. C'est la façon la plus rapide de comprendre à quoi sert chaque
+  module.</p>
+
+  <h3>Tout remettre d'aplomb</h3>
+  <p>Six modules ont une entrée <b>RST</b> : SEQ 8, SEQ 16, TRIG 4, TURING, ARP, SWITCH, ainsi que le CV
+  LOOP. Une impulsion y ramène le séquenceur à son premier pas. Sans elle, deux séquences de longueurs
+  différentes — cinq et sept pas par exemple — ne se retrouvent qu'au bout de trente-cinq pas, et jamais
+  sur la mesure.</p>
+  <p>Le geste utile : un <b>CLK DIV</b> sur l'horloge, sa sortie /16 vers les RST. Tout se réaligne à chaque
+  mesure, et les décalages deviennent un effet qu'on choisit au lieu d'une dérive qu'on subit. La remise à
+  zéro prend effet <b>au pas suivant</b>, comme sur la plupart des séquenceurs.</p>
+  <p>Sur le TURING, RST ne remet pas un compteur : il tire un registre neuf. Ce module n'a pas de début,
+  il n'a qu'un contenu.</p>
+
+  <h3>Les portes se propagent</h3>
+  <p>Un module qui reçoit une impulsion peut en émettre une à son tour. C'est ce qui permet d'enchaîner
+  <b>horloge → diviseur → générateur euclidien → percussion</b>, chacun transformant ce qu'il reçoit avant
+  de le passer au suivant. La propagation est bornée à quatre cents étapes par pas : un câblage en boucle
+  ralentit, mais ne fait pas tourner l'application indéfiniment.</p>
+  <p>Attention : seules les <b>sorties de déclenchement</b> se propagent ainsi. Une sortie CV porte bien sa
+  tension dans le câble, mais elle ne réveille pas le module d'en face. D'où les modules à deux entrées
+  séparées — PLUCK a un TRIG <i>et</i> un V/OCT, QUANT a un IN <i>et</i> un CLK — qu'il faut câbler tous
+  les deux.</p>
+  <p>Une impulsion peut aussi être <b>repoussée dans le temps</b> : BURST, CLK MULT et TRIG DLY envoient
+  leurs coups en avance sur le pas suivant, et chacun réveille bien le module d'en face à son propre
+  instant. C'est ce qui permet un vrai roulement sur une caisse claire.</p>
+
+  <h3>Rack au sort</h3>
+  <p><b>RACK AU SORT</b> tire un ensemble complet, mais pas n'importe lequel : une horloge, une source de
+  rythme prise parmi cinq, <b>deux ou trois voix</b> de percussion, un traitement, un mélangeur et une
+  sortie — le tout déjà câblé. Sans cette ossature, un tas de modules tirés vraiment au hasard ne sonne
+  pas. Le résultat est un point de départ : changez une voix, ajoutez un filtre, recâblez.</p>
+
+  <h3>Le tempo</h3>
+  <p>Le potard <b>TEMPO</b> de la barre règle la vitesse, de 40 à 220 à la noire. C'est le tempo général de
+  l'application : il est partagé avec les vingt-quatre autres machines. Un pas de rack vaut une
+  double-croche, seize pas par mesure. Le module CLOCK sort une impulsion à chaque pas, plus deux sorties
+  divisées par deux et par quatre — la croche et la noire. Pour des subdivisions plus fines, CLK MULT
+  descend jusqu'au triolet de quadruple-croche.</p>
+
+  <h3>Quand ça ne sonne pas</h3>
+  <p>Neuf fois sur dix, c'est l'un de ces six points :</p>
+  <ol>
+  <li>Il n'y a pas de module <b>OUTPUT</b>, ou rien n'y est branché. C'est lui, et lui seul, qui va
+  au casque.</li>
+  <li>L'horloge n'est pas lancée : <b>START</b> n'est pas allumé.</li>
+  <li>Le <b>VCA est fermé</b>. Son potard GAIN part de zéro : soit on le monte, soit on lui envoie une
+  enveloppe dans CV.</li>
+  <li>Le module de rythme ne reçoit pas l'horloge. Vérifiez le câble vers son entrée <b>CLK</b>.</li>
+  <li>Une voix reçoit bien une porte mais sa <b>sortie n'est branchée nulle part</b>.</li>
+  <li>Sur un MIX 4, les potards <b>B, C et D partent de zéro</b> : seul A est ouvert au départ.</li>
+  </ol>
+
+  <h3>Ce qui est gardé</h3>
+  <p><b>Huit racks nommés</b>, gardés séparément, avec leurs câbles et la position de chaque potard. Tout est
+  enregistré en continu, comme les motifs des autres machines : on retrouve ses patchs en revenant, et le
+  rack affiché à la sortie est celui qui revient.</p>
+  <p>Avant d'appuyer sur <b>RACK AU SORT</b>, passez donc au rack suivant : le tirage écrase le rack
+  courant, pas les autres. C'est aussi la façon de comparer deux versions d'un même patch — montez la
+  seconde à côté et passez de l'une à l'autre d'un bouton.</p>
+  <p>L'<b>export WAV</b> fonctionne aussi, et enregistre ce qui sort de l'OUTPUT du rack affiché.</p>
+  </div>

@@ -1,0 +1,52 @@
+/* ===================== ROLAND CR-5000 CompuRhythm ===================== */
+body.cr5 .crb{display:block}
+body.cr5 #unit,body.cr5 .em,body.cr5 .er,body.cr5 .ea,body.cr5 .es,body.cr5 .mx,body.cr5 .sx,
+body.cr5 .akai,body.cr5 .rtr,body.cr5 .dmxb,body.cr5 .korgv{display:none}
+.crb{display:none;width:100%;max-width:980px;border-radius:7px;padding:0;overflow:hidden;
+  background:#d9d7d0;box-shadow:0 16px 38px #000a}
+.cr-haut{background:linear-gradient(180deg,#e9e7e0,#dcd9d2);padding:12px 16px 10px;
+  display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;border-bottom:2px solid #b9b6ae}
+.cr-marque{font:700 13px/1 "Roboto Condensed",sans-serif-condensed,Arial;color:#d8622a;letter-spacing:1px}
+.cr-nom{font:900 20px/1 "Arial Black",Impact,sans-serif;color:#2f2f2d;letter-spacing:-.5px;cursor:pointer}
+.cr-nom small{display:block;font:700 7px/1.4 "Roboto Condensed",Arial;letter-spacing:1.6px;color:#6a6a64}
+.cr-kns{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.cr-kn{width:40px;flex:none;text-align:center;touch-action:none}
+.cr-kn .bt{width:34px;height:34px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#4a4842,#232220 55%,#111);
+  box-shadow:0 2px 5px #0008,inset 0 1px 1px #ffffff28}
+.cr-kn .bt i{position:absolute;left:50%;top:3px;width:2px;height:40%;margin-left:-1px;border-radius:1px;
+  background:#e8863a}
+.cr-kn em{display:block;margin-top:2px;font:700 6.5px/1.2 "Roboto Condensed",Arial;color:#3a3a36;
+  font-style:normal;letter-spacing:.3px}
+.cr-bas{background:linear-gradient(180deg,#cfcdc6,#c2bfb8);padding:11px 16px 14px}
+.cr-lig{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:9px}
+.cr-tit{font:700 7.5px/1.2 "Roboto Condensed",Arial;letter-spacing:1.6px;color:#4a4a44;
+  width:100%;margin-bottom:2px}
+.crk{border:0;border-radius:3px;padding:11px 9px;position:relative;
+  font:700 8.5px/1.1 "Roboto Condensed",Arial;letter-spacing:.4px;color:#2b2b28;
+  background:linear-gradient(180deg,#f0ece2,#d6d0c2);
+  box-shadow:0 3px 0 #8f8a80,0 4px 6px #0004,inset 0 1px 0 #fff}
+.crk.amb{background:linear-gradient(180deg,#f6c88e,#e09a4a)}
+.crk.vert{background:linear-gradient(180deg,#bfe0cf,#8cc4a8)}
+.crk.beige{background:linear-gradient(180deg,#efe6d2,#d8cbae)}
+.crk:active,.crk.on{background:linear-gradient(180deg,#ffb072,#d8622a);color:#2a1206;
+  transform:translateY(3px);box-shadow:0 0 0 #8f8a80,inset 0 1px 3px #0005}
+.crk i{position:absolute;left:50%;top:3px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;
+  background:#6a3a1a;opacity:.35}
+.crk.on i{background:#ff3a1a;opacity:1;box-shadow:0 0 6px #ff5a2a}
+.cr-ryt{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;flex:1;min-width:260px}
+.cr-ryt .crk{padding:13px 3px;font-size:8px}
+.cr-banq{display:flex;flex-direction:column;gap:4px;width:74px;flex:none}
+.cr-gros{padding:16px 20px;font-size:11px;letter-spacing:1px}
+.cr-lcd{background:#17120e;border-radius:3px;padding:6px 12px;min-width:150px;text-align:center}
+.cr-lcd b{display:block;font:800 14px/1.2 "Courier New",monospace;color:#ff8a3a}
+.cr-lcd u{display:block;text-decoration:none;font:700 7.5px/1.3 "Roboto Condensed",Arial;
+  letter-spacing:1.4px;color:#a8663a}
+@media (max-width:780px){
+  .cr-ryt{grid-template-columns:repeat(4,1fr)}
+  .cr-kn,.cr-kn .bt{width:31px} .cr-kn .bt{height:31px}
+}
+
+.pick.pcr5{background:linear-gradient(165deg,#e0a05a,#3a2a18 55%,#6a4a28)}
+.pick.pcr5 b{color:#ffd8a8;text-shadow:0 2px 0 #2a1c0e}
+.pick.pcr5 span{color:#d8c0a0}

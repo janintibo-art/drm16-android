@@ -1,0 +1,165 @@
+  <div class="doc" id="note-eurpat" data-titre="PATCHS EUR.">
+  <p>Huit patchs à monter soi-même, du plus simple au plus retors. À chaque fois : les modules à ajouter dans
+  l'ordre, les câbles à poser, et les réglages qui comptent. Commencez par <b>VIDER</b> le rack.</p>
+  <p>Rappel utile : une <b>sortie peut alimenter plusieurs entrées</b>, et plusieurs de ces patchs s'en
+  servent — la même enveloppe part souvent à deux endroits.</p>
+
+  <h3>1 · La basse acide</h3>
+  <p>Le patch fondateur : un filtre résonant balayé par une enveloppe. C'est le son de la TB-303, et il
+  tient en un seul câble bien placé.</p>
+  <div class="enc">
+  <p><b>Modules</b> — CLOCK, SEQ 16, SLEW, VCO, VCF, ENVELOPE, VCA, DRIVE, OUTPUT.</p>
+  <p><b>Câbles</b> — CLOCK OUT → SEQ 16 CLK · SEQ 16 CV → SLEW IN · SLEW OUT → VCO V/OCT ·
+  SEQ 16 GATE → ENVELOPE GATE · VCO SAW → VCF IN · ENVELOPE OUT → VCF CV · VCF OUT → VCA IN ·
+  ENVELOPE OUT → VCA CV · VCA OUT → DRIVE IN · DRIVE OUT → OUTPUT IN.</p>
+  <p><b>Réglages</b> — VCF : FREQ bas, autour de 20, Q haut, autour de 70, CV AMT à fond. ENVELOPE : ATK à
+  zéro, DEC vers 30, SUS bas. SEQ 16 : LEN vers 8.</p>
+  </div>
+  <p>Le câble de l'enveloppe vers le CV du filtre est celui qui fait tout : sans lui, c'est une basse
+  quelconque. Le SLEW ajoute le glissando d'une note à l'autre — mettez TIME à zéro pour comparer.</p>
+
+  <h3>2 · Trois voix euclidiennes</h3>
+  <p>Un rythme complet sans écrire un seul pas, en laissant EUCLID répartir les coups.</p>
+  <div class="enc">
+  <p><b>Modules</b> — CLOCK, CLK DIV, EUCLID, KICK, CLAP, HAT, MIX 4, LIMIT, OUTPUT.</p>
+  <p><b>Câbles</b> — CLOCK OUT → CLK DIV IN · CLK DIV /4 → KICK TRIG · CLOCK OUT → EUCLID IN ·
+  EUCLID OUT → CLAP TRIG · EUCLID INV → HAT TRIG · KICK OUT → MIX 4 A · CLAP OUT → MIX 4 B ·
+  HAT OUT → MIX 4 C · MIX 4 OUT → LIMIT IN · LIMIT OUT → OUTPUT IN.</p>
+  <p><b>Réglages</b> — <b>ouvrez B et C sur le MIX 4</b>, ils partent à zéro. EUCLID : STEPS à fond,
+  FILL vers 30. HAT : DECAY court.</p>
+  </div>
+  <p>La sortie INV de l'EUCLID donne au charley exactement les pas que le clap ne prend pas : les deux
+  voix s'emboîtent sans se marcher dessus. Tournez SHIFT pendant que ça tourne, le rythme se déplace sans
+  changer de densité.</p>
+
+  <h3>3 · La nappe qui respire</h3>
+  <p>Aucun séquenceur, aucune horloge : ce patch sonne même à l'arrêt. C'est un bourdon, et il montre bien
+  qu'un modulaire n'a pas besoin de rythme pour faire de la musique.</p>
+  <div class="enc">
+  <p><b>Modules</b> — CHORD, SVF, LFO, VCA, REVERB, OUTPUT.</p>
+  <p><b>Câbles</b> — CHORD OUT → SVF IN · LFO SINE → SVF CV · SVF LP → VCA IN · VCA OUT → REVERB IN ·
+  REVERB OUT → OUTPUT IN.</p>
+  <p><b>Réglages</b> — <b>VCA GAIN vers 60 à la main</b>, puisque rien ne l'ouvre. LFO : RATE très bas,
+  AMT vers 40. SVF : Q modéré, sinon le balayage siffle. REVERB : MIX généreux.</p>
+  </div>
+  <p>Essayez la sortie BP du SVF à la place de LP, puis HP : trois nappes très différentes pour un seul
+  câble déplacé. Et montez SPREAD sur le CHORD pour élargir l'accord.</p>
+
+  <h3>4 · La mélodie qui ne se répète jamais</h3>
+  <p>TURING fabrique une suite de notes qui se répète, puis dérive, puis se réinstalle. On règle la dose de
+  hasard et on laisse tourner.</p>
+  <div class="enc">
+  <p><b>Modules</b> — CLOCK, TURING, MODEL, AD, VCA, ECHO, OUTPUT.</p>
+  <p><b>Câbles</b> — CLOCK OUT → TURING CLK · TURING CV → MODEL V/OCT · TURING GATE → AD TRIG ·
+  MODEL OUT → VCA IN · AD OUT → VCA CV · VCA OUT → ECHO IN · ECHO OUT → OUTPUT IN.</p>
+  <p><b>Réglages</b> — TURING : CHANCE vers 12, LEN vers 50, RANGE vers 40. AD : ATK à zéro, DEC court.
+  ECHO : TIME moyen, FEED vers 50.</p>
+  </div>
+  <p>CHANCE à zéro fige la boucle pour de bon : c'est ainsi qu'on garde un motif qui plaît. CHANCE à fond
+  donne du bruit. Tout l'intérêt est entre les deux.</p>
+
+  <h3>5 · Le rack qui parle</h3>
+  <p>FORMANT pose deux résonances de voix humaine sur n'importe quelle source riche. Une SUPERSAW suffit.</p>
+  <div class="enc">
+  <p><b>Modules</b> — CLOCK, SEQ 8, SUPERSAW, FORMANT, ENVELOPE, VCA, OUTPUT.</p>
+  <p><b>Câbles</b> — CLOCK OUT → SEQ 8 CLK · SEQ 8 CV → SUPERSAW V/OCT · SEQ 8 GATE → ENVELOPE GATE ·
+  SUPERSAW OUT → FORMANT IN · FORMANT OUT → VCA IN · ENVELOPE OUT → VCA CV · VCA OUT → OUTPUT IN.</p>
+  <p><b>Réglages</b> — SUPERSAW : DETUNE vers 30. FORMANT : Q haut. ENVELOPE : ATK doux.</p>
+  </div>
+  <p>FORMANT n'a pas d'entrée CV : la voyelle se tourne <b>à la main</b>, pendant que le patch joue. C'est
+  le moment d'agrandir la façade à deux doigts pour viser juste.</p>
+
+  <h3>6 · La cloche FM</h3>
+  <p>Une enveloppe envoyée dans l'indice de modulation, pas dans le volume : l'attaque est brillante, la
+  queue s'assombrit. C'est le principe de tous les sons de cloche numériques.</p>
+  <div class="enc">
+  <p><b>Modules</b> — CLOCK, EUCLID, FM 2OP, AD, VCA, REVERB, OUTPUT.</p>
+  <p><b>Câbles</b> — CLOCK OUT → EUCLID IN · EUCLID OUT → AD TRIG · AD OUT → FM 2OP IDX ·
+  AD OUT → VCA CV · FM 2OP OUT → VCA IN · VCA OUT → REVERB IN · REVERB OUT → OUTPUT IN.</p>
+  <p><b>Réglages</b> — FM 2OP : RATIO sur une valeur <b>non entière</b>, INDEX bas au repos. AD : ATK à
+  zéro, DEC long. REVERB : MIX à fond.</p>
+  </div>
+  <p>La même AD part à deux endroits : elle ouvre le volume et elle ouvre le timbre. Débranchez celle qui va
+  vers IDX : la cloche devient un orgue.</p>
+
+  <h3>7 · Le roulement qui hésite</h3>
+  <p>Trois nouveautés d'un coup : une porte probabiliste, un roulement qui roule vraiment, et un triolet.</p>
+  <div class="enc">
+  <p><b>Modules</b> — CLOCK, CHANCE, BURST, CLK MULT, SNARE, CLAVES, SHAKER, MIX 4, OUTPUT.</p>
+  <p><b>Câbles</b> — CLOCK /4 → CHANCE IN · CHANCE OUT → BURST IN · BURST OUT → SNARE TRIG ·
+  CHANCE ALT → CLAVES TRIG · CLOCK OUT → CLK MULT IN · CLK MULT x3 → SHAKER TRIG ·
+  SNARE OUT → MIX 4 A · CLAVES OUT → MIX 4 B · SHAKER OUT → MIX 4 C · MIX 4 OUT → OUTPUT IN.</p>
+  <p><b>Réglages</b> — ouvrez B et C sur le MIX 4. CHANCE : PROB vers 30, pour que le roulement reste rare.
+  BURST : COUNT vers 60, SPACE court. SHAKER : DECAY au minimum.</p>
+  </div>
+  <p>Une caisse claire qui part en roulement une fois sur trois, des claves les autres fois, et un tapis de
+  triolets par-dessus. La sortie ALT du CHANCE est ce qui rend le patch vivant : le temps est toujours
+  marqué, mais jamais par le même instrument. Montez PROB à fond et le roulement devient systématique,
+  donc ennuyeux — c'est un module qui se règle bas.</p>
+
+  <h3>8 · Le hasard mis en gamme</h3>
+  <p>QUANT à sa vraie place : entre une source désordonnée et un oscillateur. Notez ses <b>deux</b> câbles
+  d'entrée, c'est tout le secret du module.</p>
+  <div class="enc">
+  <p><b>Modules</b> — CLOCK, S &amp; H, QUANT, VCO, AD, VCA, PING PONG, OUTPUT.</p>
+  <p><b>Câbles</b> — CLOCK /2 → S &amp; H TRIG · S &amp; H OUT → QUANT IN · CLOCK /2 → QUANT CLK ·
+  QUANT OUT → VCO V/OCT · CLOCK /2 → AD TRIG · VCO TRI → VCA IN · AD OUT → VCA CV ·
+  VCA OUT → PING PONG IN · PING PONG OUT → OUTPUT IN.</p>
+  <p><b>Réglages</b> — S &amp; H : AMT vers 40, rien dans IN pour qu'il tire au sort. QUANT : SCALE sur la
+  pentatonique, la gamme qui ne fait jamais de fausse note. AD : DEC moyen. PING PONG : FEED vers 50.</p>
+  </div>
+  <p>La sortie /2 de l'horloge part à trois endroits : c'est permis, une sortie alimente autant d'entrées
+  qu'on veut. Comparez en tournant SCALE vers le chromatique — les notes redeviennent quelconques, et on
+  comprend d'un coup à quoi sert un quantificateur.</p>
+
+  <h3>Trois idées à essayer ensuite</h3>
+  <ul>
+  <li><b>Une polyrythmie.</b> Deux SEQ 16 sur la même horloge, l'un en LEN 16, l'autre en LEN 7 : les deux
+  motifs se recroisent toutes les cent douze mesures.</li>
+  <li><b>Une modulation retournée.</b> Passez une enveloppe dans un ATTENUV réglé en négatif avant de
+  l'envoyer au filtre : au lieu de s'ouvrir, il se ferme à chaque note.</li>
+  <li><b>Quatre voix, une seule séquence.</b> SWITCH sur l'horloge, avec quatre percussions sur ses quatre
+  sorties : chaque coup part sur une voix différente.</li>
+  </ul>
+
+  <h3>Cinq habitudes qui font gagner du temps</h3>
+  <ol>
+  <li><b>Poser l'OUTPUT en premier</b>, et remonter la chaîne vers l'amont. On entend quelque chose dès le
+  deuxième module.</li>
+  <li><b>Ajouter les modules dans l'ordre du signal.</b> Le rack les range de gauche à droite dans l'ordre
+  d'ajout : si cet ordre suit le son, les câbles restent courts et lisibles.</li>
+  <li><b>Un câble à la fois, puis écouter.</b> Monter dix câbles d'affilée et chercher ensuite pourquoi ça
+  ne marche pas prend trois fois plus longtemps.</li>
+  <li><b>Le VCA d'abord.</b> Devant un patch muet, c'est presque toujours lui : son GAIN part de zéro et
+  rien ne l'ouvre.</li>
+  <li><b>Débrancher pour comprendre.</b> Retirer un câble et écouter ce qui manque enseigne plus vite que
+  n'importe quelle explication.</li>
+  </ol>
+
+  <h3>Glossaire</h3>
+  <p><b>Attenuverter</b> — atténuateur doublé d'un inverseur : il réduit une modulation, ou la retourne.
+  Ici, le module ATTENUV.<br>
+  <b>CV</b> — <i>control voltage</i>, la tension qui commande un réglage.<br>
+  <b>Eurorack</b> — le format de modules défini par Doepfer en 1995 : façades de 128,5 mm, largeur en HP,
+  alimentation ±12 V sur nappe à seize broches.<br>
+  <b>Gate</b> — tension qui reste haute tant qu'une note dure.<br>
+  <b>HP</b> — <i>horizontal pitch</i>, l'unité de largeur d'un module : 5,08 mm.<br>
+  <b>LFO</b> — oscillateur trop lent pour s'entendre, fait pour moduler.<br>
+  <b>Mult</b> — répartiteur passif : une entrée, plusieurs sorties.<br>
+  <b>Normalisation</b> — sur un vrai module, liaison interne entre deux prises, coupée dès qu'on branche un
+  câble. Il n'y en a aucune ici.<br>
+  <b>Patch</b> — ce qu'on a monté dans un rack : les modules posés, les câbles entre eux, la position de
+  chaque potard. Sur un vrai modulaire, un patch se photographie avant d'être défait ; ici il s'enregistre
+  tout seul.<br>
+  <b>Quantification</b> — ramener une tension libre à la note la plus proche d'une gamme.<br>
+  <b>Rack</b> — le meuble qui accueille les modules, et par extension son contenu à un moment donné.
+  L'application en tient <b>huit</b>, gardés séparément : le rack est le tiroir, le patch est ce qu'il y a
+  dedans.<br>
+  <b>Trigger</b> — impulsion brève, qui ne dit que l'instant.<br>
+  <b>U</b> — unité de hauteur des racks. L'Eurorack fait 3U, le format Moog 5U.<br>
+  <b>V/oct</b> — la convention qui veut qu'un volt de plus vaille une octave de plus.<br>
+  <b>VCA</b> — amplificateur commandé en tension : le volume piloté par un câble.<br>
+  <b>VCF</b> — filtre commandé en tension.<br>
+  <b>VCO</b> — oscillateur commandé en tension.</p>
+  </div>
+

@@ -1,0 +1,209 @@
+<div class="sx" id="unit-esx">
+
+  <div class="em-jacks">
+    <div class="grp"><div class="tr"><i></i></div><span>PHONES</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>L/MONO&nbsp;&nbsp;R · OUTPUT</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>INDIV. OUT 3—4</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>AUDIO IN · MIC</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i><i></i><i></i></div><span>IN&nbsp;&nbsp;OUT&nbsp;&nbsp;THRU · MIDI</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i></div><span>AC 9V</span></div>
+  </div>
+
+  <div class="sx-marque">
+    <div class="et">ELECTRIBE</div>
+    <div class="mps">SX</div>
+    <div class="mx-valve sxv" id="sx-valve"><i></i><i></i><span>VALVE FORCE</span></div>
+    <div class="korg">KORG</div><div class="ref" id="sx-notice">ESX-1</div>
+  </div>
+
+  <div class="em-corps sx-corps">
+
+    <div class="em-col">
+      <div class="sx-bloc">
+        <div class="em-haut sx-haut">
+          <div style="display:flex;gap:6px">
+            <div class="sx-kn" id="sx-k-vol"><div class="bt">><i></i></div><em>MASTER<br>VOLUME</em></div>
+            <div class="sx-kn" id="sx-k-tube"><div class="bt">><i></i></div><em>TUBE<br>GAIN</em></div>
+          </div>
+          <div class="sx-lcd"><b id="sx-val">ESX-1</b><u id="sx-lab">PATTERN A.01</u><s></s></div>
+          <div class="em-dial" id="sx-dial"></div>
+        </div>
+        <div class="sx-params" id="sx-params"></div>
+        <div class="mx-modes">
+          <button class="sxb on" data-sxmode="0">PATTERN</button>
+          <button class="sxb" data-sxmode="1">PART EDIT</button>
+          <button class="sxb" data-sxmode="2">STEP EDIT</button>
+          <button class="sxb" data-sxmode="3">SONG</button>
+          <button class="sxb" data-sxmode="4">SAMPLE</button>
+          <button class="sxb" id="sx-write">WRITE</button>
+        </div>
+        <div class="mx-transport">
+          <button class="sxb" id="sx-home">|◀</button>
+          <button class="sxb rouge" id="sx-sampling">SAMPLING</button>
+          <button class="sxb rouge" id="sx-rec">●</button>
+          <button class="sxb" id="sx-stop">■</button>
+          <button class="sxb" id="sx-play">▶ ❙❙</button>
+          <button class="sxb" id="sx-tap">TAP</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="sxb" id="sx-import" style="flex:1">IMPORT</button>
+          <button class="sxb" id="sx-mute" style="flex:1">PART MUTE</button>
+          <button class="sxb" id="sx-solo" style="flex:1">SOLO</button>
+          <button class="sxb" id="sx-erase" style="flex:1">ERASE</button>
+          <input type="file" id="sx-fichier" accept="audio/*">
+        </div>
+      </div>
+
+      <div class="sx-bloc">
+        <div class="sx-tit">EFFECT</div>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px">
+          <div class="sx-liste" id="sx-fxtypes"></div>
+          <div>
+            <div style="display:flex;gap:6px;justify-content:center">
+              <div class="sx-kn" id="sx-k-fx1"><div class="bt">><i></i></div><em>FX EDIT 1</em></div>
+              <div class="sx-kn" id="sx-k-fx2"><div class="bt">><i></i></div><em>FX EDIT 2</em></div>
+            </div>
+            <div style="display:flex;gap:5px;margin-top:7px">
+              <button class="sxb on" id="sx-slot0" style="flex:1">FX 1</button>
+              <button class="sxb" id="sx-slot1" style="flex:1">FX 2</button>
+              <button class="sxb" id="sx-slot2" style="flex:1">FX 3</button>
+            </div>
+            <div style="display:flex;gap:5px;margin-top:5px">
+              <button class="sxb" id="sx-chain" style="flex:1">FX CHAIN</button>
+              <button class="sxb" id="sx-fxmot" style="flex:1">MOTION SEQ</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sx-bloc" style="margin-top:auto">
+        <div class="sx-tit">ARPEGGIATOR</div>
+        <div class="mx-ruban" id="sx-ruban"><b></b><span>GLISSER POUR ARPÉGER</span></div>
+      </div>
+    </div>
+
+    <div class="em-col">
+
+      <div class="sx-bloc">
+        <div class="sx-tit">PART COMMON</div>
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:8px">
+          <div class="sx-4k" style="grid-template-columns:repeat(3,1fr)">
+            <div class="sx-kn" id="sx-k-pitch"><div class="bt">><i></i></div><em>PITCH/GLIDE</em></div>
+            <div class="sx-kn" id="sx-k-pan"><div class="bt">><i></i></div><em>PAN</em></div>
+            <div class="sx-kn" id="sx-k-start"><div class="bt">><i></i></div><em>START POINT</em></div>
+            <div class="sx-kn" id="sx-k-eg"><div class="bt">><i></i></div><em>EG TIME</em></div>
+            <div class="sx-kn" id="sx-k-lvl"><div class="bt">><i></i></div><em>LEVEL</em></div>
+            <div class="sx-kn" id="sx-k-cut"><div class="bt">><i></i></div><em>CUTOFF</em></div>
+          </div>
+          <div>
+            <div style="display:flex;gap:5px">
+              <button class="sxb" id="sx-ampeg" style="flex:1">AMP EG</button>
+              <button class="sxb" id="sx-fxsel" style="flex:1">FX SELECT</button>
+            </div>
+            <div style="display:flex;gap:5px;margin-top:5px">
+              <button class="sxb" id="sx-roll" style="flex:1">ROLL</button>
+              <button class="sxb" id="sx-fxsend" style="flex:1">FX SEND</button>
+            </div>
+            <div style="display:flex;gap:5px;margin-top:5px">
+              <button class="sxb" id="sx-rev" style="flex:1">REVERSE</button>
+              <button class="sxb" id="sx-slice" style="flex:1">SLICE</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+              <div class="sx-leds"><u id="sx-smooth"><i></i>SMOOTH</u><u id="sx-trig"><i></i>TRIG HOLD</u></div>
+              <button class="sxb" id="sx-mseq" style="flex:1">MOTION SEQ</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sx-bloc">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div class="sx-tit">FILTER</div>
+            <div class="sx-4k">
+              <div class="sx-kn" id="sx-k-res"><div class="bt">><i></i></div><em>RESONANCE</em></div>
+              <div class="sx-kn" id="sx-k-egi"><div class="bt">><i></i></div><em>EG INT</em></div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+              <button class="sxb" id="sx-ftype" style="flex:none;padding:7px 9px">TYPE</button>
+              <div class="sx-leds" style="flex-direction:row;gap:7px" id="sx-ftypes"></div>
+            </div>
+          </div>
+          <div>
+            <div class="sx-tit">MODULATION</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div style="display:flex;gap:6px">
+                <div class="sx-kn" id="sx-k-mspeed"><div class="bt">><i></i></div><em>SPEED</em></div>
+                <div class="sx-kn" id="sx-k-mdepth"><div class="bt">><i></i></div><em>DEPTH</em></div>
+              </div>
+              <div class="sx-leds" id="sx-mdest"></div>
+            </div>
+            <div style="display:flex;gap:5px;margin-top:6px">
+              <button class="sxb" id="sx-mtype" style="flex:1">TYPE</button>
+              <button class="sxb" id="sx-bpmsync" style="flex:1">BPM SYNC</button>
+              <button class="sxb" id="sx-dest" style="flex:1">DEST</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sx-bloc">
+        <div class="sx-tit">SAMPLE</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="sx-leds" style="flex:1">
+            <u id="sx-ech-nom"><i></i>—</u>
+            <u id="sx-ech-info"><i></i>—</u>
+          </div>
+          <button class="sxb" id="sx-audioin" style="flex:none;padding:8px 10px">AUDIO IN</button>
+          <button class="sxb" id="sx-stretch" style="flex:none;padding:8px 10px">STRETCH</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="sx-bloc" style="margin-top:8px">
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <div style="flex:2">
+        <div class="sx-tit">DRUM PART</div>
+        <div class="sx-parts" id="sx-drums"></div>
+        <div class="sx-sous" id="sx-drums-sous"></div>
+      </div>
+      <div style="flex:.55">
+        <div class="sx-tit">KEYBOARD</div>
+        <div class="sx-parts" id="sx-keys"></div>
+        <div class="sx-sous" id="sx-keys-sous"></div>
+      </div>
+      <div style="flex:.55">
+        <div class="sx-tit">STRETCH</div>
+        <div class="sx-parts" id="sx-stretchs"></div>
+        <div class="sx-sous" id="sx-stretchs-sous"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;margin:8px 0 6px">
+      <button class="sxb" id="sx-shift" style="padding:7px 11px">SHIFT</button>
+      <button class="sxb" id="sx-pset" style="padding:7px 11px">PATTERN SET</button>
+      <button class="sxb" id="sx-kb" style="padding:7px 11px">KEYBOARD</button>
+      <button class="sxb" id="sx-prev" style="padding:7px 11px">◀</button>
+      <button class="sxb" id="sx-next" style="padding:7px 11px">▶</button>
+    </div>
+    <div class="sx-beats" id="sx-beats"></div>
+    <div class="sx-steps" id="sx-steps"></div>
+    <div class="sx-fonc">
+      <span>Last Step</span><span>Move Data</span><span>Copy Part</span><span>Copy Sound</span>
+      <span>Clear Motion</span><span>Clear Part</span><span>Clear Pattern</span><span>Insert Pattern</span>
+      <span>Delete Pattern</span><span>Clear Song</span><span>Normalize</span><span>Truncate</span>
+      <span>Time Slice</span><span>Delete Sample</span><span>Utility</span><span>Protect</span>
+    </div>
+  </div>
+
+</div>
+
+<button id="ens-sortir">◀ REVENIR À LA TABLE</button>
+<button id="sortir-plein">⤢ QUITTER LE PLEIN ÉCRAN</button>
+<button id="retour">☰ MENU</button>
+<button id="aide">NOTICE</button>
+
+

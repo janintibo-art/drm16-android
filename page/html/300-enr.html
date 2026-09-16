@@ -1,0 +1,30 @@
+<div id="enr">
+  <div class="note-bar"><b>ENREGISTREUR MIDI</b>
+    <button id="enr-aide">MODE D'EMPLOI</button>
+    <button id="enr-fermer">FERMER</button></div>
+
+  <div class="enr-tete">
+    <button id="enr-rec">● ENREGISTRER</button>
+    <button id="enr-decoupe">PISTES : PAR SON</button>
+    <button id="enr-attente">DÉPART : 1re NOTE</button>
+    <button id="enr-boucle">BOUCLE : NON</button>
+    <button id="enr-ondes">FORMES D'ONDE</button>
+    <b id="enr-etat">Prêt.</b>
+  </div>
+
+  <div class="enr-corps" id="enr-corps">
+    <div class="enr-tetes" id="enr-tetes"></div>
+    <div class="enr-piste-vue"><canvas id="enr-vue" width="900" height="300"></canvas></div>
+  </div>
+
+  <div class="enr-bas">
+    <label>MACHINE PAR DÉFAUT</label>
+    <select id="enr-machine"></select>
+    <label>AIGUILLAGE DES CANAUX</label>
+    <div id="enr-canaux"></div>
+    <label>PRISES</label>
+    <div id="enr-liste"></div>
+    <p id="enr-chemin" style="opacity:.7;font-size:12px"></p>
+  </div>
+</div>
+

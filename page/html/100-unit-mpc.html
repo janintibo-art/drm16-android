@@ -1,0 +1,113 @@
+<div class="akai" id="unit-mpc">
+
+  <div class="em-jacks">
+    <div class="grp"><div class="tr"><i></i></div><span>PHONES</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>L&nbsp;&nbsp;R · STEREO OUT</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>REC IN</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i><i></i><i></i></div><span>IN&nbsp;&nbsp;OUT A&nbsp;&nbsp;OUT B · MIDI</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i></div><span>POWER</span></div>
+  </div>
+
+  <div class="mpc-tete">
+    <div class="mpc-akai">AKAI<small>professional</small></div>
+    <div class="mpc-sous">INTEGRATED RHYTHM MACHINE<br>16 BIT DRUM SAMPLER / MIDI SEQUENCER</div>
+    <div class="mpc-grilles"><i></i><i></i><i></i><i></i></div>
+    <div class="mpc-nom"><b id="mpc-notice">MPC3000</b><span id="mpc-sstitre">MIDI PRODUCTION CENTER</span></div>
+  </div>
+
+  <div class="mpc-corps">
+
+    <div class="em-col mpc-gauche">
+      <div class="mpc-rangee">
+        <div>
+          <div class="mpc-kn" id="mpc-k-vol"><div class="bt">><i></i></div><em>MAIN<br>VOLUME</em></div>
+          <div class="mpc-kn" style="margin-top:8px" id="mpc-k-gain"><div class="bt">><i></i></div><em>REC<br>GAIN</em></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="mpc-lcd">
+            <b id="mpc-l1">                    </b>
+            <u id="mpc-l2"></u><u id="mpc-l3"></u><u id="mpc-l4"></u>
+          </div>
+          <div class="mpc-soft" id="mpc-soft"></div>
+        </div>
+      </div>
+
+      <div class="mpc-rangee" style="margin-top:10px">
+        <div class="mpc-num" id="mpc-num"></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div class="mpc-roue" id="mpc-roue"></div>
+          <div class="mpc-mini">DATA ENTRY</div>
+          <div style="display:flex;gap:6px">
+            <button class="mpcb" id="mpc-moins" style="padding:8px 14px">−</button>
+            <button class="mpcb" id="mpc-plus" style="padding:8px 14px">+</button>
+          </div>
+        </div>
+        <div class="mpc-cmd" id="mpc-cmd"></div>
+      </div>
+
+      <div class="mpc-trans" style="margin-top:10px">
+        <button class="mpcb" id="mpc-debut">|◀◀</button>
+        <button class="mpcb" id="mpc-recul">◀◀</button>
+        <button class="mpcb" id="mpc-locate">LOCATE</button>
+        <button class="mpcb" id="mpc-avance">▶▶</button>
+        <button class="mpcb" id="mpc-fin">▶▶|</button>
+        <button class="mpcb rouge" id="mpc-rec">REC</button>
+        <button class="mpcb rouge" id="mpc-over">OVER DUB</button>
+        <button class="mpcb" id="mpc-stop">STOP</button>
+        <button class="mpcb" id="mpc-play">PLAY</button>
+        <button class="mpcb" id="mpc-playstart">PLAY START</button>
+      </div>
+    </div>
+
+    <div class="em-col mpc-droite">
+      <div class="mpc-etiq">DRUMS</div>
+      <div class="mpc-pads" id="mpc-pads"></div>
+
+      <div class="mpc-rangee" style="margin-top:10px;align-items:flex-start">
+        <div class="mpc-vari">
+          <div class="mpc-mini">NOTE<br>VARIATION</div>
+          <button class="mpcb" id="mpc-apres">AFTER</button>
+          <div class="mpc-fader" id="mpc-fader"><b></b></div>
+        </div>
+        <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button class="mpcb" id="mpc-banque">PAD BANK A</button>
+          <button class="mpcb" id="mpc-plein">FULL LEVEL</button>
+          <button class="mpcb" id="mpc-16niv">16 LEVELS</button>
+          <button class="mpcb" id="mpc-repet">NOTE REPEAT</button>
+          <button class="mpcb" id="mpc-timing">TIMING CORRECT</button>
+          <button class="mpcb" id="mpc-efface">ERASE</button>
+          <button class="mpcb" id="mpc-annule">UNDO SEQ</button>
+          <button class="mpcb" id="mpc-tap">TAP TEMPO</button>
+        </div>
+      </div>
+
+      <div class="mpc-rangee" style="margin-top:10px;justify-content:center">
+        <div class="mpc-kn" id="mpc-k-niv"><div class="bt">><i></i></div><em>LEVEL</em></div>
+        <div class="mpc-kn" id="mpc-k-pan"><div class="bt">><i></i></div><em>PAN</em></div>
+        <div class="mpc-kn" id="mpc-k-tune"><div class="bt">><i></i></div><em>TUNE</em></div>
+        <div class="mpc-kn" id="mpc-k-dec"><div class="bt">><i></i></div><em>DECAY</em></div>
+        <div class="mpc-kn" id="mpc-k-filt"><div class="bt">><i></i></div><em>FILTER</em></div>
+        <div class="mpc-kn" id="mpc-k-debut"><div class="bt">><i></i></div><em>START</em></div>
+        <div class="mpc-kn" id="mpc-k-velniv"><div class="bt">><i></i></div><em>VEL &gt; LEV</em></div>
+      </div>
+      <div class="mpc-rangee" style="margin-top:8px;justify-content:center;gap:6px">
+        <button class="mpcb" id="mpc-envers" style="padding:9px 12px">REVERSE</button>
+        <button class="mpcb" id="mpc-t16" style="padding:9px 12px">16 LEV : VELOCITY</button>
+        <button class="mpcb" id="mpc-seqbpm" style="padding:9px 12px">SEQ BPM</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+

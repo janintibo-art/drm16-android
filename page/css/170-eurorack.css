@@ -1,0 +1,164 @@
+/* ===================== EURORACK ===================== */
+body.eur .eurb{display:block}
+body.eur #unit,body.eur .em,body.eur .er,body.eur .ea,body.eur .es,body.eur .mx,body.eur .sx,
+body.eur .akai,body.eur .rtr,body.eur .dmxb,body.eur .korgv,body.eur .crb,body.eur .dbib,
+body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
+.eurb{display:none;width:100%;max-width:1180px;border-radius:6px;padding:10px;position:relative;
+  background:linear-gradient(180deg,#1a1c20,#111316);
+  box-shadow:0 18px 40px #000b,inset 0 1px 0 #ffffff10}
+/* Treize boutons sur trois rangées : on ne trouvait rien. Douze d'entre eux ne
+   servent qu'à MONTER le patch, jamais à en jouer. On garde donc une seule
+   ligne permanente — jouer, régler le tempo, lire l'afficheur — et deux tiroirs
+   qui ne s'ouvrent qu'au moment de construire. Un seul à la fois. */
+.eur-bar{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.eur-ligne{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.eur-grp{display:none;gap:5px;flex-wrap:wrap;align-items:center;
+  padding:6px;border-radius:8px;background:#141418;border:1px solid #26262d}
+.eur-grp.vu{display:flex}
+.eur-onglet{background:#1e2228}
+.eur-onglet.on{background:var(--accent);color:#0d0d10}
+.eur-ic{padding:10px 12px;font-size:14px;line-height:1}
+.eurb button{border:0;border-radius:4px;font:700 8.5px/1.1 "Roboto Condensed",Arial;letter-spacing:.5px;
+  color:#d8dde4;background:linear-gradient(180deg,#454b55,#2c313a);
+  box-shadow:0 2px 0 #14171b,0 3px 5px #0006,inset 0 1px 0 #ffffff1c;padding:10px 11px}
+.eurb button:active,.eurb button.on{background:linear-gradient(180deg,#8fd4ff,#2a8fd0);color:#04222f;
+  transform:translateY(2px);box-shadow:0 0 0 #14171b,inset 0 1px 3px #0005}
+.eur-lcd{background:#0b0f13;border-radius:4px;padding:6px 11px;min-width:170px;flex:1}
+/* le rack n'avait aucun reglage de tempo : il fallait aller le changer sur
+   une autre machine, ce qui n'avait aucun sens une fois dans le patch */
+.eur-bkn{flex:none;width:40px;text-align:center;touch-action:none}
+.eur-bkn .bt{width:28px;height:28px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#5a5f68,#31353c 55%,#1a1d21);
+  box-shadow:0 2px 4px #0007,inset 0 1px 1px #ffffff22}
+.eur-bkn .bt i{position:absolute;left:50%;top:2px;width:2px;height:42%;margin-left:-1px;border-radius:1px;
+  background:#8fd4ff}
+.eur-bkn em{display:block;margin-top:2px;font:700 6.5px/1.15 "Roboto Condensed",Arial;color:#7fa8c4;
+  letter-spacing:.7px}
+.eur-lcd b{display:block;font:800 12px/1.3 "Courier New",monospace;color:#7fd4ff}
+.eur-lcd u{display:block;text-decoration:none;font:700 7.5px/1.3 "Roboto Condensed",Arial;
+  letter-spacing:1.2px;color:#4a8ab0}
+/* le rack : rails en haut et en bas, modules côte à côte */
+.eur-rack{position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+  background:linear-gradient(180deg,#2a2d33 0 7px,#0e1013 7px calc(100% - 7px),#2a2d33 calc(100% - 7px));
+  border-radius:4px;padding:9px 8px 44px;min-height:250px}
+/* Une seule rangee obligeait a defiler sans fin des qu'un patch depassait
+   huit modules. La piste empile maintenant deux rangees ; la seconde reste a
+   hauteur nulle tant qu'elle est vide, donc rien ne change pour un petit rack. */
+.eur-piste{display:flex;flex-direction:column;gap:7px;min-width:min-content;position:relative;z-index:1}
+.eur-rangee{display:flex;gap:5px;align-items:stretch;min-width:min-content}
+/* Faire défiler le rack demandait de trouver un bout de fond entre deux
+   modules — introuvable sur un rack bien rempli. Cette barre est une poignée
+   franche, large comme le rack, qu'on attrape sans viser. */
+.eur-barre-h{display:none;margin:7px 4px 0;height:26px;border-radius:13px;
+  background:#141418;border:1px solid #2a2a31;position:relative;touch-action:none}
+.eur-barre-h.vu{display:block}
+.eur-barre-h i{position:absolute;top:3px;left:0;height:18px;min-width:44px;border-radius:9px;
+  background:linear-gradient(180deg,#5a5f68,#33373d);box-shadow:0 1px 2px #0008}
+.eur-barre-h.prise i{background:linear-gradient(180deg,#7d858f,#454a52)}
+.eur-mod{flex:none;border-radius:3px;padding:6px 5px;position:relative;
+  background:linear-gradient(180deg,#e8eaee,#cfd3d9);box-shadow:0 2px 6px #0008,inset 0 1px 0 #fff;
+  display:flex;flex-direction:column}
+.eur-mod.sombre{background:linear-gradient(180deg,#31343a,#1d2025);box-shadow:0 2px 6px #0008,inset 0 1px 0 #ffffff18}
+.eur-mod.choisi{outline:2px solid #2a8fd0;outline-offset:1px}
+.eur-mod>b{display:block;text-align:center;font:700 7.5px/1.2 "Roboto Condensed",Arial;letter-spacing:.6px;
+  color:#23262b;margin-bottom:4px;min-height:9px}
+.eur-mod.sombre>b{color:#dfe4ea}
+/* Au-dela de six potards la facade devenait plus haute que l'ecran : le SEQ 16
+   en empilait dix-sept, soit six cents pixels. On passe alors sur deux colonnes,
+   remplies de haut en bas puis de gauche a droite, ce qui garde l'ordre de
+   lecture d'un sequenceur. */
+.eur-kns2{display:grid;grid-auto-flow:column;gap:0 3px}
+.eur-kn{width:100%;text-align:center;margin-bottom:3px;touch-action:none}
+.eur-kn .bt{width:26px;height:26px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#fbfaf7,#d4d1cb 46%,#96938c 80%,#c0bdb6);
+  box-shadow:0 2px 4px #0007,inset 0 1px 1px #fff}
+.eur-mod.sombre .eur-kn .bt{background:radial-gradient(circle at 34% 26%,#5a5f68,#31353c 55%,#1a1d21)}
+.eur-kn .bt i{position:absolute;left:50%;top:2px;width:2px;height:42%;margin-left:-1px;border-radius:1px;
+  background:#26282c}
+.eur-mod.sombre .eur-kn .bt i{background:#e8ecf2}
+.eur-kn em{display:block;margin-top:1px;font:700 5.5px/1.15 "Roboto Condensed",Arial;color:#3a3d42;
+  font-style:normal;letter-spacing:.2px}
+.eur-mod.sombre .eur-kn em{color:#a8b0ba}
+.eur-jacks{margin-top:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:3px;padding-top:4px}
+.eur-j{display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.eur-j span{font:700 5.5px/1.1 "Roboto Condensed",Arial;color:#3a3d42;letter-spacing:.2px;
+  max-width:34px;overflow:hidden;white-space:nowrap}
+.eur-mod.sombre .eur-j span{color:#a8b0ba}
+.eur-j i{display:block;width:15px;height:15px;border-radius:50%;margin-bottom:1px;
+  background:radial-gradient(circle at 38% 34%,#6a7079,#23262b 62%,#0d0f11);
+  box-shadow:0 1px 2px #0009,inset 0 0 0 2px #9aa0a8}
+.eur-j.sortie i{box-shadow:0 1px 2px #0009,inset 0 0 0 2px #d8a03a}
+.eur-j.brave i{background:radial-gradient(circle at 38% 34%,#8fd4ff,#2a8fd0 62%,#10486e)}
+.eur-j.attente i{box-shadow:0 0 0 2px #ffb37a,0 0 9px #ffb37a}
+/* les câbles passent devant les modules, comme en vrai ; ils ne captent pas
+   le doigt pour ne pas gêner les jacks en dessous */
+#eur-cables{position:absolute;left:8px;top:9px;pointer-events:none;overflow:visible;z-index:6}
+.eur-piste{z-index:1}
+/* Les libellés étaient à 8 px et les résumés à 7 : sur un téléphone, avec la
+   façade encore réduite par la mise à l'échelle, c'était indéchiffrable. On ne
+   choisit un module ou un montage qu'au début ou en changeant d'idée : autant
+   que ce moment-là soit confortable. Colonnes plus larges, texte plus grand,
+   et un cadre pour que le panneau se distingue du rack au-dessous. */
+.eur-cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:6px;
+  margin:0 0 9px;max-height:270px;overflow-y:auto;
+  padding:8px;border-radius:9px;background:#131317;border:1px solid #2a2a31}
+.eur-cat button{padding:10px 9px;font-size:11px;line-height:1.25;text-align:left;
+  letter-spacing:.6px;white-space:normal}
+.eur-cat button span{display:block;margin-top:3px;font-weight:400;font-size:9.5px;
+  line-height:1.35;letter-spacing:.2px;opacity:.68}
+.eur-fam{grid-column:1/-1;display:flex;gap:4px;flex-wrap:wrap;margin-bottom:2px}
+.eur-fam button{padding:8px 11px;font-size:9.5px}
+@media (max-width:780px){
+  .eur-rack{min-height:210px}
+  .eur-kn .bt{width:23px;height:23px}
+}
+
+.pick.peur{background:linear-gradient(165deg,#4a5560,#0e1013 55%,#2a8fd0)}
+.pick.peur b{color:#bfe4ff;text-shadow:0 2px 0 #0a1620}
+.pick.peur span{color:#a8bccc}
+@media (max-height:560px){
+  .unit{padding:18px 10px 4px}
+  .grid{gap:6px}
+  .pan{padding:7px}
+  #p-logo{padding:6px 12px}
+  .logo{font-size:34px}
+  .logo small{font-size:12px;letter-spacing:2.6px}
+  .knob{width:58px;height:58px}
+  .ticks s{transform-origin:50% 38px;height:5px}
+  .lbl{font-size:11px;letter-spacing:1.6px;margin-top:4px}
+  td,th{font-size:11px;padding:4px 1px}
+  .sel .opts span,.row-opts span{font-size:11px}
+  .fsw{width:52px;height:52px}
+  .led{width:12px;height:12px}
+  #p-foot{padding:8px 10px}
+  .model b{font-size:32px}
+  .brand .eh{font-size:15px} .brand .made{font-size:9px}
+  .toggle{width:16px;height:26px} .toggle b{height:10px} .toggle.on b{top:13px}
+  .jack{width:20px;height:20px}
+  .top .cap{font-size:9px;letter-spacing:1px}
+  #menu{gap:9px;padding:12px} .pick{padding:12px 16px} .pick b{font-size:28px}
+  #menu h1{font-size:12px;margin:4px 0} .pick span{font-size:10px}
+}
+@media (max-width:700px){
+  .grid{grid-template-columns:1fr}
+  .unit{padding:22px 8px 10px}
+  .logo{font-size:44px}
+  .logo small{font-size:13px;letter-spacing:2.4px}
+  .knob{width:74px;height:74px}
+  .ticks s{transform-origin:50% 46px}
+  .top{gap:1px;margin:-10px 0 7px}
+  .top .cap{font-size:7.5px;letter-spacing:.3px}
+  .toggle{width:16px;height:28px}
+  .toggle b{height:11px} .toggle.on b{top:14px}
+  .jack{width:20px;height:20px}
+  td,th{font-size:10.5px;letter-spacing:.6px;padding:7px 1px}
+  td.row{letter-spacing:1px;padding-left:3px}
+  .lbl{font-size:13px;letter-spacing:2px}
+  .sel .opts span,.row-opts span{font-size:11px;letter-spacing:1.2px}
+  .fsw{width:64px;height:64px}
+  .pan{padding:10px}
+  .brand{padding-right:60px}
+  .brand .eh{font-size:13.5px;letter-spacing:1.2px;white-space:nowrap}
+  .brand .made{font-size:8.5px;letter-spacing:1px}
+  .model b{font-size:36px}
+}

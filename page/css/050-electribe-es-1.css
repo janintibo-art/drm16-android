@@ -1,0 +1,89 @@
+/* ===================== ELECTRIBE ES-1 ===================== */
+body.es1 .es{display:block}
+body.es1 #unit,body.es1 .em,body.es1 .er,body.es1 .ea{display:none}
+.es{display:none;width:100%;max-width:1120px;border-radius:14px;padding:16px 16px 14px;
+  background:linear-gradient(165deg,#5a5d60,#3d4043 30%,#2f3235 70%,#43464a);
+  box-shadow:0 18px 40px #000a,inset 0 1px 0 #ffffff26,inset 0 -3px 8px #0007;position:relative}
+.es-vert{background:linear-gradient(165deg,#0f8d7a,#0a5f53 60%,#0d7365);border-radius:6px;padding:10px;
+  box-shadow:inset 0 1px 0 #ffffff33,0 3px 8px #0009}
+.es .lcd b{color:#b9ffe8;text-shadow:0 0 12px #3bffc880}
+.es .lcd span{color:#6fe0c2}
+.es-marque{display:flex;align-items:center;gap:10px;margin:0 4px 8px}
+.es-marque .et{font:700 14px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:4px;color:#f2f0ea;
+  background:#0c0c0c;border:2px solid #d9d6cd;border-radius:3px;padding:4px 8px}
+.es-marque .rps{font:700 10px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:2.2px;color:#e7e4dc}
+.es-marque .rps b{font:900 18px/1 "Arial Black",Impact,sans-serif;color:#12b39a;margin-right:5px}
+.es-marque .korg{margin-left:auto;font:900 20px/1 "Arial Black",Impact,sans-serif;color:#f4f2ec}
+.es-marque .ref{font:700 12px/1 Arial;letter-spacing:1.5px;color:#d7d4cc;margin-left:10px;cursor:pointer}
+.es-params{display:grid;grid-template-columns:repeat(4,1fr);gap:2px 8px;font-size:8.5px;font-weight:700;
+  letter-spacing:.4px;color:#c8fff0;margin-top:8px}
+.es-params u{display:flex;align-items:center;gap:4px;text-decoration:none;white-space:nowrap}
+.es-params u i{width:5px;height:5px;border-radius:50%;background:#054036;flex:none}
+.es-params u.on{color:#fff}
+.es-params u.on i{background:#ff4a32;box-shadow:0 0 6px #ff4a32}
+.es-params u.no{opacity:.5}
+.es-kn em{color:#2b2a26}
+.es-leds{display:flex;flex-direction:column;gap:3px;justify-content:center;font-size:8.5px;color:#2b2a26;
+  font-weight:700;letter-spacing:.5px}
+.es-leds u{display:flex;align-items:center;gap:4px;text-decoration:none}
+.es-leds i{width:5px;height:5px;border-radius:50%;background:#4a1410;flex:none}
+.es-leds u.on i{background:#ff2d1a;box-shadow:0 0 7px #ff2d1a}
+.es-parts{display:flex;gap:4px;margin-top:6px}
+.es-parts .btn{flex:1;padding:15px 2px;font-size:9px;position:relative}
+.es-parts .btn.mot::after{content:"";position:absolute;left:50%;bottom:4px;width:5px;height:5px;
+  margin-left:-2.5px;border-radius:50%;background:#12b39a;box-shadow:0 0 6px #12b39a}
+.es-parts .btn.vide{opacity:.55}
+.es-sous{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;font-size:7.5px;font-weight:700;
+  letter-spacing:.2px;color:#2b2a26;text-align:center;margin-top:3px}
+.es-src{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.es-src .btn{padding:8px 10px;font-size:9px}
+.es-src .btn.rec{background:linear-gradient(180deg,#ff8f7a,#e0503a);color:#2a0f09}
+#es-fichier{display:none}
+@media (max-width:760px){
+  .es-corps{grid-template-columns:1fr}
+  .es-sous{font-size:6px}
+  .es-parts .btn{padding:12px 1px;font-size:8px}
+}
+
+.pick.pes{background:linear-gradient(165deg,#1d5f55,#0c2a26 55%,#123a34)}
+.pick.pes b{color:#12b39a;text-shadow:0 2px 0 #05443a}
+.pick.pes span{color:#9dc4bc}
+.pick.pea2{background:linear-gradient(165deg,#2f8078,#0f3b37 55%,#175a54)}
+.pick.pea2 b{color:#5fe8da;text-shadow:0 2px 0 #06403a}
+.pick.pea2 span{color:#a9d6d0}
+.pick.per2{background:linear-gradient(165deg,#6b4a38,#2a1a12 55%,#3f291d)}
+.pick.per2 b{color:#e0a173;text-shadow:0 2px 0 #3a2114}
+.pick.per2 span{color:#cdb3a0}
+.pick.pes2{background:linear-gradient(165deg,#8f8869,#3c3828 55%,#5c563f)}
+.pick.pes2 b{color:#f0e6bd;text-shadow:0 2px 0 #33301f}
+.pick.pes2 span{color:#cbc4a8}
+/* ===== habillages mkII ===== */
+body.mk2.ea1 .ea-bleu{background:linear-gradient(165deg,#19a79d,#0c6d68 60%,#149089)}
+body.mk2.ea1 .ea-params{color:#dcfffb}
+body.mk2.ea1 .ea-params u i{background:#05403c}
+body.mk2.ea1 .ea-marque .ams b{color:#12b3a6}
+body.mk2.ea1 .lcd b{color:#ff9c8c;text-shadow:0 0 12px #ff4a3280}
+body.mk2.ea1 .lcd span{color:#ff7a66}
+body.mk2.ea1 .ea{background:linear-gradient(165deg,#3f9c95,#1d5e59 30%,#15514d 70%,#2e7d77)}
+
+body.mk2.er1 .er-rouge{background:linear-gradient(165deg,#7a5442,#43291f 60%,#5c3a2b)}
+body.mk2.er1 .er-params{color:#f4dccb}
+body.mk2.er1 .er-params u i{background:#2a160e}
+body.mk2.er1 .er-marque .rs b{color:#d08a5e}
+body.mk2.er1 .lcd b{color:#ffb48a;text-shadow:0 0 12px #ff7a3c80}
+body.mk2.er1 .lcd span{color:#e09a68}
+body.mk2.er1 .er{background:linear-gradient(165deg,#8a6a55,#4a3226 30%,#3e281e 70%,#6b4d3c)}
+
+body.mk2.es1 .es-vert{background:linear-gradient(165deg,#d8cfb0,#a99f80 60%,#c4bb9a)}
+body.mk2.es1 .es-params{color:#2b2718}
+body.mk2.es1 .es-params u i{background:#6b6146}
+body.mk2.es1 .es-params u.on{color:#000}
+body.mk2.es1 .es-marque .rps b{color:#6e5f2e}
+body.mk2.es1 .lcd{background:linear-gradient(180deg,#2a2418,#14110a)}
+body.mk2.es1 .lcd b{color:#ff8e74;text-shadow:0 0 12px #ff452080}
+body.mk2.es1 .lcd span{color:#e07a58}
+body.mk2.es1 .es{background:
+   repeating-linear-gradient(90deg,rgba(255,255,255,.10) 0 1px,rgba(0,0,0,.05) 1px 3px),
+   linear-gradient(165deg,#d9d0b2,#a89e7e 35%,#c8bf9f 70%,#9d9374)}
+body.mk2.es1 .em-jacks{color:#2b2718}
+body.mk2.es1 .em-jacks span{opacity:1}

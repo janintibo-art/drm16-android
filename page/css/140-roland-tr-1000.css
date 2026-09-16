@@ -1,0 +1,63 @@
+/* ===================== ROLAND TR-1000 ===================== */
+body.t1k .t1kb{display:block}
+body.t1k #unit,body.t1k .em,body.t1k .er,body.t1k .ea,body.t1k .es,body.t1k .mx,body.t1k .sx,
+body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t1k .dbib{display:none}
+.t1kb{display:none;width:100%;max-width:1180px;border-radius:6px;padding:12px 14px 14px;
+  background:linear-gradient(170deg,#c9ccd1,#b6bac0 42%,#a9adb4 74%,#c2c5cb);
+  box-shadow:0 18px 40px #000a,inset 0 1px 0 #ffffffb0}
+.t1k-tete{display:flex;align-items:flex-start;gap:12px;margin-bottom:9px;flex-wrap:wrap}
+.t1k-nom{font:900 19px/1 "Arial Black",Impact,sans-serif;letter-spacing:-.5px;color:#26282c;cursor:pointer}
+.t1k-nom small{display:block;font:700 7.5px/1.5 "Roboto Condensed",Arial;letter-spacing:2px;color:#5d6168}
+.t1k-lcd{margin-left:auto;background:#0d1116;border:1px solid #6a6e75;border-radius:3px;
+  padding:6px 12px;min-width:172px}
+.t1k-lcd b{display:block;font:800 13px/1.3 "Courier New",monospace;color:#7fd4ff}
+.t1k-lcd u{display:block;text-decoration:none;font:700 7.5px/1.4 "Roboto Condensed",Arial;
+  letter-spacing:1.3px;color:#4a8ab0}
+.t1kb button{border:0;border-radius:3px;font:700 8px/1.1 "Roboto Condensed",Arial;letter-spacing:.5px;
+  color:#23252a;background:linear-gradient(180deg,#eceef1,#c8ccd2);
+  box-shadow:0 2px 0 #82868d,0 3px 5px #0004,inset 0 1px 0 #fff;padding:9px 9px}
+.t1kb button:active,.t1kb button.on{background:linear-gradient(180deg,#8fd4ff,#2a8fd0);color:#04222f;
+  transform:translateY(2px);box-shadow:0 1px 0 #82868d,inset 0 1px 3px #0005}
+.t1kb button.rouge.on{background:linear-gradient(180deg,#ff8a72,#d8381a);color:#2a0a04}
+.t1k-instr{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:8px 0}
+.t1k-i{background:linear-gradient(180deg,#d4d7dc,#c0c4ca);border-radius:4px;padding:5px 3px;
+  box-shadow:inset 0 1px 0 #ffffff90;display:flex;flex-direction:column}
+.t1k-i>b{display:block;text-align:center;font:700 7px/1.15 "Roboto Condensed",Arial;letter-spacing:.3px;
+  color:#3a3d42;margin-bottom:4px;min-height:16px}
+.t1k-kn{width:100%;text-align:center;margin-bottom:3px;touch-action:none}
+.t1k-kn .bt{width:27px;height:27px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#4f5258,#2a2c30 55%,#131417);
+  box-shadow:0 2px 4px #0007,inset 0 1px 1px #ffffff2a}
+.t1k-kn .bt i{position:absolute;left:50%;top:2px;width:2px;height:42%;margin-left:-1px;border-radius:1px;
+  background:#eaeef4}
+.t1k-kn em{display:block;margin-top:1px;font:700 5.5px/1.2 "Roboto Condensed",Arial;color:#4a4d53;
+  font-style:normal;letter-spacing:.2px}
+.t1k-f{height:54px;width:20px;margin:3px auto;border-radius:3px;position:relative;touch-action:none;
+  background:linear-gradient(90deg,#9a9ea5,#c6cad0 45%,#9a9ea5);box-shadow:inset 0 2px 5px #0006}
+.t1k-f b{position:absolute;left:-4px;right:-4px;height:13px;border-radius:2px;
+  background:linear-gradient(180deg,#3c3f44,#17181b);box-shadow:0 2px 4px #0007;top:20px}
+.t1k-pad{width:100%;padding:9px 2px;font-size:8px;margin-top:auto}
+.t1k-pad.sel{box-shadow:0 2px 0 #82868d,0 0 0 2px #2a8fd0,inset 0 1px 0 #fff}
+.t1k-bar{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.t1k-morph{width:120px;height:22px;border-radius:3px;position:relative;touch-action:none;flex:none;
+  background:linear-gradient(180deg,#9a9ea5,#c6cad0 45%,#9a9ea5);box-shadow:inset 0 2px 5px #0006}
+.t1k-morph b{position:absolute;top:-3px;bottom:-3px;width:14px;border-radius:2px;
+  background:linear-gradient(180deg,#3c3f44,#17181b);box-shadow:0 2px 4px #0007;left:53px}
+.t1k-pas{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;margin-top:8px}
+.t1k-pas button{padding:15px 0;position:relative;background:linear-gradient(180deg,#2f3238,#1b1d21);
+  color:#9aa0a8;box-shadow:0 3px 0 #7a7e85,0 4px 6px #0005}
+.t1k-pas button.act{background:linear-gradient(180deg,#8fd4ff,#2a8fd0);color:#04222f}
+.t1k-pas button.sub::before{content:"";position:absolute;right:3px;bottom:3px;width:5px;height:5px;
+  border-radius:50%;background:#ffcf5a}
+.t1k-pas button.hors{opacity:.35}
+.t1k-pas button.cur::after{content:"";position:absolute;left:50%;top:4px;width:6px;height:6px;
+  margin-left:-3px;border-radius:50%;background:#fff;box-shadow:0 0 7px #fff}
+@media (max-width:820px){
+  .t1k-instr{grid-template-columns:repeat(5,1fr)}
+  .t1k-kn .bt{width:24px;height:24px}
+  .t1k-pas button{padding:11px 0}
+}
+
+.pick.pt1k{background:linear-gradient(165deg,#b9bdc4,#2a2d33 55%,#5a5e66)}
+.pick.pt1k b{color:#8fd4ff;text-shadow:0 2px 0 #161a1f}
+.pick.pt1k span{color:#cbd0d8}

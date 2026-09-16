@@ -1,0 +1,94 @@
+  <div class="doc" id="note-table" data-titre="TABLE DE MIXAGE">
+  <h3>Faire jouer plusieurs machines ensemble</h3>
+  <p>La <b>TABLE DE MIXAGE</b>, dans le menu, présente une tranche par machine. Touchez <b>JOUER</b> sur
+  celles que vous voulez entendre, mettez <b>SET : EN MARCHE</b>, et lancez la lecture. Elles partagent le
+  tempo et repartent ensemble.</p>
+  <p>Chaque tranche se lit de haut en bas, dans l'ordre où le signal la traverse :</p>
+  <ul>
+  <li><b>GAIN</b> — le niveau d'entrée, avant tout le reste. Ce n'est pas un doublon du fader : c'est lui
+  qu'on règle d'abord, jusqu'à ce que le bargraphe monte franchement sans toucher le rouge. Trop bas, on
+  pousse le fader et on monte le souffle ; trop haut, on sature avant même d'avoir touché au fader.</li>
+  <li><b>AIGU, MÉDIUM, GRAVE</b> — l'égaliseur, de −26 à +6 dB comme sur une vraie table : on coupe
+  franchement, on remonte avec mesure. Le geste le plus utile est de <b>couper le grave</b> sur tout ce
+  qui n'en a pas besoin — charleys, percussions, nappes. Trois machines qui sonnent bien seules font une
+  bouillie ensemble, presque toujours à cause du bas.</li>
+  <li><b>PANORAMIQUE</b> — deux machines au centre se masquent. Grosse caisse et basse restent au centre,
+  tout le reste s'écarte.</li>
+  <li>Le <b>bargraphe</b> et le <b>fader</b>, côte à côte en bas, comme sur toutes les consoles.</li>
+  <li><b>COUPE</b> et <b>SOLO</b>. Le coupe-son fait tomber le fader mais laisse le gain d'entrée
+  intact : en rouvrant, on retrouve son réglage.</li>
+  </ul>
+  <p>La table défile horizontalement quand il y a plus de voies que de largeur, comme on ferait glisser
+  une console devant soi.</p>
+
+  <h3>Voir les machines</h3>
+  <p><b>VOIR LES MACHINES</b> affiche les façades de toutes les machines choisies, <b>côte à côte</b>, sur
+  autant de rangées qu'il faut. Elles gardent leur taille d'origine : on fait défiler pour atteindre les
+  unes et les autres, et chacune reste utilisable — on règle un potard sur une machine pendant qu'une autre
+  joue.</p>
+  <p>Les curseurs de pas avancent sur <b>toutes</b> les façades à l'écran, chacune sur sa propre longueur
+  de motif. C'est là qu'on voit vraiment tourner un motif de seize pas contre un de douze.</p>
+  <p>Un bouton en bas à gauche ramène à la table. Sur un téléphone, deux ou trois machines suffisent ; sur
+  un grand écran, c'est là que tout prend son sens.</p>
+  <p> Le
+  solo n'est pas un bouton de plus : c'est un coupe-son sur toutes les <i>autres</i> voies. C'est ainsi
+  qu'il fonctionne sur une vraie table, et c'est pourquoi on ne peut en avoir qu'un à la fois.</p>
+  <p>Deux limites, réelles et non des oublis. <b>Dix-sept moteurs, pas vingt-cinq machines</b> : la TR-808
+  et la 909 partagent le même moteur et la même mémoire de motifs, on joue l'une ou l'autre. Même chose
+  pour les deux MPC et les variantes d'Electribe. Et chaque machine garde <b>sa propre longueur de
+  motif</b> : un motif de seize pas tourne contre un de douze sans que l'un impose sa mesure à l'autre,
+  ce qui donne des croisements longs — c'est voulu.</p>
+
+  <h3>Les mêmes branchements, en vrai</h3>
+  <p>Tout ce qui précède se transpose. Voici comment, et pourquoi.</p>
+
+  <p><b>Ce qu'il vous faut.</b> Une table de mixage avec autant de voies que de machines — comptez deux
+  voies par machine stéréo, une seule si elle est mono. Un câble jack 6,35 par entrée. Et, si vos machines
+  doivent rester ensemble, de quoi les synchroniser : c'est le point suivant, et c'est le plus important.</p>
+
+  <p><b>La synchronisation, avant tout le reste.</b> Sans elle, deux boîtes lancées à la main dérivent en
+  quelques mesures, et aucun réglage de niveau n'y changera rien. Trois façons, par ordre de fiabilité :</p>
+  <ul>
+  <li><b>L'horloge MIDI.</b> Une machine mène — celle qui a le séquenceur le plus complet —, sa prise
+  <i>MIDI OUT</i> va dans le <i>MIDI IN</i> de la suivante, dont le <i>THRU</i> va à la troisième. Ne
+  chaînez pas plus de trois appareils ainsi : chaque THRU ajoute un retard qui finit par s'entendre.
+  Au-delà, il faut un boîtier de répartition MIDI, qui envoie à tous en même temps.</li>
+  <li><b>La synchro analogique</b>, les prises <i>SYNC IN/OUT</i> en jack 3,5 des volca, Pocket Operator
+  et DrumBrute. Une impulsion par pas, rien d'autre : pas de tempo, pas de départ, juste le battement. Très
+  fiable, très simple, mais la machine esclave ne sait pas où est le premier temps — il faut lancer au bon
+  moment.</li>
+  <li><b>Le DIN Sync</b> des vieilles Roland, une prise MIDI qui ne transporte pas de MIDI. Ne la reliez
+  jamais à une entrée MIDI ordinaire : les tensions n'ont rien à voir.</li>
+  </ul>
+
+  <p><b>Les niveaux, dans l'ordre.</b> C'est là qu'on perd le plus de temps quand on s'y prend mal.
+  Machine par machine : montez le gain d'entrée de la voie jusqu'à ce que le signal le plus fort fasse
+  clignoter l'indicateur de crête, puis redescendez d'un cran. Ensuite seulement, réglez le fader. Un gain
+  trop bas oblige à pousser le fader à fond et fait monter le souffle ; un gain trop haut sature avant même
+  le fader, et aucun réglage en aval ne rattrape ça.</p>
+
+  <p><b>La panoramique fait la place.</b> Deux machines au centre se masquent. La grosse caisse et la basse
+  restent au centre — ce sont elles qui portent l'énergie et le grave se localise mal de toute façon. Tout
+  le reste s'écarte : charleys d'un côté, percussions de l'autre, nappes largement ouvertes. Vous gagnerez
+  plus de clarté avec la panoramique qu'avec n'importe quel égaliseur.</p>
+
+  <p><b>Le grave est le vrai ennemi.</b> Trois machines qui sonnent bien seules font une bouillie ensemble,
+  presque toujours à cause du bas. Coupez le grave sur tout ce qui n'en a pas besoin : le filtre passe-haut
+  de la voie, vers 100 Hz, sur les charleys, les percussions et les nappes. Une seule machine garde le
+  grave. C'est le geste qui transforme le plus un mélange.</p>
+
+  <p><b>Les effets se partagent.</b> N'achetez pas une réverbération par machine : une seule, branchée sur
+  les <i>départs auxiliaires</i> de la table, et chaque voie y envoie ce qu'elle veut. C'est moins cher,
+  ça consomme moins, et surtout ça sonne plus cohérent — tout se retrouve dans le même espace. C'est
+  exactement le choix fait ici : l'écho et la réverbération de la machine d'archive sont communs aux seize
+  pistes, pour la même raison.</p>
+
+  <p><b>Le casque avant l'enregistrement.</b> Servez-vous du départ casque de la table pour préparer une
+  machine pendant que les autres jouent — chercher un son au milieu du morceau, sans que personne ne
+  l'entende. C'est l'équivalent du solo, mais dans l'autre sens.</p>
+
+  <p><b>Enfin, la masse.</b> Si vous entendez un ronflement grave quand tout est branché, c'est une boucle
+  de masse : deux appareils reliés à la fois par le secteur et par le signal. Branchez tout sur la même
+  multiprise avant de chercher plus loin — cela règle le problème neuf fois sur dix.</p>
+  </div>
+

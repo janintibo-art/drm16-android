@@ -1,0 +1,41 @@
+/* ===================== ELECTRIBE EA-1 ===================== */
+body.ea1 .ea{display:block}
+body.ea1 #unit,body.ea1 .em,body.ea1 .er{display:none}
+.ea{display:none;width:100%;max-width:1120px;border-radius:14px;padding:16px 16px 14px;
+  background:linear-gradient(165deg,#5a5d60,#3d4043 30%,#2f3235 70%,#43464a);
+  box-shadow:0 18px 40px #000a,inset 0 1px 0 #ffffff26,inset 0 -3px 8px #0007;position:relative}
+.ea-bleu{background:linear-gradient(165deg,#3a3edd,#2124a8 60%,#2e31c4);border-radius:6px;padding:10px;
+  box-shadow:inset 0 1px 0 #ffffff33,0 3px 8px #0009}
+.ea .lcd b{color:#cfe0ff;text-shadow:0 0 12px #6e8fff80}
+.ea .lcd span{color:#9ab4ff}
+.ea-marque{display:flex;align-items:center;gap:10px;margin:0 4px 8px}
+.ea-marque .et{font:700 14px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:4px;color:#f2f0ea;
+  background:#0c0c0c;border:2px solid #d9d6cd;border-radius:3px;padding:4px 8px}
+.ea-marque .ams{font:700 10px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:2.2px;color:#e7e4dc}
+.ea-marque .ams b{font:900 18px/1 "Arial Black",Impact,sans-serif;color:#4f57ff;margin-right:5px}
+.ea-marque .korg{margin-left:auto;font:900 20px/1 "Arial Black",Impact,sans-serif;color:#f4f2ec}
+.ea-marque .ref{font:700 12px/1 Arial;letter-spacing:1.5px;color:#d7d4cc;margin-left:10px;cursor:pointer}
+.ea-params{display:grid;grid-template-columns:repeat(4,1fr);gap:2px 8px;font-size:8.5px;font-weight:700;
+  letter-spacing:.4px;color:#d8dcff;margin-top:8px}
+.ea-params u{display:flex;align-items:center;gap:4px;text-decoration:none;white-space:nowrap}
+.ea-params u i{width:5px;height:5px;border-radius:50%;background:#101560;flex:none}
+.ea-params u.on{color:#fff}
+.ea-params u.on i{background:#ff4a32;box-shadow:0 0 6px #ff4a32}
+.ea-params u.no{opacity:.5}
+.ea-kn em{color:#2b2a26}
+.ea-leds{display:flex;flex-direction:column;gap:3px;justify-content:center;font-size:8.5px;color:#2b2a26;
+  font-weight:700;letter-spacing:.5px}
+.ea-leds u{display:flex;align-items:center;gap:4px;text-decoration:none}
+.ea-leds i{width:5px;height:5px;border-radius:50%;background:#4a1410;flex:none}
+.ea-leds u.on i{background:#ff2d1a;box-shadow:0 0 7px #ff2d1a}
+.ea-bloc{display:grid;grid-template-columns:1.5fr 1fr;gap:10px}
+.ea-fil{font:700 8px/1.4 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:.8px;color:#3a3935;
+  border:1px solid #8d8b84;border-radius:3px;padding:4px 6px;margin-top:8px;text-align:center}
+@media (max-width:760px){
+  .ea-corps{grid-template-columns:1fr}
+  .ea-bloc{grid-template-columns:1fr}
+}
+
+.pick.pea{background:linear-gradient(165deg,#343a7a,#171a3c 55%,#222653)}
+.pick.pea b{color:#6e78ff;text-shadow:0 2px 0 #10154f}
+.pick.pea span{color:#a8aed6}

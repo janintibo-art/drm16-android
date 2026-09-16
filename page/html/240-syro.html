@@ -1,0 +1,29 @@
+<div id="syro">
+  <div class="note-bar"><b>VERS UNE VRAIE VOLCA</b>
+    <button id="syro-aide">MODE D'EMPLOI</button>
+    <button id="syro-fermer">FERMER</button></div>
+  <div class="syro-corps">
+    <p class="syro-mot" id="syro-absent">Le transfert n'est pas disponible dans cette version :
+    le module Syro n'a pas pu être compilé. Tout le reste fonctionne normalement.</p>
+    <div id="syro-outils">
+      <label>SON À ENVOYER</label>
+      <select id="syro-son"></select>
+      <label>EMPLACEMENT DANS LA VOLCA</label>
+      <input type="number" id="syro-slot" min="0" max="99" value="0">
+      <label>NIVEAU <span id="syro-gain-txt">remonté au maximum</span></label>
+      <input type="range" id="syro-gain" min="0" max="1" step="0.01" value="1">
+      <div class="syro-ligne">
+        <button id="syro-compresse">COMPRESSÉ : NON</button>
+        <button id="syro-envoyer">ENVOYER</button>
+      </div>
+      <p class="syro-etat" id="syro-etat">Reliez la sortie casque à SYNC IN, volume à fond.</p>
+      <ol class="syro-pas">
+        <li>Câble jack 3,5 mm de la <b>sortie casque</b> vers <b>SYNC IN</b> de la volca.</li>
+        <li><b>Volume de l'appareil à fond</b>, et aucun égaliseur ni Bluetooth.</li>
+        <li>Touchez ENVOYER, puis <b>ne touchez plus à rien</b> jusqu'à la fin.</li>
+        <li>La volca affiche sa progression et redémarre quand c'est terminé.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+

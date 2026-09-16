@@ -1,0 +1,26 @@
+  <div class="doc" id="note-vlc" data-titre="volca sample">
+  <h3>Dix parties, seize pas</h3>
+  <p>Chaque partie a son échantillon, ses onze potards et ses cinq interrupteurs. <b>SAMPLE</b> fait
+  défiler les sons de la bibliothèque, les dix touches PART choisissent la partie, les seize touches posent
+  ses pas. <b>PTN</b> passe d'un motif à l'autre, il y en a dix.</p>
+
+  <h3>Les onze potards</h3>
+  <p>Ce sont exactement ceux du format Korg : niveau, panoramique, vitesse, attaque et chute de l'enveloppe
+  de volume, intensité, attaque et chute de l'enveloppe de hauteur, point de départ, longueur, coupe-haut.
+  <b>SPEED</b> transpose l'échantillon, <b>P.INT</b> lui fait tomber ou monter la hauteur au
+  déclenchement.</p>
+
+  <h3>Mouvements</h3>
+  <p><b>MOTION</b> arme l'enregistrement : pendant la lecture, tourner un potard mémorise sa valeur
+  <b>pour ce pas-là</b>. Une deuxième pression revient en lecture, une troisième efface les mouvements de
+  la partie. Onze potards automatisables, comme sur la machine.</p>
+
+  <h3>Motifs au format Korg</h3>
+  <p><b>EXPORT .dat</b> écrit le motif courant en <b>2624 octets</b> au format documenté du SDK Korg :
+  en-tête PTST, code d'appareil 0x33B8, dix parties de 256 octets, pied PTED, tout en petit-boutiste.
+  <b>IMPORT .dat</b> relit un fichier du dossier Documents, qu'il vienne d'ici, du librarian officiel ou
+  d'un preset d'usine.</p>
+  <p>Le format vient de <b>MOC'TA BASS</b>. Une réserve de son auteur, que je reprends : l'échelle exacte
+  des valeurs de mouvement n'est pas documentée par Korg, c'est une interprétation.</p>
+  </div>
+

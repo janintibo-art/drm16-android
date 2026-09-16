@@ -1,0 +1,302 @@
+/* ===================== ROLAND TR-808 ===================== */
+body.tr8 .rtr{display:block}
+body.tr8 #unit,body.tr8 .em,body.tr8 .er,body.tr8 .ea,body.tr8 .es,body.tr8 .mx,body.tr8 .sx,
+body.tr8 .akai{display:none}
+.rtr{display:none;width:100%;max-width:1180px;border-radius:6px;padding:14px 16px 16px;
+  background:linear-gradient(172deg,#e9e7e2,#dcd9d2 40%,#d2cfc8 75%,#e4e2dc);
+  box-shadow:0 18px 40px #000a,inset 0 1px 0 #fff9,inset 0 -3px 8px #0002;position:relative}
+/* La RD-6 existe en six teintes : bleu translucide d'origine, noir, argent,
+   vert, jaune et rouge. */
+body.rd6 .rtr{background:linear-gradient(172deg,#2f8fd8,#1f6fb8 40%,#1a5fa0 75%,#2a86cc)}
+body.rd6.c1 .rtr{background:linear-gradient(172deg,#3a3d42,#26282c 40%,#1d1f22 75%,#33363b)}
+body.rd6.c2 .rtr{background:linear-gradient(172deg,#e2e4e7,#cfd2d6 40%,#c2c5ca 75%,#dadde1)}
+body.rd6.c3 .rtr{background:linear-gradient(172deg,#5cd44a,#3fae32 40%,#349626 75%,#52c842)}
+body.rd6.c4 .rtr{background:linear-gradient(172deg,#f2c63a,#dca81c 40%,#c89512 75%,#eec033)}
+body.rd6.c5 .rtr{background:linear-gradient(172deg,#d8342a,#b4231c 40%,#9c1b16 75%,#cc2e25)}
+body.rd6 .tr8-roland{color:#fff;font:900 15px/1 "Arial Black",Impact,sans-serif}
+body.rd6.c2 .tr8-roland{color:#c8281c}
+body.rd6 .tr8-nom b{color:#fff;text-shadow:0 2px 3px #0006}
+body.rd6.c2 .tr8-nom b{color:#2f2f2d;text-shadow:none}
+body.rd6 .tr8-nom span{color:#e8f2ff}
+body.rd6.c2 .tr8-nom span{color:#5a5a56}
+body.rd6 .tr8-instr{background:rgba(0,0,0,.24)}
+body.rd6 .tr8-grp>b{color:#ffffff}
+body.rd6.c2 .tr8-grp>b{color:#3a3a36}
+body.rd6 .tr8-pas button.c0,body.rd6 .tr8-pas button.c1,
+body.rd6 .tr8-pas button.c2,body.rd6 .tr8-pas button.c3{
+  background:linear-gradient(180deg,#dfe3e8,#b4bac2);
+  box-shadow:0 3px 0 #6a6f76,0 4px 6px #0005,inset 0 1px 0 #fff}
+body.rd6 .tr8-pas button.act{background:linear-gradient(180deg,#ff8f7a,#e0301c);
+  box-shadow:0 3px 0 #6a6f76,0 0 12px #ff4a2ab0,inset 0 1px 0 #ffd0c8}
+body.tr9 .rtr{background:linear-gradient(172deg,#f2f1ee,#e6e5e1 40%,#dcdbd6 75%,#eceae6)}
+body.tr9 .tr8-pas button.c0,body.tr9 .tr8-pas button.c1,
+body.tr9 .tr8-pas button.c2,body.tr9 .tr8-pas button.c3{
+  background:linear-gradient(180deg,#f8f6f0,#dcd8ce)}
+body.tr9 .tr8-pas button.c0{background:linear-gradient(180deg,#f6b27a,#e08a35)}
+body.tr9 .tr8-instr{background:#4a4a48}
+body.tr9 .tr8-nom b{color:#2f2f2d}
+.tr8-tete{display:flex;align-items:flex-start;gap:14px;margin-bottom:10px}
+.tr8-roland{font:900 20px/1 "Arial Black",Impact,sans-serif;color:#e2621c;letter-spacing:-.5px}
+.tr8-nom{margin-left:auto;text-align:right}
+.tr8-nom b{display:block;font:900 34px/1 "Arial Black",Impact,sans-serif;letter-spacing:-1px;color:#3a3a38;
+  cursor:pointer}
+.tr8-nom span{display:block;font:700 11px/1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:4px;
+  color:#5a5a56;margin-top:4px}
+.tr8-instr{display:flex;gap:0;background:#3a3a38;border-radius:3px;padding:5px;overflow-x:auto}
+.tr8-grp{flex:none;padding:0 7px;border-right:1px solid #55554f;text-align:center}
+.tr8-grp:last-child{border-right:0}
+.tr8-grp>b{display:block;font:700 7.5px/1.3 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:1px;
+  color:#e8e4da;margin-bottom:4px;white-space:nowrap}
+.tr8-kns{display:flex;gap:6px;justify-content:center}
+.tr8-kn{width:34px;flex:none;text-align:center;touch-action:none}
+.tr8-kn .bt{width:34px;height:34px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 36% 28%,#57554e,#2a2925 55%,#141310);
+  box-shadow:0 2px 5px #0009,inset 0 1px 1px #ffffff30}
+.tr8-kn .bt i{position:absolute;left:50%;top:3px;width:2px;height:40%;margin-left:-1px;border-radius:1px;
+  background:#e2621c}
+.tr8-kn em{display:block;margin-top:2px;font:700 6.5px/1.2 "Roboto Condensed",Arial;letter-spacing:.4px;
+  color:#cfcbc2;font-style:normal}
+.tr8-bar{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.tr8b{background:linear-gradient(180deg,#f2efe8,#d6d2c8);border:0;border-radius:3px;
+  box-shadow:0 2px 0 #8d8a80,0 3px 5px #0004,inset 0 1px 0 #fff;
+  color:#3a3a36;font:700 9px/1.15 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:.6px;
+  padding:9px 11px;min-width:0}
+.tr8b:active,.tr8b.on{background:linear-gradient(180deg,#ffb37a,#e2621c);color:#2a1004;transform:translateY(2px);
+  box-shadow:0 1px 0 #8d8a80,inset 0 1px 3px #0004}
+.tr8-lcd{background:#1a0c06;border:2px solid #8d8a80;border-radius:3px;padding:6px 10px;min-width:110px}
+.tr8-lcd b{display:block;font:900 19px/1 "Courier New",monospace;color:#ff5a1e;text-shadow:0 0 10px #ff5a1e90}
+.tr8-lcd u{display:block;text-decoration:none;font:700 8px/1.4 "Roboto Condensed",Arial;letter-spacing:1.2px;
+  color:#c2551e}
+.tr8-matrice{display:none;gap:2px;background:#0e1a10;border:2px solid #7a7a74;border-radius:3px;
+  padding:5px;margin-top:10px}
+.tr8-matrice i{display:block;height:5px;border-radius:1px;background:#1c3322}
+.tr8-matrice i.on{background:#5cff9a;box-shadow:0 0 4px #5cff9a90}
+.tr8-matrice i.ici{outline:1px solid #3a6a4a}
+body.tr7 .rtr{background:linear-gradient(172deg,#f4f3f0,#e9e8e4 40%,#dededa 75%,#efeeeb)}
+body.tr7 .tr8-instr{background:#55554f}
+body.tr7 .tr8-nom b{color:#2f2f2d}
+body.tr7 .tr8-pas button.c0,body.tr7 .tr8-pas button.c1,
+body.tr7 .tr8-pas button.c2,body.tr7 .tr8-pas button.c3{
+  background:linear-gradient(180deg,#f7f6f2,#d9d7d0)}
+body.tr7 .tr8-pas button.c0{background:linear-gradient(180deg,#f8b478,#e2802a)}
+.tr8-sel{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.tr8-sel .tr8b{flex:1;min-width:56px;padding:8px 3px;font-size:8.5px}
+.tr8-pas{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;margin-top:10px}
+.tr8-pas button{border:0;border-radius:3px;padding:16px 0;position:relative;
+  font:700 9px/1 "Roboto Condensed",Arial;color:#2a2a28;
+  box-shadow:0 3px 0 #8d8a80,0 4px 6px #0005,inset 0 1px 0 #ffffff70}
+.tr8-pas button.c0{background:linear-gradient(180deg,#f0837a,#d8453a)}
+.tr8-pas button.c1{background:linear-gradient(180deg,#f5b06a,#e08a22)}
+.tr8-pas button.c2{background:linear-gradient(180deg,#f3dd82,#ddc23a)}
+.tr8-pas button.c3{background:linear-gradient(180deg,#f6f4ee,#d8d4ca)}
+.tr8-pas button.act{box-shadow:0 3px 0 #8d8a80,0 0 0 2px #e2621c,0 0 12px #e2621c90,inset 0 1px 0 #ffffff70}
+.tr8-pas button.cur::after{content:"";position:absolute;left:50%;top:4px;width:6px;height:6px;
+  margin-left:-3px;border-radius:50%;background:#b80f0f;box-shadow:0 0 8px #ff2a2a}
+.tr8-pas button.hors{opacity:.45}
+.tr8-nums{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;font:700 8px/1.4 Arial;color:#5a5a56;
+  text-align:center;margin-top:3px}
+@media (max-width:780px){
+  .tr8-nom b{font-size:24px}
+  .tr8-pas button{padding:12px 0}
+  .tr8-kn,.tr8-kn .bt{width:29px} .tr8-kn .bt{height:29px}
+}
+
+.pick.prd6{background:linear-gradient(165deg,#2f8fd8,#0d2338 55%,#1a5fa0)}
+.pick.prd6 b{color:#dff0ff;text-shadow:0 2px 0 #0a1a2a}
+.pick.prd6 span{color:#b8d8f0}
+.pick.p808{background:linear-gradient(165deg,#8e8b84,#2c2b28 55%,#4a4844)}
+.pick.p808 b{color:#f0834a;text-shadow:0 2px 0 #2a1409}
+.pick.p808 span{color:#cbc7bd}
+.pick.p909{background:linear-gradient(165deg,#b9b6ae,#3a3935 55%,#5e5c56)}
+.pick.p909 b{color:#ffffff;text-shadow:0 2px 0 #2a2925}
+.pick.p909 span{color:#d8d5cc}
+.pick.p707{background:linear-gradient(165deg,#cfcdc8,#45443f 55%,#6e6c66)}
+.pick.p707 b{color:#f6f5f2;text-shadow:0 2px 0 #33322e}
+.pick.p707 span{color:#dbd9d3}
+/* Le KAOSS PAD prend tout l'écran : réglages en haut, pavé en bas, aussi grand
+   que la place le permet. C'est la seule machine dont la commande principale
+   est une surface — la rétrécir pour faire tenir des boutons à côté serait la
+   priver de ce qui la rend jouable. */
+.kpb{display:none;max-width:680px;margin:0 auto;background:#12201a;border-radius:12px;
+  padding:12px 14px 14px;border:1px solid #1e3a2c}
+body.kp .kpb{display:flex;flex-direction:column;min-height:82vh}
+.kp-haut{flex:none;display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.kp-marque{font:800 17px/1 "Roboto Condensed",Arial;color:#f0f0f2}
+.kp-sous{flex:1;min-width:0;font:700 7.5px/1.2 "Roboto Condensed",Arial;letter-spacing:1.4px;
+  color:#6a8a78;overflow:hidden}
+.kp-nom{font:800 19px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#e8e8ea}
+.kp-reglages{flex:none;display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.kp-banques{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.kp-banques button{padding:12px 3px;border:0;border-radius:7px;background:#1b2e24;color:#a8c0b4;
+  font:800 12px/1.2 "Roboto Condensed",Arial}
+.kp-banques button em{display:block;margin-top:3px;font:400 7.5px/1.1 "Roboto Condensed",Arial;
+  font-style:normal;opacity:.7;overflow:hidden;white-space:nowrap}
+.kp-banques button.on{background:#e8344a;color:#fff}
+.kp-ligne{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.kp-ligne button{margin:0;padding:10px 3px;border:0;border-radius:6px;background:#1b2e24;
+  color:#a8c0b4;font:800 9px/1.2 "Roboto Condensed",Arial;letter-spacing:.5px}
+.kp-ligne button.on{background:#e8344a;color:#fff}
+.kp-prof-l{grid-template-columns:auto 1fr 1.4fr;align-items:center}
+.kp-prof-l label{font:800 8px/1.2 "Roboto Condensed",Arial;letter-spacing:1.2px;color:#6a8a78}
+.kp-prof-l input{width:100%;margin:0}
+.kp-lcd{background:#0a1410;border:1px solid #24483a;border-radius:4px;padding:5px 8px;
+  overflow:hidden}
+.kp-lcd b{display:block;font:800 9px/1.2 "Roboto Condensed",Arial;color:#7ee8a8;
+  white-space:nowrap;overflow:hidden}
+.kp-lcd u{display:block;margin-top:2px;text-decoration:none;
+  font:700 7.5px/1.2 "Roboto Condensed",Arial;color:#4a7a5e;white-space:nowrap;overflow:hidden}
+/* Le pavé prend TOUTE la hauteur restante. */
+.kp-pav{flex:1;min-height:200px;position:relative;border-radius:5px;
+  background:#c8c8d2;border:5px solid #e8344a;overflow:hidden;touch-action:none;
+  background-image:linear-gradient(#0002 1px,transparent 1px),
+                   linear-gradient(90deg,#0002 1px,transparent 1px);
+  background-size:12.5% 12.5%}
+.kp-pav i{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;
+  background:#e8344a;box-shadow:0 0 22px #e8344a;display:none}
+.kp-pav.vu i{display:block}
+.kp-pav u{position:absolute;inset:0;text-decoration:none;display:block}
+.kp-pav u span{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;
+  background:#3a4a8a;opacity:.5}
+.kp-pied{flex:none;margin-top:8px;font:400 10.5px/1.4 "Roboto Condensed",Arial;
+  color:#6a8a78;text-align:center}
+
+/* La MC-101 : un bandeau, l'écran et le SCATTER en haut — c'est lui qu'on
+   cherche en jouant —, les pistes, les potards, puis les seize pas. */
+.mcb{display:none;max-width:600px;margin:0 auto;background:#0b0b0d;border-radius:12px;
+  padding:14px 16px 18px;border:1px solid #24242a}
+body.mc .mcb{display:block}
+body.mc #unit,body.mc .akai,body.mc .arcmb,body.mc .crb,body.mc .dbib,body.mc .dmxb,body.mc .ea,body.mc .em,body.mc .er,body.mc .es,body.mc .kob,body.mc .korgv,body.mc .mx,body.mc .rtr,body.mc .sx,body.mc .t1kb,body.mc .stkb{display:none}
+body.m32 .mcb,body.em1 .mcb,body.er1 .mcb,body.ea1 .mcb,body.es1 .mcb,body.emx .mcb,body.esx .mcb,body.mk2 .mcb,body.mpc .mcb,body.mpc2 .mcb,body.tr8 .mcb,body.tr9 .mcb,body.tr7 .mcb,body.rd6 .mcb,body.td3 .mcb,body.eur .mcb,body.dmx .mcb,body.vlc .mcb,body.cr5 .mcb,body.dbi .mcb,body.t1k .mcb,body.arcm .mcb,body.ko .mcb,body.stk .mcb,body.c1 .mcb,body.c2 .mcb,body.c3 .mcb,body.c4 .mcb,body.c5 .mcb,body.t1 .mcb,body.t2 .mcb,body.t3 .mcb,body.t4 .mcb{display:none}
+.mc-haut{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.mc-marque{font:800 17px/1 "Roboto Condensed",Arial;color:#f0f0f2}
+.mc-gb{flex:1;font:700 8px/1 "Roboto Condensed",Arial;letter-spacing:2px;color:#6a6a72}
+.mc-nom{font:800 20px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#e8e8ea}
+.mc-tete{display:flex;gap:10px;align-items:stretch;margin-bottom:9px}
+.mc-lcd{flex:1;min-width:0;background:#0a0f0a;border:2px solid #2c3a2c;border-radius:4px;
+  padding:8px 10px;display:flex;align-items:baseline;gap:9px}
+.mc-lcd u{flex:none;text-decoration:none;font:700 8.5px/1 "Roboto Condensed",Arial;
+  letter-spacing:1.4px;color:#4a7a4a}
+.mc-lcd b{flex:1;font:800 20px/1 "Roboto Condensed",Arial;color:#7ee87e;
+  overflow:hidden;white-space:nowrap}
+#mc-scat{flex:none;margin:0;padding:10px 18px;border:0;border-radius:7px;background:#22222a;
+  color:#cfcfd4;font:800 11px/1 "Roboto Condensed",Arial;letter-spacing:1.4px}
+#mc-scat.on{background:#00c98a;color:#08120e}
+.mc-scatline{display:flex;gap:9px;align-items:center;margin-bottom:11px}
+.mc-scatline span{flex:none;width:104px;font:700 9.5px/1.2 "Roboto Condensed",Arial;color:#8a8a92}
+.mc-scatline input{flex:1;min-width:0;margin:0}
+.mc-scatline button{flex:none;margin:0;padding:8px 12px;border:0;border-radius:6px;
+  background:#22222a;color:#b9b9c0;font:800 9px/1 "Roboto Condensed",Arial}
+.mc-trks{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:11px}
+.mc-trks .mt{padding:11px 3px;border:0;border-radius:7px;background:#1c1c22;color:#b9b9c0;
+  font:800 10px/1.3 "Roboto Condensed",Arial}
+.mc-trks .mt em{display:block;margin-top:3px;font:400 7.5px/1.1 "Roboto Condensed",Arial;
+  font-style:normal;opacity:.6}
+.mc-trks .mt.sel{background:#2e2e38;color:#fff;box-shadow:inset 0 0 0 2px #00c98a}
+.mc-trks .mt.muet{opacity:.42}
+.mc-kns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:11px}
+.mc-kn{text-align:center}
+.mc-kn .bt{width:40px;height:40px;margin:0 auto;border-radius:50%;background:#1b1b21;
+  border:1px solid #32323a;position:relative}
+.mc-kn .bt i{position:absolute;left:50%;top:5px;width:2px;height:13px;margin-left:-1px;
+  background:#00c98a;border-radius:1px;display:block}
+.mc-kn em{display:block;margin-top:4px;font:700 7.5px/1.2 "Roboto Condensed",Arial;
+  font-style:normal;letter-spacing:.5px;color:#7a7a82}
+.mc-pads{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:10px}
+.mc-pads .mb{padding:14px 2px;border:0;border-radius:6px;background:#1c1c22;color:#8a8a92;
+  font:800 9.5px/1 "Roboto Condensed",Arial}
+.mc-pads .mb.on{background:#00c98a;color:#08120e}
+.mc-pads .mb.cur{background:#f2f2f4;color:#141418}
+.mc-cmd{display:flex;gap:6px;flex-wrap:wrap}
+.mc-cmd button{flex:1;min-width:76px;margin:0;padding:10px 4px;border:0;border-radius:7px;
+  background:#22222a;color:#cfcfd4;font:800 9.5px/1 "Roboto Condensed",Arial;letter-spacing:.9px}
+.mc-cmd button.on{background:#00c98a;color:#08120e}
+.mc-pied{margin-top:9px;font:400 10.5px/1.5 "Roboto Condensed",Arial;color:#7a7a82;text-align:center}
+
+/* La SmplTrek : un écran au centre, les potards à côté, les pas dessous, les
+   pistes tout en bas — la lecture descend du son vers le rythme. */
+.stkb{display:none;max-width:560px;margin:0 auto;background:#0d0d0f;border-radius:14px;
+  padding:14px 16px 18px;border:1px solid #26262c}
+body.stk .stkb{display:block}
+body.m32 .kob,body.m32 .stkb,body.em1 .kob,body.em1 .stkb,body.er1 .kob,body.er1 .stkb,body.ea1 .kob,body.ea1 .stkb,body.es1 .kob,body.es1 .stkb,body.emx .kob,body.emx .stkb,body.esx .kob,body.esx .stkb,body.mk2 .kob,body.mk2 .stkb,body.mpc .kob,body.mpc .stkb,body.mpc2 .kob,body.mpc2 .stkb,body.tr8 .kob,body.tr8 .stkb,body.tr9 .kob,body.tr9 .stkb,body.tr7 .kob,body.tr7 .stkb,body.rd6 .kob,body.rd6 .stkb,body.td3 .kob,body.td3 .stkb,body.eur .kob,body.eur .stkb,body.dmx .kob,body.dmx .stkb,body.vlc .kob,body.vlc .stkb,body.cr5 .kob,body.cr5 .stkb,body.dbi .kob,body.dbi .stkb,body.t1k .kob,body.t1k .stkb,body.arcm .kob,body.arcm .stkb{display:none}
+body.stk #unit,body.stk .akai,body.stk .arcmb,body.stk .crb,body.stk .dbib,body.stk .dmxb,body.stk .ea,body.stk .em,body.stk .er,body.stk .es,body.stk .korgv,body.stk .mx,body.stk .rtr,body.stk .sx,body.stk .t1kb,body.stk .kob{display:none}
+.stk-haut{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.stk-marque{font:800 11px/1 "Roboto Condensed",Arial;letter-spacing:3px;color:#8a8a90}
+.stk-nom{flex:1;font:800 22px/1 "Roboto Condensed",Arial;letter-spacing:.5px;color:#f0f0f2}
+.stk-prises{display:flex;gap:9px}
+.stk-prises span{font:700 8px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#5a5a62}
+.stk-mid{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+/* L'écran est jaune sur noir, comme celui de la machine. */
+#stk-ecran{flex:none;width:340px;max-width:60%;height:auto;border-radius:5px;
+  background:#0a0a06;border:2px solid #3a3a30}
+.stk-kns{flex:1;min-width:0;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;align-content:start}
+.stk-kn{text-align:center}
+.stk-kn .bt{width:42px;height:42px;margin:0 auto;border-radius:50%;background:#1d1d22;
+  border:1px solid #33333a;position:relative}
+.stk-kn .bt i{position:absolute;left:50%;top:5px;width:2px;height:14px;margin-left:-1px;
+  background:#e8e04a;border-radius:1px;display:block}
+.stk-kn em{display:block;margin-top:4px;font:700 8px/1.2 "Roboto Condensed",Arial;
+  font-style:normal;letter-spacing:.6px;color:#7a7a82}
+.stk-cmd{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.stk-cmd button{flex:1;min-width:76px;margin:0;padding:10px 4px;border:0;border-radius:7px;
+  background:#22222a;color:#cfcfd4;font:800 9.5px/1 "Roboto Condensed",Arial;letter-spacing:.9px}
+.stk-cmd button.on{background:#e8e04a;color:#141410}
+.stk-pads{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:9px}
+.stk-pads .sb{padding:13px 2px;border:0;border-radius:6px;background:#1d1d22;color:#8a8a92;
+  font:800 10px/1 "Roboto Condensed",Arial}
+.stk-pads .sb.on{background:#e8e04a;color:#141410}
+.stk-pads .sb.cur{background:#f6f6f0;color:#141410}
+/* Dix pistes, avec leur couleur : c'est ce qui permet de s'y retrouver
+   d'un coup d'œil, comme les pads colorés de la machine. */
+.stk-trks{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.stk-trks .st{padding:11px 2px;border:0;border-radius:6px;background:#1d1d22;color:#b9b9c0;
+  font:800 9px/1.3 "Roboto Condensed",Arial;position:relative;overflow:hidden}
+.stk-trks .st b{display:block;font-size:10px}
+.stk-trks .st em{display:block;margin-top:3px;font:400 7px/1.1 "Roboto Condensed",Arial;
+  font-style:normal;opacity:.65;white-space:nowrap;overflow:hidden}
+.stk-trks .st i{position:absolute;left:0;top:0;bottom:0;width:3px}
+.stk-trks .st.sel{background:#2e2e38;color:#fff}
+.stk-trks .st.muet{opacity:.42}
+.stk-pied{margin-top:9px;font:400 10.5px/1.5 "Roboto Condensed",Arial;color:#7a7a82;text-align:center}
+/* Le K.O! : un boîtier de poche, noir, étroit, où tout tient sur seize
+   touches. On garde ses proportions — c'est une machine qu'on tient dans la
+   main, elle n'a aucune raison de s'étaler. */
+.kob{display:none;max-width:420px;margin:0 auto;background:#111;border-radius:14px;
+  padding:14px 16px 18px;border:1px solid #2a2a2a}
+body.ko .kob{display:block}
+/* Une façade est visible par défaut et cachée par la classe des AUTRES
+   machines : toute nouvelle machine doit donc lister toutes celles qui
+   existaient avant elle, ET être ajoutée à la liste de chacune. C'est le
+   mécanisme le plus fragile du fichier — un contrôle automatique vérifie
+   maintenant qu'aucune machine n'en oublie. */
+body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .dmxb,body.ko .ea,body.ko .em,body.ko .er,body.ko .es,body.ko .korgv,body.ko .mx,body.ko .rtr,body.ko .sx,body.ko .t1kb{display:none}
+.ko-haut{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ko-poignee{width:66px;height:16px;border-radius:9px;border:2px solid #3a3a3a}
+.ko-marque{font:400 11px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#8a8a8a}
+.ko-tete{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.ko-nom{flex:none;font:800 26px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#f0f0f0}
+/* L'écran d'un pocket operator est un afficheur à cristaux, vert-gris et
+   contrasté : pas un écran couleur. */
+.ko-lcd{flex:1;min-width:0;background:#b9c4a8;border-radius:3px;padding:8px 10px;
+  border:2px solid #6f7a63;display:flex;align-items:baseline;gap:10px}
+.ko-lcd u{flex:none;text-decoration:none;font:700 9px/1 "Roboto Condensed",Arial;
+  letter-spacing:1.4px;color:#3c4435}
+.ko-lcd b{flex:1;font:800 26px/1 "Roboto Condensed",Arial;color:#1d2118}
+.ko-lcd i{flex:none;font:700 12px/1 "Roboto Condensed",Arial;font-style:normal;color:#3c4435}
+.ko-cmd,.ko-bas{display:flex;gap:7px;margin-bottom:11px}
+.ko-cmd button,.ko-bas button{flex:1;margin:0;padding:11px 4px;border:0;border-radius:7px;
+  background:#2a2a2a;color:#d8d8d8;font:800 9.5px/1 "Roboto Condensed",Arial;letter-spacing:1px}
+.ko-cmd button.on,.ko-bas button.on{background:#ff6a00;color:#141414}
+#ko-rec.on{background:#d81f1f;color:#fff}
+/* Quatre rangées de quatre : les huit premières mélodiques, les huit suivantes
+   percussives, comme sur la machine. */
+.ko-pads{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:11px}
+.ko-pads .kb{position:relative;padding:15px 4px 13px;border:0;border-radius:8px;
+  background:#2e2e2e;color:#cfcfcf;font:800 13px/1 "Roboto Condensed",Arial}
+.ko-pads .kb.mel{background:#343434}
+.ko-pads .kb.on{background:#ff6a00;color:#141414}
+.ko-pads .kb.sel{box-shadow:inset 0 0 0 2px #ff6a00}
+.ko-pads .kb.cur{background:#f2f2f2;color:#141414}
+.ko-pads .kb em{display:block;margin-top:5px;font:400 7px/1.1 "Roboto Condensed",Arial;
+  font-style:normal;letter-spacing:.4px;opacity:.7;overflow:hidden;white-space:nowrap}
+.ko-pied{font:400 10.5px/1.5 "Roboto Condensed",Arial;color:#7a7a7a;text-align:center}
+

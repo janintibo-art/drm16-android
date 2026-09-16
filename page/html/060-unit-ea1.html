@@ -1,0 +1,143 @@
+<div class="ea" id="unit-ea1">
+
+  <div class="em-jacks">
+    <div class="grp"><div class="tr"><i></i></div><span>PHONES</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>PART1/MIX&nbsp;&nbsp;PART2 · OUTPUT</span></div>
+    <div class="grp"><div class="tr"><i></i></div><span>AUDIO IN</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i><i></i><i></i></div><span>IN&nbsp;&nbsp;OUT&nbsp;&nbsp;THRU · MIDI</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i></div><span>DC 9V</span></div>
+  </div>
+
+  <div class="ea-marque">
+    <div class="et">ELECTRIBE</div>
+    <div class="ams"><b>A</b>ANALOG MODELING SYNTHESIZER</div>
+    <div class="korg">KORG</div><div class="ref" id="ea-notice">EA-1</div>
+  </div>
+
+  <div class="em-corps ea-corps">
+
+    <div class="em-col">
+      <div class="ea-bleu">
+        <div class="em-haut">
+          <div class="em-vol">
+            <div class="kn" id="ea-k-vol"><div class="bt">><i></i></div><em>MASTER<br>VOLUME</em></div>
+          </div>
+          <div class="lcd"><b id="ea-val">001</b><span id="ea-lab">PATTERN</span></div>
+          <div class="em-dial" id="ea-dial"></div>
+        </div>
+        <div class="ea-params" id="ea-params"></div>
+        <div class="em-modes" style="margin-top:8px">
+          <button class="btn on" data-eamode="0">PATTERN</button>
+          <button class="btn" data-eamode="1">SONG</button>
+          <button class="btn" data-eamode="2">GLOBAL</button>
+          <button class="btn" data-eamode="3">MIDI</button>
+          <button class="btn" id="ea-write">WRITE</button>
+        </div>
+      </div>
+
+      <div class="em-noir em-gauche" style="margin-top:auto">
+        <button class="btn sombre" id="ea-prev">◀</button>
+        <button class="btn sombre" id="ea-next">▶</button>
+        <span>SELECT</span>
+        <button class="btn" id="ea-kb">KEYBOARD</button>
+        <button class="btn" id="ea-erase" style="margin-left:auto">ERASE</button>
+        <button class="btn" id="ea-shift">SHIFT</button>
+      </div>
+
+      <div class="em-noir em-transport">
+        <button class="btn rec" id="ea-rec">●</button>
+        <button class="btn" id="ea-stop">■</button>
+        <button class="btn" id="ea-play">▶ ❙❙</button>
+        <button class="btn" id="ea-tap">TAP</button>
+      </div>
+    </div>
+
+    <div class="em-col">
+
+      <div class="er-alu">
+        <div class="ea-bloc">
+          <div>
+            <div class="er-tit">OSCILLATOR</div>
+            <div style="display:flex;gap:6px;justify-content:space-around">
+              <div class="kn ea-kn" id="ea-k-porta"><div class="bt">><i></i></div><em>PORTAMENTO</em></div>
+              <div class="kn ea-kn" id="ea-k-bal"><div class="bt">><i></i></div><em>OSC BALANCE</em></div>
+              <div class="kn ea-kn" id="ea-k-ofs"><div class="bt">><i></i></div><em>OSC2 PITCH OFS</em></div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px;align-items:center">
+              <div style="text-align:center">
+                <button class="btn" id="ea-osc1" style="padding:8px 10px">OSC1</button>
+                <span class="er-lg" id="ea-osc1-nom">SAW</span>
+              </div>
+              <div style="text-align:center">
+                <button class="btn" id="ea-osc2" style="padding:8px 10px">OSC2</button>
+                <span class="er-lg" id="ea-osc2-nom">SAW</span>
+              </div>
+              <div style="text-align:center">
+                <button class="btn" id="ea-mod" style="padding:8px 10px">OSC MOD</button>
+                <span class="er-lg" id="ea-mod-nom">OFF</span>
+              </div>
+            </div>
+            <div class="ea-fil">AUDIO IN → OSC1 → FILTER → AMP → EFFECT → OUTPUT</div>
+          </div>
+          <div>
+            <div class="er-tit">FILTER</div>
+            <div class="er-grille" style="grid-template-columns:1fr 1fr">
+              <div class="kn ea-kn" id="ea-k-cut"><div class="bt">><i></i></div><em>CUTOFF</em></div>
+              <div class="kn ea-kn" id="ea-k-res"><div class="bt">><i></i></div><em>RESONANCE</em></div>
+              <div class="kn ea-kn" id="ea-k-egi"><div class="bt">><i></i></div><em>EG INT</em></div>
+              <div class="kn ea-kn" id="ea-k-dec"><div class="bt">><i></i></div><em>DECAY</em></div>
+            </div>
+            <div class="er-tit" style="margin-top:10px">AMP</div>
+            <div style="display:flex;gap:10px;align-items:center;justify-content:center">
+              <div style="text-align:center">
+                <button class="btn" id="ea-dist" style="padding:8px 10px">DISTORTION</button>
+              </div>
+              <div class="kn ea-kn" id="ea-k-lvl"><div class="bt">><i></i></div><em>LEVEL</em></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="er-alu">
+        <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:10px;align-items:center">
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="text-align:center">
+              <button class="btn" id="ea-part" style="padding:10px 10px">PART<br>SELECT</button>
+            </div>
+            <div class="ea-leds"><u id="ea-p1"><i></i>Part 1</u><u id="ea-p2"><i></i>Part 2</u></div>
+            <button class="btn" id="ea-mseq" style="padding:10px 8px">MOTION<br>SEQ</button>
+            <div class="ea-leds"><u id="ea-smooth"><i></i>Smooth</u><u id="ea-trig"><i></i>Trig Hold</u></div>
+          </div>
+          <div>
+            <div class="er-tit">EFFECT</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div style="text-align:center">
+                <button class="btn" id="ea-fxtype" style="padding:9px 8px">TYPE<br>SELECT</button>
+              </div>
+              <div class="ea-leds"><u id="ea-fx1"><i></i>Tempo Delay</u><u id="ea-fx2"><i></i>Chorus/Flanger</u></div>
+              <div class="kn ea-kn" id="ea-k-fdep"><div class="bt">><i></i></div><em>DEPTH</em></div>
+              <div class="kn ea-kn" id="ea-k-ftime"><div class="bt">><i></i></div><em>TIME</em></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="em-bas em-noir">
+    <div class="em-beats" id="ea-beats"></div>
+    <div class="em-keys" id="ea-keys"></div>
+    <div class="em-fonc">
+      <span>Pattern Length 1</span><span>2</span><span>3</span><span>4</span>
+      <span>Scale ♪x16</span><span>♪x16</span><span>♪x12</span><span>Swing</span>
+      <span>Move Data</span><span>Copy Part</span><span>Clear Motion</span><span>Clear Part</span>
+      <span>Insert Pattern</span><span>Delete Pattern</span><span>Clear Event</span><span>Clear Song</span>
+    </div>
+  </div>
+
+</div>
+
+

@@ -1,0 +1,634 @@
+  <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
+  <p>Les cent trois modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
+  potards, ses entrées et ses sorties. Les <b>sorties</b> sont les prises cerclées d'or.</p>
+
+  <div class="fsom">
+  <p><b>Sommaire</b> — touchez un nom pour aller à sa fiche.</p>
+  <u>Horloges</u>
+  <p><a href="#fm-clock">CLOCK</a> · <a href="#fm-clkdiv">CLK DIV</a> · <a href="#fm-euclid">EUCLID</a> · <a href="#fm-burst">BURST</a> · <a href="#fm-chance">CHANCE</a> · <a href="#fm-clkmult">CLK MULT</a> · <a href="#fm-trigdly">TRIG DLY</a> · <a href="#fm-swing">SWING</a> · <a href="#fm-logic">LOGIC</a></p>
+  <u>Séquenceurs</u>
+  <p><a href="#fm-seq8">SEQ 8</a> · <a href="#fm-seq16">SEQ 16</a> · <a href="#fm-trig4">TRIG 4</a> · <a href="#fm-turing">TURING</a> · <a href="#fm-quant">QUANT</a> · <a href="#fm-arp">ARP</a> · <a href="#fm-steps">STEPS</a> · <a href="#fm-cvloop">CV LOOP</a></p>
+  <u>Oscillateurs</u>
+  <p><a href="#fm-vco">VCO</a> · <a href="#fm-model">MODEL</a> · <a href="#fm-fm2op">FM 2OP</a> · <a href="#fm-supersaw">SUPERSAW</a> · <a href="#fm-pluck">PLUCK</a> · <a href="#fm-chord">CHORD</a> · <a href="#fm-coral">CORAL</a> · <a href="#fm-vco112">VCO 112</a> · <a href="#fm-ensemble">ENSEMBLE</a> · <a href="#fm-pistonhonda">PISTON HONDA</a> · <a href="#fm-harmonic">HARMONIC</a> · <a href="#fm-subharm">SUB HARM</a> · <a href="#fm-hoover">HOOVER</a> · <a href="#fm-noise">NOISE</a></p>
+  <u>Filtres</u>
+  <p><a href="#fm-acid">ACID</a> · <a href="#fm-vcf">VCF</a> · <a href="#fm-hpf">HPF</a> · <a href="#fm-bpf">BPF</a> · <a href="#fm-notch">NOTCH</a> · <a href="#fm-peak">PEAK</a> · <a href="#fm-lpg">LPG</a> · <a href="#fm-resonate">RESONATE</a> · <a href="#fm-svf">SVF</a> · <a href="#fm-comb">COMB</a> · <a href="#fm-formant">FORMANT</a></p>
+  <u>Modulation</u>
+  <p><a href="#fm-envelope">ENVELOPE</a> · <a href="#fm-ad">AD</a> · <a href="#fm-lfo">LFO</a> · <a href="#fm-kermit">KERMIT</a> · <a href="#fm-abacus">ABACUS</a> · <a href="#fm-function">FUNCTION</a> · <a href="#fm-riser">RISER</a> · <a href="#fm-rungler">RUNGLER</a> · <a href="#fm-samph">S &amp; H</a> · <a href="#fm-envfol">ENV FOL</a> · <a href="#fm-drift">DRIFT</a> · <a href="#fm-clklfo">CLK LFO</a></p>
+  <u>Utilitaires</u>
+  <p><a href="#fm-output">OUTPUT</a> · <a href="#fm-vca">VCA</a> · <a href="#fm-dualvca">DUAL VCA</a> · <a href="#fm-trancegate">TRANCE GATE</a> · <a href="#fm-head">HEAD</a> · <a href="#fm-transpose">TRANSPOSE</a> · <a href="#fm-compare">COMPARE</a> · <a href="#fm-attenuv">ATTENUV</a> · <a href="#fm-slew">SLEW</a> · <a href="#fm-mix4">MIX 4</a> · <a href="#fm-mult">MULT</a> · <a href="#fm-xfade">XFADE</a> · <a href="#fm-pan">PAN</a> · <a href="#fm-switch">SWITCH</a></p>
+  <u>Traitements</u>
+  <p><a href="#fm-echo">ECHO</a> · <a href="#fm-reverb">REVERB</a> · <a href="#fm-fold">FOLD</a> · <a href="#fm-drive">DRIVE</a> · <a href="#fm-bits">BITS</a> · <a href="#fm-ring">RING</a> · <a href="#fm-chorus">CHORUS</a> · <a href="#fm-phaser">PHASER</a> · <a href="#fm-grain">GRAIN</a> · <a href="#fm-kamieniec">KAMIENIEC</a> · <a href="#fm-plasma">PLASMA</a> · <a href="#fm-plexiphon">PLEXIPHON</a> · <a href="#fm-bbd">BBD</a> · <a href="#fm-spring">SPRING</a> · <a href="#fm-clip">CLIP</a> · <a href="#fm-limit">LIMIT</a> · <a href="#fm-eq3">EQ 3</a> · <a href="#fm-pingpong">PING PONG</a></p>
+  <u>Percussions</u>
+  <p><a href="#fm-batteringram">BATTERING RAM</a> · <a href="#fm-squidsalmple">SQUID SALMPLE</a> · <a href="#fm-mutanthihats">MUTANT HIHATS</a> · <a href="#fm-tekkick">TEK KICK</a> · <a href="#fm-tribal">TRIBAL</a> · <a href="#fm-zap">ZAP</a> · <a href="#fm-drum">DRUM</a> · <a href="#fm-kick">KICK</a> · <a href="#fm-snare">SNARE</a> · <a href="#fm-hat">HAT</a> · <a href="#fm-clap">CLAP</a> · <a href="#fm-tom">TOM</a> · <a href="#fm-cymbal">CYMBAL</a> · <a href="#fm-rim">RIM</a> · <a href="#fm-cowbell">COWBELL</a> · <a href="#fm-shaker">SHAKER</a> · <a href="#fm-claves">CLAVES</a></p>
+  </div>
+
+  <h3>Horloges · 9 modules</h3>
+  <p>Elles fabriquent le temps. Aucune ne produit de son : elles envoient des impulsions.</p>
+  <div class="fmod" id="fm-clock"><b>CLOCK</b>
+  <p>L'horloge maîtresse. Elle bat une fois par pas, au tempo général de l'application, et donne en plus la
+  croche et la noire. Presque tout patch commence par elle.</p>
+  <span>Aucun potard · Sorties OUT, /2, /4</span></div>
+  <div class="fmod" id="fm-clkdiv"><b>CLK DIV</b>
+  <p>Ralentit une horloge de cinq façons à la fois. Le /3 donne des mesures à trois temps sans rien changer
+  d'autre.</p>
+  <span>Aucun potard · Entrée IN · Sorties /2, /3, /4, /8, /16</span></div>
+  <div class="fmod" id="fm-euclid"><b>EUCLID</b>
+  <p>Répartit un nombre de coups aussi régulièrement que possible sur un nombre de pas. Ce seul principe
+  produit la plupart des rythmes traditionnels du monde. STEPS règle la longueur de 2 à 16, FILL le nombre
+  de coups, SHIFT décale le motif sans le changer. La sortie INV frappe exactement quand OUT ne frappe
+  pas — parfaite pour un contretemps.</p>
+  <span>Potards STEPS, FILL, SHIFT · Entrée IN · Sorties OUT, INV</span></div>
+  <div class="fmod" id="fm-burst"><b>BURST</b>
+  <p>Transforme une impulsion en roulement de deux à huit coups. SPACE règle leur écartement, de dix à cent
+  dix millisecondes. Sur une caisse claire, c'est un roulement ; sur un charley, un bégaiement. Chaque coup
+  du roulement déclenche réellement le module d'en face.</p>
+  <span>Potards COUNT, SPACE · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-chance"><b>CHANCE</b>
+  <p>La porte de Bernoulli : à chaque impulsion, pile ou face. PROB règle la pente de la pièce. Ce qui ne
+  sort pas par OUT sort par ALT, si bien que rien n'est perdu — on peut envoyer les deux vers deux voix
+  différentes et obtenir un rythme qui hésite entre elles.</p>
+  <span>Potard PROB · Entrée IN · Sorties OUT, ALT</span></div>
+
+  <div class="fmod" id="fm-clkmult"><b>CLK MULT</b>
+  <p>Le contraire du CLK DIV : il <b>accélère</b>. Une impulsion reçue en ressort deux, trois ou quatre,
+  réparties sur la durée d'un pas. Le x3 donne le triolet que rien d'autre ne sait faire dans le rack.</p>
+  <span>Aucun potard · Entrée IN · Sorties x2, x3, x4</span></div>
+
+  <div class="fmod" id="fm-trigdly"><b>TRIG DLY</b>
+  <p>Repousse l'impulsion, de quatre millisecondes à une demi-seconde. THRU renvoie l'original sans le
+  toucher : en câblant les deux vers la même voix, on obtient un écho de frappe, un coup et sa réplique.</p>
+  <span>Potard TIME · Entrée IN · Sorties OUT, THRU</span></div>
+
+  <div class="fmod" id="fm-swing"><b>SWING</b>
+  <p>Retarde un pas sur deux. Rien ne change dans la partition, tout change dans la démarche : c'est le
+  ternaire des vieilles boîtes à rythmes, et il suffit à faire respirer un motif droit.</p>
+  <span>Potard AMOUNT · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-logic"><b>LOGIC</b>
+  <p>Trois rythmes tirés de deux. <b>AND</b> ne garde que les coups communs, <b>OR</b> les réunit tous,
+  <b>XOR</b> ne garde que ceux qui tombent d'un seul côté. Deux générateurs euclidiens branchés là donnent
+  des motifs qu'on n'écrirait jamais à la main. Le résultat ne dépend pas de l'ordre dans lequel on a posé
+  les câbles : la machine attend que toutes les portes du pas soient arrivées avant de conclure.</p>
+  <span>Aucun potard · Entrées A, B · Sorties AND, OR, XOR</span></div>
+
+  <h3>Séquenceurs · 8 modules</h3>
+  <p>Ils transforment le temps en notes. Tous sortent deux choses : une <b>hauteur</b> par CV et une
+  <b>porte</b> qui dit quand jouer. Les deux se câblent séparément, souvent vers deux modules différents.</p>
+  <div class="fmod" id="fm-seq8"><b>SEQ 8</b>
+  <p>Huit pas, un potard par pas. Chaque potard couvre deux octaves, quantifiées au demi-ton : on trouve
+  une note juste sans viser.</p>
+  <span>Potards 1 à 8 · Entrées CLK, RST · Sorties CV, GATE</span></div>
+  <div class="fmod" id="fm-seq16"><b>SEQ 16</b>
+  <p>Le même en seize pas, avec LEN pour raccourcir la boucle de 2 à 16. Ses dix-sept potards sont rangés
+  sur deux colonnes, remplies de haut en bas. Une longueur de 7 contre une
+  horloge en 16 donne un motif qui se décale à chaque mesure.</p>
+  <span>Potards 1 à 16, LEN · Entrées CLK, RST · Sorties CV, GATE</span></div>
+  <div class="fmod" id="fm-trig4"><b>TRIG 4</b>
+  <p>Quatre pistes de déclenchement sur seize pas, avec des motifs de départ différents. Le potard d'une
+  piste ne change pas son motif : il le <b>décale</b>. Un seul réglage, mais qui change tout le rythme.</p>
+  <span>Potards A, B, C, D · Entrées CLK, RST · Sorties A, B, C, D</span></div>
+  <div class="fmod" id="fm-turing"><b>TURING</b>
+  <p>Un registre à décalage de seize bits qui tourne en boucle. CHANCE règle la probabilité qu'un bit se
+  retourne en passant : à zéro le motif se répète pour toujours, au milieu il dérive lentement, à fond c'est
+  du hasard pur. LEN fixe la longueur de la boucle, RANGE l'étendue des hauteurs. Le module le plus
+  intéressant du rack pour qui veut une musique qui ne se répète jamais tout à fait.</p>
+  <span>Potards CHANCE, LEN, RANGE · Entrées CLK, RST · Sorties CV, GATE</span></div>
+  <div class="fmod" id="fm-quant"><b>QUANT</b>
+  <p>Force une tension vers la note la plus proche d'une gamme : majeure, mineure naturelle, pentatonique,
+  blues, chromatique. OCT transpose de deux octaves vers le haut ou vers le bas. Il faut lui câbler
+  <b>deux choses</b> : la tension à corriger sur IN, et une porte sur CLK qui lui dit quand regarder —
+  typiquement la sortie GATE du même séquenceur. Placé après un TURING ou un S &amp; H, il transforme une
+  suite de notes au hasard en mélodie qui tombe juste.</p>
+  <span>Potards SCALE, OCT · Entrées IN, CLK · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-arp"><b>ARP</b>
+  <p>Égrène un accord note à note, au rythme de l'horloge. TYPE choisit l'accord parmi les cinq du module
+  CHORD, MODE le parcours : montant, descendant, aller-retour, ou au hasard. Une seule voix suffit alors
+  à faire entendre une harmonie.</p>
+  <span>Potards TYPE, MODE, OCT · Entrées CLK, RST · Sorties CV, GATE</span></div>
+
+  <div class="fmod" id="fm-steps"><b>STEPS</b>
+  <p>Six pas, chacun avec sa tension. Six, c'est peu — et c'est voulu : contre une horloge en quatre temps,
+  une suite de six ne retombe qu'au bout de douze. On obtient une phrase qui se décale sans jamais se
+  répéter tout à fait.</p>
+  <p><b>GATES</b> est un masque : chaque pas peut être muet <b>sans perdre sa tension</b>, ce qui laisse la
+  mélodie intacte pendant qu'on troue le rythme.</p>
+  <span>Potards 1 à 6, LEN, GATES · Entrées CLK, RST · Sorties CV, GATE</span></div>
+
+  <div class="fmod" id="fm-cvloop"><b>CV LOOP</b>
+  <p>Le séquenceur qu'on ne programme pas. Donnez-lui une tension — un potard qu'on tourne à la main, un
+  DRIFT, un S &amp; H — il la retient pas à pas. <b>FREEZE</b> arrête l'enregistrement, et ce qui passait
+  devient une séquence qui tourne. C'est la façon la plus rapide d'attraper un geste : on cherche à
+  l'oreille, et quand c'est bon on fige.</p>
+  <span>Potards LEN, FREEZE · Entrées IN, CLK, RST · Sortie OUT</span></div>
+
+  <h3>Oscillateurs · 14 modules</h3>
+  <p>Les sources de son. Tous sauf NOISE ont une entrée <b>V/OCT</b> : un volt de plus, une octave de plus.
+  OCT couvre quatre octaves, FINE l'accord fin.</p>
+  <div class="fmod" id="fm-vco"><b>VCO</b>
+  <p>L'oscillateur de base, avec ses quatre formes d'onde disponibles en même temps. La dent de scie est
+  riche et mord ; le carré est creux et sonne clarinette ; le triangle est presque un sinus ; SUB sort une
+  octave en dessous, à brancher dans un MIX 4 pour épaissir. L'entrée FM module la fréquence à taux audio.</p>
+  <span>Potards OCT, FINE, FM · Entrées V/OCT, FM · Sorties SAW, SQR, TRI, SUB</span></div>
+  <div class="fmod" id="fm-model"><b>MODEL</b>
+  <p>Un oscillateur à timbres : MODEL parcourt sinus, dent, carré et triangle, HARMO ajoute un repli d'onde
+  et une seconde voix accordée sur un harmonique. La sortie AUX donne cette seconde voix seule.</p>
+  <span>Potards OCT, MODEL, HARMO · Entrée V/OCT · Sorties OUT, AUX</span></div>
+  <div class="fmod" id="fm-fm2op"><b>FM 2OP</b>
+  <p>Deux opérateurs, comme dans un DX7 réduit à l'essentiel. RATIO choisit le rapport entre modulant et
+  porteur parmi huit valeurs ; les rapports entiers donnent des sons accordés, les autres des cloches et des
+  métaux. INDEX règle la profondeur, et l'entrée IDX permet de la piloter par une enveloppe — c'est ainsi
+  qu'on obtient une attaque brillante qui s'assombrit.</p>
+  <span>Potards OCT, RATIO, INDEX · Entrées V/OCT, IDX · Sortie OUT</span></div>
+  <div class="fmod" id="fm-supersaw"><b>SUPERSAW</b>
+  <p>Sept dents de scie légèrement désaccordées les unes des autres. DETUNE à zéro donne une seule dent,
+  DETUNE à fond la nappe large des synthés de danse des années quatre-vingt-dix.</p>
+  <span>Potards OCT, DETUNE · Entrée V/OCT · Sortie OUT</span></div>
+  <div class="fmod" id="fm-pluck"><b>PLUCK</b>
+  <p>Une corde pincée : une bouffée de bruit envoyée dans un court délai qui se réinjecte. DAMP règle la
+  brillance, DECAY la longueur. Attention, il a <b>deux entrées à câbler</b> : TRIG pour le moment du
+  pincement, V/OCT pour la note.</p>
+  <span>Potards OCT, DAMP, DECAY · Entrées TRIG, V/OCT · Sortie OUT</span></div>
+  <div class="fmod" id="fm-chord"><b>CHORD</b>
+  <p>Quatre oscillateurs accordés d'un coup. TYPE choisit majeur, mineur septième, sus4, majeur septième ou
+  neuvième ajoutée ; SPREAD les désaccorde légèrement pour élargir. Une seule entrée de hauteur transpose
+  l'accord entier.</p>
+  <span>Potards OCT, TYPE, SPREAD · Entrée V/OCT · Sortie OUT</span></div>
+  <div class="fmod" id="fm-coral"><b>CORAL</b>
+  <p>Une voix entière dans un seul module : oscillateurs, bruit, filtre résonant, enveloppe d'amplitude et
+  enveloppe de filtre. C'est l'inverse de la philosophie du modulaire — et c'est parfois exactement ce
+  qu'il faut. Une impulsion dans TRIG suffit à produire une note complète.</p>
+  <p><b>HARM</b> transpose les deux copies par intervalles <b>justes</b>, quinte puis octave, pas un
+  désaccord au hasard. <b>MORPH</b> les désaccorde légèrement et les écarte en stéréo : la largeur vient de
+  là, pas d'un effet ajouté après.</p>
+  <span>Potards OCT, HARM, TIMBRE, MORPH, FILTER, F.ENV, F.RESO, ATTACK, DECAY · Entrées TRIG, V/OCT ·
+  Sorties L, R</span></div>
+
+  <div class="fmod" id="fm-vco112"><b>VCO 112</b>
+  <p>Deux oscillateurs, et une <b>vraie synchronisation dure</b>. Le point important : SYNC RATIO ne
+  désaccorde pas le second, il change le nombre de tours qu'il fait à l'intérieur d'un tour du premier. Les
+  deux restent donc toujours à la même hauteur fondamentale, et c'est le <b>timbre</b> qui bouge — voilà ce
+  qu'on entend d'une synchronisation, et pourquoi elle ne sonne jamais faux.</p>
+  <p>Faites tourner le potard pendant une note tenue : c'est le geste qui a fait la réputation de ce
+  procédé.</p>
+  <span>Potards OCT, FINE, SYNC RATIO, WIDTH, MIX · Entrée V/OCT · Sorties VCO 1, VCO 2, MIX</span></div>
+
+  <div class="fmod" id="fm-ensemble"><b>ENSEMBLE</b>
+  <p>Seize oscillateurs, mais pas un accord plaqué : ils se répartissent sur les degrés d'une
+  <b>gamme</b>, et SPREAD décide jusqu'où on monte. À zéro ils jouent tous la fondamentale — un unisson
+  très épais ; à fond ils couvrent trois octaves.</p>
+  <p>C'est ce qui le distingue d'un simple désaccord : les hauteurs restent <b>justes entre elles</b> quel
+  que soit le réglage. DETUNE ajoute par-dessus un léger flottement, étalé de part et d'autre pour que
+  l'ensemble reste centré. STEREO écarte les seize voix entre les deux sorties.</p>
+  <span>Potards ROOT, SPREAD, SCALE, BALANCE, DETUNE, WARP, STEREO · Entrée V/OCT · Sorties A, B</span></div>
+
+  <div class="fmod" id="fm-pistonhonda"><b>PISTON HONDA</b>
+  <p>Une table d'ondes à <b>trois axes</b>. X règle la pente des harmoniques, Y la balance entre rangs pairs
+  et impairs, et <b>Z déphase les partiels</b> — l'onde perd sa symétrie sans changer de spectre, ce qui la
+  fait sortir du domaine sagement musical. Deux oscillateurs y puisent, B battant légèrement contre A.</p>
+  <span>Potards OCT, X, Y, Z, OSC B · Entrée V/OCT · Sorties A, B, MIX</span></div>
+
+  <div class="fmod" id="fm-harmonic"><b>HARMONIC</b>
+  <p>La synthèse additive, celle des orgues à tirettes : au lieu de partir d'une onde riche et de retirer au
+  filtre, on empile vingt-quatre harmoniques une par une. TILT règle la pente de l'empilement — à plat c'est
+  criard, en pente c'est presque un sinus. EVEN/ODD bascule entre rangs pairs et impairs : tout à gauche il
+  ne reste que les impairs, et c'est exactement ce que contient un carré, d'où sa couleur de clarinette.</p>
+  <span>Potards OCT, TILT, EVEN/ODD · Entrée V/OCT · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-subharm"><b>SUB HARM</b>
+  <p>Le principe du Trautonium et du Subharmonicon : sous une fondamentale on range des <b>divisions
+  entières</b> — la moitié, le tiers, le cinquième. Ce sont des intervalles justes, mais pris à l'envers du
+  monde : on descend au lieu de monter. Ça sonne juste sans jamais sonner comme un accord ordinaire. DIV 1
+  et DIV 2 choisissent les deux diviseurs, de 1 à 16.</p>
+  <span>Potards OCT, DIV 1, DIV 2, MIX · Entrée V/OCT · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-hoover"><b>HOOVER</b>
+  <p>La nappe qui plonge, tirée de l'Alpha Juno et entendue dans toutes les raves depuis 1991 — encore
+  aujourd'hui dans la hardtek. Des dents désaccordées, un creux de passe-bande dans le timbre, et surtout
+  une <b>chute de hauteur à chaque note</b>. SWEEP règle la hauteur et la durée de cette chute. Sans câble
+  dans TRIG ce n'est qu'une nappe : c'est la plongée qui fait le son.</p>
+  <span>Potards OCT, SWEEP, DETUNE · Entrées V/OCT, TRIG · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-noise"><b>NOISE</b>
+  <p>Du bruit, en permanence. Le blanc est plat et sifflant, le rose plus sourd. Base de toutes les
+  percussions à main, et matière première du S &amp; H.</p>
+  <span>Aucun potard · Sorties WHITE, PINK</span></div>
+
+  <h3>Filtres · 11 modules</h3>
+  <p>Ils retirent. Un filtre ne crée jamais rien : il enlève des fréquences à ce qu'on lui donne, et c'est
+  pour cela qu'on attaque avec une forme d'onde riche. FREQ règle le point de coupure, Q la résonance — une
+  bosse juste avant la coupure, qui siffle quand on la pousse. CV AMT dose l'effet de l'entrée CV.</p>
+  <div class="fmod" id="fm-acid"><b>ACID</b>
+  <p>Sur une 303, le filtre, son enveloppe et l'accent ne sont pas trois modules mais <b>un seul circuit</b>.
+  L'accent ouvre le filtre plus haut, plus longtemps, et pousse la résonance au passage. C'est ce couplage
+  qui fait le son, et c'est pourquoi on ne le retrouve jamais en câblant une enveloppe ordinaire sur un VCF
+  ordinaire. Envoyez la porte du séquenceur dans TRIG, et une piste plus clairsemée dans ACC : les notes
+  accentuées ressortiront d'elles-mêmes. L'accent ne vaut que pour la note qui suit.</p>
+  <span>Potards CUTOFF, RESO, ENV MOD, DECAY · Entrées IN, TRIG, ACC · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-vcf"><b>VCF</b>
+  <p>Passe-bas à quatre pôles : il garde le grave et coupe l'aigu. Le filtre le plus utilisé de toute
+  l'histoire du synthétiseur. Balayé par une enveloppe, il fait à lui seul le son de la basse acide.</p>
+  <span>Potards FREQ, Q, CV AMT · Entrées IN, CV · Sortie OUT</span></div>
+  <div class="fmod" id="fm-hpf"><b>HPF</b>
+  <p>Passe-haut à quatre pôles : il coupe le grave. Utile pour dégager de la place sous une nappe, ou pour
+  faire monter un charley.</p>
+  <span>Potards FREQ, Q, CV AMT · Entrées IN, CV · Sortie OUT</span></div>
+  <div class="fmod" id="fm-bpf"><b>BPF</b>
+  <p>Passe-bande : il ne garde qu'une tranche autour de FREQ. Sur du bruit, avec Q poussé, il devient une
+  voix de percussion à lui seul.</p>
+  <span>Potards FREQ, Q, CV AMT · Entrées IN, CV · Sortie OUT</span></div>
+  <div class="fmod" id="fm-notch"><b>NOTCH</b>
+  <p>Le contraire du passe-bande : il creuse une encoche et laisse passer le reste. Balayé lentement par un
+  LFO, il donne l'effet de flanger classique.</p>
+  <span>Potards FREQ, Q, CV AMT · Entrées IN, CV · Sortie OUT</span></div>
+  <div class="fmod" id="fm-peak"><b>PEAK</b>
+  <p>Une cloche qui accentue autour de FREQ sans rien couper. C'est l'égaliseur du rack.</p>
+  <span>Potards FREQ, Q, CV AMT · Entrées IN, CV · Sortie OUT</span></div>
+  <div class="fmod" id="fm-lpg"><b>LPG</b>
+  <p>La porte passe-bas de Buchla, restée rare en Eurorack et pourtant irremplaçable. Un filtre et un ampli
+  commandés <b>ensemble</b> par la même chute : le son ne se contente pas de baisser, il s'assombrit en
+  même temps. C'est ce que fait tout ce qui résonne dans le monde réel, et c'est ce qu'aucune enveloppe
+  branchée sur un VCA ne donne. Une impulsion transforme n'importe quelle source continue — un VCO, du
+  bruit, une nappe — en note pincée.</p>
+  <span>Potards DECAY, TONE, LEVEL · Entrées IN, TRIG · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-resonate"><b>RESONATE</b>
+  <p>Trois résonateurs très pointus, frappés par ce qu'on leur envoie. Ils ne produisent rien par eux-mêmes :
+  ils chantent de ce qu'on leur donne, comme le corps d'un instrument. Envoyez-leur une percussion sèche et
+  vous entendrez une corde ou une cloche selon STRUCT, qui écarte les trois résonances. L'entrée V/OCT les
+  accorde au volt par octave, donc un séquenceur les joue comme un instrument.</p>
+  <span>Potards DECAY, STRUCT, MIX · Entrées IN, V/OCT · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-svf"><b>SVF</b>
+  <p>Filtre à variable d'état : les trois réponses sortent <b>en même temps</b> sur trois prises. On peut
+  envoyer le grave dans un ampli et l'aigu dans un autre, ou mélanger les trois pour fabriquer sa propre
+  courbe.</p>
+  <span>Potards FREQ, Q, CV AMT · Entrées IN, CV · Sorties LP, BP, HP</span></div>
+  <div class="fmod" id="fm-comb"><b>COMB</b>
+  <p>Un délai très court qui se réinjecte : il creuse une série de creux réguliers, d'où le nom de peigne.
+  FREQ règle l'espacement — plus il est haut, plus le peigne est serré et plus le module sonne accordé.
+  FEED règle l'intensité. Sur une percussion, il donne un ton métallique.</p>
+  <span>Potards FREQ, FEED · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-formant"><b>FORMANT</b>
+  <p>Deux passe-bande accordés sur les résonances de la voix humaine. VOWEL parcourt A, È, I, O, OU. Sur une
+  dent de scie, on entend une voyelle chantée ; balayé par un LFO lent, le rack se met à parler.</p>
+  <span>Potards VOWEL, Q · Entrée IN · Sortie OUT</span></div>
+
+  <h3>Modulation · 12 modules</h3>
+  <p>Ils ne font pas de son : ils fabriquent des tensions qui bougent, à envoyer dans les entrées CV des
+  autres. C'est ce qui empêche un patch de rester figé.</p>
+  <div class="fmod" id="fm-envelope"><b>ENVELOPE</b>
+  <p>Une forme en quatre temps, déclenchée par une porte : attaque, chute, palier, retour. ATK règle la
+  montée, DEC la descente vers le palier, SUS la hauteur de ce palier, REL le retour au silence. À envoyer
+  dans le CV d'un VCA — sans elle, le son ne s'arrête jamais.</p>
+  <p><i>Ici la porte ne se tient pas</i> : l'enveloppe déroule ses quatre temps d'affilée dès qu'elle est
+  déclenchée. SUS règle donc le niveau du coude, pas une durée.</p>
+  <span>Potards ATK, DEC, SUS, REL · Entrée GATE · Sortie OUT</span></div>
+  <div class="fmod" id="fm-ad"><b>AD</b>
+  <p>La même chose en deux temps, avec une descente exponentielle. Plus court à régler, et c'est la bonne
+  forme pour tout ce qui est percussif.</p>
+  <span>Potards ATK, DEC · Entrée TRIG · Sortie OUT</span></div>
+  <div class="fmod" id="fm-lfo"><b>LFO</b>
+  <p>Un oscillateur lent, de vingt secondes par cycle à vingt fois par seconde. Trois formes simultanées :
+  le sinus ondule, le carré bascule, le triangle monte et descend droit. AMT règle la profondeur. Dans un
+  CV de filtre, c'est un balayage ; dans un V/OCT, un vibrato ; dans un PAN, un va-et-vient.</p>
+  <span>Potards RATE, AMT · Sorties SINE, SQR, TRI</span></div>
+  <div class="fmod" id="fm-kermit"><b>KERMIT</b>
+  <p>Deux oscillateurs lents, et deux sorties qui en <b>découlent</b> : C est leur produit, D leur somme.
+  Ce n'est donc pas quatre LFO mais une <b>famille</b> — tourner RATE A déplace aussi C et D, et le patch
+  garde une cohérence qu'on n'obtient pas avec quatre modules séparés.</p>
+  <span>Potards RATE A, RATE B, WAVE, AMPL · Sorties A, B, C, D</span></div>
+
+  <div class="fmod" id="fm-abacus"><b>ABACUS</b>
+  <p>Quatre enveloppes qui partagent leurs réglages, plus une sortie <b>SUM</b>. C'est elle qui fait
+  l'intérêt du module : quatre enveloppes déclenchées à des instants différents s'additionnent en une forme
+  qu'on ne saurait pas dessiner à la main.</p>
+  <p><b>CURVE</b> au-dessus du milieu rend la descente exponentielle, donc percussive ; en dessous elle
+  reste droite, donc plane.</p>
+  <span>Potards RISE, FALL, CURVE, LEVEL · Entrées TRIG 1 à 4 · Sorties 1 à 4 et SUM</span></div>
+
+  <div class="fmod" id="fm-function"><b>FUNCTION</b>
+  <p>Ni une enveloppe ni un LFO : les deux, selon ce qu'on en fait. RISE et FALL se règlent séparément, de
+  trois millisecondes à plusieurs secondes. <b>EOC</b> annonce la fin du cycle — et c'est là que le module
+  devient intéressant : <b>reliez EOC à son propre TRIG</b> et la fonction se relance toute seule. Elle
+  devient un oscillateur lent dont on tient la montée et la descente séparément, ce qu'aucun LFO ne permet.
+  C'est le patch qu'on fait le jour où on comprend le module.</p>
+  <span>Potards RISE, FALL, LEVEL · Entrée TRIG · Sorties OUT, EOC</span></div>
+
+  <div class="fmod" id="fm-riser"><b>RISER</b>
+  <p>Une bande de bruit qui monte sur <b>une à huit mesures</b>, calée sur le tempo. La sortie <b>CV</b>
+  suit la même montée : envoyez-la dans une coupure de filtre ou dans une hauteur, et tout le patch monte
+  avec. C'est le geste qui structure aussi bien la hardtek que le psychédélique — on annonce longtemps
+  avant de casser.</p>
+  <span>Potards BARS, RANGE, LEVEL · Entrée TRIG · Sorties OUT, CV</span></div>
+
+  <div class="fmod" id="fm-rungler"><b>RUNGLER</b>
+  <p>Le cœur du Benjolin de Rob Hordijk. Ce n'est <b>pas du hasard</b> : c'est une suite déterministe qui
+  frôle sans cesse la répétition sans jamais s'y installer. À CHAOS bas elle tourne en boucle courte, à
+  CHAOS haut elle part complètement ; c'est entre les deux qu'elle fait de la musique. Branchez sa sortie
+  CV sur une hauteur et sa GATE sur une percussion : le patch s'organise tout seul, puis se défait.</p>
+  <span>Potards CHAOS, RANGE · Entrée CLK · Sorties CV, GATE</span></div>
+
+  <div class="fmod" id="fm-samph"><b>S &amp; H</b>
+  <p>À chaque impulsion sur TRIG, il regarde la tension présente sur IN et la <b>garde</b> jusqu'à la
+  suivante. Un LFO lent branché sur IN devient ainsi un escalier. Si <b>rien n'est branché sur IN</b>, il
+  tire au sort : c'est la mélodie aléatoire des vieux films de science-fiction. AMT règle l'étendue, SLEW
+  arrondit les sauts.</p>
+  <span>Potards AMT, SLEW · Entrées IN, TRIG · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-envfol"><b>ENV FOL</b>
+  <p>Le seul module qui fasse le chemin inverse de tous les autres : il rend une <b>commande à partir d'un
+  son</b>. Envoyez-lui une grosse caisse et branchez sa sortie sur le CV d'un VCA monté à l'envers : la
+  nappe s'écarte à chaque frappe. C'est le <i>ducking</i>, et c'est ce qui manquait pour faire respirer un
+  patch chargé. GAIN règle la sensibilité, LAG la vitesse à laquelle la tension retombe.</p>
+  <span>Potards GAIN, LAG · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-drift"><b>DRIFT</b>
+  <p>Une tension qui erre sans jamais repasser au même endroit. Un LFO finit toujours par se répéter, celui-
+  ci non : c'est du bruit relu très lentement, une boucle d'une heure au réglage le plus lent. Les deux
+  sorties dérivent chacune de son côté et ne se retrouvent plus. Sur un accord ou un désaccordage, c'est ce
+  qui sépare un instrument vivant d'un instrument fixe.</p>
+  <span>Potards RATE, AMT · Sorties OUT, OUT 2</span></div>
+
+  <div class="fmod" id="fm-clklfo"><b>CLK LFO</b>
+  <p>Un LFO qui compte en mesures au lieu de compter en hertz : un quart, une demie, une, deux, quatre ou
+  huit. Il reste accroché au tempo, quel qu'il soit, là où un LFO ordinaire dérive par rapport au motif.
+  Pour un balayage de filtre qui tombe pile sur la mesure, c'est lui et pas l'autre.</p>
+  <span>Potards DIV, AMT · Sorties SINE, TRI, RAMP</span></div>
+
+  <h3>Utilitaires · 14 modules</h3>
+  <p>Rien de spectaculaire, et pourtant c'est ce qui manque toujours dans un vrai rack. Ils dosent,
+  mélangent, distribuent.</p>
+  <div class="fmod" id="fm-output"><b>OUTPUT</b>
+  <p>La seule porte de sortie vers le casque. Deux entrées, mélangées. Sans ce module dans le rack, rien ne
+  s'entend, quoi qu'on ait câblé ailleurs.</p>
+  <span>Potard LEVEL · Entrées IN, IN 2</span></div>
+  <div class="fmod" id="fm-vca"><b>VCA</b>
+  <p>Un robinet de volume commandé par une tension. GAIN ouvre le robinet à la main, l'entrée CV l'ouvre à
+  la demande. <b>Il part fermé</b> : c'est la première chose à vérifier quand un patch reste muet.</p>
+  <span>Potard GAIN · Entrées IN, CV · Sortie OUT</span></div>
+  <div class="fmod" id="fm-dualvca"><b>DUAL VCA</b>
+  <p>Deux VCA indépendants dans une seule façade. On n'en a jamais assez : il en faut un par voix, plus un
+  par modulation qu'on veut doser.</p>
+  <span>Potards GAIN 1, GAIN 2 · Entrées IN 1, CV 1, IN 2, CV 2 · Sorties OUT 1, OUT 2</span></div>
+  <div class="fmod" id="fm-trancegate"><b>TRANCE GATE</b>
+  <p>Une nappe tenue passée là-dedans devient un rythme. Huit motifs de seize pas, du battement régulier au
+  plus syncopé. <b>SHAPE</b> arrondit les bords : à zéro ça claque, à fond ça respire. <b>DEPTH</b> règle
+  la profondeur des creux — en deçà du maximum, le son ne disparaît plus tout à fait, il recule. Sur un
+  CHORD ou une SUPERSAW, c'est la moitié du psychédélique.</p>
+  <span>Potards PATTERN, DEPTH, SHAPE · Entrées IN, CLK, RST · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-head"><b>HEAD</b>
+  <p>Un mélangeur quatre voies avec un <b>départ d'effets séparé</b>. Chaque voie envoie ce qu'elle veut
+  vers AUX OUT, en plus de son niveau normal : on branche une réverbération dessus et les quatre la
+  partagent dans des proportions différentes.</p>
+  <p>C'est ce qui manque à MIX 4 : sans départ, il faudrait une réverbération par voie — quatre fois plus
+  cher pour un résultat moins tenu. Le départ est pris <b>après</b> le niveau de voie, donc baisser une
+  voie baisse aussi ce qu'elle envoie à l'effet ; sinon un son coupé continuerait de résonner.</p>
+  <span>Potards 1 à 4, AUX 1 à 4, MAIN · Entrées IN 1 à 4 · Sorties AUX OUT, MAIN</span></div>
+
+  <div class="fmod" id="fm-transpose"><b>TRANSPOSE</b>
+  <p>L'ATTENUV décale aussi, mais au jugé. Ici les crans tombent <b>exactement</b> sur l'octave et le
+  demi-ton : deux voix transposées d'une quinte le sont vraiment, et le restent. OCT couvre deux octaves de
+  part et d'autre, SEMI une octave.</p>
+  <span>Potards OCT, SEMI · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-compare"><b>COMPARE</b>
+  <p>Le pont entre les deux moitiés d'un modulaire. D'un côté les tensions qui ondulent, de l'autre les
+  impulsions : ce module fait passer de l'une à l'autre. Envoyez-lui un LFO lent, un DRIFT ou un RUNGLER et
+  vous obtenez un rythme qui suit la <b>forme</b> au lieu de suivre une grille. Une impulsion sort quand la
+  tension franchit le seuil en montant, l'autre quand elle redescend — rien entre deux.</p>
+  <span>Potard THRESH · Entrée IN · Sorties OUT, INV</span></div>
+
+  <div class="fmod" id="fm-attenuv"><b>ATTENUV</b>
+  <p>Atténuateur-inverseur. AMOUNT va de −100 à +100 : au-dessus de zéro il réduit, au-dessous il réduit
+  <b>et retourne</b> le signal, si bien qu'une enveloppe qui ouvrait un filtre le referme. OFFSET ajoute une
+  tension fixe. Le module qui rend une modulation trop violente utilisable.</p>
+  <span>Potards AMOUNT, OFFSET · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-slew"><b>SLEW</b>
+  <p>Empêche une tension de sauter d'un coup : elle glisse. Sur une sortie CV de séquenceur, c'est le
+  portamento ; sur une enveloppe, un arrondi des angles.</p>
+  <span>Potard TIME · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-mix4"><b>MIX 4</b>
+  <p>Quatre entrées, un niveau chacune, une sortie. Indispensable dès qu'on a plus d'une voix. Attention :
+  seul le potard <b>A est ouvert au départ</b>, les trois autres sont à zéro.</p>
+  <span>Potards A, B, C, D · Entrées A, B, C, D · Sortie OUT</span></div>
+  <div class="fmod" id="fm-mult"><b>MULT</b>
+  <p>Une entrée recopiée sur quatre sorties. Dans ce rack une sortie peut déjà alimenter plusieurs entrées,
+  donc le MULT sert surtout à y voir clair : on rassemble les départs d'une même horloge au même endroit.</p>
+  <span>Aucun potard · Entrée IN · Sorties 1, 2, 3, 4</span></div>
+  <div class="fmod" id="fm-xfade"><b>XFADE</b>
+  <p>Fondu enchaîné entre deux sources. BLEND à zéro laisse passer A, à fond B, au milieu les deux. L'entrée
+  CV permet à un LFO de faire le fondu tout seul.</p>
+  <span>Potard BLEND · Entrées A, B, CV · Sortie OUT</span></div>
+  <div class="fmod" id="fm-pan"><b>PAN</b>
+  <p>Place le signal entre les deux oreilles. Piloté par un LFO lent, il fait respirer un patch ; par un
+  S &amp; H, il éparpille chaque note d'un côté ou de l'autre.</p>
+  <span>Potard PAN · Entrées IN, CV · Sortie OUT</span></div>
+  <div class="fmod" id="fm-switch"><b>SWITCH</b>
+  <p>Aiguille l'entrée vers l'une des quatre sorties, et passe à la suivante à chaque impulsion reçue sur
+  CLK. Une seule séquence peut ainsi nourrir quatre voix à tour de rôle.</p>
+  <span>Aucun potard · Entrées IN, CLK, RST · Sorties 1, 2, 3, 4</span></div>
+
+  <h3>Traitements · 18 modules</h3>
+  <p>Ils se placent après les voix, en général entre le mélangeur et la sortie. Tous ont une entrée IN et
+  une sortie OUT, sauf RING qui a une entrée de modulation en plus. MIX dose le mélange entre le signal
+  d'origine et le signal traité.</p>
+  <div class="fmod" id="fm-echo"><b>ECHO</b>
+  <p>Délai à réinjection, de vingt millisecondes à un peu plus d'une seconde. FEED règle le nombre de
+  répétitions. Poussé à fond, il part en résonance — c'est un effet en soi, pas une erreur.</p>
+  <span>Potards TIME, FEED, MIX · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-reverb"><b>REVERB</b>
+  <p>Une réverbération à convolution. SIZE parcourt quatre espaces, d'une chambre d'un tiers de seconde à
+  une salle de trois secondes. Elle place le son quelque part au lieu de le laisser collé à l'oreille.</p>
+  <span>Potards SIZE, MIX · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-fold"><b>FOLD</b>
+  <p>Replie l'onde sur elle-même au lieu de l'écrêter. Sur un sinus, qui n'a rien à offrir, il fabrique des
+  harmoniques à partir de rien. SYM décale le point de repli et rend le résultat asymétrique.</p>
+  <span>Potards FOLD, SYM · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-drive"><b>DRIVE</b>
+  <p>Saturation douce. Elle épaissit, rapproche, et rattrape un son trop propre.</p>
+  <span>Potards DRIVE, MIX · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-bits"><b>BITS</b>
+  <p>Réduit la définition, de quatorze bits à deux. Le grain sale des premiers échantillonneurs.</p>
+  <span>Potard BITS · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-ring"><b>RING</b>
+  <p>Modulation en anneau : il multiplie le signal par un autre et ne garde que la somme et la différence
+  des fréquences. Le résultat n'est plus accordé sur rien, d'où ce timbre de cloche. FREQ règle l'oscillateur
+  interne, et l'entrée MOD permet d'utiliser une source extérieure à la place.</p>
+  <span>Potards FREQ, MIX · Entrées IN, MOD · Sortie OUT</span></div>
+  <div class="fmod" id="fm-chorus"><b>CHORUS</b>
+  <p>Un délai très court qui se promène : le signal se dédouble et se désaccorde légèrement. Épaissit sans
+  salir.</p>
+  <span>Potards RATE, DEPTH · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-phaser"><b>PHASER</b>
+  <p>Quatre filtres passe-tout en série, balayés par un LFO : des creux se déplacent dans le spectre. Plus
+  liquide et moins métallique qu'un flanger.</p>
+  <span>Potards RATE, DEPTH · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-grain"><b>GRAIN</b>
+  <p>Découpe le son en fragments et les rejoue en nuage. SIZE règle leur longueur, DENSITY leur débit. Ce
+  n'est pas un vrai granulateur — c'est un délai dont le temps saute sans arrêt —, mais le nuage y ressemble
+  beaucoup.</p>
+  <span>Potards SIZE, DENSITY, MIX · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-kamieniec"><b>KAMIENIEC</b>
+  <p>Un phaser ne filtre pas : il fait <b>tourner la phase</b>. Douze cellules laissent tout passer mais
+  décalent chaque fréquence différemment, et c'est en réadditionnant au signal d'origine que les creux
+  apparaissent.</p>
+  <p>D'où les deux sorties : <b>A additionne, B soustrait</b>. Elles sont complémentaires — ce qui creuse
+  sur A bosse sur B. Envoyées à gauche et à droite, c'est l'image la plus large qu'on puisse tirer d'un
+  seul module.</p>
+  <p><b>MODE</b> choisit combien de cellules travaillent : deux, quatre, six ou douze. Moins de cellules,
+  moins de creux — un léger balancement au lieu d'un tourbillon. Le LFO est interne, et sa sortie est
+  disponible pour moduler autre chose au même rythme.</p>
+  <span>Potards MODE, RESO, LFO RATE, DEPTH, MIX · Entrées IN, EXT MOD · Sorties A, B, LFO</span></div>
+
+  <div class="fmod" id="fm-plasma"><b>PLASMA</b>
+  <p>Une distorsion à tube à décharge : le signal traverse un arc électrique. Il n'y a pas de transition
+  douce entre « pas de son » et « arc » — d'où une courbe presque verticale au centre, là où une saturation
+  ordinaire arrondit. Ça ne sature pas, ça <b>casse</b>.</p>
+  <p><b>OCTAVE</b> ajoute une octave au-dessus par redressement : replier les alternances négatives double
+  la fréquence apparente. C'est exact et ça ne coûte rien. BASS et TREBLE corrigent après coup, le niveau
+  est rattrapé automatiquement.</p>
+  <span>Potards VOLTAGE, IN LVL, OCTAVE, BASS, TREBLE, DRY/WET · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-plexiphon"><b>PLEXIPHON</b>
+  <p>Six retards très courts, de longueurs premières entre elles, rebouclés : chacun sonne une hauteur,
+  ensemble ils font un <b>corps</b>. SIZE les allonge tous à la fois, ce qui descend l'accord d'un bloc.</p>
+  <p><b>DIFFUSE</b> est la clé : deux passe-tout étalent l'attaque avant le buisson. Sans eux on entend six
+  échos distincts ; avec eux, une matière. C'est toute la différence entre un délai multiple et un
+  résonateur.</p>
+  <span>Potards SIZE, DECAY, COLOR, DIFFUSE, MIX · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-bbd"><b>BBD</b>
+  <p>Avant les mémoires numériques, un écho se fabriquait en passant le signal de godet en godet. Chaque
+  passage perdait de l'aigu et prenait du souffle : les reprises <b>s'enfoncent</b> au lieu de se répéter à
+  l'identique. Le passe-bas est dans la boucle, c'est tout le secret — et un léger tangage rappelle que
+  rien n'était stable dans ces circuits.</p>
+  <span>Potards TIME, FEED, MIX · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-spring"><b>SPRING</b>
+  <p>Trois ressorts de longueurs premières entre elles, comme dans le bac d'un ampli de guitare. On
+  n'entend pas une salle mais un métal : ça tinte, ça traîne, et si on frappe fort ça fait <i>boing</i>.
+  TENSION règle à la fois la brillance et la longueur.</p>
+  <span>Potards TENSION, MIX · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-clip"><b>CLIP</b>
+  <p>DRIVE sature en douceur, celui-ci <b>coupe net</b>. La différence s'entend : l'écrêtage franc fabrique
+  des harmoniques impairs en escalier, et c'est la couleur de la hardtek et du hardkore. TONE ouvre un
+  passe-haut derrière, sans quoi tout se noie dans le grave. Le niveau est rattrapé automatiquement,
+  écrêter fort remontant beaucoup le volume.</p>
+  <span>Potards DRIVE, TONE · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-limit"><b>LIMIT</b>
+  <p>Un compresseur de crêtes, à placer juste avant l'OUTPUT quand plusieurs voix se cumulent et saturent.
+  THRESH fixe le seuil, RATIO la fermeté.</p>
+  <span>Potards THRESH, RATIO · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-eq3"><b>EQ 3</b>
+  <p>Trois cloches en série — grave, médium, aigu —, de moins quinze à plus quinze décibels chacune. Au
+  milieu, les trois potards ne font rien. C'est le module qu'on regrette de ne pas avoir dès qu'un patch
+  compte plus de trois voix : creuser le médium d'une nappe laisse la place à la caisse claire.</p>
+  <span>Potards LOW, MID, HIGH · Entrée IN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-pingpong"><b>PING PONG</b>
+  <p>Un écho dont les répétitions passent d'une oreille à l'autre : deux délais qui se nourrissent
+  mutuellement, l'un à gauche, l'autre à droite. Beaucoup plus large que l'ECHO ordinaire, et bien plus
+  frappant au casque.</p>
+  <span>Potards TIME, FEED, MIX · Entrée IN · Sortie OUT</span></div>
+
+  <h3>Percussions · 17 modules</h3>
+  <p>Des voix complètes : une impulsion sur TRIG suffit, pas besoin d'enveloppe ni de VCA. Les sept
+  dernières partagent les mêmes trois réglages — TUNE l'accord, DECAY la longueur, LEVEL le niveau.</p>
+  <div class="fmod" id="fm-batteringram"><b>BATTERING RAM</b>
+  <p>Ce qui fait une grosse caisse de module, ce n'est pas la sinusoïde plongeante — tout le monde l'a —
+  mais le <b>CLIC</b> : un bruit très court à l'attaque. Sans lui, la caisse disparaît dès qu'un autre son
+  joue ; avec lui, elle traverse n'importe quel mélange, même très bas.</p>
+  <p><b>DRIVE TYPE</b> donne trois caractères : doux, franc, ou en escalier. La sortie <b>ENVLP</b> rend
+  l'enveloppe de la frappe — envoyez-la dans un VCA sur une autre voie et vous obtenez un vrai ducking,
+  calé au coup près.</p>
+  <span>Potards PITCH, DECAY, DRIVE, DRIVE TYPE, CLICK, HPF · Entrée TRIG · Sorties OUT, ENVLP</span></div>
+
+  <div class="fmod" id="fm-squidsalmple"><b>SQUID SALMPLE</b>
+  <p>Huit lecteurs d'échantillons, <b>une entrée chacun</b>. C'est tout le module, et c'est ce qui le rend
+  rapide : là où un échantillonneur ordinaire demande de choisir un son puis de le déclencher, ici chaque
+  prise <b>est</b> un son. Huit sorties d'horloges divisées câblées dessus donnent un rythme entier sans
+  toucher un seul réglage.</p>
+  <p><b>BANK</b> décale les huit ensemble dans la banque : un seul potard change tout le kit, ce qui est la
+  façon dont on s'en sert vraiment. <b>QUALITY</b> réduit la résolution — un escalier, pas une saturation :
+  le son devient granuleux au lieu de devenir gros. <b>REVERSE</b> retourne les huit.</p>
+  <p>Les sorties <b>1+2</b> et <b>3+4</b> sortent ces canaux du mélange, de quoi les traiter à part.</p>
+  <span>Potards BANK, QUALITY, ENV, REVERSE, V/OCT, LEVEL · Entrées 1 à 8 · Sorties 1+2, 3+4, MIX</span></div>
+
+  <div class="fmod" id="fm-mutanthihats"><b>MUTANT HIHATS</b>
+  <p>Le charley d'une 808 — six carrés désaccordés passés au passe-haut — mais saturé. Ce qui fait ce
+  module, c'est l'<b>exclusivité</b> : le fermé coupe l'ouvert, net, comme une vraie pédale de charley.
+  Sans cela on entend deux charleys superposés, ce qu'aucun batteur ne peut produire. Deux ouverts
+  d'affilée se coupent aussi.</p>
+  <span>Potards DRIVE, CUTOFF, DECAY, LEVEL · Entrées CLOSED, OPEN · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-tekkick"><b>TEK KICK</b>
+  <p>La grosse caisse de la hardtek n'est pas une percussion écrêtée : c'est une <b>note</b>. On pousse une
+  sinusoïde plongeante dans une saturation franche jusqu'à ce qu'elle devienne carrée, puis on coupe le
+  grave excédentaire pour qu'il reste de la place. Plus DRIVE monte, plus la hauteur s'entend — au maximum,
+  TUNE devient un réglage mélodique.</p>
+  <span>Potards TUNE, DECAY, DRIVE, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-tribal"><b>TRIBAL</b>
+  <p>Quatre peaux dans un seul module : conga, bongo, djembé, tabla. Ce qui les sépare n'est pas la hauteur
+  mais la <b>façon dont le son meurt</b> — la conga résonne, le bongo claque, le djembé a une gifle de bruit
+  sur l'attaque, et le tabla plie sa hauteur en descendant, ce qui lui donne sa voix parlante. Posez-en deux
+  ou trois sur des sorties d'EUCLID de densités différentes et le tapis se met en place tout seul.</p>
+  <span>Potards TYPE, TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-zap"><b>ZAP</b>
+  <p>Une chute de plusieurs octaves en un dixième de seconde, avec une seconde sinusoïde qui module la
+  première. Sans FM c'est un sifflet ; avec, ça devient métallique et ça déchire — le <i>zap</i> des disques
+  goa, qu'on place sur un contretemps pour trouer le mix.</p>
+  <span>Potards TUNE, DECAY, FM, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-drum"><b>DRUM</b>
+  <p>La voix réglable : un sinus qui plonge, saturé, avec une pincée de bruit. Selon les réglages, on en
+  tire une grosse caisse, un tom ou un bloc de bois. DRIVE épaissit, NOISE ajoute la claque de l'attaque.</p>
+  <span>Potards TUNE, DECAY, DRIVE, NOISE · Entrée TRIG · Sortie OUT</span></div>
+  <div class="fmod" id="fm-kick"><b>KICK</b>
+  <p>Grosse caisse : un sinus de trente à quatre-vingts hertz dont la hauteur chute à l'attaque.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+  <div class="fmod" id="fm-snare"><b>SNARE</b>
+  <p>Caisse claire : du bruit filtré pour le timbre, un triangle en dessous pour le corps.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+  <div class="fmod" id="fm-hat"><b>HAT</b>
+  <p>Charley : six carrés aux rapports inharmoniques, passés dans un passe-haut très raide. DECAY court
+  donne le fermé, long l'ouvert.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+  <div class="fmod" id="fm-clap"><b>CLAP</b>
+  <p>Claquement de mains : trois rebonds rapprochés puis une queue. C'est ce décalage de quelques
+  millisecondes qui fait entendre plusieurs paires de mains.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+  <div class="fmod" id="fm-tom"><b>TOM</b>
+  <p>Tom accordable, de soixante-dix à deux cent soixante hertz, avec la même chute de hauteur à l'attaque
+  que la grosse caisse mais plus lente.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+  <div class="fmod" id="fm-cymbal"><b>CYMBAL</b>
+  <p>Cymbale : le même banc de carrés que le charley, plus grave et bien plus long.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+  <div class="fmod" id="fm-rim"><b>RIM</b>
+  <p>Rim shot : un carré très bref et un peu de bruit filtré. Une dizaine de millisecondes en tout.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-cowbell"><b>COWBELL</b>
+  <p>Deux carrés dans un rapport qui ne tombe sur aucun harmonique, passés dans un passe-bande. C'est la
+  recette exacte de la 808, et c'est ce rapport bancal qui donne ce timbre creux qu'on reconnaît entre
+  mille.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-shaker"><b>SHAKER</b>
+  <p>Du bruit très aigu, très court, avec une attaque légèrement molle. À faire tourner sur les doubles
+  croches sous tout le reste : c'est ce qui donne le mouvement.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+
+  <div class="fmod" id="fm-claves"><b>CLAVES</b>
+  <p>Un sinus aigu et très bref. Presque rien, mais c'est ce presque rien qui perce un mélange chargé.</p>
+  <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+  </div>

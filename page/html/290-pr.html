@@ -1,0 +1,32 @@
+<div id="pr">
+  <div class="note-bar"><b>TRAVAIL DU MIDI</b><button id="pr-fermer">FERMER</button></div>
+  <div id="pr-barre">
+    <select id="pr-prise"></select>
+    <button class="sec" id="pr-jouer">▶ JOUER</button>
+    <button class="sec" id="pr-grille">GRILLE : DOUBLE</button>
+    <button class="sec" id="pr-zmoins">−</button>
+    <button class="sec" id="pr-zplus">+</button>
+  </div>
+  <div id="pr-zone"><canvas id="pr-canvas"></canvas></div>
+  <div id="pr-outils">
+    <button class="sec" data-pr="gauche">◀</button>
+    <button class="sec" data-pr="droite">▶</button>
+    <button class="sec" data-pr="haut">▲</button>
+    <button class="sec" data-pr="bas">▼</button>
+    <button class="sec" data-pr="court">− COURT</button>
+    <button class="sec" data-pr="long">+ LONG</button>
+    <button class="sec" data-pr="double">DOUBLER</button>
+    <button class="sec" data-pr="supprimer">SUPPRIMER</button>
+    <button class="sec" data-pr="caler">TOUT CALER</button>
+  </div>
+  <div id="pr-pied">
+    <p id="pr-etat">—</p>
+    <p><select id="pr-machine"></select></p>
+    <p><button id="pr-garder">GARDER LES MODIFICATIONS</button>
+       <button class="sec" id="pr-mid">.MID</button>
+       <button class="sec" id="pr-motif">VERS LE MOTIF</button></p>
+    <p style="opacity:.65;font-size:12.5px">Toucher une case vide ajoute une note, toucher une note la
+    choisit, la faire glisser la déplace. Glisser sur la règle ou la marge fait défiler.</p>
+  </div>
+</div>
+

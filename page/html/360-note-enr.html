@@ -1,0 +1,69 @@
+  <div class="doc" id="note-enr" data-titre="ENREGISTREUR MIDI">
+<h3>Comment ça marche</h3>
+  <p>Branchez la carte USB-C vers MIDI, reliez la <b>sortie MIDI</b> de vos machines à l'entrée de la
+  carte, puis cherchez l'appareil dans la notice, onglet Général. Jouez : les notes reçues déclenchent
+  les sons, <b>tout sort du téléphone</b>, et tout ce qui arrive est daté.</p>
+  <p><b>Toutes les sources sont enregistrées en même temps</b>, chacune sur son canal. Une boîte à
+  rythmes sur le canal 10, une basse sur le canal 2, un clavier sur le 1 : les trois arrivent ensemble,
+  la vue les montre côte à côte, et chacune peut jouer une machine différente. De quoi enregistrer un
+  live entier avec le téléphone pour seul matériel.</p>
+  <p>La relecture repasse par le même chemin : même machine, mêmes sons, même rythme. Chaque prise s'écrit
+  en <b>fichier .mid de type 1</b> : une piste par son, chacune portant le nom de la partie — un
+  séquenceur les ouvre déjà triées au lieu d'un tas unique à démêler.</p>
+
+  <h3>Ce qui arrive</h3>
+  <p><b>Une bande par son</b>, et non par canal. C'est ce qu'il faut pour une Electribe : l'EMX, l'ESX
+  ou l'ER-1 envoient tous leurs sons sur un <b>seul</b> canal MIDI et ne les distinguent que par le
+  numéro de note. Une bande par canal ne montrerait qu'une ligne où tout se mélange.</p>
+  <p>Chaque son reçu prend donc sa propre bande, <b>nommée d'après la machine</b> qui le joue — BD,
+  SNARE, HH CLOSED plutôt que des numéros. Le temps va de gauche à droite, la hauteur du trait donne la
+  vélocité. Pendant l'enregistrement la vue défile sur les huit dernières secondes avec un trait orange
+  sur l'instant présent ; à l'arrêt, elle montre la prise entière.</p>
+  <p>Le bouton <b>PISTES</b> bascule entre une bande par son et une bande par canal. La seconde vue sert
+  quand plusieurs machines jouent ensemble et qu'on veut voir les sources plutôt que les instruments.
+  Toutes les pistes reçues sont affichées, quel
+  que soit leur nombre : la vue défile.</p>
+  <p>La disposition est celle d'un séquenceur : les <b>noms à gauche</b>, chacun avec son coupe-son
+  <b>M</b> et son solo <b>S</b>, le <b>temps à droite</b> avec une règle en secondes. Les deux colonnes
+  défilent ensemble.</p>
+
+  <h3>Voir les formes d'onde</h3>
+  <p>Les traits montrent des <b>notes</b>. Pour voir le <b>son</b>, comme dans un séquenceur : touchez
+  <b>VOIR</b> sur une prise pour l'afficher, puis <b>FORMES D'ONDE</b>. Chaque piste est alors rendue
+  séparément et son relief apparaît dans sa bande, les notes s'effaçant derrière.</p>
+  <p>Le calcul prend quelques secondes — c'est un rendu par piste. Il est refait si vous changez de prise
+  ou basculez entre pistes par son et par canal, puisque le découpage change.</p>
+  <p>La vue garde la dernière prise après l'arrêt : on peut la revoir, l'écouter et la rendre sans rien
+  relancer.</p>
+
+  <h3>Coupe-son et solo</h3>
+  <p>Chaque piste a son <b>COUPE</b> et son <b>SOLO</b>. Attention, ils ne font pas que taire le son :
+  une piste coupée <b>n'entre pas dans la prise</b>. C'est voulu — cela permet d'écarter une source qui
+  parasite le live sans avoir à la débrancher. Le solo coupe toutes les autres, comme sur une table,
+  donc un seul à la fois.</p>
+
+  <h3>Départ et boucle</h3>
+  <p><b>DÉPART : À LA PREMIÈRE NOTE</b> date la prise depuis le premier coup joué, pas depuis l'appui
+  sur le bouton : les deux ou trois secondes de vide du début disparaissent d'elles-mêmes. Passez-le sur
+  <i>immédiat</i> si vous voulez garder ce silence.</p>
+  <p><b>BOUCLE</b> fait tourner la prise en relecture sans s'arrêter. Enregistrez huit mesures d'EMX,
+  lancez la boucle, et jouez par-dessus sur une autre machine.</p>
+
+  <h3>Le tempo</h3>
+  <p>Si la machine branchée envoie son <b>horloge MIDI</b>, l'application la mesure pendant
+  l'enregistrement et l'affiche. C'est ce tempo-là — celui de la machine, pas celui de l'application —
+  qui est écrit dans le fichier <b>.mid</b>. Sans cela le fichier annonce un tempo faux et rien ne tombe
+  sur la grille dans un séquenceur.</p>
+
+  <h3>Repartir avec le son</h3>
+  <p>Chaque prise s'exporte de deux façons. En <b>.MID</b> vous repartez avec des <b>notes</b> : il faut
+  la même application, ou un séquenceur, pour les réentendre. En <b>.WAV</b> vous repartez avec le
+  <b>son</b> — un fichier qui s'écoute partout, se partage, s'envoie.</p>
+  <p>Le rendu rejoue la prise entière hors ligne, chaque note sur la machine à laquelle son canal est
+  aiguillé, et les pistes coupées ne sont pas rendues. Comptez quelques secondes pour une prise d'une
+  minute. La crête obtenue s'affiche à la fin : si elle est très basse, c'est que les machines jouaient
+  doucement, et il vaut mieux refaire la prise que de remonter le fichier après coup.</p>
+  <p><b>NOMMER</b> renomme une prise — « Prise 3 » ne dit plus rien trois jours après.</p>
+
+    </div>
+

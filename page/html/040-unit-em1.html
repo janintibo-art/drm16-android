@@ -1,0 +1,131 @@
+<div class="em" id="unit-em1">
+
+  <div class="em-jacks">
+    <div class="grp"><div class="tr"><i></i></div><span>PHONES</span></div>
+    <div class="grp"><div class="tr"><i></i><i></i></div><span>L/MONO&nbsp;&nbsp;R · OUTPUT</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i><i></i><i></i></div><span>IN&nbsp;&nbsp;OUT&nbsp;&nbsp;THRU · MIDI</span></div>
+    <div class="fill"></div>
+    <div class="grp"><div class="tr"><i></i></div><span>DC 9V</span></div>
+  </div>
+
+  <div class="em-marque">
+    <div class="et">ELECTRIBE</div>
+    <div class="mps"><b>M</b>MUSIC PRODUCTION STATION</div>
+    <div class="korg">KORG</div><div class="ref" id="em-notice" style="cursor:pointer">EM-1</div>
+  </div>
+
+  <div class="em-corps">
+
+    <div class="em-col">
+      <div class="em-noir">
+        <div class="em-haut">
+          <div class="em-vol">
+            <div class="kn" id="em-k-vol"><div class="bt">><i></i></div><em>MASTER<br>VOLUME</em></div>
+            <button class="btn" id="em-lock" style="font-size:8px">TEMPO<br>LOCK</button>
+          </div>
+          <div class="lcd"><b id="em-val">001</b><span id="em-lab">PATTERN</span></div>
+          <div class="em-dial" id="em-dial"></div>
+        </div>
+        <div class="em-params" id="em-params"></div>
+        <div class="em-modes" style="margin-top:8px">
+          <button class="btn on" data-mode="0">PATTERN</button>
+          <button class="btn" data-mode="1">STEP EDIT</button>
+          <button class="btn" data-mode="2">SONG</button>
+          <button class="btn" data-mode="3">GLOBAL</button>
+          <button class="btn" id="em-write">WRITE</button>
+        </div>
+      </div>
+
+      <div class="em-noir em-gauche" style="margin-top:auto">
+        <button class="btn sombre" id="em-prev">◀</button>
+        <button class="btn sombre" id="em-next">▶</button>
+        <span>SELECT</span>
+        <button class="btn" id="em-kb">KEYBOARD</button>
+        <button class="btn" id="em-pset">PATTERN SET</button>
+        <button class="btn" id="em-mute">MUTE</button>
+        <button class="btn" id="em-solo">SOLO</button>
+        <button class="btn" id="em-erase" style="margin-left:auto">ERASE</button>
+        <button class="btn" id="em-shift">SHIFT</button>
+      </div>
+
+      <div class="em-noir em-transport">
+        <button class="btn rec" id="em-rec">●</button>
+        <button class="btn" id="em-stop">■</button>
+        <button class="btn" id="em-play">▶ ❙❙</button>
+        <button class="btn" id="em-tap">TAP</button>
+      </div>
+    </div>
+
+    <div class="em-col">
+
+      <div class="em-noir">
+        <div class="em-tit">EFFECT / DELAY</div>
+        <div class="em-fxgrid">
+          <div class="em-types" id="em-types"></div>
+          <div class="em-knobs">
+            <div class="kn" id="em-k-e1"><div class="bt">><i></i></div><em>EDIT 1<br>TIME</em></div>
+            <div class="kn" id="em-k-e2"><div class="bt">><i></i></div><em>EDIT 2<br>DEPTH</em></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn" id="em-delay" style="flex:1">DELAY EDIT</button>
+          <button class="btn" id="em-motion" style="flex:1">MOTION SEQ</button>
+        </div>
+      </div>
+
+      <div class="em-noir">
+        <div class="em-tit">SYNTH FILTER</div>
+        <div class="em-4k">
+          <div class="kn" id="em-k-cut"><div class="bt">><i></i></div><em>CUTOFF</em></div>
+          <div class="kn" id="em-k-res"><div class="bt">><i></i></div><em>RESONANCE</em></div>
+          <div class="kn" id="em-k-egi"><div class="bt">><i></i></div><em>EG INT</em></div>
+          <div class="kn" id="em-k-drv"><div class="bt">><i></i></div><em>DRIVE</em></div>
+        </div>
+      </div>
+
+      <div class="em-noir">
+        <div class="em-tit">PART COMMON</div>
+        <div class="em-common">
+          <div>
+            <div class="em-tog" style="flex-direction:row;align-items:center;gap:8px">
+              <button class="btn" id="em-mseq" style="flex:none;padding:10px 12px">MOTION<br>SEQ</button>
+              <div class="em-leds"><u id="em-smooth"><i></i>Smooth</u><u id="em-trig"><i></i>Trig Hold</u></div>
+            </div>
+            <div class="em-grp">SYNTH PART</div>
+            <div class="em-parts" id="em-synth"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div class="em-tog" style="flex:1">
+              <button class="btn" id="em-amp">AMP EG</button>
+              <button class="btn" id="em-roll">ROLL</button>
+              <button class="btn" id="em-fx">EFFECT</button>
+            </div>
+            <div style="flex:1.4;display:grid;grid-template-columns:1fr 1fr;gap:6px;justify-items:center">
+              <div class="kn" id="em-k-eg"><div class="bt">><i></i></div><em>EG TIME</em></div>
+              <div class="kn" id="em-k-pit"><div class="bt">><i></i></div><em>PITCH</em></div>
+              <div class="kn" id="em-k-lvl"><div class="bt">><i></i></div><em>LEVEL</em></div>
+              <div class="kn" id="em-k-pan"><div class="bt">><i></i></div><em>PAN</em></div>
+            </div>
+          </div>
+        </div>
+        <div class="em-grp">DRUM PART</div>
+        <div class="em-parts" id="em-drums"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="em-bas em-noir">
+    <div class="em-beats" id="em-beats"></div>
+    <div class="em-keys" id="em-keys"></div>
+    <div class="em-fonc">
+      <span>Length</span><span>Scale /Beat</span><span>Swing</span><span>Roll Type</span>
+      <span>Move Data</span><span>Copy Part</span><span>Copy Sound</span><span>Clear Motion</span>
+      <span>Clear Part</span><span>Swap Part</span><span>Insert Pattern</span><span>Delete Pattern</span>
+      <span>Clear Song</span><span>Bend Range</span><span>Dump</span><span>Protect</span>
+    </div>
+  </div>
+
+</div>
+

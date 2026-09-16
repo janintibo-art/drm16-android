@@ -1,0 +1,59 @@
+/* ===================== ARTURIA DRUMBRUTE IMPACT ===================== */
+body.dbi .dbib{display:block}
+body.dbi #unit,body.dbi .em,body.dbi .er,body.dbi .ea,body.dbi .es,body.dbi .mx,body.dbi .sx,
+body.dbi .akai,body.dbi .rtr,body.dbi .dmxb,body.dbi .korgv,body.dbi .crb{display:none}
+.dbib{display:none;width:100%;max-width:1120px;border-radius:8px;padding:13px 15px 15px;
+  background:linear-gradient(168deg,#3d434e,#2e333c 45%,#272b33 75%,#353b45);
+  box-shadow:0 18px 40px #000b,inset 0 1px 0 #ffffff18}
+.dbi-tete{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.dbi-nom{font:800 17px/1.1 "Roboto Condensed",sans-serif-condensed,Arial;letter-spacing:1px;
+  color:#e8ecf2;cursor:pointer}
+.dbi-nom small{display:block;font:700 7.5px/1.4 "Roboto Condensed",Arial;letter-spacing:1.8px;
+  color:#8c99ab}
+.dbi-trans{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap}
+.dbib button{border:0;border-radius:4px;font:700 8.5px/1.1 "Roboto Condensed",Arial;letter-spacing:.6px;
+  color:#dbe2ec;background:linear-gradient(180deg,#59606c,#3b414b);
+  box-shadow:0 2px 0 #1d2027,0 3px 5px #0006,inset 0 1px 0 #ffffff22;padding:10px 11px}
+.dbib button:active,.dbib button.on{background:linear-gradient(180deg,#ffb469,#e07a1e);color:#241203;
+  transform:translateY(2px);box-shadow:0 0 0 #1d2027,inset 0 1px 3px #0005}
+.dbib button.bleu.on{background:linear-gradient(180deg,#7fc7ff,#2a8ad0);color:#04202f}
+.dbi-lcd{background:#12151a;border-radius:4px;padding:6px 12px;min-width:142px;text-align:center}
+.dbi-lcd b{display:block;font:800 14px/1.2 "Courier New",monospace;color:#ff9a44}
+.dbi-lcd u{display:block;text-decoration:none;font:700 7.5px/1.3 "Roboto Condensed",Arial;
+  letter-spacing:1.4px;color:#9a7048}
+.dbi-voix{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:10px 0}
+.dbi-v{background:linear-gradient(180deg,#454c58,#333842);border-radius:5px;padding:6px 4px 5px;
+  box-shadow:inset 0 1px 0 #ffffff14;display:flex;flex-direction:column}
+.dbi-v .dbi-pad{margin-top:auto}
+.dbi-v>b{display:block;text-align:center;font:700 7.5px/1.2 "Roboto Condensed",Arial;letter-spacing:.6px;
+  color:#cfd7e2;margin-bottom:5px;min-height:9px}
+.dbi-kn{width:100%;text-align:center;margin-bottom:4px;touch-action:none}
+.dbi-kn .bt{width:32px;height:32px;border-radius:50%;margin:0 auto;position:relative;touch-action:none;
+  background:radial-gradient(circle at 34% 26%,#5d6572,#333841 55%,#1b1e24);
+  box-shadow:0 2px 5px #0008,inset 0 1px 1px #ffffff2a}
+.dbi-kn .bt i{position:absolute;left:50%;top:3px;width:2px;height:40%;margin-left:-1px;border-radius:1px;
+  background:#eef2f8}
+body.dbi-col .dbi-kn .bt i{background:#ff9a44}
+.dbi-kn em{display:block;margin-top:1px;font:700 6px/1.2 "Roboto Condensed",Arial;color:#9fabbb;
+  font-style:normal}
+.dbi-pad{width:100%;padding:12px 2px;border-radius:4px;font-size:7.5px;
+  background:linear-gradient(180deg,#2b2f37,#1a1d22) !important;color:#b9c3d0 !important;
+  box-shadow:0 2px 0 #12141a,inset 0 1px 0 #ffffff10 !important}
+.dbi-pad.sel{box-shadow:0 2px 0 #12141a,0 0 0 2px #e07a1e !important;color:#ffc089 !important}
+.dbi-pas{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;margin-top:8px}
+.dbi-pas button{padding:15px 0;position:relative;
+  background:linear-gradient(180deg,#5a626e,#3c424d)}
+.dbi-pas button.act{background:linear-gradient(180deg,#ffb469,#e07a1e)}
+.dbi-pas button.hors{opacity:.35}
+.dbi-pas button.cur::after{content:"";position:absolute;left:50%;top:4px;width:6px;height:6px;
+  margin-left:-3px;border-radius:50%;background:#fff;box-shadow:0 0 7px #fff}
+.dbi-bar{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:9px}
+@media (max-width:780px){
+  .dbi-voix{grid-template-columns:repeat(4,1fr)}
+  .dbi-kn .bt{width:28px;height:28px}
+  .dbi-pas button{padding:11px 0}
+}
+
+.pick.pdbi{background:linear-gradient(165deg,#4a5260,#20242b 55%,#e07a1e)}
+.pick.pdbi b{color:#ffc089;text-shadow:0 2px 0 #1a1d22}
+.pick.pdbi span{color:#b9c3d0}
