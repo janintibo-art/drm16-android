@@ -40,7 +40,8 @@ var HOST = (function(){
     var BUREAU = [
       "playing", "fichierSauver", "fichierOuvrir", "fichierAjouter", "fichierFermer",
       "fichierListe", "fichierCharger", "fichierSupprimer", "fichierDossier",
-      "echDossier", "echSauver", "echCharger", "echListe", "echSupprimer"
+      "echDossier", "echSauver", "echCharger", "echListe", "echSupprimer",
+      "netCharger"
     ];
     /* Tauri sert un protocole maison en http://<nom>.localhost/ sous Windows */
     var base = /Windows|Android/.test(navigator.userAgent) ? "http://drm16.localhost/" : "drm16://localhost/";
@@ -107,8 +108,23 @@ var HOST = (function(){
         t(inconnu, "une fonction inconnue est refusée");
         t(HOST.plateforme === "bureau" && !HOST.a("midiEnvoyer"), "plateforme bureau, MIDI pas encore offert");
       }catch(e){ t(false, "exception : " + e.message); }
-      t(!erreurs.length, "aucune erreur JavaScript " + erreurs.slice(0, 3).join(" | "));
-      try{ natif("autotestFin", [ok, l.join("\n")]); }catch(e){}
+      /* réseau (v140) : la réponse revient plus tard, par window.__net */
+      function attendre(url, max){
+        return netCharger(url, max).then(function(b64){ return {ok:true, taille:atob(b64).length}; },
+                                         function(e){ return {ok:false, erreur:String(e)}; });
+      }
+      Promise.all([
+        attendre("http://archive.org/robots.txt", 0),
+        attendre("https://archive.org/robots.txt", 0),
+        attendre("https://archive.org/robots.txt", 10)
+      ]).then(function(r){
+        t(!r[0].ok && /https/.test(r[0].erreur), "réseau : http refusé (" + r[0].erreur + ")");
+        t(r[1].ok && r[1].taille > 10, "réseau : archive.org répond (" + (r[1].ok ? r[1].taille + " octets" : r[1].erreur) + ")");
+        t(!r[2].ok && /trop gros/.test(r[2].erreur), "réseau : plafond respecté (" + r[2].erreur + ")");
+      }, function(e){ t(false, "réseau : " + e); }).then(function(){
+        t(!erreurs.length, "aucune erreur JavaScript " + erreurs.slice(0, 3).join(" | "));
+        try{ natif("autotestFin", [ok, l.join("\n")]); }catch(e){}
+      });
     }
   }
 })();

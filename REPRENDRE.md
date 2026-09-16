@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **139**.
+La version actuelle est la **140**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 139** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 140** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,26 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**W4 : réseau sous Windows — v140**
+
+*Constat v139* : le Rust compile, et l'essai automatique a tourné sur l'exécuteur Windows — **20 contrôles
+sur 20**, dans le vrai WebView2. L'étape « Essai automatique de l'application » devient donc **bloquante**
+(`windows.yml`, `publication.yml`).
+
+*Téléchargement* — **`bureau/src-tauri/src/reseau.rs`**, traduction de `netCharger` :
+- https seulement, y compris l'adresse finale après redirections (5 au plus) ; 15 s de connexion, 30 s sans
+  données ; plafond demandé par la page, borné à 16 Mo (4 Mo par défaut) ; « trop gros » dès l'annonce
+  `Content-Length`, puis à la lecture.
+- Client **`ureq` 2** (bloquant, TLS intégré), sur un **fil à part** : l'appel synchrone de la page rend la
+  main aussitôt.
+- Le résultat revient par **le même rappel qu'Android** : `window.__net(jeton, erreur, base64)`, envoyé par
+  `eval` à toutes les fenêtres. `APPLI` (le `AppHandle`) est posé dans `setup` (`main.rs`).
+- Côté page : `netCharger` ajouté à la liste `BUREAU` — la collection archive.org fonctionne sous Windows.
+
+*Autotest* : trois essais réseau, attendus avant le rapport — `http://` refusé, `https://archive.org/robots.txt`
+téléchargé, plafond de 10 octets refusé. **Il faut donc Internet sur l'exécuteur** (c'est le cas sur GitHub).
+Test navigateur, bloc 8 : la coque simulée rend aussi les téléchargements par `__net`.
 
 **W3 : fichiers et échantillons sous Windows — v139**
 

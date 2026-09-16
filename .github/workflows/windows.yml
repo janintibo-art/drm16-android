@@ -90,9 +90,8 @@ jobs:
 
       # Essai de la vraie application (v139) : la page se teste elle-même dans
       # WebView2, contre la coque Rust, puis l'application quitte avec 0 ou 1.
-      # Non bloquant tant qu'on n'a pas vu comment l'exécuteur affiche une fenêtre.
+      # Bloquant depuis la v140 : vu fonctionner sur l'exécuteur Windows en v139.
       - name: Essai automatique de l'application
-        continue-on-error: true
         shell: pwsh
         run: |
           $exe = Get-ChildItem bureau/src-tauri/target/release -Filter *.exe |

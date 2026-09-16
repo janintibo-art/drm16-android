@@ -56,6 +56,12 @@ fn appeler(nom: &str, a: &[Value]) -> Option<Value> {
         "fichierSupprimer" => json!(f::supprimer(&texte(a, 0))),
         "fichierDossier" => json!(f::dossier_doc().to_string_lossy()),
 
+        "netCharger" => {
+            let max = a.get(2).and_then(|v| v.as_i64()).unwrap_or(0);
+            crate::reseau::charger(texte(a, 0), texte(a, 1), max);
+            Value::Null
+        }
+
         "echDossier" => json!(f::dossier_ech().to_string_lossy()),
         "echSauver" => json!(f::ech_sauver(&texte(a, 0), &texte(a, 1))),
         "echCharger" => json!(f::ech_charger(&texte(a, 0))),

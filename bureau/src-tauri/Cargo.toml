@@ -2,7 +2,7 @@
 # — une fenêtre, un moteur web, et rien d'autre. Tout est dans le HTML.
 [package]
 name = "drm16"
-version = "139.0.0"   # recopie de app/build.gradle par bureau/preparer.sh
+version = "140.0.0"   # recopie de app/build.gradle par bureau/preparer.sh
 edition = "2021"
 description = "Boites a rythmes et samplers autonomes"
 authors = ["tibo"]
@@ -16,6 +16,8 @@ tauri = { version = "2", features = [] }
 serde_json = "1"
 base64 = "0.22"
 dirs = "5"
+# téléchargements archive.org (v140) : client HTTPS simple et bloquant, sur un fil à part
+ureq = "2"
 
 # On vise le plus petit exécutable possible : le projet tient en 2 Mo sur
 # Android, on ne va pas en livrer 150 sur PC.

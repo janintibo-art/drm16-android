@@ -229,6 +229,7 @@ async def hote(nav):
 class CoqueSimulee:
     def __init__(self):
         self.docs, self.ech, self.ecr, self.rapport = {}, {}, {}, {}
+        self.reseau = []   # téléchargements demandés, rendus plus tard par window.__net
     @staticmethod
     def propre(n):
         p = re.sub(r'[^A-Za-z0-9_.-]', '_', n)
@@ -257,10 +258,18 @@ class CoqueSimulee:
         if nom == 'echCharger': return self.ech.get(P(a[0]), '')
         if nom == 'echListe': return '\n'.join(sorted(self.ech))
         if nom == 'echSupprimer': self.ech.pop(P(a[0]), None); return None
+        if nom == 'netCharger': self.reseau.append(tuple(a)); return None
         raise KeyError(nom)
+    @staticmethod
+    def telecharger(url, max_):
+        # mêmes règles que reseau.rs, avec une réponse fixe de 120 octets
+        if not url.lower().startswith('https://'): return ('https seulement', '')
+        corps = b'U' * 120
+        if max_ and len(corps) > max_: return ('trop gros : 120', '')
+        return ('', base64.b64encode(corps).decode())
 
 async def bureau(nav):
-    print("\n8. Version de bureau, côté page : HOST par requêtes synchrones et autotest (v139)")
+    print("\n8. Version de bureau, côté page : HOST par requêtes synchrones, réseau et autotest (v139-v140)")
     coque = CoqueSimulee()
     ctx = await nav.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Edg/130")
     async def servir(route, req):
@@ -276,14 +285,19 @@ async def bureau(nav):
     err = []
     pg.on("pageerror", lambda e: err.append(str(e)))
     await pg.goto(PAGE)
-    for _ in range(60):
+    for _ in range(80):
         if coque.rapport: break
+        while coque.reseau:
+            url, jeton, max_ = coque.reseau.pop(0)
+            erreur_net, b64 = coque.telecharger(url, max_)
+            await pg.evaluate("(a) => window.__net(a[0], a[1], a[2])", [jeton, erreur_net, b64])
         await pg.wait_for_timeout(250)
     r = await pg.evaluate("() => ({p: HOST.plateforme, n: Object.keys(HOST).filter(k => typeof HOST[k] === 'function').length})")
-    ok(r["p"] == "bureau" and r["n"] == 15, "plateforme bureau, 14 fonctions natives + HOST.a (%s)" % r)
+    ok(r["p"] == "bureau" and r["n"] == 16, "plateforme bureau, 15 fonctions natives + HOST.a (%s)" % r)
     ok(coque.rapport.get("ok") is True, "l'autotest de la page passe contre la coque simulée")
-    if not coque.rapport.get("ok"):
+    if not coque.rapport.get("ok") or err:
         print("    " + str(coque.rapport.get("texte", "aucun rapport")).replace("\n", "\n    "))
+        print("    erreurs :", err)
     ok(not err, "aucune erreur de page %s" % err[:1])
     await ctx.close()
 
