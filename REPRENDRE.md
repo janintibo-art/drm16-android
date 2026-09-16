@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **149**.
+La version actuelle est la **150**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 149** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 150** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,34 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**B3 : la chaîne de sortie — v150**
+
+*Mesures* (nouvelle section « Chaîne de sortie » du banc, même code dans le test navigateur, bloc 13) :
+courbe entrée → sortie d'un sinus, grave relatif à 100 Hz, pompage, **plafond absolu** sur une rafale de coups
+à +12 dBFS.
+
+*Défauts trouvés et corrigés* (`batirAudio`, `110-moteur-audio.js`) :
+1. **La sortie dépassait 0 dBFS : +4,0 dBFS** sur la rafale. Le passe-haut était placé **après** l'écrêteur ;
+   un passe-haut fait ressortir les fronts raides. Il est maintenant **en tête** de chaîne.
+2. Il restait **+0,03 dBFS** : le suréchantillonnage de l'écrêteur déborde un peu sur les fronts. Une **garde
+   finale** (butée franche à ±0,98, sans suréchantillonnage) rattrape ces échantillons ; elle ne touche jamais
+   un signal normal. **Plafond : −0,18 dBFS.**
+3. **Le Q des passe-haut et passe-bas de l'API est en décibels.** Le filtre d'avant gardait le Q par défaut
+   (1 dB = 1,12 linéaire) : légère bosse. Nouveau subsonique : **quatrième ordre de Butterworth à 22 Hz**
+   (Q −5,33 et +2,32 dB) — mesuré : 10 Hz −27,3 dB, 15 Hz −13,5, 22 Hz −3,0, 30 Hz −0,3, 50 Hz 0.
+   *À savoir pour la suite* : huit filtres de voix règlent aussi un Q de passe-haut ou passe-bas ; ils ont été
+   réglés à l'oreille avec cette lecture, il ne faut pas les « corriger » sans écouter.
+
+*Ordre de la chaîne* : `master` (volume) → subsonique → compensation (+2,5 dB) → limiteur → écrêteur → garde →
+sortie. Linéaire sous le seuil (+2,96 dB de gain : compensation et gain de rattrapage automatique du
+compresseur de l'API) ; crête plafonnée à −0,33 dBFS sur un signal tenu ; aucun pompage mesurable sur une nappe
+après un coup fort.
+
+*Écarté* : un compresseur « de liant » sur la sortie. Il colorerait toutes les machines, dont plusieurs ont
+déjà leur propre dynamique ; le calibrage de B2 rend son rôle inutile. Un vrai limiteur à anticipation
+(AudioWorklet) aussi : son module devrait être chargé depuis un fichier, ce qui est fragile dans la WebView
+Android, et le plafond est désormais garanti sans lui.
 
 **B2 : niveaux calibrés, atténuation partout — v149**
 

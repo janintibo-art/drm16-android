@@ -104,6 +104,55 @@ async ([m, appel, ks, duree, motif, nomExpr]) => {
 }
 """
 
+# La chaîne de sortie elle-même (v150) : courbe entrée → sortie, subsonique,
+# pompage, et plafond absolu sur une rafale de coups à +12 dBFS.
+CHAINE = r"""
+async () => {
+  function db(x){ return x>0 ? 20*Math.log10(x) : -120; }
+  async function passe(fabriquer, duree){
+    audioInit();
+    var off = new OfflineAudioContext(2, Math.ceil(44100*duree), 44100);
+    ctx = off; batirAudio(); master.gain.value = 1;
+    fabriquer(off, master);
+    var r = await off.startRendering();
+    return [r.getChannelData(0), r.getChannelData(1)];
+  }
+  function crete(c, a, b){ var m=0; for(var i=a;i<b;i++) m=Math.max(m,Math.abs(c[0][i]),Math.abs(c[1][i])); return m; }
+  function rms(c, a, b){ var s=0; for(var i=a;i<b;i++) s+=c[0][i]*c[0][i]; return Math.sqrt(s/(b-a)); }
+  var R = {};
+  // 1. sinus 1 kHz à différents niveaux : courbe entrée → sortie
+  R.courbe = [];
+  for (var lv of [-24,-12,-6,-3,0,3,6,12]) {
+    var c = await passe(function(off, m){ var o=off.createOscillator(); o.frequency.value=1000; var g=off.createGain(); g.gain.value=Math.pow(10,lv/20); o.connect(g); g.connect(m); o.start(); }, 1);
+    R.courbe.push([lv, db(crete(c, 22050, 44100)), db(rms(c,22050,44100)*Math.SQRT2)]);
+  }
+  // 2. pompage : nappe à -12 dBFS + coup de grosse caisse à +6 dBFS à 0,5 s
+  var c = await passe(function(off, m){
+    var o=off.createOscillator(); o.frequency.value=440; var g=off.createGain(); g.gain.value=Math.pow(10,-12/20); o.connect(g); g.connect(m); o.start();
+    var k=off.createOscillator(); k.frequency.setValueAtTime(90,0.5); var gk=off.createGain();
+    gk.gain.setValueAtTime(0,0); gk.gain.setValueAtTime(2,0.5); gk.gain.exponentialRampToValueAtTime(0.001,0.8); k.connect(gk); gk.connect(m); k.start(0.5); k.stop(0.85);
+  }, 2);
+  var avant = rms(c, 0.2*44100, 0.45*44100);
+  var creux = 1;
+  for (var t=0.9; t<1.6; t+=0.02){ creux = Math.min(creux, rms(c, Math.floor(t*44100), Math.floor((t+0.02)*44100)) / avant); }
+  var retour = null;
+  for (var t=0.85; t<1.9; t+=0.01){ if (rms(c, Math.floor(t*44100), Math.floor((t+0.01)*44100))/avant > 0.94){ retour = t-0.85; break; } }
+  R.pompage = {creux_db: db(creux), retour_ms: retour===null ? null : Math.round(retour*1000), crete_coup: db(crete(c, 0.5*44100, 0.9*44100))};
+  // 3. subsonique : 15 Hz et 40 Hz à -6 dBFS
+  R.grave = [];
+  for (var f of [10, 15, 22, 30, 50, 100]) {
+    var c = await passe(function(off, m){ var o=off.createOscillator(); o.frequency.value=f; var g=off.createGain(); g.gain.value=0.1; o.connect(g); g.connect(m); o.start(); }, 2);
+    R.grave.push([f, db(rms(c, 44100, 88200)*Math.SQRT2)]);
+  }
+  // 4. rafale de coups à +12 dBFS : plafond absolu
+  var c = await passe(function(off, m){
+    for (var i=0;i<8;i++){ var n=off.createOscillator(); n.type='square'; n.frequency.value=120+i*37; var g=off.createGain();
+      g.gain.setValueAtTime(4, 0.1+i*0.05); g.gain.exponentialRampToValueAtTime(0.001, 0.4+i*0.05); n.connect(g); g.connect(m); n.start(0.1+i*0.05); n.stop(0.5+i*0.05);} }, 1);
+  R.plafond = db(crete(c, 0, 44100));
+  return R;
+}
+"""
+
 async def mesurer(nav, m):
     res = {"voix": [], "ensemble": None, "motif": None, "erreurs": []}
     # une seule page par machine : chaque rendu refait son propre contexte hors ligne
@@ -174,6 +223,17 @@ def rapport(tout, ancien):
         L.append("| %s | %d | %s | %s | %s | %s%s | %s |" % (
             m, len(v), f(hi), f(lo), "—" if hi is None else "%.1f dB" % (hi - lo), f(ens), alerte,
             "vide" if not mo else "%s / %s" % (f(mo["crete"]), f(mo["rms"]))))
+    ch = tout.get("_chaine")
+    if ch:
+        L += ["", "## Chaîne de sortie", "",
+              "Sinus 1 kHz à l'entrée de la chaîne (après le volume général) → crête en sortie :", "",
+              "| Entrée | " + " | ".join("%+d" % a for a, _, _ in ch["courbe"]) + " |",
+              "|---|" + "---|" * len(ch["courbe"]),
+              "| Sortie | " + " | ".join("%+.2f" % b for _, b, _ in ch["courbe"]) + " |", ""]
+        g = dict((a, b) for a, b in ch["grave"])
+        L += ["Grave, relatif à 100 Hz : " + " · ".join("%d Hz %+.1f dB" % (a, g[a] - g[100]) for a in sorted(g)) + ".", "",
+              "Plafond absolu (rafale de coups à +12 dBFS) : **%+.2f dBFS**. Nappe à −12 dBFS après un coup à +6 dBFS : creux de %.2f dB." %
+              (ch["plafond"], ch["pompage"]["creux_db"])]
     L += ["", "Moteur seul, rien ne jouant : crête %s dBFS (bruit de démarrage des filtres, inaudible)." % f(tout.get("_moteur", {}).get("crete"))]
     L += ["", "## Détail par voix", ""]
     for m, r in tout.items():
@@ -208,6 +268,12 @@ async def main():
             tout[m] = await mesurer(nav, m)
             r = tout[m]
             print("%-8s %2d voix  motif:%s  %.0f s" % (m, len(r["voix"]), "oui" if r["motif"] else "non", time.time() - t0))
+        # la chaîne de sortie
+        pg = await nav.new_page()
+        await pg.add_init_script("Math.random = (function(){ var a = 7; return function(){ a = (a * 16807) % 2147483647; return a / 2147483647; }; })();")
+        await pg.goto(PAGE); await pg.wait_for_timeout(700)
+        tout["_chaine"] = await pg.evaluate(CHAINE)
+        await pg.close()
         # référence : le moteur seul, sans aucune machine qui joue
         pg = await nav.new_page()
         await pg.goto(PAGE); await pg.wait_for_timeout(700)

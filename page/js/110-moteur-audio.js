@@ -84,12 +84,32 @@ function batirAudio(){
      Le relevé montrait peu de décrochages mais des grésillements : le goulot
      est dans le fil audio, pas dans l'ordonnanceur. */
   sat.curve=c; sat.oversample="2x";
-  var hp = ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=26;
+  /* Filtre subsonique (v150) : quatrième ordre (deux biquads de Butterworth) à
+     22 Hz — 15 Hz perd 13,5 dB, 10 Hz 27 dB, −3 dB à 22 Hz, et le grave reste plat
+     au-dessus (mesuré par le banc). Il est placé EN TÊTE de chaîne : derrière l'écrêteur, comme avant, un
+     passe-haut fait ressortir les fronts raides et la crête finale dépassait
+     0 dBFS (mesuré : +4 dBFS sur une rafale de coups).
+     Ordre : subsonique → compensation → limiteur → écrêteur → garde → sortie. */
+  /* Attention : pour un passe-haut, l'API lit Q EN DÉCIBELS. Les facteurs de
+     Butterworth 0,5412 et 1,3066 s'écrivent donc −5,33 et +2,32. (Le filtre
+     d'avant gardait le Q par défaut, 1 dB, soit 1,12 : une petite bosse.) */
+  var hp = ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=22; hp.Q.value=20*Math.log10(0.5412);
+  var hp2 = ctx.createBiquadFilter(); hp2.type="highpass"; hp2.frequency.value=22; hp2.Q.value=20*Math.log10(1.3066);
   /* Compensation de sortie (v149) : les voies ont été calibrées vers −8 dBFS,
      soit en moyenne 2,5 dB de moins qu'avant ; ce gain rend le volume perçu
      d'avant, et le limiteur ne sert plus que de filet de sécurité. */
   var comp = ctx.createGain(); comp.gain.value = Math.pow(10, COMPENSATION_SORTIE_DB / 20);
-  master.connect(comp); comp.connect(lim); lim.connect(sat); sat.connect(hp); hp.connect(ctx.destination);
+  master.connect(hp); hp.connect(hp2); hp2.connect(comp);
+  /* Garde finale (v150) : le suréchantillonnage de l'écrêteur fait légèrement
+     déborder les fronts raides (mesuré : +0,03 dBFS). Une butée franche à
+     ±0,98 (−0,18 dBFS), sans suréchantillonnage donc sans débordement, ne
+     touche jamais un signal normal : elle ne rattrape que ces quelques
+     échantillons. */
+  var garde = ctx.createWaveShaper();
+  var cg = new Float32Array(1025);
+  for(var j=0;j<cg.length;j++){ var y = j*2/(cg.length-1) - 1; cg[j] = Math.max(-0.98, Math.min(0.98, y)); }
+  garde.curve = cg; garde.oversample = "none";
+  comp.connect(lim); lim.connect(sat); sat.connect(garde); garde.connect(ctx.destination);
   outBd = ctx.createGain(); outMix = ctx.createGain();
   if(ctx.createStereoPanner){
     panBd = ctx.createStereoPanner(); panMix = ctx.createStereoPanner();

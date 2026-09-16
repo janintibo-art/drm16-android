@@ -386,6 +386,23 @@ async def liens(nav):
     ok(not err, "aucune erreur de page %s" % err[:1])
     await ctx.close()
 
+async def chaine(nav):
+    print("\n13. Chaîne de sortie : plafond, subsonique, linéarité (v150)")
+    pg = await nav.new_page()
+    err = []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+    await pg.goto(PAGE); await pg.wait_for_timeout(1200)
+    src = open("outils/banc-son.py", encoding="utf-8").read()   # même mesure que le banc
+    js = src.split('CHAINE = r"""', 1)[1].split('"""', 1)[0]
+    r = await pg.evaluate(js)
+    g = dict((a, b) for a, b in r["grave"])
+    lin = dict((a, b) for a, b, _ in r["courbe"])
+    ok(r["plafond"] <= -0.1, "rien ne dépasse −0,1 dBFS, même une rafale à +12 dBFS (%.2f)" % r["plafond"])
+    ok(g[15] - g[100] <= -10 and abs(g[50] - g[100]) < 0.5, "subsonique : 15 Hz ≤ −10 dB, 50 Hz à plat (%.1f, %.1f)" % (g[15] - g[100], g[50] - g[100]))
+    ok(abs((lin[-12] - lin[-24]) - 12) < 0.1, "linéaire sous le seuil du limiteur")
+    ok(not err, "aucune erreur de page %s" % err[:1])
+    await pg.close()
+
 async def reglages(nav):
     print("\n9. Latence réglable et machine retrouvée au redémarrage (v144)")
     ctx = await nav.new_context(viewport={"width": 393, "height": 851})
@@ -517,7 +534,7 @@ async def confort(nav):
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens):
+        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine):
             try:
                 await t(nav)
             except Exception as e:
