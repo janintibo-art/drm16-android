@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **134**.
+La version actuelle est la **135**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 134** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 135** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,29 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
 
+**Test dans un vrai navigateur, actions à jour — v135 (fin de la phase A)**
+
+*`outils/test-navigateur.py`* — Chromium sans écran (Playwright 1.56.0, figé), lancé par `android.yml` et
+`publication.yml` juste après `controles.sh`. Six blocs, chacun reprenant un contrôle fait à la main :
+1. chargement sans erreur, puis les **29 machines** du menu ouvertes, jouées 0,35 s et arrêtées, dans les
+   **trois formats** 393×851, 880×400, 360×640 — aucune erreur de page, aucun débordement en largeur ;
+2. atténuation par voix du pas sur 15 machines (v124) ;
+3. Kaoss Pad mesuré par rendu hors ligne : anneau, vitesse 220/440/880 Hz, réduction, geste (v125-v127) ;
+4. écriture par morceaux, export WAV exact, refus avant rendu (v128) ;
+5. MIDI avec un pont simulé : attente, ouverture, débranchement, reconnexion, nom en texte (v131) ;
+6. nom piégé affiché tel quel, sans exécution (v132).
+**Vu échouer** sur la v123 : 11 contrôles en échec, exactement les défauts corrigés depuis.
+Le pont Android simulé (`PONT` dans le script) est la référence pour tester d'autres fonctions du pont.
+Localement : `pip install playwright==1.56.0 && python -m playwright install --with-deps chromium`.
+
+*Actions GitHub* (versions relevées en ligne le 16/09/2026) : `checkout` v4 → **v7**, `setup-java` v4 → **v6**,
+`upload-artifact` v4 → **v7**, `gradle/actions/setup-gradle` v4 → **v6**, `setup-python` **v7** (nouveau).
+`Swatinem/rust-cache@v2` et `dtolnay/rust-toolchain@stable` (Windows) : à revoir en phase W.
+Durée maximale du poste Android et de la publication : 25 → 30 min.
+
+**La phase A (analyse complète) est terminée.** Suite : phase W (version Windows), puis B (son), C (fidélité),
+D (graphisme). Le découpage des sources de `drm16.html` est prévu pendant W2.
+
 **Contrôles automatiques avant compilation — v134**
 
 `outils/controles.sh`, lancé par `android.yml` et `publication.yml` juste après l'installation de Java,
@@ -148,8 +171,7 @@ faute Java (v128), voie non protégée (v124).
 **Syro figé** : `syro/korg-commit.txt` porte `b0ed615f18c230a18b378d9ddc6a936971597e4e`, relevé sur le run
 de la v133.
 
-**Reste** (v135) : test de la page dans un vrai navigateur en CI, et mise à jour des versions des actions
-GitHub (versions à relever en ligne).
+**Fait en v135** : test navigateur en CI et actions GitHub à jour.
 
 **Syro : code Korg figé sur un commit — v133**
 

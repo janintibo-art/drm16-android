@@ -15,12 +15,12 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25          # sans cela, un exécuteur coincé attend six heures
+    timeout-minutes: 30          # sans cela, un exécuteur coincé attend six heures
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
@@ -31,7 +31,20 @@ jobs:
       - name: Contrôles automatiques
         run: bash outils/controles.sh
 
-      - uses: gradle/actions/setup-gradle@v4
+      # Test de la page dans un vrai navigateur (v135) : chargement, les 29
+      # machines ouvertes et jouées dans trois formats, et les corrections
+      # audio, fichiers, MIDI et HTML des v124 à v132. Détail : outils/test-navigateur.py
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Test dans un navigateur
+        run: |
+          pip install --quiet playwright==1.56.0
+          python -m playwright install --with-deps chromium > /dev/null
+          python outils/test-navigateur.py
+
+      - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: '8.10.2'
 
@@ -79,14 +92,14 @@ jobs:
 
       - name: Joindre le rapport de lint
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rapport-lint
           path: app/build/reports/lint-results-debug.*
           if-no-files-found: ignore
           retention-days: 14
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: drm16-apk
           path: app/build/outputs/apk/debug/*.apk
@@ -100,7 +113,7 @@ jobs:
           cp app/src/main/assets/drm16.html pc/drm16.html
           ls -lh pc/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: drm16-pc-html
           path: pc/drm16.html
@@ -110,7 +123,7 @@ jobs:
       # sans avoir à fouiller les journaux dans le navigateur.
       - name: Rapports en cas d'échec
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rapports-echec
           path: |
