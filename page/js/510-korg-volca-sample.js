@@ -33,57 +33,11 @@ function motifVlc(n){
 /* rec : enregistrement des MOUVEMENTS de potards (bouton MOTION)
    recPas : enregistrement des DÉCLENCHEMENTS (bouton REC PAS) — deux choses */
 var VLC = {motifs:[], cur:0, sel:0, pos:-1, noeuds:[], rec:false, recPas:false,
-  modePas:"normal", swing:0, bass:0.5, treble:0.5, reverbMix:0.34, song:false, chaine:[0,1], songPos:0, songStep:0, songEvents:[], reverb:null, sortie:null};
+  modePas:"normal", reverb:null};
 for(var vz=0; vz<10; vz++) VLC.motifs.push(motifVlc(vz < 2 ? vz : 9));
 
 function motifVlcCur(){ return VLC.motifs[VLC.cur]; }
 function partieVlcSel(){ return motifVlcCur().parties[VLC.sel]; }
-
-/* ---------- sortie globale : ANALOGUE ISOLATOR ----------
-   La vraie volca place BASS et TREBLE sur sa sortie. Deux étagères donnent
-   ici le même geste : centre = 0 dB, droite = +6 dB ; la butée gauche
-   approche le -infini par -60 dB, valeur pratiquement muette. */
-function dbIsoVlc(v){
-  v = Math.max(0, Math.min(1, v));
-  if(v < 0.5){
-    if(v < 0.002) return -60;
-    var x = v / 0.5;
-    return -60 * Math.pow(1 - x, 2);
-  }
-  return (v - 0.5) * 12;
-}
-function texteIsoVlc(v){
-  var d = dbIsoVlc(v);
-  if(d <= -59) return "CUT";
-  return (d >= 0 ? "+" : "") + d.toFixed(Math.abs(d) < 10 ? 1 : 0) + " dB";
-}
-function gainIsoVlc(v){ return Math.pow(10, dbIsoVlc(v) / 20); }
-function appliquerIsoVlc(){
-  if(!VLC.sortie || VLC.sortie.ctx !== ctx) return;
-  lisser(VLC.sortie.gl.gain, gainIsoVlc(VLC.bass), 0.012);
-  lisser(VLC.sortie.gh.gain, gainIsoVlc(VLC.treble), 0.012);
-}
-function sortieGeneraleVlc(){
-  if(VLC.sortie && VLC.sortie.ctx === ctx) return VLC.sortie.e;
-  var e = ctx.createGain(), o = ctx.createGain();
-  /* Deux voies Linkwitz-Riley d'ordre 4 : quand BASS et TREBLE sont au centre,
-     leur somme reste plate. Korg ne publie pas la fréquence de séparation de
-     l'isolateur analogique ; 1 kHz donne ici deux bandes réellement couvrantes,
-     contrairement à deux simples étagères qui laisseraient le médium intact. */
-  var lo1 = ctx.createBiquadFilter(), lo2 = ctx.createBiquadFilter();
-  var hi1 = ctx.createBiquadFilter(), hi2 = ctx.createBiquadFilter();
-  [lo1,lo2].forEach(function(f){ f.type = "lowpass"; f.frequency.value = 1000; f.Q.value = 0.7071; });
-  [hi1,hi2].forEach(function(f){ f.type = "highpass"; f.frequency.value = 1000; f.Q.value = 0.7071; });
-  var gl = ctx.createGain(), gh = ctx.createGain();
-  e.connect(lo1); lo1.connect(lo2); lo2.connect(gl); gl.connect(o);
-  e.connect(hi1); hi1.connect(hi2); hi2.connect(gh); gh.connect(o);
-  o.connect(busSet("vlc") || master);
-  VLC.sortie = {e:e, o:o, lo1:lo1, lo2:lo2, hi1:hi1, hi2:hi2, gl:gl, gh:gh, ctx:ctx};
-  /* nœuds neufs : poser directement évite une rampe inutile au premier son */
-  gl.gain.value = gainIsoVlc(VLC.bass);
-  gh.gain.value = gainIsoVlc(VLC.treble);
-  return e;
-}
 
 /* ---------- réverbération commune, comme sur la machine ---------- */
 function reverbVlc(){
@@ -95,16 +49,15 @@ function reverbVlc(){
     for(var i=0;i<n;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/n, 2.6);
   }
   c.buffer = b;
-  g.gain.value = VLC.reverbMix;
-  g.connect(c); c.connect(sortieGeneraleVlc());
+  g.gain.value = 0.34;
+  g.connect(c); c.connect(busSet("vlc") || master);
   VLC.reverb = g;
   return g;
 }
 function sortieVlc(k){
   if(!VLC.noeuds[k]){
     var g = ctx.createGain(), p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-    var sortie = sortieGeneraleVlc();
-    if(p){ g.connect(p); p.connect(sortie); } else g.connect(sortie);
+    if(p){ g.connect(p); p.connect(busSet("vlc") || master); } else g.connect(busSet("vlc") || master);
     VLC.noeuds[k] = {g:g, p:p};
   }
   return VLC.noeuds[k];
@@ -169,7 +122,7 @@ function frapperVlc(k){
   audioInit();
   if(!ctx) return;
   voixVlc(maintenantAudio() + 0.005, k);
-  if(S.run && VLC.recPas && !VLC.song){
+  if(S.run && VLC.recPas){
     var j = pasLePlusProche(VLC.pos, 16);
     if(j >= 0){
       motifVlcCur().parties[k].pas |= (1 << j);
@@ -193,23 +146,7 @@ function pasReelVlc(i){
   return a[((i % a.length) + a.length) % a.length];
 }
 function indexPasVlc(reel){ return pasActifsVlc().indexOf(reel); }
-/* SWING : la commande physique retarde les pas pairs jusqu'à 75 %. Avec
-   FUNC elle agit dans le sens opposé. Pour ce sens négatif, on retarde l'autre
-   moitié de la paire : musicalement c'est le même décalage relatif, sans jamais
-   programmer un son dans le passé. */
-function tempsSwingVlc(i, t){
-  var sw = VLC.swing || 0;
-  if(Math.abs(sw) < 0.001) return t;
-  var retard = stepDur() * 0.75 * Math.abs(sw);
-  if(sw > 0) return (i & 1) ? t + retard : t;
-  return (i & 1) ? t : t + retard;
-}
 function scheduleVlc(i, t){
-  if(VLC.song){
-    VLC.cur = VLC.chaine[VLC.songPos];
-    i = VLC.songStep;
-  }
-  t = tempsSwingVlc(i, t);
   var CHARGE_N = ouvrirPas();
   var m = motifVlcCur(), reel = pasReelVlc(i);
   for(var k=0;k<10;k++){
@@ -218,52 +155,19 @@ function scheduleVlc(i, t){
   /* La file garde l'index logique : beatVlc fait la même traduction. Cela
      reste juste en vue d'ensemble, où draw() lui passe également cet index. */
   if(!cache) queue.push({i:i, t:t});
-  if(VLC.song){
-    if(!cache){
-      VLC.songEvents.push({t:t, reel:reel, motif:VLC.cur, pos:VLC.songPos});
-      if(VLC.songEvents.length > 256) VLC.songEvents.shift();
-    }
-    if(++VLC.songStep >= nombrePasActifsVlc()){
-      VLC.songStep = 0;
-      VLC.songPos = (VLC.songPos + 1) % VLC.chaine.length;
-    }
-  }
   attenuerVoie("vlc", CHARGE_N, t);
 }
 var vlcPas = [];
 function beatVlc(i){
   var reel = pasReelVlc(i);
-  if(VLC.song && ctx){
-    while(VLC.songEvents.length && VLC.songEvents[0].t <= maintenantAudio()){
-      var e = VLC.songEvents.shift(); reel = e.reel;
-      document.getElementById("vlc-motif").textContent = "PTN " + (e.motif + 1);
-      document.getElementById("vlc-song").textContent = "SONG " + (e.pos + 1) + "/" + VLC.chaine.length;
-    }
-  }
   VLC.pos = reel;
   for(var j=0;j<16;j++) vlcPas[j].classList.toggle("cur", j === reel);
 }
 function arretVlc(){
-  resetSongVlc();
   VLC.pos = -1;
   for(var j=0;j<16;j++) vlcPas[j].classList.remove("cur");
   var b = document.getElementById("vlc-play");
   if(b) b.classList.remove("on");
-}
-function resetSongVlc(){
-  VLC.songPos = 0; VLC.songStep = 0; VLC.songEvents = [];
-  if(VLC.song) VLC.cur = VLC.chaine[0];
-}
-function configSongVlc(){
-  if(S.run){ signal("ARRETEZ PLAY POUR MODIFIER SONG"); return; }
-  var texte = window.prompt("Ordre des motifs (1 à 10), séparés par des espaces. Jusqu’à 16 positions. Répétez un numéro pour répéter le motif.", VLC.chaine.map(function(n){ return n+1; }).join(" "));
-  if(texte === null) return;
-  var mots = texte.trim().split(/[\s,;]+/);
-  if(!texte.trim() || mots.length > 16 || mots.some(function(n){ return !/^(10|[1-9])$/.test(n); })){
-    signal("SONG : 1 A 16 NUMEROS ENTRE 1 ET 10"); return;
-  }
-  VLC.chaine = mots.map(function(n){ return Number(n)-1; });
-  resetSongVlc(); majVlc(); majKnobsVlc(); memVlc();
 }
 function boucleVlc(){ }
 var MACHINE_VLC = {schedule:scheduleVlc, beat:beatVlc, arret:arretVlc, boucle:boucleVlc,
@@ -273,7 +177,6 @@ var MACHINE_VLC = {schedule:scheduleVlc, beat:beatVlc, arret:arretVlc, boucle:bo
    travaille 220 ms en avance : il faut annuler ce qui n'a pas encore commencé,
    sinon on entendrait encore l'ancienne position avant le saut. */
 function sauterVlc(reel){
-  if(VLC.song){ signal("STEP JUMP : QUITTEZ SONG"); return; }
   var logique = indexPasVlc(reel);
   if(logique < 0){ signal("STEP JUMP : PAS INACTIF"); return; }
   if(!S.run){ signal("STEP JUMP : LANCEZ PLAY"); return; }
@@ -367,24 +270,7 @@ var VLC_KNOBS = [];
   dt.id = "vlc-k-tempo";
   dt.innerHTML = '<div class="bt"><i></i></div><em>TEMPO</em>';
   kns.appendChild(dt);
-  [["swing","SWING"],["bass","BASS"],["treble","TREBLE"],["reverbMix","REV MIX"]].forEach(function(x){
-    var d2 = document.createElement("div");
-    d2.className = "vlc-kn";
-    d2.id = "vlc-k-" + x[0];
-    d2.innerHTML = '<div class="bt"><i></i></div><em>' + x[1] + '</em>';
-    kns.appendChild(d2);
-  });
 
-  var ancre = document.getElementById("vlc-motif");
-  [["vlc-song","SONG"],["vlc-song-edit","EDIT SONG"]].forEach(function(x){
-    var b = document.createElement("button"); b.id=x[0]; b.className="vlcb"; b.textContent=x[1];
-    ancre.parentNode.appendChild(b);
-  });
-  document.getElementById("vlc-song").addEventListener("click", function(){
-    if(S.run){ signal("ARRETEZ PLAY POUR CHANGER DE MODE"); return; }
-    VLC.song=!VLC.song; resetSongVlc(); majVlc(); majKnobsVlc(); memVlc(); H.inter();
-  });
-  document.getElementById("vlc-song-edit").addEventListener("click", configSongVlc);
   var parts = document.getElementById("vlc-parts");
   for(var i=0;i<10;i++){
     var b = document.createElement("button");
@@ -411,7 +297,6 @@ var VLC_KNOBS = [];
   pas.addEventListener("click", function(e){
     var b4 = e.target.closest("button");
     if(!b4) return;
-    if(VLC.song && S.run){ signal("ARRETEZ SONG POUR EDITER LES PAS"); return; }
     var i2 = +b4.dataset.i, P = partieVlcSel(), m = motifVlcCur();
     if(VLC.modePas === "active"){
       var bit = 1 << i2;
@@ -442,7 +327,7 @@ function knobVlc(nom, etiq){
     set:function(v){
       var P = partieVlcSel();
       P.par[nom] = Math.round(v);
-      if(VLC.rec && S.run && VLC.pos >= 0 && !VLC.song){      /* enregistrement de mouvement */
+      if(VLC.rec && S.run && VLC.pos >= 0){      /* enregistrement de mouvement */
         if(!P.mot[nom]){ P.mot[nom] = []; for(var i=0;i<16;i++) P.mot[nom].push(-1); }
         P.mot[nom][VLC.pos] = Math.round(v);
         P.f.motion = true;
@@ -454,26 +339,9 @@ function knobVlc(nom, etiq){
 VLC_PARAMS.forEach(function(x){ VLC_KNOBS.push(knobVlc(x[0], x[1])); });
 var kVlcTempo = knobEm("vlc-k-tempo", {min:0, max:1, get:function(){ return (S.bpm - 50) / 200; },
   set:function(v){ S.bpm = Math.round(50 + v * 200); lcdVlc(String(S.bpm), "TEMPO", true); saveSoon(); }});
-var kVlcSwing = knobEm("vlc-k-swing", {min:-1, max:1, get:function(){ return VLC.swing; },
-  set:function(v){
-    VLC.swing = Math.max(-1, Math.min(1, v));
-    var pc = Math.round(VLC.swing * 75);
-    lcdVlc((pc > 0 ? "+" : "") + pc + "%", "SWING", true); memVlc();
-  }});
-var kVlcBass = knobEm("vlc-k-bass", {min:0, max:1, get:function(){ return VLC.bass; },
-  set:function(v){ VLC.bass = Math.max(0, Math.min(1, v)); appliquerIsoVlc();
-    lcdVlc(texteIsoVlc(VLC.bass), "BASS", true); memVlc(); }});
-var kVlcTreble = knobEm("vlc-k-treble", {min:0, max:1, get:function(){ return VLC.treble; },
-  set:function(v){ VLC.treble = Math.max(0, Math.min(1, v)); appliquerIsoVlc();
-    lcdVlc(texteIsoVlc(VLC.treble), "TREBLE", true); memVlc(); }});
-var kVlcReverbMix = knobEm("vlc-k-reverbMix", {min:0, max:1,
-  get:function(){ return VLC.reverbMix; },
-  set:function(v){ VLC.reverbMix=Math.max(0,Math.min(1,v));
-    if(VLC.reverb) lisser(VLC.reverb.gain, VLC.reverbMix, 0.012);
-    lcdVlc(Math.round(VLC.reverbMix*100)+"%", "REVERB MIX", true); memVlc(); }});
 function majKnobsVlc(){
   VLC_KNOBS.forEach(function(k){ k.maj(); });
-  kVlcTempo.maj(); kVlcSwing.maj(); kVlcBass.maj(); kVlcTreble.maj(); kVlcReverbMix.maj();
+  kVlcTempo.maj();
 }
 
 var vlcTmr = null;
@@ -512,15 +380,11 @@ function majVlc(){
   document.getElementById("vlc-motion").classList.toggle("on", VLC.rec || !!P.f.motion);
   document.getElementById("vlc-rec").classList.toggle("on", VLC.recPas);
   document.getElementById("vlc-motif").textContent = "PTN " + (VLC.cur + 1);
-  var songButton = document.getElementById("vlc-song");
-  songButton.classList.toggle("on", VLC.song);
-  songButton.textContent = VLC.song ? "SONG " + (VLC.songPos+1) + "/" + VLC.chaine.length : "SONG";
   majLcdVlc();
 }
 
 function memVlc(){
-  memoire.vlc = {cur:VLC.cur, sel:VLC.sel, swing:VLC.swing, bass:VLC.bass, treble:VLC.treble,
-    reverbMix:VLC.reverbMix, song:VLC.song, chaine:VLC.chaine.slice(),
+  memoire.vlc = {cur:VLC.cur, sel:VLC.sel,
     motifs:VLC.motifs.map(function(m){
       return {actif:m.actif, parties:m.parties.map(function(P){
         return {ech:P.ech, pas:P.pas, par:P.par, f:P.f, mot:P.mot};
@@ -532,8 +396,6 @@ function chargerVlc(){
   VLC.motifs = [];
   for(var i=0;i<10;i++) VLC.motifs.push(motifVlc(i < 2 ? i : 9));
   VLC.cur = 0; VLC.sel = 0; VLC.rec = false; VLC.recPas = false; VLC.modePas = "normal";
-  VLC.swing = 0; VLC.bass = 0.5; VLC.treble = 0.5;
-  VLC.reverbMix=0.34; VLC.song=false; VLC.chaine=[0,1]; resetSongVlc();
   var m = memLire("vlc");
   if(m && m.motifs && m.motifs.length === 10){
     VLC.motifs = m.motifs.map(function(o, n){
@@ -550,18 +412,9 @@ function chargerVlc(){
       });
       return r;
     });
-    if(Number.isFinite(m.reverbMix)) VLC.reverbMix=Math.max(0,Math.min(1,m.reverbMix));
-    if(Array.isArray(m.chaine) && m.chaine.length && m.chaine.length<=16 && m.chaine.every(function(n){ return Number.isInteger(n) && n>=0 && n<10; })) VLC.chaine=m.chaine.slice();
-    VLC.song=m.song===true;
     if(typeof m.cur === "number") VLC.cur = m.cur;
     if(typeof m.sel === "number") VLC.sel = m.sel;
-    if(typeof m.swing === "number") VLC.swing = Math.max(-1, Math.min(1, m.swing));
-    if(typeof m.bass === "number") VLC.bass = Math.max(0, Math.min(1, m.bass));
-    if(typeof m.treble === "number") VLC.treble = Math.max(0, Math.min(1, m.treble));
   }
-  VLC.cur=Math.max(0,Math.min(9,Math.floor(VLC.cur)||0));
-  VLC.sel=Math.max(0,Math.min(9,Math.floor(VLC.sel)||0));
-  resetSongVlc();
 }
 
 document.getElementById("vlc-play").addEventListener("click", function(){
@@ -608,7 +461,6 @@ document.getElementById("vlc-son").addEventListener("click", function(){
   majVlc(); memVlc(); H.cran();
 });
 document.getElementById("vlc-motif").addEventListener("click", function(){
-  if(VLC.song){ signal("QUITTEZ SONG POUR CHOISIR UN MOTIF"); return; }
   memVlc();
   VLC.cur = (VLC.cur + 1) % 10;
   majVlc(); majKnobsVlc(); memVlc(); H.inter();
@@ -655,8 +507,7 @@ function activerVlc(){
   poserMachine("vlc");
   audioInit(); banqueEs(); chargerEchs();
   chargerVlc();
-  debrancherTout(VLC.noeuds); debrancherTout(VLC.reverb); debrancherTout(VLC.sortie);
-  VLC.noeuds = []; VLC.reverb = null; VLC.sortie = null;
+  debrancherTout(VLC.noeuds); debrancherTout(VLC.reverb); VLC.noeuds = []; VLC.reverb = null;
   majVlc(); majKnobsVlc();
   actif = unitVlc;
   save(); fit(); setTimeout(fit, 120);

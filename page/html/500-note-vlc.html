@@ -1,4 +1,4 @@
-<div class="doc" id="note-vlc" data-titre="volca sample">
+  <div class="doc" id="note-vlc" data-titre="volca sample">
   <h3>Dix parties, seize pas</h3>
   <p>Chaque partie a son échantillon, ses onze potards et ses cinq interrupteurs. <b>SAMPLE</b> fait
   défiler les sons de la bibliothèque, les dix touches PART choisissent la partie, les seize touches posent
@@ -21,23 +21,6 @@
   actif. <b>STEP JUMP</b> est un mode de jeu : pendant PLAY, toucher un pas actif recale immédiatement la
   lecture dessus. Une nouvelle pression sur le bouton quitte le mode.</p>
 
-  <h3>SWING et ANALOGUE ISOLATOR</h3>
-  <p><b>SWING</b> décale une moitié des pas jusqu'à 75 % ; la moitié gauche du potard reproduit le sens
-  opposé obtenu avec FUNC sur la machine réelle. <b>BASS</b> et <b>TREBLE</b> agissent sur la sortie globale,
-  réverbération comprise : centre à 0 dB, boost jusqu'à +6 dB, forte coupure à gauche. Ces trois commandes
-  sont mémorisées par l'application mais ne modifient pas les fichiers de motif .dat.</p>
-
-  <h3>SONG et REVERB MIX</h3>
-  <p>À l’arrêt, <b>EDIT SONG</b> définit une chaîne de 1 à 16 positions : entrez les numéros
-  des motifs de 1 à 10, séparés par des espaces. Un numéro répété répète le motif.
-  <b>SONG</b> active la chaîne, <b>PLAY</b> la joue en boucle. Chaque motif conserve ses ACTIVE STEP.
-  Après STOP, la lecture repart du début. Arrêtez la lecture pour modifier la chaîne ou ses pas.
-  STEP JUMP et l’enregistrement des pas/mouvements sont indisponibles pendant SONG.</p>
-  <p><b>REV MIX</b> règle le niveau envoyé à la réverbération de 0 à 100 %, uniquement pour
-  les parties dont REVERB est activé ; le son direct reste présent. Le réglage initial de 34 %
-  conserve le rendu précédent. La chaîne et ce réglage sont sauvegardés dans l’application,
-  sans modifier l’export des motifs .dat. La réverbération reste une approximation logicielle.</p>
-
   <h3>Motifs au format Korg</h3>
   <p><b>EXPORT .dat</b> écrit le motif courant en <b>2624 octets</b> au format documenté du SDK Korg :
   en-tête PTST, code d'appareil 0x33B8, dix parties de 256 octets, pied PTED, tout en petit-boutiste.
@@ -47,4 +30,3 @@
   des valeurs de mouvement n'est pas documentée par Korg, c'est une interprétation.</p>
   </div>
 
-  
