@@ -106,12 +106,15 @@ function busSet(id){
 
   SET.bus[id] = {e:e, lo:lo, md:md, hi:hi, g:g, p:p, an:an, ctx:ctx,
                  tampon:new Uint8Array(an.frequencyBinCount), niveau:0};
-  majVoieSet(id);
+  majVoieSet(id, true);
   return e;
 }
-function majVoieSet(id){
+function majVoieSet(id, immediat){
   var b = SET.bus[id];
   if(!b || b.ctx !== ctx) return;
+  /* v152 : un réglage de table sur une voie qui sonne est lissé ; à la création
+     de la voie, il est posé tel quel */
+  if(!immediat) return enLissant(function(){ majVoieSet(id, true); });
   /* Le solo n'est pas un bouton de plus : c'est un coupe-son sur toutes les
      AUTRES voies. C'est ainsi qu'il marche sur une table, et c'est pour cela
      qu'on ne peut pas en avoir deux à la fois. */

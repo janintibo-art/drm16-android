@@ -83,8 +83,8 @@ envfol: {nom:"ENV FOL", hp:56, sombre:true, res:"Transforme un son en tension", 
        grosse caisse peut alors ouvrir un filtre : c'est le ducking, et c'est
        tout ce qui manquait pour faire respirer un patch. */
     var e = eurGain(1), red = ctx.createWaveShaper();
-    var n = 1024, c = new Float32Array(n);
-    for(var i=0;i<n;i++) c[i] = Math.abs(i * 2 / n - 1);
+    var n = 1025, c = new Float32Array(n);
+    for(var i=0;i<n;i++) c[i] = Math.abs(i * 2 / (n - 1) - 1);
     red.curve = c; red.oversample = "2x";
     var lp = ctx.createBiquadFilter(); lp.type = "lowpass";
     var g = eurGain(1);

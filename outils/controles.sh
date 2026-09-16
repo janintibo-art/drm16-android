@@ -34,6 +34,10 @@ etape "4. Aucun identifiant HTML en double"
 python3 verifier-ids.py
 fin
 
+etape "4 bis. Courbes de mise en forme centrees sur zero"
+python3 outils/verifier-courbes.py
+fin
+
 etape "5. Syntaxe JavaScript"
 python3 outils/verifier-js.py
 fin

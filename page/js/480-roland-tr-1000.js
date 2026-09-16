@@ -48,8 +48,8 @@ function bâtirT1k(){
   var mixA = ctx.createGain();                 /* bus analogique */
   var filt = ctx.createBiquadFilter(); filt.type = "lowpass";
   var sat = ctx.createWaveShaper();
-  var n = 1024, c = new Float32Array(n);
-  for(var i=0;i<n;i++){ var x = i*2/n-1; c[i] = Math.tanh(x*2.6); }
+  var n = 1025, c = new Float32Array(n);
+  for(var i=0;i<n;i++){ var x = i*2/(n-1)-1; c[i] = Math.tanh(x*2.6); }
   sat.curve = c; sat.oversample = "2x";
   var secA = ctx.createGain(), humA = ctx.createGain();
   var mix = ctx.createGain();

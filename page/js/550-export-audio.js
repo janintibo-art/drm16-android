@@ -11,9 +11,9 @@ function chaineMaitresseHorsLigne(off){
   lim.threshold.value = -1.2; lim.knee.value = 1.5; lim.ratio.value = 20;
   lim.attack.value = 0.001; lim.release.value = 0.09;
   var sat = off.createWaveShaper();
-  var n = 2048, c = new Float32Array(n), seuil = 0.84;
+  var n = 2049, c = new Float32Array(n), seuil = 0.84;
   for(var i=0;i<n;i++){
-    var x = i * 2 / n - 1, a = Math.abs(x);
+    var x = i * 2 / (n - 1) - 1, a = Math.abs(x);
     c[i] = (a <= seuil) ? x : (x < 0 ? -1 : 1) * (seuil + (1 - seuil) * Math.tanh((a - seuil) / (1 - seuil)));
   }
   sat.curve = c; sat.oversample = "4x";

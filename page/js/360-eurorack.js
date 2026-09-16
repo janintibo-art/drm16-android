@@ -32,8 +32,8 @@ function eurBruit(){
   return b;
 }
 function eurCourbe(f){
-  var n = 1024, c = new Float32Array(n);
-  for(var i=0;i<n;i++) c[i] = f(i * 2 / n - 1);
+  var n = 1025, c = new Float32Array(n);
+  for(var i=0;i<n;i++) c[i] = f(i * 2 / (n - 1) - 1);
   return c;
 }
 /* ---------- fabriques communes ----------

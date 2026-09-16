@@ -1,4 +1,58 @@
 /* ================= moteur audio ================= */
+/* ---------- réglages sans clic (v152) ----------
+   Un paramètre posé d'un coup (param.value = x) sur un nœud qui sonne fait un
+   saut dans le signal : clic, ou grésillement quand on tourne un potard.
+   lisser() fait rejoindre la cible en quelques millisecondes.
+
+   Les machines posent leurs réglages de cent façons ; plutôt que de réécrire
+   chaque module, les gestes de l'utilisateur (potards, table de mixage) sont
+   exécutés « en lissant » : pendant enLissant(fn), toute écriture de .value sur
+   un paramètre DÉJÀ EXISTANT devient un lissage. Les nœuds créés pendant ce
+   temps sont posés tels quels (ils ne sonnent pas encore). Hors de ces gestes,
+   et pendant un rendu hors ligne, rien ne change.
+   Trouvé par outils/audit-clics.py, qui refait ce relevé. */
+var LISSAGE = {niveau:0, neufs:null};
+function lisser(param, v, tau){
+  if(!param || !isFinite(v)) return;
+  if(!ctx || ctx.startRendering || ctx.state !== "running"){ param.value = v; return; }
+  var t = ctx.currentTime;
+  if(param.cancelAndHoldAtTime) param.cancelAndHoldAtTime(t); else param.cancelScheduledValues(t);
+  param.setTargetAtTime(v, t, tau || 0.008);
+}
+function enLissant(fn){
+  if(LISSAGE.niveau++ === 0) LISSAGE.neufs = new WeakSet();
+  try{ return fn(); }
+  finally{ if(--LISSAGE.niveau === 0) LISSAGE.neufs = null; }
+}
+(function(){
+  if(!window.AudioParam || !window.BaseAudioContext) return;
+  var d = Object.getOwnPropertyDescriptor(AudioParam.prototype, "value");
+  if(!d || !d.set || !d.configurable) return;
+  Object.defineProperty(AudioParam.prototype, "value", {
+    configurable:true, enumerable:d.enumerable, get:d.get,
+    set:function(v){
+      if(LISSAGE.niveau > 0 && !LISSAGE.neufs.has(this) && ctx && !ctx.startRendering &&
+         ctx.state === "running" && Math.abs(v - d.get.call(this)) > 1e-6){
+        var t = ctx.currentTime;
+        if(this.cancelAndHoldAtTime) this.cancelAndHoldAtTime(t); else this.cancelScheduledValues(t);
+        this.setTargetAtTime(v, t, 0.008);
+      } else d.set.call(this, v);
+    }
+  });
+  /* les paramètres des nœuds nés pendant un geste ne sont pas lissés */
+  ["createGain","createBiquadFilter","createOscillator","createDelay","createStereoPanner",
+   "createConstantSource","createBufferSource","createDynamicsCompressor"].forEach(function(u){
+    var f = BaseAudioContext.prototype[u];
+    if(!f) return;
+    BaseAudioContext.prototype[u] = function(){
+      var n = f.apply(this, arguments);
+      if(LISSAGE.niveau > 0){
+        for(var k in n){ var p; try{ p = n[k]; }catch(e){ continue; } if(p instanceof AudioParam) LISSAGE.neufs.add(p); }
+      }
+      return n;
+    };
+  });
+})();
 /* ---------- quand le moteur audio meurt en silence ----------
    Android peut suspendre ou casser un AudioContext sans prévenir : un appel
    entrant, une autre application qui prend la main, l'écran éteint trop
@@ -72,9 +126,13 @@ function batirAudio(){
   lim.attack.value = 0.001; lim.release.value = 0.09;
   /* écrêteur doux : parfaitement droit jusqu'à 0,84, il n'arrondit que le sommet */
   var sat = ctx.createWaveShaper();
-  var n=2048, c=new Float32Array(n), seuil=0.84;
+  /* v152 : longueur IMPAIRE, pour qu'un point tombe exactement sur zéro. Avec
+     2048 points, l'entrée 0 tombait entre −0,001 et 0 : la sortie gardait un
+     décalage continu de −0,0005 (−66 dBFS) — le « bruit de démarrage » relevé
+     par le banc en B1. */
+  var n=2049, c=new Float32Array(n), seuil=0.84;
   for(var i=0;i<n;i++){
-    var x=i*2/n-1, a=Math.abs(x);
+    var x=i*2/(n-1)-1, a=Math.abs(x);
     c[i] = (a<=seuil) ? x
          : Math.sign(x)*(seuil + (1-seuil)*Math.tanh((a-seuil)/(1-seuil)));
   }

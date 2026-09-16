@@ -77,9 +77,9 @@ function mxAudio(){
   cablerFxMx();
 }
 function courbeLampe(g){
-  var n=2048, c=new Float32Array(n), k=1+g*9;
+  var n=2049, c=new Float32Array(n), k=1+g*9;
   for(var i=0;i<n;i++){
-    var x=i*2/n-1;
+    var x=i*2/(n-1)-1;
     /* décalage avant la courbe : c'est lui qui engendre les harmoniques paires,
        comme un tube polarisé asymétriquement */
     var biais = 0.34*g;

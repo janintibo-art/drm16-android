@@ -236,8 +236,8 @@ plasma: eurEffet("PLASMA", 68, "Distorsion à tube : ça ne sature pas, ça cass
     var sec = eurGain(1), hum = eurGain(0), som = eurGain(1);
 
     /* redresseur : |x|, donc une octave au-dessus */
-    var n = 1024, c = new Float32Array(n);
-    for(var i=0;i<n;i++){ var x = i * 2 / n - 1; c[i] = Math.abs(x) * 2 - 1; }
+    var n = 1025, c = new Float32Array(n);
+    for(var i=0;i<n;i++){ var x = i * 2 / (n - 1) - 1; c[i] = Math.abs(x) * 2 - 1; }
     red.curve = c;
 
     e.connect(ent);
@@ -248,9 +248,9 @@ plasma: eurEffet("PLASMA", 68, "Distorsion à tube : ça ne sature pas, ça cass
     m.maj = function(){
       ent.gain.value = 0.2 + m.p.niv * 2.4;
       var k = 2 + m.p.volt * 60;
-      var q = 1024, cc = new Float32Array(q);
+      var q = 1025, cc = new Float32Array(q);
       for(var j=0;j<q;j++){
-        var xx = j * 2 / q - 1;
+        var xx = j * 2 / (q - 1) - 1;
         /* tanh d'un gain énorme : la pente au centre devient verticale */
         cc[j] = Math.tanh(xx * k);
       }
@@ -378,9 +378,9 @@ clip: eurEffet("CLIP", 60, "Écrêtage franc, sans douceur",
     var comp = eurGain(1);
     e.connect(forme); forme.connect(hp); hp.connect(comp); comp.connect(out);
     m.maj = function(){
-      var n = 1024, c = new Float32Array(n), seuil = 1 - m.p.drive * 0.93;
+      var n = 1025, c = new Float32Array(n), seuil = 1 - m.p.drive * 0.93;
       for(var i=0;i<n;i++){
-        var x = i * 2 / n - 1;
+        var x = i * 2 / (n - 1) - 1;
         c[i] = Math.max(-seuil, Math.min(seuil, x)) / seuil;
       }
       forme.curve = c; forme.oversample = "2x";

@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **151**.
+La version actuelle est la **152**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 151** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 152** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,39 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**B4 : réglages sans clic, courbes centrées — v152**
+
+*Constat v151* : run vert, le bloc 10 est fiable.
+
+*Relevé* — **`outils/audit-clics.py`** (outil de développement) : joue chaque machine, tourne chaque potard
+visible à la molette, touche la table de mixage, et liste les endroits du code qui ont posé une valeur **d'un
+coup** sur un nœud âgé de plus de 50 ms. Premier passage : **table de mixage** (152 fois), **TD-3**, **TR-1000**,
+**EMX/ESX** (lampe), et une dizaine de modules **Eurorack**.
+
+*Correction générale* (`110-moteur-audio.js`) :
+- `lisser(param, v, tau)` : la valeur rejoint sa cible (constante 8 ms) ; pose directe hors d'un contexte en
+  marche ou pendant un rendu.
+- `enLissant(fn)` : pendant un geste, toute écriture de `.value` sur un paramètre **existant** devient un
+  lissage (l'accesseur `AudioParam.prototype.value` est enveloppé ; une branche de plus par écriture, rien
+  d'autre). Les paramètres des nœuds **nés pendant le geste** sont posés tels quels (les fabriques de nœuds
+  les marquent). Hors geste, rien ne change.
+- Appliqué aux potards (`knobEm` : glisser et molette ; `knob` de la DRM16) et à la table
+  (`majVoieSet(id, immediat)` : lissé, sauf à la création de la voie).
+- **Second passage de l'audit : zéro changement brusque** sur les 21 machines.
+- Test navigateur, bloc 14 (vrai contexte audio) : gain existant lissé, nœud neuf posé tel quel, pose directe
+  hors geste, coupe-son de la table en fondu.
+
+*Défaut trouvé au passage : les courbes de mise en forme ne passaient pas par zéro.* Une courbe de `n` points
+avec `n` pair et `x = i·2/n − 1` n'a aucun point en 0 : **décalage continu** à la sortie. C'était le « bruit de
+démarrage » de B1 (−65,7 dBFS sur l'écrêteur de sortie) ; sur une distorsion à forte pente, le décalage est bien
+plus grand et ajoute des harmoniques paires. **22 courbes** corrigées (longueur impaire, `x = i·2/(n−1) − 1`),
+dont l'écrêteur de l'export. **Moteur seul : silence parfait** (−120 dBFS). Voix : inchangées à 0,3 dB près.
+**`outils/verifier-courbes.py`** (étape 4 bis des contrôles) — vu échouer sur l'ancienne page (23 courbes) et
+sur une longueur paire oubliée.
+
+*Non traité* : un changement de **courbe** (lampe EMX/ESX, réduction) ne peut pas être lissé par l'API ; il reste
+un petit saut quand on tourne ces potards pendant la lecture.
 
 **Test du projet rendu fiable — v151**
 

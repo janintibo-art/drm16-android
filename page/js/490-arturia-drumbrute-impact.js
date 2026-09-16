@@ -55,9 +55,9 @@ function sortieDbi(){
   if(!DBI.noeuds.out){
     var g = ctx.createGain();
     var d = ctx.createWaveShaper();
-    var n = 1024, c = new Float32Array(n);
+    var n = 1025, c = new Float32Array(n);
     for(var i=0;i<n;i++){
-      var x = i * 2 / n - 1;
+      var x = i * 2 / (n - 1) - 1;
       c[i] = Math.tanh(x * 3.2);
     }
     d.curve = c; d.oversample = "2x";
@@ -89,8 +89,8 @@ function voixDbi(t, k, acc){
     o.frequency.setValueAtTime(f0 * 5, t);
     o.frequency.exponentialRampToValueAtTime(f0, t + 0.03);
     var sh = ctx.createWaveShaper();
-    var n2 = 512, c2 = new Float32Array(n2), dr = 1 + p.drive * 6;
-    for(var i=0;i<n2;i++){ var x2 = i*2/n2-1; c2[i] = Math.tanh(x2*dr)/Math.tanh(dr); }
+    var n2 = 513, c2 = new Float32Array(n2), dr = 1 + p.drive * 6;
+    for(var i=0;i<n2;i++){ var x2 = i*2/(n2-1)-1; c2[i] = Math.tanh(x2*dr)/Math.tanh(dr); }
     sh.curve = c2;
     trEnv(g, t, niv * 1.15, dec, 0.001);
     o.connect(sh); sh.connect(g); o.start(t); o.stop(t + dec + 0.05);

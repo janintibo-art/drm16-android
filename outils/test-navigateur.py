@@ -410,6 +410,35 @@ async def chaine(nav):
     ok(not err, "aucune erreur de page %s" % err[:1])
     await pg.close()
 
+async def lissage(nav):
+    print("\n14. Réglages sans clic : potards et table lissés, nœuds neufs posés tels quels (v152)")
+    pg = await nav.new_page()
+    err = []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+    await pg.goto(PAGE); await pg.wait_for_timeout(1200)
+    r = await pg.evaluate("""async () => {
+      audioInit(); await ctx.resume();
+      var g = ctx.createGain(); g.gain.value = 1; g.connect(master);
+      await new Promise(r => setTimeout(r, 100));
+      var neuf = null;
+      enLissant(function(){ g.gain.value = 0; var n = ctx.createGain(); n.gain.value = 0.3; neuf = n.gain.value; });
+      var tout_de_suite = g.gain.value;
+      await new Promise(r => setTimeout(r, 150));
+      var ensuite = g.gain.value;
+      g.gain.value = 0.7; var direct = g.gain.value;
+      return {etat: ctx.state, tout_de_suite: tout_de_suite, ensuite: ensuite, neuf: neuf, direct: direct}; }""")
+    ok(r["etat"] == "running", "moteur audio en marche (%s)" % r["etat"])
+    ok(r["tout_de_suite"] > 0.5 and r["ensuite"] < 0.01, "un gain existant rejoint sa cible en douceur (%.2f puis %.3f)" % (r["tout_de_suite"], r["ensuite"]))
+    ok(abs(r["neuf"] - 0.3) < 1e-6, "un nœud né pendant le geste est posé tel quel")
+    ok(abs(r["direct"] - 0.7) < 1e-6, "hors geste, une valeur se pose directement")
+    r = await pg.evaluate("""async () => { var m = []; allerMachine('tr909'); busSet('tr'); var b = SET.bus.tr;
+      var avant = b.g.gain.value; SET.mute.tr = true; majVoieSet('tr'); var juste = b.g.gain.value;
+      await new Promise(r => setTimeout(r, 150)); var apres = b.g.gain.value; SET.mute.tr = false; majVoieSet('tr', true);
+      return {avant: avant, juste: juste, apres: apres}; }""")
+    ok(r["juste"] > 0.3 and r["apres"] < 0.01, "coupe-son de la table en fondu (%.2f → %.3f)" % (r["juste"], r["apres"]))
+    ok(not err, "aucune erreur de page %s" % err[:1])
+    await pg.close()
+
 async def reglages(nav):
     print("\n9. Latence réglable et machine retrouvée au redémarrage (v144)")
     ctx = await nav.new_context(viewport={"width": 393, "height": 851})
@@ -542,7 +571,7 @@ async def confort(nav):
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine):
+        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage):
             try:
                 await t(nav)
             except Exception as e:

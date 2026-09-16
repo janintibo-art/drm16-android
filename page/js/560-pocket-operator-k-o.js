@@ -74,9 +74,9 @@ function appliquerFxKo(){
 var KO_CRUSH = null;
 function courbeCrushKo(){
   if(KO_CRUSH) return KO_CRUSH;
-  var n = 1024, c = new Float32Array(n), marches = 16;
+  var n = 1025, c = new Float32Array(n), marches = 16;
   for(var i=0;i<n;i++){
-    var x = i * 2 / n - 1;
+    var x = i * 2 / (n - 1) - 1;
     c[i] = Math.round(x * marches) / marches;
   }
   KO_CRUSH = c;

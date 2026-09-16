@@ -18,11 +18,11 @@ ram: {nom:"BATTERING RAM", hp:72, res:"Grosse caisse : chute, saturation, clic",
     som.connect(sat); sat.connect(hp); hp.connect(out);
     m.maj = function(){
       hp.frequency.value = 20 + m.p.hpf * 90;
-      var n = 1024, c = new Float32Array(n);
+      var n = 1025, c = new Float32Array(n);
       var k = 1 + m.p.drive * 40;
       var dur = Math.min(2, Math.round(m.p.type * 2));
       for(var i=0;i<n;i++){
-        var x = i * 2 / n - 1;
+        var x = i * 2 / (n - 1) - 1;
         /* trois caractères : doux, franc, en escalier */
         c[i] = dur === 0 ? Math.tanh(x * k) / Math.tanh(k)
              : dur === 1 ? Math.max(-1, Math.min(1, x * k))
@@ -86,9 +86,9 @@ squid: {nom:"SQUID SALMPLE", hp:96, res:"Huit lecteurs d'échantillons, une entr
       if(m.p.qual > 0.97){ forme.curve = null; }
       else {
         var marches = Math.max(2, Math.round(2 + m.p.qual * 60));
-        var n = 1024, c = new Float32Array(n);
+        var n = 1025, c = new Float32Array(n);
         for(var i=0;i<n;i++){
-          var x = i * 2 / n - 1;
+          var x = i * 2 / (n - 1) - 1;
           c[i] = Math.round(x * marches) / marches;
         }
         forme.curve = c; forme.oversample = "none";
@@ -143,9 +143,9 @@ mutant: {nom:"MUTANT HIHATS", hp:64, res:"Charley 808 saturé, ouvert et fermé 
     m.ouvert = null;
     m.maj = function(){
       hp.frequency.value = 3000 + m.p.cut * 9000;
-      var n = 1024, c = new Float32Array(n), k = 1 + m.p.drive * 40;
+      var n = 1025, c = new Float32Array(n), k = 1 + m.p.drive * 40;
       for(var i=0;i<n;i++){
-        var x = i * 2 / n - 1;
+        var x = i * 2 / (n - 1) - 1;
         c[i] = Math.tanh(x * k) / Math.tanh(k);
       }
       sat.curve = c; sat.oversample = "2x";
@@ -189,9 +189,9 @@ tekkick: {nom:"TEK KICK", hp:64, res:"Grosse caisse saturée jusqu'à devenir un
     var som = eurGain(1);
     som.connect(forme); forme.connect(hp); hp.connect(out);
     m.maj = function(){
-      var n = 1024, c = new Float32Array(n), k = 1 + m.p.drive * 60;
+      var n = 1025, c = new Float32Array(n), k = 1 + m.p.drive * 60;
       for(var i=0;i<n;i++){
-        var x = i * 2 / n - 1;
+        var x = i * 2 / (n - 1) - 1;
         c[i] = Math.tanh(x * k) / Math.tanh(k);
       }
       forme.curve = c; forme.oversample = "2x";

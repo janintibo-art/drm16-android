@@ -27,18 +27,18 @@ function knob(id, opt){
     if(opt.steps){
       var nv = Math.round(st.v0 + d/46);
       nv = Math.max(0, Math.min(opt.steps-1, nv));
-      if(nv!==st.v){ st.v=nv; render(); opt.on(st.v); H.cran(); }
+      if(nv!==st.v){ st.v=nv; render(); enLissant(function(){ opt.on(st.v); }); H.cran(); }
     }else{
       var r = opt.max-opt.min;
       st.v = Math.max(opt.min, Math.min(opt.max, st.v0 + d/210*r));
-      render(); opt.on(st.v);
+      render(); enLissant(function(){ opt.on(st.v); });
     }
   });
   el.addEventListener("pointerup", function(e){
     if(!st.drag || PINCE) return;
     st.drag=false;
     if(st.moved < 6){
-      if(opt.steps){ st.v = (st.v+1)%opt.steps; render(); opt.on(st.v); H.cran(); }
+      if(opt.steps){ st.v = (st.v+1)%opt.steps; render(); enLissant(function(){ opt.on(st.v); }); H.cran(); }
       else if(opt.tap){ opt.tap(); H.cran(); }
     }
   });
@@ -53,11 +53,11 @@ function knob(id, opt){
       var n = st.acc > 0 ? Math.floor(st.acc) : Math.ceil(st.acc);
       st.acc -= n;
       var nv = Math.max(0, Math.min(opt.steps - 1, st.v + n));
-      if(nv !== st.v){ st.v = nv; render(); opt.on(st.v); H.cran(); }
+      if(nv !== st.v){ st.v = nv; render(); enLissant(function(){ opt.on(st.v); }); H.cran(); }
     }else{
       var pas = (opt.max - opt.min) / (e.shiftKey ? 400 : 40);
       st.v = Math.max(opt.min, Math.min(opt.max, st.v + crans * pas));
-      render(); opt.on(st.v);
+      render(); enLissant(function(){ opt.on(st.v); });
     }
   }, {passive:false});
   render();

@@ -234,7 +234,7 @@ def rapport(tout, ancien):
         L += ["Grave, relatif à 100 Hz : " + " · ".join("%d Hz %+.1f dB" % (a, g[a] - g[100]) for a in sorted(g)) + ".", "",
               "Plafond absolu (rafale de coups à +12 dBFS) : **%+.2f dBFS**. Nappe à −12 dBFS après un coup à +6 dBFS : creux de %.2f dB." %
               (ch["plafond"], ch["pompage"]["creux_db"])]
-    L += ["", "Moteur seul, rien ne jouant : crête %s dBFS (bruit de démarrage des filtres, inaudible)." % f(tout.get("_moteur", {}).get("crete"))]
+    L += ["", "Moteur seul, rien ne jouant : crête %s dBFS (−120 = silence parfait ; −65,7 avant la v152, décalage de l'écrêteur)." % f(tout.get("_moteur", {}).get("crete"))]
     L += ["", "## Détail par voix", ""]
     for m, r in tout.items():
         if m.startswith("_") or not r["voix"]:

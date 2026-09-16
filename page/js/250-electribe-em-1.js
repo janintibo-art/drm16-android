@@ -35,13 +35,13 @@ function busEffets(){
   construireFx();
 }
 function courbeBits(bits){
-  var niv = Math.pow(2, bits-1), n = 2048, c = new Float32Array(n);
-  for(var i=0;i<n;i++){ var x = i*2/n-1; c[i] = Math.round(x*niv)/niv; }
+  var niv = Math.pow(2, bits-1), n = 2049, c = new Float32Array(n);
+  for(var i=0;i<n;i++){ var x = i*2/(n-1)-1; c[i] = Math.round(x*niv)/niv; }
   return c;
 }
 function courbeDist(k){
-  var n=1024, c=new Float32Array(n);
-  for(var i=0;i<n;i++){ var x=i*2/n-1; c[i]=Math.tanh(x*(1+k*14))/Math.tanh(1+k*14); }
+  var n=1025, c=new Float32Array(n);
+  for(var i=0;i<n;i++){ var x=i*2/(n-1)-1; c[i]=Math.tanh(x*(1+k*14))/Math.tanh(1+k*14); }
   return c;
 }
 function irReverb(sec){
@@ -899,7 +899,7 @@ function knobEm(id, opt){
     var fin = 1 + Math.min(9, Math.abs(e.clientX - st.x0) / 26);
     var r = opt.max-opt.min;
     st.v = Math.max(opt.min, Math.min(opt.max, st.v + d/(190*fin)*r));
-    render(); opt.set(st.v);
+    render(); enLissant(function(){ opt.set(st.v); });
   });
   el.addEventListener("pointerup", function(){
     if(!st.drag) return;
@@ -926,7 +926,7 @@ function knobEm(id, opt){
       if(!crans) return;
     }
     st.v = Math.max(opt.min, Math.min(opt.max, opt.get() + crans * pas));
-    render(); opt.set(st.v);
+    render(); enLissant(function(){ opt.set(st.v); });
     clearTimeout(st.tMem);
     st.tMem = setTimeout(memEm, 400);
   }, {passive:false});

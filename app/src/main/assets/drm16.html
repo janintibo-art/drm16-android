@@ -6655,6 +6655,60 @@ var MODELES = {
 };
 
 /* ================= moteur audio ================= */
+/* ---------- réglages sans clic (v152) ----------
+   Un paramètre posé d'un coup (param.value = x) sur un nœud qui sonne fait un
+   saut dans le signal : clic, ou grésillement quand on tourne un potard.
+   lisser() fait rejoindre la cible en quelques millisecondes.
+
+   Les machines posent leurs réglages de cent façons ; plutôt que de réécrire
+   chaque module, les gestes de l'utilisateur (potards, table de mixage) sont
+   exécutés « en lissant » : pendant enLissant(fn), toute écriture de .value sur
+   un paramètre DÉJÀ EXISTANT devient un lissage. Les nœuds créés pendant ce
+   temps sont posés tels quels (ils ne sonnent pas encore). Hors de ces gestes,
+   et pendant un rendu hors ligne, rien ne change.
+   Trouvé par outils/audit-clics.py, qui refait ce relevé. */
+var LISSAGE = {niveau:0, neufs:null};
+function lisser(param, v, tau){
+  if(!param || !isFinite(v)) return;
+  if(!ctx || ctx.startRendering || ctx.state !== "running"){ param.value = v; return; }
+  var t = ctx.currentTime;
+  if(param.cancelAndHoldAtTime) param.cancelAndHoldAtTime(t); else param.cancelScheduledValues(t);
+  param.setTargetAtTime(v, t, tau || 0.008);
+}
+function enLissant(fn){
+  if(LISSAGE.niveau++ === 0) LISSAGE.neufs = new WeakSet();
+  try{ return fn(); }
+  finally{ if(--LISSAGE.niveau === 0) LISSAGE.neufs = null; }
+}
+(function(){
+  if(!window.AudioParam || !window.BaseAudioContext) return;
+  var d = Object.getOwnPropertyDescriptor(AudioParam.prototype, "value");
+  if(!d || !d.set || !d.configurable) return;
+  Object.defineProperty(AudioParam.prototype, "value", {
+    configurable:true, enumerable:d.enumerable, get:d.get,
+    set:function(v){
+      if(LISSAGE.niveau > 0 && !LISSAGE.neufs.has(this) && ctx && !ctx.startRendering &&
+         ctx.state === "running" && Math.abs(v - d.get.call(this)) > 1e-6){
+        var t = ctx.currentTime;
+        if(this.cancelAndHoldAtTime) this.cancelAndHoldAtTime(t); else this.cancelScheduledValues(t);
+        this.setTargetAtTime(v, t, 0.008);
+      } else d.set.call(this, v);
+    }
+  });
+  /* les paramètres des nœuds nés pendant un geste ne sont pas lissés */
+  ["createGain","createBiquadFilter","createOscillator","createDelay","createStereoPanner",
+   "createConstantSource","createBufferSource","createDynamicsCompressor"].forEach(function(u){
+    var f = BaseAudioContext.prototype[u];
+    if(!f) return;
+    BaseAudioContext.prototype[u] = function(){
+      var n = f.apply(this, arguments);
+      if(LISSAGE.niveau > 0){
+        for(var k in n){ var p; try{ p = n[k]; }catch(e){ continue; } if(p instanceof AudioParam) LISSAGE.neufs.add(p); }
+      }
+      return n;
+    };
+  });
+})();
 /* ---------- quand le moteur audio meurt en silence ----------
    Android peut suspendre ou casser un AudioContext sans prévenir : un appel
    entrant, une autre application qui prend la main, l'écran éteint trop
@@ -6728,9 +6782,13 @@ function batirAudio(){
   lim.attack.value = 0.001; lim.release.value = 0.09;
   /* écrêteur doux : parfaitement droit jusqu'à 0,84, il n'arrondit que le sommet */
   var sat = ctx.createWaveShaper();
-  var n=2048, c=new Float32Array(n), seuil=0.84;
+  /* v152 : longueur IMPAIRE, pour qu'un point tombe exactement sur zéro. Avec
+     2048 points, l'entrée 0 tombait entre −0,001 et 0 : la sortie gardait un
+     décalage continu de −0,0005 (−66 dBFS) — le « bruit de démarrage » relevé
+     par le banc en B1. */
+  var n=2049, c=new Float32Array(n), seuil=0.84;
   for(var i=0;i<n;i++){
-    var x=i*2/n-1, a=Math.abs(x);
+    var x=i*2/(n-1)-1, a=Math.abs(x);
     c[i] = (a<=seuil) ? x
          : Math.sign(x)*(seuil + (1-seuil)*Math.tanh((a-seuil)/(1-seuil)));
   }
@@ -7230,12 +7288,15 @@ function busSet(id){
 
   SET.bus[id] = {e:e, lo:lo, md:md, hi:hi, g:g, p:p, an:an, ctx:ctx,
                  tampon:new Uint8Array(an.frequencyBinCount), niveau:0};
-  majVoieSet(id);
+  majVoieSet(id, true);
   return e;
 }
-function majVoieSet(id){
+function majVoieSet(id, immediat){
   var b = SET.bus[id];
   if(!b || b.ctx !== ctx) return;
+  /* v152 : un réglage de table sur une voie qui sonne est lissé ; à la création
+     de la voie, il est posé tel quel */
+  if(!immediat) return enLissant(function(){ majVoieSet(id, true); });
   /* Le solo n'est pas un bouton de plus : c'est un coupe-son sur toutes les
      AUTRES voies. C'est ainsi qu'il marche sur une table, et c'est pour cela
      qu'on ne peut pas en avoir deux à la fois. */
@@ -7429,18 +7490,18 @@ function knob(id, opt){
     if(opt.steps){
       var nv = Math.round(st.v0 + d/46);
       nv = Math.max(0, Math.min(opt.steps-1, nv));
-      if(nv!==st.v){ st.v=nv; render(); opt.on(st.v); H.cran(); }
+      if(nv!==st.v){ st.v=nv; render(); enLissant(function(){ opt.on(st.v); }); H.cran(); }
     }else{
       var r = opt.max-opt.min;
       st.v = Math.max(opt.min, Math.min(opt.max, st.v0 + d/210*r));
-      render(); opt.on(st.v);
+      render(); enLissant(function(){ opt.on(st.v); });
     }
   });
   el.addEventListener("pointerup", function(e){
     if(!st.drag || PINCE) return;
     st.drag=false;
     if(st.moved < 6){
-      if(opt.steps){ st.v = (st.v+1)%opt.steps; render(); opt.on(st.v); H.cran(); }
+      if(opt.steps){ st.v = (st.v+1)%opt.steps; render(); enLissant(function(){ opt.on(st.v); }); H.cran(); }
       else if(opt.tap){ opt.tap(); H.cran(); }
     }
   });
@@ -7455,11 +7516,11 @@ function knob(id, opt){
       var n = st.acc > 0 ? Math.floor(st.acc) : Math.ceil(st.acc);
       st.acc -= n;
       var nv = Math.max(0, Math.min(opt.steps - 1, st.v + n));
-      if(nv !== st.v){ st.v = nv; render(); opt.on(st.v); H.cran(); }
+      if(nv !== st.v){ st.v = nv; render(); enLissant(function(){ opt.on(st.v); }); H.cran(); }
     }else{
       var pas = (opt.max - opt.min) / (e.shiftKey ? 400 : 40);
       st.v = Math.max(opt.min, Math.min(opt.max, st.v + crans * pas));
-      render(); opt.on(st.v);
+      render(); enLissant(function(){ opt.on(st.v); });
     }
   }, {passive:false});
   render();
@@ -8830,13 +8891,13 @@ function busEffets(){
   construireFx();
 }
 function courbeBits(bits){
-  var niv = Math.pow(2, bits-1), n = 2048, c = new Float32Array(n);
-  for(var i=0;i<n;i++){ var x = i*2/n-1; c[i] = Math.round(x*niv)/niv; }
+  var niv = Math.pow(2, bits-1), n = 2049, c = new Float32Array(n);
+  for(var i=0;i<n;i++){ var x = i*2/(n-1)-1; c[i] = Math.round(x*niv)/niv; }
   return c;
 }
 function courbeDist(k){
-  var n=1024, c=new Float32Array(n);
-  for(var i=0;i<n;i++){ var x=i*2/n-1; c[i]=Math.tanh(x*(1+k*14))/Math.tanh(1+k*14); }
+  var n=1025, c=new Float32Array(n);
+  for(var i=0;i<n;i++){ var x=i*2/(n-1)-1; c[i]=Math.tanh(x*(1+k*14))/Math.tanh(1+k*14); }
   return c;
 }
 function irReverb(sec){
@@ -9694,7 +9755,7 @@ function knobEm(id, opt){
     var fin = 1 + Math.min(9, Math.abs(e.clientX - st.x0) / 26);
     var r = opt.max-opt.min;
     st.v = Math.max(opt.min, Math.min(opt.max, st.v + d/(190*fin)*r));
-    render(); opt.set(st.v);
+    render(); enLissant(function(){ opt.set(st.v); });
   });
   el.addEventListener("pointerup", function(){
     if(!st.drag) return;
@@ -9721,7 +9782,7 @@ function knobEm(id, opt){
       if(!crans) return;
     }
     st.v = Math.max(opt.min, Math.min(opt.max, opt.get() + crans * pas));
-    render(); opt.set(st.v);
+    render(); enLissant(function(){ opt.set(st.v); });
     clearTimeout(st.tMem);
     st.tMem = setTimeout(memEm, 400);
   }, {passive:false});
@@ -10909,8 +10970,8 @@ function voixEa(t,k,note,vel,duree){
     o2.connect(cm); cm.connect(o1.frequency);
   }
   if(son.mod === 3){                              /* deci */
-    var n2=1024, cd=new Float32Array(n2), niv2=6;
-    for(var i=0;i<n2;i++){ var x=i*2/n2-1; cd[i]=Math.round(x*niv2)/niv2; }
+    var n2 = 1025, cd=new Float32Array(n2), niv2=6;
+    for(var i=0;i<n2;i++){ var x=i*2/(n2-1)-1; cd[i]=Math.round(x*niv2)/niv2; }
     var wd = ctx.createWaveShaper(); wd.curve = cd;
     entree.connect(wd); wd.connect(lp);
   } else {
@@ -12416,9 +12477,9 @@ function mxAudio(){
   cablerFxMx();
 }
 function courbeLampe(g){
-  var n=2048, c=new Float32Array(n), k=1+g*9;
+  var n=2049, c=new Float32Array(n), k=1+g*9;
   for(var i=0;i<n;i++){
-    var x=i*2/n-1;
+    var x=i*2/(n-1)-1;
     /* décalage avant la courbe : c'est lui qui engendre les harmoniques paires,
        comme un tube polarisé asymétriquement */
     var biais = 0.34*g;
@@ -16678,8 +16739,8 @@ function sortieRd6(){
     var lp = ctx.createBiquadFilter(); lp.type = "lowpass";
     var sec = ctx.createGain(), hum = ctx.createGain();
     var d = ctx.createWaveShaper();
-    var n = 1024, c = new Float32Array(n);
-    for(var i=0;i<n;i++){ var x = i * 2 / n - 1; c[i] = Math.tanh(x * 4); }
+    var n = 1025, c = new Float32Array(n);
+    for(var i=0;i<n;i++){ var x = i * 2 / (n - 1) - 1; c[i] = Math.tanh(x * 4); }
     d.curve = c; d.oversample = "2x";
     /* Une boîte à rythmes peut poser seize frappes sur le MÊME pas, et leurs
        attaques coïncident exactement. Les crêtes s'additionnent alors en
@@ -17707,8 +17768,8 @@ function eurBruit(){
   return b;
 }
 function eurCourbe(f){
-  var n = 1024, c = new Float32Array(n);
-  for(var i=0;i<n;i++) c[i] = f(i * 2 / n - 1);
+  var n = 1025, c = new Float32Array(n);
+  for(var i=0;i<n;i++) c[i] = f(i * 2 / (n - 1) - 1);
   return c;
 }
 /* ---------- fabriques communes ----------
@@ -18898,8 +18959,8 @@ envfol: {nom:"ENV FOL", hp:56, sombre:true, res:"Transforme un son en tension", 
        grosse caisse peut alors ouvrir un filtre : c'est le ducking, et c'est
        tout ce qui manquait pour faire respirer un patch. */
     var e = eurGain(1), red = ctx.createWaveShaper();
-    var n = 1024, c = new Float32Array(n);
-    for(var i=0;i<n;i++) c[i] = Math.abs(i * 2 / n - 1);
+    var n = 1025, c = new Float32Array(n);
+    for(var i=0;i<n;i++) c[i] = Math.abs(i * 2 / (n - 1) - 1);
     red.curve = c; red.oversample = "2x";
     var lp = ctx.createBiquadFilter(); lp.type = "lowpass";
     var g = eurGain(1);
@@ -19583,8 +19644,8 @@ plasma: eurEffet("PLASMA", 68, "Distorsion à tube : ça ne sature pas, ça cass
     var sec = eurGain(1), hum = eurGain(0), som = eurGain(1);
 
     /* redresseur : |x|, donc une octave au-dessus */
-    var n = 1024, c = new Float32Array(n);
-    for(var i=0;i<n;i++){ var x = i * 2 / n - 1; c[i] = Math.abs(x) * 2 - 1; }
+    var n = 1025, c = new Float32Array(n);
+    for(var i=0;i<n;i++){ var x = i * 2 / (n - 1) - 1; c[i] = Math.abs(x) * 2 - 1; }
     red.curve = c;
 
     e.connect(ent);
@@ -19595,9 +19656,9 @@ plasma: eurEffet("PLASMA", 68, "Distorsion à tube : ça ne sature pas, ça cass
     m.maj = function(){
       ent.gain.value = 0.2 + m.p.niv * 2.4;
       var k = 2 + m.p.volt * 60;
-      var q = 1024, cc = new Float32Array(q);
+      var q = 1025, cc = new Float32Array(q);
       for(var j=0;j<q;j++){
-        var xx = j * 2 / q - 1;
+        var xx = j * 2 / (q - 1) - 1;
         /* tanh d'un gain énorme : la pente au centre devient verticale */
         cc[j] = Math.tanh(xx * k);
       }
@@ -19725,9 +19786,9 @@ clip: eurEffet("CLIP", 60, "Écrêtage franc, sans douceur",
     var comp = eurGain(1);
     e.connect(forme); forme.connect(hp); hp.connect(comp); comp.connect(out);
     m.maj = function(){
-      var n = 1024, c = new Float32Array(n), seuil = 1 - m.p.drive * 0.93;
+      var n = 1025, c = new Float32Array(n), seuil = 1 - m.p.drive * 0.93;
       for(var i=0;i<n;i++){
-        var x = i * 2 / n - 1;
+        var x = i * 2 / (n - 1) - 1;
         c[i] = Math.max(-seuil, Math.min(seuil, x)) / seuil;
       }
       forme.curve = c; forme.oversample = "2x";
@@ -19816,11 +19877,11 @@ ram: {nom:"BATTERING RAM", hp:72, res:"Grosse caisse : chute, saturation, clic",
     som.connect(sat); sat.connect(hp); hp.connect(out);
     m.maj = function(){
       hp.frequency.value = 20 + m.p.hpf * 90;
-      var n = 1024, c = new Float32Array(n);
+      var n = 1025, c = new Float32Array(n);
       var k = 1 + m.p.drive * 40;
       var dur = Math.min(2, Math.round(m.p.type * 2));
       for(var i=0;i<n;i++){
-        var x = i * 2 / n - 1;
+        var x = i * 2 / (n - 1) - 1;
         /* trois caractères : doux, franc, en escalier */
         c[i] = dur === 0 ? Math.tanh(x * k) / Math.tanh(k)
              : dur === 1 ? Math.max(-1, Math.min(1, x * k))
@@ -19884,9 +19945,9 @@ squid: {nom:"SQUID SALMPLE", hp:96, res:"Huit lecteurs d'échantillons, une entr
       if(m.p.qual > 0.97){ forme.curve = null; }
       else {
         var marches = Math.max(2, Math.round(2 + m.p.qual * 60));
-        var n = 1024, c = new Float32Array(n);
+        var n = 1025, c = new Float32Array(n);
         for(var i=0;i<n;i++){
-          var x = i * 2 / n - 1;
+          var x = i * 2 / (n - 1) - 1;
           c[i] = Math.round(x * marches) / marches;
         }
         forme.curve = c; forme.oversample = "none";
@@ -19941,9 +20002,9 @@ mutant: {nom:"MUTANT HIHATS", hp:64, res:"Charley 808 saturé, ouvert et fermé 
     m.ouvert = null;
     m.maj = function(){
       hp.frequency.value = 3000 + m.p.cut * 9000;
-      var n = 1024, c = new Float32Array(n), k = 1 + m.p.drive * 40;
+      var n = 1025, c = new Float32Array(n), k = 1 + m.p.drive * 40;
       for(var i=0;i<n;i++){
-        var x = i * 2 / n - 1;
+        var x = i * 2 / (n - 1) - 1;
         c[i] = Math.tanh(x * k) / Math.tanh(k);
       }
       sat.curve = c; sat.oversample = "2x";
@@ -19987,9 +20048,9 @@ tekkick: {nom:"TEK KICK", hp:64, res:"Grosse caisse saturée jusqu'à devenir un
     var som = eurGain(1);
     som.connect(forme); forme.connect(hp); hp.connect(out);
     m.maj = function(){
-      var n = 1024, c = new Float32Array(n), k = 1 + m.p.drive * 60;
+      var n = 1025, c = new Float32Array(n), k = 1 + m.p.drive * 60;
       for(var i=0;i<n;i++){
-        var x = i * 2 / n - 1;
+        var x = i * 2 / (n - 1) - 1;
         c[i] = Math.tanh(x * k) / Math.tanh(k);
       }
       forme.curve = c; forme.oversample = "2x";
@@ -21311,8 +21372,8 @@ function batirTd3(){
   f1.frequency.value = 500; f2.frequency.value = 500;
   var vca = ctx.createGain(); vca.gain.value = 0.0001;
   var sat = ctx.createWaveShaper();
-  var n = 1024, c = new Float32Array(n);
-  for(var i=0;i<n;i++){ var x = i * 2 / n - 1; c[i] = Math.tanh(x * 3.4); }
+  var n = 1025, c = new Float32Array(n);
+  for(var i=0;i<n;i++){ var x = i * 2 / (n - 1) - 1; c[i] = Math.tanh(x * 3.4); }
   sat.curve = c; sat.oversample = "2x";
   var sec = ctx.createGain(), hum = ctx.createGain();
   var lp = ctx.createBiquadFilter(); lp.type = "lowpass";
@@ -21771,9 +21832,9 @@ function courbeArcm(d){
   if(!ARCM.courbes) ARCM.courbes = {};
   var cran = Math.max(0, Math.min(8, Math.round(d * 8)));
   if(ARCM.courbes[cran]) return ARCM.courbes[cran];
-  var n = 1024, c = new Float32Array(n), k = 1 + cran * 7;
+  var n = 1025, c = new Float32Array(n), k = 1 + cran * 7;
   for(var i=0;i<n;i++){
-    var x = i * 2 / n - 1;
+    var x = i * 2 / (n - 1) - 1;
     c[i] = Math.tanh(x * k) / Math.tanh(k);
   }
   ARCM.courbes[cran] = c;
@@ -22363,8 +22424,8 @@ function bâtirT1k(){
   var mixA = ctx.createGain();                 /* bus analogique */
   var filt = ctx.createBiquadFilter(); filt.type = "lowpass";
   var sat = ctx.createWaveShaper();
-  var n = 1024, c = new Float32Array(n);
-  for(var i=0;i<n;i++){ var x = i*2/n-1; c[i] = Math.tanh(x*2.6); }
+  var n = 1025, c = new Float32Array(n);
+  for(var i=0;i<n;i++){ var x = i*2/(n-1)-1; c[i] = Math.tanh(x*2.6); }
   sat.curve = c; sat.oversample = "2x";
   var secA = ctx.createGain(), humA = ctx.createGain();
   var mix = ctx.createGain();
@@ -22914,9 +22975,9 @@ function sortieDbi(){
   if(!DBI.noeuds.out){
     var g = ctx.createGain();
     var d = ctx.createWaveShaper();
-    var n = 1024, c = new Float32Array(n);
+    var n = 1025, c = new Float32Array(n);
     for(var i=0;i<n;i++){
-      var x = i * 2 / n - 1;
+      var x = i * 2 / (n - 1) - 1;
       c[i] = Math.tanh(x * 3.2);
     }
     d.curve = c; d.oversample = "2x";
@@ -22948,8 +23009,8 @@ function voixDbi(t, k, acc){
     o.frequency.setValueAtTime(f0 * 5, t);
     o.frequency.exponentialRampToValueAtTime(f0, t + 0.03);
     var sh = ctx.createWaveShaper();
-    var n2 = 512, c2 = new Float32Array(n2), dr = 1 + p.drive * 6;
-    for(var i=0;i<n2;i++){ var x2 = i*2/n2-1; c2[i] = Math.tanh(x2*dr)/Math.tanh(dr); }
+    var n2 = 513, c2 = new Float32Array(n2), dr = 1 + p.drive * 6;
+    for(var i=0;i<n2;i++){ var x2 = i*2/(n2-1)-1; c2[i] = Math.tanh(x2*dr)/Math.tanh(dr); }
     sh.curve = c2;
     trEnv(g, t, niv * 1.15, dec, 0.001);
     o.connect(sh); sh.connect(g); o.start(t); o.stop(t + dec + 0.05);
@@ -24917,9 +24978,9 @@ function chaineMaitresseHorsLigne(off){
   lim.threshold.value = -1.2; lim.knee.value = 1.5; lim.ratio.value = 20;
   lim.attack.value = 0.001; lim.release.value = 0.09;
   var sat = off.createWaveShaper();
-  var n = 2048, c = new Float32Array(n), seuil = 0.84;
+  var n = 2049, c = new Float32Array(n), seuil = 0.84;
   for(var i=0;i<n;i++){
-    var x = i * 2 / n - 1, a = Math.abs(x);
+    var x = i * 2 / (n - 1) - 1, a = Math.abs(x);
     c[i] = (a <= seuil) ? x : (x < 0 ? -1 : 1) * (seuil + (1 - seuil) * Math.tanh((a - seuil) / (1 - seuil)));
   }
   sat.curve = c; sat.oversample = "4x";
@@ -25101,9 +25162,9 @@ function appliquerFxKo(){
 var KO_CRUSH = null;
 function courbeCrushKo(){
   if(KO_CRUSH) return KO_CRUSH;
-  var n = 1024, c = new Float32Array(n), marches = 16;
+  var n = 1025, c = new Float32Array(n), marches = 16;
   for(var i=0;i<n;i++){
-    var x = i * 2 / n - 1;
+    var x = i * 2 / (n - 1) - 1;
     c[i] = Math.round(x * marches) / marches;
   }
   KO_CRUSH = c;
@@ -25378,9 +25439,9 @@ function appliquerKp(){
     anneau = y * p;
   } else if(nom === "crush"){
     var m = Math.max(2, Math.round(2 + (1 - x) * 40));
-    var q = 1024, c = new Float32Array(q);
+    var q = 1025, c = new Float32Array(q);
     for(var i=0;i<q;i++){
-      var v = i * 2 / q - 1;
+      var v = i * 2 / (q - 1) - 1;
       c[i] = Math.round(v * m) / m;
     }
     n.crush.curve = c; n.crush.oversample = "none";

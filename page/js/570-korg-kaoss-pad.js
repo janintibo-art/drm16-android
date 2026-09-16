@@ -186,9 +186,9 @@ function appliquerKp(){
     anneau = y * p;
   } else if(nom === "crush"){
     var m = Math.max(2, Math.round(2 + (1 - x) * 40));
-    var q = 1024, c = new Float32Array(q);
+    var q = 1025, c = new Float32Array(q);
     for(var i=0;i<q;i++){
-      var v = i * 2 / q - 1;
+      var v = i * 2 / (q - 1) - 1;
       c[i] = Math.round(v * m) / m;
     }
     n.crush.curve = c; n.crush.oversample = "none";

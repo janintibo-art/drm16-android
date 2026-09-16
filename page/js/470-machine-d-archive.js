@@ -99,9 +99,9 @@ function courbeArcm(d){
   if(!ARCM.courbes) ARCM.courbes = {};
   var cran = Math.max(0, Math.min(8, Math.round(d * 8)));
   if(ARCM.courbes[cran]) return ARCM.courbes[cran];
-  var n = 1024, c = new Float32Array(n), k = 1 + cran * 7;
+  var n = 1025, c = new Float32Array(n), k = 1 + cran * 7;
   for(var i=0;i<n;i++){
-    var x = i * 2 / n - 1;
+    var x = i * 2 / (n - 1) - 1;
     c[i] = Math.tanh(x * k) / Math.tanh(k);
   }
   ARCM.courbes[cran] = c;
