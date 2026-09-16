@@ -996,6 +996,7 @@ function activerTr(modele){
   TR.m = TR_MODELES[modele] ? modele : "tr808";
   TR.def = TR_MODELES[TR.m];
   S.modele = TR.m;
+  majVoieSet("tr");                   /* v149 : le calibrage suit le modèle */
   MACHINE = MACHINE_TR;
   poserMachine("tr8", TR.m === "tr909" ? "tr9" : null,
                       TR.m === "tr707" ? "tr7" : null,

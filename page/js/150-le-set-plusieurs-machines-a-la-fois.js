@@ -24,6 +24,23 @@ SET_VOIES.forEach(function(v){
   SET.lo[k] = 0.5; SET.md[k] = 0.5; SET.hi[k] = 0.5;   /* égaliseur à plat */
 });
 
+/* Calibrage des voies (v149, phase B2). Décibels ajoutés au gain d'entrée de
+   chaque voie pour que la voix la plus forte de chaque machine culmine vers
+   −8 dBFS : mesuré par outils/banc-son.py (docs/mesures-son.md), chaque voix
+   seule à pleine vélocité. La voie TR prend la valeur du modèle actif. Le
+   réglage GAIN de la table reste libre par-dessus. Machines sans voix
+   isolables (Eurorack, KAOSS PAD, archive) : pas de correction, leur niveau
+   dépend du montage ou des sons chargés. La TD-3 est réglée sur son motif. */
+var CALIBRAGE_DB = {
+  ehx:-1.8, em:+3.8, er:-4.0, ea:+2.2, es:-1.4, mx:+1.4, sx:-1.6, mpc:-5.2,
+  tr808:-2.9, tr909:-4.9, tr707:-3.7, rd6:-2.1, dmx:-2.9, dbi:-2.2, vlc:-4.9,
+  cr:-1.2, t1k:-6.7, ko:-3.1, mc:-0.9, stk:-3.8, td3:+0.8
+};
+function calibrageVoie(id){
+  var k = id === "tr" && typeof TR !== "undefined" && TR ? TR.m : id;
+  return Math.pow(10, (CALIBRAGE_DB[k] || 0) / 20);
+}
+
 /* La voie d'une machine. Le contexte audio peut être remplacé — export hors
    ligne, relance après une coupure — alors on le retient : un nœud fabriqué
    dans un contexte mort ne se rebranche nulle part. */
@@ -99,7 +116,7 @@ function majVoieSet(id){
      AUTRES voies. C'est ainsi qu'il marche sur une table, et c'est pour cela
      qu'on ne peut pas en avoir deux à la fois. */
   var passe = !SET.mute[id] && (!SET.solo || SET.solo === id);
-  b.e.gain.value = SET.trim[id];
+  b.e.gain.value = SET.trim[id] * calibrageVoie(id);
   b.g.gain.value = passe ? SET.niv[id] : 0;
   if(b.p) b.p.pan.value = SET.pan[id];
   /* Les trois bandes vont de −26 à +6 dB, comme sur une table de mixage :

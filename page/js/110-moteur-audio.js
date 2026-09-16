@@ -61,6 +61,7 @@ function audioInit(){
 /* Construit tous les nœuds communs dans le contexte courant. Appelée aussi par
    l'export, qui bascule sur un contexte de rendu : sans cela, le délai et les
    sorties resteraient dans l'ancien contexte et rien ne pourrait s'y brancher. */
+var COMPENSATION_SORTIE_DB = 2.5;
 function batirAudio(){
   razNoeudsMachines();
   master = ctx.createGain();
@@ -84,7 +85,11 @@ function batirAudio(){
      est dans le fil audio, pas dans l'ordonnanceur. */
   sat.curve=c; sat.oversample="2x";
   var hp = ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=26;
-  master.connect(lim); lim.connect(sat); sat.connect(hp); hp.connect(ctx.destination);
+  /* Compensation de sortie (v149) : les voies ont été calibrées vers −8 dBFS,
+     soit en moyenne 2,5 dB de moins qu'avant ; ce gain rend le volume perçu
+     d'avant, et le limiteur ne sert plus que de filet de sécurité. */
+  var comp = ctx.createGain(); comp.gain.value = Math.pow(10, COMPENSATION_SORTIE_DB / 20);
+  master.connect(comp); comp.connect(lim); lim.connect(sat); sat.connect(hp); hp.connect(ctx.destination);
   outBd = ctx.createGain(); outMix = ctx.createGain();
   if(ctx.createStereoPanner){
     panBd = ctx.createStereoPanner(); panMix = ctx.createStereoPanner();

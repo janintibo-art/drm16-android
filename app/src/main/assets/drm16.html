@@ -6717,6 +6717,7 @@ function audioInit(){
 /* Construit tous les nœuds communs dans le contexte courant. Appelée aussi par
    l'export, qui bascule sur un contexte de rendu : sans cela, le délai et les
    sorties resteraient dans l'ancien contexte et rien ne pourrait s'y brancher. */
+var COMPENSATION_SORTIE_DB = 2.5;
 function batirAudio(){
   razNoeudsMachines();
   master = ctx.createGain();
@@ -6740,7 +6741,11 @@ function batirAudio(){
      est dans le fil audio, pas dans l'ordonnanceur. */
   sat.curve=c; sat.oversample="2x";
   var hp = ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=26;
-  master.connect(lim); lim.connect(sat); sat.connect(hp); hp.connect(ctx.destination);
+  /* Compensation de sortie (v149) : les voies ont été calibrées vers −8 dBFS,
+     soit en moyenne 2,5 dB de moins qu'avant ; ce gain rend le volume perçu
+     d'avant, et le limiteur ne sert plus que de filet de sécurité. */
+  var comp = ctx.createGain(); comp.gain.value = Math.pow(10, COMPENSATION_SORTIE_DB / 20);
+  master.connect(comp); comp.connect(lim); lim.connect(sat); sat.connect(hp); hp.connect(ctx.destination);
   outBd = ctx.createGain(); outMix = ctx.createGain();
   if(ctx.createStereoPanner){
     panBd = ctx.createStereoPanner(); panMix = ctx.createStereoPanner();
@@ -6940,12 +6945,22 @@ function appliquerMotFxEm(v, champ){
 }
 function scheduleEhx(i,t){
   var pat = rythme(), sw = pat.sw||0;
+  var CHARGE_N = ouvrirPas();
   if(sw && i%2===1) t += stepDur()*sw*0.55;
-  for(var k in pat){
-    if(k==="sw" || !V[k] || muted(k)) continue;
-    var ch = pat[k].charAt(i), v = VEL[ch];
-    if(v){ V[k](t, v); midiVoix(k, t, v); }
+  /* v149 : les voix de la DRM16 écrivent dans outBd / outMix ; le temps du pas,
+     ces deux sorties passent par le gain du pas (atténuation de charge) */
+  var bd0 = outBd, mix0 = outMix;
+  outBd = pasVoie(bd0); outMix = pasVoie(mix0);
+  try{
+    for(var k in pat){
+      if(k==="sw" || !V[k] || muted(k)) continue;
+      var ch = pat[k].charAt(i), v = VEL[ch];
+      if(v){ CHARGE_N++; V[k](t, v); midiVoix(k, t, v); }
+    }
+  }finally{
+    outBd = bd0; outMix = mix0;
   }
+  attenuerVoie("ehx", CHARGE_N, t);
   if(!cache) queue.push({i:i,t:t});
 }
 /* ================= décalage humain =================
@@ -7113,6 +7128,23 @@ SET_VOIES.forEach(function(v){
   SET.lo[k] = 0.5; SET.md[k] = 0.5; SET.hi[k] = 0.5;   /* égaliseur à plat */
 });
 
+/* Calibrage des voies (v149, phase B2). Décibels ajoutés au gain d'entrée de
+   chaque voie pour que la voix la plus forte de chaque machine culmine vers
+   −8 dBFS : mesuré par outils/banc-son.py (docs/mesures-son.md), chaque voix
+   seule à pleine vélocité. La voie TR prend la valeur du modèle actif. Le
+   réglage GAIN de la table reste libre par-dessus. Machines sans voix
+   isolables (Eurorack, KAOSS PAD, archive) : pas de correction, leur niveau
+   dépend du montage ou des sons chargés. La TD-3 est réglée sur son motif. */
+var CALIBRAGE_DB = {
+  ehx:-1.8, em:+3.8, er:-4.0, ea:+2.2, es:-1.4, mx:+1.4, sx:-1.6, mpc:-5.2,
+  tr808:-2.9, tr909:-4.9, tr707:-3.7, rd6:-2.1, dmx:-2.9, dbi:-2.2, vlc:-4.9,
+  cr:-1.2, t1k:-6.7, ko:-3.1, mc:-0.9, stk:-3.8, td3:+0.8
+};
+function calibrageVoie(id){
+  var k = id === "tr" && typeof TR !== "undefined" && TR ? TR.m : id;
+  return Math.pow(10, (CALIBRAGE_DB[k] || 0) / 20);
+}
+
 /* La voie d'une machine. Le contexte audio peut être remplacé — export hors
    ligne, relance après une coupure — alors on le retient : un nœud fabriqué
    dans un contexte mort ne se rebranche nulle part. */
@@ -7188,7 +7220,7 @@ function majVoieSet(id){
      AUTRES voies. C'est ainsi qu'il marche sur une table, et c'est pour cela
      qu'on ne peut pas en avoir deux à la fois. */
   var passe = !SET.mute[id] && (!SET.solo || SET.solo === id);
-  b.e.gain.value = SET.trim[id];
+  b.e.gain.value = SET.trim[id] * calibrageVoie(id);
   b.g.gain.value = passe ? SET.niv[id] : 0;
   if(b.p) b.p.pan.value = SET.pan[id];
   /* Les trois bandes vont de −26 à +6 dB, comme sur une table de mixage :
@@ -17601,6 +17633,7 @@ function activerTr(modele){
   TR.m = TR_MODELES[modele] ? modele : "tr808";
   TR.def = TR_MODELES[TR.m];
   S.modele = TR.m;
+  majVoieSet("tr");                   /* v149 : le calibrage suit le modèle */
   MACHINE = MACHINE_TR;
   poserMachine("tr8", TR.m === "tr909" ? "tr9" : null,
                       TR.m === "tr707" ? "tr7" : null,
@@ -23381,7 +23414,7 @@ function voixCr(t, id, acc){
                              : grp === "cym" ? "cym" : "bd"]);
   niv *= 0.85 * (acc ? (0.75 + mv("niv", CR5.niv.acc) * 0.6) : 0.72);
   var g = ctx.createGain();
-  g.connect(dest);
+  g.connect(pasVoie(dest));
 
   if(id === "bd"){
     var o = ctx.createOscillator(); o.type = "sine";
@@ -23399,7 +23432,7 @@ function voixCr(t, id, acc){
     var ot = ctx.createOscillator(); ot.type = "triangle"; ot.frequency.value = 210;
     var gt = ctx.createGain();
     trEnv(gt, t, niv * 0.4, 0.07, 0.001);
-    ot.connect(gt); gt.connect(dest); ot.start(t); ot.stop(t + 0.1);
+    ot.connect(gt); gt.connect(pasVoie(dest)); ot.start(t); ot.stop(t + 0.1);
   }
   else if(id === "tom"){
     var od = ctx.createOscillator(); od.type = "sine";
@@ -23463,16 +23496,18 @@ function scheduleCr(i, t){
   var source = (CR5.fill || (CR5.fillAuto && CR5.mesure > 0 && CR5.mesure % CR5.fillAuto === 0))
                ? CR_FILL : r.l;
   var acc = (i === 0);
+  var CHARGE_N = ouvrirPas();
   CR_INSTR.forEach(function(id){
     var ligne = source[id];
     if(ligne && ligne.charAt(i) !== "." && ligne.charAt(i) !== "" && ligne.charAt(i) !== " ")
-      voixCr(t, id, acc);
+    { CHARGE_N++; voixCr(t, id, acc); }
   });
   CR_ARR.forEach(function(a){
     if(!CR5.arr[a.id]) return;
     var m = douze ? a.m12 : a.m;
-    if(m.charAt(i) === "x") voixCr(t, a.instr, acc);
+    if(m.charAt(i) === "x"){ CHARGE_N++; voixCr(t, a.instr, acc); }
   });
+  attenuerVoie("cr", CHARGE_N, t);    /* v149 : le CR-5000 n'avait pas d'atténuation de charge */
   if(!cache) queue.push({i:i, t:t});
 }
 function beatCr(i){ CR5.pos = i; }
@@ -24163,7 +24198,7 @@ function voixDmx(t, k, vel){
   var g = ctx.createGain();
   var ch = dmxGoulot();
   ch.sortie.connect(g);
-  g.connect(dest);
+  g.connect(pasVoie(dest));
   var e = ch.entree, v = T.var_;
 
   if(T.fam === "bd"){
@@ -24278,13 +24313,15 @@ function ticsDmx(){ return seqDmxCur().mesures * 4 * DMX_TPQ; }
 function pasDmx(){ return seqDmxCur().mesures * 16; }
 function scheduleDmx(i, t){
   var s = seqDmxCur(), tp = DMX_TPQ / 4;
+  var CHARGE_N = ouvrirPas();
   var deb = i * tp, fin = deb + tp;
   if(s.swing && i % 2 === 1) t += stepDur() * s.swing * 0.5;
   DMX.tStep = t;
   var duree = stepDur();
   s.evts.forEach(function(e){
-    if(e.tic >= deb && e.tic < fin) voixDmx(t + ((e.tic - deb) / tp) * duree, e.k, e.vel);
+    if(e.tic >= deb && e.tic < fin){ CHARGE_N++; voixDmx(t + ((e.tic - deb) / tp) * duree, e.k, e.vel); }
   });
+  attenuerVoie("dmx", CHARGE_N, t);   /* v149 : la DMX n'avait pas d'atténuation de charge */
   if(DMX.niv.metro > 0.02 && i % 4 === 0) clicDmx(t, i === 0);
   if(!cache) queue.push({i:i, t:t});
 }

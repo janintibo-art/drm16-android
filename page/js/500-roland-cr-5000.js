@@ -71,7 +71,7 @@ function voixCr(t, id, acc){
                              : grp === "cym" ? "cym" : "bd"]);
   niv *= 0.85 * (acc ? (0.75 + mv("niv", CR5.niv.acc) * 0.6) : 0.72);
   var g = ctx.createGain();
-  g.connect(dest);
+  g.connect(pasVoie(dest));
 
   if(id === "bd"){
     var o = ctx.createOscillator(); o.type = "sine";
@@ -89,7 +89,7 @@ function voixCr(t, id, acc){
     var ot = ctx.createOscillator(); ot.type = "triangle"; ot.frequency.value = 210;
     var gt = ctx.createGain();
     trEnv(gt, t, niv * 0.4, 0.07, 0.001);
-    ot.connect(gt); gt.connect(dest); ot.start(t); ot.stop(t + 0.1);
+    ot.connect(gt); gt.connect(pasVoie(dest)); ot.start(t); ot.stop(t + 0.1);
   }
   else if(id === "tom"){
     var od = ctx.createOscillator(); od.type = "sine";
@@ -153,16 +153,18 @@ function scheduleCr(i, t){
   var source = (CR5.fill || (CR5.fillAuto && CR5.mesure > 0 && CR5.mesure % CR5.fillAuto === 0))
                ? CR_FILL : r.l;
   var acc = (i === 0);
+  var CHARGE_N = ouvrirPas();
   CR_INSTR.forEach(function(id){
     var ligne = source[id];
     if(ligne && ligne.charAt(i) !== "." && ligne.charAt(i) !== "" && ligne.charAt(i) !== " ")
-      voixCr(t, id, acc);
+    { CHARGE_N++; voixCr(t, id, acc); }
   });
   CR_ARR.forEach(function(a){
     if(!CR5.arr[a.id]) return;
     var m = douze ? a.m12 : a.m;
-    if(m.charAt(i) === "x") voixCr(t, a.instr, acc);
+    if(m.charAt(i) === "x"){ CHARGE_N++; voixCr(t, a.instr, acc); }
   });
+  attenuerVoie("cr", CHARGE_N, t);    /* v149 : le CR-5000 n'avait pas d'atténuation de charge */
   if(!cache) queue.push({i:i, t:t});
 }
 function beatCr(i){ CR5.pos = i; }

@@ -99,7 +99,9 @@ async def attenuation(nav):
            ("es1","jouerEs(T,0,0.8,0)"),("emx","voixMxDrum(T,0,1)"),("esx","voixSx(T,0,0.8,0)"),
            ("mpc3000","jouerPad(T,0,1)"),("tr909","voixTr(T,1,true)"),("rd6","voixTr(T,1,true)"),
            ("t1k","voixT1k(T,0,true)"),("dbi","voixDbi(T,0,true)"),("vlc","voixVlc(T,0,0)"),
-           ("ko","voixKo(T,0,1)"),("mc","voixMc(T,0,36,1)"),("stk","voixStk(T,0,true)")]
+           ("ko","voixKo(T,0,1)"),("mc","voixMc(T,0,36,1)"),("stk","voixStk(T,0,true)"),
+           ("dmx","voixDmx(T,0,1)"),("cr5","voixCr(T,Object.keys(CR_GROUPES)[0],true)"),
+           ("16","outBd = pasVoie(outBd); V.bd(T, 1)")]
     mauvais = []
     for m, appel in cas:
         r = await pg.evaluate("""([m, appel]) => { try {

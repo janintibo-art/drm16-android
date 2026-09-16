@@ -21,11 +21,21 @@ function appliquerMotFxEm(v, champ){
 }
 function scheduleEhx(i,t){
   var pat = rythme(), sw = pat.sw||0;
+  var CHARGE_N = ouvrirPas();
   if(sw && i%2===1) t += stepDur()*sw*0.55;
-  for(var k in pat){
-    if(k==="sw" || !V[k] || muted(k)) continue;
-    var ch = pat[k].charAt(i), v = VEL[ch];
-    if(v){ V[k](t, v); midiVoix(k, t, v); }
+  /* v149 : les voix de la DRM16 écrivent dans outBd / outMix ; le temps du pas,
+     ces deux sorties passent par le gain du pas (atténuation de charge) */
+  var bd0 = outBd, mix0 = outMix;
+  outBd = pasVoie(bd0); outMix = pasVoie(mix0);
+  try{
+    for(var k in pat){
+      if(k==="sw" || !V[k] || muted(k)) continue;
+      var ch = pat[k].charAt(i), v = VEL[ch];
+      if(v){ CHARGE_N++; V[k](t, v); midiVoix(k, t, v); }
+    }
+  }finally{
+    outBd = bd0; outMix = mix0;
   }
+  attenuerVoie("ehx", CHARGE_N, t);
   if(!cache) queue.push({i:i,t:t});
 }

@@ -60,7 +60,7 @@ function voixDmx(t, k, vel){
   var g = ctx.createGain();
   var ch = dmxGoulot();
   ch.sortie.connect(g);
-  g.connect(dest);
+  g.connect(pasVoie(dest));
   var e = ch.entree, v = T.var_;
 
   if(T.fam === "bd"){
@@ -175,13 +175,15 @@ function ticsDmx(){ return seqDmxCur().mesures * 4 * DMX_TPQ; }
 function pasDmx(){ return seqDmxCur().mesures * 16; }
 function scheduleDmx(i, t){
   var s = seqDmxCur(), tp = DMX_TPQ / 4;
+  var CHARGE_N = ouvrirPas();
   var deb = i * tp, fin = deb + tp;
   if(s.swing && i % 2 === 1) t += stepDur() * s.swing * 0.5;
   DMX.tStep = t;
   var duree = stepDur();
   s.evts.forEach(function(e){
-    if(e.tic >= deb && e.tic < fin) voixDmx(t + ((e.tic - deb) / tp) * duree, e.k, e.vel);
+    if(e.tic >= deb && e.tic < fin){ CHARGE_N++; voixDmx(t + ((e.tic - deb) / tp) * duree, e.k, e.vel); }
   });
+  attenuerVoie("dmx", CHARGE_N, t);   /* v149 : la DMX n'avait pas d'atténuation de charge */
   if(DMX.niv.metro > 0.02 && i % 4 === 0) clicDmx(t, i === 0);
   if(!cache) queue.push({i:i, t:t});
 }

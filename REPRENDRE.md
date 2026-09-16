@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **148**.
+La version actuelle est la **149**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 148** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 149** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -129,6 +129,38 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
 
+**B2 : niveaux calibrés, atténuation partout — v149**
+
+*Choix* (option 2, validée) : la voix la plus forte de chaque machine à −8 dBFS, compensation douce en
+sortie pour garder le volume perçu, le limiteur ne sert plus que de filet.
+
+*Défaut trouvé par le banc* : **DMX, CR-5000 et DRM16 n'avaient pas d'atténuation de charge**. Le contrôle
+`verifier-charge.py` les laissait passer : il ne reconnaissait ni les boucles `forEach` (DMX, CR-5000) ni les
+appels `V[k](…)` (DRM16). Il les reconnaît maintenant, et les trois ordonnanceurs ouvrent leur pas :
+- `scheduleDmx`, `scheduleCr` : `ouvrirPas` / `CHARGE_N` / `attenuerVoie` ; `voixDmx` et `voixCr` se
+  branchent par `pasVoie(dest)` (`dest.gain` reste réservé à l'étouffement).
+- `scheduleEhx` : le temps du pas, `outBd` et `outMix` passent par le gain du pas, puis sont remis (même
+  principe que `jouerTimbre`).
+Test navigateur, bloc 2 : 18 machines vérifiées (DMX, CR-5000 et DRM16 ajoutées).
+
+*Calibrage* (`150-le-set…`, `CALIBRAGE_DB`, appliqué dans `majVoieSet` **en plus** du GAIN de la table, que
+l'utilisateur garde libre) : de −6,7 dB (TR-1000) à +3,8 dB (EM-1). La voie `tr` prend la valeur du modèle
+actif (`majVoieSet("tr")` dans `activerTr`). Eurorack, KAOSS PAD, archive : aucune correction (niveau lié au
+montage ou aux sons chargés) ; TD-3 réglée sur son motif.
+- **EM-1** : +2,1 dB mesurés n'ont donné que +1,1 ; il a fallu +3,8 — une partie de son signal (effets
+  probablement) rejoint la sortie **sans passer par sa voie**. À revoir.
+
+*Compensation de sortie* : `COMPENSATION_SORTIE_DB = 2.5` (la médiane des corrections), un gain entre
+`master` et le limiteur (`batirAudio`). Le banc mesure avant elle.
+
+*Résultat* (`docs/mesures-son.md`, référence v149, écarts par rapport à la v148) : **voix la plus forte à
+−8,0 dBFS sur toutes les machines** ; **toutes les voix d'un même pas restent sous −4 dBFS** partout (−4,0 au
+pire, EM-1), contre +13,1 avant. Motifs de démonstration : crêtes de −5,2 à −11,6 dBFS avant compensation.
+
+*Reste pour l'équilibre interne* : les écarts entre voix d'une même machine (jusqu'à 15,6 dB sur l'ER-1) sont
+mesurés en crête ; une charleston courte et une grosse caisse n'ont pas la même crête pour un même volume
+perçu. Leur réglage demandera l'oreille — à faire avec vous, machine par machine.
+
 **Phase B — qualité sonore. B1 : le banc de mesure — v148**
 
 *Constat v147* : l'essai de l'exe passe sous la vraie politique de sécurité, 0 échec. **Phase W close.**
@@ -145,9 +177,10 @@ compte comme silencieuse. Noms des voix quand la machine les connaît (TR, DRM16
   (`mesures-son`), vue d'ensemble dans le résumé du run.
 
 *Premier relevé (référence v148)* :
-- **Toutes les voix ensemble dépassent 0 dBFS sur 23 machines sur 25** (jusqu'à **+13,1 dB** pour la DMX,
-  +10,2 pour les MPC, +9,9 pour la TR-1000) : le limiteur de sortie travaille dès que plusieurs frappes
-  tombent ensemble. C'est le sujet de B2.
+- ~~Toutes les voix ensemble dépassent 0 dBFS sur 23 machines sur 25~~ — **chiffre corrigé en v149** : le
+  banc appelait les voix sans l'atténuation de charge de l'application. Mesurées comme dans un vrai pas,
+  seules **trois** machines dépassaient : **DMX +13,1 dB, CR-5000 +4,3, DRM16 +1,9** — les trois qui
+  n'avaient **pas** d'atténuation de charge (voir v149).
 - **Voix seules** : de −1,3 dBFS (TR-1000) à −19,6 (ER-1). **Écarts internes** jusqu'à 15,6 dB (ER-1),
   12,7 (TR-909), 12,0 (TR-707).
 - Motifs vides par défaut : MPC, DMX, K.O!, MC-101, SmplTrek, KAOSS PAD, archive.

@@ -32,7 +32,7 @@ def corps(nom):
         k += 1
     return js[i:k + 1]
 
-VOIX = re.compile(r'\b(voix\w+|frapper\w+|jouer\w+)\s*\(')
+VOIX = re.compile(r'\b(voix\w+|frapper\w+|jouer\w+)\s*\(|\bV\[\w+\]\s*\(')
 noms = sorted(set(re.findall(r'schedule:(\w+)', js)))
 print("ordonnanceurs declares :", len(noms))
 
@@ -45,7 +45,8 @@ for n in noms:
         print("%-15s %-8s %-9s %s" % (n, "?", "?", "INTROUVABLE")); faute += 1; continue
 
     appels = len(VOIX.findall(c))
-    boucle = bool(re.search(r'for\s*\(', c))
+    # v149 : une boucle forEach compte aussi — la DMX et le CR-5000 passaient au travers
+    boucle = bool(re.search(r'for\s*\(|\.forEach\s*\(', c))
     att = 'attenuerVoie(' in c
 
     if appels == 0:

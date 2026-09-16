@@ -66,10 +66,19 @@ async ([m, appel, ks, duree, motif, nomExpr]) => {
       }
       joues = 1;
     } else {
+      /* plusieurs voix au même instant : comme dans un pas de séquence, avec
+         l'atténuation de charge de l'application (ouvrirPas / attenuerVoie) */
+      var bd0 = outBd, mix0 = outMix;
+      if (ks.length > 1) {
+        ouvrirPas();
+        if (m === "16" || m === "32") { outBd = pasVoie(bd0); outMix = pasVoie(mix0); }   /* comme scheduleEhx */
+      }
       ks.forEach(function(k){
         if ((m === "16" || m === "32" || m === "cr5") && k >= CLE.length) return;
         eval(appel); joues++;
       });
+      if (ks.length > 1) attenuerVoie(m, joues, T);
+      outBd = bd0; outMix = mix0;
     }
   } catch (e) { return {erreur: String(e.message || e)}; }
   if (!joues) return null;
@@ -146,9 +155,10 @@ def f(x):
 def rapport(tout, ancien):
     L = ["# Mesures du son", "",
          "Produit par `outils/banc-son.py` le %s. Niveaux en **dBFS**, mesurés **à l'entrée de la chaîne de sortie**" % time.strftime("%d/%m/%Y"),
-         "(avant limiteur et écrêteur, volume général à 1). **Crête** : maximum atteint ; **attaque** : niveau efficace",
+         "(avant la compensation, le limiteur et l'écrêteur ; volume général à 1). **Toutes ensemble** : toutes les voix dans un",
+         "même pas, avec l'atténuation de charge de l'application. **Crête** : maximum atteint ; **attaque** : niveau efficace",
          "des 300 premières ms ; **écrêtés** : échantillons à pleine échelle ; **Δ** : écart avec la mesure précédente.", "",
-         "Repères : une voix seule devrait culminer vers −12 à −6 dBFS ; toutes les voix ensemble devraient rester sous 0.", "",
+         "Cible (v149) : la voix la plus forte de chaque machine à **−8 dBFS** ; la compensation de sortie (+2,5 dB) rend le volume d'avant.", "",
          "## Vue d'ensemble", "",
          "| Machine | Voix | Crête la plus haute | Crête la plus basse | Écart | Toutes ensemble | Motif (crête / efficace) |",
          "|---|---|---|---|---|---|---|"]
