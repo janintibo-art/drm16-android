@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **123**.
+La version actuelle est la **124**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 123** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 124** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -122,7 +122,32 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
 
-**Le défaut de charge, corrigé sur TOUTES les machines — v123**
+**L'atténuation quitte la voie de mixage — v124**
+
+L'analyse de la v122 l'avait classé *critique* : posée sur un gain commun (la tranche de mixage), l'atténuation
+de charge touchait **aussi les sons déjà lancés**. Trois défauts : les queues de crash et de ride **pompaient**
+à chaque pas ; après STOP, le gain **restait bas** et une frappe à la main sortait trop faible ; le premier pas
+dépendait de l'existence de la voie. La v123 avait étendu ce défaut aux quatorze machines.
+
+*Correction.* Le gain est maintenant **propre à chaque pas** :
+- `ouvrirPas()` ouvre le pas (il remplace le `0` de `var CHARGE_N = ...`, et le `n` de `scheduleTr`) ;
+- les voix se branchent par **`pasVoie(dest)`** au lieu de `dest` : pendant un pas ouvert, cela rend un gain
+  neuf, un par destination, branché sur `dest` ; hors pas (frappe à la main, MIDI), cela rend `dest` tel quel ;
+- `attenuerVoie(id, n, t)` referme le pas et pose `attenuationPas(n)` sur ses gains. Les nœuds sont neufs,
+  rien n'y passe encore : valeur posée directement, sans rampe.
+- un ordonnanceur qui sort avant `attenuerVoie` voit son pas refermé à la fin de la tâche (micro-tâche).
+- `busSet` ne crée plus de nœud `att` et rend de nouveau `e`.
+
+*Où sont les `pasVoie`* : à la déclaration de `dest` (EM `voixSynth`, ER, EA, ES, EMX, ESX, DrumBrute),
+dans `jouerTimbre` (via `outMix`/`outBd`), sur chaque `.connect(dest)` des voix 808/909/707/606 (`dest` y sert
+aussi à `dest.gain`, qu'il ne faut pas détourner), et sur les branchements finaux de MPC, archive, TR-1000
+(huit), volca, K.O!, MC-101, SmplTrek.
+
+**Règle pour toute nouvelle voix** : brancher sa sortie par `pasVoie(...)`. `verifier-charge.py` le contrôle
+désormais (pas ouvert, voix branchées, plus d'atténuation dans `busSet`) — **vu échouer** sur une copie où
+`voixKo` n'était plus protégée.
+
+**Le défaut de charge, corrigé sur TOUTES les machines — v123** *(mécanisme remplacé en v124, voir ci-dessus)*
 
 La v122 ne corrigeait que la TR. Un relevé automatique a montré que **treize autres machines** pouvaient
 lancer de huit à seize voix sur un même pas sans protection : ARCM et K.O! (16), SmplTrek, MC-101, MPC,

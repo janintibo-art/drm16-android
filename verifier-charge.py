@@ -9,8 +9,10 @@
 # quatre-vingt-dix millisecondes : le son se coupait et revenait des qu'un motif
 # se chargeait.
 #
-# La correction est attenuerVoie(id, n, t), appelee APRES la programmation des
-# voix — ce qui est possible parce que tout se programme a l'avance.
+# La correction : l'ordonnanceur ouvre le pas (ouvrirPas), ses voix se branchent
+# par pasVoie(dest), puis attenuerVoie(id, n, t) regle les gains de CE pas.
+# Depuis la v124, plus rien n'est pose sur la voie de mixage : une attenuation
+# sur la voie faisait pomper les queues et restait basse apres STOP.
 #
 #   python3 verifier-charge.py
 #
@@ -72,6 +74,27 @@ for m in re.finditer(r'CHARGE_N\+\+, ', js):
     avant = js[max(0, m.start() - 40):m.start()].rstrip()
     if avant.endswith(("&&", "||", "?", ":")):
         print("  compteur apres un operateur logique :", repr(avant[-40:])); faute += 1
+
+# v124 : chaque ordonnanceur attenue ouvre son pas, et chaque voix qu'il joue
+# se branche par pasVoie — sinon elle echapperait a l'attenuation
+DELEGUE = {"voixTr": ["voix808", "voix909", "voix707", "voix606"]}
+for n in noms:
+    c = corps(n)
+    if 'attenuerVoie(' not in c: continue
+    if 'ouvrirPas()' not in c:
+        print("  %s : pas jamais ouvert (ouvrirPas manquant)" % n); faute += 1
+    for v in sorted(set(VOIX.findall(c))):
+        for w in DELEGUE.get(v, [v]):
+            try:
+                if 'pasVoie(' not in corps(w):
+                    print("  %s -> %s : voix branchee sans pasVoie" % (n, w)); faute += 1
+            except ValueError:
+                pass
+
+# la voie de mixage ne doit plus porter d'attenuation
+b = corps("busSet")
+if re.search(r'\batt\b', b):
+    print("  busSet porte encore une attenuation"); faute += 1
 
 print()
 if faute:

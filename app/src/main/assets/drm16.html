@@ -6926,18 +6926,12 @@ function preparerSet(){
 function busSet(id){
   if(!ctx) return null;
   var b = SET.bus[id];
-  if(b && b.ctx === ctx) return b.att;
+  if(b && b.ctx === ctx) return b.e;
 
-  /* L'atténuation de charge, tout en amont de la tranche. Une machine qui pose
-     n frappes sur le même pas voit ses crêtes s'additionner EN AMPLITUDE : le
-     limiteur de sortie plongeait alors de quinze décibels et remontait aussitôt,
-     d'où un son qui se coupe et revient dès qu'un motif se charge.
-
-     Elle est ici, dans la voie de mixage, et non dans chaque machine : toutes en
-     profitent, et il n'y a qu'un mécanisme à tenir. */
-  var att = ctx.createGain();
+  /* v124 : plus d'atténuation de charge ici. Posée sur la voie, elle touchait
+     aussi les queues des sons déjà lancés (pompage) et restait basse après STOP.
+     Elle vit maintenant sur les voix du pas : voir pasVoie. */
   var e = ctx.createGain();                         /* entrée et gain d'entrée */
-  att.connect(e);
   var lo = ctx.createBiquadFilter(); lo.type = "lowshelf";  lo.frequency.value = 180;
   var md = ctx.createBiquadFilter(); md.type = "peaking";   md.frequency.value = 1100; md.Q.value = 0.9;
   var hi = ctx.createBiquadFilter(); hi.type = "highshelf"; hi.frequency.value = 4200;
@@ -6949,10 +6943,10 @@ function busSet(id){
   if(p){ g.connect(p); p.connect(an); } else g.connect(an);
   an.connect(master);
 
-  SET.bus[id] = {att:att, e:e, lo:lo, md:md, hi:hi, g:g, p:p, an:an, ctx:ctx,
-                 tampon:new Uint8Array(an.frequencyBinCount), niveau:0, charge:1};
+  SET.bus[id] = {e:e, lo:lo, md:md, hi:hi, g:g, p:p, an:an, ctx:ctx,
+                 tampon:new Uint8Array(an.frequencyBinCount), niveau:0};
   majVoieSet(id);
-  return att;                                       /* on entre par l'atténuation */
+  return e;
 }
 function majVoieSet(id){
   var b = SET.bus[id];
@@ -6989,17 +6983,46 @@ function attenuationPas(n){
    n'a pas encore joué. Aucun pré-comptage n'est donc nécessaire, et les
    conditions les plus tordues — hasard, longueurs de piste séparées — sont
    traitées sans effort. */
+/* v124 — l'atténuation porte sur les voix DU PAS, jamais sur la voie.
+
+   Un ordonnanceur ouvre le pas (ouvrirPas), ses voix se branchent par
+   pasVoie(dest) au lieu de dest, puis attenuerVoie règle d'un coup les gains
+   créés pour CE pas. Conséquences :
+   - une cymbale lancée au pas précédent garde son niveau : plus de pompage ;
+   - une frappe à la main hors séquence ne passe par aucun gain de pas : elle
+     sort toujours à plein niveau, même juste après un STOP ;
+   - rien ne dépend de l'existence de la voie : le premier pas est traité
+     comme les autres.
+   Les noeuds de pas sont neufs, rien n'y passe encore : on peut poser la valeur
+   directement, sans rampe ni risque de clic.
+
+   Un ordonnanceur qui sort avant attenuerVoie laisse le pas ouvert : il est
+   refermé à la fin de la tâche en cours, pour ne jamais capter une frappe
+   manuelle arrivée ensuite. */
+var PAS = null;
+function ouvrirPas(){
+  var p = PAS = {d:[], n:[]};
+  Promise.resolve().then(function(){ if(PAS === p) PAS = null; });
+  return 0;
+}
+function pasVoie(dest){
+  if(!PAS || !dest || !ctx || dest.__pas) return dest;
+  var i = PAS.d.indexOf(dest);
+  if(i >= 0) return PAS.n[i];
+  var g = ctx.createGain();
+  g.__pas = true;
+  g.connect(dest);
+  PAS.d.push(dest); PAS.n.push(g);
+  return g;
+}
+/* Appelée par un ordonnanceur APRÈS avoir programmé ses voix. id et t sont
+   gardés pour la lisibilité des appels. */
 function attenuerVoie(id, n, t){
-  var b = SET.bus[id];
-  if(!b || b.ctx !== ctx || !b.att) return;
+  var p = PAS; PAS = null;
+  if(!p) return;
   var a = attenuationPas(n);
-  if(Math.abs(a - b.charge) < 0.001) return;        /* rien à faire : pas de clic */
-  b.charge = a;
-  /* Posée un peu AVANT la frappe, sinon elle arriverait après la crête
-     d'attaque. Et en transition douce : un saut net ferait un clic sur les
-     queues longues — cymbale crash, ride, nappe. */
-  var quand = Math.max(maintenantAudio(), t - 0.02);
-  b.att.gain.setTargetAtTime(a, quand, 0.005);
+  if(a >= 1) return;
+  for(var i=0;i<p.n.length;i++) p.n[i].gain.value = a;
 }
 
 /* 0 → −26 dB, 0,5 → 0 dB, 1 → +6 dB */
@@ -8384,7 +8407,7 @@ var TIMBRES = [
 ];
 function jouerTimbre(idx,t,vel,dest){
   var om=outMix, ob=outBd;
-  outMix = dest; outBd = dest;
+  outMix = outBd = pasVoie(dest);
   (TIMBRES[idx] || TIMBRES[0]).f(t,vel);
   outMix = om; outBd = ob;
 }
@@ -8861,7 +8884,7 @@ function jouerVoix(voix,t,vel,dest){
   outMix = om; outBd = ob;
 }
 function voixSynth(t,k,note,vel){
-  var dest = sortiePartie(k,t);
+  var dest = pasVoie(sortiePartie(k,t));
   var cut = mv("cut", EM.cut), res = mv("res", EM.res);
   var egi = mv("egi", EM.egi), drv = mv("drv", EM.drv);
   var egt = 0.05 + mv("egT", EM.egT)*0.9;
@@ -8914,7 +8937,7 @@ function enregMotion(champ, val){
 
 /* --- séquenceur de l'EM-1 --- */
 function scheduleEm(i,t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var p = EM.pat;
   var vfx = motFxValeur(p.motFx, i, p.len);
   if(vfx !== null) appliquerMotFxEm(vfx, p.motFx.p);
@@ -9771,7 +9794,7 @@ function sortieEr(k,t){
 /* --- voix de l'ER-1 --- */
 function freqEr(p){ return 40*Math.pow(48, p); }
 function voixEr(t,k,vel){
-  var son = ER.pat.son[k], typ = ER_PARTS[k].t, dest = sortieEr(k,t);
+  var son = ER.pat.son[k], typ = ER_PARTS[k].t, dest = pasVoie(sortieEr(k,t));
   var dec = 0.03 + mv("dec", son.dec)*1.4;
   var g = ctx.createGain();
   if(typ === "clap"){ jouerVoix("cp", t, vel, dest); return; }
@@ -9877,7 +9900,7 @@ function appliquerMotFxEr(v, champ){
   else { ER.dTime = v; majDelaiEr(); }
 }
 function scheduleEr(i,t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var p = ER.pat;
   var vfx = motFxValeur(p.motFx, i, p.len);
   if(vfx !== null) appliquerMotFxEr(vfx, p.motFx.p);
@@ -10474,7 +10497,7 @@ function majEffetEa(){
 
 /* --- voix --- */
 function voixEa(t,k,note,vel,duree){
-  var son = EA.pat.son[k], dest = sortieEa(k,t);
+  var son = EA.pat.son[k], dest = pasVoie(sortieEa(k,t));
   var f0 = 440*Math.pow(2,(note-69)/12);
   var g = ctx.createGain();
   var cut = mv("cut", son.cut), res = mv("res", son.res);
@@ -10577,7 +10600,7 @@ function dureeEa(k,i){
   return d;
 }
 function scheduleEa(i,t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var p = EA.pat;
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   for(var k=0;k<2;k++){
@@ -11229,7 +11252,7 @@ function jouerEs(t,k,vel,pas){
   var son = ES.pat.son[k];
   var buf = son.rev ? inverse(son.ech) : ES.buf[son.ech];
   if(!buf) return;
-  var dest = sortieEs(k,t);
+  var dest = pasVoie(sortieEs(k,t));
   var src = ctx.createBufferSource(); src.buffer = buf;
   src.playbackRate.value = Math.pow(2, mv("pitch", son.pitch)*2);
   var f = ctx.createBiquadFilter(); f.type="lowpass";
@@ -11267,7 +11290,7 @@ function enregMotionEs(champ, val){
   m.v[ES.pos] = val;
 }
 function scheduleEs(i,t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var p = ES.pat;
   if(p.sw && i%2===1) t += stepDur()*p.sw*0.55;
   var acc = p.st[9][i];
@@ -12226,7 +12249,7 @@ function oscMx(t, son, f0, dur, modOsc){
 
 /* --- voix --- */
 function voixMxSynth(t,k,note,vel,dur){
-  var son = MX.pat.son[k], dest = sortieMx(k,t);
+  var son = MX.pat.son[k], dest = pasVoie(sortieMx(k,t));
   var f0 = 440*Math.pow(2,(note + mv("pitch", son.pitch)*12 - 69)/12);
   var prec = MX.dernier[k] || f0;
   var glisse = son.glide;
@@ -12279,7 +12302,7 @@ function voixMxSynth(t,k,note,vel,dur){
   MX.dernier[k] = f0;
 }
 function voixMxDrum(t,k,vel){
-  var son = MX.pat.son[k], dest = sortieMx(k,t);
+  var son = MX.pat.son[k], dest = pasVoie(sortieMx(k,t));
   banqueEs();
   var buf = ES.buf["b"+Math.min(ES_BANQUE.length-1, son.tim||0)];
   if(!buf) return;
@@ -12314,7 +12337,7 @@ function appliquerMotFxMx(v){
   if(!majFxMx(sl)) cablerFxMx();
 }
 function scheduleMx(i,t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var p = MX.pat, k;
   var vfx = motFxValeur(p.motFx, i, p.len);
   if(vfx !== null) appliquerMotFxMx(vfx);
@@ -13176,7 +13199,7 @@ function tampon(son){
 function voixSx(t,k,vel,pas,note,duree){
   var son = SX.pat.son[k], buf = tampon(son);
   if(!buf) return;
-  var dest = sortieSx(k,t);
+  var dest = pasVoie(sortieSx(k,t));
   var src = ctx.createBufferSource(); src.buffer = buf;
   var vitesse;
   if(k>=10 && k<12) vitesse = Math.pow(2, ((note===undefined?48:note)-48)/12 + mv("pitch",son.pitch));
@@ -13252,7 +13275,7 @@ function appliquerMotFxSx(v){
   if(!majFxSx(sl)) cablerFxSx();
 }
 function scheduleSx(i,t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var p = SX.pat, k;
   var vfx = motFxValeur(p.motFx, i, p.len);
   if(vfx !== null) appliquerMotFxSx(vfx);
@@ -13294,7 +13317,7 @@ function scheduleSx(i,t){
 function voixSxTranche(t,k,vel,pas,L){
   var son = SX.pat.son[k], buf = tampon(son);
   if(!buf) return;
-  var dest = sortieSx(k,t);
+  var dest = pasVoie(sortieSx(k,t));
   var dc = buf.duration/L;
   var src = ctx.createBufferSource(); src.buffer = buf;
   src.playbackRate.value = Math.pow(2, mv("pitch", son.pitch));
@@ -15420,7 +15443,7 @@ function jouerPad(t, k, vel){
   g.gain.linearRampToValueAtTime(amp, t + 0.003);
   g.gain.setValueAtTime(amp, t + Math.max(0.006, duree - 0.02));
   g.gain.linearRampToValueAtTime(0.0001, t + Math.max(0.01, duree));
-  src.connect(f); f.connect(g); g.connect(n.g);
+  src.connect(f); f.connect(g); g.connect(pasVoie(n.g));
   src.start(t, Math.min(dep, Math.max(0, buf.duration - 0.02)));
   src.stop(t + duree + 0.05);
   if(!MPC.voix) MPC.voix = [];
@@ -15433,7 +15456,7 @@ function ticsMpc(){ return MPC.seq.mesures * 4 * MPC_TPQ; }
 function pasMpc(){ return MPC.seq.mesures * 16; }
 function ticParPas(){ return MPC_TPQ / 4; }
 function scheduleMpc(i, t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   if(MPC.amorce > 0){                       /* décompte avant enregistrement */
     MPC.tStep = t;
     if(i % 4 === 0) clicMetroMpc(t, i === 0);
@@ -16279,7 +16302,7 @@ function voix808(t, k, acc){
   var dest = trSortie(k);
   var niv = mv("niv", s.niv) * (acc ? 1 : 0.62) * (0.35 + TR.pat.son[0].niv * 0.9);
   var g = ctx.createGain();
-  g.connect(dest);
+  g.connect(pasVoie(dest));
   dest.gain.setValueAtTime(1, t);
 
   if(id === "BD"){
@@ -16293,7 +16316,7 @@ function voix808(t, k, acc){
     var hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 1200;
     var n = trBruit(t, 0.02);
     trEnv(cl, t, niv * s.ton * 0.6, 0.02, 0.001);
-    n.connect(hp); hp.connect(cl); cl.connect(dest);
+    n.connect(hp); hp.connect(cl); cl.connect(pasVoie(dest));
   }
   else if(id === "SD"){
     var dur = 0.12 + s.snap * 0.1;
@@ -16303,7 +16326,7 @@ function voix808(t, k, acc){
     o2.frequency.value = 330 + s.ton * 120;
     var gc = ctx.createGain();
     trEnv(gc, t, niv * 0.55, 0.1, 0.001);
-    o1.connect(gc); o2.connect(gc); gc.connect(dest);
+    o1.connect(gc); o2.connect(gc); gc.connect(pasVoie(dest));
     o1.start(t); o2.start(t); o1.stop(t + 0.15); o2.stop(t + 0.15);
     var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
     bp.frequency.value = 1800 + s.ton * 1400; bp.Q.value = 0.8;
@@ -16323,7 +16346,7 @@ function voix808(t, k, acc){
     var nc = trBruit(t, 0.012);
     var gc2 = ctx.createGain();
     trEnv(gc2, t, niv * 0.18, 0.012, 0.001);
-    nc.connect(gc2); gc2.connect(dest);
+    nc.connect(gc2); gc2.connect(pasVoie(dest));
   }
   else if(id === "RS"){
     var orf = ctx.createOscillator(); orf.type = "triangle"; orf.frequency.value = 1700;
@@ -16399,7 +16422,7 @@ function voix909(t, k, acc){
   var dest = trSortie(k);
   var niv = mv("niv", s.niv) * (acc ? 1 : 0.6) * (0.35 + TR.pat.son[0].niv * 0.9);
   var g = ctx.createGain();
-  g.connect(dest);
+  g.connect(pasVoie(dest));
   dest.gain.setValueAtTime(1, t);
 
   if(id === "BD"){
@@ -16415,7 +16438,7 @@ function voix909(t, k, acc){
     var hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 2200;
     var n = trBruit(t, 0.015);
     trEnv(cl, t, niv * (0.15 + s.ton * 1.1), 0.012, 0.0006);
-    n.connect(hp); hp.connect(cl); cl.connect(dest);
+    n.connect(hp); hp.connect(cl); cl.connect(pasVoie(dest));
   }
   else if(id === "SD"){
     var f1 = (185 + s.acc * 120);
@@ -16425,7 +16448,7 @@ function voix909(t, k, acc){
     o1.frequency.value = f1; o2.frequency.value = f1 * 1.9;
     var gc = ctx.createGain();
     trEnv(gc, t, niv * 0.5, 0.07, 0.0008);
-    o1.connect(gc); o2.connect(gc); gc.connect(dest);
+    o1.connect(gc); o2.connect(gc); gc.connect(pasVoie(dest));
     o1.start(t); o2.start(t); o1.stop(t + 0.12); o2.stop(t + 0.12);
     var hp2 = ctx.createBiquadFilter(); hp2.type = "highpass";
     hp2.frequency.value = 1200 + s.ton * 3500;
@@ -16448,7 +16471,7 @@ function voix909(t, k, acc){
     bp3.frequency.value = f * 3; bp3.Q.value = 1.4;
     var gn = ctx.createGain();
     trEnv(gn, t, niv * 0.28, dt * 0.6, 0.001);
-    nb2.connect(bp3); bp3.connect(gn); gn.connect(dest);
+    nb2.connect(bp3); bp3.connect(gn); gn.connect(pasVoie(dest));
   }
   else if(id === "RS"){
     var orf = ctx.createOscillator(); orf.type = "square"; orf.frequency.value = 420;
@@ -16534,7 +16557,7 @@ function voix707(t, k, acc){
   var g = ctx.createGain();
   var ch = pcm707(t);
   ch.sortie.connect(g);
-  g.connect(dest);
+  g.connect(pasVoie(dest));
   dest.gain.setValueAtTime(1, t);
   var e = ch.entree;
 
@@ -16549,7 +16572,7 @@ function voix707(t, k, acc){
     var nk = trBruit(t, 0.012), gk = ctx.createGain();
     var hk = ctx.createBiquadFilter(); hk.type = "highpass"; hk.frequency.value = 1800;
     trEnv(gk, t, niv * 0.5, 0.011, 0.0006);
-    nk.connect(hk); hk.connect(gk); gk.connect(dest);
+    nk.connect(hk); hk.connect(gk); gk.connect(pasVoie(dest));
   }
   else if(id === "S1" || id === "S2"){
     var dur = (id === "S1") ? 0.13 : 0.19;
@@ -16669,7 +16692,7 @@ function voix606(t, k, acc){
   var dest = trSortie(k);
   var niv = mv("niv", s.niv) * (acc ? 1 : 0.6) * (0.35 + TR.pat.son[0].niv * 0.9);
   var g = ctx.createGain();
-  g.connect(dest);
+  g.connect(pasVoie(dest));
   dest.gain.setValueAtTime(1, t);
 
   if(id === "BD"){
@@ -16682,7 +16705,7 @@ function voix606(t, k, acc){
     var nk = trBruit(t, 0.01), gk = ctx.createGain();
     var hk = ctx.createBiquadFilter(); hk.type = "highpass"; hk.frequency.value = 2000;
     trEnv(gk, t, niv * 0.35, 0.009, 0.0005);
-    nk.connect(hk); hk.connect(gk); gk.connect(dest);
+    nk.connect(hk); hk.connect(gk); gk.connect(pasVoie(dest));
   }
   else if(id === "SD"){
     var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
@@ -16694,7 +16717,7 @@ function voix606(t, k, acc){
     var o2 = ctx.createOscillator(); o2.type = "triangle"; o2.frequency.value = 476;
     var gc = ctx.createGain();
     trEnv(gc, t, niv * 0.4, 0.05, 0.0008);
-    o1.connect(gc); o2.connect(gc); gc.connect(dest);
+    o1.connect(gc); o2.connect(gc); gc.connect(pasVoie(dest));
     o1.start(t); o2.start(t); o1.stop(t + 0.08); o2.stop(t + 0.08);
   }
   else if(id === "LT" || id === "HT"){
@@ -16823,7 +16846,7 @@ function scheduleTr(i, t){
   if(i >= (p.last || 16)) return;
   if(TR.shuffle && i % 2 === 1) t += stepDur() * TR.shuffle * 0.5;
   var acc = !!p[v][0][i];
-  var n = 0, k;
+  var n = ouvrirPas(), k;
   for(k=1;k<TR.def.instr.length;k++){
     if(!p[v][k][i]) continue;
     voixTr(t, k, acc); n++;
@@ -21311,11 +21334,11 @@ function voixArcm(t, k, acc){
     apres = rattrape;
   }
   src.connect(f); f.connect(g);
-  apres.connect(n.g);
+  apres.connect(pasVoie(n.g));
   if(P.envoi > 0.02){
     var env = ctx.createGain();
     env.gain.value = P.envoi * 0.9;
-    apres.connect(env); env.connect(fxArcm().e);
+    apres.connect(env); env.connect(pasVoie(fxArcm().e));
   }
   src.start(t, Math.min(dep, Math.max(0, buf.duration - 0.01)));
   src.stop(t + duree + 0.05);
@@ -21336,7 +21359,7 @@ function frapperArcm(k, acc){
   }
 }
 function scheduleArcm(i, t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var m = motifArcmCur();
   if(i >= m.last) return;
   /* Le swing retarde un pas sur deux. Sans lui, un motif écrit à la grille
@@ -21903,8 +21926,8 @@ function voixT1k(t, k, acc){
   /* ---- couche A : la voix analogique ---- */
   if(mixAB < 0.98){
     var gA = ctx.createGain();
-    gA.connect(n.mixA);
-    gA.connect(n.revIn); gA.connect(n.dlyIn);
+    gA.connect(pasVoie(n.mixA));
+    gA.connect(pasVoie(n.revIn)); gA.connect(pasVoie(n.dlyIn));
     var na = niv * (1 - mixAB);
     if(V.id === "bd"){
       var f0 = 34 + tune * 40, d1 = 0.1 + dec * 1.1;
@@ -21925,7 +21948,7 @@ function voixT1k(t, k, acc){
       o1.frequency.value = 150 + tune * 190;
       var gc = ctx.createGain();
       trEnv(gc, t, na * 0.55, ds * 0.45, 0.0008);
-      o1.connect(gc); gc.connect(n.mixA); o1.start(t); o1.stop(t + ds);
+      o1.connect(gc); gc.connect(pasVoie(n.mixA)); o1.start(t); o1.stop(t + ds);
     }
     else if(V.id === "lt" || V.id === "ht"){
       var base = (V.id === "lt" ? 70 : 140) * Math.pow(2, (tune - 0.5) * 1.3);
@@ -21939,7 +21962,7 @@ function voixT1k(t, k, acc){
         var nt = trBruit(t, 0.08), gnt = ctx.createGain();
         var bt2 = ctx.createBiquadFilter(); bt2.type = "bandpass"; bt2.frequency.value = base * 3.4;
         trEnv(gnt, t, na * c2 * 0.5, 0.075, 0.001);
-        nt.connect(bt2); bt2.connect(gnt); gnt.connect(n.mixA);
+        nt.connect(bt2); bt2.connect(gnt); gnt.connect(pasVoie(n.mixA));
       }
     }
     else if(V.id === "rs"){
@@ -21999,8 +22022,8 @@ function voixT1k(t, k, acc){
       gB.gain.linearRampToValueAtTime(nb2 * 1.1, t + 0.002);
       gB.gain.exponentialRampToValueAtTime(0.0001, t + db);
       src.connect(gB);
-      gB.connect(T1K.noeuds.mix);
-      gB.connect(T1K.noeuds.revIn); gB.connect(T1K.noeuds.dlyIn);
+      gB.connect(pasVoie(T1K.noeuds.mix));
+      gB.connect(pasVoie(T1K.noeuds.revIn)); gB.connect(pasVoie(T1K.noeuds.dlyIn));
       src.start(t); src.stop(t + db + 0.05);
     }
   }
@@ -22024,7 +22047,7 @@ function frapperT1k(k, acc){
 /* ---------- séquenceur, avec sous-pas ---------- */
 var T1K_FILL = [0x8888, 0x2222, 0x0F00, 0x00F0, 0, 0x1010, 0xAAAA, 0x0100, 0x0001, 0];
 function scheduleT1k(i, t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var m = motifT1kCur();
   if(i >= m.last) return;
   var pas = T1K.fill ? T1K_FILL : m.pas;
@@ -22418,7 +22441,7 @@ function majDistDbi(){
 }
 function voixDbi(t, k, acc){
   var V = DBI_VOIX[k], P = motifDbiCur().pistes[k];
-  var dest = sortieDbi();
+  var dest = pasVoie(sortieDbi());
   var niv = mv("niv", P.p.niv) * (acc ? 1 : 0.68);
   var g = ctx.createGain();
   g.connect(dest);
@@ -22562,7 +22585,7 @@ function ppcmDbi(a, b){
   return a / x * b;
 }
 function scheduleDbi(i, t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var m = motifDbiCur();
   if(DBI.swing && i % 2 === 1) t += stepDur() * DBI.swing * 0.5;
   for(var k=0;k<8;k++){
@@ -23299,8 +23322,8 @@ function voixVlc(t, k, pas){
   g.gain.setValueAtTime(pic, t + Math.max(0.004, Math.min(duree - 0.01, atk + 0.005)));
   g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.02, duree));
 
-  src.connect(lp); lp.connect(g); g.connect(n.g);
-  if(P.f.reverb) g.connect(reverbVlc());
+  src.connect(lp); lp.connect(g); g.connect(pasVoie(n.g));
+  if(P.f.reverb) g.connect(pasVoie(reverbVlc()));
   src.start(t, Math.min(deb, Math.max(0, buf.duration - 0.01)));
   src.stop(t + duree + 0.05);
   midiNoteA(MIDI.base + k, t, v127(val("level")), MIDI.canal, duree);
@@ -23323,7 +23346,7 @@ function frapperVlc(k){
 
 /* ---------- séquenceur ---------- */
 function scheduleVlc(i, t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var m = motifVlcCur();
   if(!(m.actif & (1 << i))) return;            /* pas désactivé par ACTIVE STEP */
   for(var k=0;k<10;k++){
@@ -24605,12 +24628,12 @@ function voixKo(t, k, vel){
   var d = Math.min(buf.duration / src.playbackRate.value, 1.6);
   g.gain.setValueAtTime(pic, t + Math.max(0.01, d - 0.03));
   g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-  src.connect(g); g.connect(n.e);
+  src.connect(g); g.connect(pasVoie(n.e));
   src.start(t); src.stop(t + d + 0.05);
 }
 
 function scheduleKo(i, t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var m = motifKoCur();
   if(i >= m.last) return;
   var nom = KO.fxTenu ? KO_FX[KO.fx][0] : "";
@@ -24921,7 +24944,7 @@ function voixMc(t, i, note, vel){
   var P = MC.pistes[i], n = noeudsMc();
   var g = ctx.createGain();
   var pic = P.niv * (vel === undefined ? 1 : vel);
-  g.connect(n.e);
+  g.connect(pasVoie(n.e));
 
   if(P.type === "drum"){
     var quoi = note % 4;                       /* 0 grosse, 1 caisse, 2 charley, 3 clap */
@@ -24986,7 +25009,7 @@ function scatterMc(i){
 }
 
 function scheduleMc(i, t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var s = scatterMc(i);
   if(s.pas < 0) { if(!cache) queue.push({i:i, t:t}); return; }
   for(var k=0;k<MC_PISTES;k++){
@@ -25102,12 +25125,12 @@ function voixStk(t, i, acc){
   g.gain.setValueAtTime(pic, t + Math.max(0.005, duree - 0.02));
   g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.02, duree));
   src.connect(f); f.connect(g);
-  if(pan){ g.connect(pan); pan.connect(n.e); } else g.connect(n.e);
+  if(pan){ g.connect(pan); pan.connect(pasVoie(n.e)); } else g.connect(pasVoie(n.e));
   src.start(t); src.stop(t + duree + 0.05);
 }
 
 function scheduleStk(i, t){
-  var CHARGE_N = 0;
+  var CHARGE_N = ouvrirPas();
   var m = motifStkCur();
   if(i >= m.last) return;
   for(var k=0;k<STK_PISTES;k++){
