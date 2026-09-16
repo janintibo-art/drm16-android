@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **147**.
+La version actuelle est la **148**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 147** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 148** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,31 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**Phase B — qualité sonore. B1 : le banc de mesure — v148**
+
+*Constat v147* : l'essai de l'exe passe sous la vraie politique de sécurité, 0 échec. **Phase W close.**
+
+*`outils/banc-son.py`* : chaque voix de chaque machine rendue hors ligne, **seule, à pleine vélocité**, puis
+**toutes les voix d'une machine au même instant** (le pire cas), puis le **motif de démonstration** sur deux
+mesures. Mesure **à l'entrée de la chaîne de sortie** : `master` est rebranché directement sur la sortie du
+rendu, volume à 1 — le limiteur et l'écrêteur masqueraient les vrais niveaux. Hasard à **graine fixe** : deux
+passages donnent les mêmes chiffres (sans cela, ±1 dB d'un passage à l'autre, vérifié). Une voix sous −60 dBFS
+compte comme silencieuse. Noms des voix quand la machine les connaît (TR, DRM16, CR-5000).
+- Résultats : **`docs/mesures-son.md`** (lisible) et **`docs/mesures-son.json`** (référence). `--comparer
+  ancien.json` ajoute les écarts voix par voix. Une seule page par machine : les 29 machines en environ une minute.
+- GitHub Actions (`android.yml`) : étape informative, comparaison à la référence du dépôt, rapport joint
+  (`mesures-son`), vue d'ensemble dans le résumé du run.
+
+*Premier relevé (référence v148)* :
+- **Toutes les voix ensemble dépassent 0 dBFS sur 23 machines sur 25** (jusqu'à **+13,1 dB** pour la DMX,
+  +10,2 pour les MPC, +9,9 pour la TR-1000) : le limiteur de sortie travaille dès que plusieurs frappes
+  tombent ensemble. C'est le sujet de B2.
+- **Voix seules** : de −1,3 dBFS (TR-1000) à −19,6 (ER-1). **Écarts internes** jusqu'à 15,6 dB (ER-1),
+  12,7 (TR-909), 12,0 (TR-707).
+- Motifs vides par défaut : MPC, DMX, K.O!, MC-101, SmplTrek, KAOSS PAD, archive.
+- **Moteur seul** : −65,7 dBFS au démarrage (réponse transitoire des filtres, inaudible) — à revoir en B4.
+- La chaîne de sortie a **déjà un filtre subsonique à 26 Hz** (`batirAudio`) : B3 n'aura pas à l'ajouter.
 
 **W9 : sécurité et parité — v147 (fin de la phase W)**
 

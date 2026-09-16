@@ -44,6 +44,24 @@ jobs:
           python -m playwright install --with-deps chromium > /dev/null
           python outils/test-navigateur.py
 
+      # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
+      # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble
+      # s'affiche dans le résumé.
+      - name: Mesures du son (informatif)
+        continue-on-error: true
+        run: |
+          python outils/banc-son.py --comparer docs/mesures-son.json
+          sed -n '/## Vue/,/## Détail/p' docs/mesures-son.md | sed '$d' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Joindre les mesures du son
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mesures-son
+          path: docs/mesures-son.*
+          if-no-files-found: ignore
+          retention-days: 30
+
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: '8.10.2'
