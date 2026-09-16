@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **124**.
+La version actuelle est la **125**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 124** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 125** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -121,6 +121,23 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**KAOSS PAD : la modulation en anneau est réelle — v125**
+
+*Défaut.* `rgain` valait 0 : l'oscillateur ne modulait rien, le gain de `rmix` restait fixe, et l'effet
+ajoutait simplement **une seconde copie du son sec** (mesuré : aucune fréquence somme ou différence, niveau
+multiplié par 2,4).
+
+*Correction.* `rgain` vaut 1 en permanence, la base de `rmix` reste à 0 : la sortie est **signal × sinus**.
+Un nœud `sec` (entre `hache` et `out`) et un nœud `rwet` (après `rmix`) se partagent l'unité selon Y ;
+les autres effets gardent `sec` à 1. Mesuré sur un sinus à 1 kHz, X au milieu (268 Hz) : Y en haut, le
+1 kHz disparaît, 732 Hz et 1268 Hz sortent à parts égales, **crête égale au son sec**. Un gain de 1,2 a été
+essayé puis écarté : +1,6 dB de crête.
+
+`lisseKp(param, v)` : `cancelAndHoldAtTime` puis `setTargetAtTime` (12 ms) — utilisée pour la fréquence de
+l'anneau, `sec` et `rwet`. Le dosage suit le doigt sans crépiter, et le retour au repos se fait en douceur.
+Les sept autres effets sont inchangés (niveaux comparés avant/après ; la réverbe varie d'un essai à l'autre,
+son impulsion étant tirée au hasard).
 
 **L'atténuation quitte la voie de mixage — v124**
 

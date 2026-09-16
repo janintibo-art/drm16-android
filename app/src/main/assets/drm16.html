@@ -24762,8 +24762,14 @@ function noeudsKp(){
     for(var i=0;i<n;i++) q[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.8);
   }
   conv.buffer = b;
+  /* Modulation en anneau (v125) : le signal traverse rmix, dont le GAIN est
+     l'oscillateur lui-même — base 0, amplitude ±1. La sortie vaut donc
+     signal × sinus : il ne reste que la somme et la différence des fréquences.
+     Jusqu'en v124, rgain valait 0 : le gain de rmix restait constant et
+     l'« anneau » n'était qu'une seconde copie du son sec. */
   var ring = ctx.createOscillator(); ring.type = "sine"; ring.frequency.value = 200;
-  var rgain = eurGain(0), rmix = eurGain(0);
+  var rgain = eurGain(1), rmix = eurGain(0), rwet = eurGain(0);
+  var sec = eurGain(1);                        /* le son sec, dosé contre l'anneau */
   var hache = eurGain(1);
   var lfo = ctx.createOscillator(); lfo.type = "square"; lfo.frequency.value = 8;
   var lprof = eurGain(0);
@@ -24772,17 +24778,27 @@ function noeudsKp(){
   var out = eurGain(1);
 
   e.connect(f); f.connect(crush); crush.connect(hache);
-  hache.connect(out);
+  hache.connect(sec); sec.connect(out);
   hache.connect(d); d.connect(fb); fb.connect(d); d.connect(dmix); dmix.connect(out);
   hache.connect(conv); conv.connect(vmix); vmix.connect(out);
-  rgain.connect(rmix.gain); hache.connect(rmix); rmix.connect(out);
+  rgain.connect(rmix.gain); hache.connect(rmix); rmix.connect(rwet); rwet.connect(out);
   out.connect(busSet("kp") || master);
   ring.start(); lfo.start();
 
   KP.noeuds = {ctx:ctx, e:e, f:f, crush:crush, d:d, fb:fb, dmix:dmix,
-               vmix:vmix, ring:ring, rmix:rmix, hache:hache, lfo:lfo, lprof:lprof, out:out};
+               vmix:vmix, ring:ring, rgain:rgain, rmix:rmix, rwet:rwet, sec:sec,
+               hache:hache, lfo:lfo, lprof:lprof, out:out};
   appliquerKp();
   return KP.noeuds;
+}
+
+/* Un dosage qui suit le doigt sans « crépiter » : la valeur rejoint sa cible en
+   une douzaine de millisecondes au lieu de sauter. */
+function lisseKp(param, v){
+  var t = ctx.currentTime;
+  if(param.cancelAndHoldAtTime) param.cancelAndHoldAtTime(t);
+  else param.cancelScheduledValues(t);
+  param.setTargetAtTime(v, t, 0.012);
 }
 
 /* Deux axes, un effet : tout tient dans cette fonction. On remet TOUT à neutre
@@ -24797,10 +24813,11 @@ function appliquerKp(){
   n.f.type = "lowpass"; n.f.frequency.value = 20000; n.f.Q.value = 0.7;
   n.crush.curve = null;
   n.fb.gain.value = 0; n.dmix.gain.value = 0;
-  n.vmix.gain.value = 0; n.rmix.gain.value = 0;
+  n.vmix.gain.value = 0;
+  var sec = 1, anneau = 0;
   n.lprof.gain.value = 0; n.hache.gain.value = 1;
   n.out.gain.value = KP.muet ? 0 : 1;
-  if(!actif2) return;
+  if(!actif2){ lisseKp(n.sec.gain, 1); lisseKp(n.rwet.gain, 0); return; }
 
   var nom = KP_EFFETS[KP.fx][0];
   if(nom === "filtre"){
@@ -24818,8 +24835,14 @@ function appliquerKp(){
     n.lfo.frequency.value = 1 + x * 28;
     n.lprof.gain.value = y * p;
   } else if(nom === "ring"){
-    n.ring.frequency.value = 20 * Math.pow(180, x);
-    n.rmix.gain.value = y * 1.4 * p;
+    /* X : 20 Hz (trémolo rugueux) à 3,6 kHz (cloche métallique).
+       Y : du sec pur à l'anneau pur. Sec et anneau se partagent l'unité : la
+       crête ne dépasse jamais celle du son sec (mesuré). L'anneau pur sonne
+       environ 3 dB plus doux, ce qui est le propre de cet effet ; un gain de
+       1,2 le compensait mais faisait dépasser la crête de 1,6 dB. */
+    lisseKp(n.ring.frequency, 20 * Math.pow(180, x));
+    sec = 1 - y * p;
+    anneau = y * p;
   } else if(nom === "crush"){
     var m = Math.max(2, Math.round(2 + (1 - x) * 40));
     var q = 1024, c = new Float32Array(q);
@@ -24840,6 +24863,8 @@ function appliquerKp(){
     n.fb.gain.value = 0.55 * p;
     n.dmix.gain.value = y * 1.1 * p;
   }
+  lisseKp(n.sec.gain, sec);
+  lisseKp(n.rwet.gain, anneau);
 }
 
 /* Le geste enregistré. On relève la position à chaque pas du séquenceur, ce
