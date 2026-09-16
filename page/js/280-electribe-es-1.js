@@ -192,8 +192,9 @@ function jouerEs(t,k,vel,pas){
   var buf = son.rev ? inverse(son.ech) : ES.buf[son.ech];
   if(!buf) return;
   var dest = pasVoie(sortieEs(k,t));
-  var src = ctx.createBufferSource(); src.buffer = buf;
+  var src = ctx.createBufferSource();
   src.playbackRate.value = Math.pow(2, mv("pitch", son.pitch)*2);
+  poserTampon(src, buf, src.playbackRate.value);
   var f = ctx.createBiquadFilter(); f.type="lowpass";
   f.frequency.value = Math.min(18000, 140*Math.pow(120, mv("filt", son.filt)));
   var g = ctx.createGain();

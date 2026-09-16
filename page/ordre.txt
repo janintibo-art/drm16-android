@@ -88,6 +88,7 @@ js/080-retour-haptique.js
 js/090-rythmes.js
 js/100-les-deux-appareils.js
 js/110-moteur-audio.js
+js/115-tampons-a-vitesse.js
 js/120-sequenceur.js
 js/130-decalage-humain.js
 js/140-affichage-du-temps.js

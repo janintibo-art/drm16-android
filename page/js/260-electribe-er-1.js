@@ -108,8 +108,9 @@ function voixEr(t,k,vel){
     banqueEs();
     var bufp = ES.buf["b"+(son.pcm||0)];
     if(!bufp) return;
-    var sp = ctx.createBufferSource(); sp.buffer = bufp;
+    var sp = ctx.createBufferSource();
     sp.playbackRate.value = Math.pow(2, (mv("pitch", son.pitch)-0.5)*2.4);
+    poserTampon(sp, bufp, sp.playbackRate.value);
     var gp = ctx.createGain();
     env(gp, t, 0.7*vel, Math.max(0.05, dec), 0.002);
     sp.connect(gp); gp.connect(dest);

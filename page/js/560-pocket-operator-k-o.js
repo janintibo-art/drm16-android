@@ -90,10 +90,10 @@ function voixKo(t, k, vel){
   var buf = ES.buf[KO.sons[k]];
   if(!buf) return;
   var src = ctx.createBufferSource();
-  src.buffer = buf;
   /* Les huit premiers emplacements montent la gamme : c'est le même son, joué
      plus ou moins vite. Les huit derniers gardent leur hauteur. */
   src.playbackRate.value = (k < 8) ? Math.pow(2, KO_NOTES[k] / 12) : 1;
+  poserTampon(src, buf, src.playbackRate.value);
   var g = ctx.createGain();
   var pic = 0.8 * (vel === undefined ? 1 : vel);
   g.gain.setValueAtTime(0.0001, t);

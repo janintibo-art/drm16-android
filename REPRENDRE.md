@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **154**.
+La version actuelle est la **155**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 154** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 155** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,34 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**B7 : échantillons lus vite — v155**
+
+*Défaut mesuré* (nouvelle section « Échantillon lu vite » du banc) : l'API lit un tampon accéléré **sans rien
+filtrer**. Un tampon à 32 kHz contenant 12 kHz, lu deux fois plus vite, renvoie ce 12 kHz replié à 20,1 kHz à
+**−4 dB** : un sifflement presque aussi fort que le son. Les tampons de la bibliothèque sont à 32 kHz : ils
+replient dès 1,38 fois leur vitesse.
+
+*Correction* — **`page/js/115-tampons-a-vitesse.js`** (nouveau) :
+- `poserTampon(src, buf, vitesseMax)` remplace `src.buffer = buf` : tampon d'origine si la vitesse ne fait
+  rien dépasser, sinon une **version filtrée** (sinus cardinal fenêtré de Blackman, phase nulle, même longueur,
+  même cadence).
+- **Douze niveaux, quatre par octave** (`niveauPourVitesse`) : une vitesse à peine trop haute n'assourdit pas le
+  son ; au-delà de trois octaves, le dernier niveau.
+- **Calcul en tâche de fond, par tranches** : la frappe qui déclenche le calcul part avec le tampon d'origine,
+  les suivantes avec le bon ; la page rend la main toutes les ~10 ms (pause mesurée : 23 ms au plus). Un rendu
+  hors ligne attend le bon niveau. Tampons de plus de 12 s : non traités. Cache par tampon (`WeakMap`).
+- Branché sur **onze lectures** : K.O!, ES-1, MPC, échantillonneur Eurorack, EMX, ESX (deux), SmplTrek, volca
+  (vitesse maximale **enveloppe de hauteur comprise**), archive, TR-1000, PCM de l'ER-1.
+- *Non branché* : KAOSS PAD (vitesse changée en continu sous le doigt), oscillateur à tampon de l'EMX
+  (forme d'onde, pas un échantillon).
+
+*Résultat* : repliement à **−84 dB** (vitesse 2) et **−105 dB** (vitesse 3), son utile intact (−0,45 dB, la
+perte d'interpolation de l'API, identique sans filtre). Test navigateur, bloc 15.
+
+*Effet sur le banc* : quelques voix jouées au-dessus de leur hauteur d'origine ont une **crête plus basse**
+(K.O! jusqu'à −6,6 dB, une voix de l'ER-1 mkII −4,8) : la différence est **exactement l'énergie qui se
+repliait** ; ce qu'on entend vraiment ne perd rien, et le sifflement disparaît.
 
 **B6 : suréchantillonnage ciblé, au choix — v154**
 

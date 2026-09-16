@@ -142,11 +142,12 @@ function voixSx(t,k,vel,pas,note,duree){
   var son = SX.pat.son[k], buf = tampon(son);
   if(!buf) return;
   var dest = pasVoie(sortieSx(k,t));
-  var src = ctx.createBufferSource(); src.buffer = buf;
+  var src = ctx.createBufferSource();
   var vitesse;
   if(k>=10 && k<12) vitesse = Math.pow(2, ((note===undefined?48:note)-48)/12 + mv("pitch",son.pitch));
   else vitesse = Math.pow(2, mv("pitch", son.pitch)*2);
   src.playbackRate.value = vitesse;
+  poserTampon(src, buf, vitesse);
 
   var lp = ctx.createBiquadFilter();
   lp.type = ["lowpass","highpass","bandpass","bandpass"][son.ftype] || "lowpass";
@@ -261,8 +262,9 @@ function voixSxTranche(t,k,vel,pas,L){
   if(!buf) return;
   var dest = pasVoie(sortieSx(k,t));
   var dc = buf.duration/L;
-  var src = ctx.createBufferSource(); src.buffer = buf;
+  var src = ctx.createBufferSource();
   src.playbackRate.value = Math.pow(2, mv("pitch", son.pitch));
+  poserTampon(src, buf, src.playbackRate.value);
   var g = ctx.createGain();
   var dur = stepDur();
   g.gain.setValueAtTime(0.0001,t);

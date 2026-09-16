@@ -439,6 +439,34 @@ async def lissage(nav):
     ok(not err, "aucune erreur de page %s" % err[:1])
     await pg.close()
 
+async def vitesse(nav):
+    print("\n15. Échantillons lus vite : plus de sifflement replié, calcul en tâche de fond (v155)")
+    pg = await nav.new_page()
+    err = []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+    await pg.goto(PAGE); await pg.wait_for_timeout(1200)
+    js = open("outils/banc-son.py", encoding="utf-8").read().split('VITESSE = r"""', 1)[1].split('"""', 1)[0]
+    r = await pg.evaluate(js)
+    for x in r:
+        if x["filtre"]:
+            ok(x["replie"] < -60 and abs(x["utile"] + 0.45) < 0.2,
+               "vitesse %g : repliement %.0f dB, son utile intact (%.2f dB)" % (x["vitesse"], x["replie"], x["utile"]))
+    r = await pg.evaluate("""async () => { audioInit(); var b = ctx.createBuffer(2, 88200, 44100);
+      for (var c = 0; c < 2; c++){ var d = b.getChannelData(c); for (var i = 0; i < d.length; i++) d[i] = Math.sin(i * 0.3) * 0.5; }
+      var N = niveauPourVitesse(b, 3.2), s = ctx.createBufferSource(); poserTampon(s, b, 3.2);
+      var premier = s.buffer === b, t0 = performance.now(), der = t0, pause = 0;
+      var iv = setInterval(function(){ var n = performance.now(); pause = Math.max(pause, n - der); der = n; }, 5);
+      while (true){ await new Promise(r => setTimeout(r, 20)); var l = MIPMAPS.get(b); if (l[N] && l[N] !== "calcul") break; if (performance.now() - t0 > 8000) break; }
+      clearInterval(iv);
+      var s2 = ctx.createBufferSource(); poserTampon(s2, b, 3.2);
+      var s3 = ctx.createBufferSource(); poserTampon(s3, b, 1);
+      return {premier: premier, ensuite: s2.buffer !== b && s2.buffer.length === b.length, lent: s3.buffer === b, pause: pause}; }""")
+    ok(r["premier"] and r["ensuite"], "la première frappe part tout de suite, les suivantes avec le tampon filtré")
+    ok(r["lent"], "à vitesse normale, le tampon d'origine")
+    ok(r["pause"] < 80, "calcul en tâche de fond sans bloquer la page (pause la plus longue %.0f ms)" % r["pause"])
+    ok(not err, "aucune erreur de page %s" % err[:1])
+    await pg.close()
+
 async def reglages(nav):
     print("\n9. Latence réglable et machine retrouvée au redémarrage (v144)")
     ctx = await nav.new_context(viewport={"width": 393, "height": 851})
@@ -578,7 +606,7 @@ async def confort(nav):
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage):
+        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage, vitesse):
             try:
                 await t(nav)
             except Exception as e:

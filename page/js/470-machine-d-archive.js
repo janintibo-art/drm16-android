@@ -126,8 +126,8 @@ function voixArcm(t, k, acc){
   if(n.p) n.p.pan.setValueAtTime(P.pan, t);
   var src = ctx.createBufferSource();
   /* à l'envers : le tampon retourné, le reste du calcul ne change pas */
-  src.buffer = P.rev ? bufArcmInverse(P.ech, buf) : buf;
   src.playbackRate.value = Math.pow(2, (P.tune - 0.5) * 2);
+  poserTampon(src, P.rev ? bufArcmInverse(P.ech, buf) : buf, src.playbackRate.value);
   var f = ctx.createBiquadFilter();
   /* trois filtres en un seul potard : le type change tout plus qu'une coupure */
   var ty = Math.min(2, Math.round((P.ftype || 0) * 2));

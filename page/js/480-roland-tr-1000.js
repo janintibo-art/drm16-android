@@ -193,8 +193,8 @@ function voixT1k(t, k, acc){
     var buf = ES.buf[motifT1kCur().instr[k].ech];
     if(buf){
       var src = ctx.createBufferSource();
-      src.buffer = buf;
       src.playbackRate.value = Math.pow(2, (valT1k(k, "pech") - 0.5) * 2);
+      poserTampon(src, buf, src.playbackRate.value);
       var gB = ctx.createGain();
       var nb2 = niv * mixAB;
       var db = Math.max(0.03, buf.duration / src.playbackRate.value * (0.2 + dec * 0.8));

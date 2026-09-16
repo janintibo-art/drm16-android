@@ -7005,6 +7005,110 @@ var V = {
 };
 
 
+/* ================= échantillons joués vite (v155, phase B7) =================
+   Un échantillon lu r fois plus vite voit toutes ses fréquences multipliées
+   par r. Ce qui dépasse alors la moitié de la cadence de sortie se replie en
+   sifflements. L'API ne filtre rien avant de lire : il faut lui donner un
+   tampon déjà débarrassé de ces aigus.
+
+   poserTampon(src, buf, vitesseMax) choisit la bonne version du tampon :
+   - vitesse sans risque : le tampon tel quel ;
+   - au-delà : une version passée dans un passe-bas (douze niveaux, quatre par
+     octave, jusqu'à trois octaves), calculée une fois et gardée.
+   Un niveau pas encore prêt est calculé DANS UNE TÂCHE À PART : la frappe en
+   cours part avec le tampon d'origine, les suivantes avec le bon. Aucune pause
+   pendant l'ordonnancement.
+   Les tampons de plus de 12 s ne sont pas traités (calcul trop long) ; un
+   rendu hors ligne attend, lui, le bon niveau (il n'a pas de contrainte de temps). */
+var MIPMAPS = new WeakMap();
+var MIPMAP_MAX_S = 12;
+
+function niveauPourVitesse(buf, vitesse){
+  var sortie = ctx ? ctx.sampleRate : 44100;
+  /* seuil : le contenu du tampon monte jusqu'à buf.sampleRate/2 ; lu à la
+     vitesse r, il monte à r·buf.sampleRate/2, qui doit rester sous sortie/2 */
+  if(!(vitesse * buf.sampleRate > sortie * 1.001)) return 0;
+  /* niveau k : coupure à 0,45·buf.sampleRate / 2^(k/4) — quatre niveaux par
+     octave, pour ne pas assourdir une vitesse à peine trop haute ; il faut que
+     la coupure reste sous sortie / (2·vitesse), la plus haute fréquence qui ne
+     se replie pas */
+  var k = Math.ceil(4 * Math.log(0.9 * vitesse * buf.sampleRate / sortie) / Math.LN2 - 1e-9);
+  return Math.max(1, Math.min(12, k));
+}
+
+/* Passe-bas à phase nulle (sinus cardinal fenêtré de Blackman), même longueur,
+   même cadence : seule la bande utile reste. Le calcul avance par tranches
+   (tranche(n) traite au plus n échantillons) : en tâche de fond, il rend la
+   main toutes les ~10 ms pour ne jamais retarder l'ordonnanceur. */
+function passeBasEnCours(buf, niveau){
+  var fc = 0.45 / Math.pow(2, niveau / 4);             /* fraction de la cadence */
+  var taps = Math.min(489, 2 * Math.round(0.5 * 5.5 / (0.2 * fc)) + 1);
+  var m = (taps - 1) / 2, h = new Float32Array(taps), s = 0, i;
+  for(i=0;i<taps;i++){
+    var x = i - m;
+    var sinc = x === 0 ? 2 * fc : Math.sin(2 * Math.PI * fc * x) / (Math.PI * x);
+    var w = 0.42 - 0.5 * Math.cos(2 * Math.PI * i / (taps - 1)) + 0.08 * Math.cos(4 * Math.PI * i / (taps - 1));
+    h[i] = sinc * w; s += h[i];
+  }
+  for(i=0;i<taps;i++) h[i] /= s;
+  var sortie = new AudioBuffer({length:buf.length, numberOfChannels:buf.numberOfChannels, sampleRate:buf.sampleRate});
+  var c = 0, j = 0, n = buf.length;
+  return {
+    sortie: sortie,
+    /* rend vrai quand tout est calculé */
+    tranche: function(combien){
+      var fin = j + combien;
+      while(c < buf.numberOfChannels){
+        var e = buf.getChannelData(c), o = sortie.getChannelData(c);
+        for(; j < n && j < fin; j++){
+          var acc = h[m] * e[j];
+          for(var k=1;k<=m;k++){
+            var a = j - k, b = j + k;
+            acc += h[m + k] * ((a >= 0 ? e[a] : 0) + (b < n ? e[b] : 0));
+          }
+          o[j] = acc;
+        }
+        if(j < n) return false;
+        c++; j = 0; fin = combien;
+      }
+      return true;
+    }
+  };
+}
+function passeBasTampon(buf, niveau){
+  var t = passeBasEnCours(buf, niveau);
+  t.tranche(Infinity);
+  return t.sortie;
+}
+
+function tamponNiveau(buf, niveau, attendre){
+  if(!niveau || !buf || buf.duration > MIPMAP_MAX_S) return buf;
+  var l = MIPMAPS.get(buf);
+  if(!l){ l = []; MIPMAPS.set(buf, l); }
+  if(l[niveau] && l[niveau] !== "calcul") return l[niveau];
+  if(attendre){ l[niveau] = passeBasTampon(buf, niveau); return l[niveau]; }
+  if(!l[niveau]){
+    l[niveau] = "calcul";
+    var travail;
+    try{ travail = passeBasEnCours(buf, niveau); }catch(e){ l[niveau] = null; return buf; }
+    var pas = 4096;
+    (function suite(){
+      var t0 = performance.now();
+      try{
+        while(performance.now() - t0 < 10){
+          if(travail.tranche(pas)){ l[niveau] = travail.sortie; return; }
+        }
+      }catch(e){ l[niveau] = null; return; }
+      setTimeout(suite, 0);
+    })();
+  }
+  return buf;
+}
+
+function poserTampon(src, buf, vitesseMax){
+  var niveau = niveauPourVitesse(buf, vitesseMax);
+  src.buffer = niveau ? tamponNiveau(buf, niveau, !!(ctx && ctx.startRendering)) : buf;
+}
 /* ================= séquenceur ================= */
 var step=0, nextT=0, timer=null, queue=[], cache=false;
 function look(){ return cache ? 1.2 : 0.22; }
@@ -10270,8 +10374,9 @@ function voixEr(t,k,vel){
     banqueEs();
     var bufp = ES.buf["b"+(son.pcm||0)];
     if(!bufp) return;
-    var sp = ctx.createBufferSource(); sp.buffer = bufp;
+    var sp = ctx.createBufferSource();
     sp.playbackRate.value = Math.pow(2, (mv("pitch", son.pitch)-0.5)*2.4);
+    poserTampon(sp, bufp, sp.playbackRate.value);
     var gp = ctx.createGain();
     env(gp, t, 0.7*vel, Math.max(0.05, dec), 0.002);
     sp.connect(gp); gp.connect(dest);
@@ -11712,8 +11817,9 @@ function jouerEs(t,k,vel,pas){
   var buf = son.rev ? inverse(son.ech) : ES.buf[son.ech];
   if(!buf) return;
   var dest = pasVoie(sortieEs(k,t));
-  var src = ctx.createBufferSource(); src.buffer = buf;
+  var src = ctx.createBufferSource();
   src.playbackRate.value = Math.pow(2, mv("pitch", son.pitch)*2);
+  poserTampon(src, buf, src.playbackRate.value);
   var f = ctx.createBiquadFilter(); f.type="lowpass";
   f.frequency.value = Math.min(18000, 140*Math.pow(120, mv("filt", son.filt)));
   var g = ctx.createGain();
@@ -12768,8 +12874,9 @@ function voixMxDrum(t,k,vel){
   banqueEs();
   var buf = ES.buf["b"+Math.min(ES_BANQUE.length-1, son.tim||0)];
   if(!buf) return;
-  var src = ctx.createBufferSource(); src.buffer = buf;
+  var src = ctx.createBufferSource();
   src.playbackRate.value = Math.pow(2, mv("pitch", son.pitch)*2);
+  poserTampon(src, buf, src.playbackRate.value);
   var g = ctx.createGain();
   var d = son.amp ? 0.03 + mv("eg", son.eg)*1.2 : buf.duration/src.playbackRate.value;
   env(g, t, 0.8*vel, Math.max(0.03, d), 0.002);
@@ -13662,11 +13769,12 @@ function voixSx(t,k,vel,pas,note,duree){
   var son = SX.pat.son[k], buf = tampon(son);
   if(!buf) return;
   var dest = pasVoie(sortieSx(k,t));
-  var src = ctx.createBufferSource(); src.buffer = buf;
+  var src = ctx.createBufferSource();
   var vitesse;
   if(k>=10 && k<12) vitesse = Math.pow(2, ((note===undefined?48:note)-48)/12 + mv("pitch",son.pitch));
   else vitesse = Math.pow(2, mv("pitch", son.pitch)*2);
   src.playbackRate.value = vitesse;
+  poserTampon(src, buf, vitesse);
 
   var lp = ctx.createBiquadFilter();
   lp.type = ["lowpass","highpass","bandpass","bandpass"][son.ftype] || "lowpass";
@@ -13781,8 +13889,9 @@ function voixSxTranche(t,k,vel,pas,L){
   if(!buf) return;
   var dest = pasVoie(sortieSx(k,t));
   var dc = buf.duration/L;
-  var src = ctx.createBufferSource(); src.buffer = buf;
+  var src = ctx.createBufferSource();
   src.playbackRate.value = Math.pow(2, mv("pitch", son.pitch));
+  poserTampon(src, buf, src.playbackRate.value);
   var g = ctx.createGain();
   var dur = stepDur();
   g.gain.setValueAtTime(0.0001,t);
@@ -16015,9 +16124,9 @@ function jouerPad(t, k, vel){
   n.g.gain.setValueAtTime(mv("niv", p.niv), t);
   if(n.p) n.p.pan.setValueAtTime(mv("pan", p.pan), t);
   var src = ctx.createBufferSource();
-  src.buffer = p.envers ? inverse(p.ech) : buf;
   var variation = MPC.apres * 0.5;
   src.playbackRate.value = Math.pow(2, (p.tune + variation) * 1.2);
+  poserTampon(src, p.envers ? inverse(p.ech) : buf, src.playbackRate.value);
   var f = ctx.createBiquadFilter(); f.type = "lowpass";
   f.frequency.value = Math.min(18000, 150 * Math.pow(110, p.filt));
   var g = ctx.createGain();
@@ -20005,8 +20114,8 @@ squid: {nom:"SQUID SALMPLE", hp:96, res:"Huit lecteurs d'échantillons, une entr
       var src = ctx.createBufferSource();
       /* à l'envers : le tampon retourné, gardé en cache par le même mécanisme
          que la machine d'archive */
-      src.buffer = (m.p.rev > 0.5) ? bufArcmInverse(id, buf) : buf;
       src.playbackRate.value = Math.pow(2, (m.p.tune - 0.5) * 2);
+      poserTampon(src, (m.p.rev > 0.5) ? bufArcmInverse(id, buf) : buf, src.playbackRate.value);
       var g = eurGain(0);
       var d = Math.max(0.03, (buf.duration / src.playbackRate.value) * Math.max(0.04, m.p.dec));
       g.gain.setValueAtTime(0.0001, t);
@@ -21899,8 +22008,8 @@ function voixArcm(t, k, acc){
   if(n.p) n.p.pan.setValueAtTime(P.pan, t);
   var src = ctx.createBufferSource();
   /* à l'envers : le tampon retourné, le reste du calcul ne change pas */
-  src.buffer = P.rev ? bufArcmInverse(P.ech, buf) : buf;
   src.playbackRate.value = Math.pow(2, (P.tune - 0.5) * 2);
+  poserTampon(src, P.rev ? bufArcmInverse(P.ech, buf) : buf, src.playbackRate.value);
   var f = ctx.createBiquadFilter();
   /* trois filtres en un seul potard : le type change tout plus qu'une coupure */
   var ty = Math.min(2, Math.round((P.ftype || 0) * 2));
@@ -22609,8 +22718,8 @@ function voixT1k(t, k, acc){
     var buf = ES.buf[motifT1kCur().instr[k].ech];
     if(buf){
       var src = ctx.createBufferSource();
-      src.buffer = buf;
       src.playbackRate.value = Math.pow(2, (valT1k(k, "pech") - 0.5) * 2);
+      poserTampon(src, buf, src.playbackRate.value);
       var gB = ctx.createGain();
       var nb2 = niv * mixAB;
       var db = Math.max(0.03, buf.duration / src.playbackRate.value * (0.2 + dec * 0.8));
@@ -23893,9 +24002,11 @@ function voixVlc(t, k, pas){
   if(n.p) n.p.pan.setValueAtTime((val("pan") - 64) / 64, t);
 
   var src = ctx.createBufferSource();
-  src.buffer = buf;
   src.loop = !!P.f.loop;
   var vitesse = Math.pow(2, (val("speed") - 64) / 24);
+  var pintMax = (val("pitcheg_int") - 64) / 64;
+  /* la vitesse la plus haute atteinte, enveloppe de hauteur comprise */
+  poserTampon(src, buf, vitesse * Math.max(1, Math.abs(pintMax) > 0.02 ? Math.pow(2, pintMax * 2) : 1));
   src.playbackRate.setValueAtTime(vitesse, t);
   /* enveloppe de hauteur : intensité, attaque, chute */
   var pint = (val("pitcheg_int") - 64) / 64;
@@ -25219,10 +25330,10 @@ function voixKo(t, k, vel){
   var buf = ES.buf[KO.sons[k]];
   if(!buf) return;
   var src = ctx.createBufferSource();
-  src.buffer = buf;
   /* Les huit premiers emplacements montent la gamme : c'est le même son, joué
      plus ou moins vite. Les huit derniers gardent leur hauteur. */
   src.playbackRate.value = (k < 8) ? Math.pow(2, KO_NOTES[k] / 12) : 1;
+  poserTampon(src, buf, src.playbackRate.value);
   var g = ctx.createGain();
   var pic = 0.8 * (vel === undefined ? 1 : vel);
   g.gain.setValueAtTime(0.0001, t);
@@ -25777,8 +25888,8 @@ function voixStk(t, i, acc){
   if(!buf) return;
   var n = noeudsStk();
   var src = ctx.createBufferSource();
-  src.buffer = buf;
   src.playbackRate.value = Math.pow(2, (P.tune - 0.5) * 2);
+  poserTampon(src, buf, src.playbackRate.value);
   var f = ctx.createBiquadFilter();
   f.type = "lowpass";
   f.frequency.value = Math.min(19000, 160 * Math.pow(115, P.filt));

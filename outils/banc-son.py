@@ -181,6 +181,33 @@ async () => {
 }
 """
 
+# Échantillon lu vite (v155) : tampon à 32 kHz contenant 4 kHz (utile) et
+# 12 kHz (qui, lu deux fois plus vite, dépasse la limite et se replie à 20,1 kHz),
+# lu tel quel puis par poserTampon.
+VITESSE = r"""
+async () => {
+  audioInit();
+  var R = [];
+  for (var r of [2, 3]) for (var filtre of [false, true]) {
+    var off = new OfflineAudioContext(1, 44100, 44100);
+    var b = off.createBuffer(1, 32000 * 2, 32000), d = b.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = 0.3 * Math.sin(2 * Math.PI * 4000 * i / 32000) + 0.3 * Math.sin(2 * Math.PI * 12000 * i / 32000);
+    var vrai = ctx; ctx = off;
+    var s = off.createBufferSource(); s.playbackRate.value = r;
+    if (filtre) poserTampon(s, b, r); else s.buffer = b;
+    ctx = vrai;
+    s.connect(off.destination); s.start();
+    var o = (await off.startRendering()).getChannelData(0).subarray(2205, 2205 + 8820);
+    function amp(f){ var re = 0, im = 0; for (var i = 0; i < o.length; i++){ var a = 2 * Math.PI * f * i / 44100; re += o[i] * Math.cos(a); im += o[i] * Math.sin(a); }
+      return 20 * Math.log10(Math.max(1e-9, 2 * Math.hypot(re, im) / o.length) / 0.3); }
+    var utile = 4000 * r, replie = Math.abs(44100 - 12000 * r * 44100 / 44100);
+    replie = 12000 * r > 22050 ? 44100 - 12000 * r : null;
+    R.push({vitesse: r, filtre: filtre, utile: amp(utile), replie: replie ? amp(replie) : null, f_replie: replie});
+  }
+  return R;
+}
+"""
+
 async def mesurer(nav, m):
     res = {"voix": [], "ensemble": None, "motif": None, "erreurs": []}
     # une seule page par machine : chaque rendu refait son propre contexte hors ligne
@@ -274,6 +301,14 @@ def rapport(tout, ancien):
                 vus.append(a)
                 v = dict((f, x) for b, f, x in rp[tab] if b == a)
                 L.append("| %s | %.0f dB | %.0f dB |" % (nom % a, v[440], v[1760]))
+    vt = tout.get("_vitesse")
+    if vt:
+        L += ["", "## Échantillon lu vite", "",
+              "Tampon à 32 kHz : 4 kHz (à garder) et 12 kHz (qui dépasse la limite une fois accéléré et revient en sifflement).", "",
+              "| Vitesse | Tampon | 4 kHz accéléré | 12 kHz replié |", "|---|---|---|---|"]
+        for x in vt:
+            L.append("| %g | %s | %+.1f dB | %s |" % (x["vitesse"], "filtré (poserTampon)" if x["filtre"] else "tel quel",
+                     x["utile"], "—" if x["replie"] is None else "%+.1f dB à %d Hz" % (x["replie"], x["f_replie"])))
     L += ["", "Moteur seul, rien ne jouant : crête %s dBFS (−120 = silence parfait ; −65,7 avant la v152, décalage de l'écrêteur)." % f(tout.get("_moteur", {}).get("crete"))]
     L += ["", "## Détail par voix", ""]
     for m, r in tout.items():
@@ -314,6 +349,7 @@ async def main():
         await pg.goto(PAGE); await pg.wait_for_timeout(700)
         tout["_chaine"] = await pg.evaluate(CHAINE)
         tout["_repliement"] = await pg.evaluate(REPLIEMENT)
+        tout["_vitesse"] = await pg.evaluate(VITESSE)
         await pg.close()
         # référence : le moteur seul, sans aucune machine qui joue
         pg = await nav.new_page()

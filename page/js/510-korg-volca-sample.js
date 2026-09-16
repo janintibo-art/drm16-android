@@ -79,9 +79,11 @@ function voixVlc(t, k, pas){
   if(n.p) n.p.pan.setValueAtTime((val("pan") - 64) / 64, t);
 
   var src = ctx.createBufferSource();
-  src.buffer = buf;
   src.loop = !!P.f.loop;
   var vitesse = Math.pow(2, (val("speed") - 64) / 24);
+  var pintMax = (val("pitcheg_int") - 64) / 64;
+  /* la vitesse la plus haute atteinte, enveloppe de hauteur comprise */
+  poserTampon(src, buf, vitesse * Math.max(1, Math.abs(pintMax) > 0.02 ? Math.pow(2, pintMax * 2) : 1));
   src.playbackRate.setValueAtTime(vitesse, t);
   /* enveloppe de hauteur : intensité, attaque, chute */
   var pint = (val("pitcheg_int") - 64) / 64;

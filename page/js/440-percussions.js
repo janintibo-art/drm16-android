@@ -107,8 +107,8 @@ squid: {nom:"SQUID SALMPLE", hp:96, res:"Huit lecteurs d'échantillons, une entr
       var src = ctx.createBufferSource();
       /* à l'envers : le tampon retourné, gardé en cache par le même mécanisme
          que la machine d'archive */
-      src.buffer = (m.p.rev > 0.5) ? bufArcmInverse(id, buf) : buf;
       src.playbackRate.value = Math.pow(2, (m.p.tune - 0.5) * 2);
+      poserTampon(src, (m.p.rev > 0.5) ? bufArcmInverse(id, buf) : buf, src.playbackRate.value);
       var g = eurGain(0);
       var d = Math.max(0.03, (buf.duration / src.playbackRate.value) * Math.max(0.04, m.p.dec));
       g.gain.setValueAtTime(0.0001, t);

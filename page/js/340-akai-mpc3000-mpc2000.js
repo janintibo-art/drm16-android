@@ -77,9 +77,9 @@ function jouerPad(t, k, vel){
   n.g.gain.setValueAtTime(mv("niv", p.niv), t);
   if(n.p) n.p.pan.setValueAtTime(mv("pan", p.pan), t);
   var src = ctx.createBufferSource();
-  src.buffer = p.envers ? inverse(p.ech) : buf;
   var variation = MPC.apres * 0.5;
   src.playbackRate.value = Math.pow(2, (p.tune + variation) * 1.2);
+  poserTampon(src, p.envers ? inverse(p.ech) : buf, src.playbackRate.value);
   var f = ctx.createBiquadFilter(); f.type = "lowpass";
   f.frequency.value = Math.min(18000, 150 * Math.pow(110, p.filt));
   var g = ctx.createGain();

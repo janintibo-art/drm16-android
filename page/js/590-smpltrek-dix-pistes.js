@@ -48,8 +48,8 @@ function voixStk(t, i, acc){
   if(!buf) return;
   var n = noeudsStk();
   var src = ctx.createBufferSource();
-  src.buffer = buf;
   src.playbackRate.value = Math.pow(2, (P.tune - 0.5) * 2);
+  poserTampon(src, buf, src.playbackRate.value);
   var f = ctx.createBiquadFilter();
   f.type = "lowpass";
   f.frequency.value = Math.min(19000, 160 * Math.pow(115, P.filt));

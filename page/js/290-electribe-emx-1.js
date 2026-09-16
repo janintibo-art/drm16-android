@@ -334,8 +334,9 @@ function voixMxDrum(t,k,vel){
   banqueEs();
   var buf = ES.buf["b"+Math.min(ES_BANQUE.length-1, son.tim||0)];
   if(!buf) return;
-  var src = ctx.createBufferSource(); src.buffer = buf;
+  var src = ctx.createBufferSource();
   src.playbackRate.value = Math.pow(2, mv("pitch", son.pitch)*2);
+  poserTampon(src, buf, src.playbackRate.value);
   var g = ctx.createGain();
   var d = son.amp ? 0.03 + mv("eg", son.eg)*1.2 : buf.duration/src.playbackRate.value;
   env(g, t, 0.8*vel, Math.max(0.03, d), 0.002);
