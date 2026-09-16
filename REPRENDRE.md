@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **125**.
+La version actuelle est la **126**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 125** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 126** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -121,6 +121,23 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**KAOSS PAD : VITESSE change vraiment la vitesse — v126**
+
+*Défaut.* L'effet n'était qu'un délai de 3 à 53 ms réinjecté : un filtrage en peigne, **aucun changement de
+hauteur** (mesuré : un sinus à 440 Hz restait à 440 Hz).
+
+*Correction.* `vitesseKp(r, tau)` agit sur le `playbackRate` des quatre banques, qui sont les seules sources
+de la machine. `KP.vitesse` retient la valeur, et `banqueKp` l'applique à une banque rallumée en plein geste.
+- **X** : 0,5x à gauche, 1x au centre, 2x à droite — `2^((2x−1)·FX DEPTH)`.
+- **Y** : le glissement, de 4 ms (en bas) à 164 ms de constante (en haut). Libellé devenu
+  « X la vitesse, Y le glissement » : un mélange sec/traité n'a pas de sens ici, les deux copies se
+  décaleraient.
+- **Doigt levé** : retour à 1x en glissant (constante 150 ms, environ une demi-seconde) ; **autre effet
+  choisi** : retour rapide (20 ms).
+
+Mesuré : 220 / 440 / 880 Hz pour X = 0 / 0,5 / 1, et au relâchement la hauteur redescend de 880 à 440 Hz en
+une demi-seconde. Les nœuds de délai ne servent plus qu'à ÉCHO.
 
 **KAOSS PAD : la modulation en anneau est réelle — v125**
 

@@ -24708,7 +24708,7 @@ var KP_EFFETS = [
   ["ring",    "MODULATION EN ANNEAU", "X la fréquence, Y le mélange"],
   ["crush",   "RÉDUCTION",            "X la résolution, Y le mélange"],
   ["verb",    "RÉVERBÉRATION",        "X la taille, Y le mélange"],
-  ["pitch",   "VITESSE",              "X la hauteur, Y le mélange"]
+  ["pitch",   "VITESSE",              "X la vitesse, Y le glissement"]
 ];
 
 /* Quatre banques d'échantillons, comme sur la machine : ce sont ELLES qui
@@ -24719,7 +24719,7 @@ var KP = {fx:0, x:0.5, y:0.5, tenu:false, touche:false,
           prof:0.8, noeuds:null, muet:false,
           banques:[{ech:"b0", on:false}, {ech:"b3", on:false},
                    {ech:"b6", on:false}, {ech:"b9", on:false}],
-          sel:0, sources:[null, null, null, null]};
+          sel:0, sources:[null, null, null, null], vitesse:1};
 
 /* Une banque en boucle. On relance la source à chaque fois : un BufferSource
    ne se rallume pas une fois arrêté, c'est la règle de Web Audio. */
@@ -24737,6 +24737,7 @@ function banqueKp(k, allumer){
   if(!buf) return;
   var src = ctx.createBufferSource();
   src.buffer = buf; src.loop = true;
+  src.playbackRate.value = KP.vitesse;         /* une banque rallumée suit le pavé */
   var g = eurGain(0.55);
   src.connect(g); g.connect(n.e);
   src.start();
@@ -24801,6 +24802,23 @@ function lisseKp(param, v){
   param.setTargetAtTime(v, t, 0.012);
 }
 
+/* VITESSE (v126) : la vraie vitesse de lecture des banques, comme un disque
+   qu'on freine ou qu'on accélère — hauteur et tempo changent ensemble. Jusqu'en
+   v125 l'effet n'était qu'un délai très court (effet de peigne), sans aucun
+   changement de hauteur. tau : le temps de glissement vers la cible. */
+function vitesseKp(r, tau){
+  KP.vitesse = r;
+  var t = ctx.currentTime;
+  for(var k=0;k<4;k++){
+    var s = KP.sources[k];
+    if(!s) continue;
+    var pr = s.playbackRate;
+    if(pr.cancelAndHoldAtTime) pr.cancelAndHoldAtTime(t);
+    else pr.cancelScheduledValues(t);
+    pr.setTargetAtTime(r, t, tau);
+  }
+}
+
 /* Deux axes, un effet : tout tient dans cette fonction. On remet TOUT à neutre
    d'abord, puis on n'active que ce que l'effet courant demande — sans quoi un
    réglage laissé par l'effet précédent continuerait d'agir. */
@@ -24817,9 +24835,12 @@ function appliquerKp(){
   var sec = 1, anneau = 0;
   n.lprof.gain.value = 0; n.hache.gain.value = 1;
   n.out.gain.value = KP.muet ? 0 : 1;
+  var nom = KP_EFFETS[KP.fx][0];
+  /* Doigt levé : la vitesse revient à 1 en glissant, comme un plateau relâché.
+     Autre effet choisi : retour rapide. */
+  if(!actif2 || nom !== "pitch") vitesseKp(1, actif2 ? 0.02 : 0.15);
   if(!actif2){ lisseKp(n.sec.gain, 1); lisseKp(n.rwet.gain, 0); return; }
 
-  var nom = KP_EFFETS[KP.fx][0];
   if(nom === "filtre"){
     n.f.frequency.value = 80 * Math.pow(220, x);
     n.f.Q.value = 0.7 + y * 22 * p;
@@ -24856,12 +24877,10 @@ function appliquerKp(){
     n.vmix.gain.value = y * 1.2 * p;
     n.f.frequency.value = 500 + x * 15000;
   } else if(nom === "pitch"){
-    /* pas de transposition véritable sans rendu : on module le temps d'un
-       délai très court, ce qui déplace la hauteur — c'est ainsi que les
-       premières machines le faisaient */
-    n.d.delayTime.value = 0.003 + x * 0.05;
-    n.fb.gain.value = 0.55 * p;
-    n.dmix.gain.value = y * 1.1 * p;
+    /* X : 0,5x à gauche, 1x au centre, 2x à droite (± une octave), l'étendue
+       dosée par FX DEPTH. Y : glissement, de presque instantané (en bas) à
+       une demi-seconde (en haut), pour les effets de disque freiné. */
+    vitesseKp(Math.pow(2, (x * 2 - 1) * KP.prof), 0.004 + y * 0.16);
   }
   lisseKp(n.sec.gain, sec);
   lisseKp(n.rwet.gain, anneau);
