@@ -104,6 +104,13 @@ var HOST = (function(){
         t(inconnu, "une fonction inconnue est refusée");
         t(HOST.plateforme === "bureau" && HOST.a("midiEnvoyer") && !HOST.a("micro"), "plateforme bureau : tout le pont sauf le micro");
         t(h.midiDispo() === true && typeof h.midiAppareils() === "string", "MIDI disponible, liste : " + JSON.stringify(h.midiListe()));
+        /* micro (v144) : WebView2 le fournit directement, Windows demande l'autorisation au premier usage */
+        t(!!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !!window.MediaRecorder,
+          "micro : API d'enregistrement présentes");
+        audioInit();
+        t(!!ctx && latenceChoisie() === "balanced", "audio : moteur démarré, latence " + latenceChoisie() +
+          (ctx ? " · " + ctx.sampleRate + " Hz · sortie " + Math.round(((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000) + " ms" : ""));
+        t(getComputedStyle(document.querySelector("button")).cursor === "pointer", "souris : curseur de bouton");
       }catch(e){ t(false, "exception : " + e.message); }
       /* MIDI (v141) : sur le premier appareil qui a une sortie, s'il y en a un */
       function pause(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }

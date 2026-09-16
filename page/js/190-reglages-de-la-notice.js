@@ -12,6 +12,37 @@ function releveAudio(){
          (min > 0.2 ? " (" + (Math.round(AUDIT.decroche / min * 10) / 10) + " PAR MIN)" : "") +
          (AUDIT.relances ? " · " + AUDIT.relances + " RELANCES" : "");
 }
+/* ---------- latence de sortie (v144) ----------
+   Le compromis entre réactivité et sûreté. « Sûre » (grand tampon) reste le
+   choix d'Android, où les coupures étaient le premier souci ; sur ordinateur,
+   « moyenne » est un meilleur départ pour jouer aux pads. Changer relance le
+   moteur audio, comme le bouton RELANCER. */
+var LATENCES = [["interactive", "COURTE"], ["balanced", "MOYENNE"], ["playback", "SÛRE"]];
+function latenceChoisie(){
+  for(var i=0;i<LATENCES.length;i++) if(LATENCES[i][0] === memoire.latence) return memoire.latence;
+  return HOST.plateforme === "android" ? "playback" : "balanced";
+}
+function nomLatence(v){
+  for(var i=0;i<LATENCES.length;i++) if(LATENCES[i][0] === v) return LATENCES[i][1];
+  return v;
+}
+function majLatence(){
+  var b = document.getElementById("b-latence");
+  if(b) b.textContent = "LATENCE : " + nomLatence(latenceChoisie());
+}
+document.getElementById("b-latence").addEventListener("click", function(){
+  var k = 0, v = latenceChoisie();
+  for(var i=0;i<LATENCES.length;i++) if(LATENCES[i][0] === v) k = i;
+  memoire.latence = LATENCES[(k + 1) % LATENCES.length][0];
+  writeMem();
+  majLatence();
+  if(ctx && !ctx.startRendering) refaireAudio();
+  var ms = ctx ? Math.round(((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000) : 0;
+  signal("LATENCE " + nomLatence(latenceChoisie()) + (ms ? " · SORTIE " + ms + " ms" : ""));
+  H.inter();
+});
+majLatence();
+
 document.getElementById("b-audio-etat").addEventListener("click", function(){
   signal(releveAudio());
 });

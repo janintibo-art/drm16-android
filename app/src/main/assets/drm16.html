@@ -502,7 +502,9 @@ body.menu-ouvert #menu-voile.vu{opacity:1}
 .pick.p32 b{color:#13b9a2;text-shadow:0 2px 0 #06564a}
 .pick.p32 span{color:#9fb0ae}
 .pick:active{transform:translateY(2px)}
-
+/* version de bureau (v144) : on joue à la souris */
+[data-hote="bureau"] button,[data-hote="bureau"] .pick{cursor:pointer}
+@media (hover:hover){[data-hote="bureau"] button:hover{filter:brightness(1.12)}}
 /* ===================== ELECTRIBE EM-1 ===================== */
 .em{display:none;width:100%;max-width:1120px;border-radius:14px;padding:16px 16px 14px;
   background:linear-gradient(165deg,#5a5d60,#3d4043 30%,#2f3235 70%,#43464a);
@@ -4123,7 +4125,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p><button id="b-panique">PANIQUE · TOUT COUPER</button>
      <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
   <p><button class="sec" id="b-audio-etat">ÉTAT DU MOTEUR AUDIO</button>
-     <button class="sec" id="b-audio-relance">RELANCER LE MOTEUR AUDIO</button></p>
+     <button class="sec" id="b-audio-relance">RELANCER LE MOTEUR AUDIO</button>
+     <button class="sec" id="b-latence">LATENCE</button></p>
+  <p><b>LATENCE</b> règle le délai entre un appui et le son : <b>COURTE</b> pour jouer en direct, <b>SÛRE</b>
+  pour ne jamais entendre de coupure, <b>MOYENNE</b> entre les deux. Le moteur audio redémarre à chaque
+  changement. Si le son grésille, revenez vers SÛRE.</p>
   <p>Ce relevé est aussi dans le <b>menu</b>, tuile <b>ÉTAT DU SON</b> : plus simple à trouver qu'au fond
   de cette page. Un second appui sur la tuile, dans les quatre secondes, relance le moteur.</p>
   <p>Les chiffres se lisent ainsi :</p>
@@ -6247,6 +6253,13 @@ var HOST = (function(){
         t(inconnu, "une fonction inconnue est refusée");
         t(HOST.plateforme === "bureau" && HOST.a("midiEnvoyer") && !HOST.a("micro"), "plateforme bureau : tout le pont sauf le micro");
         t(h.midiDispo() === true && typeof h.midiAppareils() === "string", "MIDI disponible, liste : " + JSON.stringify(h.midiListe()));
+        /* micro (v144) : WebView2 le fournit directement, Windows demande l'autorisation au premier usage */
+        t(!!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !!window.MediaRecorder,
+          "micro : API d'enregistrement présentes");
+        audioInit();
+        t(!!ctx && latenceChoisie() === "balanced", "audio : moteur démarré, latence " + latenceChoisie() +
+          (ctx ? " · " + ctx.sampleRate + " Hz · sortie " + Math.round(((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000) + " ms" : ""));
+        t(getComputedStyle(document.querySelector("button")).cursor === "pointer", "souris : curseur de bouton");
       }catch(e){ t(false, "exception : " + e.message); }
       /* MIDI (v141) : sur le premier appareil qui a une sortie, s'il y en a un */
       function pause(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
@@ -6359,7 +6372,15 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
 (function charger(){
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
-    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","rd6","td3","eur","dmx","vlc","cr5","dbi","t1k","arcm"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    /* v144 : toute machine du menu est retrouvée au redémarrage. La liste écrite
+       à la main oubliait K.O!, KAOSS PAD, MC-101 et SmplTrek, qui revenaient
+       donc à la DRM16. */
+    var modeles = [];
+    try{
+      document.querySelectorAll(".pick[data-m]").forEach(function(p){ if(p.dataset.m) modeles.push(p.dataset.m); });
+    }catch(e){}
+    if(["er2","ea2","es2"].concat(modeles).indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    if(["interactive","balanced","playback"].indexOf(m.latence) >= 0) memoire.latence = m.latence;
     if(typeof m.hum === "number"){ memoire.hum = m.hum; HUM.temps = m.hum; }
     if(typeof m.wav === "number"){ memoire.wav = m.wav; WAVX.mesures = m.wav; }
     if(m.midi) memoire.midi = m.midi;
@@ -6433,7 +6454,7 @@ function writeMem(){
     localStorage.setItem(MEM, JSON.stringify({
       modele:memoire.modele, vol:memoire.vol, bpm:memoire.bpm, haptic:memoire.haptic,
       bg:memoire.bg, bass:memoire.bass, midi:memoire.midi, metro:memoire.metro,
-      hum:memoire.hum, wav:memoire.wav, set:memoire.set,
+      hum:memoire.hum, wav:memoire.wav, set:memoire.set, latence:memoire.latence,
       "16":memoire["16"], "32":memoire["32"]
     }));
     memEchec = false;
@@ -6664,7 +6685,7 @@ function audioInit(){
   /* un contexte de rendu n'a pas à être repris : il se déclenche tout seul */
   if(ctx) { if(ctx.state === "suspended" && !ctx.startRendering) ctx.resume(); return; }
   var AC = window.AudioContext || window.webkitAudioContext;
-  try { ctx = new AC({latencyHint:"playback"}); } catch(e){ ctx = new AC(); }
+  try { ctx = new AC({latencyHint:latenceChoisie()}); } catch(e){ ctx = new AC(); }
   batirAudio();
 }
 /* Construit tous les nœuds communs dans le contexte courant. Appelée aussi par
@@ -7484,6 +7505,37 @@ function releveAudio(){
          (min > 0.2 ? " (" + (Math.round(AUDIT.decroche / min * 10) / 10) + " PAR MIN)" : "") +
          (AUDIT.relances ? " · " + AUDIT.relances + " RELANCES" : "");
 }
+/* ---------- latence de sortie (v144) ----------
+   Le compromis entre réactivité et sûreté. « Sûre » (grand tampon) reste le
+   choix d'Android, où les coupures étaient le premier souci ; sur ordinateur,
+   « moyenne » est un meilleur départ pour jouer aux pads. Changer relance le
+   moteur audio, comme le bouton RELANCER. */
+var LATENCES = [["interactive", "COURTE"], ["balanced", "MOYENNE"], ["playback", "SÛRE"]];
+function latenceChoisie(){
+  for(var i=0;i<LATENCES.length;i++) if(LATENCES[i][0] === memoire.latence) return memoire.latence;
+  return HOST.plateforme === "android" ? "playback" : "balanced";
+}
+function nomLatence(v){
+  for(var i=0;i<LATENCES.length;i++) if(LATENCES[i][0] === v) return LATENCES[i][1];
+  return v;
+}
+function majLatence(){
+  var b = document.getElementById("b-latence");
+  if(b) b.textContent = "LATENCE : " + nomLatence(latenceChoisie());
+}
+document.getElementById("b-latence").addEventListener("click", function(){
+  var k = 0, v = latenceChoisie();
+  for(var i=0;i<LATENCES.length;i++) if(LATENCES[i][0] === v) k = i;
+  memoire.latence = LATENCES[(k + 1) % LATENCES.length][0];
+  writeMem();
+  majLatence();
+  if(ctx && !ctx.startRendering) refaireAudio();
+  var ms = ctx ? Math.round(((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000) : 0;
+  signal("LATENCE " + nomLatence(latenceChoisie()) + (ms ? " · SORTIE " + ms + " ms" : ""));
+  H.inter();
+});
+majLatence();
+
 document.getElementById("b-audio-etat").addEventListener("click", function(){
   signal(releveAudio());
 });

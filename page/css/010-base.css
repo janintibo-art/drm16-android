@@ -495,4 +495,6 @@ body.menu-ouvert #menu-voile.vu{opacity:1}
 .pick.p32 b{color:#13b9a2;text-shadow:0 2px 0 #06564a}
 .pick.p32 span{color:#9fb0ae}
 .pick:active{transform:translateY(2px)}
-
+/* version de bureau (v144) : on joue à la souris */
+[data-hote="bureau"] button,[data-hote="bureau"] .pick{cursor:pointer}
+@media (hover:hover){[data-hote="bureau"] button:hover{filter:brightness(1.12)}}

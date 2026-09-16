@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **143**.
+La version actuelle est la **144**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 143** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 144** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,31 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**W6 : micro, latence, souris — v144**
+
+*Constat v143* : l'exécuteur Windows refuse le synthétiseur logiciel (« could not create Windows MM MIDI
+output port ») ; la raison arrive à la page, contrôle NON CONCLUANT, 0 échec. **W5 est close** ; l'essai avec
+une vraie carte reste à faire sur un PC.
+
+*Micro* : rien à écrire côté Rust. Sans `HOST.micro`, `bibMicro` appelle directement `getUserMedia`, que
+WebView2 fournit ; Windows demande l'autorisation au premier usage. L'autotest vérifie la présence des API.
+`micro` reste la seule fonction du pont absente de `BUREAU`.
+
+*Latence réglable* (`190-reglages-de-la-notice.js`, bouton `b-latence` dans l'onglet Général) :
+**COURTE** (`interactive`), **MOYENNE** (`balanced`), **SÛRE** (`playback`). Défaut : SÛRE sur Android
+(inchangé), MOYENNE ailleurs. Chaque appui relance le moteur (`refaireAudio`) et affiche la latence de sortie
+mesurée. Gardée dans `memoire.latence`. `audioInit` utilise `latenceChoisie()`.
+
+*Souris* : `[data-hote="bureau"]` — curseur main sur les boutons et tuiles, léger éclaircissement au survol
+(fin de `010-base.css`).
+
+*Défaut trouvé au passage* : la liste des machines retrouvées au redémarrage était écrite à la main et
+**oubliait K.O!, KAOSS PAD, MC-101 et SmplTrek** (vérifié sur la v143 : le KAOSS PAD revenait à la DRM16). Elle
+est maintenant lue dans les tuiles du menu (`.pick[data-m]`), plus les variantes mkII.
+
+*Tests* : bloc 9 du test navigateur (latence par défaut, cycle, relance, KAOSS PAD et latence retrouvés après
+rechargement) ; l'autotest Windows vérifie micro, démarrage audio avec latence moyenne et curseur.
 
 **MIDI : la raison d'un refus d'ouverture — v143**
 

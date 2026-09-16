@@ -6,7 +6,15 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
 (function charger(){
   try{
     var m = JSON.parse(localStorage.getItem(MEM) || "{}");
-    if(["16","32","em1","er1","er2","ea1","ea2","es1","es2","emx","esx","mpc3000","mpc2000","tr808","tr909","tr707","rd6","td3","eur","dmx","vlc","cr5","dbi","t1k","arcm"].indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    /* v144 : toute machine du menu est retrouvée au redémarrage. La liste écrite
+       à la main oubliait K.O!, KAOSS PAD, MC-101 et SmplTrek, qui revenaient
+       donc à la DRM16. */
+    var modeles = [];
+    try{
+      document.querySelectorAll(".pick[data-m]").forEach(function(p){ if(p.dataset.m) modeles.push(p.dataset.m); });
+    }catch(e){}
+    if(["er2","ea2","es2"].concat(modeles).indexOf(m.modele) >= 0) memoire.modele = m.modele;
+    if(["interactive","balanced","playback"].indexOf(m.latence) >= 0) memoire.latence = m.latence;
     if(typeof m.hum === "number"){ memoire.hum = m.hum; HUM.temps = m.hum; }
     if(typeof m.wav === "number"){ memoire.wav = m.wav; WAVX.mesures = m.wav; }
     if(m.midi) memoire.midi = m.midi;
@@ -80,7 +88,7 @@ function writeMem(){
     localStorage.setItem(MEM, JSON.stringify({
       modele:memoire.modele, vol:memoire.vol, bpm:memoire.bpm, haptic:memoire.haptic,
       bg:memoire.bg, bass:memoire.bass, midi:memoire.midi, metro:memoire.metro,
-      hum:memoire.hum, wav:memoire.wav, set:memoire.set,
+      hum:memoire.hum, wav:memoire.wav, set:memoire.set, latence:memoire.latence,
       "16":memoire["16"], "32":memoire["32"]
     }));
     memEchec = false;

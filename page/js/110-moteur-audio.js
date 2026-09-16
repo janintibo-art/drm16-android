@@ -55,7 +55,7 @@ function audioInit(){
   /* un contexte de rendu n'a pas à être repris : il se déclenche tout seul */
   if(ctx) { if(ctx.state === "suspended" && !ctx.startRendering) ctx.resume(); return; }
   var AC = window.AudioContext || window.webkitAudioContext;
-  try { ctx = new AC({latencyHint:"playback"}); } catch(e){ ctx = new AC(); }
+  try { ctx = new AC({latencyHint:latenceChoisie()}); } catch(e){ ctx = new AC(); }
   batirAudio();
 }
 /* Construit tous les nœuds communs dans le contexte courant. Appelée aussi par

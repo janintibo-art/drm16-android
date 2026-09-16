@@ -322,10 +322,30 @@ async def bureau(nav):
     ok(not err, "aucune erreur de page %s" % err[:1])
     await ctx.close()
 
+async def reglages(nav):
+    print("\n9. Latence réglable et machine retrouvée au redémarrage (v144)")
+    ctx = await nav.new_context(viewport={"width": 393, "height": 851})
+    pg = await ctx.new_page()
+    err = []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+    await pg.goto(PAGE); await pg.wait_for_timeout(1500)
+    r = await pg.evaluate("""() => { audioInit(); var avant = latenceChoisie(), bouton = document.getElementById('b-latence').textContent;
+      document.getElementById('b-latence').click();
+      return {avant: avant, bouton: bouton, apres: latenceChoisie(), texte: document.getElementById('b-latence').textContent, ctx: !!ctx}; }""")
+    ok(r["avant"] == "balanced" and r["bouton"] == "LATENCE : MOYENNE", "hors Android, latence moyenne par défaut (%s)" % r["bouton"])
+    ok(r["apres"] == "playback" and r["texte"] == "LATENCE : SÛRE" and r["ctx"], "un appui passe à SÛRE et relance le moteur")
+    await pg.evaluate("() => { allerMachine('kp'); writeMem(); }")
+    await pg.reload(); await pg.wait_for_timeout(1500)
+    r = await pg.evaluate("() => ({modele: S.modele, latence: latenceChoisie()})")
+    ok(r["modele"] == "kp", "le KAOSS PAD est retrouvé au redémarrage (%s)" % r["modele"])
+    ok(r["latence"] == "playback", "la latence choisie est retrouvée au redémarrage")
+    ok(not err, "aucune erreur de page %s" % err[:1])
+    await ctx.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau):
+        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages):
             try:
                 await t(nav)
             except Exception as e:
