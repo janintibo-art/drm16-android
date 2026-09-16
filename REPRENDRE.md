@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **153**.
+La version actuelle est la **154**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 153** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 154** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,21 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**B6 : suréchantillonnage ciblé, au choix — v154**
+
+L'essentiel de B6 (déclarer et régler chaque étage) a été fait en B5. Reste la question laissée ouverte : les
+**saturations de voie** (TR, TD-3, TR-1000, DrumBrute), qui traitent tout le son de la machine.
+
+*Mesure du coût* : un rendu de 20 s de TR-909 prend 1,34 s en 2x et 1,36 s en 4x — **environ 2 %** de calcul en
+plus ; l'étage ne pèse presque rien à côté des voix.
+
+*Réglage* (onglet Général, bouton `b-satq`) : **SATURATIONS : ÉCONOMES (2x, par défaut) / HAUTE QUALITÉ (4x)**,
+gardé dans `memoire.satHaute`. `saturationDeVoie(noeud)` (`190-…`) rend la qualité choisie et retient le nœud
+(`SAT_VOIES`), si bien qu'un changement s'applique **tout de suite** aux saturations déjà construites. Le défaut
+reste 2x par prudence (grésillements passés sur le téléphone) ; au vu du coût mesuré, HAUTE QUALITÉ vaut
+l'essai. `verifier-courbes.py` accepte `saturationDeVoie(…)` comme déclaration. Test navigateur, bloc 9 :
+2x par défaut, 4x à la demande, appliqué aux nœuds existants.
 
 **B5 : le repliement — v153**
 

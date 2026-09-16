@@ -15,6 +15,7 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
     }catch(e){}
     if(["er2","ea2","es2"].concat(modeles).indexOf(m.modele) >= 0) memoire.modele = m.modele;
     if(["interactive","balanced","playback"].indexOf(m.latence) >= 0) memoire.latence = m.latence;
+    if(typeof m.satHaute === "boolean") memoire.satHaute = m.satHaute;
     if(typeof m.hum === "number"){ memoire.hum = m.hum; HUM.temps = m.hum; }
     if(typeof m.wav === "number"){ memoire.wav = m.wav; WAVX.mesures = m.wav; }
     if(m.midi) memoire.midi = m.midi;
@@ -92,7 +93,7 @@ function writeMem(){
     localStorage.setItem(MEM, JSON.stringify({
       modele:memoire.modele, vol:memoire.vol, bpm:memoire.bpm, haptic:memoire.haptic,
       bg:memoire.bg, bass:memoire.bass, midi:memoire.midi, metro:memoire.metro,
-      hum:memoire.hum, wav:memoire.wav, set:memoire.set, latence:memoire.latence,
+      hum:memoire.hum, wav:memoire.wav, set:memoire.set, latence:memoire.latence, satHaute:memoire.satHaute,
       "16":memoire["16"], "32":memoire["32"]
     }));
     memEchec = false;

@@ -23,7 +23,7 @@ function sortieRd6(){
     var d = ctx.createWaveShaper();
     var n = 1025, c = new Float32Array(n);
     for(var i=0;i<n;i++){ var x = i * 2 / (n - 1) - 1; c[i] = Math.tanh(x * 4); }
-    d.curve = c; d.oversample = "2x";
+    d.curve = c; d.oversample = saturationDeVoie(d);
     /* Une boîte à rythmes peut poser seize frappes sur le MÊME pas, et leurs
        attaques coïncident exactement. Les crêtes s'additionnent alors en
        amplitude : seize voix font seize fois la tension d'une seule, soit

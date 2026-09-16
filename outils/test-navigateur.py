@@ -451,6 +451,13 @@ async def reglages(nav):
       return {avant: avant, bouton: bouton, apres: latenceChoisie(), texte: document.getElementById('b-latence').textContent, ctx: !!ctx}; }""")
     ok(r["avant"] == "balanced" and r["bouton"] == "LATENCE : MOYENNE", "hors Android, latence moyenne par défaut (%s)" % r["bouton"])
     ok(r["apres"] == "playback" and r["texte"] == "LATENCE : SÛRE" and r["ctx"], "un appui passe à SÛRE et relance le moteur")
+    r = await pg.evaluate("""() => { audioInit(); allerMachine('tr909'); sortieRd6(); var avant = SAT_VOIES.map(n => n.oversample).join();
+      document.getElementById('b-satq').click();
+      var apres = SAT_VOIES.filter(n => n.context === ctx).map(n => n.oversample).join();
+      document.getElementById('b-satq').click();
+      return {avant: avant, apres: apres, texte: document.getElementById('b-satq').textContent}; }""")
+    ok(r["avant"] == "2x" and r["apres"] == "4x" and r["texte"] == "SATURATIONS : ÉCONOMES",
+       "saturations de voie : 2x par défaut, 4x à la demande, appliqué tout de suite (%s → %s)" % (r["avant"], r["apres"]))
     await pg.evaluate("() => { allerMachine('kp'); writeMem(); }")
     await pg.reload(); await pg.wait_for_timeout(1500)
     r = await pg.evaluate("() => ({modele: S.modele, latence: latenceChoisie()})")

@@ -60,7 +60,7 @@ function sortieDbi(){
       var x = i * 2 / (n - 1) - 1;
       c[i] = Math.tanh(x * 3.2);
     }
-    d.curve = c; d.oversample = "2x";
+    d.curve = c; d.oversample = saturationDeVoie(d);
     var sec = ctx.createGain(), hum = ctx.createGain();
     g.connect(sec); sec.connect(busSet("dbi") || master);
     g.connect(d); d.connect(hum); hum.connect(busSet("dbi") || master);

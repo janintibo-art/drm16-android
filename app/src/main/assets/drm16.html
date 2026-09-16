@@ -4140,10 +4140,14 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
      <button class="sec" id="b-modele">CHANGER DE MACHINE</button></p>
   <p><button class="sec" id="b-audio-etat">ÉTAT DU MOTEUR AUDIO</button>
      <button class="sec" id="b-audio-relance">RELANCER LE MOTEUR AUDIO</button>
-     <button class="sec" id="b-latence">LATENCE</button></p>
+     <button class="sec" id="b-latence">LATENCE</button>
+     <button class="sec" id="b-satq">SATURATIONS</button></p>
   <p><b>LATENCE</b> règle le délai entre un appui et le son : <b>COURTE</b> pour jouer en direct, <b>SÛRE</b>
   pour ne jamais entendre de coupure, <b>MOYENNE</b> entre les deux. Le moteur audio redémarre à chaque
   changement. Si le son grésille, revenez vers SÛRE.</p>
+  <p><b>SATURATIONS</b> : en <b>HAUTE QUALITÉ</b>, les saturations des TR, de la TD-3, de la TR-1000 et de la
+  DrumBrute calculent à quatre fois la cadence au lieu de deux — un aigu plus propre quand on pousse le son,
+  pour un peu plus de calcul. Sur un appareil qui grésille déjà, restez en <b>ÉCONOMES</b>.</p>
   <p>Ce relevé est aussi dans le <b>menu</b>, tuile <b>ÉTAT DU SON</b> : plus simple à trouver qu'au fond
   de cette page. Un second appui sur la tuile, dans les quatre secondes, relance le moteur.</p>
   <p>Les chiffres se lisent ainsi :</p>
@@ -6403,6 +6407,7 @@ var memoire = { modele:"16", vol:0.85, bpm:120, haptic:true, bg:true, bass:false
     }catch(e){}
     if(["er2","ea2","es2"].concat(modeles).indexOf(m.modele) >= 0) memoire.modele = m.modele;
     if(["interactive","balanced","playback"].indexOf(m.latence) >= 0) memoire.latence = m.latence;
+    if(typeof m.satHaute === "boolean") memoire.satHaute = m.satHaute;
     if(typeof m.hum === "number"){ memoire.hum = m.hum; HUM.temps = m.hum; }
     if(typeof m.wav === "number"){ memoire.wav = m.wav; WAVX.mesures = m.wav; }
     if(m.midi) memoire.midi = m.midi;
@@ -6480,7 +6485,7 @@ function writeMem(){
     localStorage.setItem(MEM, JSON.stringify({
       modele:memoire.modele, vol:memoire.vol, bpm:memoire.bpm, haptic:memoire.haptic,
       bg:memoire.bg, bass:memoire.bass, midi:memoire.midi, metro:memoire.metro,
-      hum:memoire.hum, wav:memoire.wav, set:memoire.set, latence:memoire.latence,
+      hum:memoire.hum, wav:memoire.wav, set:memoire.set, latence:memoire.latence, satHaute:memoire.satHaute,
       "16":memoire["16"], "32":memoire["32"]
     }));
     memEchec = false;
@@ -7691,6 +7696,33 @@ document.getElementById("b-latence").addEventListener("click", function(){
   H.inter();
 });
 majLatence();
+
+/* ---------- qualité des saturations de voie (v154, phase B6) ----------
+   Les saturations qui traitent TOUT le son d'une machine (TR, TD-3, TR-1000,
+   DrumBrute) tournent en 2x : le 4x replie beaucoup moins (−69 dB au lieu de
+   −38 à 1,76 kHz, voir docs/mesures-son.md) mais demande environ deux fois plus
+   de calcul, en continu. Chacun choisit selon son appareil ; le réglage
+   s'applique tout de suite aux saturations déjà construites. */
+var SAT_VOIES = [];
+function qualiteSaturation(){ return memoire.satHaute ? "4x" : "2x"; }
+function saturationDeVoie(noeud){
+  SAT_VOIES = SAT_VOIES.filter(function(n){ return n.context === ctx; });
+  SAT_VOIES.push(noeud);
+  return qualiteSaturation();
+}
+function majQualiteSat(){
+  var b = document.getElementById("b-satq");
+  if(b) b.textContent = "SATURATIONS : " + (memoire.satHaute ? "HAUTE QUALITÉ" : "ÉCONOMES");
+}
+document.getElementById("b-satq").addEventListener("click", function(){
+  memoire.satHaute = !memoire.satHaute;
+  writeMem();
+  SAT_VOIES.forEach(function(n){ if(n.context === ctx) n.oversample = qualiteSaturation(); });
+  majQualiteSat();
+  signal(memoire.satHaute ? "SATURATIONS EN 4x · PLUS PROPRE, PLUS DE CALCUL" : "SATURATIONS EN 2x · ÉCONOMES");
+  H.inter();
+});
+majQualiteSat();
 
 document.getElementById("b-audio-etat").addEventListener("click", function(){
   signal(releveAudio());
@@ -16743,7 +16775,7 @@ function sortieRd6(){
     var d = ctx.createWaveShaper();
     var n = 1025, c = new Float32Array(n);
     for(var i=0;i<n;i++){ var x = i * 2 / (n - 1) - 1; c[i] = Math.tanh(x * 4); }
-    d.curve = c; d.oversample = "2x";
+    d.curve = c; d.oversample = saturationDeVoie(d);
     /* Une boîte à rythmes peut poser seize frappes sur le MÊME pas, et leurs
        attaques coïncident exactement. Les crêtes s'additionnent alors en
        amplitude : seize voix font seize fois la tension d'une seule, soit
@@ -21382,7 +21414,7 @@ function batirTd3(){
   var sat = ctx.createWaveShaper();
   var n = 1025, c = new Float32Array(n);
   for(var i=0;i<n;i++){ var x = i * 2 / (n - 1) - 1; c[i] = Math.tanh(x * 3.4); }
-  sat.curve = c; sat.oversample = "2x";
+  sat.curve = c; sat.oversample = saturationDeVoie(sat);
   var sec = ctx.createGain(), hum = ctx.createGain();
   var lp = ctx.createBiquadFilter(); lp.type = "lowpass";
   o.connect(f1); f1.connect(f2); f2.connect(vca);
@@ -22434,7 +22466,7 @@ function bâtirT1k(){
   var sat = ctx.createWaveShaper();
   var n = 1025, c = new Float32Array(n);
   for(var i=0;i<n;i++){ var x = i*2/(n-1)-1; c[i] = Math.tanh(x*2.6); }
-  sat.curve = c; sat.oversample = "2x";
+  sat.curve = c; sat.oversample = saturationDeVoie(sat);
   var secA = ctx.createGain(), humA = ctx.createGain();
   var mix = ctx.createGain();
   mixA.connect(secA); secA.connect(mix);
@@ -22988,7 +23020,7 @@ function sortieDbi(){
       var x = i * 2 / (n - 1) - 1;
       c[i] = Math.tanh(x * 3.2);
     }
-    d.curve = c; d.oversample = "2x";
+    d.curve = c; d.oversample = saturationDeVoie(d);
     var sec = ctx.createGain(), hum = ctx.createGain();
     g.connect(sec); sec.connect(busSet("dbi") || master);
     g.connect(d); d.connect(hum); hum.connect(busSet("dbi") || master);

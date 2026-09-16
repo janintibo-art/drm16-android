@@ -48,7 +48,7 @@ function batirTd3(){
   var sat = ctx.createWaveShaper();
   var n = 1025, c = new Float32Array(n);
   for(var i=0;i<n;i++){ var x = i * 2 / (n - 1) - 1; c[i] = Math.tanh(x * 3.4); }
-  sat.curve = c; sat.oversample = "2x";
+  sat.curve = c; sat.oversample = saturationDeVoie(sat);
   var sec = ctx.createGain(), hum = ctx.createGain();
   var lp = ctx.createBiquadFilter(); lp.type = "lowpass";
   o.connect(f1); f1.connect(f2); f2.connect(vca);

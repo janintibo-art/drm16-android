@@ -43,6 +43,33 @@ document.getElementById("b-latence").addEventListener("click", function(){
 });
 majLatence();
 
+/* ---------- qualité des saturations de voie (v154, phase B6) ----------
+   Les saturations qui traitent TOUT le son d'une machine (TR, TD-3, TR-1000,
+   DrumBrute) tournent en 2x : le 4x replie beaucoup moins (−69 dB au lieu de
+   −38 à 1,76 kHz, voir docs/mesures-son.md) mais demande environ deux fois plus
+   de calcul, en continu. Chacun choisit selon son appareil ; le réglage
+   s'applique tout de suite aux saturations déjà construites. */
+var SAT_VOIES = [];
+function qualiteSaturation(){ return memoire.satHaute ? "4x" : "2x"; }
+function saturationDeVoie(noeud){
+  SAT_VOIES = SAT_VOIES.filter(function(n){ return n.context === ctx; });
+  SAT_VOIES.push(noeud);
+  return qualiteSaturation();
+}
+function majQualiteSat(){
+  var b = document.getElementById("b-satq");
+  if(b) b.textContent = "SATURATIONS : " + (memoire.satHaute ? "HAUTE QUALITÉ" : "ÉCONOMES");
+}
+document.getElementById("b-satq").addEventListener("click", function(){
+  memoire.satHaute = !memoire.satHaute;
+  writeMem();
+  SAT_VOIES.forEach(function(n){ if(n.context === ctx) n.oversample = qualiteSaturation(); });
+  majQualiteSat();
+  signal(memoire.satHaute ? "SATURATIONS EN 4x · PLUS PROPRE, PLUS DE CALCUL" : "SATURATIONS EN 2x · ÉCONOMES");
+  H.inter();
+});
+majQualiteSat();
+
 document.getElementById("b-audio-etat").addEventListener("click", function(){
   signal(releveAudio());
 });
