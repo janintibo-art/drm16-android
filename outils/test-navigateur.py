@@ -309,11 +309,29 @@ async def bureau(nav):
         except KeyError:
             await route.fulfill(status=404, body='{}', headers={'Access-Control-Allow-Origin': '*'})
     await ctx.route(re.compile(r'^http://drm16\.localhost/'), servir)
+    # v147 : la page est servie comme par Tauri — origine http://tauri.localhost et
+    # MÊME politique de sécurité (lue dans tauri.conf.json) — pour qu'un blocage
+    # se voie ici plutôt que sur un PC.
+    conf = json.load(open("bureau/src-tauri/tauri.conf.json", encoding="utf-8"))
+    csp = conf["app"]["security"]["csp"]
+    racine = os.path.abspath("app/src/main/assets")
+    types = {".html": "text/html; charset=utf-8", ".js": "text/javascript", ".png": "image/png",
+             ".wav": "audio/wav", ".json": "application/json", ".css": "text/css"}
+    async def page_tauri(route, req):
+        chemin = req.url.split("//", 1)[1].split("/", 1)[1].split("?")[0] or "drm16.html"
+        f = os.path.normpath(os.path.join(racine, chemin))
+        if not f.startswith(racine) or not os.path.isfile(f):
+            await route.fulfill(status=404, body=""); return
+        await route.fulfill(status=200, body=open(f, "rb").read(),
+                            headers={"Content-Type": types.get(os.path.splitext(f)[1], "application/octet-stream"),
+                                     "Content-Security-Policy": csp})
+    await ctx.route(re.compile(r'^http://tauri\.localhost/'), page_tauri)
     await ctx.add_init_script("window.__TAURI_INTERNALS__ = {};")
     pg = await ctx.new_page()
-    err = []
+    err, refus = [], []
     pg.on("pageerror", lambda e: err.append(str(e)))
-    await pg.goto(PAGE)
+    pg.on("console", lambda m: refus.append(m.text) if "Content Security Policy" in m.text else None)
+    await pg.goto("http://tauri.localhost/drm16.html")
     for _ in range(80):
         if coque.rapport: break
         while coque.reseau:
@@ -333,6 +351,36 @@ async def bureau(nav):
     if not coque.rapport.get("ok") or err:
         print("    " + str(coque.rapport.get("texte", "aucun rapport")).replace("\n", "\n    "))
         print("    erreurs :", err)
+    # les deux pages invitées, sous la même politique
+    for invite in ("studio", "nexus"):
+        await pg.evaluate("(n) => { fermerAutresPanneaux(''); ouvrirMenu(); document.getElementById('menu-' + n).click(); }", invite)
+        await pg.wait_for_timeout(2500)
+        charge = await pg.evaluate("""(n) => { var f = document.querySelector('#' + n + ' iframe');
+          try { return !!f && f.contentDocument.body.children.length > 0; } catch(e) { return false; } }""", invite)
+        ok(charge, "page invitée « %s » chargée sous la politique de sécurité" % invite)
+        await pg.evaluate("(n) => document.getElementById(n + '-fermer').click()", invite)
+    ok(not refus, "aucun blocage par la politique de sécurité %s" % refus[:2])
+    ok(not err, "aucune erreur de page %s" % err[:1])
+    await ctx.close()
+
+async def liens(nav):
+    print("\n12. Liens externes bloqués et signalés, comme sur Android (v147)")
+    ctx = await nav.new_context()
+    pg = await ctx.new_page()
+    err = []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+    await pg.goto(PAGE); await pg.wait_for_timeout(1500)
+    r = await pg.evaluate("""() => { var m = [], sg = signal; signal = function(t){ m.push(t); };
+      var a = document.createElement('a'); a.href = 'https://exemple.org/page'; a.textContent = 'x';
+      document.body.appendChild(a);
+      var ev = new MouseEvent('click', {bubbles: true, cancelable: true});
+      a.dispatchEvent(ev); a.remove();
+      var b = document.createElement('a'); b.href = '#interne'; document.body.appendChild(b);
+      var ev2 = new MouseEvent('click', {bubbles: true, cancelable: true});
+      b.dispatchEvent(ev2); b.remove();
+      signal = sg; return {bloque: ev.defaultPrevented, interne: !ev2.defaultPrevented, url: location.href, m: m}; }""")
+    ok(r["bloque"] and r["m"] == ["LIEN EXTERNE NON OUVERT · EXEMPLE.ORG"], "lien externe bloqué et signalé (%s)" % r["m"])
+    ok(r["interne"], "un lien interne n'est pas touché")
     ok(not err, "aucune erreur de page %s" % err[:1])
     await ctx.close()
 
@@ -467,7 +515,7 @@ async def confort(nav):
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort):
+        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens):
             try:
                 await t(nav)
             except Exception as e:

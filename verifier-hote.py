@@ -35,6 +35,18 @@ for n in sorted(pont - js):
 for n in sorted(js - pont):
     print("  %s est declaree dans HOST mais n'existe pas dans MainActivity" % n); faute += 1
 
+# 3. Parite (v147) : la coque Rust sert chaque fonction du pont, sauf les
+#    exceptions documentees dans docs/parite.md.
+EXCEPTIONS_BUREAU = {"micro"}   # WebView2 fournit getUserMedia directement
+rust = open('bureau/src-tauri/src/hote.rs', encoding='utf-8').read()
+servies = set(re.findall(r'^\s*"(\w+)"\s*=>', rust, re.M))
+for n in sorted(pont - EXCEPTIONS_BUREAU - servies):
+    print("  %s existe sur Android mais la coque Windows ne la sert pas (hote.rs)" % n); faute += 1
+for n in sorted(EXCEPTIONS_BUREAU & servies):
+    print("  %s est servie par hote.rs : la retirer des exceptions" % n); faute += 1
+print("servies par la coque Windows :", len(servies & pont), "sur", len(pont),
+      "· exceptions :", ", ".join(sorted(EXCEPTIONS_BUREAU)))
+
 if faute:
     print("%d probleme(s)" % faute); sys.exit(1)
 print("la page ne parle au pont qu'a travers HOST")

@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **146**.
+La version actuelle est la **147**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 146** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 147** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,35 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**W9 : sécurité et parité — v147 (fin de la phase W)**
+
+*Constat v146* : raccourcis et plein écran branchés dans l'exe, 0 échec. **W8 close.**
+
+*Politique de sécurité de la fenêtre* (`tauri.conf.json`, `app.security.csp`) : tout vient de `self` ;
+connexions limitées à `self`, à l'IPC de Tauri et au protocole `drm16` — **la page ne peut plus joindre
+Internet d'elle-même**, les téléchargements passent par la coque Rust ; `object-src 'none'`, `base-uri 'self'`,
+`form-action 'none'`, cadres `self`. `'unsafe-inline'` (script unique, `onclick` du studio) et `'unsafe-eval'`
+(extensions du studio) restent nécessaires ; `dangerousDisableAssetCspModification` empêche Tauri d'ajouter
+des empreintes à `script-src`/`style-src`, ce qui annulerait `'unsafe-inline'`.
+
+*Capacités Tauri* : **aucune** — la page n'utilise pas l'IPC de Tauri, seulement le protocole `drm16`.
+
+*Liens externes* (`665-clavier-et-souris.js`) : bloqués **et signalés** (« LIEN EXTERNE NON OUVERT · HÔTE »)
+sur toutes les plateformes, pages invitées comprises (écouteur posé sur chaque cadre chargé). Android les
+bloquait déjà sans rien dire ; sur ordinateur, un lien aurait ouvert une page distante dans la fenêtre.
+
+*Parité* : **`docs/parite.md`** — fonction par fonction, Android, Windows, et **où c'est vérifié** ; ce qui ne
+peut l'être qu'à la main est marqué. **`verifier-hote.py`** vérifie en plus que `hote.rs` sert chaque fonction du
+pont sauf les exceptions (`micro`) — vu échouer sur une fonction renommée.
+
+*Tests* : le bloc 8 sert désormais la page **comme Tauri** (origine `http://tauri.localhost`, même politique de
+sécurité lue dans `tauri.conf.json`) et ouvre les deux pages invitées ; tout blocage est relevé — vu échouer avec
+une politique privée de `drm16`. Bloc 12 : lien externe bloqué et signalé, lien interne intact. Dans l'exe,
+l'autotest tourne maintenant sous la vraie politique.
+
+**La phase W est terminée.** Reste à essayer à la main sur un PC : voir la fin de `docs/parite.md`.
+Suite : **phase B (qualité sonore)**, en commençant par le banc de mesure.
 
 **W8 : confort sur ordinateur — v146**
 
