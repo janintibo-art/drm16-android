@@ -13,6 +13,8 @@ import android.os.Looper;
 
 import android.util.Base64;
 
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.locks.LockSupport;
@@ -26,6 +28,8 @@ public class Midi {
     public interface Ecoute {
         void message(int a, int b, int c);
         void sysex(String base64);
+        /** Branchement, debranchement, ouverture : l'etat complet en JSON (v131). */
+        void etat(String json);
     }
 
     private final Context ctx;
@@ -38,6 +42,10 @@ public class Midi {
     private MidiInputPort versAppareil;      // ce que nous écrivons
     private MidiOutputPort depuisAppareil;   // ce que nous lisons
     private int generationOuverture;
+    /* v131 : suivi des branchements. ouvertId est l'identifiant Android de
+       l'appareil REELLEMENT ouvert (-1 sinon) : la page ne le suppose plus. */
+    private MidiManager.DeviceCallback surveillant;
+    private int ouvertId = -1;
 
     private Thread horloge;
     private volatile boolean horlogeActive;
@@ -57,35 +65,128 @@ public class Midi {
         return ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_MIDI);
     }
 
+    private boolean gestionnaire() {
+        if (mm == null && dispo()) mm = (MidiManager) ctx.getSystemService(Context.MIDI_SERVICE);
+        return mm != null;
+    }
+
+    private MidiDeviceInfo[] relire() {
+        MidiDeviceInfo[] l = null;
+        try { l = mm.getDevices(); } catch (Exception ignored) {}
+        infos = (l == null) ? new MidiDeviceInfo[0] : l;
+        return infos;
+    }
+
+    private static String nom(MidiDeviceInfo d, int i) {
+        String n = null;
+        try {
+            n = d.getProperties().getString(MidiDeviceInfo.PROPERTY_NAME);
+            if (n == null) n = d.getProperties().getString(MidiDeviceInfo.PROPERTY_PRODUCT);
+        } catch (Exception ignored) {}
+        return n == null ? ("MIDI " + (i + 1)) : n;
+    }
+
     public String liste() {
-        if (!dispo()) return "";
-        if (mm == null) mm = (MidiManager) ctx.getSystemService(Context.MIDI_SERVICE);
-        if (mm == null) return "";
-        infos = mm.getDevices();
+        if (!gestionnaire()) return "";
+        MidiDeviceInfo[] l = relire();
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < infos.length; i++) {
+        for (int i = 0; i < l.length; i++) {
             if (i > 0) sb.append("\n");
-            String n = infos[i].getProperties().getString(MidiDeviceInfo.PROPERTY_NAME);
-            if (n == null) n = infos[i].getProperties().getString(MidiDeviceInfo.PROPERTY_PRODUCT);
-            sb.append(n == null ? ("MIDI " + (i + 1)) : n);
+            sb.append(nom(l[i], i));
         }
         return sb.toString();
     }
 
+    /** Suivi des branchements (v131). La liste de la page se met a jour seule,
+        et l'appareil ouvert qui disparait est ferme proprement. */
+    public void surveiller() {
+        if (surveillant != null || !gestionnaire()) return;
+        surveillant = new MidiManager.DeviceCallback() {
+            @Override public void onDeviceAdded(MidiDeviceInfo d) {
+                signaler("ajout", d == null ? "" : nom(d, 0));
+            }
+            @Override public void onDeviceRemoved(MidiDeviceInfo d) {
+                if (d != null && d.getId() == ouvertId) {
+                    fermer();
+                    signaler("perdu", nom(d, 0));
+                } else {
+                    signaler("retrait", d == null ? "" : nom(d, 0));
+                }
+            }
+        };
+        try { mm.registerDeviceCallback(surveillant, ui); }
+        catch (Exception e) { surveillant = null; }
+    }
+
+    /** A appeler une seule fois, quand l'activite disparait. */
+    public void liberer() {
+        fermer();
+        if (surveillant != null && mm != null) {
+            try { mm.unregisterDeviceCallback(surveillant); } catch (Exception ignored) {}
+        }
+        surveillant = null;
+    }
+
+    /** L'etat complet, envoye a la page : evenement, liste a jour, appareil ouvert. */
+    private void signaler(String evt, String quoi) {
+        if (!gestionnaire()) return;
+        MidiDeviceInfo[] l = relire();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"evt\":").append(JSONObject.quote(evt))
+          .append(",\"nom\":").append(JSONObject.quote(quoi == null ? "" : quoi))
+          .append(",\"ouvert\":").append(ouvertId)
+          .append(",\"appareils\":[");
+        for (int i = 0; i < l.length; i++) {
+            if (i > 0) sb.append(",");
+            sb.append("{\"nom\":").append(JSONObject.quote(nom(l[i], i)))
+              .append(",\"id\":").append(l[i].getId()).append("}");
+        }
+        sb.append("]}");
+        ecoute.etat(sb.toString());
+    }
+
+    /** Liste avec identifiants, une ligne par appareil : nom TAB id. */
+    public String appareils() {
+        if (!gestionnaire()) return "";
+        MidiDeviceInfo[] l = relire();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < l.length; i++) {
+            if (i > 0) sb.append("\n");
+            sb.append(nom(l[i], i).replace('\t', ' ').replace('\n', ' ')).append('\t').append(l[i].getId());
+        }
+        return sb.toString();
+    }
+
+    public int ouvertId() { return ouvertId; }
+
+    /** Ouvre par identifiant : insensible a un changement d'ordre de la liste. */
+    public void ouvrirId(int id) {
+        if (!gestionnaire()) return;
+        for (MidiDeviceInfo d : relire()) {
+            if (d.getId() == id) { ouvrirInfo(d); return; }
+        }
+        signaler("echec", "");
+    }
+
     public void ouvrir(final int idx) {
-        if (mm == null) liste();
-        if (mm == null || idx < 0 || idx >= infos.length) return;
-        final MidiDeviceInfo info = infos[idx];
+        if (!gestionnaire()) return;
+        if (idx < 0 || idx >= infos.length) relire();
+        if (idx < 0 || idx >= infos.length) return;
+        ouvrirInfo(infos[idx]);
+    }
+
+    private void ouvrirInfo(final MidiDeviceInfo info) {
         fermer();
         final int session = ++generationOuverture;
+        final String sonNom = nom(info, 0);
         mm.openDevice(info, new MidiManager.OnDeviceOpenedListener() {
             @Override
             public void onDeviceOpened(MidiDevice device) {
-                if (device == null) return;
                 if (session != generationOuverture) {
-                    try { device.close(); } catch (IOException ignored) {}
+                    if (device != null) { try { device.close(); } catch (IOException ignored) {} }
                     return;
                 }
+                if (device == null) { signaler("echec", sonNom); return; }
                 appareil = device;
                 MidiDeviceInfo.PortInfo[] ports = device.getInfo().getPorts();
                 for (MidiDeviceInfo.PortInfo p : ports) {
@@ -96,6 +197,8 @@ public class Midi {
                         if (depuisAppareil != null) depuisAppareil.connect(recepteur);
                     }
                 }
+                ouvertId = info.getId();
+                signaler("ouvert", sonNom);
             }
         }, ui);
     }
@@ -107,8 +210,16 @@ public class Midi {
         try { if (versAppareil != null) versAppareil.close(); } catch (IOException ignored) {}
         try { if (appareil != null) appareil.close(); } catch (IOException ignored) {}
         depuisAppareil = null; versAppareil = null; appareil = null;
+        ouvertId = -1;
         statut = 0; attendu = 0; d1 = 0; recus = 0;
         enSysex = false; sysexTropLong = false; tampon.reset();
+    }
+
+    /** Fermeture demandee par la page : la page en est prevenue. */
+    public void fermerSignale() {
+        boolean etait = appareil != null || ouvertId >= 0;
+        fermer();
+        if (etait) signaler("ferme", "");
     }
 
     private final MidiReceiver recepteur = new MidiReceiver() {

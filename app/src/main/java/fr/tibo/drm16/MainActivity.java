@@ -114,8 +114,14 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         @JavascriptInterface public void midiOuvrir(final int i) {
             runOnUiThread(new Runnable() { @Override public void run() { if (midi != null) midi.ouvrir(i); } });
         }
+        /** v131 : liste avec identifiants (nom TAB id), et ouverture par identifiant. */
+        @JavascriptInterface public String midiAppareils() { return midi == null ? "" : midi.appareils(); }
+        @JavascriptInterface public int midiOuvertId() { return midi == null ? -1 : midi.ouvertId(); }
+        @JavascriptInterface public void midiOuvrirId(final int id) {
+            runOnUiThread(new Runnable() { @Override public void run() { if (midi != null) midi.ouvrirId(id); } });
+        }
         @JavascriptInterface public void midiFermer() {
-            runOnUiThread(new Runnable() { @Override public void run() { if (midi != null) midi.fermer(); } });
+            runOnUiThread(new Runnable() { @Override public void run() { if (midi != null) midi.fermerSignale(); } });
         }
         @JavascriptInterface public void midiEnvoyer(int a, int b, int c) {
             if (midi != null) midi.envoyer(a, b, c);
@@ -432,6 +438,13 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         web.evaluateJavascript("window.__midi&&__midi(" + a + "," + b + "," + c + ")", null);
     }
 
+    /** Etat MIDI (v131) : le JSON est construit par Midi, chaines echappees. */
+    @Override
+    public void etat(String json) {
+        if (web == null || detruite || json == null) return;
+        web.evaluateJavascript("window.__midiEtat&&__midiEtat(" + json + ")", null);
+    }
+
     /** Envoi exclusif recu : transmis en base64, la page le decode. */
     @Override
     public void sysex(String base64) {
@@ -497,6 +510,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         });
 
         midi = new Midi(this, this);
+        midi.surveiller();
         web.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onPermissionRequest(final PermissionRequest demande) {
@@ -678,7 +692,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             retourFichier.onReceiveValue(null);
             retourFichier = null;
         }
-        if (midi != null) midi.fermer();
+        if (midi != null) midi.liberer();
         String[] ouvertes;
         synchronized (ecritures) { ouvertes = ecritures.keySet().toArray(new String[0]); }
         for (String j : ouvertes) abandonnerEcriture(j);

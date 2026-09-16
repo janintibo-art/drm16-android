@@ -318,6 +318,10 @@ body.m32 .read{color:#8fe8d8}
 #bib button{margin:0;padding:11px 15px;border:0;border-radius:6px;background:#3ea95c;color:#06240f;
   font-weight:800;letter-spacing:.8px;font-size:14px}
 #bib button.sec{background:#2f2f35;color:#eceae4;padding:8px 11px;font-size:12px}
+/* témoin de connexion MIDI (v131) */
+.midi-etat{font:700 12px/1.3 "Roboto Condensed",Arial,sans-serif;letter-spacing:.6px;color:#a4a29a;margin:6px 0 10px}
+.midi-etat.on{color:#5fd38a}
+.midi-etat.attente{color:#e6b84a}
 #bib input[type=search]{width:100%;padding:10px 12px;border-radius:6px;border:1px solid #3a3a42;
   background:#1b1b1f;color:#eceae4;font:600 14px system-ui,sans-serif;margin-bottom:6px}
 #bib select{padding:9px;border-radius:6px;border:1px solid #3a3a42;background:#1b1b1f;color:#eceae4;
@@ -4100,8 +4104,12 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
      <button class="sec" id="b-exc-envoi" disabled>ENVOYER LE MOTIF</button></p>
   <p id="exc-etat" style="opacity:.8">Aucun gabarit. Lisez d'abord le motif courant de la machine.</p>
 
-  <p style="margin-top:14px"><button class="sec" id="b-midi-scan">CHERCHER LES APPAREILS MIDI</button></p>
+  <p style="margin-top:14px">Les appareils MIDI apparaissent <b>d'eux-mêmes</b> quand on les branche. Touchez-en un
+  pour l'ouvrir, retouchez-le pour le fermer. Le témoin dit s'il est réellement connecté ; le dernier appareil
+  choisi est rouvert tout seul quand il revient, même après un redémarrage.</p>
+  <p><button class="sec" id="b-midi-scan">CHERCHER LES APPAREILS MIDI</button></p>
   <div id="midi-liste"></div>
+  <p id="midi-etat" class="midi-etat"></p>
   <p><button class="sec" id="b-midi-out"></button>
      <button class="sec" id="b-midi-in"></button></p>
   <p><button class="sec" id="b-midi-clk"></button>
@@ -14099,7 +14107,10 @@ function activerSx(){
 
 /* ===================== MIDI ===================== */
 var MIDI = {dispo:false, liste:[], ouvert:-1, out:true, in:true, clock:false,
-            canal:9, canalSy:0, base:36, sync:false};
+            canal:9, canalSy:0, base:36, sync:false,
+            /* v131 : identifiants Android, appareil en cours d'ouverture, et nom du
+               dernier appareil choisi pour le rouvrir quand il revient */
+            appareils:[], ouvertId:-1, attenteId:-1, dernier:""};
 /* pilotage des vraies machines : déclaré tôt, la notice s'en sert au chargement */
 var TELE = {actif:false, dernier:{}, tmr:{}};
 /* horloge reçue de l'extérieur : l'application devient esclave */
@@ -14115,10 +14126,12 @@ var SYNC = {ticks:0, dernier:0, bpmEst:120, attente:false};
   if(typeof m.base === "number") MIDI.base = Math.max(0, Math.min(96, m.base|0));
   if(typeof m.sync === "boolean") MIDI.sync = m.sync;
   if(typeof m.tele === "boolean") TELE.actif = m.tele;
+  if(typeof m.dernier === "string") MIDI.dernier = m.dernier.slice(0, 120);
 })();
 function memMidi(){
   memoire.midi = {out:MIDI.out, in:MIDI.in, clock:MIDI.clock, canal:MIDI.canal,
-                  canalSy:MIDI.canalSy, base:MIDI.base, sync:MIDI.sync, tele:TELE.actif};
+                  canalSy:MIDI.canalSy, base:MIDI.base, sync:MIDI.sync, tele:TELE.actif,
+                  dernier:MIDI.dernier};
   writeMem();
 }
 var GM = {bd:36, sd:38, cp:39, lt:45, hh:42, oh:46, rd:51, cy:49, wb:76, cb:56, sp:41};
@@ -14480,8 +14493,119 @@ function majMidiUI(){
   var bs = boxMidi.querySelectorAll("button");
   for(var i=0;i<bs.length;i++) bs[i].classList.toggle("on", i === MIDI.ouvert);
 }
+/* ---- appareils MIDI (v131) ----
+   Le pont Java prévient la page de chaque branchement, débranchement,
+   ouverture ou échec (__midiEtat) : la liste se tient à jour seule, et
+   MIDI.ouvert ne dit plus « ouvert » qu'une fois l'appareil réellement ouvert.
+   Un appareil qui revient est rouvert s'il était le dernier choisi. */
+function pontIds(){ var p = pont(); return (p && p.midiAppareils && p.midiOuvrirId) ? p : null; }
+function relireAppareilsMidi(){
+  var p = pontIds();
+  if(!p) return false;
+  var t = "";
+  try{ t = p.midiAppareils() || ""; }catch(e){}
+  MIDI.appareils = [];
+  t.split("\n").forEach(function(l){
+    if(!l) return;
+    var c = l.split("\t");
+    MIDI.appareils.push({nom:c[0], id:parseInt(c[1], 10)});
+  });
+  try{ MIDI.ouvertId = p.midiOuvertId(); }catch(e){ MIDI.ouvertId = -1; }
+  return true;
+}
+function indexMidi(id){
+  for(var i=0;i<MIDI.appareils.length;i++) if(MIDI.appareils[i].id === id) return i;
+  return -1;
+}
+function majTemoinMidi(){
+  var e = document.getElementById("midi-etat");
+  if(!e) return;
+  var att = indexMidi(MIDI.attenteId), ouv = indexMidi(MIDI.ouvertId);
+  e.classList.toggle("on", ouv >= 0);
+  e.classList.toggle("attente", att >= 0 && ouv < 0);
+  e.textContent = ouv >= 0 ? ("● CONNECTÉ : " + MIDI.appareils[ouv].nom)
+    : att >= 0 ? ("◌ OUVERTURE DE " + MIDI.appareils[att].nom + "…")
+    : (MIDI.appareils.length ? "○ AUCUN APPAREIL OUVERT · TOUCHEZ-EN UN" : "○ AUCUN APPAREIL BRANCHÉ");
+}
+function dessinerListeMidi(){
+  var p = pontIds();
+  boxMidi.innerHTML = "";
+  MIDI.liste = MIDI.appareils.map(function(a){ return a.nom; });
+  MIDI.ouvert = indexMidi(MIDI.ouvertId);
+  if(!MIDI.appareils.length){
+    boxMidi.textContent = "Aucun appareil MIDI trouvé. Branchez la carte : il apparaîtra ici tout seul.";
+  }
+  MIDI.appareils.forEach(function(a){
+    var b = document.createElement("button");
+    b.className = "sec"; b.textContent = a.nom;
+    b.addEventListener("click", function(){
+      if(a.id === MIDI.ouvertId){                 /* retoucher l'appareil ouvert le ferme */
+        MIDI.dernier = ""; memMidi();
+        try{ p.midiFermer(); }catch(e){}
+      } else {
+        MIDI.attenteId = a.id;
+        try{ p.midiOuvrirId(a.id); }catch(e){ MIDI.attenteId = -1; }
+      }
+      majMidiUI(); majTemoinMidi(); H.inter();
+    });
+    boxMidi.appendChild(b);
+  });
+  majMidiUI(); majTemoinMidi();
+}
+function ouvrirDernierMidi(){
+  var p = pontIds();
+  if(!p || !MIDI.dernier || MIDI.ouvertId >= 0 || MIDI.attenteId >= 0) return;
+  for(var i=0;i<MIDI.appareils.length;i++){
+    if(MIDI.appareils[i].nom === MIDI.dernier){
+      MIDI.attenteId = MIDI.appareils[i].id;
+      try{ p.midiOuvrirId(MIDI.attenteId); }catch(e){ MIDI.attenteId = -1; }
+      return;
+    }
+  }
+}
+window.__midiEtat = function(e){
+  if(!e || typeof e !== "object") return;
+  MIDI.dispo = true;
+  MIDI.appareils = (e.appareils || []).map(function(a){ return {nom:String(a.nom), id:a.id|0}; });
+  var etaitOuvert = MIDI.ouvertId >= 0;
+  MIDI.ouvertId = (typeof e.ouvert === "number") ? e.ouvert : -1;
+  var nom = String(e.nom || "").toUpperCase();
+  if(e.evt === "ouvert"){
+    MIDI.attenteId = -1;
+    var k = indexMidi(MIDI.ouvertId);
+    if(k >= 0){ MIDI.dernier = MIDI.appareils[k].nom; memMidi(); }
+    signal("MIDI CONNECTÉ : " + nom);
+  } else if(e.evt === "echec"){
+    MIDI.attenteId = -1;
+    signal("MIDI : OUVERTURE IMPOSSIBLE" + (nom ? " · " + nom : ""));
+  } else if(e.evt === "perdu"){
+    MIDI.attenteId = -1;
+    signal("MIDI DÉBRANCHÉ : " + nom + " · CONNEXION FERMÉE");
+  } else if(e.evt === "ferme"){
+    signal("MIDI FERMÉ");
+  } else if(e.evt === "ajout"){
+    signal("MIDI BRANCHÉ : " + nom);
+  } else if(e.evt === "retrait"){
+    if(indexMidi(MIDI.attenteId) < 0) MIDI.attenteId = -1;
+    signal("MIDI DÉBRANCHÉ : " + nom);
+  }
+  dessinerListeMidi();
+  /* l'horloge ne part qu'une fois l'appareil vraiment ouvert */
+  if(e.evt === "ouvert" && S.run) midiHorloge(true);
+  if(e.evt === "ajout" || (!etaitOuvert && e.evt === "retrait")) ouvrirDernierMidi();
+};
+
 function chercherMidi(){
   var p = pont();
+  if(p && pontIds()){
+    try{ MIDI.dispo = !!p.midiDispo(); }catch(e){ MIDI.dispo = false; }
+    if(!MIDI.dispo){ boxMidi.innerHTML = ""; boxMidi.textContent = "Ce téléphone ne déclare pas le MIDI."; majTemoinMidi(); return; }
+    relireAppareilsMidi();
+    dessinerListeMidi();
+    ouvrirDernierMidi();
+    return;
+  }
+  /* pont plus ancien, sans identifiants : comportement d'avant */
   boxMidi.innerHTML = "";
   if(!p){ boxMidi.textContent = "Pont indisponible."; return; }
   try{ MIDI.dispo = !!p.midiDispo(); }catch(e){ MIDI.dispo = false; }
@@ -14525,6 +14649,10 @@ bSync.addEventListener("click", function(){
 (function initMidi(){
   var p = pont();
   if(p){ try{ MIDI.dispo = !!p.midiDispo(); }catch(e){} }
+  /* v131 : la liste est prête dès l'ouverture, et le dernier appareil choisi est
+     rouvert s'il est branché. Après un rechargement de la page, l'appareil que
+     Java tient encore ouvert est reconnu comme tel. */
+  if(MIDI.dispo && pontIds()){ chercherMidi(); return; }
   majMidiUI();
 })();
 

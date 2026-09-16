@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **130**.
+La version actuelle est la **131**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 130** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 131** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -123,6 +123,43 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**MIDI : branchement à chaud, témoin, reconnexion — v131**
+
+*Défauts.* La liste n'était relue qu'au bouton CHERCHER ; un appareil débranché restait « ouvert » pour la
+page (`MIDI.ouvert` était posé au clic, **sans attendre** l'ouverture réelle) ; l'ouverture se faisait par
+**position** dans une liste qui pouvait avoir changé ; l'horloge lancée au clic était aussitôt coupée par le
+`fermer()` de l'ouverture ; aucun moyen de fermer un appareil depuis la page.
+
+*Java* (`Midi.java`) :
+- `surveiller()` enregistre un `MidiManager.DeviceCallback` (appelé depuis `onCreate`) ; `liberer()` le retire
+  et ferme tout (appelé depuis `onDestroy`, à la place de `fermer()`).
+- `ouvertId` : l'identifiant Android de l'appareil **réellement** ouvert, remis à −1 par `fermer()`.
+- `ouvrirId(id)` ouvre par identifiant ; `ouvrir(i)` reste pour un pont plus ancien.
+- `signaler(evt, nom)` envoie à la page l'état complet en JSON, chaînes échappées par `JSONObject.quote` :
+  `ajout`, `retrait`, `perdu` (l'appareil ouvert a disparu : il est fermé), `ouvert`, `echec`, `ferme`.
+- `fermerSignale()` pour la fermeture demandée par la page.
+- Pont : `midiAppareils()` (nom TAB id), `midiOuvertId()`, `midiOuvrirId(id)` ; `midiFermer` prévient la page.
+  `MainActivity.etat(json)` appelle `window.__midiEtat`.
+
+*Page* :
+- `__midiEtat(e)` tient la liste, `MIDI.ouvertId`, `MIDI.attenteId`, et redessine (`dessinerListeMidi`).
+  `MIDI.ouvert` reste l'index dans la liste affichée — tous les `MIDI.ouvert >= 0` existants restent justes,
+  et désormais vrais.
+- Témoin `#midi-etat` (classe `midi-etat`) : « ● CONNECTÉ : … », « ◌ OUVERTURE DE …… », « ○ AUCUN APPAREIL ».
+  Noms posés en `textContent`.
+- Retoucher l'appareil ouvert le ferme. L'horloge MIDI part à l'événement `ouvert`, plus au clic.
+- **Reconnexion** : `MIDI.dernier` (le nom du dernier appareil ouvert, gardé dans `memoire.midi`) est rouvert
+  quand il est rebranché, et au démarrage. Fermer à la main l'efface.
+- Au démarrage, la liste est prête sans toucher CHERCHER ; après un rechargement de la page, l'appareil que Java
+  tient encore ouvert est reconnu.
+- Sans `midiAppareils` (pont ancien, future version PC), `chercherMidi` garde l'ancien comportement.
+
+*Vérifié* avec un pont simulé : ouverture en attente puis confirmée, débranchement de l'appareil ouvert,
+rebranchement avec un nouvel identifiant et reconnexion, fermeture au second toucher, autre appareil branché
+sans ouverture intempestive, redémarrage avec réouverture, nom contenant `<USB>` affiché tel quel, horloge
+partie à l'ouverture, pont ancien. Le Java compile. **Non essayé** sur un vrai appareil : ce sera la
+vérification à faire sur le téléphone.
 
 **MIDI : plus de F0 isolé, SysEx vérifié avant envoi — v130**
 
