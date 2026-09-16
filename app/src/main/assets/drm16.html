@@ -24772,13 +24772,20 @@ function noeudsKp(){
   var rgain = eurGain(1), rmix = eurGain(0), rwet = eurGain(0);
   var sec = eurGain(1);                        /* le son sec, dosé contre l'anneau */
   var hache = eurGain(1);
+  /* RÉDUCTION (v127) : deux chemins en parallèle vers le hachoir, le son réduit
+     (cw) et le son intact (brut), pour que Y soit un vrai mélange. Au repos,
+     cw = 1 et brut = 0 : c'est exactement l'ancien chemin en série, la courbe
+     vide laissant tout passer. Aucun des deux chemins n'ajoute de retard :
+     pas d'effet de peigne quand on les mélange. */
+  var cw = eurGain(1), brut = eurGain(0);
   var lfo = ctx.createOscillator(); lfo.type = "square"; lfo.frequency.value = 8;
   var lprof = eurGain(0);
   lfo.connect(lprof); lprof.connect(hache.gain);
   ring.connect(rgain);
   var out = eurGain(1);
 
-  e.connect(f); f.connect(crush); crush.connect(hache);
+  e.connect(f); f.connect(crush); crush.connect(cw); cw.connect(hache);
+  f.connect(brut); brut.connect(hache);
   hache.connect(sec); sec.connect(out);
   hache.connect(d); d.connect(fb); fb.connect(d); d.connect(dmix); dmix.connect(out);
   hache.connect(conv); conv.connect(vmix); vmix.connect(out);
@@ -24788,6 +24795,7 @@ function noeudsKp(){
 
   KP.noeuds = {ctx:ctx, e:e, f:f, crush:crush, d:d, fb:fb, dmix:dmix,
                vmix:vmix, ring:ring, rgain:rgain, rmix:rmix, rwet:rwet, sec:sec,
+               cw:cw, brut:brut,
                hache:hache, lfo:lfo, lprof:lprof, out:out};
   appliquerKp();
   return KP.noeuds;
@@ -24832,14 +24840,18 @@ function appliquerKp(){
   n.crush.curve = null;
   n.fb.gain.value = 0; n.dmix.gain.value = 0;
   n.vmix.gain.value = 0;
-  var sec = 1, anneau = 0;
+  var sec = 1, anneau = 0, reduit = 1, intact = 0;
   n.lprof.gain.value = 0; n.hache.gain.value = 1;
   n.out.gain.value = KP.muet ? 0 : 1;
   var nom = KP_EFFETS[KP.fx][0];
   /* Doigt levé : la vitesse revient à 1 en glissant, comme un plateau relâché.
      Autre effet choisi : retour rapide. */
   if(!actif2 || nom !== "pitch") vitesseKp(1, actif2 ? 0.02 : 0.15);
-  if(!actif2){ lisseKp(n.sec.gain, 1); lisseKp(n.rwet.gain, 0); return; }
+  if(!actif2){
+    lisseKp(n.sec.gain, 1); lisseKp(n.rwet.gain, 0);
+    lisseKp(n.cw.gain, 1);  lisseKp(n.brut.gain, 0);
+    return;
+  }
 
   if(nom === "filtre"){
     n.f.frequency.value = 80 * Math.pow(220, x);
@@ -24872,7 +24884,10 @@ function appliquerKp(){
       c[i] = Math.round(v * m) / m;
     }
     n.crush.curve = c; n.crush.oversample = "none";
-    n.f.frequency.value = 400 + (1 - y) * 16000;
+    /* Y : du son intact (en bas) au son réduit pur (en haut). Jusqu'en v126,
+       Y réglait un passe-bas alors que l'écran annonçait « le mélange ». */
+    reduit = y * p;
+    intact = 1 - y * p;
   } else if(nom === "verb"){
     n.vmix.gain.value = y * 1.2 * p;
     n.f.frequency.value = 500 + x * 15000;
@@ -24884,6 +24899,8 @@ function appliquerKp(){
   }
   lisseKp(n.sec.gain, sec);
   lisseKp(n.rwet.gain, anneau);
+  lisseKp(n.cw.gain, reduit);
+  lisseKp(n.brut.gain, intact);
 }
 
 /* Le geste enregistré. On relève la position à chaque pas du séquenceur, ce
@@ -24891,10 +24908,13 @@ function appliquerKp(){
 function scheduleKp(i, t){
   if(KP.enregistre){
     KP.motion.push([KP.x, KP.y]);
-    if(KP.motion.length > 256) KP.enregistre = false;
+    if(KP.motion.length >= 256) KP.enregistre = false;   /* 256 points au plus */
   } else if(KP.rejoue && KP.motion.length){
+    /* v127 : on lit le point COURANT, puis on avance. Avant, l'index avançait
+       d'abord : la lecture commençait au deuxième point, et le premier
+       n'était entendu qu'au bouclage. */
+    var m = KP.motion[KP.mpos % KP.motion.length];
     KP.mpos = (KP.mpos + 1) % KP.motion.length;
-    var m = KP.motion[KP.mpos];
     KP.x = m[0]; KP.y = m[1];
     appliquerKp();
     majPavKp();
@@ -25347,6 +25367,7 @@ document.getElementById("kp-motion").addEventListener("click", function(){
 document.getElementById("kp-rejoue").addEventListener("click", function(){
   if(!KP.motion.length){ signal("AUCUN GESTE ENREGISTRÉ"); return; }
   KP.rejoue = !KP.rejoue; KP.enregistre = false;
+  if(KP.rejoue) KP.mpos = 0;          /* chaque relecture repart du début du geste */
   appliquerKp(); majKp(); H.inter();
 });
 document.getElementById("kp-mute").addEventListener("click", function(){
@@ -25371,7 +25392,7 @@ document.getElementById("kp-fx").addEventListener("click", function(){
   appliquerKp(); majKp(); memKp(); H.cran();
 });
 document.getElementById("kp-effacer").addEventListener("click", function(){
-  KP.motion = []; KP.rejoue = false; KP.enregistre = false;
+  KP.motion = []; KP.rejoue = false; KP.enregistre = false; KP.mpos = 0;
   memKp(); majKp(); H.inter();
 });
 document.getElementById("kp-prof").addEventListener("input", function(){

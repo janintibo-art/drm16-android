@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **126**.
+La version actuelle est la **127**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 126** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 127** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -121,6 +121,20 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**KAOSS PAD : RÉDUCTION mélange vraiment, PAD MOTION part du premier point — v127**
+
+*RÉDUCTION.* L'écran annonçait « Y le mélange » mais Y réglait un passe-bas : même Y en bas, le son restait
+réduit (mesuré : 71 niveaux distincts au lieu d'un sinus lisse). Deux chemins parallèles vers `hache` :
+`cw` (après la courbe) et `brut` (son intact). Y va de l'intact pur au réduit pur, dosé par FX DEPTH et
+lissé par `lisseKp`. Au repos `cw` = 1 et `brut` = 0 : l'ancien chemin en série, courbe vide. Aucun retard
+sur l'un ou l'autre : pas de peigne au mélange. Le passe-bas ne sert plus à cet effet (il gonflait la crête
+de 14 % à X = 0).
+
+*PAD MOTION.* `scheduleKp` avançait l'index **avant** de lire : la relecture commençait au deuxième point.
+On lit maintenant le point courant, puis on avance. REJOUER repart toujours du premier point (`KP.mpos = 0`),
+EFFACER remet l'index à zéro, et l'enregistrement s'arrête à 256 points exactement (257 avant).
+Vérifié : un geste de trois points se rejoue 1, 2, 3, 1…, et une relecture relancée repart de 1.
 
 **KAOSS PAD : VITESSE change vraiment la vitesse — v126**
 
