@@ -37,6 +37,13 @@ body.vlc .akai,body.vlc .rtr,body.vlc .dmxb{display:none}
   box-shadow:0 3px 0 #8a8780,0 4px 6px #0005,inset 0 1px 0 #fff}
 .vlc-pas button.act{background:linear-gradient(180deg,#ffb072,#d8622a);
   box-shadow:0 3px 0 #8a8780,0 0 10px #d8622a80,inset 0 1px 0 #ffd0a8}
+.vlc-pas button.inactif{opacity:.38}
+/* ACTIVE STEP montre la longueur réelle du motif, sans confondre avec les frappes
+   orange de la partie choisie. STEP JUMP souligne la rangée comme zone de jeu. */
+.vlc-pas.mode-active button{opacity:.28!important;background:linear-gradient(180deg,#e6e3db,#bdb9ae)}
+.vlc-pas.mode-active button.actif-step{opacity:1!important;background:linear-gradient(180deg,#fff0b2,#e1aa3e);
+  box-shadow:0 3px 0 #8a8780,0 0 9px #e1aa3e66,inset 0 1px 0 #fff8d8}
+.vlc-pas.mode-jump{box-shadow:0 0 0 2px #d8622a55;border-radius:4px}
 .vlc-pas button.cur::after{content:"";position:absolute;left:50%;top:4px;width:6px;height:6px;
   margin-left:-3px;border-radius:50%;background:#c81f0f;box-shadow:0 0 7px #ff3a2a}
 @media (max-width:780px){

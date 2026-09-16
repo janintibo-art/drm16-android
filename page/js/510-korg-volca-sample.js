@@ -32,7 +32,8 @@ function motifVlc(n){
 }
 /* rec : enregistrement des MOUVEMENTS de potards (bouton MOTION)
    recPas : enregistrement des DÉCLENCHEMENTS (bouton REC PAS) — deux choses */
-var VLC = {motifs:[], cur:0, sel:0, pos:-1, noeuds:[], rec:false, recPas:false, reverb:null};
+var VLC = {motifs:[], cur:0, sel:0, pos:-1, noeuds:[], rec:false, recPas:false,
+  modePas:"normal", reverb:null};
 for(var vz=0; vz<10; vz++) VLC.motifs.push(motifVlc(vz < 2 ? vz : 9));
 
 function motifVlcCur(){ return VLC.motifs[VLC.cur]; }
@@ -131,20 +132,36 @@ function frapperVlc(k){
 }
 
 /* ---------- séquenceur ---------- */
+/* ACTIVE STEP n'est pas un mute de pas : sur la vraie volca les pas désactivés
+   sont sautés. Le séquenceur travaille donc avec un index logique 0..N-1, puis
+   le traduit vers l'une des seize touches physiques. */
+function pasActifsVlc(){
+  var masque = motifVlcCur().actif, r = [];
+  for(var i=0;i<16;i++) if(masque & (1 << i)) r.push(i);
+  return r.length ? r : [0];
+}
+function nombrePasActifsVlc(){ return pasActifsVlc().length; }
+function pasReelVlc(i){
+  var a = pasActifsVlc();
+  return a[((i % a.length) + a.length) % a.length];
+}
+function indexPasVlc(reel){ return pasActifsVlc().indexOf(reel); }
 function scheduleVlc(i, t){
   var CHARGE_N = ouvrirPas();
-  var m = motifVlcCur();
-  if(!(m.actif & (1 << i))) return;            /* pas désactivé par ACTIVE STEP */
+  var m = motifVlcCur(), reel = pasReelVlc(i);
   for(var k=0;k<10;k++){
-    if(m.parties[k].pas & (1 << i)) CHARGE_N++, voixVlc(t, k, i);
+    if(m.parties[k].pas & (1 << reel)) CHARGE_N++, voixVlc(t, k, reel);
   }
+  /* La file garde l'index logique : beatVlc fait la même traduction. Cela
+     reste juste en vue d'ensemble, où draw() lui passe également cet index. */
   if(!cache) queue.push({i:i, t:t});
   attenuerVoie("vlc", CHARGE_N, t);
 }
 var vlcPas = [];
 function beatVlc(i){
-  VLC.pos = i;
-  for(var j=0;j<16;j++) vlcPas[j].classList.toggle("cur", j === i);
+  var reel = pasReelVlc(i);
+  VLC.pos = reel;
+  for(var j=0;j<16;j++) vlcPas[j].classList.toggle("cur", j === reel);
 }
 function arretVlc(){
   VLC.pos = -1;
@@ -154,7 +171,26 @@ function arretVlc(){
 }
 function boucleVlc(){ }
 var MACHINE_VLC = {schedule:scheduleVlc, beat:beatVlc, arret:arretVlc, boucle:boucleVlc,
-                   longueur:function(){ return 16; }};
+                   longueur:nombrePasActifsVlc};
+
+/* STEP JUMP recale le prochain pas réellement ordonnancé. L'ordonnanceur
+   travaille 220 ms en avance : il faut annuler ce qui n'a pas encore commencé,
+   sinon on entendrait encore l'ancienne position avant le saut. */
+function sauterVlc(reel){
+  var logique = indexPasVlc(reel);
+  if(logique < 0){ signal("STEP JUMP : PAS INACTIF"); return; }
+  if(!S.run){ signal("STEP JUMP : LANCEZ PLAY"); return; }
+  step = logique; queue = [];
+  if(MIDI.sync && MIDI.ouvert >= 0){
+    signal("STEP JUMP : PAS " + (reel + 1));
+    return;                           /* le prochain tic MIDI partira d'ici */
+  }
+  couperSourcesFutures();
+  midiSilence();                     /* aucune note MIDI prévue avant le saut */
+  nextT = maintenantAudio() + 0.015;
+  tick();
+  signal("STEP JUMP : PAS " + (reel + 1));
+}
 
 /* ---------- motif au format Korg : 2624 octets ---------- */
 var VLC_PISTES_MOTION = {level:1, pan:3, speed:5, ampeg_attack:6, ampeg_decay:7,
@@ -261,7 +297,21 @@ var VLC_KNOBS = [];
   pas.addEventListener("click", function(e){
     var b4 = e.target.closest("button");
     if(!b4) return;
-    var i2 = +b4.dataset.i, P = partieVlcSel();
+    var i2 = +b4.dataset.i, P = partieVlcSel(), m = motifVlcCur();
+    if(VLC.modePas === "active"){
+      var bit = 1 << i2;
+      if((m.actif & bit) && nombrePasActifsVlc() <= 1){
+        signal("ACTIVE STEP : GARDEZ UN PAS");
+        return;
+      }
+      m.actif ^= bit;
+      if(S.run && MACHINE === MACHINE_VLC) step %= nombrePasActifsVlc();
+      majVlc(); memVlc(); H.cran();
+      return;
+    }
+    if(VLC.modePas === "jump"){
+      sauterVlc(i2); H.cran(); return;
+    }
     P.pas ^= (1 << i2);
     if(!S.run && (P.pas & (1 << i2))){
       audioInit();
@@ -307,11 +357,20 @@ function majLcdVlc(){
   lcdVlc("P" + (VLC.sel + 1), nomBib(P.ech).slice(0, 14));
 }
 function majVlc(){
-  var P = partieVlcSel(), m = motifVlcCur(), i;
-  for(i=0;i<16;i++){
-    vlcPas[i].classList.toggle("act", !!(P.pas & (1 << i)));
-    vlcPas[i].style.opacity = (m.actif & (1 << i)) ? "1" : ".45";
+  var P = partieVlcSel(), m = motifVlcCur(), i, zone = document.getElementById("vlc-pas");
+  if(zone){
+    zone.classList.toggle("mode-active", VLC.modePas === "active");
+    zone.classList.toggle("mode-jump", VLC.modePas === "jump");
   }
+  for(i=0;i<16;i++){
+    var actifPas = !!(m.actif & (1 << i));
+    vlcPas[i].classList.toggle("act", !!(P.pas & (1 << i)));
+    vlcPas[i].classList.toggle("actif-step", actifPas);
+    vlcPas[i].classList.toggle("inactif", !actifPas);
+  }
+  var ba = document.getElementById("vlc-active"), bj = document.getElementById("vlc-jump");
+  if(ba) ba.classList.toggle("on", VLC.modePas === "active");
+  if(bj) bj.classList.toggle("on", VLC.modePas === "jump");
   var bs = document.querySelectorAll("#vlc-parts .vlcb");
   for(i=0;i<bs.length;i++) bs[i].classList.toggle("on", i === VLC.sel);
   VLC_FONCS.forEach(function(f){
@@ -336,7 +395,7 @@ function memVlc(){
 function chargerVlc(){
   VLC.motifs = [];
   for(var i=0;i<10;i++) VLC.motifs.push(motifVlc(i < 2 ? i : 9));
-  VLC.cur = 0; VLC.sel = 0; VLC.rec = false;
+  VLC.cur = 0; VLC.sel = 0; VLC.rec = false; VLC.recPas = false; VLC.modePas = "normal";
   var m = memLire("vlc");
   if(m && m.motifs && m.motifs.length === 10){
     VLC.motifs = m.motifs.map(function(o, n){
@@ -363,6 +422,15 @@ document.getElementById("vlc-play").addEventListener("click", function(){
   if(S.run){ stop(); H.stop(); } else { step = 0; start(); H.start(); }
   this.classList.toggle("on", S.run);
 });
+function choisirModePasVlc(mode){
+  VLC.modePas = (VLC.modePas === mode) ? "normal" : mode;
+  majVlc(); H.inter();
+  if(VLC.modePas === "active") signal("ACTIVE STEP : TOUCHEZ LES PAS A GARDER");
+  else if(VLC.modePas === "jump") signal("STEP JUMP : TOUCHEZ UN PAS PENDANT PLAY");
+  else signal("PAS : PROGRAMMATION");
+}
+document.getElementById("vlc-active").addEventListener("click", function(){ choisirModePasVlc("active"); });
+document.getElementById("vlc-jump").addEventListener("click", function(){ choisirModePasVlc("jump"); });
 VLC_FONCS.forEach(function(f){
   var b = document.getElementById("vlc-" + f);
   if(!b || f === "motion") return;
