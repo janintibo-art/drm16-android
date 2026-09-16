@@ -71,12 +71,21 @@ struct Etat {
     sortie: Option<MidiOutputConnection>,
     entree: Option<MidiInputConnection<()>>,
     ouvert: i64,
+    /// Ce que Windows a répondu au dernier échec d'ouverture (v143).
+    erreur: String,
 }
 
 fn etat() -> MutexGuard<'static, Etat> {
     static E: OnceLock<Mutex<Etat>> = OnceLock::new();
     E.get_or_init(|| {
-        Mutex::new(Etat { noms: Vec::new(), presents: BTreeSet::new(), sortie: None, entree: None, ouvert: -1 })
+        Mutex::new(Etat {
+            noms: Vec::new(),
+            presents: BTreeSet::new(),
+            sortie: None,
+            entree: None,
+            ouvert: -1,
+            erreur: String::new(),
+        })
     })
     .lock()
     .unwrap_or_else(|e| e.into_inner())
@@ -127,16 +136,20 @@ fn releve() -> Vec<(String, i64)> {
 
 fn signaler(evt: &str, nom: &str) {
     let l = releve();
-    let ouvert = etat().ouvert;
+    let (ouvert, erreur) = {
+        let e = etat();
+        (e.ouvert, if evt == "echec" { e.erreur.clone() } else { String::new() })
+    };
     let appareils: Vec<String> = l
         .iter()
         .map(|(n, id)| format!("{{\"nom\":{},\"id\":{}}}", chaine_js(n), id))
         .collect();
     executer(&format!(
-        "window.__midiEtat&&__midiEtat({{\"evt\":{},\"nom\":{},\"ouvert\":{},\"appareils\":[{}]}})",
+        "window.__midiEtat&&__midiEtat({{\"evt\":{},\"nom\":{},\"ouvert\":{},\"erreur\":{},\"appareils\":[{}]}})",
         chaine_js(evt),
         chaine_js(nom),
         ouvert,
+        chaine_js(&erreur),
         appareils.join(",")
     ));
 }
@@ -180,26 +193,46 @@ pub fn ouvrir_id(id: i64) {
         }
     };
     let Some(nom) = nom else {
+        etat().erreur = format!("identifiant inconnu : {}", id);
         signaler("echec", "");
         return;
     };
     fermer();
     let mut sortie = None;
     let mut entree = None;
-    if let Ok(mo) = MidiOutput::new("DRM16") {
-        let port = mo.ports().into_iter().find(|p| mo.port_name(p).map(|n| n == nom).unwrap_or(false));
-        if let Some(p) = port {
-            sortie = mo.connect(&p, "DRM16 sortie").ok();
+    // chaque refus est noté mot pour mot : c'est lui qui s'affiche à l'utilisateur
+    let mut erreurs: Vec<String> = Vec::new();
+    match MidiOutput::new("DRM16") {
+        Ok(mo) => {
+            let port = mo.ports().into_iter().find(|p| mo.port_name(p).map(|n| n == nom).unwrap_or(false));
+            if let Some(p) = port {
+                match mo.connect(&p, "DRM16 sortie") {
+                    Ok(c) => sortie = Some(c),
+                    Err(e) => erreurs.push(format!("sortie : {}", e)),
+                }
+            }
         }
+        Err(e) => erreurs.push(format!("sortie : {}", e)),
     }
-    if let Ok(mut mi) = MidiInput::new("DRM16") {
-        mi.ignore(Ignore::None);
-        let port = mi.ports().into_iter().find(|p| mi.port_name(p).map(|n| n == nom).unwrap_or(false));
-        if let Some(p) = port {
-            entree = mi.connect(&p, "DRM16 entree", |_instant, message, _| livrer(message), ()).ok();
+    match MidiInput::new("DRM16") {
+        Ok(mut mi) => {
+            mi.ignore(Ignore::None);
+            let port = mi.ports().into_iter().find(|p| mi.port_name(p).map(|n| n == nom).unwrap_or(false));
+            if let Some(p) = port {
+                match mi.connect(&p, "DRM16 entree", |_instant, message, _| livrer(message), ()) {
+                    Ok(c) => entree = Some(c),
+                    Err(e) => erreurs.push(format!("entrée : {}", e)),
+                }
+            }
         }
+        Err(e) => erreurs.push(format!("entrée : {}", e)),
     }
     if sortie.is_none() && entree.is_none() {
+        etat().erreur = if erreurs.is_empty() {
+            "appareil débranché".to_string()
+        } else {
+            erreurs.join(" · ")
+        };
         signaler("echec", &nom);
         return;
     }

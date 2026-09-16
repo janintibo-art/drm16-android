@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **142**.
+La version actuelle est la **143**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 142** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 143** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -128,6 +128,25 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**MIDI : la raison d'un refus d'ouverture — v143**
+
+*Constat v142* : le diagnostic a tranché — « reçus : echec · côté Rust : −1 ». L'événement arrive bien ;
+c'est **l'ouverture** de « Microsoft GS Wavetable Synth » que Windows refuse sur l'exécuteur GitHub (qui n'a
+pas de carte son : ce synthétiseur logiciel en a besoin). Le correctif v142 (fil à part) reste utile : il
+aligne le comportement sur Android.
+
+*Correction* : `ouvrir_id` note **mot pour mot** chaque refus de `midir` (sortie, entrée) dans `Etat.erreur`,
+ou « appareil débranché » s'il ne trouve plus de port de ce nom ; l'événement `echec` porte un champ
+`erreur`, et la page l'affiche : « MIDI : OUVERTURE IMPOSSIBLE · NOM · RAISON » (`310-midi.js` ; Android n'envoie
+pas ce champ, rien ne change pour lui).
+
+*Autotest* : si l'appareil est refusé **et** que la raison est bien parvenue à la page, le contrôle est
+**NON CONCLUANT** (compté comme réussi, rapport explicite) et les essais d'envoi sont sautés — le code a fait
+ce qu'il doit ; c'est la machine d'essai qui ne permet pas d'aller plus loin. Un échec sans raison, ou une
+ouverture jamais signalée, reste un échec. Les deux chemins sont essayés dans la coque simulée.
+
+**Essai à faire sur un vrai PC** : ouvrir la carte USB-MIDI, jouer, horloge, sauvegarde SysEx.
 
 **W5 bis : ouverture MIDI sur un fil à part — v142**
 

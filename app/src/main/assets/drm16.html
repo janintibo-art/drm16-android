@@ -6264,9 +6264,18 @@ var HOST = (function(){
         /* on note chaque événement reçu : en cas d'échec, le rapport dit si
            l'ouverture a raté (côté Rust) ou si l'événement n'est pas arrivé */
         var recus = [], avant = window.__midiEtat;
-        window.__midiEtat = function(e){ recus.push(e && e.evt); return avant(e); };
+        var raison = "";
+        window.__midiEtat = function(e){ recus.push(e && e.evt); if(e && e.erreur) raison = e.erreur; return avant(e); };
         h.midiOuvrirId(id);
         return attendreQue(function(){ return MIDI.ouvertId === id; }, 6000).then(function(ouvert){
+          if(!ouvert && recus.indexOf("echec") >= 0 && raison){
+            /* Le système a refusé l'ouverture et l'a dit : c'est le bon comportement du
+               code, mais l'appareil de cet exécuteur ne permet pas d'aller plus loin. */
+            t(true, "MIDI : NON CONCLUANT — « " + c[0] + " » refusé par le système (" + raison +
+                    "), refus bien transmis à la page ; essais d'envoi sautés");
+            window.__midiEtat = avant;
+            return;
+          }
           t(ouvert, "MIDI : « " + c[0] + " » ouvert, confirmé par __midiEtat (reçus : " +
                     (recus.join(",") || "aucun") + " · côté Rust : " + h.midiOuvertId() + ")");
           if(!ouvert){ window.__midiEtat = avant; return; }
@@ -14755,7 +14764,8 @@ window.__midiEtat = function(e){
     signal("MIDI CONNECTÉ : " + nom);
   } else if(e.evt === "echec"){
     MIDI.attenteId = -1;
-    signal("MIDI : OUVERTURE IMPOSSIBLE" + (nom ? " · " + nom : ""));
+    signal("MIDI : OUVERTURE IMPOSSIBLE" + (nom ? " · " + nom : "") +
+           (e.erreur ? " · " + String(e.erreur).toUpperCase() : ""));   /* v143 : la raison donnée par le système */
   } else if(e.evt === "perdu"){
     MIDI.attenteId = -1;
     signal("MIDI DÉBRANCHÉ : " + nom + " · CONNEXION FERMÉE");

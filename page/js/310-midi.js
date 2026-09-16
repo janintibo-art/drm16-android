@@ -470,7 +470,8 @@ window.__midiEtat = function(e){
     signal("MIDI CONNECTÉ : " + nom);
   } else if(e.evt === "echec"){
     MIDI.attenteId = -1;
-    signal("MIDI : OUVERTURE IMPOSSIBLE" + (nom ? " · " + nom : ""));
+    signal("MIDI : OUVERTURE IMPOSSIBLE" + (nom ? " · " + nom : "") +
+           (e.erreur ? " · " + String(e.erreur).toUpperCase() : ""));   /* v143 : la raison donnée par le système */
   } else if(e.evt === "perdu"){
     MIDI.attenteId = -1;
     signal("MIDI DÉBRANCHÉ : " + nom + " · CONNEXION FERMÉE");
