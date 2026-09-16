@@ -159,6 +159,11 @@ par potard, et un toucher sur certains potards a déjà un sens (afficher leur v
 importé, fichier inconnu signalé). Le bloc 10 attend désormais que la page rechargée soit prête (il a échoué
 une fois sous charge). Autotest Windows : raccourcis et plein écran branchés.
 
+*Correctif de livraison v146* : la première archive oubliait `page/html/340-note-general.html` (paragraphe
+« Sur ordinateur » de la notice) alors que `drm16.html` l'intégrait déjà. **Le contrôle 0 l'a arrêté net**
+(« drm16.html differe des sources : html/340-note-general.html, ligne 141 ») : exactement son rôle. Depuis,
+chaque archive est composée **automatiquement** de tous les fichiers modifiés depuis la livraison précédente.
+
 **W7 : le projet .drm16 — v145**
 
 *Constat v144* : sous Windows, micro présent, moteur audio en latence moyenne (44,1 kHz, **42 ms** de sortie),
