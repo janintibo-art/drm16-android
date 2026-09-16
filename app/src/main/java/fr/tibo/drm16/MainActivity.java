@@ -124,10 +124,11 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             if (midi == null) return;
             if (on) midi.horlogeDepart(bpm); else midi.horlogeArret();
         }
-        @JavascriptInterface public void midiSysex(String base64) {
-            if (midi == null || base64 == null) return;
-            try { midi.envoyerSysex(Base64.decode(base64, Base64.DEFAULT)); }
-            catch (Exception ignored) {}
+        /** Faux si rien n'est parti : pas d'appareil, ou message incomplet. */
+        @JavascriptInterface public boolean midiSysex(String base64) {
+            if (midi == null || base64 == null) return false;
+            try { return midi.envoyerSysex(Base64.decode(base64, Base64.DEFAULT)); }
+            catch (Exception e) { return false; }
         }
         @JavascriptInterface public void midiTempo(double bpm) {
             if (midi != null) midi.tempo(bpm);

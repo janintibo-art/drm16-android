@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **129**.
+La version actuelle est la **130**.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -38,7 +38,7 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 129** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+**Chiffres au 130** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
 30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
 fichier HTML de 1,25 Mo.
 
@@ -57,6 +57,7 @@ Le Java ne sert que de pont vers Android.
 | `.../java/fr/tibo/drm16/Midi.java` | API MIDI Android, SysEx |
 | `.../java/fr/tibo/drm16/PlaybackService.java` | service de premier plan |
 | `.../java/fr/tibo/drm16/Fichiers.java` | remplacement sûr des fichiers, sans dépendance Android |
+| `.../java/fr/tibo/drm16/MidiOctets.java` | règles d'envoi MIDI (longueurs, SysEx complet), sans dépendance Android |
 | `app/src/main/AndroidManifest.xml` | permissions |
 | `.github/workflows/android.yml` | compilation |
 
@@ -122,6 +123,27 @@ tout identifiant employé comme objet sans être déclaré ni importé.
 
 - **Bluetooth MIDI** dans le pont Java — reconnexion automatique et témoin de signal, d'après *fabkorg*.
   Impossible à essayer sans matériel.
+
+**MIDI : plus de F0 isolé, SysEx vérifié avant envoi — v130**
+
+*Défaut.* L'envoi générique (`midiEnvoyer` → `Midi.envoyer`) acceptait `F0` comme message d'un octet. `F0`
+ouvre un message exclusif : l'appareil attend la suite, et peut ignorer ce qui vient ensuite jusqu'à un `F7`
+qui n'arrive pas. `F7`, `F4`, `F5`, `F9` et `FD` partaient aussi seuls.
+
+*Correction* — nouvelle classe **`MidiOctets.java`**, sans dépendance Android :
+- `longueur(statut)` : 3 ou 2 octets pour les messages de canal, 2 pour `F1`/`F3`, 3 pour `F2`, 1 pour `F6`
+  et le temps réel (`F8 FA FB FC FE FF`), **−1 pour tout le reste** — refusé. Comparé à l'ancienne table sur
+  les 256 valeurs : seuls `F0 F4 F5 F7 F9 FD` changent.
+- `sysexComplet(m)` : une suite d'un ou plusieurs messages `F0 … F7` complets, données sur 7 bits, rien entre
+  eux (une sauvegarde de banque en contient souvent plusieurs).
+- `Midi.envoyerSysex` refuse tout le reste et **rend un booléen** ; `midiSysex` le transmet à la page
+  (il ne rendait rien).
+- Page : `excEnvoyerBrut` et `bibRenvoyer` affichent le refus — « FICHIER EXCLUSIF INCOMPLET · RIEN N'EST
+  PARTI » ou « AUCUN APPAREIL MIDI OUVERT ». La page n'envoyait jamais `F0` par `midiBrut` : rien d'autre à
+  changer. Les demandes Korg sont complètes, et `sept_vers_huit` reste bien sur 7 bits (vérifié).
+
+*Vérifié* : `TestMidi` (JDK) — 12 contrôles, dont message tronqué, statut au milieu, octet après le dernier
+`F7`, second message incomplet. Tout le Java compile.
 
 **Remplacement de fichier sans perte possible — v129**
 

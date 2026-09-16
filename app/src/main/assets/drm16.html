@@ -26399,7 +26399,12 @@ function bibRenvoyer(nom){
   if(!b64){ signal("FICHIER ILLISIBLE"); return; }
   var o = b64VersOctets(b64);
   if(o[0] !== 0xF0){ signal("CE N'EST PAS UN ENVOI EXCLUSIF"); return; }
-  try{ p.midiSysex(b64); }catch(e){ signal("ENVOI REFUSÉ"); return; }
+  var parti;
+  try{ parti = p.midiSysex(b64); }catch(e){ signal("ENVOI REFUSÉ"); return; }
+  if(parti === false){
+    signal(MIDI.ouvert < 0 ? "AUCUN APPAREIL MIDI OUVERT" : "FICHIER EXCLUSIF INCOMPLET · RIEN N'EST PARTI");
+    return;
+  }
   signal("RENVOYÉ : " + o.length + " OCTETS");
 }
 function bibSupprimerFichier(nom){
@@ -27244,8 +27249,10 @@ function excEnvoyerBrut(octets){
   var p = window.DRM16;
   if(!p || !p.midiSysex){ signal("PONT MIDI INDISPONIBLE"); return false; }
   if(MIDI.ouvert < 0){ signal("AUCUN APPAREIL MIDI OUVERT"); return false; }
-  try{ p.midiSysex(octetsVersB64(new Uint8Array(octets))); }
+  var parti;
+  try{ parti = p.midiSysex(octetsVersB64(new Uint8Array(octets))); }
   catch(e){ signal("ENVOI EXCLUSIF REFUSÉ"); return false; }
+  if(parti === false){ signal("ENVOI EXCLUSIF REFUSÉ"); return false; }   /* v130 : le pont le dit */
   return true;
 }
 /* on ignore quelle machine est branchée : on demande aux deux */

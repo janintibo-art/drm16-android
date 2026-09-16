@@ -186,8 +186,10 @@ public class Midi {
     }
 
     /** Envoi d'un message exclusif, découpé pour ne pas saturer le tampon du port. */
-    public void envoyerSysex(byte[] m) {
-        if (versAppareil == null || m == null) return;
+    /** Envoie un ou plusieurs messages exclusifs COMPLETS ; refuse le reste
+        (v130) plutot que de laisser l'appareil en attente d'un F7. */
+    public boolean envoyerSysex(byte[] m) {
+        if (versAppareil == null || !MidiOctets.sysexComplet(m)) return false;
         int pos = 0;
         try {
             while (pos < m.length) {
@@ -195,7 +197,10 @@ public class Midi {
                 versAppareil.send(m, pos, n);
                 pos += n;
             }
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
     }
 
     private void livrer(final int a, final int b, final int c) {
@@ -205,20 +210,8 @@ public class Midi {
     public void envoyer(int a, int b, int c) {
         if (versAppareil == null) return;
         int statut = a & 0xFF;
-        int n;
-        if (statut >= 0xF8 || statut == 0xF4 || statut == 0xF5
-                || statut == 0xF6 || statut == 0xF7 || statut == 0xF0) {
-            n = 1;
-        } else if (statut == 0xF1 || statut == 0xF3) {
-            n = 2;
-        } else if (statut == 0xF2) {
-            n = 3;
-        } else if (statut >= 0x80 && statut <= 0xEF) {
-            int type = statut & 0xF0;
-            n = (type == 0xC0 || type == 0xD0) ? 2 : 3;
-        } else {
-            return;
-        }
+        int n = MidiOctets.longueur(statut);   /* F0, F7 et statuts non definis : refuses */
+        if (n < 0) return;
         byte[] m = new byte[n];
         m[0] = (byte) statut;
         if (n > 1) m[1] = (byte) (b & 0x7F);
