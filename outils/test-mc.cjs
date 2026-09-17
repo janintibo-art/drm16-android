@@ -60,7 +60,7 @@ function verifierForme(c){
     assert(['drum','synth'].includes(p.type));assert(['sawtooth','square','triangle','sine'].includes(p.onde));
     assert.equal(typeof p.muet,'boolean');assert(Number.isInteger(p.oct)&&Number.isFinite(p.oct));
     for(const nom of ['cut','dec','niv'])assert(Number.isFinite(p[nom])&&p[nom]>=0&&p[nom]<=1,nom+' borné');
-    assert(Number.isInteger(p.clip)&&p.clip>=0&&p.clip<4);assert.equal(p.clips.length,4);
+    assert(Number.isInteger(p.clip)&&p.clip>=0&&p.clip<16);assert.equal(p.clips.length,16);
     p.clips.forEach(clip=>{assert.equal(clip.length,16);clip.forEach(note=>{
       assert(Number.isInteger(note)&&note>=-1&&note<=(p.type==='drum'?3:127),'note valide');
     });});
@@ -74,9 +74,9 @@ function verifierForme(c){
   c.MACHINE={arret(){ancienArrete=true;assert.equal(c.S.modele,'16');}};c.S.run=true;
   c.activerMc();assert(ancienArrete);assert(!c.S.run);assert.equal(c.S.modele,'mc');
   assert.strictEqual(c.MACHINE,c.MACHINE_MC);assert.equal(c.sauves,1);assert.equal(c.MC.sel,2);
-  assert.deepStrictEqual(copie(c.MC.pistes),enregistre.pistes);assert.equal(c.MC.note,5);
+  assert.deepStrictEqual(copie(c.MC.pistes).map(p=>({...p,clips:p.clips.slice(0,4)})),enregistre.pistes);assert.equal(c.MC.note,5);
   assert.equal(c.MC.scatType,3);assert.equal(c.MC.scatProf,.7);assert.equal(el['mc-scat-prof'].value,.7);
-  assert.equal(el['mc-clips'].childNodes.length,4);assert.equal(el['mc-pads'].childNodes.length,16);
+  assert.equal(el['mc-clips'].childNodes.length,16);assert.equal(el['mc-pads'].childNodes.length,16);
   assert.equal(c.sons.length,0);verifierForme(c);
   c.MC.pistes[2].clips[2][0]=42;assert.equal(c.memoire.mc.pistes[2].clips[2][0],-1,'lecture sans alias vers la mémoire');
   c.memMc();const snapshot=c.memoire.mc;c.MC.pistes[2].clips[2][0]=43;
@@ -97,7 +97,7 @@ function verifierForme(c){
     assert.equal(el['mc-clips'].childNodes[k].attrs['aria-pressed'],'true');
   }
   const avant=copie(c.MC.pistes),ecritures=c.ecritures;
-  for(const k of [-1,4,1.5,NaN,Infinity,'2',null])c.choisirClipMc(k);
+  for(const k of [-1,16,1.5,NaN,Infinity,'2',null])c.choisirClipMc(k);
   assert.deepStrictEqual(copie(c.MC.pistes),avant);assert.equal(c.ecritures,ecritures);
   for(const p of c.MC.pistes)for(const clip of p.clips)clip.fill(-1);
   c.MC.pistes[2].clips[1][6]=17;c.MC.pistes[2].clips[0][6]=4;
@@ -510,13 +510,13 @@ function choisirCombinaison(c,indices){indices.forEach((k,i)=>c.MC.pistes[i].cli
   const cas=[
     [undefined,scenesOrigine()],[null,scenesOrigine()],['1234',scenesOrigine()],[{0:[3,2,1,0]},scenesOrigine()],
     [[],scenesOrigine()],
-    [[[3,2,1,0],[2,-1,4,1.5],[NaN,Infinity,'1',null],[0,3]],[[3,2,1,0],[2,1,1,1],[2,2,2,2],[0,3,3,3]]],
+    [[[3,2,1,0],[2,-1,16,1.5],[NaN,Infinity,'1',null],[0,3]],[[3,2,1,0],[2,1,1,1],[2,2,2,2],[0,3,3,3]]],
     [[[1,2,3,0,2],{},'0123',false,[0,0,0,0]],[[1,2,3,0],[1,1,1,1],[2,2,2,2],[3,3,3,3]]],
   ];
   for(const [scenes,attendues] of cas){
     const {c}=setup({scenes});c.activerMc();assert.deepStrictEqual(copie(c.MC.scenes),attendues);
     assert.equal(c.MC.scenes.length,4);assert.equal(new Set(c.MC.scenes).size,4);
-    for(const ligne of c.MC.scenes){assert.equal(ligne.length,4);assert(ligne.every(n=>Number.isInteger(n)&&n>=0&&n<4));}
+    for(const ligne of c.MC.scenes){assert.equal(ligne.length,4);assert(ligne.every(n=>Number.isInteger(n)&&n>=0&&n<16));}
   }
 }
 
@@ -617,3 +617,26 @@ for(const programme of [false,true]){
 }
 
 console.log('MC-101 : restauration, copies indépendantes, scènes personnalisées, sauvegarde, demandes annulables, frontière audio de mesure, arrêt, mémoire, SCATTER, arrière-plan et SET OK.');
+
+// v183 : migration 4 -> 16, dernier clip, scènes et frontière audio.
+{
+ const ancien=memoireExemple(),f=setup(copie(ancien)),{c,el}=f;c.activerMc();
+ assert.equal(new Set(c.MC.pistes.flatMap(p=>p.clips)).size,64);
+ for(let i=0;i<4;i++){
+  assert.deepStrictEqual(copie(c.MC.pistes[i].clips.slice(0,4)),ancien.pistes[i].clips);
+  assert(c.MC.pistes[i].clips.slice(4).every(cl=>cl.every(n=>n===-1)));
+ }
+ f.clip(15);c.MC.pistes[2].clips[15][0]=24;c.copierClipMc();f.clip(14);c.collerClipMc();
+ c.MC.pistes[2].clips[14][0]=31;assert.equal(c.MC.pistes[2].clips[15][0],24);
+ f.clip(15);c.armerSceneMc();c.memoriserSceneMc(3);c.memMc();
+ const r=setup(copie(c.stocke));r.c.activerMc();
+ assert.equal(r.c.MC.pistes[2].clip,15);assert.equal(r.c.MC.scenes[3][2],15);
+ assert.equal(r.c.MC.pistes[2].clips[14][0],31);
+ r.c.choisirClipMc(0);r.c.S.run=true;r.c.modeClipsMc(true);r.c.choisirSceneMc(3);
+ assert.equal(r.c.MC.attente[2],15);assert.equal(r.c.MC.pistes[2].clip,0);
+ r.c.scheduleMc(0,1.2);assert(r.c.sons.some(n=>n[1]===2&&n[2]===24));
+ r.c.maintenant=1.2;r.c.beatMc(0);assert.equal(r.c.MC.pistes[2].clip,15);
+ r.c.S.run=false;r.c.modeClipsMc(false);r.click('mc-clip');assert.equal(r.c.MC.pistes[2].clip,0);
+ assert.equal(el['mc-scenes'].childNodes.length,4);
+}
+console.log('MC-101 v183 : migration, 64 clips isolés, scène avec clip 16, rappel à la mesure et retour au clip 1 OK.');

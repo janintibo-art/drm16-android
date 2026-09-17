@@ -4598,7 +4598,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <h3>Quatre pistes et des clips</h3>
   <p>La piste 1 est <b>rythmique</b> — quatre instruments : grosse caisse, caisse claire, charley, clap.
   Les trois autres sont <b>mélodiques</b>, avec leur forme d'onde et leur filtre. Chaque piste a
-  <b>quatre clips de seize pas</b>. Les boutons <b>CLIP 1 à 4</b> choisissent directement le clip
+  <b>seize clips de seize pas</b>. Les boutons <b>CLIP 1 à 16</b> choisissent directement le clip
   de la piste sélectionnée. Le bouton <b>CLIP</b> du bas continue de les parcourir.</p>
   <p>Le potard <b>NOTE</b> choisit ce qu'on va écrire ; les pads posent ou retirent. Toucher un pas qui
   contient déjà cette note l'efface. Toucher une piste déjà choisie la coupe.</p>
@@ -4612,7 +4612,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   début de mesure encore disponible. Le clip en cours reste vert, celui qui attend devient ambré.
   Vous pouvez préparer plusieurs pistes : elles changeront ensemble. Les pads, COPIER et COLLER
   agissent toujours sur le clip en cours, jusqu'au départ du suivant.</p>
-  <p>Les quatre boutons <b>SCÈNE</b> rappellent chacun une combinaison des quatre clips. Les chiffres
+  <p>Les anciens projets conservent leurs clips 1 à 4 ; les clips 5 à 16 sont initialement vides. Les nouvelles sauvegardes doivent être ouvertes avec la v183 ou une version ultérieure pour conserver tous les clips.</p>
+  <p>Les quatre boutons <b>SCÈNE</b> rappellent chacun une combinaison de clips des quatre pistes. Les chiffres
   sous le bouton correspondent aux pistes 1, 2, 3 et 4 : <b>1 · 3 · 2 · 4</b> choisit le clip 1 de la
   première piste, le clip 3 de la deuxième, le clip 2 de la troisième et le clip 4 de la dernière.
   Au départ, les scènes correspondent à <b>1 · 1 · 1 · 1</b>, puis 2, 3 et 4 sur les quatre pistes.
@@ -27329,7 +27330,7 @@ function chargerKp(){
    Le SCATTER n'est donc pas un effet audio : il change QUEL pas est joué.
    C'est pour cela qu'il s'entend même sur une seule caisse claire. */
 
-var MC_PISTES = 4, MC_CLIPS = 4;
+var MC_PISTES = 4, MC_CLIPS = 16, MC_SCENES = 4;
 
 var MC_SCATTER = [
   ["répétition", "chaque groupe de quatre pas rejoue le premier"],
@@ -27358,7 +27359,7 @@ function pisteMc(i){
 }
 function scenesOrigineMc(){
   var scenes = [];
-  for(var s=0;s<MC_CLIPS;s++){
+  for(var s=0;s<MC_SCENES;s++){
     var clips = [];
     for(var p=0;p<MC_PISTES;p++) clips.push(s);
     scenes.push(clips);
@@ -27368,7 +27369,7 @@ function scenesOrigineMc(){
 function lireScenesMc(source){
   var scenes = scenesOrigineMc();
   if(!Array.isArray(source)) return scenes;
-  for(var s=0;s<MC_CLIPS;s++){
+  for(var s=0;s<MC_SCENES;s++){
     if(!Array.isArray(source[s])) continue;
     for(var p=0;p<MC_PISTES;p++){
       var n = source[s][p];
@@ -27450,8 +27451,14 @@ function choisirClipMc(k){
   majMc();
   return true;
 }
+function indiceSceneMc(k){
+  if(typeof k !== "number" || Math.floor(k) !== k || k < 0 || k >= MC_SCENES){
+    signal("SCÈNE INVALIDE"); return false;
+  }
+  return true;
+}
 function choisirSceneMc(k){
-  if(!indiceClipMc(k) || !commandeClipsMc()) return false;
+  if(!indiceSceneMc(k) || !commandeClipsMc()) return false;
   MC.memoScene = false;
   var attendre = MC.quantifie && lectureClipsMc(), scene = MC.scenes[k];
   for(var i=0;i<MC_PISTES;i++){
@@ -27481,7 +27488,7 @@ function armerSceneMc(){
   return true;
 }
 function memoriserSceneMc(k){
-  if(!indiceClipMc(k) || !editionScenesMc()) return false;
+  if(!indiceSceneMc(k) || !editionScenesMc()) return false;
   if(!MC.memoScene){ signal("TOUCHEZ MÉMORISER PUIS UNE SCÈNE"); return false; }
   var clips = MC.pistes.map(function(P){ return P.clip; });
   var change = clips.some(function(n, p){ return n !== MC.scenes[k][p]; });
@@ -28140,7 +28147,7 @@ function majClipsMc(){
   }
   var scenes = document.getElementById("mc-scenes");
   if(!scenes.childNodes.length){
-    for(var s=0;s<MC_CLIPS;s++) (function(k){
+    for(var s=0;s<MC_SCENES;s++) (function(k){
       var bt = document.createElement("button"); bt.type = "button";
       bt.innerHTML = "SCÈNE " + (k + 1) + "<em></em>";
       bt.addEventListener("click", function(){
@@ -28155,7 +28162,7 @@ function majClipsMc(){
     var suite = MC.depart ? MC.depart.clips[p] : MC.attente[p];
     if(suite !== null && suite !== MC.pistes[p].clip) demandes.push("P" + (p + 1) + " → C" + (suite + 1));
   }
-  for(var n=0;n<MC_CLIPS;n++){
+  for(var n=0;n<MC_SCENES;n++){
     var combinaison = MC.scenes[n];
     var choisi = MC.pistes.every(function(piste, k){ return piste.clip === combinaison[k]; });
     var prevu = demandes.length > 0 && MC.pistes.every(function(piste, k){

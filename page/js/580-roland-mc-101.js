@@ -8,7 +8,7 @@
    Le SCATTER n'est donc pas un effet audio : il change QUEL pas est joué.
    C'est pour cela qu'il s'entend même sur une seule caisse claire. */
 
-var MC_PISTES = 4, MC_CLIPS = 4;
+var MC_PISTES = 4, MC_CLIPS = 16, MC_SCENES = 4;
 
 var MC_SCATTER = [
   ["répétition", "chaque groupe de quatre pas rejoue le premier"],
@@ -37,7 +37,7 @@ function pisteMc(i){
 }
 function scenesOrigineMc(){
   var scenes = [];
-  for(var s=0;s<MC_CLIPS;s++){
+  for(var s=0;s<MC_SCENES;s++){
     var clips = [];
     for(var p=0;p<MC_PISTES;p++) clips.push(s);
     scenes.push(clips);
@@ -47,7 +47,7 @@ function scenesOrigineMc(){
 function lireScenesMc(source){
   var scenes = scenesOrigineMc();
   if(!Array.isArray(source)) return scenes;
-  for(var s=0;s<MC_CLIPS;s++){
+  for(var s=0;s<MC_SCENES;s++){
     if(!Array.isArray(source[s])) continue;
     for(var p=0;p<MC_PISTES;p++){
       var n = source[s][p];
@@ -129,8 +129,14 @@ function choisirClipMc(k){
   majMc();
   return true;
 }
+function indiceSceneMc(k){
+  if(typeof k !== "number" || Math.floor(k) !== k || k < 0 || k >= MC_SCENES){
+    signal("SCÈNE INVALIDE"); return false;
+  }
+  return true;
+}
 function choisirSceneMc(k){
-  if(!indiceClipMc(k) || !commandeClipsMc()) return false;
+  if(!indiceSceneMc(k) || !commandeClipsMc()) return false;
   MC.memoScene = false;
   var attendre = MC.quantifie && lectureClipsMc(), scene = MC.scenes[k];
   for(var i=0;i<MC_PISTES;i++){
@@ -160,7 +166,7 @@ function armerSceneMc(){
   return true;
 }
 function memoriserSceneMc(k){
-  if(!indiceClipMc(k) || !editionScenesMc()) return false;
+  if(!indiceSceneMc(k) || !editionScenesMc()) return false;
   if(!MC.memoScene){ signal("TOUCHEZ MÉMORISER PUIS UNE SCÈNE"); return false; }
   var clips = MC.pistes.map(function(P){ return P.clip; });
   var change = clips.some(function(n, p){ return n !== MC.scenes[k][p]; });

@@ -1123,8 +1123,8 @@ async def mc_clips(nav):
         clips = pg.locator("#mc-clips > button")
         pistes = pg.locator("#mc-trks > button")
         pads = pg.locator("#mc-pads > button")
-        ok(await clips.count() == 4 and await pg.locator("#mc-coller").is_disabled(),
-           "quatre clips accessibles et COLLER désactivé avant une copie")
+        ok(await clips.count() == 16 and await pg.locator("#mc-coller").is_disabled(),
+           "seize clips accessibles et COLLER désactivé avant une copie")
 
         await pistes.nth(1).click()
         await pads.nth(0).click()
@@ -1150,16 +1150,16 @@ async def mc_clips(nav):
            "modifier le collage laisse le clip source et la copie intacts")
 
         await pistes.nth(2).click()
-        await clips.nth(3).click()
+        await clips.nth(15).click()
         await pg.locator("#mc-coller").click()
         await pads.nth(7).click()
         await pistes.nth(1).click()
         r = await pg.evaluate("""() => ({clips:MC.pistes.map(p => p.clip),
-          propre:MC.pistes[2].clips[3][7] === 0 && MC.pistes[1].clips[0][7] === -1 &&
+          propre:MC.pistes[2].clips[15][7] === 0 && MC.pistes[1].clips[0][7] === -1 &&
             MC.pistes[1].clips[2][7] === -1 && MC.copie.pas[7] === -1,
           selection:document.querySelector('#mc-clips').children[2].classList.contains('sel'),
           pas:document.querySelectorAll('#mc-pads > .on').length})""")
-        ok(r["clips"] == [0, 2, 3, 0] and r["propre"] and r["selection"] and r["pas"] == 1,
+        ok(r["clips"] == [0, 2, 15, 0] and r["propre"] and r["selection"] and r["pas"] == 1,
            "chaque piste garde son clip choisi et ses propres modifications")
 
         # Des valeurs non initiales rendent visible une restauration oubliée.
@@ -1183,11 +1183,11 @@ async def mc_clips(nav):
           texte:document.getElementById('mc-copie-etat').textContent,
           selection:document.querySelector('#mc-clips').children[2].getAttribute('aria-pressed'),
           profondeur:Number(document.getElementById('mc-scat-prof').value),
-          distinct:new Set(MC.pistes.flatMap(p => p.clips)).size === 16})""")
+          distinct:new Set(MC.pistes.flatMap(p => p.clips)).size === 64})""")
         ok(r["vide"] and r["disabled"] and r["texte"] == "AUCUNE COPIE",
            "le presse-papiers reste temporaire et COLLER se désactive au redémarrage")
         ok(r["selection"] == "true" and abs(r["profondeur"] - 0.72) < 1e-6 and r["distinct"],
-           "façade restaurée et seize clips toujours indépendants")
+           "façade restaurée et soixante-quatre clips toujours indépendants")
         ok(not err, "aucune erreur de page %s" % err[:1])
     finally:
         await ctx.close()
@@ -1210,7 +1210,7 @@ async def mc_lancements(nav):
           MC.sel = 1;
           MC.pistes.forEach(function(p, i){
             p.cut = 0.2 + i * 0.1; p.niv = 0.4; p.muet = i === 2;
-            p.clips.forEach(function(c, k){ c.fill(i === 0 ? k : k * 12 + i); });
+            p.clips.forEach(function(c, k){ c.fill(i === 0 ? k % 4 : (k % 8) * 12 + i); });
           });
           window.__mcAppels = [];
           window.__mcVoix = voixMc;

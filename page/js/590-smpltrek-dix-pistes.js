@@ -425,7 +425,7 @@ function majClipsMc(){
   }
   var scenes = document.getElementById("mc-scenes");
   if(!scenes.childNodes.length){
-    for(var s=0;s<MC_CLIPS;s++) (function(k){
+    for(var s=0;s<MC_SCENES;s++) (function(k){
       var bt = document.createElement("button"); bt.type = "button";
       bt.innerHTML = "SCÈNE " + (k + 1) + "<em></em>";
       bt.addEventListener("click", function(){
@@ -440,7 +440,7 @@ function majClipsMc(){
     var suite = MC.depart ? MC.depart.clips[p] : MC.attente[p];
     if(suite !== null && suite !== MC.pistes[p].clip) demandes.push("P" + (p + 1) + " → C" + (suite + 1));
   }
-  for(var n=0;n<MC_CLIPS;n++){
+  for(var n=0;n<MC_SCENES;n++){
     var combinaison = MC.scenes[n];
     var choisi = MC.pistes.every(function(piste, k){ return piste.clip === combinaison[k]; });
     var prevu = demandes.length > 0 && MC.pistes.every(function(piste, k){
