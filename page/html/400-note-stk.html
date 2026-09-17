@@ -2,7 +2,7 @@
   <h3>Une station, pas une boîte à rythmes</h3>
   <p>Les vingt-six autres machines ont toutes le même modèle : un motif qui contient tout, sons compris.
   Ici c'est l'inverse, et c'est ce qui en fait une station multipiste : les <b>dix pistes persistent</b> —
-  leur son, leur hauteur, leur timbre, leur niveau — et les <b>huit motifs contiennent les pas et leurs choix de tranches</b>.
+  leur son, leur hauteur, leur timbre, leur niveau — et les <b>huit motifs contiennent les pas, leurs notes et leurs choix de tranches</b>.
   On change de motif <b>sans perdre son mixage</b>.</p>
 
   <h3>L'écran</h3>
@@ -19,6 +19,33 @@
   <p>Les cinq potards agissent sur la piste choisie : <b>TUNE</b> la hauteur, <b>DECAY</b> la longueur,
   <b>FILTER</b> la coupure, <b>LEVEL</b> le niveau, <b>PAN</b> la place. Ils suivent la piste, pas le
   motif : c'est le principe de la machine.</p>
+
+  <h3>SHOTS ou INSTRUMENT</h3>
+  <p>À l'arrêt, <b>TYPE : SHOTS</b> passe la piste sélectionnée en <b>INSTRUMENT</b>.
+  SHOTS garde la lecture habituelle du sample. INSTRUMENT permet d'écrire une
+  hauteur différente sur chaque pas, de −12 à +12 demi-tons : une octave de chaque
+  côté de la hauteur d'origine.</p>
+  <p>Choisissez la hauteur dans la liste puis touchez un pas. <b>ÉCOUTER</b> joue
+  la hauteur sélectionnée sans écrire. Une autre note remplace celle du pas ;
+  retoucher la même note et la même tranche retire le pas. Les nombres entre
+  crochets, comme <b>[+12]</b>, indiquent la transposition enregistrée.</p>
+  <p><b>ORIGINE</b> signifie zéro transposition, pas une note musicale détectée :
+  la hauteur réelle dépend du sample importé. Le potard TUNE s'ajoute à la note
+  du pas. Comme sur la lecture actuelle, modifier la vitesse change aussi la
+  durée du son ; ce mode n'ajoute pas de timestretch.</p>
+  <p>INSTRUMENT fonctionne aussi avec SLICE : chaque pas conserve sa tranche et
+  sa hauteur. Les auditions respectent MUTE et SOLO. Le filtre, DECAY, LEVEL et
+  PAN restent actifs. Chaque pas porte une seule note, sans accord ni réglage
+  de durée de note séparé.</p>
+  <p>Revenir à SHOTS ignore les hauteurs enregistrées, sans les effacer. Réactiver
+  INSTRUMENT les retrouve. Éditer un pas en SHOTS le retire ou écrit une hauteur
+  zéro. Le type de piste, la hauteur sélectionnée et les notes des huit motifs
+  sont sauvegardés ; COPIER MOTIF conserve les notes et les tranches. EFFACER
+  retire aussi les notes de la piste dans le motif courant.</p>
+  <p>Les anciens projets restent en SHOTS, avec des notes à zéro. Utilisez v189
+  ou plus récent pour conserver les notes Instrument dans les projets. Le MIDI
+  garde pour l'instant son routage par piste : une note entrante joue la hauteur
+  sélectionnée sur sa piste, sans nouveau clavier MIDI chromatique.</p>
 
   <h3>Enchaîner et copier les motifs</h3>
   <p><b>MOTIF</b> affiche les huit choix sur les pads. À l'arrêt, le choix est
@@ -99,7 +126,7 @@
   son routage par piste : une note entrante utilise la tranche actuellement choisie.</p>
 
   <h3>Écrire</h3>
-  <p>Avec SLICE désactivé, les seize pads écrivent les pas de la piste choisie ; toucher un pas allumé l'éteint. Un pas qu'on
+  <p>Avec SHOTS et SLICE désactivé, les seize pads écrivent les pas de la piste choisie ; toucher un pas allumé l'éteint. Un pas qu'on
   allume se fait entendre aussitôt, pour vérifier sans lancer la lecture.</p>
   <p><b>MOTIF</b> bascule les pads sur le choix du motif, de 1 à 8. <b>EFFACER</b> vide les pas de la piste
   choisie, après confirmation — les autres pistes ne sont pas touchées.</p>

@@ -369,3 +369,8 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 .stk-chaine-commandes button:disabled{opacity:.4}
 #stk-chaine-liste{overflow-x:auto;white-space:nowrap;font:700 10px/1.6 Arial;color:#e8e04a;padding:4px 0}
 #stk-chaine-etat{display:block;font:700 8px/1.4 Arial;color:#a9a78b;margin-bottom:8px}
+
+.stk-instrument-commandes{display:grid;grid-template-columns:1.4fr 1.3fr 1fr;gap:5px;margin-bottom:9px}
+.stk-instrument-commandes button,.stk-instrument-commandes select{min-width:0;padding:9px 3px;border:1px solid #454337;border-radius:5px;background:#282830;color:#e8e04a;font:700 9px Arial}
+.stk-instrument-commandes button.on{background:#e8e04a;color:#141410}
+.stk-instrument-commandes :disabled{opacity:.4}

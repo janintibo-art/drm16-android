@@ -11,11 +11,11 @@
 var STK_PISTES = 10, STK_MOTIFS = 8;
 
 function pisteStk(i){
-  return {ech:"b" + (i % 24), slice:false, tranche:0, niv:0.8, pan:0, tune:0.5, dec:0.85, filt:1, muet:false};
+  return {ech:"b" + (i % 24), type:"shots", note:0, slice:false, tranche:0, niv:0.8, pan:0, tune:0.5, dec:0.85, filt:1, muet:false};
 }
 function motifStk(){
-  var m = {pas:[], tranches:[], last:16};
-  for(var i=0;i<STK_PISTES;i++){ m.pas.push(0); m.tranches.push(Array(16).fill(-1)); }
+  var m = {pas:[], tranches:[], notes:[], last:16};
+  for(var i=0;i<STK_PISTES;i++){ m.pas.push(0); m.tranches.push(Array(16).fill(-1)); m.notes.push(Array(16).fill(0)); }
   return m;
 }
 var STK = {pistes:[], motifs:[], cur:0, sel:0, solo:-1, rec:false, pos:-1,
@@ -81,7 +81,7 @@ function annulerMotifStk(){
   viderAttenteStk(); majStk(); return true;
 }
 function copieMotifStk(m){
-  return {last:m.last, pas:m.pas.slice(), tranches:m.tranches.map(function(t){ return t.slice(); })};
+  return {last:m.last, pas:m.pas.slice(), tranches:m.tranches.map(function(t){ return t.slice(); }), notes:m.notes.map(function(n){ return n.slice(); })};
 }
 function copierMotifStk(){
   suivreMotifsStk();
@@ -140,6 +140,30 @@ function preparerChaineStk(){
   memStk(); if(S.modele === "stk") majStk(); return true;
 }
 
+/* v189 : hauteur relative au sample, une valeur par pas. La hauteur réelle
+   dépend du son importé ; zéro signifie sa vitesse d'origine (TUNE au centre). */
+function noteInstrumentStk(v){
+  return Number.isInteger(v) && v >= -12 && v <= 12 ? v : 0;
+}
+function nomHauteurStk(v){ return v === 0 ? "ORIGINE" : (v > 0 ? "+" : "") + v + " DEMI-TONS"; }
+function modeInstrumentStk(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER DE TYPE"); return false; }
+  var P = pisteStkSel(); P.type = P.type === "instrument" ? "shots" : "instrument";
+  memStk(); majStk(); return true;
+}
+function choisirNoteStk(v){
+  if(!Number.isInteger(v) || v < -12 || v > 12) return false;
+  pisteStkSel().note = v; memStk(); majStk(); return true;
+}
+function ecouterInstrumentStk(){
+  audioInit(); banqueEs();
+  if(!ctx || !passeStk(STK.sel)) return false;
+  var P = pisteStkSel();
+  if(!ES.buf[P.ech]){ signal("SON INDISPONIBLE"); return false; }
+  voixStk(maintenantAudio() + 0.005, STK.sel, false, P.slice ? P.tranche : -1, P.note);
+  return true;
+}
+
 /* v186 : huit tranches égales, sans création ni modification du fichier source.
    -1 dans un pas conserve le son entier des anciens projets. */
 function numeroTrancheStk(v){
@@ -175,7 +199,7 @@ function passeStk(i){
   return !STK.pistes[i].muet;
 }
 
-function voixStk(t, i, acc, tranche){
+function voixStk(t, i, acc, tranche, note){
   audioInit(); if(!ctx) return;
   banqueEs();
   var P = STK.pistes[i];
@@ -186,7 +210,8 @@ function voixStk(t, i, acc, tranche){
   if(bornes.fin <= bornes.debut) return;
   var n = noeudsStk();
   var src = ctx.createBufferSource();
-  src.playbackRate.value = Math.pow(2, (P.tune - 0.5) * 2);
+  var hauteur = P.type === "instrument" ? noteInstrumentStk(note === undefined ? P.note : note) : 0;
+  src.playbackRate.value = Math.pow(2, (P.tune - 0.5) * 2 + hauteur / 12);
   poserTampon(src, buf, src.playbackRate.value);
   var f = ctx.createBiquadFilter();
   f.type = "lowpass";
@@ -238,7 +263,7 @@ function scheduleStk(i, t){
   for(var k=0;k<STK_PISTES;k++){
     if(!(m.pas[k] & (1 << i))) continue;
     if(!passeStk(k)) continue;
-    CHARGE_N++, voixStk(t, k, (i % 4) === 0, m.tranches[k][i]);
+    CHARGE_N++, voixStk(t, k, (i % 4) === 0, m.tranches[k][i], m.notes[k][i]);
   }
   if(!cache) queue.push({i:i, t:t});
   attenuerVoie("stk", CHARGE_N, t);
@@ -265,9 +290,9 @@ function memStk(){
   if(validerDepartStk()) majStk();
   memoire.stk = {song:STK.song, quantifie:STK.quantifie, cur:STK.cur, sel:STK.sel, chaine:STK.chaine.slice(),
     pistes:STK.pistes.map(function(P){
-      return {ech:P.ech, slice:P.slice, tranche:P.tranche, niv:P.niv, pan:P.pan, tune:P.tune, dec:P.dec, filt:P.filt, muet:P.muet};
+      return {ech:P.ech, type:P.type, note:P.note, slice:P.slice, tranche:P.tranche, niv:P.niv, pan:P.pan, tune:P.tune, dec:P.dec, filt:P.filt, muet:P.muet};
     }),
-    motifs:STK.motifs.map(function(m){ return {pas:m.pas.slice(), tranches:m.tranches.map(function(t){ return t.slice(); }), last:m.last}; })};
+    motifs:STK.motifs.map(function(m){ return {pas:m.pas.slice(), tranches:m.tranches.map(function(t){ return t.slice(); }), notes:m.notes.map(function(n){ return n.slice(); }), last:m.last}; })};
   sauverMachine("stk");
 }
 function nombreStk(v, min, max, repli){
@@ -285,6 +310,7 @@ function chargerStk(){
     var P = pisteStk(i), o = Array.isArray(m.pistes) ? m.pistes[i] : null;
     if(o && typeof o === "object"){
       if(typeof o.ech === "string" && /^[bu][a-zA-Z0-9_-]{1,100}$/.test(o.ech)) P.ech = o.ech;
+      P.type = o.type === "instrument" ? "instrument" : "shots"; P.note = noteInstrumentStk(o.note);
       P.slice = o.slice === true; P.tranche = Math.max(0, numeroTrancheStk(o.tranche));
       ["niv","tune","dec","filt"].forEach(function(k){ P[k] = nombreStk(o[k], 0, 1, P[k]); });
       P.pan = nombreStk(o.pan, -1, 1, P.pan); P.muet = o.muet === true;
@@ -300,6 +326,8 @@ function chargerStk(){
         motif.pas[k] = Number.isInteger(bits) ? bits & 65535 : 0;
         var tr = Array.isArray(ancien.tranches) ? ancien.tranches[k] : null;
         if(Array.isArray(tr)) for(var n=0;n<16;n++) motif.tranches[k][n] = numeroTrancheStk(tr[n]);
+        var nt = Array.isArray(ancien.notes) ? ancien.notes[k] : null;
+        if(Array.isArray(nt)) for(var p=0;p<16;p++) motif.notes[k][p] = noteInstrumentStk(nt[p]);
       }
     }
     STK.motifs[j] = motif;
@@ -940,6 +968,17 @@ function majTranchesStk(){
   document.getElementById("stk-source").textContent = buf ? nomBib(P.ech) : "SON ABSENT · " + P.ech;
   if(cacheAvant !== grille.hidden && S.modele === "stk") fit();
 }
+function majInstrumentStk(){
+  var P = pisteStkSel(), actif = P.type === "instrument";
+  var mode = document.getElementById("stk-instrument"), choix = document.getElementById("stk-note");
+  mode.textContent = actif ? "TYPE : INSTRUMENT" : "TYPE : SHOTS";
+  mode.setAttribute("aria-pressed", String(actif)); mode.classList.toggle("on", actif); mode.disabled = S.run;
+  if(!choix.options.length) for(var n=-12;n<=12;n++){
+    var option = document.createElement("option"); option.value = String(n); option.textContent = nomHauteurStk(n); choix.appendChild(option);
+  }
+  choix.value = String(P.note); choix.disabled = !actif;
+  document.getElementById("stk-ecouter").disabled = !ES.buf[P.ech] || !passeStk(STK.sel);
+}
 function majChaineStk(){
   var bt = document.getElementById("stk-chaine");
   bt.textContent = STK.song ? "CHAÎNE : OUI" : "CHAÎNE : NON";
@@ -986,14 +1025,16 @@ function majStk(){
       STK_MODE === "ptn" ? (k2 === STK.cur) : !!(m.pas[STK.sel] & (1 << k2)));
     bs[k2].classList.toggle("cur", STK_MODE !== "ptn" && k2 === STK.pos);
     var tr = m.tranches[STK.sel][k2], actifPas = !!(m.pas[STK.sel] & (1 << k2));
+    var hauteur = m.notes[STK.sel][k2], instr = pisteStkSel().type === "instrument";
     bs[k2].textContent = STK_MODE === "ptn" ? (k2 < STK_MOTIFS ? String(k2 + 1) : "·") :
-      String(k2 + 1) + (pisteStkSel().slice && actifPas ? (tr >= 0 ? " · T" + (tr + 1) : " · ENT") : "");
+      String(k2 + 1) + (pisteStkSel().slice && actifPas ? (tr >= 0 ? " T" + (tr + 1) : " ENT") : "") +
+      (instr && actifPas ? " [" + (hauteur > 0 ? "+" : "") + hauteur + "]" : "");
     var suivant = STK.depart ? STK.depart.motif : STK.attente;
     bs[k2].classList.toggle("attente", STK_MODE === "ptn" && k2 === suivant);
     if(STK_MODE === "ptn" && k2 === suivant) bs[k2].textContent += " →";
     bs[k2].disabled = STK_MODE === "ptn" ? k2 >= STK_MOTIFS || !!STK.depart || (STK.song && S.run) : k2 >= m.last;
     bs[k2].setAttribute("aria-label", STK_MODE === "ptn" ? "Motif " + (k2 + 1) :
-      "Pas " + (k2 + 1) + (actifPas ? (pisteStkSel().slice && tr >= 0 ? " · tranche " + (tr + 1) : " · son entier") : " · vide"));
+      "Pas " + (k2 + 1) + (actifPas ? (pisteStkSel().slice && tr >= 0 ? " · tranche " + (tr + 1) : " · son entier") + (instr ? " · " + nomHauteurStk(hauteur) : "") : " · vide"));
   }
   var ts = document.getElementById("stk-trks").childNodes;
   for(var t2=0;t2<STK_PISTES;t2++){
@@ -1001,7 +1042,7 @@ function majStk(){
     ts[t2].classList.toggle("sel", t2 === STK.sel);
     ts[t2].classList.toggle("muet", !passeStk(t2));
     ts[t2].querySelector("i").style.background = couleurCanal(t2);
-    ts[t2].querySelector("em").textContent = nomBib(P.ech);
+    ts[t2].querySelector("em").textContent = (P.type === "instrument" ? "INST · " : "") + nomBib(P.ech);
   }
   var qm = document.getElementById("stk-quantifie");
   qm.textContent = STK.quantifie ? "FIN MOTIF" : "DIRECT";
@@ -1022,10 +1063,11 @@ function majStk(){
   var et = document.getElementById("stk-etat");
   if(et) et.textContent = STK_MODE === "ptn"
     ? "Les pads choisissent le motif. Touchez MOTIF pour revenir aux pas."
+    : pisteStkSel().type === "instrument" ? "Choisissez la hauteur puis un pas. Même note et tranche : retirer ; autre choix : remplacer."
     : pisteStkSel().slice ? "Choisissez TR 1–8, puis un pas : écrire, remplacer ou retirer cette tranche."
     : "Les pads écrivent les pas de la piste " + (STK.sel + 1) +
       ". Retoucher une piste choisie la coupe.";
-  majChaineStk(); majTranchesStk(); dessinerStk();
+  majInstrumentStk(); majChaineStk(); majTranchesStk(); dessinerStk();
 }
 function padStk(k){
   if(!Number.isInteger(k) || k < 0 || k >= 16) return;
@@ -1038,10 +1080,12 @@ function padStk(k){
   var m = motifStkCur(), P = pisteStkSel();
   if(!Number.isInteger(k) || k < 0 || k >= m.last) return;
   var tranche = P.slice ? P.tranche : -1;
-  var retirer = !!(m.pas[STK.sel] & (1 << k)) && (!P.slice || m.tranches[STK.sel][k] === tranche);
-  if(retirer){ m.pas[STK.sel] &= ~(1 << k); m.tranches[STK.sel][k] = -1; }
-  else { m.pas[STK.sel] |= (1 << k); m.tranches[STK.sel][k] = tranche; }
-  if(!retirer && ctx && passeStk(STK.sel)) voixStk(maintenantAudio() + 0.005, STK.sel, false, tranche);
+  var hauteur = P.type === "instrument" ? P.note : 0;
+  var retirer = !!(m.pas[STK.sel] & (1 << k)) && (!P.slice || m.tranches[STK.sel][k] === tranche) &&
+    (P.type !== "instrument" || m.notes[STK.sel][k] === hauteur);
+  if(retirer){ m.pas[STK.sel] &= ~(1 << k); m.tranches[STK.sel][k] = -1; m.notes[STK.sel][k] = 0; }
+  else { m.pas[STK.sel] |= (1 << k); m.tranches[STK.sel][k] = tranche; m.notes[STK.sel][k] = hauteur; }
+  if(!retirer && ctx && passeStk(STK.sel)) voixStk(maintenantAudio() + 0.005, STK.sel, false, tranche, hauteur);
   memStk(); majStk(); H.cran();
 }
 function knobStk(nom, etiq, min, max){
@@ -1079,6 +1123,9 @@ document.getElementById("stk-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
   majStk(); H.start();
 });
+document.getElementById("stk-instrument").addEventListener("click", modeInstrumentStk);
+document.getElementById("stk-note").addEventListener("change", function(){ choisirNoteStk(Number(this.value)); });
+document.getElementById("stk-ecouter").addEventListener("click", ecouterInstrumentStk);
 document.getElementById("stk-chaine").addEventListener("click", modeChaineStk);
 document.getElementById("stk-chaine-ajout").addEventListener("click", ajouterChaineStk);
 document.getElementById("stk-chaine-retirer").addEventListener("click", retirerChaineStk);
@@ -1111,7 +1158,7 @@ document.getElementById("stk-son").addEventListener("click", function(){
 });
 document.getElementById("stk-clear").addEventListener("click", function(){
   if(!window.confirm("Effacer les pas de la piste " + (STK.sel + 1) + " ?")) return;
-  motifStkCur().pas[STK.sel] = 0; motifStkCur().tranches[STK.sel].fill(-1);
+  motifStkCur().pas[STK.sel] = 0; motifStkCur().tranches[STK.sel].fill(-1); motifStkCur().notes[STK.sel].fill(0);
   memStk(); majStk(); H.inter();
 });
 

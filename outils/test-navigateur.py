@@ -1753,10 +1753,79 @@ async def stk_chaine(nav):
     finally:
         await contexte.close()
 
+async def stk_instrument(nav):
+    print('\n28. SmplTrek : instrument, notes, copies et hauteurs audio (v189)')
+    from pathlib import Path
+    import io,wave,math,struct
+    flux=io.BytesIO()
+    with wave.open(flux,'wb') as w:
+        w.setnchannels(1);w.setsampwidth(2);w.setframerate(32000)
+        w.writeframes(b''.join(struct.pack('<h',int(8000*math.sin(2*math.pi*440*i/32000))) for i in range(32000)))
+    contexte=await nav.new_context(viewport={'width':393,'height':851})
+    await contexte.add_init_script(PONT)
+    adresse=await servir_page(contexte);pg=await contexte.new_page();erreurs=[]
+    pg.on('pageerror',lambda e:erreurs.append(str(e)))
+    try:
+        await pg.goto(adresse);await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=stk]').click();await pg.locator('#stk-import').click()
+        await pg.set_input_files('#bib-fichier',{'name':'instrument.wav','mimeType':'audio/wav','buffer':flux.getvalue()})
+        await pg.wait_for_function("Object.keys(BIB.noms).some(k=>BIB.noms[k]==='instrument')")
+        ligne=pg.locator('.bib-ligne').filter(has=pg.locator('b',has_text='instrument'))
+        await ligne.get_by_role('button',name='AFFECTER',exact=True).click()
+        await pg.evaluate('writeMem()');await pg.reload()
+        await pg.wait_for_function("document.body.classList.contains('pret') && ES.buf[STK.pistes[0].ech]")
+        await pg.locator('.pick[data-m=stk]').click()
+        ok(await pg.locator('#stk-note').is_disabled(),'SHOTS par défaut : ancien comportement conservé')
+        await pg.locator('#stk-instrument').click()
+        for i,n in enumerate(('-12','0','12')):
+            await pg.locator('#stk-note').select_option(n);await pg.locator('#stk-pads button').nth(i).click()
+        ok(await pg.evaluate('JSON.stringify(STK.motifs[0].notes[0].slice(0,3))==="[-12,0,12]"'),'trois hauteurs écrites par les boutons')
+        await pg.locator('#stk-note').select_option('7');await pg.locator('#stk-pads button').nth(2).click()
+        ok(await pg.evaluate('STK.motifs[0].notes[0][2]===7 && (STK.motifs[0].pas[0]&4)'),'autre note remplace celle du pas')
+        await pg.locator('#stk-pads button').nth(2).click()
+        ok(await pg.evaluate('!(STK.motifs[0].pas[0]&4)'),'même note retire le pas')
+        await pg.locator('#stk-note').select_option('12');await pg.locator('#stk-pads button').nth(2).click()
+        await pg.locator('#stk-copier').click();await pg.locator('#stk-ptn').click()
+        await pg.locator('#stk-pads button').nth(7).click();await pg.locator('#stk-coller').click()
+        await pg.evaluate('memStk();writeMem()');await pg.reload()
+        await pg.wait_for_function("document.body.classList.contains('pret') && ES.buf[STK.pistes[0].ech]")
+        await pg.locator('.pick[data-m=stk]').click()
+        ok(await pg.evaluate('STK.pistes[0].type==="instrument" && STK.pistes[0].note===12 && JSON.stringify(STK.motifs[7].notes[0].slice(0,3))==="[-12,0,12]"'),'type, hauteur choisie, copie et notes restaurés')
+        resultat=await pg.evaluate('''async () => {
+          var avant={ctx:ctx,master:master,n:STK.noeuds,bus:busSet},P=STK.pistes[0];
+          async function rendre(note,shots,slice){
+            var off=new OfflineAudioContext(1,96000,32000);ctx=off;master=off.destination;STK.noeuds=null;busSet=function(){return null;};
+            P.type=shots?'shots':'instrument';P.slice=slice;P.tune=.5;P.dec=1;P.filt=1;P.niv=.5;P.pan=0;
+            ouvrirPas();voixStk(.01,0,true,slice?7:-1,note);
+            var d=(await off.startRendering()).getChannelData(0),hz=0,pic=0,fin=0;
+            var debut=slice?640:1600,finMesure=slice?1600:4800;
+            for(var i=debut;i<finMesure;i++){pic=Math.max(pic,Math.abs(d[i]));if(d[i-1]<=0&&d[i]>0)hz++;}
+            var duree=(slice?.125:1)/Math.pow(2,shots?0:note/12);
+            for(var i=Math.ceil((duree+.08)*32000);i<d.length;i++)fin=Math.max(fin,Math.abs(d[i]));
+            return {hz:hz*32000/(finMesure-debut),pic:pic,fin:fin};
+          }
+          try{return [await rendre(-12,false,false),await rendre(0,false,false),await rendre(12,false,false),await rendre(12,true,false),await rendre(12,false,true)];}
+          finally{ctx=avant.ctx;master=avant.master;STK.noeuds=avant.n;busSet=avant.bus;P.type='instrument';P.slice=false;}
+        }''')
+        ok(all(abs(r['hz']-hz)<40 and r['pic']>.001 for r,hz in zip(resultat,(220,440,880,440,880))),'audio réel : octave basse, origine, octave haute, SHOTS et tranche transposée')
+        ok(all(r['fin']<.00001 for r in resultat),'aucune lecture après la fin prévue du sample ou de la tranche')
+        await pg.locator('#stk-instrument').click()
+        ok(await pg.evaluate('STK.pistes[0].type==="shots" && STK.motifs[7].notes[0][2]===12'),'retour SHOTS conserve les notes')
+        await pg.locator('#stk-instrument').click();await pg.locator('#stk-play').click()
+        ok(await pg.locator('#stk-instrument').is_disabled(),'changement de type verrouillé pendant PLAY')
+        await pg.locator('#stk-play').click()
+        await pg.locator('#stk-slice').click()
+        for w,h in ((393,851),(360,640),(880,400)):
+            await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+            await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('stk-v189-%sx%s.png'%(w,h))))
+        ok(not erreurs,'aucune erreur de page : '+str(erreurs))
+    finally:
+        await contexte.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument):
             try:
                 await t(nav)
             except Exception as e:

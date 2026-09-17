@@ -72,7 +72,8 @@ for(const id of ['ko','stk']) {
   assert.deepStrictEqual(copie(etat[id==='stk'?'pistes':'sons']).map(p=>{
     if(id!=='stk') return p;
     assert.strictEqual(p.slice,false);assert.strictEqual(p.tranche,0);
-    const {slice,tranche,...ancien}=p;return ancien;
+    assert.strictEqual(p.type,"shots");assert.strictEqual(p.note,0);
+    const {slice,tranche,type,note,...ancien}=p;return ancien;
   }),sauvegarde[id==='stk'?'pistes':'sons']);
   assert.equal(c.frappes.length,0,'ouvrir ne joue aucune note');
   c['schedule'+suffixe](5,1);

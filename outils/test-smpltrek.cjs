@@ -131,3 +131,31 @@ console.log('SmplTrek v187 : motifs quantifiés, heure audio, MIDI/SET, arrêt, 
  c.memoire.stk={song:true,chaine:[],pistes:[],motifs:[]};c.chargerStk();assert(!s.song);
 }
 console.log('SmplTrek v188 : répétitions, plusieurs départs anticipés, position audio, STOP/PLAY, limites et sauvegarde de chaîne OK.');
+
+// v189 : notes relatives, migration, copie indépendante et envoi au moteur.
+{
+ const c=setup(),s=c.STK;assert(s.pistes.every(p=>p.type==='shots'&&p.note===0));
+ assert(s.motifs.every(m=>m.notes.length===10&&m.notes.every(n=>n.length===16&&n.every(v=>v===0))));
+ assert(c.modeInstrumentStk());assert.equal(s.pistes[0].type,'instrument');
+ assert(c.choisirNoteStk(-12));assert.equal(s.pistes[0].note,-12);
+ for(const v of [-13,13,1.5,NaN,'3'])assert(!c.choisirNoteStk(v));
+ s.motifs[0].pas[0]=7;s.motifs[0].notes[0][0]=-12;s.motifs[0].notes[0][1]=0;s.motifs[0].notes[0][2]=12;
+ const n=[];c.voixStk=(...a)=>n.push(a);for(let i=0;i<3;i++)c.scheduleStk(i,1+i*.125);
+ assert.deepStrictEqual(n.map(a=>a[4]),[-12,0,12],'hauteur de chaque pas transmise à la voix');
+ c.copierMotifStk();c.choisirMotifStk(7);assert(c.collerMotifStk());
+ s.motifs[7].notes[0][2]=7;assert.equal(s.motifs[0].notes[0][2],12);assert.equal(s.copie.motif.notes[0][2],12);
+ c.memStk();const saved=copie(c.memoire.stk);s.motifs[7].notes[0][2]=4;
+ assert.equal(c.memoire.stk.motifs[7].notes[0][2],7,'sauvegarde indépendante');
+ const d=setup(saved);d.chargerStk();assert.equal(d.STK.pistes[0].type,'instrument');assert.equal(d.STK.pistes[0].note,-12);
+ assert.equal(d.STK.motifs[7].notes[0][2],7);assert(d.modeInstrumentStk());
+ assert.equal(d.STK.pistes[0].type,'shots');assert.equal(d.STK.motifs[7].notes[0][2],7,'retour SHOTS sans effacement');
+ d.S.run=true;assert(!d.modeInstrumentStk(),'type protégé pendant PLAY');
+}
+{
+ const c=setup({pistes:[{type:'instrument',note:99}],motifs:[{notes:[[-12,12,0,13,-13,1.5,'4',null]]}]});
+ c.chargerStk();assert.equal(c.STK.pistes[0].note,0);
+ assert.deepStrictEqual(copie(c.STK.motifs[0].notes[0].slice(0,8)),[-12,12,0,0,0,0,0,0]);
+ c.memoire.stk={pistes:[{}],motifs:[{pas:[1]}]};c.chargerStk();
+ assert.equal(c.STK.pistes[0].type,'shots');assert(c.STK.motifs[0].notes[0].every(n=>n===0));
+}
+console.log('SmplTrek v189 : notes, copies indépendantes, migration et type Instrument OK.');
