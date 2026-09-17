@@ -216,6 +216,17 @@ body.m32 .mcb,body.em1 .mcb,body.er1 .mcb,body.ea1 .mcb,body.es1 .mcb,body.emx .
   font-style:normal;opacity:.6}
 .mc-trks .mt.sel{background:#2e2e38;color:#fff;box-shadow:inset 0 0 0 2px #00c98a}
 .mc-trks .mt.muet{opacity:.42}
+.mc-clips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:6px}
+.mc-clips button{min-width:0;margin:0;padding:8px 2px;border:1px solid #303038;border-radius:6px;
+  background:#17171d;color:#8a8a92;font:800 9px/1.2 "Roboto Condensed",Arial;touch-action:manipulation}
+.mc-clips button em{display:block;margin-top:3px;font:400 7.5px/1.2 "Roboto Condensed",Arial;font-style:normal}
+.mc-clips button.plein{color:#b6ebcf;border-color:#377258}
+.mc-clips button.sel{background:#00c98a;color:#08120e;border-color:#00c98a}
+.mc-copie{display:grid;grid-template-columns:1fr 1fr 2fr;gap:6px;align-items:center;margin-bottom:11px}
+.mc-copie button{min-width:0;margin:0;padding:9px 2px;border:0;border-radius:6px;background:#22222a;
+  color:#cfcfd4;font:800 9px/1.2 "Roboto Condensed",Arial;touch-action:manipulation}
+.mc-copie button:disabled{opacity:.4}
+#mc-copie-etat{min-width:0;font:700 8px/1.4 "Roboto Condensed",Arial;color:#8a8a92}
 .mc-kns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:11px}
 .mc-kn{text-align:center}
 .mc-kn .bt{width:40px;height:40px;margin:0 auto;border-radius:50%;background:#1b1b21;

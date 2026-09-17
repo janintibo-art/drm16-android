@@ -678,10 +678,93 @@ async def confort(nav):
     ok(not err, "aucune erreur de page %s" % err[:1])
     await ctx.close()
 
+async def mc_clips(nav):
+    print("\n16. MC-101 : clips, copie indépendante et mémoire au redémarrage (v173)")
+    ctx = await nav.new_context(viewport={"width": 393, "height": 851})
+    adresse = await servir_page(ctx)
+    pg = await ctx.new_page()
+    err = []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+    try:
+        await pg.goto(adresse)
+        await pg.wait_for_function("() => document.body.classList.contains('pret')")
+        await pg.evaluate("() => document.querySelector('.pick[data-m=mc]').click()")
+        clips = pg.locator("#mc-clips > button")
+        pistes = pg.locator("#mc-trks > button")
+        pads = pg.locator("#mc-pads > button")
+        ok(await clips.count() == 4 and await pg.locator("#mc-coller").is_disabled(),
+           "quatre clips accessibles et COLLER désactivé avant une copie")
+
+        await pistes.nth(1).click()
+        await pads.nth(0).click()
+        await pads.nth(4).click()
+        await pg.locator("#mc-copier").click()
+        await clips.nth(2).click()
+        ok((await clips.nth(2).locator("em").text_content()) == "VIDE" and
+           await pg.locator("#mc-coller").is_enabled(), "clip 3 vide prêt à recevoir la copie")
+        await pg.locator("#mc-coller").click()
+        r = await pg.evaluate("""() => {
+          var p = MC.pistes[1];
+          return {copie:JSON.stringify(p.clips[0]) === JSON.stringify(p.clips[2]),
+            independant:p.clips[0] !== p.clips[2] && p.clips[2] !== MC.copie.pas,
+            affichage:document.querySelectorAll('#mc-pads > .on').length,
+            actif:document.querySelector('#mc-clips').children[2].getAttribute('aria-pressed')};
+        }""")
+        ok(r["copie"] and r["independant"] and r["affichage"] == 2 and r["actif"] == "true",
+           "les deux pas copiés apparaissent dans un clip indépendant et sélectionné")
+        await pads.nth(4).click()
+        r = await pg.evaluate("""() => ({source:MC.pistes[1].clips[0][4],
+          cible:MC.pistes[1].clips[2][4], copie:MC.copie.pas[4]})""")
+        ok(r == {"source": 0, "cible": -1, "copie": 0},
+           "modifier le collage laisse le clip source et la copie intacts")
+
+        await pistes.nth(2).click()
+        await clips.nth(3).click()
+        await pg.locator("#mc-coller").click()
+        await pads.nth(7).click()
+        await pistes.nth(1).click()
+        r = await pg.evaluate("""() => ({clips:MC.pistes.map(p => p.clip),
+          propre:MC.pistes[2].clips[3][7] === 0 && MC.pistes[1].clips[0][7] === -1 &&
+            MC.pistes[1].clips[2][7] === -1 && MC.copie.pas[7] === -1,
+          selection:document.querySelector('#mc-clips').children[2].classList.contains('sel'),
+          pas:document.querySelectorAll('#mc-pads > .on').length})""")
+        ok(r["clips"] == [0, 2, 3, 0] and r["propre"] and r["selection"] and r["pas"] == 1,
+           "chaque piste garde son clip choisi et ses propres modifications")
+
+        # Des valeurs non initiales rendent visible une restauration oubliée.
+        # Le relevé lit l'état vivant : relire seulement memoire.mc masquerait le bug.
+        await pg.evaluate("""() => {
+          var p = MC.pistes[1]; p.cut = 0.23; p.dec = 0.67; p.niv = 0.42;
+          p.onde = 'triangle'; p.oct = 1; MC.pistes[2].muet = true;
+          MC.note = 7; MC.scatType = 4; MC.scatProf = 0.72;
+          memMc(); writeMem();
+        }""")
+        relever = """() => ({sel:MC.sel, note:MC.note, scatType:MC.scatType, scatProf:MC.scatProf,
+          pistes:MC.pistes.map(p => ({type:p.type, onde:p.onde, cut:p.cut, dec:p.dec,
+            niv:p.niv, muet:p.muet, oct:p.oct, clip:p.clip, clips:p.clips}))})"""
+        attendu = await pg.evaluate(relever)
+        await pg.reload()
+        await pg.wait_for_function("() => document.body.classList.contains('pret') && S.modele === 'mc'")
+        retrouve = await pg.evaluate(relever)
+        ok(retrouve == attendu, "réouverture directe sur MC : pistes, clips, notes et réglages restaurés")
+        r = await pg.evaluate("""() => ({vide:MC.copie === null,
+          disabled:document.getElementById('mc-coller').disabled,
+          texte:document.getElementById('mc-copie-etat').textContent,
+          selection:document.querySelector('#mc-clips').children[2].getAttribute('aria-pressed'),
+          profondeur:Number(document.getElementById('mc-scat-prof').value),
+          distinct:new Set(MC.pistes.flatMap(p => p.clips)).size === 16})""")
+        ok(r["vide"] and r["disabled"] and r["texte"] == "AUCUNE COPIE",
+           "le presse-papiers reste temporaire et COLLER se désactive au redémarrage")
+        ok(r["selection"] == "true" and abs(r["profondeur"] - 0.72) < 1e-6 and r["distinct"],
+           "façade restaurée et seize clips toujours indépendants")
+        ok(not err, "aucune erreur de page %s" % err[:1])
+    finally:
+        await ctx.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage, vitesse):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage, vitesse, mc_clips):
             try:
                 await t(nav)
             except Exception as e:

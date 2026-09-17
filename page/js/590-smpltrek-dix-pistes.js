@@ -398,6 +398,34 @@ function nomNoteMc(n){
   var N = ["DO","DO#","RÉ","RÉ#","MI","FA","FA#","SOL","SOL#","LA","LA#","SI"];
   return N[((n % 12) + 12) % 12] + (n >= 12 ? "+" : "");
 }
+function majClipsMc(){
+  var zone = document.getElementById("mc-clips");
+  if(!zone) return;
+  if(!zone.childNodes.length){
+    for(var i=0;i<MC_CLIPS;i++) (function(k){
+      var bt = document.createElement("button"); bt.type = "button";
+      bt.innerHTML = "CLIP " + (k + 1) + "<em></em>";
+      bt.addEventListener("click", function(){ choisirClipMc(k); H.cran(); });
+      zone.appendChild(bt);
+    })(i);
+  }
+  var P = pisteMcSel();
+  zone.setAttribute("aria-label", "Clips de la piste " + (MC.sel + 1));
+  for(var j=0;j<MC_CLIPS;j++){
+    var nb = P.clips[j].filter(function(n){ return n >= 0; }).length;
+    var b = zone.childNodes[j];
+    b.classList.toggle("sel", P.clip === j); b.classList.toggle("plein", nb > 0);
+    b.querySelector("em").textContent = nb ? nb + "/16 PAS" : "VIDE";
+    b.setAttribute("aria-pressed", String(P.clip === j));
+    b.setAttribute("aria-label", "Clip " + (j + 1) + " de la piste " + (MC.sel + 1) + " · " + nb + " pas actifs");
+  }
+  var copie = MC.copie, coller = document.getElementById("mc-coller");
+  coller.disabled = !copie || copie.type !== P.type;
+  coller.title = !copie ? "Copiez d'abord un clip" : (copie.type !== P.type
+    ? "Choisissez une piste du même type que la copie" : "Coller les seize pas dans le clip choisi");
+  document.getElementById("mc-copie-etat").textContent = !copie ? "AUCUNE COPIE"
+    : "COPIE P" + (copie.piste + 1) + " / C" + (copie.clip + 1) + " · " + (copie.type === "drum" ? "RYTHME" : "MÉLODIE");
+}
 function majMc(){
   var dp = document.getElementById("mc-pads");
   if(!dp) return;
@@ -424,6 +452,7 @@ function majMc(){
   var P = pisteMcSel(), clip = clipMcCur(MC.sel), bs = dp.childNodes;
   for(var k2=0;k2<16;k2++){
     bs[k2].classList.toggle("on", clip[k2] >= 0);
+    bs[k2].classList.toggle("cur", S.run && MC.pos === k2);
     bs[k2].textContent = clip[k2] >= 0
       ? (P.type === "drum" ? ["GC","CC","CH","CL"][clip[k2] % 4] : nomNoteMc(clip[k2]))
       : String(k2 + 1);
@@ -454,6 +483,7 @@ function majMc(){
   if(e) e.textContent = MC.scatOn
     ? MC_SCATTER[MC.scatType][1] + " · le motif n'est pas modifié"
     : "Le potard NOTE choisit ce qu'on écrit ; les pads posent ou retirent.";
+  majClipsMc();
 }
 function padMc(k){
   audioInit();
@@ -481,14 +511,17 @@ var kMcNote = knobMc("note", "NOTE", 0, 15,
 function majKnobsMc(){ [kMcCut, kMcDec, kMcNiv, kMcNote].forEach(function(k){ k.maj(); }); }
 
 function activerMc(){
+  stop();
   audioInit();
+  chargerMc();
   poserMachine("mc");
   actif = document.getElementById("unit-mc");
   MACHINE = MACHINE_MC;
   S.modele = "mc";
-  noeudsMc();
+  if(ctx) noeudsMc();
+  document.getElementById("mc-scat-prof").value = MC.scatProf;
   majMc(); majKnobsMc();
-  fit();
+  save(); fit();
 }
 document.getElementById("mc-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
@@ -507,13 +540,17 @@ document.getElementById("mc-scat-prof").addEventListener("input", function(){
   memMc();
 });
 document.getElementById("mc-clip").addEventListener("click", function(){
-  var P = pisteMcSel();
-  P.clip = (P.clip + 1) % MC_CLIPS;
-  majMc(); memMc(); H.cran();
+  choisirClipMc((pisteMcSel().clip + 1) % MC_CLIPS); H.cran();
+});
+document.getElementById("mc-copier").addEventListener("click", function(){
+  copierClipMc(); H.inter();
+});
+document.getElementById("mc-coller").addEventListener("click", function(){
+  collerClipMc(); H.inter();
 });
 document.getElementById("mc-onde").addEventListener("click", function(){
   var P = pisteMcSel();
-  if(P.type === "drum"){ signal("LA PISTE 1 EST RYTHMIQUE"); return; }
+  if(P.type === "drum"){ signal("PISTE RYTHMIQUE · FORME D'ONDE FIXE"); return; }
   var O = ["sawtooth","square","triangle","sine"];
   P.onde = O[(O.indexOf(P.onde) + 1) % O.length];
   majMc(); memMc(); H.cran();

@@ -1388,6 +1388,17 @@ body.m32 .mcb,body.em1 .mcb,body.er1 .mcb,body.ea1 .mcb,body.es1 .mcb,body.emx .
   font-style:normal;opacity:.6}
 .mc-trks .mt.sel{background:#2e2e38;color:#fff;box-shadow:inset 0 0 0 2px #00c98a}
 .mc-trks .mt.muet{opacity:.42}
+.mc-clips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:6px}
+.mc-clips button{min-width:0;margin:0;padding:8px 2px;border:1px solid #303038;border-radius:6px;
+  background:#17171d;color:#8a8a92;font:800 9px/1.2 "Roboto Condensed",Arial;touch-action:manipulation}
+.mc-clips button em{display:block;margin-top:3px;font:400 7.5px/1.2 "Roboto Condensed",Arial;font-style:normal}
+.mc-clips button.plein{color:#b6ebcf;border-color:#377258}
+.mc-clips button.sel{background:#00c98a;color:#08120e;border-color:#00c98a}
+.mc-copie{display:grid;grid-template-columns:1fr 1fr 2fr;gap:6px;align-items:center;margin-bottom:11px}
+.mc-copie button{min-width:0;margin:0;padding:9px 2px;border:0;border-radius:6px;background:#22222a;
+  color:#cfcfd4;font:800 9px/1.2 "Roboto Condensed",Arial;touch-action:manipulation}
+.mc-copie button:disabled{opacity:.4}
+#mc-copie-etat{min-width:0;font:700 8px/1.4 "Roboto Condensed",Arial;color:#8a8a92}
 .mc-kns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:11px}
 .mc-kn{text-align:center}
 .mc-kn .bt{width:40px;height:40px;margin:0 auto;border-radius:50%;background:#1b1b21;
@@ -3617,6 +3628,13 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="mc-trks" id="mc-trks"></div>
 
+  <div class="mc-clips" id="mc-clips" role="group" aria-label="Clips de la piste choisie"></div>
+  <div class="mc-copie">
+    <button id="mc-copier">COPIER</button>
+    <button id="mc-coller" disabled>COLLER</button>
+    <output id="mc-copie-etat" aria-live="polite">AUCUNE COPIE</output>
+  </div>
+
   <div class="mc-kns">
     <div class="mc-kn" id="mc-k-cut"><div class="bt"><i></i></div><em>C1 · FILTRE</em></div>
     <div class="mc-kn" id="mc-k-dec"><div class="bt"><i></i></div><em>C2 · DÉCLIN</em></div>
@@ -3634,7 +3652,6 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   </div>
   <div class="mc-pied"><span id="mc-etat">Les pads écrivent les pas de la piste choisie.</span></div>
 </div>
-
 <div class="stkb" id="unit-stk">
   <div class="stk-haut">
     <div class="stk-marque">SONICWARE</div>
@@ -4559,9 +4576,28 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <h3>Quatre pistes et des clips</h3>
   <p>La piste 1 est <b>rythmique</b> — quatre instruments : grosse caisse, caisse claire, charley, clap.
   Les trois autres sont <b>mélodiques</b>, avec leur forme d'onde et leur filtre. Chaque piste a
-  <b>quatre clips</b>, qu'on fait tourner avec le bouton CLIP.</p>
+  <b>quatre clips de seize pas</b>. Les boutons <b>CLIP 1 à 4</b> choisissent directement le clip
+  de la piste sélectionnée. Le bouton <b>CLIP</b> du bas continue de les parcourir.</p>
   <p>Le potard <b>NOTE</b> choisit ce qu'on va écrire ; les pads posent ou retirent. Toucher un pas qui
   contient déjà cette note l'efface. Toucher une piste déjà choisie la coupe.</p>
+
+  <h3>Choisir et copier un clip</h3>
+  <p>Le clip choisi apparaît en vert ; chaque bouton indique <b>VIDE</b> ou le nombre de pas occupés.
+  La sélection concerne une seule piste : les autres gardent leur clip. À l'arrêt, changer de clip
+  reste silencieux. Pendant la lecture, le nouveau clip prend la suite au même endroit dans la mesure,
+  sans redémarrage et sans attendre la prochaine mesure.</p>
+  <p>Choisissez un clip, touchez <b>COPIER</b>, choisissez la destination, puis <b>COLLER</b>.
+  Vous pouvez coller sur la même piste ou sur une autre piste du même type : un motif mélodique
+  va sur une piste mélodique, un motif rythmique sur une piste rythmique.
+  La ligne <b>COPIE</b> rappelle la piste et le clip d'origine. COLLER reste désactivé sans copie
+  ou sur une piste incompatible.</p>
+  <p>La copie contient uniquement les <b>seize pas</b>. Le filtre, le déclin, le niveau, la forme d'onde,
+  l'octave et le mute de la destination restent ceux de sa piste. Un clip déjà rempli demande confirmation
+  avant remplacement. Modifier la source après COPIER ne change pas la copie ; modifier le clip collé
+  ne change pas l'original. Vous pouvez coller plusieurs fois. Une copie vide permet aussi de vider un clip.</p>
+  <p><b>EFFACER</b> vide seulement le clip choisi, après confirmation. Les clips, leurs sélections et
+  les réglages sont conservés au redémarrage. La copie temporaire reste disponible pendant la session,
+  même en changeant de machine ; elle disparaît quand l'application redémarre.</p>
 
   <h3>Le SCATTER</h3>
   <p>C'est ce qui distingue cette machine d'un séquenceur. Le SCATTER <b>malaxe la mesure en direct</b> et
@@ -4582,7 +4618,6 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <b>cassure</b> juste avant le retour, au lieu d'un désordre permanent. C'est le réglage qui rend le
   SCATTER musical.</p>
   </div>
-
   <div class="doc" id="note-stk" data-titre="SmplTrek">
   <h3>Une station, pas une boîte à rythmes</h3>
   <p>Les vingt-six autres machines ont toutes le même modèle : un motif qui contient tout, sons compris.
@@ -26871,7 +26906,7 @@ var MC_SCATTER = [
   ["au hasard",   "les pas sont tirés au sort dans la mesure"]
 ];
 /* Les notes des seize pads : deux octaves d'une gamme majeure, comme les pads
-   colorés de la machine. 0 veut dire silence. */
+   colorés de la machine. -1 veut dire silence dans un clip. */
 var MC_GAMME = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26];
 
 function clipMc(){
@@ -26886,11 +26921,62 @@ function pisteMc(i){
   return p;
 }
 var MC = {pistes:[], sel:0, pos:-1, noeuds:null,
-          scatOn:false, scatType:0, scatProf:0.5, note:0};
+          scatOn:false, scatType:0, scatProf:0.5, note:0, copie:null};
 for(var mz=0; mz<MC_PISTES; mz++) MC.pistes.push(pisteMc(mz));
 
 function pisteMcSel(){ return MC.pistes[MC.sel]; }
 function clipMcCur(i){ var p = MC.pistes[i]; return p.clips[p.clip]; }
+
+/* v173 : seize pas indépendants par clip, y compris après une copie ou une
+   restauration. Une sauvegarde partielle ne peut créer ni trou ni note NaN. */
+function nombreMc(v, min, max, repli, entier){
+  if(typeof v !== "number" || !isFinite(v)) return repli;
+  v = Math.max(min, Math.min(max, v));
+  return entier ? Math.floor(v) : v;
+}
+function lireClipMc(pas, type){
+  var copie = clipMc();
+  if(!Array.isArray(pas)) return copie;
+  for(var i=0;i<16;i++){
+    var n = pas[i];
+    if(typeof n !== "number" || !isFinite(n) || Math.floor(n) !== n || n < 0 || n > 127) continue;
+    copie[i] = type === "drum" ? n % 4 : n;
+  }
+  return copie;
+}
+function choisirClipMc(k){
+  if(typeof k !== "number" || Math.floor(k) !== k || k < 0 || k >= MC_CLIPS){
+    signal("CLIP INVALIDE"); return false;
+  }
+  var P = pisteMcSel();
+  if(P.clip === k) return true;
+  P.clip = k;
+  memMc(); majMc();
+  return true;
+}
+function copierClipMc(){
+  var P = pisteMcSel();
+  MC.copie = {type:P.type, piste:MC.sel, clip:P.clip, pas:lireClipMc(clipMcCur(MC.sel), P.type)};
+  majClipsMc();
+  signal("PISTE " + (MC.sel + 1) + " · CLIP " + (P.clip + 1) + " COPIÉ");
+}
+function collerClipMc(){
+  var copie = MC.copie, P = pisteMcSel();
+  if(!copie){ signal("COPIEZ D'ABORD UN CLIP"); return false; }
+  if(copie.type !== P.type){
+    signal("COPIE " + (copie.type === "drum" ? "RYTHMIQUE" : "MÉLODIQUE") + " · CHOISISSEZ UNE PISTE DU MÊME TYPE");
+    return false;
+  }
+  var cible = clipMcCur(MC.sel);
+  if(cible.some(function(n){ return n >= 0; }) &&
+     !window.confirm("Remplacer le clip " + (P.clip + 1) + " de la piste " + (MC.sel + 1) + " par la copie ?")) return false;
+  /* Une nouvelle liste à CHAQUE collage : ni la source ni le presse-papiers
+     ne doivent partager les futures modifications de la destination. */
+  P.clips[P.clip] = lireClipMc(copie.pas, P.type);
+  memMc(); majMc();
+  signal("COPIE COLLÉE · PISTE " + (MC.sel + 1) + " · CLIP " + (P.clip + 1));
+  return true;
+}
 
 function noeudsMc(){
   if(MC.noeuds && MC.noeuds.ctx === ctx) return MC.noeuds;
@@ -26996,6 +27082,7 @@ function arretMc(){
     try{ debrancherTout(MC.noeuds); }catch(e){}
   }
   MC.noeuds = null;
+  beatMc(-1);
 }
 var MACHINE_MC = {schedule:scheduleMc, beat:beatMc, arret:arretMc,
                   longueur:function(){ return 16; }};
@@ -27004,25 +27091,34 @@ function memMc(){
   memoire.mc = {sel:MC.sel, scatType:MC.scatType, scatProf:MC.scatProf, note:MC.note,
     pistes:MC.pistes.map(function(P){
       return {type:P.type, onde:P.onde, cut:P.cut, dec:P.dec, niv:P.niv,
-              muet:P.muet, oct:P.oct, clip:P.clip, clips:P.clips};
+              muet:P.muet, oct:P.oct, clip:P.clip, clips:P.clips.map(function(c){ return c.slice(); })};
     })};
   sauverMachine("mc");
 }
 function chargerMc(){
   var m = memLire("mc");
-  if(!m) return;
-  if(typeof m.sel === "number") MC.sel = Math.max(0, Math.min(MC_PISTES - 1, m.sel));
-  if(typeof m.scatType === "number") MC.scatType = Math.max(0, Math.min(MC_SCATTER.length - 1, m.scatType));
-  if(typeof m.scatProf === "number") MC.scatProf = m.scatProf;
-  if(typeof m.note === "number") MC.note = m.note;
-  if(m.pistes) m.pistes.forEach(function(o, i){
-    if(i >= MC_PISTES || !o) return;
-    var P = MC.pistes[i];
-    for(var q in o) if(q !== "clips" && P[q] !== undefined) P[q] = o[q];
-    if(o.clips && o.clips.length === MC_CLIPS) P.clips = o.clips;
-  });
+  if(!m || typeof m !== "object" || Array.isArray(m)) return;
+  MC.sel = nombreMc(m.sel, 0, MC_PISTES - 1, 0, true);
+  MC.scatType = nombreMc(m.scatType, 0, MC_SCATTER.length - 1, 0, true);
+  MC.scatProf = nombreMc(m.scatProf, 0, 1, 0.5, false);
+  MC.note = nombreMc(m.note, 0, 15, 0, true);
+  for(var i=0;i<MC_PISTES;i++){
+    var P = pisteMc(i), o = Array.isArray(m.pistes) ? m.pistes[i] : null;
+    if(o && typeof o === "object" && !Array.isArray(o)){
+      if(o.type === "drum" || o.type === "synth") P.type = o.type;
+      if(["sawtooth","square","triangle","sine"].indexOf(o.onde) >= 0) P.onde = o.onde;
+      P.cut = nombreMc(o.cut, 0, 1, P.cut, false);
+      P.dec = nombreMc(o.dec, 0, 1, P.dec, false);
+      P.niv = nombreMc(o.niv, 0, 1, P.niv, false);
+      P.oct = nombreMc(o.oct, -4, 4, 0, true);
+      P.muet = o.muet === true;
+      P.clip = nombreMc(o.clip, 0, MC_CLIPS - 1, 0, true);
+      for(var j=0;j<MC_CLIPS;j++)
+        P.clips[j] = lireClipMc(Array.isArray(o.clips) ? o.clips[j] : null, P.type);
+    }
+    MC.pistes[i] = P;
+  }
 }
-
 /* ================= SmplTrek : dix pistes =================
    Ce n'est pas une boîte à rythmes de plus. Les vingt-six machines précédentes
    ont toutes le même modèle : un motif qui contient tout, sons compris. Ici les
@@ -27423,6 +27519,34 @@ function nomNoteMc(n){
   var N = ["DO","DO#","RÉ","RÉ#","MI","FA","FA#","SOL","SOL#","LA","LA#","SI"];
   return N[((n % 12) + 12) % 12] + (n >= 12 ? "+" : "");
 }
+function majClipsMc(){
+  var zone = document.getElementById("mc-clips");
+  if(!zone) return;
+  if(!zone.childNodes.length){
+    for(var i=0;i<MC_CLIPS;i++) (function(k){
+      var bt = document.createElement("button"); bt.type = "button";
+      bt.innerHTML = "CLIP " + (k + 1) + "<em></em>";
+      bt.addEventListener("click", function(){ choisirClipMc(k); H.cran(); });
+      zone.appendChild(bt);
+    })(i);
+  }
+  var P = pisteMcSel();
+  zone.setAttribute("aria-label", "Clips de la piste " + (MC.sel + 1));
+  for(var j=0;j<MC_CLIPS;j++){
+    var nb = P.clips[j].filter(function(n){ return n >= 0; }).length;
+    var b = zone.childNodes[j];
+    b.classList.toggle("sel", P.clip === j); b.classList.toggle("plein", nb > 0);
+    b.querySelector("em").textContent = nb ? nb + "/16 PAS" : "VIDE";
+    b.setAttribute("aria-pressed", String(P.clip === j));
+    b.setAttribute("aria-label", "Clip " + (j + 1) + " de la piste " + (MC.sel + 1) + " · " + nb + " pas actifs");
+  }
+  var copie = MC.copie, coller = document.getElementById("mc-coller");
+  coller.disabled = !copie || copie.type !== P.type;
+  coller.title = !copie ? "Copiez d'abord un clip" : (copie.type !== P.type
+    ? "Choisissez une piste du même type que la copie" : "Coller les seize pas dans le clip choisi");
+  document.getElementById("mc-copie-etat").textContent = !copie ? "AUCUNE COPIE"
+    : "COPIE P" + (copie.piste + 1) + " / C" + (copie.clip + 1) + " · " + (copie.type === "drum" ? "RYTHME" : "MÉLODIE");
+}
 function majMc(){
   var dp = document.getElementById("mc-pads");
   if(!dp) return;
@@ -27449,6 +27573,7 @@ function majMc(){
   var P = pisteMcSel(), clip = clipMcCur(MC.sel), bs = dp.childNodes;
   for(var k2=0;k2<16;k2++){
     bs[k2].classList.toggle("on", clip[k2] >= 0);
+    bs[k2].classList.toggle("cur", S.run && MC.pos === k2);
     bs[k2].textContent = clip[k2] >= 0
       ? (P.type === "drum" ? ["GC","CC","CH","CL"][clip[k2] % 4] : nomNoteMc(clip[k2]))
       : String(k2 + 1);
@@ -27479,6 +27604,7 @@ function majMc(){
   if(e) e.textContent = MC.scatOn
     ? MC_SCATTER[MC.scatType][1] + " · le motif n'est pas modifié"
     : "Le potard NOTE choisit ce qu'on écrit ; les pads posent ou retirent.";
+  majClipsMc();
 }
 function padMc(k){
   audioInit();
@@ -27506,14 +27632,17 @@ var kMcNote = knobMc("note", "NOTE", 0, 15,
 function majKnobsMc(){ [kMcCut, kMcDec, kMcNiv, kMcNote].forEach(function(k){ k.maj(); }); }
 
 function activerMc(){
+  stop();
   audioInit();
+  chargerMc();
   poserMachine("mc");
   actif = document.getElementById("unit-mc");
   MACHINE = MACHINE_MC;
   S.modele = "mc";
-  noeudsMc();
+  if(ctx) noeudsMc();
+  document.getElementById("mc-scat-prof").value = MC.scatProf;
   majMc(); majKnobsMc();
-  fit();
+  save(); fit();
 }
 document.getElementById("mc-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
@@ -27532,13 +27661,17 @@ document.getElementById("mc-scat-prof").addEventListener("input", function(){
   memMc();
 });
 document.getElementById("mc-clip").addEventListener("click", function(){
-  var P = pisteMcSel();
-  P.clip = (P.clip + 1) % MC_CLIPS;
-  majMc(); memMc(); H.cran();
+  choisirClipMc((pisteMcSel().clip + 1) % MC_CLIPS); H.cran();
+});
+document.getElementById("mc-copier").addEventListener("click", function(){
+  copierClipMc(); H.inter();
+});
+document.getElementById("mc-coller").addEventListener("click", function(){
+  collerClipMc(); H.inter();
 });
 document.getElementById("mc-onde").addEventListener("click", function(){
   var P = pisteMcSel();
-  if(P.type === "drum"){ signal("LA PISTE 1 EST RYTHMIQUE"); return; }
+  if(P.type === "drum"){ signal("PISTE RYTHMIQUE · FORME D'ONDE FIXE"); return; }
   var O = ["sawtooth","square","triangle","sine"];
   P.onde = O[(O.indexOf(P.onde) + 1) % O.length];
   majMc(); memMc(); H.cran();

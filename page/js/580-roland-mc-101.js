@@ -21,7 +21,7 @@ var MC_SCATTER = [
   ["au hasard",   "les pas sont tirés au sort dans la mesure"]
 ];
 /* Les notes des seize pads : deux octaves d'une gamme majeure, comme les pads
-   colorés de la machine. 0 veut dire silence. */
+   colorés de la machine. -1 veut dire silence dans un clip. */
 var MC_GAMME = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26];
 
 function clipMc(){
@@ -36,11 +36,62 @@ function pisteMc(i){
   return p;
 }
 var MC = {pistes:[], sel:0, pos:-1, noeuds:null,
-          scatOn:false, scatType:0, scatProf:0.5, note:0};
+          scatOn:false, scatType:0, scatProf:0.5, note:0, copie:null};
 for(var mz=0; mz<MC_PISTES; mz++) MC.pistes.push(pisteMc(mz));
 
 function pisteMcSel(){ return MC.pistes[MC.sel]; }
 function clipMcCur(i){ var p = MC.pistes[i]; return p.clips[p.clip]; }
+
+/* v173 : seize pas indépendants par clip, y compris après une copie ou une
+   restauration. Une sauvegarde partielle ne peut créer ni trou ni note NaN. */
+function nombreMc(v, min, max, repli, entier){
+  if(typeof v !== "number" || !isFinite(v)) return repli;
+  v = Math.max(min, Math.min(max, v));
+  return entier ? Math.floor(v) : v;
+}
+function lireClipMc(pas, type){
+  var copie = clipMc();
+  if(!Array.isArray(pas)) return copie;
+  for(var i=0;i<16;i++){
+    var n = pas[i];
+    if(typeof n !== "number" || !isFinite(n) || Math.floor(n) !== n || n < 0 || n > 127) continue;
+    copie[i] = type === "drum" ? n % 4 : n;
+  }
+  return copie;
+}
+function choisirClipMc(k){
+  if(typeof k !== "number" || Math.floor(k) !== k || k < 0 || k >= MC_CLIPS){
+    signal("CLIP INVALIDE"); return false;
+  }
+  var P = pisteMcSel();
+  if(P.clip === k) return true;
+  P.clip = k;
+  memMc(); majMc();
+  return true;
+}
+function copierClipMc(){
+  var P = pisteMcSel();
+  MC.copie = {type:P.type, piste:MC.sel, clip:P.clip, pas:lireClipMc(clipMcCur(MC.sel), P.type)};
+  majClipsMc();
+  signal("PISTE " + (MC.sel + 1) + " · CLIP " + (P.clip + 1) + " COPIÉ");
+}
+function collerClipMc(){
+  var copie = MC.copie, P = pisteMcSel();
+  if(!copie){ signal("COPIEZ D'ABORD UN CLIP"); return false; }
+  if(copie.type !== P.type){
+    signal("COPIE " + (copie.type === "drum" ? "RYTHMIQUE" : "MÉLODIQUE") + " · CHOISISSEZ UNE PISTE DU MÊME TYPE");
+    return false;
+  }
+  var cible = clipMcCur(MC.sel);
+  if(cible.some(function(n){ return n >= 0; }) &&
+     !window.confirm("Remplacer le clip " + (P.clip + 1) + " de la piste " + (MC.sel + 1) + " par la copie ?")) return false;
+  /* Une nouvelle liste à CHAQUE collage : ni la source ni le presse-papiers
+     ne doivent partager les futures modifications de la destination. */
+  P.clips[P.clip] = lireClipMc(copie.pas, P.type);
+  memMc(); majMc();
+  signal("COPIE COLLÉE · PISTE " + (MC.sel + 1) + " · CLIP " + (P.clip + 1));
+  return true;
+}
 
 function noeudsMc(){
   if(MC.noeuds && MC.noeuds.ctx === ctx) return MC.noeuds;
@@ -146,6 +197,7 @@ function arretMc(){
     try{ debrancherTout(MC.noeuds); }catch(e){}
   }
   MC.noeuds = null;
+  beatMc(-1);
 }
 var MACHINE_MC = {schedule:scheduleMc, beat:beatMc, arret:arretMc,
                   longueur:function(){ return 16; }};
@@ -154,22 +206,31 @@ function memMc(){
   memoire.mc = {sel:MC.sel, scatType:MC.scatType, scatProf:MC.scatProf, note:MC.note,
     pistes:MC.pistes.map(function(P){
       return {type:P.type, onde:P.onde, cut:P.cut, dec:P.dec, niv:P.niv,
-              muet:P.muet, oct:P.oct, clip:P.clip, clips:P.clips};
+              muet:P.muet, oct:P.oct, clip:P.clip, clips:P.clips.map(function(c){ return c.slice(); })};
     })};
   sauverMachine("mc");
 }
 function chargerMc(){
   var m = memLire("mc");
-  if(!m) return;
-  if(typeof m.sel === "number") MC.sel = Math.max(0, Math.min(MC_PISTES - 1, m.sel));
-  if(typeof m.scatType === "number") MC.scatType = Math.max(0, Math.min(MC_SCATTER.length - 1, m.scatType));
-  if(typeof m.scatProf === "number") MC.scatProf = m.scatProf;
-  if(typeof m.note === "number") MC.note = m.note;
-  if(m.pistes) m.pistes.forEach(function(o, i){
-    if(i >= MC_PISTES || !o) return;
-    var P = MC.pistes[i];
-    for(var q in o) if(q !== "clips" && P[q] !== undefined) P[q] = o[q];
-    if(o.clips && o.clips.length === MC_CLIPS) P.clips = o.clips;
-  });
+  if(!m || typeof m !== "object" || Array.isArray(m)) return;
+  MC.sel = nombreMc(m.sel, 0, MC_PISTES - 1, 0, true);
+  MC.scatType = nombreMc(m.scatType, 0, MC_SCATTER.length - 1, 0, true);
+  MC.scatProf = nombreMc(m.scatProf, 0, 1, 0.5, false);
+  MC.note = nombreMc(m.note, 0, 15, 0, true);
+  for(var i=0;i<MC_PISTES;i++){
+    var P = pisteMc(i), o = Array.isArray(m.pistes) ? m.pistes[i] : null;
+    if(o && typeof o === "object" && !Array.isArray(o)){
+      if(o.type === "drum" || o.type === "synth") P.type = o.type;
+      if(["sawtooth","square","triangle","sine"].indexOf(o.onde) >= 0) P.onde = o.onde;
+      P.cut = nombreMc(o.cut, 0, 1, P.cut, false);
+      P.dec = nombreMc(o.dec, 0, 1, P.dec, false);
+      P.niv = nombreMc(o.niv, 0, 1, P.niv, false);
+      P.oct = nombreMc(o.oct, -4, 4, 0, true);
+      P.muet = o.muet === true;
+      P.clip = nombreMc(o.clip, 0, MC_CLIPS - 1, 0, true);
+      for(var j=0;j<MC_CLIPS;j++)
+        P.clips[j] = lireClipMc(Array.isArray(o.clips) ? o.clips[j] : null, P.type);
+    }
+    MC.pistes[i] = P;
+  }
 }
-
