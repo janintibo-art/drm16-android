@@ -70,6 +70,7 @@ function start(){
   audioInit();
   if(!ctx) return;
   if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
+  if(typeof MACHINE_MC !== "undefined" && MACHINE_MC) MACHINE_MC.arret();
   S.run=true; step=0; pasSet=0; queue=[];
   if(SET.on) preparerSet();
   if(MIDI.sync && MIDI.ouvert >= 0){
@@ -94,8 +95,8 @@ function stop(){
   midiSilence();
   if(MACHINE && MACHINE.arret) MACHINE.arret();
   if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI && MACHINE !== MACHINE_DBI) MACHINE_DBI.arret();
+  if(typeof MACHINE_MC !== "undefined" && MACHINE_MC && MACHINE !== MACHINE_MC) MACHINE_MC.arret();
   host(false);
   midiHorloge(false);
 }
 window.__drmStop = stop;
-

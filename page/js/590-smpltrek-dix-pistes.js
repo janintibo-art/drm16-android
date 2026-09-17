@@ -414,11 +414,47 @@ function majClipsMc(){
   for(var j=0;j<MC_CLIPS;j++){
     var nb = P.clips[j].filter(function(n){ return n >= 0; }).length;
     var b = zone.childNodes[j];
+    var prochain = MC.depart ? MC.depart.clips[MC.sel] : MC.attente[MC.sel];
+    var enAttente = prochain === j && P.clip !== j;
     b.classList.toggle("sel", P.clip === j); b.classList.toggle("plein", nb > 0);
-    b.querySelector("em").textContent = nb ? nb + "/16 PAS" : "VIDE";
+    b.classList.toggle("attente", enAttente); b.disabled = !!MC.depart;
+    b.querySelector("em").textContent = enAttente ? (MC.depart ? "IMMINENT" : "EN ATTENTE") : (nb ? nb + "/16 PAS" : "VIDE");
     b.setAttribute("aria-pressed", String(P.clip === j));
-    b.setAttribute("aria-label", "Clip " + (j + 1) + " de la piste " + (MC.sel + 1) + " · " + nb + " pas actifs");
+    b.setAttribute("aria-label", "Clip " + (j + 1) + " de la piste " + (MC.sel + 1) + " · " + nb + " pas actifs" + (enAttente ? " · en attente" : ""));
   }
+  var scenes = document.getElementById("mc-scenes");
+  if(!scenes.childNodes.length){
+    for(var s=0;s<MC_CLIPS;s++) (function(k){
+      var bt = document.createElement("button"); bt.type = "button";
+      bt.textContent = "SCÈNE " + (k + 1);
+      bt.addEventListener("click", function(){ choisirSceneMc(k); H.cran(); });
+      scenes.appendChild(bt);
+    })(s);
+  }
+  var demandes = [];
+  for(var p=0;p<MC_PISTES;p++){
+    var suite = MC.depart ? MC.depart.clips[p] : MC.attente[p];
+    if(suite !== null && suite !== MC.pistes[p].clip) demandes.push("P" + (p + 1) + " → C" + (suite + 1));
+  }
+  for(var n=0;n<MC_CLIPS;n++){
+    var choisi = MC.pistes.every(function(piste){ return piste.clip === n; });
+    var prevu = demandes.length > 0 && MC.pistes.every(function(piste, k){
+      var futur = MC.depart ? MC.depart.clips[k] : MC.attente[k];
+      return (futur === null ? piste.clip : futur) === n;
+    });
+    var scene = scenes.childNodes[n];
+    scene.classList.toggle("sel", choisi); scene.classList.toggle("attente", prevu);
+    scene.disabled = !!MC.depart; scene.setAttribute("aria-pressed", String(choisi));
+  }
+  var mode = document.getElementById("mc-quantifie");
+  mode.textContent = MC.quantifie ? "MESURE" : "DIRECT";
+  mode.classList.toggle("on", MC.quantifie); mode.disabled = !!MC.depart;
+  mode.setAttribute("aria-pressed", String(MC.quantifie));
+  document.getElementById("mc-annuler").disabled = !!MC.depart || !demandes.length;
+  document.getElementById("mc-clip").disabled = !!MC.depart;
+  document.getElementById("mc-lancement-etat").textContent = MC.depart ? "DÉPART IMMINENT · " + demandes.join(" / ")
+    : demandes.length ? "PROCHAINE MESURE · " + demandes.join(" / ")
+    : MC.quantifie ? "CLIPS ET SCÈNES AU DÉBUT DE LA MESURE" : "CLIPS ET SCÈNES EN DIRECT";
   var copie = MC.copie, coller = document.getElementById("mc-coller");
   coller.disabled = !copie || copie.type !== P.type;
   coller.title = !copie ? "Copiez d'abord un clip" : (copie.type !== P.type
@@ -427,6 +463,7 @@ function majClipsMc(){
     : "COPIE P" + (copie.piste + 1) + " / C" + (copie.clip + 1) + " · " + (copie.type === "drum" ? "RYTHME" : "MÉLODIE");
 }
 function majMc(){
+  if(validerDepartMc()) memMc();
   var dp = document.getElementById("mc-pads");
   if(!dp) return;
   if(!dp.childNodes.length){
@@ -487,6 +524,7 @@ function majMc(){
 }
 function padMc(k){
   audioInit();
+  suivreClipsMc();
   var P = pisteMcSel(), clip = clipMcCur(MC.sel);
   var note = P.type === "drum" ? (MC.note % 4) : MC_GAMME[MC.note % 16];
   if(clip[k] === note) clip[k] = -1;          /* retoucher le même retire */
@@ -540,7 +578,15 @@ document.getElementById("mc-scat-prof").addEventListener("input", function(){
   memMc();
 });
 document.getElementById("mc-clip").addEventListener("click", function(){
-  choisirClipMc((pisteMcSel().clip + 1) % MC_CLIPS); H.cran();
+  suivreClipsMc();
+  var prochain = MC.attente[MC.sel];
+  choisirClipMc(((prochain === null ? pisteMcSel().clip : prochain) + 1) % MC_CLIPS); H.cran();
+});
+document.getElementById("mc-quantifie").addEventListener("click", function(){
+  modeClipsMc(!MC.quantifie); H.inter();
+});
+document.getElementById("mc-annuler").addEventListener("click", function(){
+  annulerClipsMc(); H.inter();
 });
 document.getElementById("mc-copier").addEventListener("click", function(){
   copierClipMc(); H.inter();
@@ -556,6 +602,7 @@ document.getElementById("mc-onde").addEventListener("click", function(){
   majMc(); memMc(); H.cran();
 });
 document.getElementById("mc-clear").addEventListener("click", function(){
+  suivreClipsMc();
   if(!window.confirm("Effacer le clip " + (pisteMcSel().clip + 1) +
                      " de la piste " + (MC.sel + 1) + " ?")) return;
   var c = clipMcCur(MC.sel);

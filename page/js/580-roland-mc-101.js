@@ -36,7 +36,8 @@ function pisteMc(i){
   return p;
 }
 var MC = {pistes:[], sel:0, pos:-1, noeuds:null,
-          scatOn:false, scatType:0, scatProf:0.5, note:0, copie:null};
+          scatOn:false, scatType:0, scatProf:0.5, note:0, copie:null,
+          quantifie:false, attente:[null,null,null,null], depart:null, contexte:null};
 for(var mz=0; mz<MC_PISTES; mz++) MC.pistes.push(pisteMc(mz));
 
 function pisteMcSel(){ return MC.pistes[MC.sel]; }
@@ -59,23 +60,84 @@ function lireClipMc(pas, type){
   }
   return copie;
 }
-function choisirClipMc(k){
+/* v174 : la sélection affichée reste celle qu'on entend. L'ordonnanceur
+   prépare un seul départ à la fois ; une fois les voix programmées, ce
+   départ reste verrouillé jusqu'à son heure audio, même sans animation. */
+function viderAttenteMc(){
+  MC.attente = [null,null,null,null]; MC.depart = null; MC.contexte = null;
+}
+function validerDepartMc(){
+  if(MC.contexte && MC.contexte !== ctx){ viderAttenteMc(); return false; }
+  var d = MC.depart;
+  if(!d || !ctx || ctx.startRendering || maintenantAudio() < d.t) return false;
+  for(var i=0;i<MC_PISTES;i++) MC.pistes[i].clip = d.clips[i];
+  MC.depart = null; MC.contexte = null;
+  return true;
+}
+function suivreClipsMc(){
+  if(validerDepartMc()){ memMc(); majMc(); }
+}
+function lectureClipsMc(){
+  return S.run && ctx && !ctx.startRendering &&
+    (MACHINE === MACHINE_MC || (typeof SET !== "undefined" && SET.on && SET.actives.mc &&
+      !(typeof MIDI !== "undefined" && MIDI.sync && MIDI.ouvert >= 0)));
+}
+function indiceClipMc(k){
   if(typeof k !== "number" || Math.floor(k) !== k || k < 0 || k >= MC_CLIPS){
     signal("CLIP INVALIDE"); return false;
   }
+  return true;
+}
+function commandeClipsMc(){
+  suivreClipsMc();
+  if(MC.depart){ signal("DÉPART IMMINENT"); return false; }
+  return true;
+}
+function choisirClipMc(k){
+  if(!indiceClipMc(k) || !commandeClipsMc()) return false;
   var P = pisteMcSel();
-  if(P.clip === k) return true;
-  P.clip = k;
+  if(MC.quantifie && lectureClipsMc()){
+    MC.contexte = ctx;
+    MC.attente[MC.sel] = P.clip === k || MC.attente[MC.sel] === k ? null : k;
+  } else {
+    MC.attente[MC.sel] = null;
+    P.clip = k; memMc();
+  }
+  majMc();
+  return true;
+}
+function choisirSceneMc(k){
+  if(!indiceClipMc(k) || !commandeClipsMc()) return false;
+  var attendre = MC.quantifie && lectureClipsMc();
+  for(var i=0;i<MC_PISTES;i++){
+    MC.attente[i] = attendre && MC.pistes[i].clip !== k ? k : null;
+    if(!attendre) MC.pistes[i].clip = k;
+  }
+  MC.contexte = attendre ? ctx : null;
+  if(!attendre) memMc();
+  majMc();
+  return true;
+}
+function modeClipsMc(mesure){
+  if(!commandeClipsMc()) return false;
+  MC.quantifie = mesure === true; viderAttenteMc();
   memMc(); majMc();
   return true;
 }
+function annulerClipsMc(){
+  if(!commandeClipsMc()) return false;
+  viderAttenteMc(); majMc();
+  return true;
+}
 function copierClipMc(){
+  suivreClipsMc();
   var P = pisteMcSel();
   MC.copie = {type:P.type, piste:MC.sel, clip:P.clip, pas:lireClipMc(clipMcCur(MC.sel), P.type)};
   majClipsMc();
   signal("PISTE " + (MC.sel + 1) + " · CLIP " + (P.clip + 1) + " COPIÉ");
 }
 function collerClipMc(){
+  suivreClipsMc();
   var copie = MC.copie, P = pisteMcSel();
   if(!copie){ signal("COPIEZ D'ABORD UN CLIP"); return false; }
   if(copie.type !== P.type){
@@ -173,37 +235,58 @@ function scatterMc(i){
 }
 
 function scheduleMc(i, t){
+  var direct = ctx && !ctx.startRendering;
+  if(direct){
+    suivreClipsMc();
+    if(i === 0 && lectureClipsMc() && !MC.depart && MC.attente.some(function(k){ return k !== null; })){
+      MC.depart = {t:t, ctx:ctx, clips:MC.pistes.map(function(P, k){
+        return MC.attente[k] === null ? P.clip : MC.attente[k];
+      })};
+      MC.attente = [null,null,null,null];
+      majMc();
+    }
+    /* Même une rafale d'horloge MIDI ne peut faire entendre le nouveau
+       clip avant le départ retenu au pas zéro. */
+    if(MC.depart) t = Math.max(t, MC.depart.t);
+  }
   var CHARGE_N = ouvrirPas();
   var s = scatterMc(i);
-  if(s.pas < 0) { if(!cache) queue.push({i:i, t:t}); return; }
+  if(s.pas < 0) { if(!cache && MACHINE === MACHINE_MC) queue.push({i:i, t:t}); return; }
   for(var k=0;k<MC_PISTES;k++){
     var P = MC.pistes[k];
     if(P.muet) continue;
-    var note = clipMcCur(k)[s.pas];
+    var clip = direct && MC.depart ? MC.depart.clips[k] : P.clip;
+    var note = P.clips[clip][s.pas];
     if(note < 0) continue;
     for(var r=0;r<s.coups;r++)
       CHARGE_N++, voixMc(t + r * stepDur() / s.coups, k, note, 1 - r * 0.18);
   }
-  if(!cache) queue.push({i:i, t:t});
+  if(!cache && MACHINE === MACHINE_MC) queue.push({i:i, t:t});
   attenuerVoie("mc", CHARGE_N, t);
 }
 function beatMc(i){
+  suivreClipsMc();
   MC.pos = i;
   var b = document.querySelectorAll("#mc-pads .mb");
   for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i);
 }
 function arretMc(){
+  var entendu = validerDepartMc();
+  viderAttenteMc();
+  if(entendu) memMc();
   if(MC.noeuds && MC.noeuds.ctx === ctx){
     try{ debrancherTout(MC.noeuds); }catch(e){}
   }
   MC.noeuds = null;
   beatMc(-1);
+  majMc();
 }
 var MACHINE_MC = {schedule:scheduleMc, beat:beatMc, arret:arretMc,
                   longueur:function(){ return 16; }};
 
 function memMc(){
-  memoire.mc = {sel:MC.sel, scatType:MC.scatType, scatProf:MC.scatProf, note:MC.note,
+  if(validerDepartMc()) majMc();
+  memoire.mc = {sel:MC.sel, scatType:MC.scatType, scatProf:MC.scatProf, note:MC.note, quantifie:MC.quantifie,
     pistes:MC.pistes.map(function(P){
       return {type:P.type, onde:P.onde, cut:P.cut, dec:P.dec, niv:P.niv,
               muet:P.muet, oct:P.oct, clip:P.clip, clips:P.clips.map(function(c){ return c.slice(); })};
@@ -211,8 +294,10 @@ function memMc(){
   sauverMachine("mc");
 }
 function chargerMc(){
+  viderAttenteMc();
   var m = memLire("mc");
   if(!m || typeof m !== "object" || Array.isArray(m)) return;
+  MC.quantifie = m.quantifie === true;
   MC.sel = nombreMc(m.sel, 0, MC_PISTES - 1, 0, true);
   MC.scatType = nombreMc(m.scatType, 0, MC_SCATTER.length - 1, 0, true);
   MC.scatProf = nombreMc(m.scatProf, 0, 1, 0.5, false);

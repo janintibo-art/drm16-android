@@ -124,6 +124,10 @@ function ticExterne(){
   SYNC.ticks++;
 }
 function departEsclave(remise){
+  if((remise || !S.run) && typeof MACHINE_MC !== "undefined" && MACHINE_MC){
+    MACHINE_MC.arret();
+    if(MACHINE === MACHINE_MC) queue = [];
+  }
   SYNC.ticks = 0; SYNC.dernier = 0; SYNC.attente = false;
   if(remise) step = 0;
   if(!S.run){ S.run = true; queue = []; draw(); host(true); majPlayEm(); }

@@ -291,6 +291,7 @@ function construireTable(){
       var a = b.dataset.a;
       if(a === "on"){
         SET.actives[id] = !SET.actives[id];
+        if(id === "mc" && !SET.actives[id] && MACHINE !== MACHINE_MC) arretMc();
         if(SET.actives[id] && S.run) preparerSet();
       }
       else if(a === "mute"){ SET.mute[id] = !SET.mute[id]; }
@@ -489,6 +490,7 @@ document.getElementById("table-aide").addEventListener("click", function(){
 });
 document.getElementById("table-on").addEventListener("click", function(){
   SET.on = !SET.on;
+  if(!SET.on && MACHINE !== MACHINE_MC) arretMc();
   if(SET.on) preparerSet();
   majTable(); memSet(); H.inter();
   signal(SET.on ? "SET EN MARCHE · LES MACHINES CHOISIES JOUENT ENSEMBLE"
@@ -503,6 +505,7 @@ document.getElementById("table-ensemble").addEventListener("click", function(){
 });
 document.getElementById("table-rien").addEventListener("click", function(){
   SET_VOIES.forEach(function(v){ SET.actives[v[0]] = false; });
+  if(MACHINE !== MACHINE_MC) arretMc();
   SET.solo = "";
   majToutesVoiesSet(); majTable(); memSet(); H.inter();
 });

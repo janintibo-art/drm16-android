@@ -19,6 +19,12 @@
   <div class="mc-trks" id="mc-trks"></div>
 
   <div class="mc-clips" id="mc-clips" role="group" aria-label="Clips de la piste choisie"></div>
+  <div class="mc-scenes" id="mc-scenes" role="group" aria-label="Scènes : même numéro de clip sur les quatre pistes"></div>
+  <div class="mc-lancement">
+    <button id="mc-quantifie" aria-label="Lancement à la mesure" aria-pressed="false">DIRECT</button>
+    <button id="mc-annuler" disabled>ANNULER</button>
+    <output id="mc-lancement-etat" aria-live="polite">CLIPS ET SCÈNES EN DIRECT</output>
+  </div>
   <div class="mc-copie">
     <button id="mc-copier">COPIER</button>
     <button id="mc-coller" disabled>COLLER</button>

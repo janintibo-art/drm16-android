@@ -761,10 +761,118 @@ async def mc_clips(nav):
     finally:
         await ctx.close()
 
+async def mc_lancements(nav):
+    print("\n17. MC-101 : lancement des clips et scènes à la mesure (v174)")
+    ctx = await nav.new_context(viewport={"width": 393, "height": 851})
+    adresse = await servir_page(ctx)
+    pg = await ctx.new_page()
+    err = []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+    try:
+        await pg.goto(adresse)
+        await pg.wait_for_function("() => document.body.classList.contains('pret')")
+        await pg.evaluate("() => document.querySelector('.pick[data-m=mc]').click()")
+        scenes = pg.locator("#mc-scenes > button")
+        ok(await scenes.count() == 4 and not await pg.evaluate("MC.quantifie"),
+           "quatre scènes et mode DIRECT par défaut")
+        await pg.evaluate("""() => {
+          MC.sel = 1;
+          MC.pistes.forEach(function(p, i){
+            p.cut = 0.2 + i * 0.1; p.niv = 0.4; p.muet = i === 2;
+            p.clips.forEach(function(c, k){ c.fill(i === 0 ? k : k * 12 + i); });
+          });
+          window.__mcAppels = [];
+          window.__mcVoix = voixMc;
+          voixMc = function(t, p, n, v){ __mcAppels.push({t:t, piste:p, note:n}); return __mcVoix(t,p,n,v); };
+          majMc();
+        }""")
+        reglages = """() => ({sel:MC.sel, pistes:MC.pistes.map(p => ({type:p.type,
+          onde:p.onde, cut:p.cut, dec:p.dec, niv:p.niv, muet:p.muet, oct:p.oct, clips:p.clips}))})"""
+        attendu = await pg.evaluate(reglages)
+        await pg.locator("#mc-quantifie").click()
+        await scenes.nth(2).click()
+        r = await pg.evaluate("""() => ({mode:MC.quantifie, clips:MC.pistes.map(p => p.clip),
+          attente:MC.attente, depart:MC.depart, run:S.run, appels:__mcAppels.length,
+          scene:document.querySelector('#mc-scenes').children[2].classList.contains('sel')})""")
+        ok(r["mode"] and r["clips"] == [2, 2, 2, 2] and r["scene"] and
+           r["attente"] == [None] * 4 and r["depart"] is None and not r["run"] and r["appels"] == 0,
+           "à l'arrêt, la scène choisit les quatre clips immédiatement et sans jouer")
+        ok(await pg.evaluate(reglages) == attendu, "une scène conserve les notes, réglages, sourdines et piste sélectionnée")
+        await pg.evaluate("() => { memMc(); writeMem(); }")
+        await pg.reload()
+        await pg.wait_for_function("() => document.body.classList.contains('pret') && S.modele === 'mc'")
+        r = await pg.evaluate("""() => ({mode:MC.quantifie, clips:MC.pistes.map(p => p.clip),
+          texte:document.getElementById('mc-quantifie').textContent,
+          attente:MC.attente, depart:MC.depart,
+          scene:document.querySelector('#mc-scenes').children[2].classList.contains('sel')})""")
+        ok(r["mode"] and "MESURE" in r["texte"] and r["clips"] == [2] * 4 and r["scene"] and
+           r["attente"] == [None] * 4 and r["depart"] is None and await pg.evaluate(reglages) == attendu,
+           "le mode MESURE et la scène sont restaurés, sans lancement en attente")
+
+        await pg.evaluate("() => { S.bpm = 90; MIDI.sync = false; HUM.temps = 0; }")
+        await pg.locator("#mc-play").click()
+        # Une fenêtre au milieu de la mesure, puis des clics dans une seule
+        # tâche JS : ni le réseau Playwright ni l'ordonnanceur ne peuvent
+        # intercaler une frontière entre la demande et son annulation.
+        await pg.wait_for_function("() => S.run && MC.pos >= 2 && MC.pos <= 6 && !MC.depart")
+        r = await pg.evaluate("""() => {
+          var boutons = document.querySelector('#mc-clips').children;
+          boutons[0].click();
+          var premier = MC.attente.slice();
+          boutons[3].click();
+          var second = MC.attente.slice(), marque = boutons[3].classList.contains('attente');
+          var actif = document.getElementById('mc-annuler').disabled === false;
+          document.getElementById('mc-annuler').click();
+          return {premier:premier, second:second, marque:marque, actif:actif,
+            apres:MC.attente.slice(), clips:MC.pistes.map(p => p.clip),
+            annuler:document.getElementById('mc-annuler').disabled};
+        }""")
+        ok(r["premier"] == [None, 0, None, None] and r["second"] == [None, 3, None, None] and
+           r["marque"] and r["actif"] and r["apres"] == [None] * 4 and r["clips"] == [2] * 4 and r["annuler"],
+           "un clip attend la mesure, une seconde demande le remplace et ANNULER garde les clips entendus")
+
+        # Même passage réel du transport pour les quatre pistes, y compris
+        # celle en sourdine. Aucune invocation manuelle de schedule/beat.
+        await pg.wait_for_function("() => S.run && MC.pos >= 2 && MC.pos <= 6 && !MC.depart")
+        r = await pg.evaluate("""() => {
+          var scenes = document.querySelector('#mc-scenes').children;
+          scenes[0].click(); scenes[1].click();
+          return {attente:MC.attente.slice(), clips:MC.pistes.map(p => p.clip)};
+        }""")
+        ok(r["attente"] == [1] * 4 and r["clips"] == [2] * 4,
+           "une nouvelle scène remplace l'attente des quatre pistes sans changer la mesure en cours")
+        await pg.wait_for_function("""() => MC.pistes.every(p => p.clip === 1) && !MC.depart &&
+          MC.attente.every(c => c === null)""", timeout=12000)
+        r = await pg.evaluate("""() => ({run:S.run, scene:document.querySelector('#mc-scenes').children[1].classList.contains('sel'),
+          clips:MC.pistes.map(p => p.clip), annuler:document.getElementById('mc-annuler').disabled})""")
+        ok(r["run"] and r["scene"] and r["clips"] == [1] * 4 and r["annuler"] and
+           await pg.evaluate(reglages) == attendu,
+           "le transport lance ensemble les quatre clips et conserve les réglages")
+
+        await pg.wait_for_function("() => S.run && MC.pos >= 2 && MC.pos <= 6 && !MC.depart")
+        r = await pg.evaluate("""() => {
+          document.querySelector('#mc-scenes').children[0].click();
+          var avant = MC.attente.slice();
+          document.getElementById('mc-play').click();
+          return {avant:avant, attente:MC.attente.slice(), depart:MC.depart,
+            run:S.run, clips:MC.pistes.map(p => p.clip), pos:MC.pos};
+        }""")
+        ok(r["avant"] == [0] * 4 and r["attente"] == [None] * 4 and r["depart"] is None and
+           not r["run"] and r["clips"] == [1] * 4 and r["pos"] == -1,
+           "STOP annule la scène en attente et conserve la dernière scène entendue")
+        await pg.locator("#mc-play").click()
+        await pg.wait_for_function("() => S.run && MC.pos >= 4 && MC.pos <= 8")
+        ok(await pg.evaluate("() => MC.pistes.every(p => p.clip === 1) && !MC.depart && MC.attente.every(c => c === null)"),
+           "la reprise ne relance pas la scène annulée")
+        await pg.locator("#mc-play").click()
+        ok(not err, "aucune erreur de page %s" % err[:1])
+    finally:
+        await ctx.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage, vitesse, mc_clips):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements):
             try:
                 await t(nav)
             except Exception as e:

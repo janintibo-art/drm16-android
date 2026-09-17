@@ -83,6 +83,9 @@ function viderMachines(){
 function writeMem(){
   clearTimeout(saveTmr); saveTmr = null;
   if(PROJET_EN_COURS) return;
+  /* Un départ MC peut déjà s'entendre avant la prochaine image ou le prochain
+     tour du SET. Sauver/exporter maintenant doit conserver ce clip-là. */
+  if(typeof MC !== "undefined" && MC) suivreClipsMc();
   viderMachines();
   try{
     memoire.modele = S.modele;
@@ -104,4 +107,3 @@ function writeMem(){
 /* toutes les écritures sont différées : la saisie d'un motif ne bloque plus l'affichage */
 function save(){ clearTimeout(saveTmr); saveTmr = setTimeout(writeMem, 250); }
 function saveSoon(){ clearTimeout(saveTmr); saveTmr = setTimeout(writeMem, 300); }
-
