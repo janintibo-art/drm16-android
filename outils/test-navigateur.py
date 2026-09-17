@@ -891,6 +891,164 @@ window.addEventListener('pagehide', function(){
         finally:
             await ctx.close()
 
+async def projet_stockage_illisible(nav):
+    print("\n10d. Projet .drm16 : stockage illisible distinct d'un stockage vide (v181)")
+    instrumentation = r"""
+window.__v181Ecritures = [];
+window.__v181JournalRetire = false;
+window.__v181Etat = function(){
+  var m = {}, f = {};
+  Object.keys(localStorage).sort().forEach(function(k){
+    if(k === 'drm.reglages' || k.indexOf('drm.reglages.') === 0) m[k] = localStorage.getItem(k);
+  });
+  Object.keys(__F).sort().forEach(function(n){ f[n] = __enc(__F[n]); });
+  return {memoire:JSON.stringify(m), sons:JSON.stringify(__E), fichiers:JSON.stringify(f)};
+};
+function __v181Panne(){ return sessionStorage.getItem('__v181Panne') || ''; }
+var __v181Poser = Storage.prototype.setItem, __v181Retirer = Storage.prototype.removeItem;
+Storage.prototype.setItem = function(k,v){
+  if(this === localStorage && (k === 'drm.reglages' || k.indexOf('drm.reglages.') === 0))
+    __v181Ecritures.push('memoire ' + k);
+  return __v181Poser.call(this,k,v);
+};
+Storage.prototype.removeItem = function(k){
+  if(this === localStorage && (k === 'drm.reglages' || k.indexOf('drm.reglages.') === 0))
+    __v181Ecritures.push('memoire ' + k);
+  return __v181Retirer.call(this,k);
+};
+['fichierSauver','fichierSupprimer','echSauver','echSupprimer'].forEach(function(n){
+  var original = DRM16[n];
+  DRM16[n] = function(){
+    __v181Ecritures.push(n + ' ' + arguments[0]);
+    var r = original.apply(DRM16,arguments);
+    if(n === 'fichierSupprimer' && arguments[0] === 'drm16-ouverture.json')
+      __v181JournalRetire = true;
+    return r;
+  };
+});
+var __v181Lire = DRM16.fichierCharger, __v181Liste = DRM16.fichierListe;
+var __v181Son = DRM16.echCharger, __v181Sons = DRM16.echListe;
+DRM16.fichierCharger = function(n){
+  if(n === 'drm16-ouverture.json' && (__v181Panne() === 'journal-lecture' ||
+     (__v181Panne() === 'apres-suppression' && __v181JournalRetire))) return null;
+  return __v181Lire(n);
+};
+DRM16.fichierListe = function(ext){
+  if(__v181Panne() === 'documents-liste') return null;
+  if(__v181Panne() === 'apres-suppression' && __v181JournalRetire) return '';
+  return __v181Liste(ext);
+};
+DRM16.echCharger = function(n){
+  if(__v181Panne() === 'son-lecture' && n === 'u-stockage') return null;
+  return __v181Son(n);
+};
+DRM16.echListe = function(){ return __v181Panne() === 'sons-liste' ? null : __v181Sons(); };
+"""
+    preparer = r"""(phase) => {
+      audioInit(); allerMachine('kp'); S.bpm = 119; memKp(); writeMem();
+      var ancien = b64De(wavDe(ctx.createBuffer(1, 320, 32000)));
+      var nouveau = b64De(wavDe(ctx.createBuffer(1, 640, 32000)));
+      HOST.echSauver('u-stockage', ancien);
+      var avant = projetContenu().doc;
+      var apres = JSON.parse(JSON.stringify(avant));
+      var reglages = JSON.parse(apres.memoire[MEM]); reglages.bpm = 157;
+      apres.memoire[MEM] = JSON.stringify(reglages);
+      apres.sons = {'u-stockage':nouveau, 'u-ajout-v181':nouveau};
+      if(phase){
+        var a = projetEnregistrer('avant-ouverture-stockage', true, {doc:avant,sautes:[],erreurs:[]});
+        var b = projetEnregistrer('ouverture-verifiee-stockage', true, {doc:apres,sautes:[],erreurs:[]});
+        if(!a || !b) throw new Error('Préparation des copies impossible');
+        projetEcrireJournal({version:1,phase:phase,avant:projetReference(a,avant),
+          apres:projetReference(b,apres),sons:Object.keys(apres.sons)});
+        if(phase === 'apres'){
+          projetPoserMemoire(apres.memoire);
+          Object.keys(apres.sons).forEach(function(n){ HOST.echSauver(n,apres.sons[n]); });
+        }
+      }
+      PROJET_EN_COURS = true; // pagehide ne doit pas écraser l'état préparé
+      return __v181Etat();
+    }"""
+    cas = [('journal-lecture', ''), ('documents-liste', ''),
+           ('son-lecture', 'avant'), ('son-lecture', 'apres'),
+           ('sons-liste', 'avant'), ('apres-suppression', 'apres')]
+    for panne, phase in cas:
+        ctx = await nav.new_context(viewport={"width":393, "height":851})
+        await ctx.add_init_script(PONT + instrumentation)
+        adresse = await servir_page(ctx)
+        pg = await ctx.new_page()
+        err = []
+        pg.on('pageerror', lambda e: err.append(str(e)))
+        nom = panne + (' / ' + phase if phase else '')
+        try:
+            await pg.goto(adresse)
+            await pg.wait_for_function("() => document.body.classList.contains('pret')")
+            avant = await pg.evaluate(preparer, phase)
+            await pg.evaluate("p => sessionStorage.setItem('__v181Panne',p)", panne)
+            await pg.reload(wait_until='domcontentloaded')
+            await pg.locator('#projet-reprise-reessayer').wait_for(state='visible')
+            r = await pg.evaluate("""() => ({etat:__v181Etat(), application:typeof S,
+              ecritures:__v181Ecritures.slice(), suivi:!!__F[PROJET_JOURNAL],
+              bloque:PROJET_DEMARRAGE.bloque,
+              erreur:document.getElementById('projet-reprise-erreur').textContent,
+              lecture:HOST.fichierCharger(PROJET_JOURNAL), liste:HOST.fichierListe(''),
+              son:HOST.echCharger('u-stockage'), sons:HOST.echListe()})""")
+            ecritures = ['fichierSupprimer drm16-ouverture.json'] if panne == 'apres-suppression' else []
+            ok(r['application'] == 'undefined' and r['bloque'] and bool(r['erreur']) and
+               r['ecritures'] == ecritures and r['etat']['memoire'] == avant['memoire'] and
+               r['etat']['sons'] == avant['sons'],
+               "%s : refus visible avant les machines, sans modifier réglages ni sons" % nom)
+            if panne == 'apres-suppression':
+                attendu = json.loads(avant['fichiers']); del attendu['drm16-ouverture.json']
+                ok(r['lecture'] is None and r['liste'] == '' and not r['suivi'] and
+                   json.loads(r['etat']['fichiers']) == attendu,
+                   "après suppression : une relecture en échec reste bloquante même avec une liste vide")
+            else:
+                retour = {'journal-lecture':'lecture', 'documents-liste':'liste',
+                          'son-lecture':'son', 'sons-liste':'sons'}[panne]
+                ok(r[retour] is None and r['etat']['fichiers'] == avant['fichiers'] and
+                   r['suivi'] == bool(phase),
+                   "%s : HOST transmet null et garde le suivi et ses copies intacts" % nom)
+            await pg.evaluate("() => sessionStorage.removeItem('__v181Panne')")
+            async with pg.expect_navigation():
+                await pg.locator('#projet-reprise-reessayer').click()
+            await pg.wait_for_function("""() => typeof S !== 'undefined' &&
+              document.body.classList.contains('pret') && !__F['drm16-ouverture.json']""", timeout=15000)
+            ok(await pg.evaluate("() => S.bpm") == (157 if phase == 'apres' else 119) and not err,
+               "%s : Réessayer reprend normalement après le retour du stockage, sans erreur de page" % nom)
+        finally:
+            await ctx.close()
+
+    ctx = await nav.new_context(viewport={"width":393, "height":851})
+    await ctx.add_init_script(PONT + instrumentation)
+    adresse = await servir_page(ctx)
+    pg = await ctx.new_page()
+    err = []
+    pg.on('pageerror', lambda e: err.append(str(e)))
+    try:
+        await pg.goto(adresse)
+        await pg.wait_for_function("() => document.body.classList.contains('pret')")
+        r = await pg.evaluate("""() => {
+          audioInit(); allerMachine('kp'); S.bpm = 119; memKp(); writeMem();
+          HOST.echSauver('u-stockage', b64De(wavDe(ctx.createBuffer(1,320,32000))));
+          var entrant = projetContenu().doc;
+          entrant.memoire[MEM] = JSON.stringify({modele:'tr909',bpm:157});
+          var avant = __v181Etat(), messages = [], original = signal;
+          window.confirm = function(){ return true; };
+          sessionStorage.setItem('__v181Panne','sons-liste');
+          signal = function(t){ messages.push(t); };
+          var ouvert;
+          try{ ouvert = projetOuvrir(JSON.stringify(entrant),'Projet entrant'); }
+          finally{ signal = original; sessionStorage.removeItem('__v181Panne'); }
+          return {ouvert:ouvert, avant:avant, apres:__v181Etat(), messages:messages,
+            bpm:S.bpm, enCours:PROJET_EN_COURS};
+        }""")
+        ok(not r['ouvert'] and not r['enCours'] and r['bpm'] == 119 and r['avant'] == r['apres'] and
+           any('OUVERTURE ANNULÉE' in m and 'SECOURS INCOMPLÈTE' in m for m in r['messages']),
+           "ouvrir avec une liste de sons illisible annule explicitement avant toute copie ou remplacement")
+        ok(not err, "aucune erreur de page lors du refus d'ouverture %s" % err[:1])
+    finally:
+        await ctx.close()
+
 async def confort(nav):
     print("\n11. Confort sur ordinateur : clavier, molette, glisser-déposer (v146)")
     ctx = await nav.new_context(viewport={"width": 1180, "height": 860})
@@ -1281,7 +1439,7 @@ async def mc_scenes(nav):
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes):
             try:
                 await t(nav)
             except Exception as e:

@@ -270,3 +270,19 @@ console.log('Projets : succès avec secours complet, quota et sons refusés rest
  }
  console.log('Projets : vrai WAV de4 Mo accepté sans débordement de pile ; alphabet, padding et longueur Base64 invalides refusés OK.');
 }
+
+// v181 : une liste native nulle indique un refus, jamais un kit vide.
+for(const valeur of [null,undefined]){
+ const t=setup();t.c.HOST.echListe=()=>valeur;
+ assert.equal(t.c.projetOuvrir(documentProjet({'u-existant':newWav}),'liste refusée'),false);
+ unchanged(t);assert.equal(t.files.size,0);assert.equal(t.c.attempts.length,0);
+ assert(t.c.messages.some(m=>m.includes('SECOURS INCOMPLÈTE')));
+ assert(t.c.projetContenu().erreurs.includes('liste des sons'));
+}
+// Une absence réelle de sons est en revanche un cas valide.
+{
+ const t=setup();t.sounds.clear();t.beforeSounds=[];
+ assert.equal(t.c.projetOuvrir(documentProjet(),'sans sons'),true);
+ assert.deepStrictEqual(JSON.parse(t.files.get(JSON.parse(t.files.get('drm16-ouverture.json')).avant.nom)).sons,{});
+}
+console.log('Projets v181 : liste de sons indéterminée refusée avant sauvegarde ou remplacement ; kit réellement vide accepté.');

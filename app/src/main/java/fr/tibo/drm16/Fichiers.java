@@ -1,6 +1,7 @@
 package fr.tibo.drm16;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Remplacement sur d'un fichier (v129). Aucune dependance Android : cette classe
@@ -45,25 +46,57 @@ final class Fichiers {
         return false;
     }
 
-    /** Le fichier a lire ; remet d'abord en place une sauvegarde orpheline. */
-    static File lisible(File cible) {
-        if (cible == null || cible.exists()) return cible;
-        File bak = sauvegarde(cible);
-        if (bak.isFile()) bak.renameTo(cible);
+    /** L'absence n'est certaine qu'apres lecture du dossier parent.
+        File.exists() renvoie aussi false si l'acces au stockage est refuse. */
+    static boolean absent(File fichier) throws IOException {
+        if (fichier == null) throw new IOException("chemin indisponible");
+        if (fichier.exists()) return false;
+        File parent = fichier.getParentFile();
+        if (parent == null) throw new IOException("parent indisponible : " + fichier);
+        String[] noms = parent.list();
+        if (noms == null) {
+            if (absent(parent)) return true;
+            throw new IOException("dossier illisible : " + parent);
+        }
+        for (String nom : noms) if (nom.equals(fichier.getName())) return false;
+        return true;
+    }
+
+    /** Liste vide seulement pour un dossier vide ou dont l'absence est certaine. */
+    static String[] listeVerifiee(File dossier) throws IOException {
+        if (dossier == null) throw new IOException("dossier indisponible");
+        String[] noms = dossier.list();
+        if (noms != null) return noms;
+        if (absent(dossier)) return new String[0];
+        throw new IOException("dossier illisible : " + dossier);
+    }
+
+    /** Le fichier a lire, null si reellement absent ; restaure d'abord son .bak. */
+    static File lisible(File cible) throws IOException {
+        if (cible == null) throw new IOException("chemin indisponible");
+        return lisible(cible, sauvegarde(cible));
+    }
+
+    static File lisible(File cible, File bak) throws IOException {
+        if (!absent(cible)) {
+            if (!cible.isFile()) throw new IOException("pas un fichier : " + cible);
+            return cible;
+        }
+        if (absent(bak)) return null;
+        if (!bak.isFile() || !bak.renameTo(cible) || !cible.isFile())
+            throw new IOException("sauvegarde non restauree : " + bak);
         return cible;
     }
 
-    /** Remet en place toutes les sauvegardes orphelines d'un dossier. */
-    static void recupererDossier(File dossier) {
-        if (dossier == null) return;
-        String[] l = dossier.list();
-        if (l == null) return;
-        for (String n : l) {
+    /** Un .bak orphelin refuse ne doit jamais disparaitre d'une liste reussie. */
+    static void recupererDossier(File dossier) throws IOException {
+        String[] noms = listeVerifiee(dossier);
+        for (String n : noms) {
             if (!n.endsWith(".bak")) continue;
             File cible = new File(dossier, n.substring(0, n.length() - 4));
             File bak = new File(dossier, n);
-            if (!cible.exists()) bak.renameTo(cible);
-            else bak.delete();
+            lisible(cible, bak);
+            if (bak.exists()) bak.delete();
         }
     }
 

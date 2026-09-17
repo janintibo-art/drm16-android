@@ -30,7 +30,11 @@ function projetContenu(){
   var total = JSON.stringify(memoireProjet).length, sons = Object.create(null), sautes = [], erreurs = [];
   if(HOST.echListe && HOST.echCharger){
     var noms = "";
-    try{ noms = HOST.echListe() || ""; }catch(e){ erreurs.push("liste des sons"); }
+    try{
+      var liste = HOST.echListe();
+      if(typeof liste !== "string") throw new Error("liste des sons inaccessible");
+      noms = liste;
+    }catch(e){ erreurs.push("liste des sons"); }
     noms.split("\n").forEach(function(n){
       if(!n) return;
       var b = "";

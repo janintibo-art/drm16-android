@@ -241,7 +241,9 @@ function projetEffacerJournal(j){
     throw new Error("Le suivi de l'ouverture a changé. Réessayez.");
   if(!HOST.fichierSupprimer || !HOST.fichierSupprimer(PROJET_JOURNAL))
     throw new Error("La restauration n'a pas pu être terminée. Réessayez.");
-  if(HOST.fichierCharger(PROJET_JOURNAL) || projetNomsNatifs().indexOf(PROJET_JOURNAL) >= 0)
+  /* v181 : un retour natif null n'est pas une absence. La même lecture
+     vérifiée qu'au démarrage doit confirmer la disparition du suivi. */
+  if(projetLireJournal() !== null)
     throw new Error("La restauration reste en attente. Réessayez.");
 }
 /* Aucun code de machine n'a encore été exécuté à cet instant. Si la reprise

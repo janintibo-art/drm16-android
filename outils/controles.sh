@@ -57,6 +57,7 @@ etape "6. Java : compilation de controle et tests"
 SORTIE="$(mktemp -d)"
 java outils/java/Verif.java "$SORTIE" outils/java/android-simule app/src/main/java outils/java/tests
 java -cp "$SORTIE" fr.tibo.drm16.TestFichiers
+java -cp "$SORTIE" fr.tibo.drm16.TestLectures
 java -cp "$SORTIE" fr.tibo.drm16.TestMidi
 java -cp "$SORTIE" fr.tibo.drm16.TestMidiOuverture
 rm -rf "$SORTIE"
@@ -69,6 +70,10 @@ fin
 
 etape "8. MIDI bureau : commandes concurrentes et ports simules"
 python3 outils/test-midi-bureau.py
+fin
+
+etape "9. Fichiers bureau : lectures, listes et recuperations refusees"
+python3 outils/test-fichiers-bureau.py
 fin
 
 echo

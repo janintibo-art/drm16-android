@@ -301,3 +301,39 @@ console.log('Reprise projets : CRC32 connu, collisions Kick/kick entrantes ou ex
  assert.deepStrictEqual([...t.state.files],[...seed.files]);assert.equal(t.c.timers.length,0);
 }
 console.log('Reprise projets : son __proto__ conservé et restauré à chaque coupure ; jeu hors transport arrêté avant sauvegarde et blocage, y compris sur journal corrompu précoce OK.');
+
+// v181 : le pont distingue une erreur d'accès (null) d'une absence ("").
+for(const panne of ['lecture-journal','liste-documents','lecture-secours','lecture-son','liste-sons']){
+ const seed=panne==='liste-documents'?ancien:avantPartiel;
+ const options={};
+ if(panne==='lecture-journal')options.fileRead=()=>null;
+ if(panne==='liste-documents')options.fileList=()=>null;
+ if(panne==='lecture-secours')options.fileRead=(n,s)=>n.endsWith('.drm16')?null:s.files.has(n)?Buffer.from(s.files.get(n)).toString('base64'):'';
+ if(panne==='lecture-son')options.soundRead=()=>null;
+ const t=setup(seed,options);
+ if(panne==='liste-sons'){
+  // Le son ajouté par le projet n'a pas d'équivalent dans l'ancien : sa
+  // suppression ne peut être confirmée si la liste est inaccessible.
+  t.state.sounds.delete('u-nouveau');
+  t.c.HOST.echListe=()=>null;
+ }
+ assert.equal(t.boot(),false,panne+' bloque la reprise');
+ assert(t.c.PROJET_REPRISE.erreur,panne+' explique le refus');
+ assert(!t.c.PROJET_REPRISE.recharger,panne+' pas de rechargement aveugle');
+ assert(!t.events.some(e=>e.kind==='document-effacer'),panne+' conserve le suivi');
+ if(panne!=='liste-sons')sansMutation(t,panne+' sans mutation');
+}
+// Même après un effacement annoncé réussi, un refus de relecture empêche de
+// déclarer la restauration terminée, bien que la liste soit devenue vide.
+{
+ let efface=false;
+ const t=setup(nominal.state,{
+  after(e,s,result){if(e.kind==='document-effacer'&&e.name===JOURNAL)efface=true;return result;},
+  fileRead(n,s){if(efface&&n===JOURNAL)return null;return s.files.has(n)?Buffer.from(s.files.get(n)).toString('base64'):'';}
+ });
+ assert.equal(t.boot(),false,'relecture après suppression refusée');
+ assert(efface);assert(t.c.PROJET_REPRISE.erreur);sansMutation(t,'fin de reprise refusée');
+ identique(t.state,etatAttendu(true),'refus après suppression');
+ reprise(t.state,etatAttendu(true),'accès rétabli après suppression');
+}
+console.log('Reprise v181 : lectures/listes natives indéterminées bloquées, y compris après suppression du suivi ; nouvel essai possible.');

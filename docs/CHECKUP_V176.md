@@ -10,6 +10,8 @@ Audit du 17 septembre 2026, à partir de la v175. La v176 est une version de mai
 
 **Suivi v180 :** la reprise automatique est désormais effectuée avant le démarrage des machines : journal natif, deux copies vérifiées, restauration/reprise selon la phase enregistrée et blocage si elle ne peut pas être vérifiée. Le [bilan v180](CORRECTIONS_V180.md) distingue les simulations de coupure et les essais matériels encore à faire.
 
+**Suivi v181 :** les erreurs de lecture/liste et les refus de récupération des fichiers `.bak` sont signalés par les ponts Android et Windows. Une liste de sons illisible empêche le secours, et la fin de reprise exige une absence vérifiée du suivi. Voir le [bilan v181](CORRECTIONS_V181.md) et sa limite restante sur le choix du dossier Android.
+
 ## Résultat
 
 Les contrôles automatiques initiaux de la v175 passaient, mais ne couvraient pas plusieurs pertes d'état, erreurs de routage et refus d'écriture. Des reproductions ciblées ont permis de corriger ces cas et d'ajouter des tests.

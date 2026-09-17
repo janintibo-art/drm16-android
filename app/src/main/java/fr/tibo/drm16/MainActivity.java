@@ -282,39 +282,54 @@ public class MainActivity extends Activity implements Midi.Ecoute {
                 }});
             }});
         }
-        private File dossierDoc() {
+        private File dossierDoc() throws IOException {
             File d = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-            if (d != null && (d.exists() || d.mkdirs())) return d;
-            d = new File(getFilesDir(), "documents");
-            if (!d.exists()) d.mkdirs();
+            if (d == null) {
+                File interne = getFilesDir();
+                if (interne == null) throw new IOException("stockage prive indisponible");
+                d = new File(interne, "documents");
+            }
+            /* Un stockage connu mais indisponible n'est pas un dossier vide.
+               Ne pas ouvrir un autre emplacement apres un refus d'acces. */
+            if (!d.isDirectory() && (!Fichiers.absent(d) || !d.mkdirs()))
+                throw new IOException("dossier documents indisponible");
+            if (d.list() == null) throw new IOException("dossier documents illisible");
             return d;
+        }
+        private File dossierEch() throws IOException {
+            File interne = getFilesDir();
+            if (interne == null) throw new IOException("stockage prive indisponible");
+            return new File(interne, "ech");
         }
         /** Liste des fichiers de Documents portant l'extension demandee, avec leur taille. */
         @JavascriptInterface public String fichierListe(String ext) {
-            File d = dossierDoc();
-            Fichiers.recupererDossier(d);
-            String[] l = d.list();
-            if (l == null) return "";
-            Arrays.sort(l, String.CASE_INSENSITIVE_ORDER);
-            StringBuilder sb = new StringBuilder();
-            for (String n : l) {
-                if (Fichiers.nomTechnique(n)) continue;       /* ecriture en cours ou interrompue */
-                if (ext != null && ext.length() > 0 && !n.endsWith(ext)) continue;
-                File f = new File(d, n);
-                if (sb.length() > 0) sb.append("\n");
-                sb.append(n).append("\t").append(f.length()).append("\t").append(f.lastModified());
-            }
-            return sb.toString();
+            try {
+                File d = dossierDoc();
+                Fichiers.recupererDossier(d);
+                String[] l = Fichiers.listeVerifiee(d);
+                Arrays.sort(l, String.CASE_INSENSITIVE_ORDER);
+                StringBuilder sb = new StringBuilder();
+                for (String n : l) {
+                    if (Fichiers.nomTechnique(n)) continue;       /* ecriture en cours ou interrompue */
+                    if (ext != null && ext.length() > 0 && !n.endsWith(ext)) continue;
+                    File f = new File(d, n);
+                    if (!f.exists() || !f.canRead()) throw new IOException("entree illisible : " + n);
+                    if (sb.length() > 0) sb.append("\n");
+                    sb.append(n).append("\t").append(f.length()).append("\t").append(f.lastModified());
+                }
+                return sb.toString();
+            } catch (Exception e) { return null; }
         }
         @JavascriptInterface public String fichierCharger(String nom) {
             try {
                 String p = propre(nom);
                 File f = Fichiers.lisible(new File(dossierDoc(), p));
+                if (f == null) return "";
                 /* un .wav n'est jamais relu par l'application : il garde le plafond des documents */
                 long max = p.toLowerCase(java.util.Locale.ROOT).endsWith(".drm16") ? MAX_PROJET_BYTES : MAX_DOCUMENT_BYTES;
                 byte[] o = lireFichierComplet(f, max);
                 return Base64.encodeToString(o, Base64.NO_WRAP);
-            } catch (Exception e) { return ""; }
+            } catch (Exception e) { return null; }
         }
         @JavascriptInterface public boolean fichierSupprimer(String nom) {
             try {
@@ -324,15 +339,17 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             } catch (Exception e) { return false; }
         }
         @JavascriptInterface public String fichierDossier() {
-            return dossierDoc().getAbsolutePath();
+            try { return dossierDoc().getAbsolutePath(); }
+            catch (Exception e) { return null; }
         }
         @JavascriptInterface public String echDossier() {
-            return new File(getFilesDir(), "ech").getAbsolutePath();
+            try { return dossierEch().getAbsolutePath(); }
+            catch (Exception e) { return null; }
         }
         @JavascriptInterface public boolean echSauver(String nom, String b64) {
             try {
                 if (b64 == null || depasseBase64(b64, MAX_SAMPLE_BYTES)) return false;
-                File d = new File(getFilesDir(), "ech");
+                File d = dossierEch();
                 if (!d.exists() && !d.mkdirs()) return false;
                 byte[] o = Base64.decode(b64, Base64.DEFAULT);
                 if (o.length > MAX_SAMPLE_BYTES) return false;
@@ -342,28 +359,32 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         }
         @JavascriptInterface public String echCharger(String nom) {
             try {
-                File f = Fichiers.lisible(new File(new File(getFilesDir(), "ech"), propre(nom) + ".wav"));
+                File f = Fichiers.lisible(new File(dossierEch(), propre(nom) + ".wav"));
+                if (f == null) return "";
                 byte[] o = lireFichierComplet(f, MAX_SAMPLE_BYTES);
                 return Base64.encodeToString(o, Base64.NO_WRAP);
-            } catch (Exception e) { return ""; }
+            } catch (Exception e) { return null; }
         }
         @JavascriptInterface public String echListe() {
-            File d = new File(getFilesDir(), "ech");
-            Fichiers.recupererDossier(d);
-            String[] l = d.list();
-            if (l == null) return "";
-            Arrays.sort(l, String.CASE_INSENSITIVE_ORDER);
-            StringBuilder sb = new StringBuilder();
-            for (String n : l) {
-                if (!n.endsWith(".wav")) continue;
-                if (sb.length() > 0) sb.append("\n");
-                sb.append(n.substring(0, n.length() - 4));
-            }
-            return sb.toString();
+            try {
+                File d = dossierEch();
+                Fichiers.recupererDossier(d);
+                String[] l = Fichiers.listeVerifiee(d);
+                Arrays.sort(l, String.CASE_INSENSITIVE_ORDER);
+                StringBuilder sb = new StringBuilder();
+                for (String n : l) {
+                    if (!n.endsWith(".wav")) continue;
+                    File f = new File(d, n);
+                    if (!f.exists() || !f.canRead()) throw new IOException("echantillon illisible : " + n);
+                    if (sb.length() > 0) sb.append("\n");
+                    sb.append(n.substring(0, n.length() - 4));
+                }
+                return sb.toString();
+            } catch (Exception e) { return null; }
         }
         @JavascriptInterface public void echSupprimer(String nom) {
             try {
-                File f = new File(new File(getFilesDir(), "ech"), propre(nom) + ".wav");
+                File f = new File(dossierEch(), propre(nom) + ".wav");
                 Fichiers.sauvegarde(f).delete();
                 f.delete();
             } catch (Exception ignored) {}
@@ -384,6 +405,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
                 if (n == 0) continue;
                 pos += n;
             }
+            if (in.read() != -1) throw new IOException("fichier agrandi pendant la lecture");
         }
         return o;
     }

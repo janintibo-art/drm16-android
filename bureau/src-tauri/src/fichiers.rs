@@ -9,7 +9,7 @@
 
 use std::collections::HashMap;
 use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, OnceLock};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -127,29 +127,63 @@ fn remplacer(tmp: &Path, cible: &Path) -> bool {
     false
 }
 
-fn lisible(cible: &Path) -> PathBuf {
-    if !cible.exists() {
-        let bak = sauvegarde(cible);
-        if bak.is_file() {
-            let _ = fs::rename(&bak, cible);
-        }
-    }
-    cible.to_path_buf()
+fn erreur_fichier() -> io::Error {
+    io::Error::new(io::ErrorKind::InvalidData, "fichier ou sauvegarde illisible")
 }
 
-fn recuperer_dossier(d: &Path) {
-    let Ok(l) = fs::read_dir(d) else { return };
-    for e in l.flatten() {
-        let n = e.file_name().to_string_lossy().to_string();
+// exists()/is_file() rabattent aussi les erreurs sur false. Une ouverture de
+// projet doit pouvoir distinguer une vraie absence d'une lecture refusée.
+fn present(p: &Path) -> io::Result<bool> {
+    match fs::symlink_metadata(p) {
+        Ok(_) => Ok(true),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(false),
+        Err(e) => Err(e),
+    }
+}
+
+fn lisible(cible: &Path) -> io::Result<Option<PathBuf>> {
+    let parent = cible.parent().ok_or_else(erreur_fichier)?;
+    if !fs::metadata(parent)?.is_dir() {
+        return Err(erreur_fichier());
+    }
+    if !present(cible)? {
+        let bak = sauvegarde(cible);
+        if !present(&bak)? {
+            return Ok(None);
+        }
+        if !fs::metadata(&bak)?.is_file() {
+            return Err(erreur_fichier());
+        }
+        fs::rename(&bak, cible)?;
+    }
+    if !fs::metadata(cible)?.is_file() {
+        return Err(erreur_fichier());
+    }
+    Ok(Some(cible.to_path_buf()))
+}
+
+fn recuperer_dossier(d: &Path) -> io::Result<()> {
+    // Une erreur d'itération ne doit jamais produire une liste partielle.
+    let entrees: Vec<_> = fs::read_dir(d)?.collect::<io::Result<_>>()?;
+    for e in entrees {
+        let nom = e.file_name();
+        let n = nom.to_str().ok_or_else(erreur_fichier)?;
         if let Some(base) = n.strip_suffix(".bak") {
+            if !fs::metadata(e.path())?.is_file() {
+                return Err(erreur_fichier());
+            }
             let cible = d.join(base);
-            if !cible.exists() {
-                let _ = fs::rename(e.path(), cible);
+            if !present(&cible)? {
+                fs::rename(e.path(), cible)?;
             } else {
-                let _ = fs::remove_file(e.path());
+                if !fs::metadata(&cible)?.is_file() {
+                    return Err(erreur_fichier());
+                }
+                fs::remove_file(e.path())?;
             }
         }
     }
+    Ok(())
 }
 
 fn ecrire_atomique(cible: &Path, octets: &[u8]) -> bool {
@@ -169,13 +203,17 @@ fn ecrire_atomique(cible: &Path, octets: &[u8]) -> bool {
 }
 
 fn lire_complet(f: &Path, max: u64) -> Option<Vec<u8>> {
-    let m = fs::metadata(f).ok()?;
+    let fichier = File::open(f).ok()?;
+    let m = fichier.metadata().ok()?;
     if !m.is_file() || m.len() > max {
         return None;
     }
     let mut o = Vec::with_capacity(m.len() as usize);
-    File::open(f).ok()?.read_to_end(&mut o).ok()?;
-    if (o.len() as u64) > max {
+    // Le plafond reste effectif si le fichier grossit après metadata(). Une
+    // troncature pendant la lecture ne doit pas devenir une absence réussie.
+    let mut lecture = fichier.take(max + 1);
+    lecture.read_to_end(&mut o).ok()?;
+    if (o.len() as u64) != m.len() || lecture.get_ref().metadata().ok()?.len() != m.len() {
         return None;
     }
     Some(o)
@@ -285,33 +323,34 @@ pub fn fermer(jeton: &str, valider: bool) -> String {
     if ok { cible.to_string_lossy().to_string() } else { String::new() }
 }
 
-pub fn liste(ext: &str) -> String {
+pub fn liste(ext: &str) -> Option<String> {
     let d = dossier_doc();
-    recuperer_dossier(&d);
-    let Ok(l) = fs::read_dir(&d) else { return String::new() };
-    let mut noms: Vec<String> = l.flatten().map(|e| e.file_name().to_string_lossy().to_string()).collect();
+    recuperer_dossier(&d).ok()?;
+    let entrees: Vec<_> = fs::read_dir(&d).ok()?.collect::<io::Result<_>>().ok()?;
+    let mut noms: Vec<String> = entrees.iter()
+        .map(|e| e.file_name().into_string().ok()).collect::<Option<_>>()?;
     trier(&mut noms);
     let mut lignes = Vec::new();
     for n in noms {
         if nom_technique(&n) || (!ext.is_empty() && !n.ends_with(ext)) {
             continue;
         }
-        let m = fs::metadata(d.join(&n)).ok();
-        let taille = m.as_ref().map(|m| m.len()).unwrap_or(0);
-        let date = m
-            .and_then(|m| m.modified().ok())
-            .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
-            .map(|d| d.as_millis())
-            .unwrap_or(0);
+        let m = fs::metadata(d.join(&n)).ok()?;
+        if !m.is_file() && !m.is_dir() { return None; }
+        let taille = m.len();
+        let date = m.modified().ok()?.duration_since(UNIX_EPOCH)
+            .map(|d| d.as_millis()).unwrap_or(0);
         lignes.push(format!("{}\t{}\t{}", n, taille, date));
     }
-    lignes.join("\n")
+    Some(lignes.join("\n"))
 }
 
-pub fn charger(nom: &str) -> String {
+pub fn charger(nom: &str) -> Option<String> {
     let p = propre(nom);
-    let f = lisible(&dossier_doc().join(&p));
-    lire_complet(&f, plafond_lecture(&p)).map(|o| STANDARD.encode(o)).unwrap_or_default()
+    match lisible(&dossier_doc().join(&p)).ok()? {
+        None => Some(String::new()),
+        Some(f) => lire_complet(&f, plafond_lecture(&p)).map(|o| STANDARD.encode(o)),
+    }
 }
 
 pub fn supprimer(nom: &str) -> bool {
@@ -336,22 +375,29 @@ pub fn ech_sauver(nom: &str, b64: &str) -> bool {
     }
 }
 
-pub fn ech_charger(nom: &str) -> String {
-    let f = lisible(&fichier_ech(nom));
-    lire_complet(&f, MAX_SAMPLE).map(|o| STANDARD.encode(o)).unwrap_or_default()
+pub fn ech_charger(nom: &str) -> Option<String> {
+    match lisible(&fichier_ech(nom)).ok()? {
+        None => Some(String::new()),
+        Some(f) => lire_complet(&f, MAX_SAMPLE).map(|o| STANDARD.encode(o)),
+    }
 }
 
-pub fn ech_liste() -> String {
+pub fn ech_liste() -> Option<String> {
     let d = dossier_ech();
-    recuperer_dossier(&d);
-    let Ok(l) = fs::read_dir(&d) else { return String::new() };
-    let mut noms: Vec<String> = l
-        .flatten()
-        .map(|e| e.file_name().to_string_lossy().to_string())
-        .filter_map(|n| n.strip_suffix(".wav").map(|s| s.to_string()))
-        .collect();
+    recuperer_dossier(&d).ok()?;
+    let entrees: Vec<_> = fs::read_dir(&d).ok()?.collect::<io::Result<_>>().ok()?;
+    let mut noms = Vec::new();
+    for e in entrees {
+        let nom = e.file_name();
+        let n = nom.to_str()?;
+        if nom_technique(n) { continue; }
+        if let Some(base) = n.strip_suffix(".wav") {
+            if !fs::metadata(e.path()).ok()?.is_file() { return None; }
+            noms.push(base.to_string());
+        }
+    }
     trier(&mut noms);
-    noms.join("\n")
+    Some(noms.join("\n"))
 }
 
 pub fn ech_supprimer(nom: &str) {
