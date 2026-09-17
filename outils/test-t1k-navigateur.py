@@ -154,6 +154,28 @@ async def main():
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v196-%sx%s.png'%(w,h))))
             print('OK : sens indépendants, WAV arrière/aller-retour, sauvegarde, curseur entendu et reset STOP/START',flush=True)
+            # v197 : peinture, mémoire, cycle déterministe et vrai WAV.
+            await pg.evaluate('choisirMotifT1k(0,0);T1K.sel=0;majT1k()')
+            await pg.locator('#t1k-cycle').click()
+            await pg.locator('#t1k-cycle-valeur').select_option('2:4')
+            await pg.locator('#t1k-pas button').nth(0).click()
+            await pg.locator('#t1k-pas button').nth(1).click()
+            assert await pg.evaluate("T1K.cycles&&!T1K.proba&&!T1K.sub&&!T1K.accent&&motifT1kCur().pas[0]===1&&motifT1kCur().cycle[0][1]==='2:4'&&motifT1kCur().cycle[1][0]==='1:1'")
+            assert '2:4' in await pg.locator('#t1k-pas button').nth(0).inner_text()
+            await pg.locator('#t1k-proba').click()
+            assert await pg.evaluate('!T1K.cycles&&T1K.proba')
+            await pg.evaluate('memT1k();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate("motifT1kCur().cycle[0][0]==='2:4'&&!T1K.cycles")
+            await pg.evaluate('WAVX.mesures=3')
+            for direction,attendus in [('avant',[4]),('arriere',[7]),('pingpong',[6])]:
+                r=await pg.evaluate(rendu_direction,direction)
+                assert [i for i,x in enumerate(r['pics']) if x>.001]==attendus,r
+            await pg.locator('#t1k-cycle').click()
+            for w,h in ((393,851),(360,640),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v197-%sx%s.png'%(w,h))))
+            print('OK : cycles par pas, édition exclusive, mémoire et vrais WAV dans les trois directions',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

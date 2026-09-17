@@ -84,3 +84,15 @@ console.log('TR-1000 v195 : 128 motifs, migration des 16 partagés, indépendanc
  c.S.run=true;assert(!c.choisirDirectionT1k('arriere'));c.S.run=false;assert(c.choisirDirectionT1k('arriere'));
 }
 console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et sauvegarde OK.');
+
+{
+ const c=setup(),m=c.motifT1kCur();m.last=4;m.pas.fill(0);m.pas[0]=1;m.sub[0][0]=3;m.cycle[0][0]='2:4';m.prob[0][0]=50;
+ const tours=[];for(let tour=0;tour<8;tour++){c.voix=[];for(let i=0;i<4;i++)c.scheduleT1k(i,2+tour+i*.12);if(c.voix.length){assert.equal(c.voix.length,3);tours.push(tour+1);}}
+ assert.deepStrictEqual(tours,[2,6]);assert.equal(c.tirages,2,'aucun tirage sur les tours refusés');
+ c.resetLectureT1k();c.voix=[];c.scheduleT1k(0,20);assert.equal(c.voix.length,0,'reset au premier tour');
+ for(const sens of ['arriere','pingpong']){c.resetLectureT1k();m.direction[0]=sens;c.voix=[];for(let i=0;i<32;i++)c.scheduleT1k(i%4,30+i*.12);assert(c.voix.length>0,sens);}
+ c.memT1k();m.cycle[0][0]='1:1';assert.equal(c.memoire.t1k.motifs[0].cycle[0][0],'2:4');c.chargerT1k();assert.equal(c.motifT1kCur().cycle[0][0],'2:4');
+ const ancien=copie(c.memoire.t1k);ancien.motifs.forEach(m=>delete m.cycle);c.memoire.t1k=ancien;c.chargerT1k();assert(c.T1K.motifs.every(m=>m.cycle.every(r=>r.every(v=>v==='1:1'))));
+ for(const v of [null,{},'0:4','5:4','1:8',4])assert.equal(c.cycleT1k(v),'1:1');
+ console.log('TR-1000 v197 : cycles, sous-pas, probabilité, reset, directions, mémoire et migration OK.');
+}
