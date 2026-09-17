@@ -50,16 +50,60 @@ function projetContenu(){
   };
 }
 
-/* Enregistre le projet dans les documents ; rend le nom écrit, ou "" */
+/* v179 : plusieurs sauvegardes dans la même seconde gardent chacune leur
+   fichier. Lire tous les noms, sans filtre d'extension : sous Windows,
+   PROJET-….DRM16 et projet-….drm16 désignent le même fichier. */
+function projetNomDisponible(prefixe){
+  var liste = HOST.fichierListe("");
+  if(typeof liste !== "string") throw new Error("liste des documents illisible");
+  var occupes = Object.create(null);
+  liste.split("\n").forEach(function(ligne){
+    var n = ligne.split("\t")[0];
+    if(n) occupes[n.toLowerCase()] = true;
+  });
+  /* La même normalisation que les ponts, avant la recherche de collision. */
+  var base = String(prefixe || "projet").replace(/[^A-Za-z0-9_.-]/g, "_") + "-" + projetHorodatage();
+  var nom = base + ".drm16", numero = 2;
+  while(occupes[nom.toLowerCase()]) nom = base + "-" + (numero++) + ".drm16";
+  return nom;
+}
+
+/* Le chemin renvoyé par une écriture ne suffit pas à prouver que le secours
+   sera lisible. Comparer ses octets UTF-8, sans interpréter ni réécrire le JSON.
+   Ne pas fabriquer une seconde chaîne Base64 de tout le projet en mémoire. */
+function projetDocumentVerifie(nom, octets){
+  try{
+    var b64 = HOST.fichierCharger(nom);
+    if(typeof b64 !== "string" || !b64) return false;
+    var lu = atob(b64);
+    if(lu.length !== octets.length) return false;
+    for(var i=0;i<octets.length;i++) if(lu.charCodeAt(i) !== octets[i]) return false;
+    return true;
+  }catch(e){ return false; }
+}
+
+/* Enregistre et relit le projet ; rend le nom vérifié, ou "". Un fichier
+   invérifiable reste conservé : il peut encore servir à une récupération. */
 function projetEnregistrer(prefixe, silencieux, contenu){
   if(!HOST.fichierSauver){ if(!silencieux) signal("ÉCRITURE IMPOSSIBLE ICI"); return ""; }
-  var c;
-  try{ c = contenu || projetContenu(); }catch(e){ if(!silencieux) signal("LECTURE DU PROJET IMPOSSIBLE"); return ""; }
-  var octets = new TextEncoder().encode(JSON.stringify(c.doc));
+  if(!HOST.fichierListe || !HOST.fichierCharger){
+    if(!silencieux) signal("SAUVEGARDE IMPOSSIBLE ICI · VÉRIFICATION DES FICHIERS INDISPONIBLE");
+    return "";
+  }
+  var c, octets, nom;
+  try{
+    c = contenu || projetContenu();
+    octets = new TextEncoder().encode(JSON.stringify(c.doc));
+  }catch(e){ if(!silencieux) signal("LECTURE DU PROJET IMPOSSIBLE"); return ""; }
   if(octets.length > PROJET_MAX){ if(!silencieux) signal("PROJET TROP GROS"); return ""; }
-  var nom = (prefixe || "projet") + "-" + projetHorodatage() + ".drm16";
+  try{ nom = projetNomDisponible(prefixe); }
+  catch(e){ if(!silencieux) signal("SAUVEGARDE ANNULÉE · LISTE DES DOCUMENTS ILLISIBLE"); return ""; }
   var chemin = ecrireDocument(HOST, nom, octets);
   if(!chemin){ if(!silencieux) signal("ÉCRITURE REFUSÉE"); return ""; }
+  if(!projetDocumentVerifie(nom, octets)){
+    if(!silencieux) signal("SAUVEGARDE NON VÉRIFIÉE · " + nom);
+    return "";
+  }
   if(!silencieux){
     signal("PROJET ENREGISTRÉ · " + octetsTexte(octets.length) +
            (c.sautes.length ? " · " + c.sautes.length + " SON(S) LAISSÉ(S) DE CÔTÉ, PLACE INSUFFISANTE" : "") +
@@ -168,7 +212,7 @@ function projetOuvrir(texte, nom){
     signal("OUVERTURE ANNULÉE · SAUVEGARDE DE SECOURS INCOMPLÈTE"); return false;
   }
   secours = projetEnregistrer("avant-ouverture", true, avant);
-  if(!secours){ signal("OUVERTURE ANNULÉE · SAUVEGARDE DE SECOURS IMPOSSIBLE"); return false; }
+  if(!secours){ signal("OUVERTURE ANNULÉE · SAUVEGARDE DE SECOURS IMPOSSIBLE OU NON VÉRIFIÉE"); return false; }
   PROJET_EN_COURS = true;
   var touches = [];
   try{

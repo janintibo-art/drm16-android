@@ -6,6 +6,8 @@ Audit du 17 septembre 2026, à partir de la v175. La v176 est une version de mai
 
 **Suivi v178 :** les demandes de connexion MIDI Windows sont désormais traitées dans une file commune. Les [corrections et vérifications de la v178](CORRECTIONS_V178.md) distinguent les tests avec ports simulés de la compilation et des essais matériels Windows restant à effectuer.
 
+**Suivi v179 :** les sauvegardes de projet créées dans la même seconde gardent des fichiers distincts et leur contenu est relu après écriture. Le [bilan v179](CORRECTIONS_V179.md) précise cette protection ; la reprise automatique après arrêt brutal pendant une ouverture reste à réaliser.
+
 ## Résultat
 
 Les contrôles automatiques initiaux de la v175 passaient, mais ne couvraient pas plusieurs pertes d'état, erreurs de routage et refus d'écriture. Des reproductions ciblées ont permis de corriger ces cas et d'ajouter des tests.

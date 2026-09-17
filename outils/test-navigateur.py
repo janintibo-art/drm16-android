@@ -30,7 +30,7 @@ function __enc(o){ var b = ''; for(var i=0;i<o.length;i++) b += String.fromCharC
 window.__F = {}; window.__E = {};
 try{ var __P = JSON.parse(localStorage.getItem('__pont') || '{}');
   Object.keys(__P.f || {}).forEach(function(n){ __F[n] = __dec(__P.f[n]); }); __E = __P.e || {}; }catch(e){}
-function __garder(){ var f = {}; Object.keys(__F).forEach(function(n){ f[n] = __enc(__F[n]); });
+function __garder(){ if(window.__pontSansPersistance) return; var f = {}; Object.keys(__F).forEach(function(n){ f[n] = __enc(__F[n]); });
   try{ localStorage.setItem('__pont', JSON.stringify({f:f, e:__E})); }catch(e){} }
 window.__M = {devs:[{nom:'volca sample',id:7},{nom:'ES-1 <USB>',id:9}], ouvert:-1, journal:[]};
 function __dec(b){ var s=atob(b), o=new Uint8Array(s.length); for(var i=0;i<s.length;i++) o[i]=s.charCodeAt(i); return o; }
@@ -47,7 +47,7 @@ window.DRM16 = {
   echCharger:function(n){ return __E[n] || ''; },
   echListe:function(){ return Object.keys(__E).sort().join('\n'); },
   echSupprimer:function(n){ delete __E[n]; __garder(); },
-  fichierOuvrir:function(n){ var j='j'+Math.random(); __J[j]={n:n,p:[],t:0,max:/\.wav$/i.test(n)?64*1048576:8*1048576}; return j; },
+  fichierOuvrir:function(n){ var j='j'+Math.random(); __J[j]={n:n,p:[],t:0,max:/\.wav$/i.test(n)?64*1048576:/\.drm16$/i.test(n)?16*1048576:8*1048576}; return j; },
   fichierAjouter:function(j,b){ var e=__J[j]; if(!e||b.length>1100000) return false; var o=__dec(b);
     if(e.t+o.length>e.max){ delete __J[j]; return false; } e.p.push(o); e.t+=o.length; return true; },
   fichierFermer:function(j,v){ var e=__J[j]; delete __J[j]; if(!e||!v) return ''; var o=new Uint8Array(e.t),k=0;
@@ -618,6 +618,107 @@ async def projet(nav):
     ok(not err, "aucune erreur de page, même avec un son abîmé dans la bibliothèque %s" % err[:1])
     await ctx.close()
 
+async def projet_sauvegarde(nav):
+    print("\n10b. Projet .drm16 : copies distinctes, relecture et secours vérifié (v179)")
+    ctx = await nav.new_context(viewport={"width": 393, "height": 851})
+    await ctx.add_init_script(PONT)
+    adresse = await servir_page(ctx)
+    pg = await ctx.new_page()
+    err = []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+    try:
+        await pg.goto(adresse)
+        await pg.wait_for_function("() => document.body.classList.contains('pret')")
+        r = await pg.evaluate("""() => {
+          audioInit(); allerMachine('kp'); S.bpm = 127; memKp(); writeMem();
+          projetHorodatage = function(){ return '20420102-030405'; };
+          var existant = 'PROJET-20420102-030405.DRM16';
+          var intact = new TextEncoder().encode('première sauvegarde déjà présente');
+          __F[existant] = intact;
+          var cle = MEM + '.essai-v179';
+          localStorage.setItem(cle, JSON.stringify({nom:'Été à Lyon 🎶 — prise une'}));
+          var un = projetEnregistrer('projet');
+          var octetsUn = un ? HOST.fichierCharger(un) : '';
+          S.bpm = 149;
+          localStorage.setItem(cle, JSON.stringify({nom:'Deuxième prise — forêt 🌲'}));
+          var deux = projetEnregistrer('projet');
+          var docUn = un ? JSON.parse(texteDeB64(HOST.fichierCharger(un))) : null;
+          var docDeux = deux ? JSON.parse(texteDeB64(HOST.fichierCharger(deux))) : null;
+          return {un:un, deux:deux,
+            distincts:!!un && !!deux && un.toLowerCase() !== deux.toLowerCase() &&
+              un.toLowerCase() !== existant.toLowerCase() && deux.toLowerCase() !== existant.toLowerCase(),
+            intact:octetsVersB64(__F[existant]) === octetsVersB64(intact) && HOST.fichierCharger(un) === octetsUn,
+            noms:[docUn && JSON.parse(docUn.memoire[cle]).nom, docDeux && JSON.parse(docDeux.memoire[cle]).nom],
+            tempos:[docUn && JSON.parse(docUn.memoire[MEM]).bpm, docDeux && JSON.parse(docDeux.memoire[MEM]).bpm]};
+        }""")
+        ok(r["distincts"] and r["intact"],
+           "deux sauvegardes à la même seconde conservent toutes les copies, même avec un nom en majuscules")
+        ok(r["noms"] == ["Été à Lyon 🎶 — prise une", "Deuxième prise — forêt 🌲"] and r["tempos"] == [127, 149],
+           "les deux projets relus gardent leurs propres réglages et leurs noms UTF-8")
+
+        r = await pg.evaluate("""() => {
+          var sonAvant = b64De(wavDe(ctx.createBuffer(1, 320, 32000)));
+          var sonApres = b64De(wavDe(ctx.createBuffer(1, 640, 32000)));
+          HOST.echSauver('u-protege', sonAvant); writeMem();
+          function memoireRangee(){
+            var m = {}; Object.keys(localStorage).sort().forEach(function(k){
+              if(k === MEM || k.indexOf(MEM + '.') === 0) m[k] = localStorage.getItem(k);
+            }); return JSON.stringify(m);
+          }
+          var avant = memoireRangee(), sonsAvant = JSON.stringify(__E);
+          var d = projetContenu().doc;
+          d.memoire[MEM] = JSON.stringify({modele:'tr909', bpm:80});
+          d.sons = {'u-protege':sonApres, 'u-nouveau':sonApres};
+          window.confirm = function(){ return true; };
+          var lire = HOST.fichierCharger, fermer = HOST.fichierFermer;
+          var poser = projetPoserMemoire, sauverSon = HOST.echSauver, sg = signal;
+          var relus = 0, ecrits = 0, mutations = 0, sonsEcrits = 0, messages = [];
+          HOST.fichierCharger = function(n){ var b = lire(n);
+            if(n.indexOf('avant-ouverture-') === 0){ relus++; return b.slice(0, -8); }
+            return b;
+          };
+          HOST.fichierFermer = function(j, v){ var chemin = fermer(j, v); if(chemin) ecrits++; return chemin; };
+          projetPoserMemoire = function(m){ mutations++; return poser(m); };
+          HOST.echSauver = function(n,b){ sonsEcrits++; return sauverSon(n,b); };
+          signal = function(t){ messages.push(t); };
+          window.__projetV179SansRecharge = true;
+          var ouvert;
+          try{ ouvert = projetOuvrir(JSON.stringify(d), 'Projet entrant'); }
+          finally { HOST.fichierCharger = lire; HOST.fichierFermer = fermer;
+            projetPoserMemoire = poser; HOST.echSauver = sauverSon; signal = sg; }
+          return {ouvert:ouvert, ecrits:ecrits, relus:relus, mutations:mutations, sonsEcrits:sonsEcrits,
+            memoire:avant === memoireRangee(), sons:sonsAvant === JSON.stringify(__E),
+            modele:S.modele, bpm:S.bpm, enCours:PROJET_EN_COURS, messages:messages};
+        }""")
+        ok(not r["ouvert"] and r["ecrits"] == 1 and r["relus"] >= 1 and
+           any("OUVERTURE ANNULÉE" in m for m in r["messages"]),
+           "un secours annoncé écrit mais tronqué à la relecture annule l'ouverture")
+        ok(r["mutations"] == 0 and r["sonsEcrits"] == 0 and r["memoire"] and r["sons"] and
+           r["modele"] == "kp" and r["bpm"] == 149 and not r["enCours"],
+           "aucun réglage ni échantillon n'est remplacé lorsque le secours est illisible")
+        await pg.wait_for_timeout(1300)
+        ok(await pg.evaluate("() => window.__projetV179SansRecharge === true"),
+           "l'annulation ne recharge pas la page")
+
+        r = await pg.evaluate("""() => {
+          /* Le pont réel stocke les fichiers sur disque. Pour ce gros projet,
+             garder sa copie en localStorage dépasserait le quota du seul mock. */
+          window.__pontSansPersistance = true; __F = {}; __E = {};
+          var son = b64De(wavDe(ctx.createBuffer(1, 3500000, 32000)));
+          HOST.echSauver('u-long', son);
+          var nom = projetEnregistrer('grand-projet');
+          var relu = nom ? HOST.fichierCharger(nom) : '';
+          var doc = relu ? projetValider(texteDeB64(relu)) : null;
+          return {nom:nom, taille:nom ? __F[nom].length : 0, morceaux:nom ? __F[nom].morceaux : 0,
+            valide:!!doc && typeof doc === 'object', son:!!doc && doc.sons && doc.sons['u-long'] === son};
+        }""")
+        ok(r["nom"] and 8 * 1048576 < r["taille"] < 16 * 1048576 and r["morceaux"] > 1 and
+           r["valide"] and r["son"],
+           "un vrai projet de %.1f Mo avec WAV valide est écrit par morceaux et relu intégralement" % (r["taille"] / 1048576))
+        ok(not err, "aucune erreur de page %s" % err[:1])
+    finally:
+        await ctx.close()
+
 async def confort(nav):
     print("\n11. Confort sur ordinateur : clavier, molette, glisser-déposer (v146)")
     ctx = await nav.new_context(viewport={"width": 1180, "height": 860})
@@ -1008,7 +1109,7 @@ async def mc_scenes(nav):
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes):
             try:
                 await t(nav)
             except Exception as e:
