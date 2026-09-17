@@ -59,3 +59,28 @@ console.log('TR-1000 v194 : probabilité, tirage unique, sous-pas, accent, FILL,
  c.memoire.t1k={cur:NaN,banq:Infinity,sel:999,motifs:Array(128).fill(null)};c.chargerT1k();assert.equal(c.T1K.cur,0);assert.equal(c.T1K.banq,0);assert.equal(c.T1K.sel,9);assert(c.T1K.motifs.every(m=>m.prob[0][0]===100));
 }
 console.log('TR-1000 v195 : 128 motifs, migration des 16 partagés, indépendance, sauvegarde et sélection protégée OK.');
+{
+ const c=setup();c.majKnobsT1k=()=>{};c.signal=()=>{};
+ assert.deepStrictEqual([0,1,2,3,4,5,6,7,8,9].map(i=>c.pasDirectionT1k('pingpong',i,4)),[0,1,2,3,2,1,0,1,2,3]);
+ assert.deepStrictEqual([0,1,2,3,4].map(i=>c.pasDirectionT1k('arriere',i,4)),[3,2,1,0,3]);
+ assert.equal(c.pasDirectionT1k('pingpong',100,1),0);
+ const m=c.motifT1kCur();m.last=4;m.pas.fill(0);m.pas[0]=15;m.direction[0]='arriere';m.acc[0]=8;
+ m.sub[0][3]=3;m.prob[0][2]=0;
+ c.scheduleT1k(0,2);assert.equal(c.voix.length,3);assert(c.voix[0][2]);assert(!c.voix[1][2]);
+ c.scheduleT1k(1,2.12);assert.equal(c.voix.length,3,'probabilité du pas source, pas celle de l’horloge');
+ let now=1;c.maintenantAudio=()=>now;c.validerLectureT1k();assert.equal(c.T1K.entendu,null,'pas de curseur avant le son');
+ now=2;c.validerLectureT1k();assert.equal(c.T1K.entendu.positions[0],3);
+ now=2.07;assert.equal(c.pasEnregistreT1k(0),2,'REC avance dans le sens arrière');
+ now=2.12;c.validerLectureT1k();assert.equal(c.T1K.entendu.positions[0],2);
+ c.resetLectureT1k();assert.equal(c.T1K.departs.length,0);assert.equal(c.T1K.tour,-1);assert.equal(c.T1K.entendu,null);
+ m.direction[0]='pingpong';m.prob[0].fill(100);c.voix=[];c.ctx={startRendering(){}};
+ let lus=[];c.voixT1k=(t,k,a)=>{if(k===0)lus.push(c.T1K.tour*4);};
+ for(let i=0;i<12;i++)c.scheduleT1k(i%4,3+i*.12);
+ assert.equal(c.T1K.departs.length,0,'pas de file visuelle en rendu hors ligne');
+ c.memT1k();let saved=copie(c.memoire.t1k);assert.equal(saved.motifs[0].direction[0],'pingpong');
+ m.direction[0]='avant';assert.equal(c.memoire.t1k.motifs[0].direction[0],'pingpong');
+ const d=setup(saved);d.chargerT1k();assert.equal(d.motifT1kCur().direction[0],'pingpong');
+ delete saved.motifs[0].direction;d.memoire.t1k=saved;d.chargerT1k();assert(d.motifT1kCur().direction.every(x=>x==='avant'));
+ c.S.run=true;assert(!c.choisirDirectionT1k('arriere'));c.S.run=false;assert(c.choisirDirectionT1k('arriere'));
+}
+console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et sauvegarde OK.');

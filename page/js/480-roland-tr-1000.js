@@ -21,7 +21,7 @@ function instrT1k(i){
   return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5};
 }
 function motifT1k(n){
-  var m = {pas:[], acc:[], sub:[], prob:[], last:16, instr:[]};
+  var m = {pas:[], acc:[], sub:[], prob:[], direction:Array(10).fill("avant"), last:16, instr:[]};
   for(var k=0;k<10;k++){
     m.pas.push(0); m.acc.push(0);
     m.sub.push([]); m.prob.push(Array(16).fill(100));
@@ -37,7 +37,7 @@ var T1K = {motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
            morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
-           fill:false, ohGain:null};
+           fill:false, ohGain:null, tour:-1, departs:[], entendu:null, contexteLecture:null};
 for(var t1z=0; t1z<128; t1z++) T1K.motifs.push(motifT1k(t1z < 2 ? t1z : 9));
 function motifT1kCur(){ return T1K.motifs[T1K.banq * 16 + T1K.cur]; }
 function instrT1kSel(){ return motifT1kCur().instr[T1K.sel]; }
@@ -75,6 +75,7 @@ function lireMotifT1k(o){
       r.prob[k][j] = probabiliteT1k(prob);
       r.sub[k][j] = Math.floor(borneT1k(sub, 1, 4, 1));
     }
+    r.direction[k] = directionT1k(Array.isArray(o.direction) ? o.direction[k] : undefined);
     var I = Array.isArray(o.instr) ? o.instr[k] : null;
     if(I && typeof I === "object"){
       ["tune","dec","c1","c2","niv","mix","pech"].forEach(function(n){ r.instr[k][n] = borneT1k(I[n], 0, 1, r.instr[k][n]); });
@@ -86,8 +87,46 @@ function lireMotifT1k(o){
 function choisirMotifT1k(banque, motif){
   if(!Number.isInteger(banque) || banque < 0 || banque >= 8 || !Number.isInteger(motif) || motif < 0 || motif >= 16) return false;
   if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER DE MOTIF OU DE BANQUE"); majT1k(); return false; }
-  T1K.banq = banque; T1K.cur = motif;
+  T1K.banq = banque; T1K.cur = motif; resetLectureT1k();
   memT1k(); majT1k(); majKnobsT1k(); return true;
+}
+/* v196 : directions par instrument ; le curseur suit l'heure audio. */
+function directionT1k(v){ return v === "arriere" || v === "pingpong" ? v : "avant"; }
+function pasDirectionT1k(direction, absolu, longueur){
+  if(longueur <= 1) return 0;
+  if(direction === "arriere") return longueur - 1 - (absolu % longueur);
+  if(direction === "pingpong"){
+    var p = absolu % (2 * longueur - 2);
+    return p < longueur ? p : 2 * longueur - 2 - p;
+  }
+  return absolu % longueur;
+}
+function resetLectureT1k(){
+  T1K.tour = -1; T1K.departs = []; T1K.entendu = null; T1K.contexteLecture = null; T1K.pos = -1;
+  if(typeof t1kPas !== "undefined") t1kPas.forEach(function(b){ b.classList.remove("cur"); });
+}
+function validerLectureT1k(){
+  if(!ctx || ctx.startRendering) return;
+  while(T1K.departs.length && T1K.departs[0].t <= maintenantAudio()){
+    T1K.entendu = T1K.departs.shift(); T1K.pos = T1K.entendu.i;
+  }
+}
+function curseurT1k(){
+  validerLectureT1k();
+  var position = T1K.entendu ? T1K.entendu.positions[T1K.sel] : -1;
+  t1kPas.forEach(function(b, i){ b.classList.toggle("cur", i === position); });
+}
+function pasEnregistreT1k(k){
+  validerLectureT1k();
+  var e = T1K.entendu, m = motifT1kCur();
+  if(!e) return pasLePlusProche(T1K.pos, m.last);
+  var avance = (maintenantAudio() - e.t) / stepDur() > .5 ? 1 : 0;
+  return e.fill ? (e.i + avance) % m.last : pasDirectionT1k(m.direction[k], e.absolu + avance, m.last);
+}
+function choisirDirectionT1k(v){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER LE SENS"); majT1k(); return false; }
+  motifT1kCur().direction[T1K.sel] = directionT1k(v);
+  resetLectureT1k(); memT1k(); majT1k(); return true;
 }
 /* ---------- chaîne de sortie ---------- */
 function bâtirT1k(){
@@ -262,7 +301,7 @@ function frapperT1k(k, acc){
   voixT1k(maintenantAudio() + 0.005, k, acc);
   if(S.run && T1K.rec){
     var m = motifT1kCur();
-    var j = pasLePlusProche(T1K.pos, m.last || 16);
+    var j = pasEnregistreT1k(k);
     if(j >= 0){
       if(!(m.pas[k] & (1 << j))) m.prob[k][j] = 100;
       m.pas[k] |= (1 << j);
@@ -275,26 +314,39 @@ function frapperT1k(k, acc){
 /* ---------- séquenceur, avec sous-pas ---------- */
 var T1K_FILL = [0x8888, 0x2222, 0x0F00, 0x00F0, 0, 0x1010, 0xAAAA, 0x0100, 0x0001, 0];
 function scheduleT1k(i, t){
-  var CHARGE_N = ouvrirPas();
   var m = motifT1kCur();
-  if(i >= m.last) return;
+  if(i < 0 || i >= m.last) return;
+  if(T1K.contexteLecture !== ctx){ resetLectureT1k(); T1K.contexteLecture = ctx; }
+  validerLectureT1k();
+  if(i === 0) T1K.tour++;
+  if(T1K.tour < 0) T1K.tour = 0;
+  var absolu = T1K.tour * m.last + i, positions = [], CHARGE_N = ouvrirPas();
   var pas = T1K.fill ? T1K_FILL : m.pas;
   for(var k=0;k<10;k++){
-    if(!(pas[k] & (1 << i))) continue;
-    if(!T1K.fill && !passeProbabiliteT1k(m.prob[k][i])) continue;
-    var acc = !!(m.acc[k] & (1 << i));
-    var sub = T1K.fill ? 1 : (m.sub[k][i] || 1);
+    var j = T1K.fill ? i : pasDirectionT1k(m.direction[k], absolu, m.last); positions.push(j);
+    if(!(pas[k] & (1 << j))) continue;
+    if(!T1K.fill && !passeProbabiliteT1k(m.prob[k][j])) continue;
+    var acc = !!(m.acc[k] & (1 << j));
+    var sub = T1K.fill ? 1 : (m.sub[k][j] || 1);
     for(var r=0;r<sub;r++) CHARGE_N++, voixT1k(t + (stepDur() * r / sub), k, acc && r === 0);
+  }
+  if(ctx && !ctx.startRendering){
+    T1K.departs.push({i:i,t:t,absolu:absolu,positions:positions,fill:T1K.fill});
+    T1K.departs.sort(function(a,b){return a.t-b.t;});
   }
   if(!cache) queue.push({i:i, t:t});
   attenuerVoie("t1k", CHARGE_N, t);
 }
 var t1kPas = [];
 function beatT1k(i){
-  T1K.pos = i;
-  for(var j=0;j<16;j++) t1kPas[j].classList.toggle("cur", j === i);
+  curseurT1k();
+  document.getElementById("t1k-direction").disabled = S.run;
+  document.getElementById("t1k-last").disabled = S.run;
+  document.getElementById("t1k-banque").disabled = S.run;
+  document.getElementById("t1k-ptn").disabled = S.run;
 }
 function arretT1k(){
+  resetLectureT1k();
   T1K.pos = -1; T1K.fill = false;
   for(var j=0;j<16;j++) t1kPas[j].classList.remove("cur");
   var b = document.getElementById("t1k-start");
@@ -452,6 +504,10 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-direction").value = motifT1kCur().direction[T1K.sel];
+  document.getElementById("t1k-direction").disabled = S.run;
+  document.getElementById("t1k-last").disabled = S.run;
+  curseurT1k();
   document.getElementById("t1k-banque").value = String(T1K.banq);
   document.getElementById("t1k-banque").disabled = S.run;
   document.getElementById("t1k-ptn").disabled = S.run;
@@ -495,7 +551,7 @@ function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
-      return {last:m.last, pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}),
+      return {last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}),
               instr:m.instr.map(function(I){
                 return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
                         ech:I.ech, pech:I.pech};
@@ -504,6 +560,7 @@ function memT1k(){
   sauverMachine("t1k");
 }
 function chargerT1k(){
+  resetLectureT1k();
   T1K.motifs = [];
   for(var i=0;i<128;i++) T1K.motifs.push(motifT1k(i < 2 ? i : 9));
   T1K.cur = 0; T1K.banq = 0; T1K.sel = 0; T1K.sub = false; T1K.accent = false; T1K.proba = false; T1K.probValeur = 100;
@@ -542,6 +599,7 @@ document.getElementById("t1k-accent").addEventListener("click", function(){
   T1K.accent = !T1K.accent; if(T1K.accent){ T1K.sub = false; T1K.proba = false; }
   majT1k(); H.inter();
 });
+document.getElementById("t1k-direction").addEventListener("change", function(){ choisirDirectionT1k(this.value); });
 document.getElementById("t1k-proba").addEventListener("click", function(){
   T1K.proba = !T1K.proba;
   if(T1K.proba){ T1K.sub = false; T1K.accent = false; }
@@ -564,6 +622,8 @@ document.getElementById("t1k-fill").addEventListener("click", function(){
   if(!S.run){ step = 0; start(); H.start(); document.getElementById("t1k-start").classList.add("on"); }
 });
 document.getElementById("t1k-last").addEventListener("click", function(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER LA LONGUEUR"); return; }
+  resetLectureT1k();
   var m = motifT1kCur(), v = [16, 12, 8, 4];
   m.last = v[(v.indexOf(m.last) + 1) % v.length];
   majT1k(); memT1k(); H.cran();

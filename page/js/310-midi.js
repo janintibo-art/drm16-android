@@ -129,6 +129,7 @@ function departEsclave(remise){
   if(!ctx) return;
   if(remise){ stop(); step = 0; pasSet = 0; }
   if(!S.run){
+    if(typeof resetLectureT1k === "function") resetLectureT1k();
     if(typeof MACHINE_MC !== "undefined" && MACHINE_MC) MACHINE_MC.arret();
     if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
     if(typeof MACHINE_STK !== "undefined" && MACHINE_STK) MACHINE_STK.arret();

@@ -1883,6 +1883,8 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 /* v195 : accès direct aux huit banques de motifs. */
 #t1k-banque{max-width:105px;padding:7px 3px;border:1px solid #7c848e;border-radius:4px;background:#23262c;color:#e4eef7;font:700 9px Arial}
 #t1k-banque:disabled,#t1k-ptn:disabled{opacity:.45}
+
+.t1k-proba-bar label{font:700 9px Arial;color:#434a53}
 /* ===================== MACHINE D'ARCHIVE ===================== */
 body.arcm .arcmb{display:block}
 body.arcm #unit,body.arcm .em,body.arcm .er,body.arcm .ea,body.arcm .es,body.arcm .mx,body.arcm .sx,
@@ -3489,6 +3491,10 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="t1k-instr" id="t1k-instr"></div>
   <div class="t1k-proba-bar">
+    <label for="t1k-direction">SENS</label>
+    <select id="t1k-direction" aria-label="Sens de lecture de l'instrument sélectionné">
+      <option value="avant">AVANT</option><option value="arriere">ARRIÈRE</option><option value="pingpong">ALLER-RETOUR</option>
+    </select>
     <button id="t1k-proba" aria-pressed="false">PROBABILITÉ</button>
     <select id="t1k-proba-valeur" aria-label="Probabilité à appliquer aux pas" disabled></select>
     <output id="t1k-proba-aide" aria-live="polite"></output>
@@ -5165,6 +5171,25 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p><b>SUB STEP</b> change ce que font les seize touches : chacune règle alors le nombre de coups de ce
   pas, de un à quatre. Un point jaune marque les pas concernés. C'est le roulement de la TR-1000, et il se
   règle pas par pas au lieu d'être global.</p>
+
+  <h3>Sens de lecture</h3>
+  <p>À l'arrêt, choisissez un instrument puis son <b>SENS</b> : <b>AVANT</b>,
+  <b>ARRIÈRE</b> ou <b>ALLER-RETOUR</b>. Chaque instrument peut avoir un sens
+  différent. Ce réglage appartient au motif et se sauvegarde dans sa banque.</p>
+  <p>Pour une longueur de quatre pas, AVANT donne 1-2-3-4, ARRIÈRE 4-3-2-1
+  et ALLER-RETOUR 1-2-3-4-3-2, puis recommence. L'aller-retour ne double pas
+  les extrémités et peut donc traverser plusieurs tours du transport.</p>
+  <p>Accents, sous-pas et probabilités suivent le pas lu. Le curseur suit le
+  pas réellement entendu de l'instrument sélectionné, sans avancer sur les
+  notes déjà préparées pour l'audio. REC écrit sur le pas le plus proche dans
+  le sens de l'instrument joué. Les frappes directes restent immédiates.</p>
+  <p>STOP efface la position de lecture ; START repart au début du parcours.
+  Le sens, la longueur et le motif se changent à l'arrêt. FILL garde son rythme
+  en avant ; le parcours du motif continue d'avancer pendant ce remplissage.</p>
+  <p>Les anciens projets restent en AVANT. Les exports WAV suivent également
+  les directions. Le nombre de mesures exportées reste celui du transport :
+  la fin du fichier ne correspond pas toujours à la fin d'un aller-retour.
+  Utilisez v196 ou plus récent pour conserver ces réglages.</p>
 
   <h3>Probabilité par pas</h3>
   <p>Choisissez un instrument, activez <b>PROBABILITÉ</b>, puis choisissez un
@@ -8244,6 +8269,7 @@ function tick(){
   }
 }
 function start(){
+  if(typeof resetLectureT1k === "function") resetLectureT1k();
   audioInit();
   if(!ctx) return;
   if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
@@ -8271,6 +8297,7 @@ function start(){
   midiHorloge(true, depart - maintenantAudio());
 }
 function stop(){
+  if(typeof resetLectureT1k === "function") resetLectureT1k();
   S.run=false; clearInterval(timer); timer=null; queue=[];
   AUDIT.tDernier = 0;                 /* le chrono ne compte que le jeu réel */
   couperSourcesFutures();
@@ -15899,6 +15926,7 @@ function departEsclave(remise){
   if(!ctx) return;
   if(remise){ stop(); step = 0; pasSet = 0; }
   if(!S.run){
+    if(typeof resetLectureT1k === "function") resetLectureT1k();
     if(typeof MACHINE_MC !== "undefined" && MACHINE_MC) MACHINE_MC.arret();
     if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
     if(typeof MACHINE_STK !== "undefined" && MACHINE_STK) MACHINE_STK.arret();
@@ -23682,7 +23710,7 @@ function instrT1k(i){
   return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5};
 }
 function motifT1k(n){
-  var m = {pas:[], acc:[], sub:[], prob:[], last:16, instr:[]};
+  var m = {pas:[], acc:[], sub:[], prob:[], direction:Array(10).fill("avant"), last:16, instr:[]};
   for(var k=0;k<10;k++){
     m.pas.push(0); m.acc.push(0);
     m.sub.push([]); m.prob.push(Array(16).fill(100));
@@ -23698,7 +23726,7 @@ var T1K = {motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
            morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
-           fill:false, ohGain:null};
+           fill:false, ohGain:null, tour:-1, departs:[], entendu:null, contexteLecture:null};
 for(var t1z=0; t1z<128; t1z++) T1K.motifs.push(motifT1k(t1z < 2 ? t1z : 9));
 function motifT1kCur(){ return T1K.motifs[T1K.banq * 16 + T1K.cur]; }
 function instrT1kSel(){ return motifT1kCur().instr[T1K.sel]; }
@@ -23736,6 +23764,7 @@ function lireMotifT1k(o){
       r.prob[k][j] = probabiliteT1k(prob);
       r.sub[k][j] = Math.floor(borneT1k(sub, 1, 4, 1));
     }
+    r.direction[k] = directionT1k(Array.isArray(o.direction) ? o.direction[k] : undefined);
     var I = Array.isArray(o.instr) ? o.instr[k] : null;
     if(I && typeof I === "object"){
       ["tune","dec","c1","c2","niv","mix","pech"].forEach(function(n){ r.instr[k][n] = borneT1k(I[n], 0, 1, r.instr[k][n]); });
@@ -23747,8 +23776,46 @@ function lireMotifT1k(o){
 function choisirMotifT1k(banque, motif){
   if(!Number.isInteger(banque) || banque < 0 || banque >= 8 || !Number.isInteger(motif) || motif < 0 || motif >= 16) return false;
   if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER DE MOTIF OU DE BANQUE"); majT1k(); return false; }
-  T1K.banq = banque; T1K.cur = motif;
+  T1K.banq = banque; T1K.cur = motif; resetLectureT1k();
   memT1k(); majT1k(); majKnobsT1k(); return true;
+}
+/* v196 : directions par instrument ; le curseur suit l'heure audio. */
+function directionT1k(v){ return v === "arriere" || v === "pingpong" ? v : "avant"; }
+function pasDirectionT1k(direction, absolu, longueur){
+  if(longueur <= 1) return 0;
+  if(direction === "arriere") return longueur - 1 - (absolu % longueur);
+  if(direction === "pingpong"){
+    var p = absolu % (2 * longueur - 2);
+    return p < longueur ? p : 2 * longueur - 2 - p;
+  }
+  return absolu % longueur;
+}
+function resetLectureT1k(){
+  T1K.tour = -1; T1K.departs = []; T1K.entendu = null; T1K.contexteLecture = null; T1K.pos = -1;
+  if(typeof t1kPas !== "undefined") t1kPas.forEach(function(b){ b.classList.remove("cur"); });
+}
+function validerLectureT1k(){
+  if(!ctx || ctx.startRendering) return;
+  while(T1K.departs.length && T1K.departs[0].t <= maintenantAudio()){
+    T1K.entendu = T1K.departs.shift(); T1K.pos = T1K.entendu.i;
+  }
+}
+function curseurT1k(){
+  validerLectureT1k();
+  var position = T1K.entendu ? T1K.entendu.positions[T1K.sel] : -1;
+  t1kPas.forEach(function(b, i){ b.classList.toggle("cur", i === position); });
+}
+function pasEnregistreT1k(k){
+  validerLectureT1k();
+  var e = T1K.entendu, m = motifT1kCur();
+  if(!e) return pasLePlusProche(T1K.pos, m.last);
+  var avance = (maintenantAudio() - e.t) / stepDur() > .5 ? 1 : 0;
+  return e.fill ? (e.i + avance) % m.last : pasDirectionT1k(m.direction[k], e.absolu + avance, m.last);
+}
+function choisirDirectionT1k(v){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER LE SENS"); majT1k(); return false; }
+  motifT1kCur().direction[T1K.sel] = directionT1k(v);
+  resetLectureT1k(); memT1k(); majT1k(); return true;
 }
 /* ---------- chaîne de sortie ---------- */
 function bâtirT1k(){
@@ -23923,7 +23990,7 @@ function frapperT1k(k, acc){
   voixT1k(maintenantAudio() + 0.005, k, acc);
   if(S.run && T1K.rec){
     var m = motifT1kCur();
-    var j = pasLePlusProche(T1K.pos, m.last || 16);
+    var j = pasEnregistreT1k(k);
     if(j >= 0){
       if(!(m.pas[k] & (1 << j))) m.prob[k][j] = 100;
       m.pas[k] |= (1 << j);
@@ -23936,26 +24003,39 @@ function frapperT1k(k, acc){
 /* ---------- séquenceur, avec sous-pas ---------- */
 var T1K_FILL = [0x8888, 0x2222, 0x0F00, 0x00F0, 0, 0x1010, 0xAAAA, 0x0100, 0x0001, 0];
 function scheduleT1k(i, t){
-  var CHARGE_N = ouvrirPas();
   var m = motifT1kCur();
-  if(i >= m.last) return;
+  if(i < 0 || i >= m.last) return;
+  if(T1K.contexteLecture !== ctx){ resetLectureT1k(); T1K.contexteLecture = ctx; }
+  validerLectureT1k();
+  if(i === 0) T1K.tour++;
+  if(T1K.tour < 0) T1K.tour = 0;
+  var absolu = T1K.tour * m.last + i, positions = [], CHARGE_N = ouvrirPas();
   var pas = T1K.fill ? T1K_FILL : m.pas;
   for(var k=0;k<10;k++){
-    if(!(pas[k] & (1 << i))) continue;
-    if(!T1K.fill && !passeProbabiliteT1k(m.prob[k][i])) continue;
-    var acc = !!(m.acc[k] & (1 << i));
-    var sub = T1K.fill ? 1 : (m.sub[k][i] || 1);
+    var j = T1K.fill ? i : pasDirectionT1k(m.direction[k], absolu, m.last); positions.push(j);
+    if(!(pas[k] & (1 << j))) continue;
+    if(!T1K.fill && !passeProbabiliteT1k(m.prob[k][j])) continue;
+    var acc = !!(m.acc[k] & (1 << j));
+    var sub = T1K.fill ? 1 : (m.sub[k][j] || 1);
     for(var r=0;r<sub;r++) CHARGE_N++, voixT1k(t + (stepDur() * r / sub), k, acc && r === 0);
+  }
+  if(ctx && !ctx.startRendering){
+    T1K.departs.push({i:i,t:t,absolu:absolu,positions:positions,fill:T1K.fill});
+    T1K.departs.sort(function(a,b){return a.t-b.t;});
   }
   if(!cache) queue.push({i:i, t:t});
   attenuerVoie("t1k", CHARGE_N, t);
 }
 var t1kPas = [];
 function beatT1k(i){
-  T1K.pos = i;
-  for(var j=0;j<16;j++) t1kPas[j].classList.toggle("cur", j === i);
+  curseurT1k();
+  document.getElementById("t1k-direction").disabled = S.run;
+  document.getElementById("t1k-last").disabled = S.run;
+  document.getElementById("t1k-banque").disabled = S.run;
+  document.getElementById("t1k-ptn").disabled = S.run;
 }
 function arretT1k(){
+  resetLectureT1k();
   T1K.pos = -1; T1K.fill = false;
   for(var j=0;j<16;j++) t1kPas[j].classList.remove("cur");
   var b = document.getElementById("t1k-start");
@@ -24113,6 +24193,10 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-direction").value = motifT1kCur().direction[T1K.sel];
+  document.getElementById("t1k-direction").disabled = S.run;
+  document.getElementById("t1k-last").disabled = S.run;
+  curseurT1k();
   document.getElementById("t1k-banque").value = String(T1K.banq);
   document.getElementById("t1k-banque").disabled = S.run;
   document.getElementById("t1k-ptn").disabled = S.run;
@@ -24156,7 +24240,7 @@ function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
-      return {last:m.last, pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}),
+      return {last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}),
               instr:m.instr.map(function(I){
                 return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
                         ech:I.ech, pech:I.pech};
@@ -24165,6 +24249,7 @@ function memT1k(){
   sauverMachine("t1k");
 }
 function chargerT1k(){
+  resetLectureT1k();
   T1K.motifs = [];
   for(var i=0;i<128;i++) T1K.motifs.push(motifT1k(i < 2 ? i : 9));
   T1K.cur = 0; T1K.banq = 0; T1K.sel = 0; T1K.sub = false; T1K.accent = false; T1K.proba = false; T1K.probValeur = 100;
@@ -24203,6 +24288,7 @@ document.getElementById("t1k-accent").addEventListener("click", function(){
   T1K.accent = !T1K.accent; if(T1K.accent){ T1K.sub = false; T1K.proba = false; }
   majT1k(); H.inter();
 });
+document.getElementById("t1k-direction").addEventListener("change", function(){ choisirDirectionT1k(this.value); });
 document.getElementById("t1k-proba").addEventListener("click", function(){
   T1K.proba = !T1K.proba;
   if(T1K.proba){ T1K.sub = false; T1K.accent = false; }
@@ -24225,6 +24311,8 @@ document.getElementById("t1k-fill").addEventListener("click", function(){
   if(!S.run){ step = 0; start(); H.start(); document.getElementById("t1k-start").classList.add("on"); }
 });
 document.getElementById("t1k-last").addEventListener("click", function(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER LA LONGUEUR"); return; }
+  resetLectureT1k();
   var m = motifT1kCur(), v = [16, 12, 8, 4];
   m.last = v[(v.indexOf(m.last) + 1) % v.length];
   majT1k(); memT1k(); H.cran();

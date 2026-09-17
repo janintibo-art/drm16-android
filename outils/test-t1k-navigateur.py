@@ -114,6 +114,46 @@ async def main():
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v195-%sx%s.png'%(w,h))))
             print('OK : banques indépendantes, sélection sauvegardée, limites A16/B1 et H16/A1, blocage PLAY et migration des anciens projets',flush=True)
+            # v196 : sens, curseur à l'heure audio, sauvegarde et vraies ondes.
+            await pg.evaluate('''() => {
+              choisirMotifT1k(0,0);T1K.sel=0;let m=motifT1kCur();m.last=4;m.pas.fill(0);m.acc.fill(0);m.pas[0]=1;m.acc[0]=1;
+              m.sub[0].fill(1);m.prob[0].fill(100);Object.assign(m.instr[0],{mix:0,niv:.3,dec:0});
+              T1K.mA=null;T1K.mB=null;T1K.mfx.rev=0;T1K.mfx.dly=0;T1K.afx.on=false;S.vol=.3;S.bpm=120;WAVX.mesures=3;majT1k();
+            }''')
+            await pg.locator('#t1k-direction').select_option('arriere')
+            assert await pg.evaluate('motifT1kCur().direction[0]==="arriere"&&motifT1kCur().direction[1]==="avant"')
+            rendu_direction='''async direction => {
+              choisirDirectionT1k(direction);memT1k();writeMem();let n=__exports.length;
+              exporterWav();let limite=performance.now()+20000;while(WAVX.occupe&&performance.now()<limite)await new Promise(r=>setTimeout(r,10));
+              if(__exports.length!==n+1)throw Error('export direction');
+              let o=__exports[n].octets,v=new DataView(o.buffer),pics=[];
+              for(let p=0;p<12;p++){let pic=0;for(let i=Math.floor((.065+p*.125)*44100);i<Math.floor((.09+p*.125)*44100);i++)pic=Math.max(pic,Math.abs(v.getInt16(44+4*i,true))/32768);pics.push(pic);}
+              return {pics:pics,direction:motifT1kCur().direction[0]};
+            }'''
+            for direction,attendus in [('arriere',[3,7,11]),('pingpong',[0,6])]:
+                r=await pg.evaluate(rendu_direction,direction)
+                assert r['direction']==direction and [i for i,x in enumerate(r['pics']) if x>.001]==attendus,r
+            await pg.evaluate('memT1k();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate('motifT1kCur().direction[0]==="pingpong"')
+            await pg.evaluate('''() => {
+              window.__lus=[];window.__beatVrai=MACHINE_T1K.beat;
+              MACHINE_T1K.beat=function(i){__beatVrai(i);let e=T1K.entendu,b=document.querySelector('#t1k-pas .cur');if(e)__lus.push([e.absolu,e.positions[0],b?+b.dataset.i:-1]);};
+            }''')
+            await pg.locator('#t1k-start').click()
+            assert await pg.locator('#t1k-direction').is_disabled() and await pg.locator('#t1k-last').is_disabled()
+            await pg.wait_for_function('__lus.length && __lus[__lus.length-1][0]>=7')
+            r=await pg.evaluate('__lus')
+            assert r[0][0]==0 and all(v[1]==v[2]==([0,1,2,3,2,1][v[0]%6]) for v in r),r
+            await pg.locator('#t1k-stop').click()
+            assert await pg.evaluate('T1K.entendu===null&&T1K.departs.length===0&&T1K.tour===-1')
+            await pg.evaluate('__lus=[]');await pg.locator('#t1k-start').click();await pg.wait_for_function('__lus.length>0')
+            assert await pg.evaluate('__lus[0][0]===0&&__lus[0][1]===0')
+            await pg.locator('#t1k-stop').click();await pg.evaluate('MACHINE_T1K.beat=__beatVrai')
+            for w,h in ((393,851),(360,640),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v196-%sx%s.png'%(w,h))))
+            print('OK : sens indépendants, WAV arrière/aller-retour, sauvegarde, curseur entendu et reset STOP/START',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

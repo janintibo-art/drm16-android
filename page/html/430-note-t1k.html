@@ -32,6 +32,25 @@
   pas, de un à quatre. Un point jaune marque les pas concernés. C'est le roulement de la TR-1000, et il se
   règle pas par pas au lieu d'être global.</p>
 
+  <h3>Sens de lecture</h3>
+  <p>À l'arrêt, choisissez un instrument puis son <b>SENS</b> : <b>AVANT</b>,
+  <b>ARRIÈRE</b> ou <b>ALLER-RETOUR</b>. Chaque instrument peut avoir un sens
+  différent. Ce réglage appartient au motif et se sauvegarde dans sa banque.</p>
+  <p>Pour une longueur de quatre pas, AVANT donne 1-2-3-4, ARRIÈRE 4-3-2-1
+  et ALLER-RETOUR 1-2-3-4-3-2, puis recommence. L'aller-retour ne double pas
+  les extrémités et peut donc traverser plusieurs tours du transport.</p>
+  <p>Accents, sous-pas et probabilités suivent le pas lu. Le curseur suit le
+  pas réellement entendu de l'instrument sélectionné, sans avancer sur les
+  notes déjà préparées pour l'audio. REC écrit sur le pas le plus proche dans
+  le sens de l'instrument joué. Les frappes directes restent immédiates.</p>
+  <p>STOP efface la position de lecture ; START repart au début du parcours.
+  Le sens, la longueur et le motif se changent à l'arrêt. FILL garde son rythme
+  en avant ; le parcours du motif continue d'avancer pendant ce remplissage.</p>
+  <p>Les anciens projets restent en AVANT. Les exports WAV suivent également
+  les directions. Le nombre de mesures exportées reste celui du transport :
+  la fin du fichier ne correspond pas toujours à la fin d'un aller-retour.
+  Utilisez v196 ou plus récent pour conserver ces réglages.</p>
+
   <h3>Probabilité par pas</h3>
   <p>Choisissez un instrument, activez <b>PROBABILITÉ</b>, puis choisissez un
   pourcentage de 0 à 100, par paliers de 5. Touchez les pas auxquels l'appliquer.

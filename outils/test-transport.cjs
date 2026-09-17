@@ -315,3 +315,9 @@ verifierBusRendu().catch(err=>{console.error(err);process.exitCode=1;});
  assert(c.S.run);assert.equal(c.step,0);assert.equal(c.pasSet,0);
  c.S.run=false;c.preparerChaineStk=()=>false;c.departEsclave(false);assert(!c.S.run,'chaîne invalide non démarrée par MIDI');
 }
+// v196 : la phase TR-1000 est remise à zéro même en machine secondaire du SET.
+{
+ const {c}=fixture();let resets=0;c.resetLectureT1k=()=>{resets++;};
+ c.start();assert.equal(resets,1);c.stop();assert.equal(resets,2);
+ c.departEsclave(false);assert.equal(resets,3);c.departEsclave(false);assert.equal(resets,3,'CONTINUE pendant lecture ne réinitialise pas la phase');
+}

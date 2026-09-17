@@ -74,6 +74,7 @@ function tick(){
   }
 }
 function start(){
+  if(typeof resetLectureT1k === "function") resetLectureT1k();
   audioInit();
   if(!ctx) return;
   if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
@@ -101,6 +102,7 @@ function start(){
   midiHorloge(true, depart - maintenantAudio());
 }
 function stop(){
+  if(typeof resetLectureT1k === "function") resetLectureT1k();
   S.run=false; clearInterval(timer); timer=null; queue=[];
   AUDIT.tDernier = 0;                 /* le chrono ne compte que le jeu réel */
   couperSourcesFutures();
