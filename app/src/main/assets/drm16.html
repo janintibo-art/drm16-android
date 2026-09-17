@@ -1552,6 +1552,13 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 .stk-midi-commandes button.on{background:#e8e04a;color:#141410}
 .stk-midi-commandes button:disabled{opacity:.4}
 #stk-midi-info{font:700 8px/1.4 Arial;color:#dfd980}
+
+/* v191 : les entrées se choisissent sans changer le motif joué. */
+#stk-chaine-liste button{min-width:32px;padding:8px;border:1px solid #53524a;border-radius:4px;background:#282830;color:#e8e04a;font:700 11px Arial}
+#stk-chaine-liste button.selection{outline:2px solid #e8e04a;outline-offset:-2px}
+#stk-chaine-liste button.lecture{background:#e8e04a;color:#141410}
+#stk-chaine-liste button:focus-visible{outline:2px solid white;outline-offset:-2px}
+#stk-chaine-selection{display:block;font:700 9px/1.5 Arial;color:#e8e04a;margin-bottom:4px}
 /* ===================== OBERHEIM DMX ===================== */
 body.dmx .dmxb{display:block}
 body.dmx #unit,body.dmx .em,body.dmx .er,body.dmx .ea,body.dmx .es,body.dmx .mx,body.dmx .sx,
@@ -3776,6 +3783,15 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="stk-chaine-vider" disabled>VIDER</button>
   </div>
   <div id="stk-chaine-liste" tabindex="0" aria-label="Ordre des motifs de la chaîne"></div>
+  <div id="stk-chaine-edition" hidden>
+    <output id="stk-chaine-selection" aria-live="polite"></output>
+    <div class="stk-chaine-commandes">
+      <button id="stk-chaine-gauche" aria-label="Déplacer l'entrée vers le début">← AVANT</button>
+      <button id="stk-chaine-droite" aria-label="Déplacer l'entrée vers la fin">APRÈS →</button>
+      <button id="stk-chaine-dupliquer">DUPLIQUER</button>
+      <button id="stk-chaine-supprimer">RETIRER</button>
+    </div>
+  </div>
   <output id="stk-chaine-etat" aria-live="polite"></output>
   <div class="stk-pads" id="stk-pads"></div>
   <div class="stk-trks" id="stk-trks"></div>
@@ -4874,6 +4890,17 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <b>+ MOTIF</b>. Répétez pour composer l'ordre de lecture. Ajouter plusieurs fois
   le même motif le fait répéter : 1 → 1 → 3 → 4 joue deux fois le motif 1,
   puis les motifs 3 et 4. La chaîne accepte jusqu'à 256 entrées.</p>
+  <p>Touchez un numéro dans la chaîne pour sélectionner cette <b>entrée</b>.
+  Le cadre indique la sélection d'édition ; le fond plein indique l'entrée en
+  lecture. Sélectionner une entrée ne change pas le motif et ne joue aucun son.</p>
+  <p><b>← AVANT</b> et <b>APRÈS →</b> déplacent l'entrée d'une place.
+  <b>DUPLIQUER</b> répète le même motif juste après l'entrée sélectionnée.
+  C'est une répétition du même motif, pas une copie indépendante de ses notes.
+  <b>RETIRER</b> enlève seulement l'entrée choisie, sans effacer le motif.</p>
+  <p>Retouchez l'entrée encadrée pour refermer les commandes. L'ordre modifié
+  est sauvegardé, mais la sélection d'édition est temporaire. PLAY repart
+  toujours du début de la chaîne, quelle que soit cette sélection. Les commandes
+  d'édition sont verrouillées pendant la lecture.</p>
   <p><b>RETIRER FIN</b> enlève la dernière entrée. <b>VIDER</b> efface la liste
   après confirmation, sans supprimer les motifs. Une longue liste peut défiler
   horizontalement. Les motifs d'une chaîne doivent tous avoir la même longueur.</p>
@@ -4890,7 +4917,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   tout en gardant la liste. Les commandes DIRECT / FIN MOTIF concernent le jeu
   manuel ; la chaîne effectue toujours ses transitions entre deux motifs complets.</p>
   <p>Cette première chaîne tourne en boucle jusqu'à STOP, sans fin automatique,
-  déplacement d'entrée ni export dédié du morceau. Elle utilise le transport
+  export dédié du morceau. Elle utilise le transport
   commun, y compris en machine secondaire du SET. Les tranches et les réglages
   des pistes restent ceux déjà définis dans les motifs et dans le mixage.</p>
 
@@ -28111,7 +28138,7 @@ function motifStk(){
   return m;
 }
 var STK = {pistes:[], motifs:[], cur:0, sel:0, solo:-1, rec:false, pos:-1,
-           noeuds:null, chaine:[], chainePos:0, song:false, onde:null, ondePour:"",
+           noeuds:null, chaine:[], chaineSel:-1, chainePos:0, song:false, onde:null, ondePour:"",
            clavierMidi:false, quantifie:false, attente:null, depart:null, contexte:null, copie:null,
            chaineDeparts:[], chaineProgramme:-1, chaineContexte:null, chaineTemps:0};
 for(var sz=0; sz<STK_PISTES; sz++) STK.pistes.push(pisteStk(sz));
@@ -28201,17 +28228,48 @@ function ajouterChaineStk(){
   if(STK.chaine.length && STK.motifs[STK.chaine[0]].last !== motifStkCur().last){
     signal("LES MOTIFS DE LA CHAÎNE DOIVENT AVOIR LA MÊME LONGUEUR"); return false;
   }
-  STK.chaine.push(STK.cur); memStk(); majStk(); return true;
+  STK.chaine.push(STK.cur); finirEditionChaineStk(); return true;
 }
 function retirerChaineStk(){
   if(S.run || !STK.chaine.length) return false;
-  STK.chaine.pop(); if(!STK.chaine.length) STK.song = false;
-  memStk(); majStk(); return true;
+  STK.chaine.pop(); finirEditionChaineStk(); return true;
 }
 function viderChaineStk(){
   if(S.run || !STK.chaine.length) return false;
   if(!window.confirm("Vider la chaîne ? Les motifs et leurs notes sont conservés.")) return false;
-  STK.chaine = []; STK.song = false; memStk(); majStk(); return true;
+  STK.chaine = []; finirEditionChaineStk(); return true;
+}
+/* v191 : la sélection d'édition est distincte du motif et de la lecture. */
+function selectionChaineStkValide(){
+  return Number.isInteger(STK.chaineSel) && STK.chaineSel >= 0 && STK.chaineSel < STK.chaine.length;
+}
+function choisirEntreeChaineStk(k){
+  if(S.run || !Number.isInteger(k) || k < 0 || k >= STK.chaine.length) return false;
+  STK.chaineSel = STK.chaineSel === k ? -1 : k;
+  majStk(); return true;
+}
+function finirEditionChaineStk(){
+  STK.chaineSel = Math.min(STK.chaineSel, STK.chaine.length - 1);
+  if(!STK.chaine.length) STK.song = false;
+  STK.chainePos = 0; viderLectureChaineStk(); memStk(); majStk();
+}
+function deplacerEntreeChaineStk(sens){
+  if(S.run || !selectionChaineStkValide() || (sens !== -1 && sens !== 1)) return false;
+  var k = STK.chaineSel, autre = k + sens;
+  if(autre < 0 || autre >= STK.chaine.length) return false;
+  var motif = STK.chaine[k]; STK.chaine[k] = STK.chaine[autre]; STK.chaine[autre] = motif;
+  STK.chaineSel = autre; finirEditionChaineStk(); return true;
+}
+function dupliquerEntreeChaineStk(){
+  if(S.run || !selectionChaineStkValide()) return false;
+  if(STK.chaine.length >= 256){ signal("CHAÎNE PLEINE · 256 ENTRÉES"); return false; }
+  var k = STK.chaineSel;
+  STK.chaine.splice(k + 1, 0, STK.chaine[k]); STK.chaineSel = k + 1;
+  finirEditionChaineStk(); return true;
+}
+function supprimerEntreeChaineStk(){
+  if(S.run || !selectionChaineStkValide()) return false;
+  STK.chaine.splice(STK.chaineSel, 1); finirEditionChaineStk(); return true;
 }
 function modeChaineStk(){
   if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER DE MODE"); return false; }
@@ -28422,7 +28480,7 @@ function nombreStk(v, min, max, repli){
   return typeof v === "number" && isFinite(v) ? Math.max(min, Math.min(max, v)) : repli;
 }
 function chargerStk(){
-  viderAttenteStk(); viderLectureChaineStk(); STK.song = false; STK.chainePos = 0;
+  viderAttenteStk(); viderLectureChaineStk(); STK.song = false; STK.chainePos = 0; STK.chaineSel = -1;
   var m = memLire("stk");
   if(!m || typeof m !== "object" || Array.isArray(m)) return;
   STK.clavierMidi = m.clavierMidi === true;
@@ -29122,7 +29180,44 @@ function majChaineStk(){
   document.getElementById("stk-chaine-retirer").disabled = S.run || !STK.chaine.length;
   document.getElementById("stk-chaine-vider").disabled = S.run || !STK.chaine.length;
   var liste = document.getElementById("stk-chaine-liste");
-  liste.textContent = STK.chaine.length ? STK.chaine.map(function(k){ return k + 1; }).join(" → ") : "CHAÎNE VIDE · CHOISISSEZ UN MOTIF PUIS + MOTIF";
+  var cle = STK.chaine.join(",");
+  if(liste.dataset.chaine !== cle){
+    var defilement = liste.scrollLeft; liste.textContent = ""; liste.dataset.chaine = cle;
+    if(!STK.chaine.length) liste.textContent = "CHAÎNE VIDE · CHOISISSEZ UN MOTIF PUIS + MOTIF";
+    STK.chaine.forEach(function(motif, k){
+      if(k) liste.appendChild(document.createTextNode(" → "));
+      var b = document.createElement("button"); b.textContent = String(motif + 1);
+      b.setAttribute("aria-label", "Entrée " + (k + 1) + " : motif " + (motif + 1));
+      b.addEventListener("click", function(){ choisirEntreeChaineStk(k); });
+      liste.appendChild(b);
+    });
+    liste.scrollLeft = defilement;
+  }
+  var boutons = liste.querySelectorAll("button");
+  boutons.forEach(function(b, k){
+    b.disabled = S.run;
+    b.classList.toggle("selection", k === STK.chaineSel);
+    b.classList.toggle("lecture", STK.song && S.run && k === STK.chainePos);
+    b.setAttribute("aria-pressed", String(k === STK.chaineSel));
+  });
+  if(liste.dataset.selection !== String(STK.chaineSel)){
+    liste.dataset.selection = String(STK.chaineSel);
+    var selection = boutons[STK.chaineSel];
+    if(selection){
+      var gauche = selection.getBoundingClientRect().left - liste.getBoundingClientRect().left;
+      if(gauche < 0) liste.scrollLeft += gauche;
+      else if(gauche + selection.offsetWidth > liste.clientWidth) liste.scrollLeft += gauche + selection.offsetWidth - liste.clientWidth;
+    }
+  }
+  var edition = document.getElementById("stk-chaine-edition"), cacheAvant = edition.hidden;
+  edition.hidden = !selectionChaineStkValide();
+  document.getElementById("stk-chaine-gauche").disabled = S.run || STK.chaineSel <= 0;
+  document.getElementById("stk-chaine-droite").disabled = S.run || STK.chaineSel >= STK.chaine.length - 1;
+  document.getElementById("stk-chaine-dupliquer").disabled = S.run || STK.chaine.length >= 256;
+  document.getElementById("stk-chaine-supprimer").disabled = S.run;
+  document.getElementById("stk-chaine-selection").textContent = selectionChaineStkValide()
+    ? "ÉDITION " + (STK.chaineSel + 1) + "/" + STK.chaine.length + " · MOTIF " + (STK.chaine[STK.chaineSel] + 1) : "";
+  if(cacheAvant !== edition.hidden && S.modele === "stk") fit();
   var etat = document.getElementById("stk-chaine-etat");
   etat.textContent = STK.song ? (S.run ? "LECTURE " + (STK.chainePos + 1) + "/" + STK.chaine.length + " · MOTIF " + (STK.cur + 1)
     : "PRÊT · PLAY REPART DU DÉBUT") : STK.chaine.length + "/256 ENTRÉES · BOUCLE";
@@ -29264,6 +29359,10 @@ document.getElementById("stk-chaine").addEventListener("click", modeChaineStk);
 document.getElementById("stk-chaine-ajout").addEventListener("click", ajouterChaineStk);
 document.getElementById("stk-chaine-retirer").addEventListener("click", retirerChaineStk);
 document.getElementById("stk-chaine-vider").addEventListener("click", viderChaineStk);
+document.getElementById("stk-chaine-gauche").addEventListener("click", function(){ deplacerEntreeChaineStk(-1); });
+document.getElementById("stk-chaine-droite").addEventListener("click", function(){ deplacerEntreeChaineStk(1); });
+document.getElementById("stk-chaine-dupliquer").addEventListener("click", dupliquerEntreeChaineStk);
+document.getElementById("stk-chaine-supprimer").addEventListener("click", supprimerEntreeChaineStk);
 document.getElementById("stk-quantifie").addEventListener("click", modeMotifsStk);
 document.getElementById("stk-annuler").addEventListener("click", annulerMotifStk);
 document.getElementById("stk-copier").addEventListener("click", copierMotifStk);

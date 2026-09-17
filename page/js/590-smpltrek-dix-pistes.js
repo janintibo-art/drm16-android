@@ -19,7 +19,7 @@ function motifStk(){
   return m;
 }
 var STK = {pistes:[], motifs:[], cur:0, sel:0, solo:-1, rec:false, pos:-1,
-           noeuds:null, chaine:[], chainePos:0, song:false, onde:null, ondePour:"",
+           noeuds:null, chaine:[], chaineSel:-1, chainePos:0, song:false, onde:null, ondePour:"",
            clavierMidi:false, quantifie:false, attente:null, depart:null, contexte:null, copie:null,
            chaineDeparts:[], chaineProgramme:-1, chaineContexte:null, chaineTemps:0};
 for(var sz=0; sz<STK_PISTES; sz++) STK.pistes.push(pisteStk(sz));
@@ -109,17 +109,48 @@ function ajouterChaineStk(){
   if(STK.chaine.length && STK.motifs[STK.chaine[0]].last !== motifStkCur().last){
     signal("LES MOTIFS DE LA CHAÎNE DOIVENT AVOIR LA MÊME LONGUEUR"); return false;
   }
-  STK.chaine.push(STK.cur); memStk(); majStk(); return true;
+  STK.chaine.push(STK.cur); finirEditionChaineStk(); return true;
 }
 function retirerChaineStk(){
   if(S.run || !STK.chaine.length) return false;
-  STK.chaine.pop(); if(!STK.chaine.length) STK.song = false;
-  memStk(); majStk(); return true;
+  STK.chaine.pop(); finirEditionChaineStk(); return true;
 }
 function viderChaineStk(){
   if(S.run || !STK.chaine.length) return false;
   if(!window.confirm("Vider la chaîne ? Les motifs et leurs notes sont conservés.")) return false;
-  STK.chaine = []; STK.song = false; memStk(); majStk(); return true;
+  STK.chaine = []; finirEditionChaineStk(); return true;
+}
+/* v191 : la sélection d'édition est distincte du motif et de la lecture. */
+function selectionChaineStkValide(){
+  return Number.isInteger(STK.chaineSel) && STK.chaineSel >= 0 && STK.chaineSel < STK.chaine.length;
+}
+function choisirEntreeChaineStk(k){
+  if(S.run || !Number.isInteger(k) || k < 0 || k >= STK.chaine.length) return false;
+  STK.chaineSel = STK.chaineSel === k ? -1 : k;
+  majStk(); return true;
+}
+function finirEditionChaineStk(){
+  STK.chaineSel = Math.min(STK.chaineSel, STK.chaine.length - 1);
+  if(!STK.chaine.length) STK.song = false;
+  STK.chainePos = 0; viderLectureChaineStk(); memStk(); majStk();
+}
+function deplacerEntreeChaineStk(sens){
+  if(S.run || !selectionChaineStkValide() || (sens !== -1 && sens !== 1)) return false;
+  var k = STK.chaineSel, autre = k + sens;
+  if(autre < 0 || autre >= STK.chaine.length) return false;
+  var motif = STK.chaine[k]; STK.chaine[k] = STK.chaine[autre]; STK.chaine[autre] = motif;
+  STK.chaineSel = autre; finirEditionChaineStk(); return true;
+}
+function dupliquerEntreeChaineStk(){
+  if(S.run || !selectionChaineStkValide()) return false;
+  if(STK.chaine.length >= 256){ signal("CHAÎNE PLEINE · 256 ENTRÉES"); return false; }
+  var k = STK.chaineSel;
+  STK.chaine.splice(k + 1, 0, STK.chaine[k]); STK.chaineSel = k + 1;
+  finirEditionChaineStk(); return true;
+}
+function supprimerEntreeChaineStk(){
+  if(S.run || !selectionChaineStkValide()) return false;
+  STK.chaine.splice(STK.chaineSel, 1); finirEditionChaineStk(); return true;
 }
 function modeChaineStk(){
   if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER DE MODE"); return false; }
@@ -330,7 +361,7 @@ function nombreStk(v, min, max, repli){
   return typeof v === "number" && isFinite(v) ? Math.max(min, Math.min(max, v)) : repli;
 }
 function chargerStk(){
-  viderAttenteStk(); viderLectureChaineStk(); STK.song = false; STK.chainePos = 0;
+  viderAttenteStk(); viderLectureChaineStk(); STK.song = false; STK.chainePos = 0; STK.chaineSel = -1;
   var m = memLire("stk");
   if(!m || typeof m !== "object" || Array.isArray(m)) return;
   STK.clavierMidi = m.clavierMidi === true;
@@ -1030,7 +1061,44 @@ function majChaineStk(){
   document.getElementById("stk-chaine-retirer").disabled = S.run || !STK.chaine.length;
   document.getElementById("stk-chaine-vider").disabled = S.run || !STK.chaine.length;
   var liste = document.getElementById("stk-chaine-liste");
-  liste.textContent = STK.chaine.length ? STK.chaine.map(function(k){ return k + 1; }).join(" → ") : "CHAÎNE VIDE · CHOISISSEZ UN MOTIF PUIS + MOTIF";
+  var cle = STK.chaine.join(",");
+  if(liste.dataset.chaine !== cle){
+    var defilement = liste.scrollLeft; liste.textContent = ""; liste.dataset.chaine = cle;
+    if(!STK.chaine.length) liste.textContent = "CHAÎNE VIDE · CHOISISSEZ UN MOTIF PUIS + MOTIF";
+    STK.chaine.forEach(function(motif, k){
+      if(k) liste.appendChild(document.createTextNode(" → "));
+      var b = document.createElement("button"); b.textContent = String(motif + 1);
+      b.setAttribute("aria-label", "Entrée " + (k + 1) + " : motif " + (motif + 1));
+      b.addEventListener("click", function(){ choisirEntreeChaineStk(k); });
+      liste.appendChild(b);
+    });
+    liste.scrollLeft = defilement;
+  }
+  var boutons = liste.querySelectorAll("button");
+  boutons.forEach(function(b, k){
+    b.disabled = S.run;
+    b.classList.toggle("selection", k === STK.chaineSel);
+    b.classList.toggle("lecture", STK.song && S.run && k === STK.chainePos);
+    b.setAttribute("aria-pressed", String(k === STK.chaineSel));
+  });
+  if(liste.dataset.selection !== String(STK.chaineSel)){
+    liste.dataset.selection = String(STK.chaineSel);
+    var selection = boutons[STK.chaineSel];
+    if(selection){
+      var gauche = selection.getBoundingClientRect().left - liste.getBoundingClientRect().left;
+      if(gauche < 0) liste.scrollLeft += gauche;
+      else if(gauche + selection.offsetWidth > liste.clientWidth) liste.scrollLeft += gauche + selection.offsetWidth - liste.clientWidth;
+    }
+  }
+  var edition = document.getElementById("stk-chaine-edition"), cacheAvant = edition.hidden;
+  edition.hidden = !selectionChaineStkValide();
+  document.getElementById("stk-chaine-gauche").disabled = S.run || STK.chaineSel <= 0;
+  document.getElementById("stk-chaine-droite").disabled = S.run || STK.chaineSel >= STK.chaine.length - 1;
+  document.getElementById("stk-chaine-dupliquer").disabled = S.run || STK.chaine.length >= 256;
+  document.getElementById("stk-chaine-supprimer").disabled = S.run;
+  document.getElementById("stk-chaine-selection").textContent = selectionChaineStkValide()
+    ? "ÉDITION " + (STK.chaineSel + 1) + "/" + STK.chaine.length + " · MOTIF " + (STK.chaine[STK.chaineSel] + 1) : "";
+  if(cacheAvant !== edition.hidden && S.modele === "stk") fit();
   var etat = document.getElementById("stk-chaine-etat");
   etat.textContent = STK.song ? (S.run ? "LECTURE " + (STK.chainePos + 1) + "/" + STK.chaine.length + " · MOTIF " + (STK.cur + 1)
     : "PRÊT · PLAY REPART DU DÉBUT") : STK.chaine.length + "/256 ENTRÉES · BOUCLE";
@@ -1172,6 +1240,10 @@ document.getElementById("stk-chaine").addEventListener("click", modeChaineStk);
 document.getElementById("stk-chaine-ajout").addEventListener("click", ajouterChaineStk);
 document.getElementById("stk-chaine-retirer").addEventListener("click", retirerChaineStk);
 document.getElementById("stk-chaine-vider").addEventListener("click", viderChaineStk);
+document.getElementById("stk-chaine-gauche").addEventListener("click", function(){ deplacerEntreeChaineStk(-1); });
+document.getElementById("stk-chaine-droite").addEventListener("click", function(){ deplacerEntreeChaineStk(1); });
+document.getElementById("stk-chaine-dupliquer").addEventListener("click", dupliquerEntreeChaineStk);
+document.getElementById("stk-chaine-supprimer").addEventListener("click", supprimerEntreeChaineStk);
 document.getElementById("stk-quantifie").addEventListener("click", modeMotifsStk);
 document.getElementById("stk-annuler").addEventListener("click", annulerMotifStk);
 document.getElementById("stk-copier").addEventListener("click", copierMotifStk);

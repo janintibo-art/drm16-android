@@ -1859,10 +1859,56 @@ async def stk_midi(nav):
     finally:
         await contexte.close()
 
+async def stk_edition_chaine(nav):
+    print('\n30. SmplTrek : édition des entrées de chaîne (v191)')
+    from pathlib import Path
+    contexte=await nav.new_context(viewport={'width':393,'height':851})
+    adresse=await servir_page(contexte);pg=await contexte.new_page();erreurs=[]
+    pg.on('pageerror',lambda e:erreurs.append(str(e)))
+    try:
+        await pg.goto(adresse);await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=stk]').click()
+        await pg.evaluate("STK.chaine=[0,0,2,7];STK.cur=5;STK.song=true;window.__motifs=JSON.stringify(STK.motifs);majStk()")
+        ok(await pg.locator('#stk-chaine-edition').is_hidden(),'commandes masquées sans sélection')
+        await pg.locator('#stk-chaine-liste button').nth(1).click()
+        ok(await pg.evaluate('STK.chaineSel===1 && STK.cur===5 && STK.song'),'sélection de la deuxième répétition sans changer le motif ni le mode')
+        await pg.locator('#stk-chaine-droite').click()
+        ok(await pg.evaluate('JSON.stringify(STK.chaine)==="[0,2,0,7]" && STK.chaineSel===2'),'déplacement de la bonne occurrence vers la fin')
+        await pg.locator('#stk-chaine-gauche').click();await pg.locator('#stk-chaine-dupliquer').click()
+        ok(await pg.evaluate('JSON.stringify(STK.chaine)==="[0,0,0,2,7]" && STK.chaineSel===2'),'duplication insérée après la sélection')
+        await pg.locator('#stk-chaine-supprimer').click()
+        ok(await pg.evaluate('JSON.stringify(STK.chaine)==="[0,0,2,7]" && JSON.stringify(STK.motifs)===__motifs'),'retrait au milieu sans effacer les motifs')
+        await pg.locator('#stk-chaine-liste button').nth(0).click()
+        ok(await pg.locator('#stk-chaine-gauche').is_disabled(),'première entrée : déplacement avant désactivé')
+        await pg.locator('#stk-chaine-liste button').nth(3).click()
+        ok(await pg.locator('#stk-chaine-droite').is_disabled(),'dernière entrée : déplacement après désactivé')
+        await pg.locator('#stk-chaine-gauche').click()
+        await pg.evaluate('memStk();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=stk]').click()
+        ok(await pg.evaluate('JSON.stringify(STK.chaine)==="[0,0,7,2]" && STK.chaineSel===-1 && STK.song'),'ordre sauvegardé et sélection temporaire réinitialisée')
+        await pg.locator('#stk-chaine-liste button').nth(2).click();await pg.locator('#stk-play').click()
+        ok(await pg.locator('#stk-chaine-liste button').nth(2).is_disabled() and await pg.locator('#stk-chaine-dupliquer').is_disabled(),'édition verrouillée pendant PLAY')
+        await pg.wait_for_function("document.querySelector('#stk-chaine-liste .lecture')")
+        ok(await pg.evaluate('STK.cur===0'),'PLAY repart au début, indépendamment de la sélection')
+        await pg.locator('#stk-play').click()
+        for w,h in ((393,851),(360,640),(880,400)):
+            await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+            await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('stk-v191-%sx%s.png'%(w,h))))
+        await pg.evaluate('STK.chaine=Array(256).fill(0);STK.chaineSel=255;majStk()')
+        ok(await pg.locator('#stk-chaine-dupliquer').is_disabled(),'limite de 256 entrées : duplication désactivée')
+        await pg.locator('#stk-chaine-liste button').nth(255).click()
+        ok(await pg.locator('#stk-chaine-edition').is_hidden(),'retoucher la sélection referme les commandes')
+        await pg.evaluate('STK.chaine=[7];STK.chaineSel=0;majStk()')
+        await pg.locator('#stk-chaine-supprimer').click()
+        ok(await pg.evaluate('!STK.song && !STK.chaine.length && STK.chaineSel===-1'),'retirer la dernière entrée désactive la chaîne')
+        ok(not erreurs,'aucune erreur de page : '+str(erreurs))
+    finally:
+        await contexte.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine):
             try:
                 await t(nav)
             except Exception as e:

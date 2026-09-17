@@ -54,6 +54,15 @@
     <button id="stk-chaine-vider" disabled>VIDER</button>
   </div>
   <div id="stk-chaine-liste" tabindex="0" aria-label="Ordre des motifs de la chaîne"></div>
+  <div id="stk-chaine-edition" hidden>
+    <output id="stk-chaine-selection" aria-live="polite"></output>
+    <div class="stk-chaine-commandes">
+      <button id="stk-chaine-gauche" aria-label="Déplacer l'entrée vers le début">← AVANT</button>
+      <button id="stk-chaine-droite" aria-label="Déplacer l'entrée vers la fin">APRÈS →</button>
+      <button id="stk-chaine-dupliquer">DUPLIQUER</button>
+      <button id="stk-chaine-supprimer">RETIRER</button>
+    </div>
+  </div>
   <output id="stk-chaine-etat" aria-live="polite"></output>
   <div class="stk-pads" id="stk-pads"></div>
   <div class="stk-trks" id="stk-trks"></div>

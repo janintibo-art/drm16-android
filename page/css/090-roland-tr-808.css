@@ -380,3 +380,10 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 .stk-midi-commandes button.on{background:#e8e04a;color:#141410}
 .stk-midi-commandes button:disabled{opacity:.4}
 #stk-midi-info{font:700 8px/1.4 Arial;color:#dfd980}
+
+/* v191 : les entrées se choisissent sans changer le motif joué. */
+#stk-chaine-liste button{min-width:32px;padding:8px;border:1px solid #53524a;border-radius:4px;background:#282830;color:#e8e04a;font:700 11px Arial}
+#stk-chaine-liste button.selection{outline:2px solid #e8e04a;outline-offset:-2px}
+#stk-chaine-liste button.lecture{background:#e8e04a;color:#141410}
+#stk-chaine-liste button:focus-visible{outline:2px solid white;outline-offset:-2px}
+#stk-chaine-selection{display:block;font:700 9px/1.5 Arial;color:#e8e04a;margin-bottom:4px}

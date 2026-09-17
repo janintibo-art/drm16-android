@@ -179,3 +179,24 @@ console.log('SmplTrek v189 : notes, copies indépendantes, migration et type Ins
  c.MIDI.base=60;assert(c.modeMidiStk());assert.equal(c.cibleMidiStk(72,0).hauteur,12);
 }
 console.log('SmplTrek v190 : routage clavier/pistes, plage, canal, vélocité, mute/solo et mémoire OK.');
+{
+ const c=setup(),s=c.STK;s.chaine=[0,0,2,7];s.cur=5;s.song=true;
+ const motifs=JSON.stringify(s.motifs),pistes=JSON.stringify(s.pistes);
+ assert(!c.deplacerEntreeChaineStk(1));assert(!c.choisirEntreeChaineStk(4));assert(!c.choisirEntreeChaineStk(1.5));
+ assert(c.choisirEntreeChaineStk(1));assert.equal(s.cur,5);assert(s.song);
+ assert(c.deplacerEntreeChaineStk(1));assert.deepStrictEqual(copie(s.chaine),[0,2,0,7]);assert.equal(s.chaineSel,2);
+ assert(c.deplacerEntreeChaineStk(-1));assert.deepStrictEqual(copie(s.chaine),[0,0,2,7]);
+ assert(!c.deplacerEntreeChaineStk(2));assert(c.dupliquerEntreeChaineStk());
+ assert.deepStrictEqual(copie(s.chaine),[0,0,0,2,7]);assert.equal(s.chaineSel,2);
+ assert(c.supprimerEntreeChaineStk());assert.deepStrictEqual(copie(s.chaine),[0,0,2,7]);
+ assert.equal(s.chaineSel,2);assert.equal(JSON.stringify(s.motifs),motifs);assert.equal(JSON.stringify(s.pistes),pistes);
+ const saved=copie(c.memoire.stk),d=setup(saved);d.chargerStk();assert.deepStrictEqual(copie(d.STK.chaine),[0,0,2,7]);assert.equal(d.STK.chaineSel,-1);
+ c.S.run=true;const avant=JSON.stringify(s.chaine);
+ assert(!c.choisirEntreeChaineStk(0));assert(!c.deplacerEntreeChaineStk(1));assert(!c.dupliquerEntreeChaineStk());assert(!c.supprimerEntreeChaineStk());assert.equal(JSON.stringify(s.chaine),avant);
+ c.S.run=false;s.chaineSel=0;assert(!c.deplacerEntreeChaineStk(-1));s.chaineSel=3;assert(!c.deplacerEntreeChaineStk(1));
+ assert(c.retirerChaineStk());assert.equal(s.chaineSel,2);assert(c.supprimerEntreeChaineStk());assert.equal(s.chaineSel,1);
+ assert(c.supprimerEntreeChaineStk());assert.equal(s.chaineSel,0);assert(c.supprimerEntreeChaineStk());assert.equal(s.chaineSel,-1);assert(!s.song);
+ s.chaine=Array(255).fill(0);s.chaineSel=254;assert(c.dupliquerEntreeChaineStk());assert.equal(s.chaine.length,256);assert(!c.dupliquerEntreeChaineStk());assert.equal(s.chaine.length,256);
+ assert(c.choisirEntreeChaineStk(255));assert.equal(s.chaineSel,-1,'retoucher désélectionne');
+}
+console.log('SmplTrek v191 : édition des occurrences, bornes, limite, sauvegarde, conservation des motifs et verrouillage PLAY OK.');
