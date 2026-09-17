@@ -5,6 +5,21 @@
   Le potard <b>A / B</b> les mélange : à gauche l'analogique seul, à droite l'échantillon seul, entre les
   deux les deux ensemble. Le bouton <b>SAMPLE B</b> fait défiler les sons.</p>
 
+  <h3>Banques et motifs</h3>
+  <p><b>BANQUE A</b> ouvre le choix des huit banques A à H. Chacune possède
+  seize motifs indépendants, soit <b>128 motifs</b>. Le bouton <b>PTN</b>
+  passe au motif suivant : A16 devient B1 et H16 revient à A1. Choisir directement
+  une banque conserve le numéro du motif. Arrêtez PLAY avant de changer.</p>
+  <p>Chaque motif garde ses pas, accents, sous-pas, probabilités et réglages
+  d'instruments, y compris le sample choisi. Les effets et les états de MORPH
+  restent communs à la machine. La banque et le motif sélectionnés sont sauvegardés.</p>
+  <p>Les anciens projets utilisaient les mêmes seize motifs derrière les huit
+  lettres. À leur premier chargement, ces motifs sont copiés dans chaque banque
+  pour retrouver le contenu attendu partout ; les copies deviennent ensuite
+  indépendantes. Dans un nouveau projet, seules A1 et A2 sont préremplies.</p>
+  <p>Pour partager ou rouvrir ces banques, utilisez <b>v195 ou plus récent</b>.
+  Les anciennes versions ne savent pas lire les 128 emplacements.</p>
+
   <h3>Morphing</h3>
   <p><b>SET A</b> mémorise l'état de tous les potards, <b>SET B</b> un second état, et le curseur
   <b>MORPH</b> passe de l'un à l'autre en interpolant chaque réglage. Un kit sec d'un côté, un kit long et
@@ -46,8 +61,8 @@
   couches.</p>
 
   <h3>Ce qui diffère</h3>
-  <p>Seize motifs mémorisés : les repères de banque A à H parcourent actuellement
-  ces mêmes motifs. Il n’y a pas encore de mode chanson ni d’échantillonnage par l’entrée. Les six
+  <p>Huit banques indépendantes de seize motifs sont disponibles, mais pas encore
+  de mode chanson ni d’échantillonnage par l’entrée. Les six
   potards assignables C1 à C6 de la vraie machine sont remplacés par les réglages fixes de chaque
   instrument : sans écran de menu, des potards sans affectation visible n'auraient rien voulu dire.</p>
   </div>

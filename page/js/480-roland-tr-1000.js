@@ -38,8 +38,8 @@ var T1K = {motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
            fill:false, ohGain:null};
-for(var t1z=0; t1z<16; t1z++) T1K.motifs.push(motifT1k(t1z < 2 ? t1z : 9));
-function motifT1kCur(){ return T1K.motifs[T1K.cur]; }
+for(var t1z=0; t1z<128; t1z++) T1K.motifs.push(motifT1k(t1z < 2 ? t1z : 9));
+function motifT1kCur(){ return T1K.motifs[T1K.banq * 16 + T1K.cur]; }
 function instrT1kSel(){ return motifT1kCur().instr[T1K.sel]; }
 
 /* v194 : une décision par pas ; tous ses sous-pas suivent cette décision. */
@@ -56,6 +56,39 @@ function poserProbabiliteT1k(k, i, v){
   return true;
 }
 
+/* v195 : huit banques réelles ; chaque motif possède ses propres listes. */
+function borneT1k(v, min, max, repli){
+  return typeof v === "number" && isFinite(v) ? Math.max(min, Math.min(max, v)) : repli;
+}
+function lireMotifT1k(o){
+  var r = motifT1k(9);
+  o = o && typeof o === "object" ? o : {};
+  r.last = Math.floor(borneT1k(o.last, 1, 16, 16));
+  for(var k=0;k<10;k++){
+    ["pas","acc"].forEach(function(c){
+      var v = Array.isArray(o[c]) ? o[c][k] : 0;
+      r[c][k] = Number.isInteger(v) ? v & 65535 : 0;
+    });
+    for(var j=0;j<16;j++){
+      var prob = Array.isArray(o.prob) && Array.isArray(o.prob[k]) ? o.prob[k][j] : undefined;
+      var sub = Array.isArray(o.sub) && Array.isArray(o.sub[k]) ? o.sub[k][j] : undefined;
+      r.prob[k][j] = probabiliteT1k(prob);
+      r.sub[k][j] = Math.floor(borneT1k(sub, 1, 4, 1));
+    }
+    var I = Array.isArray(o.instr) ? o.instr[k] : null;
+    if(I && typeof I === "object"){
+      ["tune","dec","c1","c2","niv","mix","pech"].forEach(function(n){ r.instr[k][n] = borneT1k(I[n], 0, 1, r.instr[k][n]); });
+      if(typeof I.ech === "string" && I.ech.length && I.ech.length <= 128) r.instr[k].ech = I.ech;
+    }
+  }
+  return r;
+}
+function choisirMotifT1k(banque, motif){
+  if(!Number.isInteger(banque) || banque < 0 || banque >= 8 || !Number.isInteger(motif) || motif < 0 || motif >= 16) return false;
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER DE MOTIF OU DE BANQUE"); majT1k(); return false; }
+  T1K.banq = banque; T1K.cur = motif;
+  memT1k(); majT1k(); majKnobsT1k(); return true;
+}
 /* ---------- chaîne de sortie ---------- */
 function bâtirT1k(){
   if(T1K.noeuds.mix) return;
@@ -419,6 +452,9 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-banque").value = String(T1K.banq);
+  document.getElementById("t1k-banque").disabled = S.run;
+  document.getElementById("t1k-ptn").disabled = S.run;
   var m = motifT1kCur(), i;
   for(i=0;i<16;i++){
     t1kPas[i].classList.toggle("act", T1K.accent ? !!(m.acc[T1K.sel] & (1 << i))
@@ -456,10 +492,10 @@ function copieInstrT1k(){
   });
 }
 function memT1k(){
-  memoire.t1k = {cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
+  memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
-      return {last:m.last, pas:m.pas, acc:m.acc, sub:m.sub, prob:m.prob.map(function(p){return p.slice();}),
+      return {last:m.last, pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}),
               instr:m.instr.map(function(I){
                 return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
                         ech:I.ech, pech:I.pech};
@@ -469,30 +505,18 @@ function memT1k(){
 }
 function chargerT1k(){
   T1K.motifs = [];
-  for(var i=0;i<16;i++) T1K.motifs.push(motifT1k(i < 2 ? i : 9));
-  T1K.cur = 0; T1K.sel = 0; T1K.sub = false; T1K.accent = false; T1K.proba = false; T1K.probValeur = 100;
+  for(var i=0;i<128;i++) T1K.motifs.push(motifT1k(i < 2 ? i : 9));
+  T1K.cur = 0; T1K.banq = 0; T1K.sel = 0; T1K.sub = false; T1K.accent = false; T1K.proba = false; T1K.probValeur = 100;
   var m = memLire("t1k");
   if(m){
-    if(m.motifs && m.motifs.length === 16){
-      T1K.motifs = m.motifs.map(function(o){
-        var r = motifT1k(9);
-        o = o && typeof o === "object" ? o : {};
-        r.last = o.last || 16;
-        if(o.pas) r.pas = o.pas;
-        if(o.acc) r.acc = o.acc;
-        if(o.sub) r.sub = o.sub;
-        for(var k=0;k<10;k++) for(var s=0;s<16;s++){
-          var ligne = Array.isArray(o.prob) && Array.isArray(o.prob[k]) ? o.prob[k] : [];
-          r.prob[k][s] = probabiliteT1k(ligne[s]);
-        }
-        (o.instr || []).forEach(function(I, k){
-          if(k >= 10) return;
-          for(var q in I) if(r.instr[k][q] !== undefined) r.instr[k][q] = I[q];
-        });
-        return r;
-      });
+    if(Array.isArray(m.motifs) && (m.motifs.length === 16 || m.motifs.length === 128)){
+      var anciens = m.motifs.length === 16;
+      for(var k=0;k<128;k++) T1K.motifs[k] = lireMotifT1k(m.motifs[anciens ? k % 16 : k]);
     }
-    ["cur","banq","sel","morph"].forEach(function(c){ if(typeof m[c] === "number") T1K[c] = m[c]; });
+    T1K.cur = Math.floor(borneT1k(m.cur, 0, 15, 0));
+    T1K.banq = Math.floor(borneT1k(m.banq, 0, 7, 0));
+    T1K.sel = Math.floor(borneT1k(m.sel, 0, 9, 0));
+    T1K.morph = borneT1k(m.morph, 0, 1, 0);
     if(m.mA) T1K.mA = m.mA;
     if(m.mB) T1K.mB = m.mB;
     if(m.afx) for(var a in T1K.afx) if(m.afx[a] !== undefined) T1K.afx[a] = m.afx[a];
@@ -503,7 +527,7 @@ function chargerT1k(){
 document.getElementById("t1k-start").addEventListener("click", function(){
   audioInit();
   if(S.run){ stop(); H.stop(); } else { step = 0; start(); H.start(); }
-  this.classList.toggle("on", S.run);
+  this.classList.toggle("on", S.run); majT1k();
 });
 document.getElementById("t1k-stop").addEventListener("click", function(){
   stop(); H.stop();
@@ -545,11 +569,16 @@ document.getElementById("t1k-last").addEventListener("click", function(){
   majT1k(); memT1k(); H.cran();
 });
 document.getElementById("t1k-ptn").addEventListener("click", function(){
-  memT1k();
-  T1K.cur = (T1K.cur + 1) % 16;
-  if(T1K.cur === 0) T1K.banq = (T1K.banq + 1) % 8;
-  majT1k(); majKnobsT1k(); H.inter();
+  var suivant = (T1K.banq * 16 + T1K.cur + 1) % 128;
+  if(choisirMotifT1k(Math.floor(suivant / 16), suivant % 16)) H.inter();
 });
+(function(){
+  var banque = document.getElementById("t1k-banque");
+  for(var k=0;k<8;k++){
+    var option = document.createElement("option"); option.value = String(k); option.textContent = "BANQUE " + "ABCDEFGH"[k]; banque.appendChild(option);
+  }
+  banque.addEventListener("change", function(){ if(choisirMotifT1k(+banque.value, T1K.cur)) H.inter(); });
+})();
 document.getElementById("t1k-ma").addEventListener("click", function(){
   if(T1K.mA){ T1K.mA = null; signal("ÉTAT A OUBLIÉ · LES POTARDS REPRENNENT LA MAIN"); }
   else { T1K.mA = copieInstrT1k(); signal("ÉTAT A MÉMORISÉ POUR LE MORPHING"); }

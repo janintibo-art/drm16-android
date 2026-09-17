@@ -73,6 +73,47 @@ async def main():
               voixT1k=__voixT;
             }''')
             print('OK : frappe directe audible malgré 0% et quatre sous-pas à 100%',flush=True)
+            # v195 : accès direct, indépendance, sauvegarde et migration.
+            await pg.locator('#t1k-banque').select_option('1')
+            assert await pg.evaluate('T1K.banq===1&&motifT1kCur().pas.every(p=>p===0)')
+            await pg.locator('.t1k-pad[data-p="0"]').click()
+            await pg.locator('#t1k-pas button').nth(2).click()
+            await pg.evaluate('motifT1kCur().prob[0][2]=25;motifT1kCur().sub[0][2]=3;motifT1kCur().instr[0].niv=.17;memT1k()')
+            await pg.locator('#t1k-banque').select_option('0')
+            assert await pg.evaluate('T1K.banq===0&&motifT1kCur().pas[0]===1&&motifT1kCur().instr[0].niv===.3')
+            await pg.locator('#t1k-banque').select_option('1')
+            assert await pg.evaluate('motifT1kCur().pas[0]===4&&motifT1kCur().prob[0][2]===25&&motifT1kCur().sub[0][2]===3')
+            await pg.evaluate('writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate('T1K.banq===1&&T1K.cur===0&&motifT1kCur().pas[0]===4&&motifT1kCur().instr[0].niv===.17')
+            await pg.evaluate('''async () => {
+              motifT1kCur().prob[0][2]=100;memT1k();writeMem();let n=__exports.length;
+              exporterWav();let limite=performance.now()+20000;while(WAVX.occupe&&performance.now()<limite)await new Promise(r=>setTimeout(r,10));
+              if(__exports.length!==n+1||T1K.banq!==1||T1K.cur!==0)throw Error('export banque B');
+              let o=__exports[n].octets,v=new DataView(o.buffer);
+              function pic(debut,fin){let p=0;for(let i=Math.floor(debut*44100);i<Math.floor(fin*44100);i++)p=Math.max(p,Math.abs(v.getInt16(44+4*i,true))/32768);return p;}
+              if(pic(.05,.10)>.0001||pic(.32,.35)<.001)throw Error('export joue une autre banque');
+            }''')
+            print('OK : WAV de B1 joue son pas 3, pas le pas 1 de A1, et restaure la banque B',flush=True)
+            await pg.locator('#t1k-start').click()
+            assert await pg.locator('#t1k-banque').is_disabled() and await pg.locator('#t1k-ptn').is_disabled()
+            assert await pg.evaluate('!choisirMotifT1k(2,0)&&T1K.banq===1')
+            await pg.locator('#t1k-stop').click()
+            await pg.evaluate('choisirMotifT1k(0,15)');await pg.locator('#t1k-ptn').click()
+            assert await pg.evaluate('T1K.banq===1&&T1K.cur===0')
+            await pg.evaluate('choisirMotifT1k(7,15)');await pg.locator('#t1k-ptn').click()
+            assert await pg.evaluate('T1K.banq===0&&T1K.cur===0')
+            await pg.evaluate('''() => {
+              let anciens=Array.from({length:16},()=>motifT1k(9));anciens[3].pas[2]=17;anciens[3].prob[2][4]=25;
+              memoire.t1k={cur:3,banq:5,sel:2,motifs:anciens};chargerT1k();majT1k();majKnobsT1k();memT1k();writeMem();
+            }''')
+            await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate('T1K.motifs.length===128&&T1K.banq===5&&T1K.cur===3&&motifT1kCur().pas[2]===17&&T1K.motifs[3].prob[2][4]===25')
+            for w,h in ((393,851),(360,640),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v195-%sx%s.png'%(w,h))))
+            print('OK : banques indépendantes, sélection sauvegardée, limites A16/B1 et H16/A1, blocage PLAY et migration des anciens projets',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

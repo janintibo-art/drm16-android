@@ -40,3 +40,22 @@ function setup(m){
  assert(d.poserProbabiliteT1k(0,0,75));assert.equal(d.T1K.motifs[0].prob[0][0],75);
 }
 console.log('TR-1000 v194 : probabilité, tirage unique, sous-pas, accent, FILL, REC, mémoire et migration OK.');
+{
+ const c=setup();c.majKnobsT1k=()=>{};c.signal=()=>{};
+ assert.equal(c.T1K.motifs.length,128);assert.equal(c.T1K.motifs[16].pas[0],0,'nouvelle banque vierge');
+ const anciens=Array.from({length:16},()=>copie(c.motifT1k(9)));
+ anciens[3].pas[2]=17;anciens[3].acc[2]=16;anciens[3].sub[2][4]=3;anciens[3].prob[2][4]=25;anciens[3].instr[2].niv=.23;
+ c.memoire.t1k={cur:3,banq:5,sel:2,motifs:anciens};c.chargerT1k();
+ assert.equal(c.T1K.banq,5);assert.equal(c.motifT1kCur().pas[2],17);
+ for(let b=0;b<8;b++)assert.deepStrictEqual(copie(c.T1K.motifs[b*16+3]),anciens[3]);
+ assert(c.choisirMotifT1k(1,3));let m=c.motifT1kCur();m.pas[2]=1;m.sub[2][4]=4;m.prob[2][4]=75;m.instr[2].niv=.81;
+ assert.equal(c.T1K.motifs[3].pas[2],17);assert.equal(c.T1K.motifs[3].sub[2][4],3);assert.equal(c.T1K.motifs[3].prob[2][4],25);assert.equal(c.T1K.motifs[3].instr[2].niv,.23);
+ c.memT1k();const saved=copie(c.memoire.t1k);m.pas[2]=0;m.sub[2][4]=1;assert.equal(c.memoire.t1k.motifs[19].pas[2],1);assert.equal(c.memoire.t1k.motifs[19].sub[2][4],4);
+ const d=setup(saved);d.chargerT1k();assert.equal(d.T1K.motifs.length,128);assert.equal(d.T1K.banq,1);assert.equal(d.motifT1kCur().prob[2][4],75);
+ assert.equal(d.T1K.motifs[3].prob[2][4],25);assert.equal(saved.motifs[19].sub[2][4],4);
+ c.S.run=true;assert(!c.choisirMotifT1k(7,15));assert.equal(c.T1K.banq,1);c.S.run=false;
+ for(const [b,k] of [[8,0],[-1,0],[0,16],[1.5,0]])assert(!c.choisirMotifT1k(b,k));
+ assert(c.choisirMotifT1k(7,15));assert.strictEqual(c.motifT1kCur(),c.T1K.motifs[127]);
+ c.memoire.t1k={cur:NaN,banq:Infinity,sel:999,motifs:Array(128).fill(null)};c.chargerT1k();assert.equal(c.T1K.cur,0);assert.equal(c.T1K.banq,0);assert.equal(c.T1K.sel,9);assert(c.T1K.motifs.every(m=>m.prob[0][0]===100));
+}
+console.log('TR-1000 v195 : 128 motifs, migration des 16 partagés, indépendance, sauvegarde et sélection protégée OK.');
