@@ -2,11 +2,11 @@
 const fs = require('fs'), vm = require('vm'), assert = require('assert'), path = require('path');
 const elements = {};
 function element() { return {listeners:{}, children:[], dataset:{}, style:{}, textContent:'',
-  classList:{toggle(){},remove(){}},setAttribute(){},appendChild(n){this.children.push(n);},
+  classList:{toggle(){},remove(){}},setPointerCapture(){},setAttribute(){},appendChild(n){this.children.push(n);},
   addEventListener(type, fn){this.listeners[type]=fn;}}; }
 const c = {document:{getElementById(id){return elements[id] || (elements[id]=element());},
-  createElement:element,querySelectorAll(){return [];},body:element()},
-  knobEm(){return {maj(){}};},setTimeout(){},clearTimeout(){},window:{},
+  createElement:element,querySelectorAll(){return [];},body:element(),listeners:{},addEventListener(type,fn){this.listeners[type]=fn;}},
+  knobEm(){return {maj(){}};},setTimeout(){},clearTimeout(){},window:{listeners:{},addEventListener(type,fn){this.listeners[type]=fn;}},
   memoire:{},memLire(){return c.saved;},sauverMachine(){},
   S:{run:false},H:{cran(){},inter(){}},signal(){},audioInit(){},ctx:{},
   maintenantAudio(){return 0;},pasLePlusProche(i,n){return i%n;},
@@ -135,3 +135,54 @@ vraieVoixDbi(.1,5,false,false);
 c.DBI.ohGain=null;vraieVoixDbi(1,6,false,false);const simultanee=c.DBI.ohGain;vraieVoixDbi(1,5,false,false);
 assert.deepStrictEqual(simultanee.gain.target,[1]);
 console.log('Hats répétés : programmation chronologique et coupure de chaque ouverture OK.');
+
+// Looper : horloge conservée, lecture locale et transitions au temps entendu.
+c.chargerDbi();c.MACHINE=c.MACHINE_DBI;c.S.run=true;c.cache=false;
+c.DBI.motifs[0].last=64;c.DBI.pos=63;c.DBI.swing=0;c.DBI.random=0;
+c.voixDbi=()=>{};c.queue=[];
+assert(c.commencerLooperDbi(4,7));
+[10,11,12,13,14,15].forEach((i,n)=>c.scheduleDbi(i,1+n/10));
+assert.deepStrictEqual(Array.from(c.DBI.loopEvents,e=>e.i),[63,0,1,2,63,0]);
+assert.deepStrictEqual(Array.from(c.queue,e=>e.i),[10,11,12,13,14,15]);
+assert.equal(c.commencerLooperDbi(2,8),false);c.relacherLooperDbi(8);assert(c.DBI.loop);
+c.relacherLooperDbi(7);assert.equal(c.DBI.loop,null);
+c.scheduleDbi(16,1.6);assert.equal(c.DBI.loopEvents.at(-1).i,16);
+let audible=1.51;c.maintenantAudio=()=>audible;c.beatDbi(15);
+assert.equal(c.DBI.pos,0);assert.equal(c.DBI.loopEntendu,true);
+p=c.pisteDbiSel();p.pas=0;p.pasPlus=[0,0,0];c.DBI.rec=true;
+c.frapperDbi(0,true);assert.equal(p.pas,0); // Fin de LOOP encore audible : pas d'écriture.
+audible=1.61;c.beatDbi(16);assert.equal(c.DBI.pos,16);assert.equal(c.DBI.loopEntendu,false);
+c.frapperDbi(0,true);assert(c.lirePasDbi(p,'pas',16));
+// L'export et les anciennes mémoires ne contiennent aucun maintien transitoire.
+c.commencerLooperDbi(2,1);const offset=c.DBI.loop.offset;c.cache=true;assert.equal(c.pasLooperDbi(20),20);assert.equal(c.DBI.loop.offset,offset);
+c.memDbi();assert(!Object.hasOwn(c.memoire.dbi,'loop'));assert(!Object.hasOwn(c.memoire.dbi,'loopEvents'));
+c.cache=false;c.arretDbi();assert.equal(c.DBI.loop,null);assert.equal(c.DBI.loopEvents.length,0);
+assert.equal(c.commencerLooperDbi(1,1),false); // Premier pas non encore entendu.
+c.DBI.pos=0;c.DBI.motifs[0].last=1;assert(c.commencerLooperDbi(8,1));assert.equal(c.DBI.loop.longueur,1);
+assert.equal(c.pasLooperDbi(0),0);c.relacherLooperDbi();
+// Vrais gestionnaires UI avec capture, annulation et clavier auto-répété.
+const buttonLoop=elements['dbi-loop-2'];const pointer={button:0,pointerId:44,preventDefault(){}};
+buttonLoop.listeners.pointerdown(pointer);assert(c.DBI.loop);
+buttonLoop.listeners.pointercancel(pointer);assert.equal(c.DBI.loop,null);
+buttonLoop.listeners.pointerdown(pointer);buttonLoop.listeners.lostpointercapture(pointer);assert.equal(c.DBI.loop,null);
+buttonLoop.listeners.pointerdown(pointer);c.document.hidden=true;c.document.listeners.visibilitychange();assert.equal(c.DBI.loop,null);c.document.hidden=false;
+buttonLoop.listeners.pointerdown(pointer);c.window.listeners.blur();assert.equal(c.DBI.loop,null);
+buttonLoop.listeners.pointerdown(pointer);c.window.listeners.pagehide();assert.equal(c.DBI.loop,null);
+let prevented=0;buttonLoop.listeners.keydown({key:' ',repeat:false,preventDefault(){prevented++;}});assert(c.DBI.loop);
+buttonLoop.listeners.keydown({key:' ',repeat:true,preventDefault(){prevented++;}});assert.equal(prevented,2); // Ne doit pas déclencher PLAY/STOP global.
+buttonLoop.listeners.keyup({key:' ',preventDefault(){}});assert.equal(c.DBI.loop,null);
+c.S.run=false;assert.equal(c.commencerLooperDbi(1,9),false);
+c.S.run=true;c.MACHINE={};assert.equal(c.commencerLooperDbi(1,9),false);
+c.MACHINE=c.MACHINE_DBI;c.DBI.pos=0;assert(c.commencerLooperDbi(1,9));
+c.window.listeners.keydown({key:'Escape'});assert.equal(c.DBI.loop,null);
+console.log('Looper : positions 63→0, reprise de l’horloge, curseur/REC entendus, export, STOP, premier pas, capture tactile, annulation, focus et clavier OK.');
+// La boucle relit réellement notes, accents, COLOR et Step Repeat du passage.
+c.chargerDbi();c.MACHINE=c.MACHINE_DBI;c.S.run=true;c.cache=false;c.DBI.pos=32;c.DBI.motifs[0].last=64;c.DBI.swing=.7;
+c.motifDbiCur().pistes.forEach(p=>{p.pas=0;p.pasPlus=[0,0,0];});p=c.pisteDbiSel();
+c.ecrirePasDbi(p,'pas',32,true);c.ecrirePasDbi(p,'acc',32,true);c.ecrirePasDbi(p,'col',32,true);p.repeats[32]=4;
+const boucleAudio=[];c.voixDbi=(t,k,a,col)=>boucleAudio.push({t,k,a,col});
+assert(c.commencerLooperDbi(1,3));c.scheduleDbi(10,2);c.scheduleDbi(11,2.1);
+assert.equal(boucleAudio.length,8);assert(boucleAudio.every(v=>v.k===0&&v.a&&v.col));
+assert(Math.abs(boucleAudio[4].t-2.135)<1e-9);assert(boucleAudio[3].t<2.135);assert(boucleAudio[7].t<2.2);
+c.relacherLooperDbi();c.scheduleDbi(12,2.2);assert.equal(boucleAudio.length,8);
+console.log('Looper audio : notes du passage, accent, COLOR, répétitions et swing de l’horloge OK.');

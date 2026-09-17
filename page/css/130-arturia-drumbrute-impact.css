@@ -62,3 +62,6 @@ body.dbi-col .dbi-kn .bt i{background:#ff9a44}
 .dbi-pas button.colore{border-bottom:3px solid #5fe5e1}
 
 .dbi-pas button.repete{border-top:3px solid #ffca68}
+
+.dbi-looper span{font:700 8px "Roboto Condensed",Arial;color:#9fabbb}
+.dbi-looper button{touch-action:none;user-select:none;-webkit-user-select:none}

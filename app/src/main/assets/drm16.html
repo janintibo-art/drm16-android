@@ -1704,6 +1704,9 @@ body.dbi-col .dbi-kn .bt i{background:#ff9a44}
 .dbi-pas button.colore{border-bottom:3px solid #5fe5e1}
 
 .dbi-pas button.repete{border-top:3px solid #ffca68}
+
+.dbi-looper span{font:700 8px "Roboto Condensed",Arial;color:#9fabbb}
+.dbi-looper button{touch-action:none;user-select:none;-webkit-user-select:none}
 /* ===================== ROLAND TR-1000 ===================== */
 body.t1k .t1kb{display:block}
 body.t1k #unit,body.t1k .em,body.t1k .er,body.t1k .ea,body.t1k .es,body.t1k .mx,body.t1k .sx,
@@ -3418,6 +3421,13 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="dbi-ptn">PTN 1</button>
   </div>
 
+  <div class="dbi-bar dbi-looper" aria-label="Pattern Looper : maintenir pour répéter">
+    <span>MAINTENIR</span>
+    <button id="dbi-loop-1" aria-pressed="false">LOOP 1</button>
+    <button id="dbi-loop-2" aria-pressed="false">LOOP 2</button>
+    <button id="dbi-loop-4" aria-pressed="false">LOOP 4</button>
+    <button id="dbi-loop-8" aria-pressed="false">LOOP 8</button>
+  </div>
   <div class="dbi-bar" aria-label="Groupes de pas">
     <button id="dbi-page-0" aria-pressed="true">1–16</button>
     <button id="dbi-page-1" aria-pressed="false">17–32</button>
@@ -4663,6 +4673,19 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   Les anciens motifs restent à une frappe par pas.</p>
   <p>ROLLER donne deux frappes aux pas simples de la piste sélectionnée. Il ne multiplie pas
   les répétitions déjà programmées. STEP REPEAT ne modifie ni les notes ni les accents pendant l’édition.</p>
+
+  <h3>Pattern Looper : maintien momentané</h3>
+  <p>Pendant PLAY, sur la façade DrumBrute, maintenez <b>LOOP 1, 2, 4 ou 8</b> pour répéter
+  autant de pas à partir de la position entendue. Un passage qui dépasse la fin du motif reprend
+  au début. La boucle est limitée à la longueur du motif. Relâchez pour revenir à la position
+  normale de l’horloge ; les autres machines du set continuent leur lecture.</p>
+  <p>Le SWING suit l’horloge, tandis que notes, accents, COLOR et STEP REPEAT suivent les pas
+  répétés. L’appui et le relâchement prennent effet sur les prochains pas non encore programmés :
+  un bref délai peut être audible. La page de seize pas choisie reste fixe.</p>
+  <p>Le geste ne modifie pas le motif et n’est pas sauvegardé ni appliqué à l’export WAV.
+  REC n’écrit pas de notes pendant le maintien ni pendant les derniers pas bouclés encore audibles.
+  STOP, le passage en arrière-plan et la perte de focus libèrent la boucle. Au clavier, maintenez
+  Espace ou Entrée sur le bouton ; Échap libère également le Looper.</p>
 
   <h3>Hasard et roulement</h3>
   <p>Le potard <b>RANDOM</b> ôte des coups et en ajoute : seize pas posés tombent entre sept et treize au
@@ -23195,7 +23218,7 @@ function motifDbi(n){
 }
 var DBI = {motifs:[], cur:0, sel:0, color:false, colorSteps:false, repeatEdit:false, poly:false, roller:false, rec:false,
            swing:0, random:0, drive:0.25, dist:false, accent:false,
-           page:0, pos:-1, noeuds:{}, ohGain:null, distNode:null};
+           page:0, pos:-1, loop:null, loopEntendu:false, loopEvents:[], dernierEntendu:null, noeuds:{}, ohGain:null, distNode:null};
 for(var dbz=0; dbz<16; dbz++) DBI.motifs.push(motifDbi(dbz < 2 ? dbz : 9));
 
 function motifDbiCur(){ return DBI.motifs[DBI.cur]; }
@@ -23391,7 +23414,7 @@ function frapperDbi(k, acc){
   audioInit();
   if(!ctx) return;
   voixDbi(maintenantAudio() + 0.005, k, acc, DBI.colorSteps);
-  if(S.run && DBI.rec){
+  if(S.run && DBI.rec && !DBI.loop && !DBI.loopEntendu){
     var P = motifDbiCur().pistes[k];
     var j = pasLePlusProche(DBI.pos, longueurPisteDbi(P));
     if(j >= 0){
@@ -23434,14 +23457,48 @@ function dureePasDbi(i){
   var suivantSwing = (suivant % 2) ? DBI.swing * 0.5 : 0;
   return stepDur() * (1 + suivantSwing - courantSwing);
 }
+/* Le Looper ne touche jamais au compteur de l'horloge : au relâchement,
+   le motif reprend sa position normale et les autres machines restent calées. */
+function majLooperDbi(){
+  [1,2,4,8].forEach(function(n){
+    var b = document.getElementById("dbi-loop-" + n);
+    var actif = !!DBI.loop && DBI.loop.touche === n;
+    b.classList.toggle("on", actif); b.setAttribute("aria-pressed", String(actif));
+  });
+}
+function commencerLooperDbi(n, geste){
+  if([1,2,4,8].indexOf(n) < 0) return false;
+  if(!S.run || MACHINE !== MACHINE_DBI){ signal("LOOPER : LANCEZ PLAY SUR DRUMBRUTE"); return false; }
+  if(DBI.pos < 0){ signal("LOOPER : ATTENDEZ LE PREMIER PAS"); return false; }
+  if(DBI.loop && DBI.loop.geste !== geste) return false;
+  var total = longueurDbi(), debut = Math.max(0, DBI.pos) % total;
+  DBI.loop = {touche:n, longueur:Math.min(n, total), debut:debut, offset:0, geste:geste};
+  majLooperDbi();
+  signal("LOOP " + DBI.loop.longueur + " PAS · RELACHEZ POUR REPRENDRE");
+  return true;
+}
+function relacherLooperDbi(geste){
+  if(!DBI.loop || (geste !== undefined && DBI.loop.geste !== geste)) return;
+  DBI.loop = null; majLooperDbi();
+}
+function pasLooperDbi(i){
+  if(!DBI.loop || !S.run || cache) return i;
+  var l = DBI.loop, total = longueurDbi();
+  var j = (l.debut + l.offset) % total;
+  l.offset = (l.offset + 1) % Math.min(l.longueur, total);
+  return j;
+}
+function resetLooperDbi(){
+  relacherLooperDbi(); DBI.loopEvents = []; DBI.dernierEntendu = null; DBI.loopEntendu = false;
+}
 function scheduleDbi(i, t){
   var CHARGE_N = ouvrirPas(), frappes = [];
-  var m = motifDbiCur();
+  var m = motifDbiCur(), lecture = pasLooperDbi(i);
   if(DBI.swing && i % 2 === 1) t += stepDur() * DBI.swing * 0.5;
   for(var k=0;k<8;k++){
     var P = m.pistes[k];
     var lg = DBI.poly ? (P.len || 16) : m.last;
-    var s = i % lg;
+    var s = lecture % lg;
     var joue = lirePasDbi(P, "pas", s);
     if(DBI.random > 0.01){
       /* le potard RANDOM ôte des coups et en ajoute, comme sur l'appareil */
@@ -23465,16 +23522,28 @@ function scheduleDbi(i, t){
     return a.t - b.t || (a.k === 5 ? 8 : a.k) - (b.k === 5 ? 8 : b.k);
   });
   frappes.forEach(function(f){ CHARGE_N++, voixDbi(f.t, f.k, f.acc, f.col); });
-  if(!cache) queue.push({i:i, t:t});
+  if(!cache){
+    queue.push({i:i, t:t});
+    DBI.loopEvents.push({i:lecture, t:t, loop:!!DBI.loop && S.run});
+    if(DBI.loopEvents.length > 256) DBI.loopEvents.shift();
+  }
   attenuerVoie("dbi", CHARGE_N, t);
 }
 var dbiPas = [];
 function beatDbi(i){
+  if(ctx){
+    var maintenant = maintenantAudio();
+    while(DBI.loopEvents.length && DBI.loopEvents[0].t <= maintenant){
+      DBI.dernierEntendu = DBI.loopEvents.shift();
+    }
+    if(DBI.dernierEntendu){ i = DBI.dernierEntendu.i; DBI.loopEntendu = DBI.dernierEntendu.loop; }
+  }
   DBI.pos = i;
   var lg = DBI.poly ? (pisteDbiSel().len || 16) : motifDbiCur().last;
   for(var j=0;j<16;j++) dbiPas[j].classList.toggle("cur", (DBI.page * 16 + j) === (i % lg));
 }
 function arretDbi(){
+  resetLooperDbi();
   DBI.pos = -1;
   for(var j=0;j<16;j++) dbiPas[j].classList.remove("cur");
   var b = document.getElementById("dbi-play");
@@ -23651,6 +23720,7 @@ function memDbi(){
   sauverMachine("dbi");
 }
 function chargerDbi(){
+  resetLooperDbi();
   DBI.motifs = [];
   for(var i=0;i<16;i++) DBI.motifs.push(motifDbi(i < 2 ? i : 9));
   DBI.page = 0; DBI.pos = -1; DBI.rec = false; DBI.roller = false;
@@ -23715,6 +23785,37 @@ document.getElementById("dbi-color-steps").addEventListener("click", function(){
   majDbi(); majKnobsDbi(); H.inter();
   signal(DBI.colorSteps ? "COLOR STEP : MARQUEZ LES VARIATIONS, REGLEZ LEURS POTARDS" : "LES TOUCHES POSENT LES PAS");
 });
+/* Capture du pointeur : sortir du bouton puis relâcher doit aussi libérer.
+   Un second doigt ne peut pas terminer le geste du premier. */
+[1,2,4,8].forEach(function(n){
+  var b = document.getElementById("dbi-loop-" + n);
+  b.addEventListener("pointerdown", function(e){
+    if(e.button !== 0) return;
+    e.preventDefault();
+    if(commencerLooperDbi(n, e.pointerId)){
+      try{ b.setPointerCapture(e.pointerId); }catch(err){ relacherLooperDbi(e.pointerId); }
+    }
+  });
+  ["pointerup","pointercancel","lostpointercapture"].forEach(function(type){
+    b.addEventListener(type, function(e){ relacherLooperDbi(e.pointerId); });
+  });
+  b.addEventListener("keydown", function(e){
+    if(e.key === " " || e.key === "Enter"){
+      e.preventDefault();
+      if(!e.repeat) commencerLooperDbi(n, "key-" + n);
+    }
+  });
+  b.addEventListener("keyup", function(e){
+    if(e.key === " " || e.key === "Enter"){ e.preventDefault(); relacherLooperDbi("key-" + n); }
+  });
+  b.addEventListener("blur", function(){ relacherLooperDbi("key-" + n); });
+});
+window.addEventListener("blur", function(){ relacherLooperDbi(); });
+window.addEventListener("pagehide", function(){ relacherLooperDbi(); });
+window.addEventListener("keydown", function(e){ if(e.key === "Escape") relacherLooperDbi(); });
+document.addEventListener("visibilitychange", function(){
+  if(document.hidden){ relacherLooperDbi(); DBI.loopEvents = []; DBI.dernierEntendu = null; DBI.loopEntendu = false; }
+});
 document.getElementById("dbi-repeat").addEventListener("click", function(){
   DBI.repeatEdit = !DBI.repeatEdit;
   if(DBI.repeatEdit){ DBI.accent = false; DBI.colorSteps = false; }
@@ -23722,6 +23823,7 @@ document.getElementById("dbi-repeat").addEventListener("click", function(){
   signal(DBI.repeatEdit ? "STEP REPEAT : TOUCHEZ UN PAS POUR 1, 2, 3 OU 4 FRAPPES" : "LES TOUCHES POSENT LES PAS");
 });
 document.getElementById("dbi-poly").addEventListener("click", function(){
+  relacherLooperDbi();
   DBI.poly = !DBI.poly;
   majDbi(); memDbi(); H.inter();
   signal(DBI.poly ? ("POLYRYTHMIE · CYCLE DE " + longueurDbi() + " PAS") : "TOUTES LES PISTES ENSEMBLE");
@@ -23760,6 +23862,7 @@ document.getElementById("dbi-erase").addEventListener("click", function(){
 });
 document.getElementById("dbi-ptn").addEventListener("click", function(){
   memDbi();
+  relacherLooperDbi();
   DBI.cur = (DBI.cur + 1) % 16;
   DBI.page = 0;
   majDbi(); majKnobsDbi(); memDbi(); H.inter();

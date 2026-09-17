@@ -44,7 +44,7 @@ function motifDbi(n){
 }
 var DBI = {motifs:[], cur:0, sel:0, color:false, colorSteps:false, repeatEdit:false, poly:false, roller:false, rec:false,
            swing:0, random:0, drive:0.25, dist:false, accent:false,
-           page:0, pos:-1, noeuds:{}, ohGain:null, distNode:null};
+           page:0, pos:-1, loop:null, loopEntendu:false, loopEvents:[], dernierEntendu:null, noeuds:{}, ohGain:null, distNode:null};
 for(var dbz=0; dbz<16; dbz++) DBI.motifs.push(motifDbi(dbz < 2 ? dbz : 9));
 
 function motifDbiCur(){ return DBI.motifs[DBI.cur]; }
@@ -240,7 +240,7 @@ function frapperDbi(k, acc){
   audioInit();
   if(!ctx) return;
   voixDbi(maintenantAudio() + 0.005, k, acc, DBI.colorSteps);
-  if(S.run && DBI.rec){
+  if(S.run && DBI.rec && !DBI.loop && !DBI.loopEntendu){
     var P = motifDbiCur().pistes[k];
     var j = pasLePlusProche(DBI.pos, longueurPisteDbi(P));
     if(j >= 0){
@@ -283,14 +283,48 @@ function dureePasDbi(i){
   var suivantSwing = (suivant % 2) ? DBI.swing * 0.5 : 0;
   return stepDur() * (1 + suivantSwing - courantSwing);
 }
+/* Le Looper ne touche jamais au compteur de l'horloge : au relâchement,
+   le motif reprend sa position normale et les autres machines restent calées. */
+function majLooperDbi(){
+  [1,2,4,8].forEach(function(n){
+    var b = document.getElementById("dbi-loop-" + n);
+    var actif = !!DBI.loop && DBI.loop.touche === n;
+    b.classList.toggle("on", actif); b.setAttribute("aria-pressed", String(actif));
+  });
+}
+function commencerLooperDbi(n, geste){
+  if([1,2,4,8].indexOf(n) < 0) return false;
+  if(!S.run || MACHINE !== MACHINE_DBI){ signal("LOOPER : LANCEZ PLAY SUR DRUMBRUTE"); return false; }
+  if(DBI.pos < 0){ signal("LOOPER : ATTENDEZ LE PREMIER PAS"); return false; }
+  if(DBI.loop && DBI.loop.geste !== geste) return false;
+  var total = longueurDbi(), debut = Math.max(0, DBI.pos) % total;
+  DBI.loop = {touche:n, longueur:Math.min(n, total), debut:debut, offset:0, geste:geste};
+  majLooperDbi();
+  signal("LOOP " + DBI.loop.longueur + " PAS · RELACHEZ POUR REPRENDRE");
+  return true;
+}
+function relacherLooperDbi(geste){
+  if(!DBI.loop || (geste !== undefined && DBI.loop.geste !== geste)) return;
+  DBI.loop = null; majLooperDbi();
+}
+function pasLooperDbi(i){
+  if(!DBI.loop || !S.run || cache) return i;
+  var l = DBI.loop, total = longueurDbi();
+  var j = (l.debut + l.offset) % total;
+  l.offset = (l.offset + 1) % Math.min(l.longueur, total);
+  return j;
+}
+function resetLooperDbi(){
+  relacherLooperDbi(); DBI.loopEvents = []; DBI.dernierEntendu = null; DBI.loopEntendu = false;
+}
 function scheduleDbi(i, t){
   var CHARGE_N = ouvrirPas(), frappes = [];
-  var m = motifDbiCur();
+  var m = motifDbiCur(), lecture = pasLooperDbi(i);
   if(DBI.swing && i % 2 === 1) t += stepDur() * DBI.swing * 0.5;
   for(var k=0;k<8;k++){
     var P = m.pistes[k];
     var lg = DBI.poly ? (P.len || 16) : m.last;
-    var s = i % lg;
+    var s = lecture % lg;
     var joue = lirePasDbi(P, "pas", s);
     if(DBI.random > 0.01){
       /* le potard RANDOM ôte des coups et en ajoute, comme sur l'appareil */
@@ -314,16 +348,28 @@ function scheduleDbi(i, t){
     return a.t - b.t || (a.k === 5 ? 8 : a.k) - (b.k === 5 ? 8 : b.k);
   });
   frappes.forEach(function(f){ CHARGE_N++, voixDbi(f.t, f.k, f.acc, f.col); });
-  if(!cache) queue.push({i:i, t:t});
+  if(!cache){
+    queue.push({i:i, t:t});
+    DBI.loopEvents.push({i:lecture, t:t, loop:!!DBI.loop && S.run});
+    if(DBI.loopEvents.length > 256) DBI.loopEvents.shift();
+  }
   attenuerVoie("dbi", CHARGE_N, t);
 }
 var dbiPas = [];
 function beatDbi(i){
+  if(ctx){
+    var maintenant = maintenantAudio();
+    while(DBI.loopEvents.length && DBI.loopEvents[0].t <= maintenant){
+      DBI.dernierEntendu = DBI.loopEvents.shift();
+    }
+    if(DBI.dernierEntendu){ i = DBI.dernierEntendu.i; DBI.loopEntendu = DBI.dernierEntendu.loop; }
+  }
   DBI.pos = i;
   var lg = DBI.poly ? (pisteDbiSel().len || 16) : motifDbiCur().last;
   for(var j=0;j<16;j++) dbiPas[j].classList.toggle("cur", (DBI.page * 16 + j) === (i % lg));
 }
 function arretDbi(){
+  resetLooperDbi();
   DBI.pos = -1;
   for(var j=0;j<16;j++) dbiPas[j].classList.remove("cur");
   var b = document.getElementById("dbi-play");
@@ -500,6 +546,7 @@ function memDbi(){
   sauverMachine("dbi");
 }
 function chargerDbi(){
+  resetLooperDbi();
   DBI.motifs = [];
   for(var i=0;i<16;i++) DBI.motifs.push(motifDbi(i < 2 ? i : 9));
   DBI.page = 0; DBI.pos = -1; DBI.rec = false; DBI.roller = false;
@@ -564,6 +611,37 @@ document.getElementById("dbi-color-steps").addEventListener("click", function(){
   majDbi(); majKnobsDbi(); H.inter();
   signal(DBI.colorSteps ? "COLOR STEP : MARQUEZ LES VARIATIONS, REGLEZ LEURS POTARDS" : "LES TOUCHES POSENT LES PAS");
 });
+/* Capture du pointeur : sortir du bouton puis relâcher doit aussi libérer.
+   Un second doigt ne peut pas terminer le geste du premier. */
+[1,2,4,8].forEach(function(n){
+  var b = document.getElementById("dbi-loop-" + n);
+  b.addEventListener("pointerdown", function(e){
+    if(e.button !== 0) return;
+    e.preventDefault();
+    if(commencerLooperDbi(n, e.pointerId)){
+      try{ b.setPointerCapture(e.pointerId); }catch(err){ relacherLooperDbi(e.pointerId); }
+    }
+  });
+  ["pointerup","pointercancel","lostpointercapture"].forEach(function(type){
+    b.addEventListener(type, function(e){ relacherLooperDbi(e.pointerId); });
+  });
+  b.addEventListener("keydown", function(e){
+    if(e.key === " " || e.key === "Enter"){
+      e.preventDefault();
+      if(!e.repeat) commencerLooperDbi(n, "key-" + n);
+    }
+  });
+  b.addEventListener("keyup", function(e){
+    if(e.key === " " || e.key === "Enter"){ e.preventDefault(); relacherLooperDbi("key-" + n); }
+  });
+  b.addEventListener("blur", function(){ relacherLooperDbi("key-" + n); });
+});
+window.addEventListener("blur", function(){ relacherLooperDbi(); });
+window.addEventListener("pagehide", function(){ relacherLooperDbi(); });
+window.addEventListener("keydown", function(e){ if(e.key === "Escape") relacherLooperDbi(); });
+document.addEventListener("visibilitychange", function(){
+  if(document.hidden){ relacherLooperDbi(); DBI.loopEvents = []; DBI.dernierEntendu = null; DBI.loopEntendu = false; }
+});
 document.getElementById("dbi-repeat").addEventListener("click", function(){
   DBI.repeatEdit = !DBI.repeatEdit;
   if(DBI.repeatEdit){ DBI.accent = false; DBI.colorSteps = false; }
@@ -571,6 +649,7 @@ document.getElementById("dbi-repeat").addEventListener("click", function(){
   signal(DBI.repeatEdit ? "STEP REPEAT : TOUCHEZ UN PAS POUR 1, 2, 3 OU 4 FRAPPES" : "LES TOUCHES POSENT LES PAS");
 });
 document.getElementById("dbi-poly").addEventListener("click", function(){
+  relacherLooperDbi();
   DBI.poly = !DBI.poly;
   majDbi(); memDbi(); H.inter();
   signal(DBI.poly ? ("POLYRYTHMIE · CYCLE DE " + longueurDbi() + " PAS") : "TOUTES LES PISTES ENSEMBLE");
@@ -609,6 +688,7 @@ document.getElementById("dbi-erase").addEventListener("click", function(){
 });
 document.getElementById("dbi-ptn").addEventListener("click", function(){
   memDbi();
+  relacherLooperDbi();
   DBI.cur = (DBI.cur + 1) % 16;
   DBI.page = 0;
   majDbi(); majKnobsDbi(); memDbi(); H.inter();
