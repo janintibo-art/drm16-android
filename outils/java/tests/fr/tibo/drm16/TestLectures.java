@@ -119,8 +119,8 @@ public class TestLectures {
             ok(pont.fichierCharger("absent.json") == null && pont.fichierListe("") == null,
                     "chemin Documents devenu fichier : null sans repli");
             app.documents = null;
-            ok("".equals(pont.fichierListe("")) && new File(prive, "documents").isDirectory(),
-                    "absence de chemin externe : repli prive historique conserve");
+            ok(pont.fichierListe("") == null && !new File(prive, "documents").exists(),
+                    "absence de chemin externe : aucun repli masquant le suivi");
             app.documents = documents;
 
             System.out.println("3. Sauvegardes orphelines : restaurer ou signaler un refus");

@@ -283,19 +283,10 @@ public class MainActivity extends Activity implements Midi.Ecoute {
             }});
         }
         private File dossierDoc() throws IOException {
-            File d = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-            if (d == null) {
-                File interne = getFilesDir();
-                if (interne == null) throw new IOException("stockage prive indisponible");
-                d = new File(interne, "documents");
-            }
-            /* Un stockage connu mais indisponible n'est pas un dossier vide.
-               Ne pas ouvrir un autre emplacement apres un refus d'acces. */
-            if (!d.isDirectory() && (!Fichiers.absent(d) || !d.mkdirs()))
-                throw new IOException("dossier documents indisponible");
-            if (d.list() == null) throw new IOException("dossier documents illisible");
-            return d;
+            return DossierDocuments.choisir(getFilesDir(),
+                    getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS));
         }
+
         private File dossierEch() throws IOException {
             File interne = getFilesDir();
             if (interne == null) throw new IOException("stockage prive indisponible");

@@ -1,5 +1,10 @@
 # Grand check-up DRM16 — v176
 
+**Suivi v182 :** le choix du dossier Android est maintenant conservé. Aucun repli
+vers un dossier vide si le chemin externe devient indisponible. La migration des
+anciens emplacements refuse les conflits sans déplacer de documents ; voir
+[le bilan v182 et ses limites](CORRECTIONS_V182.md).
+
 Audit du 17 septembre 2026, à partir de la v175. La v176 est une version de maintenance : corrections, tests de régression et paquet PC complet.
 
 **Suivi v177 :** le défaut d'export MIDI avec plusieurs machines décrit dans ce bilan est corrigé. Voir les [corrections et vérifications de la v177](CORRECTIONS_V177.md). Le reste du document conserve les constats du check-up v176.
