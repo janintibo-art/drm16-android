@@ -1565,6 +1565,13 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 #stk-export-chaine:disabled{opacity:.4}
 #stk-export-chemin{display:block;overflow-wrap:anywhere;font:8px/1.3 Arial;color:#a9a78b}
 #stk-export-chemin:not(:empty){margin-bottom:6px}
+
+/* v193 : choix explicite entre le mixage et la piste sélectionnée. */
+.stk-export-commandes{display:grid;grid-template-columns:1fr 1.7fr;gap:5px;margin-bottom:6px}
+.stk-export-commandes #stk-export-chaine{margin-bottom:0;min-width:0}
+#stk-export-mode{min-width:0;padding:9px 2px;border:0;border-radius:5px;background:#282830;color:#c0c0c6;font:700 9px Arial}
+#stk-export-mode.on{background:#e8e04a;color:#141410}
+#stk-export-mode:disabled{opacity:.4}
 /* ===================== OBERHEIM DMX ===================== */
 body.dmx .dmxb{display:block}
 body.dmx #unit,body.dmx .em,body.dmx .er,body.dmx .ea,body.dmx .es,body.dmx .mx,body.dmx .sx,
@@ -3799,7 +3806,10 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     </div>
   </div>
   <output id="stk-chaine-etat" aria-live="polite"></output>
-  <button id="stk-export-chaine">CHAÎNE EN WAV · UN PASSAGE</button>
+  <div class="stk-export-commandes">
+    <button id="stk-export-mode" aria-pressed="false">EXPORT : MIXAGE</button>
+    <button id="stk-export-chaine">CHAÎNE EN WAV · UN PASSAGE</button>
+  </div>
   <output id="stk-export-chemin" aria-live="polite"></output>
   <div class="stk-pads" id="stk-pads"></div>
   <div class="stk-trks" id="stk-trks"></div>
@@ -4943,8 +4953,27 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   La limite de fichier reste de 64 Mio ; un morceau trop long est refusé.</p>
   <p>Les commandes sont bloquées pendant le calcul, puis le dernier chemin
   s'affiche sous le bouton. L'ordre, les motifs et les réglages sont conservés.
-  Il s'agit d'un mixage stéréo, sans fichiers séparés par piste. Le bouton WAV
-  du menu conserve son export de motif ; utilisez celui-ci pour toute la chaîne.</p>
+  Le bouton WAV du menu conserve son export de motif ; utilisez celui-ci pour
+  toute la chaîne.</p>
+
+  <h3>Exporter une piste séparée</h3>
+  <p>Touchez <b>EXPORT : MIXAGE</b> pour passer en <b>EXPORT : PISTE</b>,
+  puis choisissez la piste avec TRK 1 à TRK 10. Le bouton WAV indique son
+  numéro. Il exporte uniquement cette piste, sur toute la chaîne, sans changer
+  MUTE ou SOLO. Pour revenir au morceau complet, retouchez EXPORT : PISTE.</p>
+  <p>Le fichier contient <b>piste01</b> à <b>piste10</b> dans son nom.
+  Recommencez pour chaque piste voulue. Une piste sans pas audibles, coupée ou
+  exclue par le solo n'est pas exportée. Un sample absent sur une autre piste
+  n'empêche pas cet export.</p>
+  <p>Chaque fichier commence au même point et conserve les silences du morceau.
+  Alignez les fichiers à leur début dans votre logiciel audio et gardez le même
+  tempo, les mêmes motifs et les mêmes réglages entre les exports. Les queues
+  de sons sont conservées : les fichiers peuvent donc finir à des moments différents.</p>
+  <p>L'atténuation des pas reste celle du mixage, même si une seule piste est
+  rendue. La voie de table et la sortie générale sont appliquées à chaque
+  fichier : ce ne sont pas des pistes brutes. Si le limiteur travaille, leur
+  somme peut différer du mixage complet. Le choix MIXAGE/PISTE reste temporaire
+  et revient à MIXAGE au redémarrage.</p>
 
   <h3>Importer et découper un son</h3>
   <p><b>CHOISIR SON</b> ouvre la bibliothèque sur la piste sélectionnée. Importez un
@@ -29204,7 +29233,7 @@ function majInstrumentStk(){
   document.getElementById("stk-ecouter").disabled = !ES.buf[P.ech] || !passeStk(STK.sel);
 }
 function majChaineStk(){
-  document.getElementById("stk-export-chaine").disabled = !STK.chaine.length || WAVX.occupe;
+  if(typeof majExportStk === "function") majExportStk();
   var bt = document.getElementById("stk-chaine");
   bt.textContent = STK.song ? "CHAÎNE : OUI" : "CHAÎNE : NON";
   bt.classList.toggle("on", STK.song); bt.disabled = S.run || (!STK.song && !STK.chaine.length);
@@ -29548,23 +29577,28 @@ document.getElementById("ko-bpm-b").addEventListener("click", function(){
 })();
 /* v192 : un passage de la chaîne, sans changer de motif ni de contexte live.
    L'export de motif du menu reste indépendant de cet arrangement. */
-function planMixageStk(){
+var STK_EXPORT_PISTE = false; /* choix de session, indépendant de MUTE et SOLO */
+function planMixageStk(pisteDemandee){
+  if(pisteDemandee !== undefined && (!Number.isInteger(pisteDemandee) || pisteDemandee < 0 || pisteDemandee >= STK_PISTES))
+    throw new Error("PISTE D'EXPORT INVALIDE");
   if(!chaineValideStk()) throw new Error("CHAÎNE VIDE OU LONGUEURS DIFFÉRENTES");
   var duree = stepDur(), pas = [], position = 0, notes = 0;
   STK.chaine.forEach(function(k){
     var m = STK.motifs[k];
     for(var i=0;i<m.last;i++){
-      var p = {t:0.05 + position * duree, accent:i % 4 === 0, notes:[]};
+      var p = {t:0.05 + position * duree, accent:i % 4 === 0, charge:0, notes:[]};
       for(var piste=0;piste<STK_PISTES;piste++){
         if(!(m.pas[piste] & (1 << i)) || !passeStk(piste)) continue;
+        p.charge++;
+        if(pisteDemandee !== undefined && piste !== pisteDemandee) continue;
         p.notes.push({piste:piste, tranche:m.tranches[piste][i], hauteur:m.notes[piste][i]}); notes++;
       }
       if(p.notes.length) pas.push(p);
       position++;
     }
   });
-  if(!notes) throw new Error("AUCUNE NOTE AUDIBLE DANS LA CHAÎNE");
-  return {pas:pas, notes:notes, duree:0.05 + position * duree, entrees:STK.chaine.length};
+  if(!notes) throw new Error(pisteDemandee === undefined ? "AUCUNE NOTE AUDIBLE DANS LA CHAÎNE" : "PISTE " + (pisteDemandee + 1) + " · AUCUNE NOTE AUDIBLE DANS LA CHAÎNE");
+  return {piste:pisteDemandee, pas:pas, notes:notes, duree:0.05 + position * duree, entrees:STK.chaine.length};
 }
 function dureeMixageStk(plan){
   var fin = plan.duree;
@@ -29583,7 +29617,7 @@ function dureeMixageStk(plan){
   });
   return fin + .25; /* relâchement du limiteur après la dernière voix */
 }
-async function exporterChaineStk(){
+async function exporterChaineStk(pisteDemandee){
   if(WAVX.occupe || ENR.ondesOccupe || PROJET_EN_COURS) return;
   if(S.modele !== "stk") return;
   if(ENR.actif){ signal("ARRÊTEZ L'ENREGISTREMENT AVANT LE RENDU"); return; }
@@ -29592,7 +29626,7 @@ async function exporterChaineStk(){
     signal("RENDU ANNULÉ · SORTIE SMPLTREK COUPÉE"); return;
   }
   var plan;
-  try{ plan = planMixageStk(); }catch(e){ signal(e.message); return; }
+  try{ plan = planMixageStk(pisteDemandee); }catch(e){ signal(e.message); return; }
   if(refusWavTropLong(plan.duree + .25, 44100)) return;
   audioInit();
   if(!ctx){ signal("AUDIO INDISPONIBLE"); return; }
@@ -29618,15 +29652,16 @@ async function exporterChaineStk(){
     if(refusWavTropLong(total, 44100)) return;
     var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(total * 44100), 44100);
     ctx = off; master = chaineMaitresseHorsLigne(off); SET.bus = {}; STK.noeuds = null; PAS = null; cache = true;
-    signal("MIXAGE DE LA CHAÎNE · " + plan.entrees + " ENTRÉES…");
+    signal((plan.piste === undefined ? "MIXAGE" : "PISTE " + (plan.piste + 1)) + " DE LA CHAÎNE · " + plan.entrees + " ENTRÉES…");
     plan.pas.forEach(function(p){
-      var charge = ouvrirPas();
-      p.notes.forEach(function(n){ charge++; voixStk(p.t, n.piste, p.accent, n.tranche, n.hauteur); });
-      attenuerVoie("stk", charge, p.t);
+      ouvrirPas();
+      p.notes.forEach(function(n){ voixStk(p.t, n.piste, p.accent, n.tranche, n.hauteur); });
+      /* Une piste isolée garde l'atténuation du pas dans le mixage. */
+      attenuerVoie("stk", p.charge, p.t);
     });
     var rendu = await off.startRendering();
     ab = wavStereo(rendu);
-    nom = "drm-stk-chaine-" + plan.entrees + "ent-" + Date.now().toString(36) + ".wav";
+    nom = "drm-stk-" + (plan.piste === undefined ? "" : "piste" + ("0" + (plan.piste + 1)).slice(-2) + "-") + "chaine-" + plan.entrees + "ent-" + Date.now().toString(36) + ".wav";
   }catch(e){ message = "RENDU ÉCHOUÉ · " + (e && e.message ? e.message.slice(0,100) : "ERREUR AUDIO"); }
   finally{
     ctx = avant.ctx; master = avant.master; SET.bus = avant.bus; STK.noeuds = avant.noeuds;
@@ -29638,12 +29673,26 @@ async function exporterChaineStk(){
   try{
     var chemin = ecrireDocument(HOST, nom, ab);
     if(!chemin){ signal("ÉCRITURE REFUSÉE"); return; }
-    document.getElementById("stk-export-chemin").textContent = "Dernier mixage : " + chemin;
+    document.getElementById("stk-export-chemin").textContent = (plan.piste === undefined ? "Dernier mixage : " : "Dernière piste " + (plan.piste + 1) + " : ") + chemin;
     signal(nom + " · " + Math.round(ab.byteLength / 1024) + " ko · " + plan.notes + " NOTES");
     H.inter(); fit();
   }catch(e){ signal("ÉCRITURE ÉCHOUÉE"); }
 }
-document.getElementById("stk-export-chaine").addEventListener("click", exporterChaineStk);
+function majExportStk(){
+  var mode = document.getElementById("stk-export-mode"), bouton = document.getElementById("stk-export-chaine");
+  mode.textContent = STK_EXPORT_PISTE ? "EXPORT : PISTE " + (STK.sel + 1) : "EXPORT : MIXAGE";
+  mode.setAttribute("aria-pressed", String(STK_EXPORT_PISTE)); mode.disabled = WAVX.occupe;
+  mode.classList.toggle("on", STK_EXPORT_PISTE);
+  bouton.textContent = STK_EXPORT_PISTE ? "PISTE " + (STK.sel + 1) + " EN WAV · CHAÎNE" : "CHAÎNE EN WAV · UN PASSAGE";
+  bouton.disabled = !STK.chaine.length || WAVX.occupe;
+}
+document.getElementById("stk-export-mode").addEventListener("click", function(){
+  if(WAVX.occupe) return;
+  STK_EXPORT_PISTE = !STK_EXPORT_PISTE; majExportStk();
+});
+document.getElementById("stk-export-chaine").addEventListener("click", function(){
+  exporterChaineStk(STK_EXPORT_PISTE ? STK.sel : undefined);
+});
 /* ================= rendre une prise MIDI en WAV =================
    Une prise exportée en .mid contient des NOTES : il faut la même application
    pour la réentendre. En WAV, on repart avec le SON — le téléphone devient

@@ -221,3 +221,21 @@ console.log('SmplTrek v191 : édition des occurrences, bornes, limite, sauvegard
  s.solo=-1;s.motifs[2].last=8;assert.throws(()=>c.planMixageStk(),/LONGUEURS/);
 }
 console.log('SmplTrek v192 : plan de mixage, ordre, notes, tranches, mute/solo, samples et queues longues OK.');
+{
+ const c=setup();c.stepDur=()=>.125;
+ const mix=fs.readFileSync(path.join(__dirname,'../page/js/595-mixage-chaine-smpltrek.js'),'utf8');
+ vm.runInContext(mix.slice(0,mix.indexOf('async function exporterChaineStk')),c);
+ const s=c.STK;s.chaine=[0,0,2];s.motifs.forEach(m=>m.last=4);
+ s.motifs[0].pas[0]=1;s.motifs[0].pas[1]=1;s.motifs[2].pas[1]=8;
+ let p=c.planMixageStk(0);assert.equal(p.piste,0);assert.equal(p.notes,2);assert.equal(p.duree,1.55);
+ assert.deepStrictEqual(copie(p.pas.map(x=>x.charge)),[2,2],'atténuation selon les voix du mixage, pas le solo exporté');
+ assert(p.pas.every(x=>x.notes.length===1&&x.notes[0].piste===0));
+ s.pistes[0].ech='u-stem';c.ES.buf['u-stem']={length:100,sampleRate:100,duration:1};
+ assert(c.dureeMixageStk(p)>1.55,'sample absent d’une autre piste ignoré pour le stem');
+ for(const k of [-1,10,1.2,NaN,null])assert.throws(()=>c.planMixageStk(k),/INVALIDE/);
+ assert.throws(()=>c.planMixageStk(9),/PISTE 10/);
+ s.pistes[0].muet=true;assert.throws(()=>c.planMixageStk(0),/AUCUNE NOTE/);
+ s.solo=0;assert.equal(c.planMixageStk(0).notes,2);assert.throws(()=>c.planMixageStk(1),/AUCUNE NOTE/);
+ assert.equal(c.planMixageStk().piste,undefined,'appel sans piste : mixage existant conservé');
+}
+console.log('SmplTrek v193 : export ciblé, atténuation du mixage, MUTE/SOLO, bornes et samples requis OK.');

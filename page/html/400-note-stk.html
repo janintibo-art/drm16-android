@@ -142,8 +142,27 @@
   La limite de fichier reste de 64 Mio ; un morceau trop long est refusé.</p>
   <p>Les commandes sont bloquées pendant le calcul, puis le dernier chemin
   s'affiche sous le bouton. L'ordre, les motifs et les réglages sont conservés.
-  Il s'agit d'un mixage stéréo, sans fichiers séparés par piste. Le bouton WAV
-  du menu conserve son export de motif ; utilisez celui-ci pour toute la chaîne.</p>
+  Le bouton WAV du menu conserve son export de motif ; utilisez celui-ci pour
+  toute la chaîne.</p>
+
+  <h3>Exporter une piste séparée</h3>
+  <p>Touchez <b>EXPORT : MIXAGE</b> pour passer en <b>EXPORT : PISTE</b>,
+  puis choisissez la piste avec TRK 1 à TRK 10. Le bouton WAV indique son
+  numéro. Il exporte uniquement cette piste, sur toute la chaîne, sans changer
+  MUTE ou SOLO. Pour revenir au morceau complet, retouchez EXPORT : PISTE.</p>
+  <p>Le fichier contient <b>piste01</b> à <b>piste10</b> dans son nom.
+  Recommencez pour chaque piste voulue. Une piste sans pas audibles, coupée ou
+  exclue par le solo n'est pas exportée. Un sample absent sur une autre piste
+  n'empêche pas cet export.</p>
+  <p>Chaque fichier commence au même point et conserve les silences du morceau.
+  Alignez les fichiers à leur début dans votre logiciel audio et gardez le même
+  tempo, les mêmes motifs et les mêmes réglages entre les exports. Les queues
+  de sons sont conservées : les fichiers peuvent donc finir à des moments différents.</p>
+  <p>L'atténuation des pas reste celle du mixage, même si une seule piste est
+  rendue. La voie de table et la sortie générale sont appliquées à chaque
+  fichier : ce ne sont pas des pistes brutes. Si le limiteur travaille, leur
+  somme peut différer du mixage complet. Le choix MIXAGE/PISTE reste temporaire
+  et revient à MIXAGE au redémarrage.</p>
 
   <h3>Importer et découper un son</h3>
   <p><b>CHOISIR SON</b> ouvre la bibliothèque sur la piste sélectionnée. Importez un

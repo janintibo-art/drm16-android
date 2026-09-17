@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""v192 : rendre de vrais WAV de chaîne, vérifier le PCM et restaurer le jeu."""
+"""v192/v193 : WAV de chaîne et de piste, PCM réel et restauration du jeu."""
 import asyncio
 from pathlib import Path
 import runpy
@@ -32,7 +32,7 @@ async def main():
               }
               memStk();writeMem();majStk();
               window.__vrai={ctx:ctx,master:master,bus:SET.bus};
-              window.__etat=()=>JSON.stringify({chaine:STK.chaine,cur:STK.cur,sel:STK.chaineSel,song:STK.song,pistes:STK.pistes,motifs:STK.motifs});
+              window.__etat=()=>JSON.stringify({chaine:STK.chaine,cur:STK.cur,selectionPiste:STK.sel,sel:STK.chaineSel,song:STK.song,pistes:STK.pistes,motifs:STK.motifs});
               window.__avant=__etat();
               window.__restaure=()=>ctx===__vrai.ctx&&master===__vrai.master&&SET.bus===__vrai.bus&&!WAVX.occupe&&!document.body.inert&&__avant===__etat();
             }''')
@@ -54,6 +54,52 @@ async def main():
             assert resultat['restaure'] and resultat['midi']==0,resultat
             print('OK : WAV stéréo 44,1 kHz, répétitions, hauteur Instrument, panoramique et restauration',flush=True)
             await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/'stk-v192-360x640.png'))
+            # v193 : deux pistes simultanées, même atténuation en mixage et isolées.
+            await pg.evaluate('''async () => {
+              STK.motifs[0].pas[1]=1;memStk();writeMem();window.__avant=__etat();
+              await exporterChaineStk();window.__mixIndex=__exports.length-1;
+              window.__pcm=(i,ch)=>{let o=__exports[i].octets,v=new DataView(o.buffer),a=new Float32Array((o.length-44)/4);for(let k=0;k<a.length;k++)a[k]=v.getInt16(44+4*k+2*ch,true)/32768;return a;};
+              window.__rms=(a,t)=>{let s=0,n=0;for(let i=Math.floor((t+.065)*44100);i<Math.floor((t+.10)*44100);i++){s+=a[i]*a[i];n++;}return Math.sqrt(s/n);};
+            }''')
+            await pg.locator('#stk-export-mode').click()
+            assert 'PISTE 1' in await pg.locator('#stk-export-chaine').inner_text()
+            avant=await pg.evaluate('__exports.length')
+            await pg.locator('#stk-export-chaine').click()
+            await pg.wait_for_function('n=>__exports.length===n+1&&!WAVX.occupe',arg=avant)
+            r=await pg.evaluate('''() => {
+              let i=__exports.length-1,a=__pcm(i,0),b=__pcm(i,1),m=__pcm(__mixIndex,0);
+              return {nom:__exports[i].nom,rapport:__rms(a,0)/__rms(m,0),droite:Math.max(...b),fin:__rms(a,1),restaure:__restaure()};
+            }''')
+            assert 'piste01-chaine-' in r['nom'] and abs(r['rapport']-1)<.005 and r['droite']<.0001 and r['fin']<.0001 and r['restaure'],r
+            # Changer de piste met à jour la cible sans utiliser MUTE ou SOLO.
+            await pg.locator('#stk-trks button').nth(1).click()
+            assert 'PISTE 2' in await pg.locator('#stk-export-chaine').inner_text()
+            await pg.evaluate('window.__avant=__etat()')
+            avant=await pg.evaluate('__exports.length')
+            await pg.locator('#stk-export-chaine').click()
+            await pg.wait_for_function('n=>__exports.length===n+1&&!WAVX.occupe',arg=avant)
+            r=await pg.evaluate('''() => {
+              let i=__exports.length-1,a=__pcm(i,0),b=__pcm(i,1);
+              return {nom:__exports[i].nom,gauche:Math.max(...a),notes:[0,.5,1].map(t=>__rms(b,t)),restaure:__restaure()};
+            }''')
+            assert 'piste02-chaine-' in r['nom'] and r['gauche']<.0001 and all(x>.001 for x in r['notes']) and r['restaure'],r
+            for w,h in ((360,640),(393,851),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('stk-v193-%sx%s.png'%(w,h))))
+            await pg.evaluate('''async () => {
+              let n=__exports.length,b=ES.buf['u-mix0'];delete ES.buf['u-mix0'];__ech['u-mix0']='';
+              await exporterChaineStk(1);
+              if(__exports.length!==n+1||!__restaure())throw Error('sample d’une autre piste requis');
+              ES.buf['u-mix0']=b;__ech['u-mix0']=b64De(wavDe(b));
+              n=__exports.length;STK.pistes[1].muet=true;await exporterChaineStk(1);STK.pistes[1].muet=false;
+              await exporterChaineStk(9);
+              if(__exports.length!==n||!__restaure())throw Error('piste muette ou vide exportée');
+              STK.motifs[0].pas[1]=0;memStk();writeMem();window.__avant=__etat();
+            }''')
+            await pg.locator('#stk-export-mode').click()
+            assert 'UN PASSAGE' in await pg.locator('#stk-export-chaine').inner_text()
+            print('OK : stems séparés, bonne piste, atténuation conservée, silence des autres voix, pistes muettes/vides refusées',flush=True)
+
             # Chargement à froid : un rendu doit attendre les vrais décodeurs.
             await pg.evaluate("delete ES.buf['u-mix0'];delete ES.buf['u-mix1']")
             await pg.evaluate('''async () => {
