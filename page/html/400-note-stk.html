@@ -123,10 +123,27 @@
   arrêtez PLAY. Choisir un motif manuellement à l'arrêt quitte le mode CHAÎNE
   tout en gardant la liste. Les commandes DIRECT / FIN MOTIF concernent le jeu
   manuel ; la chaîne effectue toujours ses transitions entre deux motifs complets.</p>
-  <p>Cette première chaîne tourne en boucle jusqu'à STOP, sans fin automatique,
-  export dédié du morceau. Elle utilise le transport
+  <p>La lecture de la chaîne tourne en boucle jusqu'à STOP, sans fin automatique. Elle utilise le transport
   commun, y compris en machine secondaire du SET. Les tranches et les réglages
   des pistes restent ceux déjà définis dans les motifs et dans le mixage.</p>
+
+  <h3>Exporter le morceau</h3>
+  <p><b>CHAÎNE EN WAV · UN PASSAGE</b> exporte toutes les entrées, une fois et
+  dans leur ordre, y compris les répétitions. Il n'est pas nécessaire d'activer
+  CHAÎNE. L'export arrête PLAY et ne le relance pas ensuite.</p>
+  <p>Le fichier est un <b>WAV stéréo, 44,1 kHz, 16 bits</b>. Il contient les
+  pistes audibles du SmplTrek avec leurs notes, tranches, réglages et MUTE/SOLO,
+  ainsi que les réglages de sa voie dans la table et le volume général.
+  Les autres machines du SET ne sont pas incluses. Le tempo courant est fixé
+  pour tout le rendu. La fin des sons est conservée après le dernier motif.</p>
+  <p>La chaîne doit contenir des motifs de même longueur et au moins une note
+  audible. Un sample nécessaire absent ou illisible annule le rendu. Une
+  sortie SmplTrek coupée dans la table doit être réactivée avant l'export.
+  La limite de fichier reste de 64 Mio ; un morceau trop long est refusé.</p>
+  <p>Les commandes sont bloquées pendant le calcul, puis le dernier chemin
+  s'affiche sous le bouton. L'ordre, les motifs et les réglages sont conservés.
+  Il s'agit d'un mixage stéréo, sans fichiers séparés par piste. Le bouton WAV
+  du menu conserve son export de motif ; utilisez celui-ci pour toute la chaîne.</p>
 
   <h3>Importer et découper un son</h3>
   <p><b>CHOISIR SON</b> ouvre la bibliothèque sur la piste sélectionnée. Importez un

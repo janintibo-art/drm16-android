@@ -1052,6 +1052,7 @@ function majInstrumentStk(){
   document.getElementById("stk-ecouter").disabled = !ES.buf[P.ech] || !passeStk(STK.sel);
 }
 function majChaineStk(){
+  document.getElementById("stk-export-chaine").disabled = !STK.chaine.length || WAVX.occupe;
   var bt = document.getElementById("stk-chaine");
   bt.textContent = STK.song ? "CHAÎNE : OUI" : "CHAÎNE : NON";
   bt.classList.toggle("on", STK.song); bt.disabled = S.run || (!STK.song && !STK.chaine.length);

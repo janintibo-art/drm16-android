@@ -1559,6 +1559,12 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 #stk-chaine-liste button.lecture{background:#e8e04a;color:#141410}
 #stk-chaine-liste button:focus-visible{outline:2px solid white;outline-offset:-2px}
 #stk-chaine-selection{display:block;font:700 9px/1.5 Arial;color:#e8e04a;margin-bottom:4px}
+
+/* v192 : le mixage est un passage de toute la chaîne. */
+#stk-export-chaine{width:100%;padding:9px 2px;margin-bottom:6px;border:0;border-radius:5px;background:#282830;color:#e8e04a;font:700 9px Arial}
+#stk-export-chaine:disabled{opacity:.4}
+#stk-export-chemin{display:block;overflow-wrap:anywhere;font:8px/1.3 Arial;color:#a9a78b}
+#stk-export-chemin:not(:empty){margin-bottom:6px}
 /* ===================== OBERHEIM DMX ===================== */
 body.dmx .dmxb{display:block}
 body.dmx #unit,body.dmx .em,body.dmx .er,body.dmx .ea,body.dmx .es,body.dmx .mx,body.dmx .sx,
@@ -3793,6 +3799,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     </div>
   </div>
   <output id="stk-chaine-etat" aria-live="polite"></output>
+  <button id="stk-export-chaine">CHAÎNE EN WAV · UN PASSAGE</button>
+  <output id="stk-export-chemin" aria-live="polite"></output>
   <div class="stk-pads" id="stk-pads"></div>
   <div class="stk-trks" id="stk-trks"></div>
   <div class="stk-pied"><span id="stk-etat">Choisissez une piste, puis écrivez ses pas.</span></div>
@@ -4916,10 +4924,27 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   arrêtez PLAY. Choisir un motif manuellement à l'arrêt quitte le mode CHAÎNE
   tout en gardant la liste. Les commandes DIRECT / FIN MOTIF concernent le jeu
   manuel ; la chaîne effectue toujours ses transitions entre deux motifs complets.</p>
-  <p>Cette première chaîne tourne en boucle jusqu'à STOP, sans fin automatique,
-  export dédié du morceau. Elle utilise le transport
+  <p>La lecture de la chaîne tourne en boucle jusqu'à STOP, sans fin automatique. Elle utilise le transport
   commun, y compris en machine secondaire du SET. Les tranches et les réglages
   des pistes restent ceux déjà définis dans les motifs et dans le mixage.</p>
+
+  <h3>Exporter le morceau</h3>
+  <p><b>CHAÎNE EN WAV · UN PASSAGE</b> exporte toutes les entrées, une fois et
+  dans leur ordre, y compris les répétitions. Il n'est pas nécessaire d'activer
+  CHAÎNE. L'export arrête PLAY et ne le relance pas ensuite.</p>
+  <p>Le fichier est un <b>WAV stéréo, 44,1 kHz, 16 bits</b>. Il contient les
+  pistes audibles du SmplTrek avec leurs notes, tranches, réglages et MUTE/SOLO,
+  ainsi que les réglages de sa voie dans la table et le volume général.
+  Les autres machines du SET ne sont pas incluses. Le tempo courant est fixé
+  pour tout le rendu. La fin des sons est conservée après le dernier motif.</p>
+  <p>La chaîne doit contenir des motifs de même longueur et au moins une note
+  audible. Un sample nécessaire absent ou illisible annule le rendu. Une
+  sortie SmplTrek coupée dans la table doit être réactivée avant l'export.
+  La limite de fichier reste de 64 Mio ; un morceau trop long est refusé.</p>
+  <p>Les commandes sont bloquées pendant le calcul, puis le dernier chemin
+  s'affiche sous le bouton. L'ordre, les motifs et les réglages sont conservés.
+  Il s'agit d'un mixage stéréo, sans fichiers séparés par piste. Le bouton WAV
+  du menu conserve son export de motif ; utilisez celui-ci pour toute la chaîne.</p>
 
   <h3>Importer et découper un son</h3>
   <p><b>CHOISIR SON</b> ouvre la bibliothèque sur la piste sélectionnée. Importez un
@@ -26746,8 +26771,16 @@ function chaineMaitresseHorsLigne(off){
     var x = i * 2 / (n - 1) - 1, a = Math.abs(x);
     c[i] = (a <= seuil) ? x : (x < 0 ? -1 : 1) * (seuil + (1 - seuil) * Math.tanh((a - seuil) / (1 - seuil)));
   }
-  sat.curve = c; sat.oversample = "4x";
-  m.connect(lim); lim.connect(sat); sat.connect(off.destination);
+  sat.curve = c; sat.oversample = "2x";
+  /* v192 : même sortie que batirAudio, sans remplacer ses nœuds live. */
+  var hp = off.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 22; hp.Q.value = 20*Math.log10(.5412);
+  var hp2 = off.createBiquadFilter(); hp2.type = "highpass"; hp2.frequency.value = 22; hp2.Q.value = 20*Math.log10(1.3066);
+  var comp = off.createGain(); comp.gain.value = Math.pow(10, COMPENSATION_SORTIE_DB / 20);
+  var garde = off.createWaveShaper(), cg = new Float32Array(1025);
+  for(var j=0;j<cg.length;j++){ var y=j*2/(cg.length-1)-1; cg[j]=Math.max(-.98,Math.min(.98,y)); }
+  garde.curve = cg; garde.oversample = "none";
+  m.connect(hp); hp.connect(hp2); hp2.connect(comp); comp.connect(lim);
+  lim.connect(sat); sat.connect(garde); garde.connect(off.destination);
   return m;
 }
 function wavStereo(buf){
@@ -29171,6 +29204,7 @@ function majInstrumentStk(){
   document.getElementById("stk-ecouter").disabled = !ES.buf[P.ech] || !passeStk(STK.sel);
 }
 function majChaineStk(){
+  document.getElementById("stk-export-chaine").disabled = !STK.chaine.length || WAVX.occupe;
   var bt = document.getElementById("stk-chaine");
   bt.textContent = STK.song ? "CHAÎNE : OUI" : "CHAÎNE : NON";
   bt.classList.toggle("on", STK.song); bt.disabled = S.run || (!STK.song && !STK.chaine.length);
@@ -29512,6 +29546,104 @@ document.getElementById("ko-bpm-b").addEventListener("click", function(){
   b.addEventListener("pointercancel", lacher);
   b.addEventListener("pointerleave", lacher);
 })();
+/* v192 : un passage de la chaîne, sans changer de motif ni de contexte live.
+   L'export de motif du menu reste indépendant de cet arrangement. */
+function planMixageStk(){
+  if(!chaineValideStk()) throw new Error("CHAÎNE VIDE OU LONGUEURS DIFFÉRENTES");
+  var duree = stepDur(), pas = [], position = 0, notes = 0;
+  STK.chaine.forEach(function(k){
+    var m = STK.motifs[k];
+    for(var i=0;i<m.last;i++){
+      var p = {t:0.05 + position * duree, accent:i % 4 === 0, notes:[]};
+      for(var piste=0;piste<STK_PISTES;piste++){
+        if(!(m.pas[piste] & (1 << i)) || !passeStk(piste)) continue;
+        p.notes.push({piste:piste, tranche:m.tranches[piste][i], hauteur:m.notes[piste][i]}); notes++;
+      }
+      if(p.notes.length) pas.push(p);
+      position++;
+    }
+  });
+  if(!notes) throw new Error("AUCUNE NOTE AUDIBLE DANS LA CHAÎNE");
+  return {pas:pas, notes:notes, duree:0.05 + position * duree, entrees:STK.chaine.length};
+}
+function dureeMixageStk(plan){
+  var fin = plan.duree;
+  plan.pas.forEach(function(p){
+    p.notes.forEach(function(n){
+      var piste = STK.pistes[n.piste], buf = ES.buf[piste.ech];
+      if(!buf) throw new Error("SON INTROUVABLE OU ILLISIBLE · " + piste.ech);
+      var tranche = piste.slice ? numeroTrancheStk(n.tranche) : -1;
+      var bornes = bornesTrancheStk(buf, tranche);
+      var hauteur = piste.type === "instrument" ? noteInstrumentStk(n.hauteur) : 0;
+      var vitesse = Math.pow(2, (piste.tune - .5) * 2 + hauteur / 12);
+      var temps = (bornes.fin - bornes.debut) / buf.sampleRate / vitesse * Math.max(.05, piste.dec);
+      if(tranche < 0) temps = Math.max(.03, temps) + .05;
+      fin = Math.max(fin, p.t + temps);
+    });
+  });
+  return fin + .25; /* relâchement du limiteur après la dernière voix */
+}
+async function exporterChaineStk(){
+  if(WAVX.occupe || ENR.ondesOccupe || PROJET_EN_COURS) return;
+  if(S.modele !== "stk") return;
+  if(ENR.actif){ signal("ARRÊTEZ L'ENREGISTREMENT AVANT LE RENDU"); return; }
+  if(!HOST || !HOST.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
+  if(SET.mute.stk || (SET.solo && SET.solo !== "stk") || SET.niv.stk <= 0 || S.vol <= 0){
+    signal("RENDU ANNULÉ · SORTIE SMPLTREK COUPÉE"); return;
+  }
+  var plan;
+  try{ plan = planMixageStk(); }catch(e){ signal(e.message); return; }
+  if(refusWavTropLong(plan.duree + .25, 44100)) return;
+  audioInit();
+  if(!ctx){ signal("AUDIO INDISPONIBLE"); return; }
+  if(ENR.lecture !== null) enrArreterLecture();
+  if(PR.lecture) prArreter();
+  stop();
+  if(writeMem() === false){ signal("RENDU ANNULÉ · MÉMOIRE NON ENREGISTRÉE"); return; }
+  var avant = {ctx:ctx, master:master, bus:SET.bus, noeuds:STK.noeuds, pas:PAS,
+               cache:cache, inerte:document.body.inert};
+  function bloquerClavier(e){ e.preventDefault(); e.stopImmediatePropagation(); }
+  WAVX.occupe = true; document.body.inert = true;
+  document.addEventListener("keydown", bloquerClavier, true);
+  signal("CHARGEMENT DES SONS DE LA CHAÎNE…");
+  var ab = null, message = "", nom = "";
+  try{
+    banqueEs(); chargerEchs();
+    var debut = Date.now();
+    while(Object.keys(ES_CHARGES).length){
+      if(Date.now() - debut > 15000) throw new Error("CHARGEMENT DES SONS TROP LONG");
+      await new Promise(function(resolve){ setTimeout(resolve, 20); });
+    }
+    var total = dureeMixageStk(plan); /* vérifie les samples réellement joués */
+    if(refusWavTropLong(total, 44100)) return;
+    var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(total * 44100), 44100);
+    ctx = off; master = chaineMaitresseHorsLigne(off); SET.bus = {}; STK.noeuds = null; PAS = null; cache = true;
+    signal("MIXAGE DE LA CHAÎNE · " + plan.entrees + " ENTRÉES…");
+    plan.pas.forEach(function(p){
+      var charge = ouvrirPas();
+      p.notes.forEach(function(n){ charge++; voixStk(p.t, n.piste, p.accent, n.tranche, n.hauteur); });
+      attenuerVoie("stk", charge, p.t);
+    });
+    var rendu = await off.startRendering();
+    ab = wavStereo(rendu);
+    nom = "drm-stk-chaine-" + plan.entrees + "ent-" + Date.now().toString(36) + ".wav";
+  }catch(e){ message = "RENDU ÉCHOUÉ · " + (e && e.message ? e.message.slice(0,100) : "ERREUR AUDIO"); }
+  finally{
+    ctx = avant.ctx; master = avant.master; SET.bus = avant.bus; STK.noeuds = avant.noeuds;
+    PAS = avant.pas; cache = avant.cache; WAVX.occupe = false; document.body.inert = avant.inerte;
+    document.removeEventListener("keydown", bloquerClavier, true);
+    majStk();
+  }
+  if(!ab){ if(message) signal(message); return; }
+  try{
+    var chemin = ecrireDocument(HOST, nom, ab);
+    if(!chemin){ signal("ÉCRITURE REFUSÉE"); return; }
+    document.getElementById("stk-export-chemin").textContent = "Dernier mixage : " + chemin;
+    signal(nom + " · " + Math.round(ab.byteLength / 1024) + " ko · " + plan.notes + " NOTES");
+    H.inter(); fit();
+  }catch(e){ signal("ÉCRITURE ÉCHOUÉE"); }
+}
+document.getElementById("stk-export-chaine").addEventListener("click", exporterChaineStk);
 /* ================= rendre une prise MIDI en WAV =================
    Une prise exportée en .mid contient des NOTES : il faut la même application
    pour la réentendre. En WAV, on repart avec le SON — le téléphone devient

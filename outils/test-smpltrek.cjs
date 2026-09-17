@@ -200,3 +200,24 @@ console.log('SmplTrek v190 : routage clavier/pistes, plage, canal, vélocité, m
  assert(c.choisirEntreeChaineStk(255));assert.equal(s.chaineSel,-1,'retoucher désélectionne');
 }
 console.log('SmplTrek v191 : édition des occurrences, bornes, limite, sauvegarde, conservation des motifs et verrouillage PLAY OK.');
+{
+ const c=setup();c.stepDur=()=>.125;
+ const mix=fs.readFileSync(path.join(__dirname,'../page/js/595-mixage-chaine-smpltrek.js'),'utf8');
+ vm.runInContext(mix.slice(0,mix.indexOf('async function exporterChaineStk')),c);
+ assert.throws(()=>c.planMixageStk(),/CHAÎNE/);
+ const s=c.STK;s.chaine=[0,0,2];s.cur=7;s.chaineSel=2;
+ s.motifs.forEach(m=>m.last=4);s.motifs[0].pas[0]=1;s.motifs[2].pas[1]=4;s.motifs[2].notes[1][2]=12;s.motifs[2].tranches[1][2]=7;
+ const avant=JSON.stringify(s),p=c.planMixageStk();assert.equal(JSON.stringify(s),avant);
+ assert.equal(p.notes,3);assert.equal(p.entrees,3);assert.equal(p.duree,1.55);
+ assert.deepStrictEqual(copie(p.pas.map(x=>x.t)),[.05,.55,1.3]);
+ assert.deepStrictEqual(copie(p.pas[2].notes[0]),{piste:1,tranche:7,hauteur:12});
+ assert.throws(()=>c.dureeMixageStk(p),/SON INTROUVABLE/);
+ s.pistes[0].ech='a';s.pistes[1].ech='a';c.ES.buf.a={length:400,sampleRate:100,duration:4};
+ s.pistes[0].dec=1;s.pistes[1].dec=1;s.pistes[1].type='instrument';
+ assert(Math.abs(c.dureeMixageStk(p)-4.85)<1e-9,'la queue du deuxième sample entier est conservée');
+ s.pistes[0].muet=true;assert.equal(c.planMixageStk().notes,1);
+ s.solo=0;assert.equal(c.planMixageStk().notes,2,'le solo conserve sa priorité sur mute');
+ s.solo=9;assert.throws(()=>c.planMixageStk(),/AUCUNE NOTE/);
+ s.solo=-1;s.motifs[2].last=8;assert.throws(()=>c.planMixageStk(),/LONGUEURS/);
+}
+console.log('SmplTrek v192 : plan de mixage, ordre, notes, tranches, mute/solo, samples et queues longues OK.');

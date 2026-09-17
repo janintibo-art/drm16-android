@@ -139,6 +139,7 @@ js/560-pocket-operator-k-o.js
 js/570-korg-kaoss-pad.js
 js/580-roland-mc-101.js
 js/590-smpltrek-dix-pistes.js
+js/595-mixage-chaine-smpltrek.js
 js/600-rendre-une-prise-midi-en-wav.js
 js/610-formes-d-onde-par-piste.js
 js/620-la-collection-archive-org.js

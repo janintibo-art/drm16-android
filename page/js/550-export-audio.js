@@ -16,8 +16,16 @@ function chaineMaitresseHorsLigne(off){
     var x = i * 2 / (n - 1) - 1, a = Math.abs(x);
     c[i] = (a <= seuil) ? x : (x < 0 ? -1 : 1) * (seuil + (1 - seuil) * Math.tanh((a - seuil) / (1 - seuil)));
   }
-  sat.curve = c; sat.oversample = "4x";
-  m.connect(lim); lim.connect(sat); sat.connect(off.destination);
+  sat.curve = c; sat.oversample = "2x";
+  /* v192 : même sortie que batirAudio, sans remplacer ses nœuds live. */
+  var hp = off.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 22; hp.Q.value = 20*Math.log10(.5412);
+  var hp2 = off.createBiquadFilter(); hp2.type = "highpass"; hp2.frequency.value = 22; hp2.Q.value = 20*Math.log10(1.3066);
+  var comp = off.createGain(); comp.gain.value = Math.pow(10, COMPENSATION_SORTIE_DB / 20);
+  var garde = off.createWaveShaper(), cg = new Float32Array(1025);
+  for(var j=0;j<cg.length;j++){ var y=j*2/(cg.length-1)-1; cg[j]=Math.max(-.98,Math.min(.98,y)); }
+  garde.curve = cg; garde.oversample = "none";
+  m.connect(hp); hp.connect(hp2); hp2.connect(comp); comp.connect(lim);
+  lim.connect(sat); sat.connect(garde); garde.connect(off.destination);
   return m;
 }
 function wavStereo(buf){
