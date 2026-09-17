@@ -228,6 +228,34 @@ async def echantillons(page, verifier):
         await page.evaluate("() => { __ctxJeu.decodeAudioData = __decodeVrai; __ech = {}; }")
 
 
+async def clavier_stk(page, verifier):
+    print('SmplTrek chromatique : vrais WAV MIDI et sample sélectionné', flush=True)
+    await page.evaluate(r"""() => {
+      allerMachine('stk'); STK.sel=3; STK.clavierMidi=true; STK.solo=-1;
+      MIDI.base=60; MIDI.canalSy=0;
+      Object.assign(STK.pistes[3],{type:'instrument',ech:'u-clavier',muet:false,niv:.3,tune:.5,filt:1,dec:1,pan:0,slice:false});
+      const b=ctx.createBuffer(1,17640,44100),d=b.getChannelData(0);
+      for(let i=0;i<d.length;i++)d[i]=.6*Math.sin(2*Math.PI*440*i/44100);
+      ES.buf['u-clavier']=b;__ech['u-clavier']=b64De(wavDe(b));
+      memStk();writeMem();allerMachine('mc');ENR.canaux={0:'stk'};ENR.muet={};ENR.solo='';
+    }""")
+    rendu=await page.evaluate(RENDRE,{'nom':'clavier_stk','evts':[[0,0x90,48,127],[1000,0x90,60,127],[2000,0x90,72,127]]})
+    hz=await page.evaluate("[0,1,2].map(t=>{let n=0,a=__rendus.clavier_stk;for(let i=Math.floor((t+.08)*44100);i<Math.floor((t+.18)*44100);i++)if(a[i-1]<=0&&a[i]>0)n++;return n*10;})")
+    verifier(all(abs(a-b)<25 for a,b in zip(hz,[220,440,880])),'WAV exporté : trois hauteurs mesurées %s Hz'%hz)
+    verifier(all(f['rms']>.001 for f in rendu['fenetres']) and rendu['vivant'] and rendu['interfaceActive'] and rendu['midi']==0,'trois notes audibles, contexte restauré et aucune sortie MIDI matérielle pendant export')
+    await page.evaluate(RENDRE,{'nom':'vel_stk','evts':[[0,0x90,60,32],[1000,0x90,60,127]]})
+    ratio=await page.evaluate('__mesure(__rendus.vel_stk,.08,.18,44100).rms/__mesure(__rendus.vel_stk,1.08,1.18,44100).rms')
+    verifier(abs(ratio-32/127)<.03,'vélocité continue dans le WAV : rapport %.4f'%ratio)
+    erreur=await page.evaluate(r"""async () => {
+      delete ES.buf['u-clavier'];__ech['u-clavier']='';
+      ENR.prises=[{nom:'absent',machine:'stk',duree:2300,evts:[[0,0x90,60,127]]}];
+      const n=__exports.length;await exporterPriseWav(0);
+      return {n:__exports.length-n,msg:document.getElementById('signal').textContent,actif:!WAVX.occupe&&!document.body.inert};
+    }""")
+    verifier(erreur['n']==0 and 'u-clavier' in erreur['msg'] and erreur['actif'],'sample manquant : erreur sur la piste Instrument sélectionnée et aucun WAV incomplet')
+    await page.evaluate("ENR.canaux={0:'mc',1:'16'};MIDI.base=36")
+
+
 async def main(racine):
     fautes = []
 
@@ -356,6 +384,7 @@ async def main(racine):
             await page.evaluate("() => { SET.on = false; SET.solo = ''; majToutesVoiesSet(); }")
 
             await echantillons(page, verifier)
+            await clavier_stk(page, verifier)
 
             # Mesurer la vraie sortie live après les exports, pas seulement
             # l'existence de nœuds ou l'absence d'exception JavaScript.

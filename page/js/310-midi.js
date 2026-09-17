@@ -131,6 +131,11 @@ function departEsclave(remise){
   if(!S.run){
     if(typeof MACHINE_MC !== "undefined" && MACHINE_MC) MACHINE_MC.arret();
     if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
+    if(typeof MACHINE_STK !== "undefined" && MACHINE_STK) MACHINE_STK.arret();
+    if(typeof preparerChaineStk === "function" && (MACHINE === MACHINE_STK || (SET.on && SET.actives.stk))){
+      if(!preparerChaineStk()) return;
+      if(STK.song){ step = 0; pasSet = 0; }
+    }
     if(SET.on) preparerSet();
   }
   clearInterval(timer); timer = null;
@@ -319,6 +324,8 @@ function entreeNote(note, vel, canal, cible){
     return;
   }
 
+  if(m === "stk"){ jouerMidiStk(note, vel, canal); return; }
+
   /* les dix machines à percussion : la table qu'elles utilisent pour sortir */
   var r = routageMidi(m);
   if(r){
@@ -406,6 +413,7 @@ function majMidiUI(){
   if(S.modele === "kp" && typeof KP !== "undefined" && KP){
     KP.taps = []; majTempoKp();
   }
+  if(S.modele === "stk" && typeof STK !== "undefined" && STK) majMidiStk();
 }
 /* ---- appareils MIDI (v131) ----
    Le pont Java prévient la page de chaque branchement, débranchement,

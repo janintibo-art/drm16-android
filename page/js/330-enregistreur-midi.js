@@ -294,6 +294,10 @@ function nomSonEnr(note){
    Se rabat sur le nom General MIDI, puis sur le numéro. */
 function nomSonPiste(canal, note){
   var m = ENR.canaux[canal] || S.modele;
+  if(m === "stk"){
+    var cible = cibleMidiStk(note, canal);
+    if(cible && cible.clavier) return "Piste " + (cible.piste + 1) + " · " + nomHauteurStk(cible.hauteur);
+  }
   /* Les Electribe : une base et neuf rangs, avec leurs vrais noms de partie. */
   try{
     var k = note - MIDI.base;

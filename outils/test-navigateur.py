@@ -1822,10 +1822,47 @@ async def stk_instrument(nav):
     finally:
         await contexte.close()
 
+async def stk_midi(nav):
+    print('\n29. SmplTrek : clavier MIDI chromatique (v190)')
+    from pathlib import Path
+    contexte=await nav.new_context(viewport={'width':393,'height':851})
+    await contexte.add_init_script(PONT)
+    adresse=await servir_page(contexte);pg=await contexte.new_page();erreurs=[]
+    pg.on('pageerror',lambda e:erreurs.append(str(e)))
+    try:
+        await pg.goto(adresse);await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=stk]').click()
+        await pg.evaluate("STK.sel=3;MIDI.in=true;MIDI.base=36;MIDI.canalSy=0;ENR.canaux={};majStk()")
+        await pg.locator('#stk-instrument').click();await pg.locator('#stk-midi').click()
+        await pg.evaluate("window.__appels=[];window.__voix=voixStk;voixStk=function(){__appels.push(Array.from(arguments));return __voix.apply(this,arguments);};window.__motifs=JSON.stringify(STK.motifs)")
+        await pg.evaluate("__midi(0x90,24,32);__midi(0x90,36,64);__midi(0x90,48,127);__midi(0x90,49,127);__midi(0x90,36,0);__midi(0x80,36,127)")
+        a=await pg.evaluate('__appels.map(a=>[a[1],a[4],a[5]])')
+        ok(len(a)==3 and [x[:2] for x in a]==[[3,-12],[3,0],[3,12]] and abs(a[0][2]-32/127)<1e-8,'touches reçues : piste sélectionnée, trois hauteurs et vélocité ; hors plage et Note Off ignorés')
+        await pg.evaluate("__midi(0x99,36,100)")
+        ok(await pg.evaluate('__appels.length===4 && __appels[3][1]===0'),'autre canal : routage par pistes conservé')
+        await pg.evaluate("STK.pistes[3].muet=true;__midi(0x90,36,127);STK.pistes[3].muet=false;STK.solo=0;__midi(0x90,36,127);STK.solo=-1;STK.sel=0;__midi(0x90,36,127);STK.sel=3;ENR.canaux[0]='mc';__midi(0x90,36,127);ENR.canaux={}")
+        ok(await pg.evaluate('__appels.length===4 && JSON.stringify(STK.motifs)===__motifs'),'mute, solo, piste SHOTS et affectation MC respectés ; aucun pas écrit')
+        await pg.evaluate('MIDI.base=60;majMidiUI();memMidi();memStk();writeMem()')
+        ok('48–72' in await pg.locator('#stk-midi-info').inner_text(),'plage affichée actualisée avec la note de base')
+        await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=stk]').click()
+        ok(await pg.evaluate('STK.clavierMidi && STK.sel===3 && STK.pistes[3].type==="instrument" && MIDI.base===60'),'mode clavier, sélection et réglages restaurés')
+        await pg.locator('#stk-play').click()
+        ok(await pg.locator('#stk-midi').is_disabled(),'mode MIDI verrouillé pendant PLAY')
+        await pg.locator('#stk-play').click()
+        for w,h in ((393,851),(360,640),(880,400)):
+            await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+            await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('stk-v190-%sx%s.png'%(w,h))))
+        await pg.locator('#stk-midi').click()
+        ok(await pg.evaluate('!STK.clavierMidi && cibleMidiStk(60,0).piste===0'),'désactivation : retour au routage habituel')
+        ok(not erreurs,'aucune erreur de page : '+str(erreurs))
+    finally:
+        await contexte.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi):
             try:
                 await t(nav)
             except Exception as e:

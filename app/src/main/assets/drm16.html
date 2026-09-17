@@ -1546,6 +1546,12 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 .stk-instrument-commandes button,.stk-instrument-commandes select{min-width:0;padding:9px 3px;border:1px solid #454337;border-radius:5px;background:#282830;color:#e8e04a;font:700 9px Arial}
 .stk-instrument-commandes button.on{background:#e8e04a;color:#141410}
 .stk-instrument-commandes :disabled{opacity:.4}
+
+.stk-midi-commandes{display:grid;grid-template-columns:1fr 2.3fr;gap:6px;align-items:center;margin-bottom:8px}
+.stk-midi-commandes button{padding:9px 3px;border:0;border-radius:5px;background:#282830;color:#c0c0c6;font:700 9px Arial}
+.stk-midi-commandes button.on{background:#e8e04a;color:#141410}
+.stk-midi-commandes button:disabled{opacity:.4}
+#stk-midi-info{font:700 8px/1.4 Arial;color:#dfd980}
 /* ===================== OBERHEIM DMX ===================== */
 body.dmx .dmxb{display:block}
 body.dmx #unit,body.dmx .em,body.dmx .er,body.dmx .ea,body.dmx .es,body.dmx .mx,body.dmx .sx,
@@ -3750,6 +3756,10 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <select id="stk-note" aria-label="Hauteur relative au sample en demi-tons"></select>
     <button id="stk-ecouter">ÉCOUTER</button>
   </div>
+  <div class="stk-midi-commandes">
+    <button id="stk-midi" aria-pressed="false">MIDI : PISTES</button>
+    <output id="stk-midi-info" aria-live="polite"></output>
+  </div>
   <div id="stk-tranches" role="group" aria-label="Huit tranches égales du son" hidden></div>
   <div class="stk-motifs-commandes">
     <button id="stk-quantifie" aria-pressed="false">DIRECT</button>
@@ -4810,9 +4820,26 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   sont sauvegardés ; COPIER MOTIF conserve les notes et les tranches. EFFACER
   retire aussi les notes de la piste dans le motif courant.</p>
   <p>Les anciens projets restent en SHOTS, avec des notes à zéro. Utilisez v189
-  ou plus récent pour conserver les notes Instrument dans les projets. Le MIDI
-  garde pour l'instant son routage par piste : une note entrante joue la hauteur
-  sélectionnée sur sa piste, sans nouveau clavier MIDI chromatique.</p>
+  ou plus récent pour conserver les notes Instrument dans les projets.</p>
+
+  <h3>Jouer au clavier MIDI</h3>
+  <p>À l'arrêt, choisissez une piste INSTRUMENT, puis touchez <b>MIDI : PISTES</b>
+  pour activer <b>MIDI : CLAVIER</b>. Les touches du canal mélodique jouent alors
+  le sample de la piste sélectionnée. Le canal et la plage sont affichés à côté.</p>
+  <p>La note de base réglée dans MIDI joue le son à son origine ; les douze notes
+  au-dessous et au-dessus le transposent de −12 à +12 demi-tons. Les notes hors
+  de cette plage sont ignorées. Il n'y a pas de détection de tonalité du sample.
+  TUNE, SLICE, DECAY, FILTER, LEVEL, PAN, MUTE et SOLO restent actifs.</p>
+  <p>La force de frappe règle le volume. Une note joue le son jusqu'à sa fin ou
+  jusqu'à la durée de DECAY : relâcher une touche ne l'arrête pas. Sustain et
+  pitch bend ne sont pas pris en charge. Le clavier n'écrit pas les pas du motif.</p>
+  <p>Les autres canaux gardent le routage par pistes. Sur le canal mélodique,
+  une piste SHOTS sélectionnée reste silencieuse en mode CLAVIER. Désactivez
+  CLAVIER pour retrouver partout le routage habituel. Le choix est sauvegardé.</p>
+  <p>L'affectation des canaux de l'enregistreur MIDI reste prioritaire. La relecture
+  et l'export WAV des prises utilisent la piste sélectionnée et les réglages MIDI
+  actuels : conservez ces choix pour retrouver votre jeu. Les prises ne figent
+  pas les sons ni ces réglages. Utilisez v190 ou plus récent pour ce mode.</p>
 
   <h3>Enchaîner et copier les motifs</h3>
   <p><b>MOTIF</b> affiche les huit choix sur les pads. À l'arrêt, le choix est
@@ -4851,6 +4878,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   après confirmation, sans supprimer les motifs. Une longue liste peut défiler
   horizontalement. Les motifs d'une chaîne doivent tous avoir la même longueur.</p>
   <p>Activez <b>CHAÎNE</b>, puis PLAY. Chaque départ reprend la première entrée.
+  Un START ou CONTINUE MIDI reçu à l’arrêt reprend aussi la première entrée.
   La lecture passe au motif suivant après un tour complet, puis revient au début
   de la liste. Le repère LECTURE indique la position réellement entendue, même
   si plusieurs départs sont déjà préparés pour l'audio.</p>
@@ -4889,8 +4917,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   ni découpage manuel ni timestretch dans cette première version.</p>
   <p>Les tranches, leurs pas et le sample sont mémorisés avec le projet. Incluez les
   samples personnels lors du partage et ouvrez le projet avec la v186 ou une version
-  ultérieure. Un sample absent est signalé et reste silencieux. Le MIDI conserve
-  son routage par piste : une note entrante utilise la tranche actuellement choisie.</p>
+  ultérieure. Un sample absent est signalé et reste silencieux. En MIDI : PISTES,
+  une note entrante utilise la tranche actuellement choisie sur sa piste.</p>
 
   <h3>Écrire</h3>
   <p>Avec SHOTS et SLICE désactivé, les seize pads écrivent les pas de la piste choisie ; toucher un pas allumé l'éteint. Un pas qu'on
@@ -15734,6 +15762,11 @@ function departEsclave(remise){
   if(!S.run){
     if(typeof MACHINE_MC !== "undefined" && MACHINE_MC) MACHINE_MC.arret();
     if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
+    if(typeof MACHINE_STK !== "undefined" && MACHINE_STK) MACHINE_STK.arret();
+    if(typeof preparerChaineStk === "function" && (MACHINE === MACHINE_STK || (SET.on && SET.actives.stk))){
+      if(!preparerChaineStk()) return;
+      if(STK.song){ step = 0; pasSet = 0; }
+    }
     if(SET.on) preparerSet();
   }
   clearInterval(timer); timer = null;
@@ -15922,6 +15955,8 @@ function entreeNote(note, vel, canal, cible){
     return;
   }
 
+  if(m === "stk"){ jouerMidiStk(note, vel, canal); return; }
+
   /* les dix machines à percussion : la table qu'elles utilisent pour sortir */
   var r = routageMidi(m);
   if(r){
@@ -16009,6 +16044,7 @@ function majMidiUI(){
   if(S.modele === "kp" && typeof KP !== "undefined" && KP){
     KP.taps = []; majTempoKp();
   }
+  if(S.modele === "stk" && typeof STK !== "undefined" && STK) majMidiStk();
 }
 /* ---- appareils MIDI (v131) ----
    Le pont Java prévient la page de chaque branchement, débranchement,
@@ -16576,6 +16612,10 @@ function nomSonEnr(note){
    Se rabat sur le nom General MIDI, puis sur le numéro. */
 function nomSonPiste(canal, note){
   var m = ENR.canaux[canal] || S.modele;
+  if(m === "stk"){
+    var cible = cibleMidiStk(note, canal);
+    if(cible && cible.clavier) return "Piste " + (cible.piste + 1) + " · " + nomHauteurStk(cible.hauteur);
+  }
   /* Les Electribe : une base et neuf rangs, avec leurs vrais noms de partie. */
   try{
     var k = note - MIDI.base;
@@ -28072,7 +28112,7 @@ function motifStk(){
 }
 var STK = {pistes:[], motifs:[], cur:0, sel:0, solo:-1, rec:false, pos:-1,
            noeuds:null, chaine:[], chainePos:0, song:false, onde:null, ondePour:"",
-           quantifie:false, attente:null, depart:null, contexte:null, copie:null,
+           clavierMidi:false, quantifie:false, attente:null, depart:null, contexte:null, copie:null,
            chaineDeparts:[], chaineProgramme:-1, chaineContexte:null, chaineTemps:0};
 for(var sz=0; sz<STK_PISTES; sz++) STK.pistes.push(pisteStk(sz));
 for(var sz2=0; sz2<STK_MOTIFS; sz2++) STK.motifs.push(motifStk());
@@ -28216,6 +28256,37 @@ function ecouterInstrumentStk(){
   return true;
 }
 
+/* v190 : une résolution unique pour le jeu MIDI et le contrôle des sons à l'export. */
+function cibleMidiStk(note, canal){
+  if(!Number.isInteger(note) || note < 0 || note > 127) return null;
+  var clavier = STK.clavierMidi && canal === MIDI.canalSy, k, hauteur;
+  if(clavier){
+    k = STK.sel;
+    if(STK.pistes[k].type !== "instrument") return null;
+    hauteur = note - MIDI.base;
+    if(hauteur < -12 || hauteur > 12) return null;
+  } else {
+    k = note - MIDI.base;
+    if(k < 0 || k >= STK_PISTES) k = STK.sel;
+    hauteur = STK.pistes[k].type === "instrument" ? STK.pistes[k].note : 0;
+  }
+  var P = STK.pistes[k];
+  return {piste:k, hauteur:hauteur, tranche:P.slice ? P.tranche : -1, clavier:!!clavier};
+}
+function jouerMidiStk(note, vel, canal){
+  var cible = cibleMidiStk(note, canal);
+  if(!cible || !passeStk(cible.piste) || !(vel > 0)) return false;
+  voixStk(maintenantAudio() + 0.005, cible.piste, true, cible.tranche, cible.hauteur, Math.min(1,vel));
+  return true;
+}
+function modeMidiStk(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER LE ROUTAGE MIDI"); return false; }
+  if(!STK.clavierMidi && pisteStkSel().type !== "instrument"){
+    signal("CHOISISSEZ UNE PISTE INSTRUMENT"); return false;
+  }
+  STK.clavierMidi = !STK.clavierMidi; memStk(); majStk(); return true;
+}
+
 /* v186 : huit tranches égales, sans création ni modification du fichier source.
    -1 dans un pas conserve le son entier des anciens projets. */
 function numeroTrancheStk(v){
@@ -28251,7 +28322,7 @@ function passeStk(i){
   return !STK.pistes[i].muet;
 }
 
-function voixStk(t, i, acc, tranche, note){
+function voixStk(t, i, acc, tranche, note, velocite){
   audioInit(); if(!ctx) return;
   banqueEs();
   var P = STK.pistes[i];
@@ -28274,7 +28345,7 @@ function voixStk(t, i, acc, tranche, note){
   var portion = (bornes.fin - bornes.debut) / buf.sampleRate;
   var duree = partie < 0 ? Math.max(0.03, (buf.duration / src.playbackRate.value) * Math.max(0.05, P.dec))
     : portion / src.playbackRate.value * Math.max(0.05, P.dec);
-  var pic = P.niv * (acc ? 1 : 0.72);
+  var pic = P.niv * (typeof velocite === "number" ? Math.max(0,Math.min(1,velocite)) : (acc ? 1 : 0.72));
   g.gain.setValueAtTime(0.0001, t);
   var attaque = Math.min(0.002, duree * 0.1);
   g.gain.linearRampToValueAtTime(Math.max(0.0001, pic), t + attaque);
@@ -28340,7 +28411,7 @@ var MACHINE_STK = {schedule:scheduleStk, beat:beatStk, arret:arretStk,
 
 function memStk(){
   if(validerDepartStk()) majStk();
-  memoire.stk = {song:STK.song, quantifie:STK.quantifie, cur:STK.cur, sel:STK.sel, chaine:STK.chaine.slice(),
+  memoire.stk = {clavierMidi:STK.clavierMidi, song:STK.song, quantifie:STK.quantifie, cur:STK.cur, sel:STK.sel, chaine:STK.chaine.slice(),
     pistes:STK.pistes.map(function(P){
       return {ech:P.ech, type:P.type, note:P.note, slice:P.slice, tranche:P.tranche, niv:P.niv, pan:P.pan, tune:P.tune, dec:P.dec, filt:P.filt, muet:P.muet};
     }),
@@ -28354,6 +28425,7 @@ function chargerStk(){
   viderAttenteStk(); viderLectureChaineStk(); STK.song = false; STK.chainePos = 0;
   var m = memLire("stk");
   if(!m || typeof m !== "object" || Array.isArray(m)) return;
+  STK.clavierMidi = m.clavierMidi === true;
   STK.quantifie = m.quantifie === true;
   STK.cur = Math.floor(nombreStk(m.cur, 0, STK_MOTIFS - 1, 0));
   STK.sel = Math.floor(nombreStk(m.sel, 0, STK_PISTES - 1, 0));
@@ -29020,6 +29092,15 @@ function majTranchesStk(){
   document.getElementById("stk-source").textContent = buf ? nomBib(P.ech) : "SON ABSENT · " + P.ech;
   if(cacheAvant !== grille.hidden && S.modele === "stk") fit();
 }
+function majMidiStk(){
+  var b = document.getElementById("stk-midi"), info = document.getElementById("stk-midi-info");
+  if(!b || !info) return;
+  b.textContent = STK.clavierMidi ? "MIDI : CLAVIER" : "MIDI : PISTES";
+  b.classList.toggle("on", STK.clavierMidi); b.setAttribute("aria-pressed", String(STK.clavierMidi)); b.disabled = S.run;
+  info.textContent = STK.clavierMidi ? (pisteStkSel().type !== "instrument" ? "CHOISISSEZ UNE PISTE INSTRUMENT" :
+    "PISTE " + (STK.sel + 1) + " · CANAL " + (MIDI.canalSy + 1) + " · ORIGINE " + MIDI.base +
+    " · NOTES " + Math.max(0,MIDI.base - 12) + "–" + Math.min(127,MIDI.base + 12)) : "UNE TOUCHE PAR PISTE · BASE " + MIDI.base;
+}
 function majInstrumentStk(){
   var P = pisteStkSel(), actif = P.type === "instrument";
   var mode = document.getElementById("stk-instrument"), choix = document.getElementById("stk-note");
@@ -29119,7 +29200,7 @@ function majStk(){
     : pisteStkSel().slice ? "Choisissez TR 1–8, puis un pas : écrire, remplacer ou retirer cette tranche."
     : "Les pads écrivent les pas de la piste " + (STK.sel + 1) +
       ". Retoucher une piste choisie la coupe.";
-  majInstrumentStk(); majChaineStk(); majTranchesStk(); dessinerStk();
+  majMidiStk(); majInstrumentStk(); majChaineStk(); majTranchesStk(); dessinerStk();
 }
 function padStk(k){
   if(!Number.isInteger(k) || k < 0 || k >= 16) return;
@@ -29175,6 +29256,7 @@ document.getElementById("stk-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
   majStk(); H.start();
 });
+document.getElementById("stk-midi").addEventListener("click", modeMidiStk);
 document.getElementById("stk-instrument").addEventListener("click", modeInstrumentStk);
 document.getElementById("stk-note").addEventListener("change", function(){ choisirNoteStk(Number(this.value)); });
 document.getElementById("stk-ecouter").addEventListener("click", ecouterInstrumentStk);
@@ -29496,11 +29578,13 @@ function verifierSonNotePrise(m, note, canal){
     k = canal !== MIDI.canal ? 10 + Math.min(1, canal) : (note >= 36 && note <= 44 ? note-36 : SX.sel);
     if(canal === MIDI.canal && k > 8) k = 0;
     p = SX.pat.son[k]; id = p && p.ech;
-  }else if(["mpc3000","mpc2000","stk","ko","arcm","vlc","t1k"].indexOf(m) >= 0){
+  }else if(m === "stk"){
+    var cible = cibleMidiStk(note, canal);
+    if(cible && passeStk(cible.piste)){ p = STK.pistes[cible.piste]; id = p && p.ech; }
+  }else if(["mpc3000","mpc2000","ko","arcm","vlc","t1k"].indexOf(m) >= 0){
     var r = routageMidi(m); k = rangMidi(r, note); if(k < 0) k = r.defaut();
     if(m === "mpc3000" || m === "mpc2000"){
       if(pisteCourante().type === 0){ p = MPC.pads[k]; id = p && p.ech; }
-    }else if(m === "stk"){ p = STK.pistes[k]; id = p && p.ech;
     }else if(m === "ko"){ id = KO.sons[k];
     }else if(m === "arcm"){ p = motifArcmCur().pistes[k]; id = p && p.ech;
     }else if(m === "vlc"){ p = motifVlcCur().parties[k]; if(p && !p.f.mute) id = p.ech;

@@ -305,3 +305,13 @@ async function verifierBusRendu() {
 }
 
 verifierBusRendu().catch(err=>{console.error(err);process.exitCode=1;});
+
+// v190 : START/CONTINUE MIDI prépare aussi la chaîne SmplTrek arrêtée.
+{
+ const {c}=fixture();let prepares=0,arrets=0;
+ c.STK={song:true};c.MACHINE_STK={arret(){arrets++;}};c.MACHINE=c.MACHINE_STK;
+ c.preparerChaineStk=()=>{prepares++;return true;};c.step=9;c.pasSet=41;
+ c.departEsclave(false);assert.equal(prepares,1);assert.equal(arrets,1);
+ assert(c.S.run);assert.equal(c.step,0);assert.equal(c.pasSet,0);
+ c.S.run=false;c.preparerChaineStk=()=>false;c.departEsclave(false);assert(!c.S.run,'chaîne invalide non démarrée par MIDI');
+}

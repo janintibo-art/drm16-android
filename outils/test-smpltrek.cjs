@@ -4,7 +4,7 @@ const source=fs.readFileSync(path.join(__dirname,'../page/js/590-smpltrek-dix-pi
 const moteur=source.slice(0,source.indexOf('/* ---------- la façade du KAOSS PAD'));
 const copie=o=>JSON.parse(JSON.stringify(o));
 function setup(m){
- const c={S:{modele:'stk',run:false},ctx:{},now:1,confirmation:true,
+ const c={S:{modele:'stk',run:false},MIDI:{base:36,canalSy:0},ctx:{},now:1,confirmation:true,
   maintenantAudio(){return c.now;},window:{confirm(){return c.confirmation;}},document:{querySelectorAll(){return [];}},SET:{on:false,actives:{}},ES:{buf:{uessai:{length:17}}},memoire:{stk:m},queue:[],cache:false,
   memLire(){return c.memoire.stk;},sauverMachine(){},banqueEs(){},signal(){},majStk(){},
   ouvrirPas(){return 0;},attenuerVoie(){}};
@@ -159,3 +159,23 @@ console.log('SmplTrek v188 : répétitions, plusieurs départs anticipés, posit
  assert.equal(c.STK.pistes[0].type,'shots');assert(c.STK.motifs[0].notes[0].every(n=>n===0));
 }
 console.log('SmplTrek v189 : notes, copies indépendantes, migration et type Instrument OK.');
+
+// v190 : le canal mélodique vise une piste Instrument, les autres gardent le plan par pistes.
+{
+ const c=setup(),s=c.STK,sons=[];s.sel=3;s.pistes[3].type='instrument';s.pistes[3].note=4;s.pistes[3].slice=true;s.pistes[3].tranche=7;
+ assert(c.modeMidiStk());c.voixStk=(...a)=>sons.push(a);
+ const avant=copie(s.motifs),noteChoisie=s.pistes[3].note;
+ for(const n of [24,36,48])assert(c.jouerMidiStk(n,.4,0));
+ assert.deepStrictEqual(sons.map(a=>[a[1],a[3],a[4],a[5]]),[[3,7,-12,.4],[3,7,0,.4],[3,7,12,.4]]);
+ for(const n of [23,49,-1,128,2.5])assert(!c.jouerMidiStk(n,1,0));
+ assert(!c.jouerMidiStk(36,0,0));assert.equal(sons.length,3);
+ assert(c.jouerMidiStk(44,.8,9));assert.equal(sons.at(-1)[1],8,'autre canal : note de base + rang de piste');
+ s.pistes[3].muet=true;assert(!c.jouerMidiStk(36,1,0));s.pistes[3].muet=false;s.solo=0;assert(!c.jouerMidiStk(36,1,0));s.solo=-1;
+ assert.deepStrictEqual(copie(s.motifs),avant);assert.equal(s.pistes[3].note,noteChoisie,'pas d’écriture implicite');
+ s.sel=2;assert.equal(c.cibleMidiStk(36,0),null,'pas de repli percussif sur canal clavier avec piste SHOTS');s.sel=3;
+ c.memStk();const d=setup(copie(c.memoire.stk));d.chargerStk();assert(d.STK.clavierMidi);
+ c.S.run=true;assert(!c.modeMidiStk());c.S.run=false;assert(c.modeMidiStk());
+ assert(c.jouerMidiStk(36,1,0));assert.equal(sons.at(-1)[1],0,'mode PISTES restauré');
+ c.MIDI.base=60;assert(c.modeMidiStk());assert.equal(c.cibleMidiStk(72,0).hauteur,12);
+}
+console.log('SmplTrek v190 : routage clavier/pistes, plage, canal, vélocité, mute/solo et mémoire OK.');

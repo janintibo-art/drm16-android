@@ -163,11 +163,13 @@ function verifierSonNotePrise(m, note, canal){
     k = canal !== MIDI.canal ? 10 + Math.min(1, canal) : (note >= 36 && note <= 44 ? note-36 : SX.sel);
     if(canal === MIDI.canal && k > 8) k = 0;
     p = SX.pat.son[k]; id = p && p.ech;
-  }else if(["mpc3000","mpc2000","stk","ko","arcm","vlc","t1k"].indexOf(m) >= 0){
+  }else if(m === "stk"){
+    var cible = cibleMidiStk(note, canal);
+    if(cible && passeStk(cible.piste)){ p = STK.pistes[cible.piste]; id = p && p.ech; }
+  }else if(["mpc3000","mpc2000","ko","arcm","vlc","t1k"].indexOf(m) >= 0){
     var r = routageMidi(m); k = rangMidi(r, note); if(k < 0) k = r.defaut();
     if(m === "mpc3000" || m === "mpc2000"){
       if(pisteCourante().type === 0){ p = MPC.pads[k]; id = p && p.ech; }
-    }else if(m === "stk"){ p = STK.pistes[k]; id = p && p.ech;
     }else if(m === "ko"){ id = KO.sons[k];
     }else if(m === "arcm"){ p = motifArcmCur().pistes[k]; id = p && p.ech;
     }else if(m === "vlc"){ p = motifVlcCur().parties[k]; if(p && !p.f.mute) id = p.ech;

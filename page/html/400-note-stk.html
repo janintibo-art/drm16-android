@@ -43,9 +43,26 @@
   sont sauvegardés ; COPIER MOTIF conserve les notes et les tranches. EFFACER
   retire aussi les notes de la piste dans le motif courant.</p>
   <p>Les anciens projets restent en SHOTS, avec des notes à zéro. Utilisez v189
-  ou plus récent pour conserver les notes Instrument dans les projets. Le MIDI
-  garde pour l'instant son routage par piste : une note entrante joue la hauteur
-  sélectionnée sur sa piste, sans nouveau clavier MIDI chromatique.</p>
+  ou plus récent pour conserver les notes Instrument dans les projets.</p>
+
+  <h3>Jouer au clavier MIDI</h3>
+  <p>À l'arrêt, choisissez une piste INSTRUMENT, puis touchez <b>MIDI : PISTES</b>
+  pour activer <b>MIDI : CLAVIER</b>. Les touches du canal mélodique jouent alors
+  le sample de la piste sélectionnée. Le canal et la plage sont affichés à côté.</p>
+  <p>La note de base réglée dans MIDI joue le son à son origine ; les douze notes
+  au-dessous et au-dessus le transposent de −12 à +12 demi-tons. Les notes hors
+  de cette plage sont ignorées. Il n'y a pas de détection de tonalité du sample.
+  TUNE, SLICE, DECAY, FILTER, LEVEL, PAN, MUTE et SOLO restent actifs.</p>
+  <p>La force de frappe règle le volume. Une note joue le son jusqu'à sa fin ou
+  jusqu'à la durée de DECAY : relâcher une touche ne l'arrête pas. Sustain et
+  pitch bend ne sont pas pris en charge. Le clavier n'écrit pas les pas du motif.</p>
+  <p>Les autres canaux gardent le routage par pistes. Sur le canal mélodique,
+  une piste SHOTS sélectionnée reste silencieuse en mode CLAVIER. Désactivez
+  CLAVIER pour retrouver partout le routage habituel. Le choix est sauvegardé.</p>
+  <p>L'affectation des canaux de l'enregistreur MIDI reste prioritaire. La relecture
+  et l'export WAV des prises utilisent la piste sélectionnée et les réglages MIDI
+  actuels : conservez ces choix pour retrouver votre jeu. Les prises ne figent
+  pas les sons ni ces réglages. Utilisez v190 ou plus récent pour ce mode.</p>
 
   <h3>Enchaîner et copier les motifs</h3>
   <p><b>MOTIF</b> affiche les huit choix sur les pads. À l'arrêt, le choix est
@@ -84,6 +101,7 @@
   après confirmation, sans supprimer les motifs. Une longue liste peut défiler
   horizontalement. Les motifs d'une chaîne doivent tous avoir la même longueur.</p>
   <p>Activez <b>CHAÎNE</b>, puis PLAY. Chaque départ reprend la première entrée.
+  Un START ou CONTINUE MIDI reçu à l’arrêt reprend aussi la première entrée.
   La lecture passe au motif suivant après un tour complet, puis revient au début
   de la liste. Le repère LECTURE indique la position réellement entendue, même
   si plusieurs départs sont déjà préparés pour l'audio.</p>
@@ -122,8 +140,8 @@
   ni découpage manuel ni timestretch dans cette première version.</p>
   <p>Les tranches, leurs pas et le sample sont mémorisés avec le projet. Incluez les
   samples personnels lors du partage et ouvrez le projet avec la v186 ou une version
-  ultérieure. Un sample absent est signalé et reste silencieux. Le MIDI conserve
-  son routage par piste : une note entrante utilise la tranche actuellement choisie.</p>
+  ultérieure. Un sample absent est signalé et reste silencieux. En MIDI : PISTES,
+  une note entrante utilise la tranche actuellement choisie sur sa piste.</p>
 
   <h3>Écrire</h3>
   <p>Avec SHOTS et SLICE désactivé, les seize pads écrivent les pas de la piste choisie ; toucher un pas allumé l'éteint. Un pas qu'on

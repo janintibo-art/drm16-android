@@ -20,7 +20,7 @@ function motifStk(){
 }
 var STK = {pistes:[], motifs:[], cur:0, sel:0, solo:-1, rec:false, pos:-1,
            noeuds:null, chaine:[], chainePos:0, song:false, onde:null, ondePour:"",
-           quantifie:false, attente:null, depart:null, contexte:null, copie:null,
+           clavierMidi:false, quantifie:false, attente:null, depart:null, contexte:null, copie:null,
            chaineDeparts:[], chaineProgramme:-1, chaineContexte:null, chaineTemps:0};
 for(var sz=0; sz<STK_PISTES; sz++) STK.pistes.push(pisteStk(sz));
 for(var sz2=0; sz2<STK_MOTIFS; sz2++) STK.motifs.push(motifStk());
@@ -164,6 +164,37 @@ function ecouterInstrumentStk(){
   return true;
 }
 
+/* v190 : une résolution unique pour le jeu MIDI et le contrôle des sons à l'export. */
+function cibleMidiStk(note, canal){
+  if(!Number.isInteger(note) || note < 0 || note > 127) return null;
+  var clavier = STK.clavierMidi && canal === MIDI.canalSy, k, hauteur;
+  if(clavier){
+    k = STK.sel;
+    if(STK.pistes[k].type !== "instrument") return null;
+    hauteur = note - MIDI.base;
+    if(hauteur < -12 || hauteur > 12) return null;
+  } else {
+    k = note - MIDI.base;
+    if(k < 0 || k >= STK_PISTES) k = STK.sel;
+    hauteur = STK.pistes[k].type === "instrument" ? STK.pistes[k].note : 0;
+  }
+  var P = STK.pistes[k];
+  return {piste:k, hauteur:hauteur, tranche:P.slice ? P.tranche : -1, clavier:!!clavier};
+}
+function jouerMidiStk(note, vel, canal){
+  var cible = cibleMidiStk(note, canal);
+  if(!cible || !passeStk(cible.piste) || !(vel > 0)) return false;
+  voixStk(maintenantAudio() + 0.005, cible.piste, true, cible.tranche, cible.hauteur, Math.min(1,vel));
+  return true;
+}
+function modeMidiStk(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER LE ROUTAGE MIDI"); return false; }
+  if(!STK.clavierMidi && pisteStkSel().type !== "instrument"){
+    signal("CHOISISSEZ UNE PISTE INSTRUMENT"); return false;
+  }
+  STK.clavierMidi = !STK.clavierMidi; memStk(); majStk(); return true;
+}
+
 /* v186 : huit tranches égales, sans création ni modification du fichier source.
    -1 dans un pas conserve le son entier des anciens projets. */
 function numeroTrancheStk(v){
@@ -199,7 +230,7 @@ function passeStk(i){
   return !STK.pistes[i].muet;
 }
 
-function voixStk(t, i, acc, tranche, note){
+function voixStk(t, i, acc, tranche, note, velocite){
   audioInit(); if(!ctx) return;
   banqueEs();
   var P = STK.pistes[i];
@@ -222,7 +253,7 @@ function voixStk(t, i, acc, tranche, note){
   var portion = (bornes.fin - bornes.debut) / buf.sampleRate;
   var duree = partie < 0 ? Math.max(0.03, (buf.duration / src.playbackRate.value) * Math.max(0.05, P.dec))
     : portion / src.playbackRate.value * Math.max(0.05, P.dec);
-  var pic = P.niv * (acc ? 1 : 0.72);
+  var pic = P.niv * (typeof velocite === "number" ? Math.max(0,Math.min(1,velocite)) : (acc ? 1 : 0.72));
   g.gain.setValueAtTime(0.0001, t);
   var attaque = Math.min(0.002, duree * 0.1);
   g.gain.linearRampToValueAtTime(Math.max(0.0001, pic), t + attaque);
@@ -288,7 +319,7 @@ var MACHINE_STK = {schedule:scheduleStk, beat:beatStk, arret:arretStk,
 
 function memStk(){
   if(validerDepartStk()) majStk();
-  memoire.stk = {song:STK.song, quantifie:STK.quantifie, cur:STK.cur, sel:STK.sel, chaine:STK.chaine.slice(),
+  memoire.stk = {clavierMidi:STK.clavierMidi, song:STK.song, quantifie:STK.quantifie, cur:STK.cur, sel:STK.sel, chaine:STK.chaine.slice(),
     pistes:STK.pistes.map(function(P){
       return {ech:P.ech, type:P.type, note:P.note, slice:P.slice, tranche:P.tranche, niv:P.niv, pan:P.pan, tune:P.tune, dec:P.dec, filt:P.filt, muet:P.muet};
     }),
@@ -302,6 +333,7 @@ function chargerStk(){
   viderAttenteStk(); viderLectureChaineStk(); STK.song = false; STK.chainePos = 0;
   var m = memLire("stk");
   if(!m || typeof m !== "object" || Array.isArray(m)) return;
+  STK.clavierMidi = m.clavierMidi === true;
   STK.quantifie = m.quantifie === true;
   STK.cur = Math.floor(nombreStk(m.cur, 0, STK_MOTIFS - 1, 0));
   STK.sel = Math.floor(nombreStk(m.sel, 0, STK_PISTES - 1, 0));
@@ -968,6 +1000,15 @@ function majTranchesStk(){
   document.getElementById("stk-source").textContent = buf ? nomBib(P.ech) : "SON ABSENT · " + P.ech;
   if(cacheAvant !== grille.hidden && S.modele === "stk") fit();
 }
+function majMidiStk(){
+  var b = document.getElementById("stk-midi"), info = document.getElementById("stk-midi-info");
+  if(!b || !info) return;
+  b.textContent = STK.clavierMidi ? "MIDI : CLAVIER" : "MIDI : PISTES";
+  b.classList.toggle("on", STK.clavierMidi); b.setAttribute("aria-pressed", String(STK.clavierMidi)); b.disabled = S.run;
+  info.textContent = STK.clavierMidi ? (pisteStkSel().type !== "instrument" ? "CHOISISSEZ UNE PISTE INSTRUMENT" :
+    "PISTE " + (STK.sel + 1) + " · CANAL " + (MIDI.canalSy + 1) + " · ORIGINE " + MIDI.base +
+    " · NOTES " + Math.max(0,MIDI.base - 12) + "–" + Math.min(127,MIDI.base + 12)) : "UNE TOUCHE PAR PISTE · BASE " + MIDI.base;
+}
 function majInstrumentStk(){
   var P = pisteStkSel(), actif = P.type === "instrument";
   var mode = document.getElementById("stk-instrument"), choix = document.getElementById("stk-note");
@@ -1067,7 +1108,7 @@ function majStk(){
     : pisteStkSel().slice ? "Choisissez TR 1–8, puis un pas : écrire, remplacer ou retirer cette tranche."
     : "Les pads écrivent les pas de la piste " + (STK.sel + 1) +
       ". Retoucher une piste choisie la coupe.";
-  majInstrumentStk(); majChaineStk(); majTranchesStk(); dessinerStk();
+  majMidiStk(); majInstrumentStk(); majChaineStk(); majTranchesStk(); dessinerStk();
 }
 function padStk(k){
   if(!Number.isInteger(k) || k < 0 || k >= 16) return;
@@ -1123,6 +1164,7 @@ document.getElementById("stk-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
   majStk(); H.start();
 });
+document.getElementById("stk-midi").addEventListener("click", modeMidiStk);
 document.getElementById("stk-instrument").addEventListener("click", modeInstrumentStk);
 document.getElementById("stk-note").addEventListener("change", function(){ choisirNoteStk(Number(this.value)); });
 document.getElementById("stk-ecouter").addEventListener("click", ecouterInstrumentStk);
