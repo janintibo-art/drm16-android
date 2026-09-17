@@ -57,3 +57,6 @@ body.dbi-col .dbi-kn .bt i{background:#ff9a44}
 .pick.pdbi{background:linear-gradient(165deg,#4a5260,#20242b 55%,#e07a1e)}
 .pick.pdbi b{color:#ffc089;text-shadow:0 2px 0 #1a1d22}
 .pick.pdbi span{color:#b9c3d0}
+
+/* Repère indépendant du témoin blanc de lecture. */
+.dbi-pas button.colore{border-bottom:3px solid #5fe5e1}

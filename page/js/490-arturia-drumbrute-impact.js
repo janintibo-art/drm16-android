@@ -24,7 +24,7 @@ var DBI_VOIX = [
 ];
 var DBI_MIDI = [36, 38, 40, 45, 49, 42, 46, 39];
 function pisteDbi(i){
-  return {pas:0, acc:0, pasPlus:[0,0,0], accPlus:[0,0,0], len:16,
+  return {pas:0, acc:0, pasPlus:[0,0,0], accPlus:[0,0,0], col:0, colPlus:[0,0,0], colorPar:{}, len:16,
           p:{dec:0.5, pit:0.5, ton:0.5, niv:0.8, drive:0, body:0.3, clap:0,
              harm:0.3, mpit:0.5, fmamt:0.4, penv:0.3},
           type:0};
@@ -42,7 +42,7 @@ function motifDbi(n){
   }
   return m;
 }
-var DBI = {motifs:[], cur:0, sel:0, color:false, poly:false, roller:false, rec:false,
+var DBI = {motifs:[], cur:0, sel:0, color:false, colorSteps:false, poly:false, roller:false, rec:false,
            swing:0, random:0, drive:0.25, dist:false, accent:false,
            page:0, pos:-1, noeuds:{}, ohGain:null, distNode:null};
 for(var dbz=0; dbz<16; dbz++) DBI.motifs.push(motifDbi(dbz < 2 ? dbz : 9));
@@ -109,13 +109,29 @@ function majDistDbi(){
   DBI.noeuds.sec.gain.value = 1 - m * 0.8;
   DBI.noeuds.hum.gain.value = m * 0.9;
 }
-function voixDbi(t, k, acc){
+/* La variation utilise une copie des paramètres : les pas voisins et les
+   anciens motifs gardent leur son. Ces valeurs restent une interprétation
+   logicielle des timbres, pas un modèle électrique de la machine. */
+function valeurCouleurDbi(P, nom){
+  if(P.colorPar && Number.isFinite(P.colorPar[nom])) return P.colorPar[nom];
+  return P.p[nom] + (1 - P.p[nom]) * 0.5;
+}
+function parametresCouleurDbi(P, k, couleur){
+  if(!couleur) return P.p;
+  var p = Object.assign({}, P.p);
+  DBI_VOIX[k].col.forEach(function(kn){ p[kn[0]] = valeurCouleurDbi(P, kn[0]); });
+  return p;
+}
+function editeCouleurDbi(k, nom){
+  return DBI.colorSteps && DBI_VOIX[k].col.some(function(kn){ return kn[0] === nom; });
+}
+function voixDbi(t, k, acc, couleur){
   var V = DBI_VOIX[k], P = motifDbiCur().pistes[k];
   var dest = pasVoie(sortieDbi());
   var niv = mv("niv", P.p.niv) * (acc ? 1 : 0.68);
   var g = ctx.createGain();
   g.connect(dest);
-  var p = P.p;
+  var p = parametresCouleurDbi(P, k, couleur);
 
   if(V.id === "kick"){
     var f0 = 36 + p.pit * 46, dec = 0.12 + p.dec * 1.0;
@@ -223,13 +239,14 @@ function voixDbi(t, k, acc){
 function frapperDbi(k, acc){
   audioInit();
   if(!ctx) return;
-  voixDbi(maintenantAudio() + 0.005, k, acc);
+  voixDbi(maintenantAudio() + 0.005, k, acc, DBI.colorSteps);
   if(S.run && DBI.rec){
     var P = motifDbiCur().pistes[k];
     var j = pasLePlusProche(DBI.pos, longueurPisteDbi(P));
     if(j >= 0){
       ecrirePasDbi(P, "pas", j, true);
       if(acc) ecrirePasDbi(P, "acc", j, true);
+      ecrirePasDbi(P, "col", j, DBI.colorSteps);
       majDbi(); memDbi();
     }
   }
@@ -270,9 +287,9 @@ function scheduleDbi(i, t){
     }
     if(!joue) continue;
     var acc = lirePasDbi(P, "acc", s);
-    CHARGE_N++, voixDbi(t, k, acc);
+    CHARGE_N++, voixDbi(t, k, acc, lirePasDbi(P, "col", s));
     if(DBI.roller && k === DBI.sel){
-      CHARGE_N++, voixDbi(t + stepDur() / 2, k, false);     /* roulement sur la piste choisie */
+      CHARGE_N++, voixDbi(t + stepDur() / 2, k, false, lirePasDbi(P, "col", s));     /* roulement sur la piste choisie */
     }
   }
   if(!cache) queue.push({i:i, t:t});
@@ -342,12 +359,13 @@ var DBI_KNOBS = [];
     if(!b2) return;
     var i2 = DBI.page * 16 + (+b2.dataset.i), P = pisteDbiSel();
     if(i2 >= longueurPisteDbi(P)){ signal("AUGMENTEZ LAST STEP OU TRACK LEN"); return; }
-    if(DBI.accent) ecrirePasDbi(P, "acc", i2, !lirePasDbi(P, "acc", i2));
+    if(DBI.colorSteps) ecrirePasDbi(P, "col", i2, !lirePasDbi(P, "col", i2));
+    else if(DBI.accent) ecrirePasDbi(P, "acc", i2, !lirePasDbi(P, "acc", i2));
     else {
       ecrirePasDbi(P, "pas", i2, !lirePasDbi(P, "pas", i2));
       if(!S.run && lirePasDbi(P, "pas", i2)){
         audioInit();
-        voixDbi(maintenantAudio() + 0.01, DBI.sel, lirePasDbi(P, "acc", i2));
+        voixDbi(maintenantAudio() + 0.01, DBI.sel, lirePasDbi(P, "acc", i2), lirePasDbi(P, "col", i2));
       }
     }
     majDbi(); memDbi(); H.cran();
@@ -356,9 +374,14 @@ var DBI_KNOBS = [];
 
 function knobDbi(k, nom, etiq){
   return knobEm("dbi-k-" + k + "-" + nom, {min:0, max:1,
-    get:function(){ return motifDbiCur().pistes[k].p[nom]; },
+    get:function(){
+      var P = motifDbiCur().pistes[k];
+      return editeCouleurDbi(k, nom) ? valeurCouleurDbi(P, nom) : P.p[nom];
+    },
     set:function(v){
-      motifDbiCur().pistes[k].p[nom] = v;
+      var P = motifDbiCur().pistes[k];
+      if(editeCouleurDbi(k, nom)) P.colorPar[nom] = Math.max(0, Math.min(1, v));
+      else P.p[nom] = v;
       lcdDbi(String(Math.round(v * 100)), DBI_VOIX[k].nom + " " + etiq, true);
       memDbi();
     }});
@@ -398,8 +421,9 @@ function majDbi(){
   var P = pisteDbiSel(), m = motifDbiCur(), i;
   var lg = DBI.poly ? (P.len || 16) : m.last;
   for(i=0;i<16;i++){
-    dbiPas[i].classList.toggle("act", lirePasDbi(P, DBI.accent ? "acc" : "pas", DBI.page * 16 + i));
+    dbiPas[i].classList.toggle("act", lirePasDbi(P, DBI.colorSteps ? "col" : (DBI.accent ? "acc" : "pas"), DBI.page * 16 + i));
     dbiPas[i].classList.toggle("hors", DBI.page * 16 + i >= lg);
+    dbiPas[i].classList.toggle("colore", lirePasDbi(P, "col", DBI.page * 16 + i));
     dbiPas[i].textContent = String(DBI.page * 16 + i + 1);
     dbiPas[i].setAttribute("aria-label", "Pas " + (DBI.page * 16 + i + 1));
     dbiPas[i].classList.toggle("cur", DBI.pos >= 0 && DBI.page * 16 + i === DBI.pos % lg);
@@ -422,6 +446,8 @@ function majDbi(){
     var V = DBI_VOIX[+tys[i].dataset.t];
     tys[i].textContent = V.type[motifDbiCur().pistes[+tys[i].dataset.t].type];
   }
+  document.getElementById("dbi-color-steps").classList.toggle("on", DBI.colorSteps);
+  document.getElementById("dbi-color-steps").setAttribute("aria-pressed", String(DBI.colorSteps));
   document.getElementById("dbi-color").classList.toggle("on", DBI.color);
   document.getElementById("dbi-poly").classList.toggle("on", DBI.poly);
   document.getElementById("dbi-roller").classList.toggle("on", DBI.roller);
@@ -438,7 +464,7 @@ function memDbi(){
     drive:DBI.drive, dist:DBI.dist, poly:DBI.poly,
     motifs:DBI.motifs.map(function(m){
       return {last:m.last, pistes:m.pistes.map(function(P){
-        return {pas:P.pas, acc:P.acc, pasPlus:P.pasPlus.slice(), accPlus:P.accPlus.slice(), len:P.len, type:P.type, p:P.p};
+        return {pas:P.pas, acc:P.acc, pasPlus:P.pasPlus.slice(), accPlus:P.accPlus.slice(), col:P.col, colPlus:P.colPlus.slice(), colorPar:Object.assign({}, P.colorPar), len:P.len, type:P.type, p:P.p};
       })};
     })};
   sauverMachine("dbi");
@@ -447,7 +473,7 @@ function chargerDbi(){
   DBI.motifs = [];
   for(var i=0;i<16;i++) DBI.motifs.push(motifDbi(i < 2 ? i : 9));
   DBI.page = 0; DBI.pos = -1; DBI.rec = false; DBI.roller = false;
-  DBI.cur = 0; DBI.sel = 0; DBI.color = false; DBI.accent = false;
+  DBI.cur = 0; DBI.sel = 0; DBI.color = false; DBI.colorSteps = false; DBI.accent = false;
   var m = memLire("dbi");
   if(m){
     if(m.motifs && m.motifs.length === 16){
@@ -458,10 +484,15 @@ function chargerDbi(){
           if(k >= 8) return;
           var d = r.pistes[k];
           d.pas = (P.pas || 0) & 65535; d.acc = (P.acc || 0) & 65535;
-          ["pasPlus","accPlus"].forEach(function(champ){
+          ["pasPlus","accPlus","colPlus"].forEach(function(champ){
             d[champ] = [0,1,2].map(function(i){
               return Array.isArray(P[champ]) ? (P[champ][i] || 0) & 65535 : 0;
             });
+          });
+          d.col = (P.col || 0) & 65535;
+          if(P.colorPar) DBI_VOIX[k].col.forEach(function(kn){
+            var v = P.colorPar[kn[0]];
+            if(Number.isFinite(v)) d.colorPar[kn[0]] = Math.max(0, Math.min(1, v));
           });
           d.len = bornerLongueurDbi(P.len); d.type = P.type === 1 ? 1 : 0;
           if(P.p) for(var q in P.p) if(d.p[q] !== undefined) d.p[q] = P.p[q];
@@ -489,8 +520,16 @@ document.getElementById("dbi-rec").addEventListener("click", function(){
   DBI.rec = !DBI.rec; majDbi(); H.inter();
 });
 document.getElementById("dbi-color").addEventListener("click", function(){
-  DBI.color = !DBI.color; majDbi(); majKnobsDbi(); H.inter();
+  DBI.color = !DBI.color;
+  if(!DBI.color) DBI.colorSteps = false;
+  majDbi(); majKnobsDbi(); H.inter();
   signal(DBI.color ? "COULEUR : SECONDE COUCHE DE RÉGLAGES" : "RÉGLAGES PRINCIPAUX");
+});
+document.getElementById("dbi-color-steps").addEventListener("click", function(){
+  DBI.colorSteps = !DBI.colorSteps;
+  if(DBI.colorSteps){ DBI.accent = false; DBI.color = true; }
+  majDbi(); majKnobsDbi(); H.inter();
+  signal(DBI.colorSteps ? "COLOR STEP : MARQUEZ LES VARIATIONS, REGLEZ LEURS POTARDS" : "LES TOUCHES POSENT LES PAS");
 });
 document.getElementById("dbi-poly").addEventListener("click", function(){
   DBI.poly = !DBI.poly;
@@ -501,7 +540,9 @@ document.getElementById("dbi-roller").addEventListener("click", function(){
   DBI.roller = !DBI.roller; majDbi(); H.cran();
 });
 document.getElementById("dbi-accent").addEventListener("click", function(){
-  DBI.accent = !DBI.accent; majDbi(); H.inter();
+  DBI.accent = !DBI.accent;
+  if(DBI.accent) DBI.colorSteps = false;
+  majDbi(); majKnobsDbi(); H.inter();
   signal(DBI.accent ? "LES TOUCHES POSENT LES ACCENTS" : "LES TOUCHES POSENT LES PAS");
 });
 document.getElementById("dbi-dist").addEventListener("click", function(){
@@ -523,7 +564,7 @@ document.getElementById("dbi-copy").addEventListener("click", function(){
 });
 document.getElementById("dbi-erase").addEventListener("click", function(){
   var P = pisteDbiSel();
-  P.pas = 0; P.acc = 0; P.pasPlus = [0,0,0]; P.accPlus = [0,0,0];
+  P.pas = 0; P.acc = 0; P.pasPlus = [0,0,0]; P.accPlus = [0,0,0]; P.col = 0; P.colPlus = [0,0,0];
   majDbi(); memDbi(); H.inter();
   signal("PISTE " + DBI_VOIX[DBI.sel].nom + " VIDÉE");
 });
