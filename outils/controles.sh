@@ -45,6 +45,7 @@ node outils/test-kp.cjs
 node outils/test-kp-resample.cjs
 node outils/test-mc.cjs
 node outils/test-smpltrek.cjs
+node outils/test-t1k.cjs
 node outils/test-echantillons.cjs
 node outils/test-transport.cjs
 node outils/test-restauration-machines.cjs

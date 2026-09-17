@@ -1870,6 +1870,15 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 .pick.pt1k{background:linear-gradient(165deg,#b9bdc4,#2a2d33 55%,#5a5e66)}
 .pick.pt1k b{color:#8fd4ff;text-shadow:0 2px 0 #161a1f}
 .pick.pt1k span{color:#cbd0d8}
+
+/* v194 : édition de probabilité, lisible sur huit touches par rangée. */
+.t1k-proba-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px}
+.t1k-proba-bar select{background:#23262c;color:#e4eef7;border:1px solid #7c848e;border-radius:4px;padding:6px;font:700 10px Arial}
+#t1k-proba-aide{font:700 8px/1.4 Arial;color:#434a53}
+.t1k-prob-val{display:none}
+.t1k-pas.proba{grid-template-columns:repeat(8,1fr)}
+.t1k-pas.proba .t1k-prob-val{display:block;font:700 9px/1.3 Arial;margin-top:4px}
+.t1k-pas button.aleatoire{border-bottom:3px solid #ca73ff}
 /* ===================== MACHINE D'ARCHIVE ===================== */
 body.arcm .arcmb{display:block}
 body.arcm #unit,body.arcm .em,body.arcm .er,body.arcm .ea,body.arcm .es,body.arcm .mx,body.arcm .sx,
@@ -3474,6 +3483,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   </div>
 
   <div class="t1k-instr" id="t1k-instr"></div>
+  <div class="t1k-proba-bar">
+    <button id="t1k-proba" aria-pressed="false">PROBABILITÉ</button>
+    <select id="t1k-proba-valeur" aria-label="Probabilité à appliquer aux pas" disabled></select>
+    <output id="t1k-proba-aide" aria-live="polite"></output>
+  </div>
   <div class="t1k-pas" id="t1k-pas"></div>
 </div>
 
@@ -5132,13 +5146,37 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   pas, de un à quatre. Un point jaune marque les pas concernés. C'est le roulement de la TR-1000, et il se
   règle pas par pas au lieu d'être global.</p>
 
+  <h3>Probabilité par pas</h3>
+  <p>Choisissez un instrument, activez <b>PROBABILITÉ</b>, puis choisissez un
+  pourcentage de 0 à 100, par paliers de 5. Touchez les pas auxquels l'appliquer.
+  Les touches affichent leur numéro et leur probabilité sur deux rangées.</p>
+  <p><b>100 %</b> joue à chaque passage ; <b>0 %</b> ne joue jamais ;
+  <b>50 %</b> donne une chance sur deux à chaque passage, sans garantir une
+  alternance régulière. Un trait violet repère les pas actifs sous 100 %.</p>
+  <p>Ce mode change seulement la probabilité : il n'allume ni n'efface les pas.
+  Désactivez PROBABILITÉ pour écrire normalement. La probabilité reste active
+  à la lecture même quand son mode d'édition est fermé. SUB STEP et ACCENT
+  quittent ce mode pour éviter de modifier plusieurs réglages à la fois.</p>
+  <p>Un seul tirage décide pour le pas entier, sous-pas compris. Un pas refusé
+  ne produit ni son ni note MIDI. Les frappes directes et les notes MIDI reçues
+  restent jouées normalement ; FILL utilise toujours son rythme prévu.
+  REC crée les nouveaux pas à 100 % et garde le réglage des pas déjà présents.</p>
+  <p>Les probabilités sont mémorisées par instrument et par motif. Les anciens
+  projets restent à 100 %. Le mode d'édition et le pourcentage à appliquer
+  reviennent à leur état initial au chargement. Utilisez v194 ou plus récent
+  pour conserver ces réglages lors du partage d'un projet.</p>
+  <p>L'export WAV du motif effectue ses propres tirages : deux rendus peuvent
+  différer, comme deux passages en direct. La relecture d'une prise MIDI rejoue
+  les notes déjà enregistrées et ne leur applique pas un second tirage.</p>
+
   <h3>Effets</h3>
   <p><b>ANALOG FX</b> ne touche que la couche analogique : un filtre passe-bas et une saturation, comme sur
   l'appareil où le circuit est réellement analogique. <b>REVERB</b> et <b>DELAY</b>, eux, reçoivent les deux
   couches.</p>
 
   <h3>Ce qui diffère</h3>
-  <p>Huit banques de seize motifs, mais pas de mode chanson ni d'échantillonnage par l'entrée. Les six
+  <p>Seize motifs mémorisés : les repères de banque A à H parcourent actuellement
+  ces mêmes motifs. Il n’y a pas encore de mode chanson ni d’échantillonnage par l’entrée. Les six
   potards assignables C1 à C6 de la vraie machine sont remplacés par les réglages fixes de chaque
   instrument : sans écran de menu, des potards sans affectation visible n'auraient rien voulu dire.</p>
   </div>
@@ -23624,10 +23662,10 @@ function instrT1k(i){
   return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5};
 }
 function motifT1k(n){
-  var m = {pas:[], acc:[], sub:[], last:16, instr:[]};
+  var m = {pas:[], acc:[], sub:[], prob:[], last:16, instr:[]};
   for(var k=0;k<10;k++){
     m.pas.push(0); m.acc.push(0);
-    m.sub.push([]);
+    m.sub.push([]); m.prob.push(Array(16).fill(100));
     for(var s=0;s<16;s++) m.sub[k].push(1);
     m.instr.push(instrT1k(k));
   }
@@ -23637,13 +23675,27 @@ function motifT1k(n){
   return m;
 }
 var T1K = {motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
-           morph:0, mA:null, mB:null, sub:false, accent:false, layer:0,
+           morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
            fill:false, ohGain:null};
 for(var t1z=0; t1z<16; t1z++) T1K.motifs.push(motifT1k(t1z < 2 ? t1z : 9));
 function motifT1kCur(){ return T1K.motifs[T1K.cur]; }
 function instrT1kSel(){ return motifT1kCur().instr[T1K.sel]; }
+
+/* v194 : une décision par pas ; tous ses sous-pas suivent cette décision. */
+function probabiliteT1k(v){
+  return typeof v === "number" && isFinite(v) ? Math.round(Math.max(0, Math.min(100, v))) : 100;
+}
+function passeProbabiliteT1k(v){
+  var p = probabiliteT1k(v);
+  return p >= 100 || (p > 0 && Math.random() * 100 < p);
+}
+function poserProbabiliteT1k(k, i, v){
+  if(!Number.isInteger(k) || k < 0 || k >= 10 || !Number.isInteger(i) || i < 0 || i >= 16) return false;
+  motifT1kCur().prob[k][i] = probabiliteT1k(v);
+  return true;
+}
 
 /* ---------- chaîne de sortie ---------- */
 function bâtirT1k(){
@@ -23820,6 +23872,7 @@ function frapperT1k(k, acc){
     var m = motifT1kCur();
     var j = pasLePlusProche(T1K.pos, m.last || 16);
     if(j >= 0){
+      if(!(m.pas[k] & (1 << j))) m.prob[k][j] = 100;
       m.pas[k] |= (1 << j);
       if(acc) m.acc[k] |= (1 << j);
       majT1k(); memT1k();
@@ -23836,6 +23889,7 @@ function scheduleT1k(i, t){
   var pas = T1K.fill ? T1K_FILL : m.pas;
   for(var k=0;k<10;k++){
     if(!(pas[k] & (1 << i))) continue;
+    if(!T1K.fill && !passeProbabiliteT1k(m.prob[k][i])) continue;
     var acc = !!(m.acc[k] & (1 << i));
     var sub = T1K.fill ? 1 : (m.sub[k][i] || 1);
     for(var r=0;r<sub;r++) CHARGE_N++, voixT1k(t + (stepDur() * r / sub), k, acc && r === 0);
@@ -23912,6 +23966,7 @@ var T1K_KNOBS = [];
     var b = document.createElement("button");
     b.dataset.i = i;
     b.textContent = String(i + 1);
+    var pv = document.createElement("small"); pv.className = "t1k-prob-val"; b.appendChild(pv);
     pas.appendChild(b);
     t1kPas.push(b);
   }
@@ -23919,7 +23974,10 @@ var T1K_KNOBS = [];
     var b2 = e.target.closest("button");
     if(!b2) return;
     var i2 = +b2.dataset.i, m = motifT1kCur(), k = T1K.sel;
-    if(T1K.sub){
+    if(T1K.proba){
+      poserProbabiliteT1k(k, i2, T1K.probValeur);
+      signal("PAS " + (i2 + 1) + " · PROBABILITÉ " + m.prob[k][i2] + "%" + ((m.pas[k] & (1 << i2)) ? "" : " · PAS NON ACTIVÉ"));
+    } else if(T1K.sub){
       m.sub[k][i2] = (m.sub[k][i2] % 4) + 1;    /* 1 à 4 sous-pas */
       lcdT1k("x" + m.sub[k][i2], "SUB STEP " + (i2 + 1), true);
     } else if(T1K.accent){
@@ -24008,9 +24066,20 @@ function majT1k(){
                                                  : !!(m.pas[T1K.sel] & (1 << i)));
     t1kPas[i].classList.toggle("sub", (m.sub[T1K.sel][i] || 1) > 1);
     t1kPas[i].classList.toggle("hors", i >= m.last);
+    var proba = probabiliteT1k(m.prob[T1K.sel][i]);
+    t1kPas[i].querySelector(".t1k-prob-val").textContent = proba + "%";
+    t1kPas[i].classList.toggle("aleatoire", proba < 100 && !!(m.pas[T1K.sel] & (1 << i)));
+    t1kPas[i].setAttribute("aria-label", "Pas " + (i + 1) + " · " + ((m.pas[T1K.sel] & (1 << i)) ? "actif" : "inactif") + " · probabilité " + proba + "%");
   }
   var pads = document.querySelectorAll(".t1k-pad");
   for(i=0;i<pads.length;i++) pads[i].classList.toggle("sel", i === T1K.sel);
+  var grille = document.getElementById("t1k-pas"), change = grille.classList.contains("proba") !== T1K.proba;
+  grille.classList.toggle("proba", T1K.proba);
+  var bp = document.getElementById("t1k-proba"); bp.classList.toggle("on", T1K.proba); bp.setAttribute("aria-pressed", String(T1K.proba));
+  document.getElementById("t1k-proba-valeur").disabled = !T1K.proba;
+  document.getElementById("t1k-proba-valeur").value = String(T1K.probValeur);
+  document.getElementById("t1k-proba-aide").textContent = T1K.proba ? "CHOISIR UN % PUIS TOUCHER LES PAS · " + T1K_INSTR[T1K.sel].nom : "PROBABILITÉ : VARIER LES COUPS À CHAQUE TOUR";
+  if(change && S.modele === "t1k") fit();
   document.getElementById("t1k-sub").classList.toggle("on", T1K.sub);
   document.getElementById("t1k-accent").classList.toggle("on", T1K.accent);
   document.getElementById("t1k-rec").classList.toggle("on", T1K.rec);
@@ -24031,7 +24100,7 @@ function memT1k(){
   memoire.t1k = {cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
-      return {last:m.last, pas:m.pas, acc:m.acc, sub:m.sub,
+      return {last:m.last, pas:m.pas, acc:m.acc, sub:m.sub, prob:m.prob.map(function(p){return p.slice();}),
               instr:m.instr.map(function(I){
                 return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
                         ech:I.ech, pech:I.pech};
@@ -24042,16 +24111,21 @@ function memT1k(){
 function chargerT1k(){
   T1K.motifs = [];
   for(var i=0;i<16;i++) T1K.motifs.push(motifT1k(i < 2 ? i : 9));
-  T1K.cur = 0; T1K.sel = 0; T1K.sub = false; T1K.accent = false;
+  T1K.cur = 0; T1K.sel = 0; T1K.sub = false; T1K.accent = false; T1K.proba = false; T1K.probValeur = 100;
   var m = memLire("t1k");
   if(m){
     if(m.motifs && m.motifs.length === 16){
       T1K.motifs = m.motifs.map(function(o){
         var r = motifT1k(9);
+        o = o && typeof o === "object" ? o : {};
         r.last = o.last || 16;
         if(o.pas) r.pas = o.pas;
         if(o.acc) r.acc = o.acc;
         if(o.sub) r.sub = o.sub;
+        for(var k=0;k<10;k++) for(var s=0;s<16;s++){
+          var ligne = Array.isArray(o.prob) && Array.isArray(o.prob[k]) ? o.prob[k] : [];
+          r.prob[k][s] = probabiliteT1k(ligne[s]);
+        }
         (o.instr || []).forEach(function(I, k){
           if(k >= 10) return;
           for(var q in I) if(r.instr[k][q] !== undefined) r.instr[k][q] = I[q];
@@ -24077,14 +24151,27 @@ document.getElementById("t1k-stop").addEventListener("click", function(){
   document.getElementById("t1k-start").classList.remove("on");
 });
 document.getElementById("t1k-sub").addEventListener("click", function(){
-  T1K.sub = !T1K.sub; if(T1K.sub) T1K.accent = false;
+  T1K.sub = !T1K.sub; if(T1K.sub){ T1K.accent = false; T1K.proba = false; }
   majT1k(); H.inter();
   signal(T1K.sub ? "LES TOUCHES RÈGLENT LES SOUS-PAS" : "LES TOUCHES POSENT LES PAS");
 });
 document.getElementById("t1k-accent").addEventListener("click", function(){
-  T1K.accent = !T1K.accent; if(T1K.accent) T1K.sub = false;
+  T1K.accent = !T1K.accent; if(T1K.accent){ T1K.sub = false; T1K.proba = false; }
   majT1k(); H.inter();
 });
+document.getElementById("t1k-proba").addEventListener("click", function(){
+  T1K.proba = !T1K.proba;
+  if(T1K.proba){ T1K.sub = false; T1K.accent = false; }
+  majT1k(); H.inter();
+});
+(function(){
+  var liste = document.getElementById("t1k-proba-valeur");
+  for(var p=0;p<=100;p+=5){
+    var o = document.createElement("option"); o.value = String(p); o.textContent = p + "%"; liste.appendChild(o);
+  }
+  liste.value = "100";
+  liste.addEventListener("change", function(){ T1K.probValeur = probabiliteT1k(+liste.value); });
+})();
 document.getElementById("t1k-afx").addEventListener("click", function(){
   T1K.afx.on = !T1K.afx.on; majFxT1k(); majT1k(); memT1k(); H.inter();
 });

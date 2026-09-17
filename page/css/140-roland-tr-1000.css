@@ -61,3 +61,12 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 .pick.pt1k{background:linear-gradient(165deg,#b9bdc4,#2a2d33 55%,#5a5e66)}
 .pick.pt1k b{color:#8fd4ff;text-shadow:0 2px 0 #161a1f}
 .pick.pt1k span{color:#cbd0d8}
+
+/* v194 : édition de probabilité, lisible sur huit touches par rangée. */
+.t1k-proba-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px}
+.t1k-proba-bar select{background:#23262c;color:#e4eef7;border:1px solid #7c848e;border-radius:4px;padding:6px;font:700 10px Arial}
+#t1k-proba-aide{font:700 8px/1.4 Arial;color:#434a53}
+.t1k-prob-val{display:none}
+.t1k-pas.proba{grid-template-columns:repeat(8,1fr)}
+.t1k-pas.proba .t1k-prob-val{display:block;font:700 9px/1.3 Arial;margin-top:4px}
+.t1k-pas button.aleatoire{border-bottom:3px solid #ca73ff}

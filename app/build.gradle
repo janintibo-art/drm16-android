@@ -8,8 +8,8 @@ android {
         applicationId 'fr.tibo.drm16'
         minSdk 24
         targetSdk 34
-        versionCode 193
-        versionName '193'
+        versionCode 194
+        versionName '194'
     }
 
     /* Une version publiée doit être signée par une clé STABLE : Android refuse

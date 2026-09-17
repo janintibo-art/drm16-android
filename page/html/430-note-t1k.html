@@ -17,13 +17,37 @@
   pas, de un à quatre. Un point jaune marque les pas concernés. C'est le roulement de la TR-1000, et il se
   règle pas par pas au lieu d'être global.</p>
 
+  <h3>Probabilité par pas</h3>
+  <p>Choisissez un instrument, activez <b>PROBABILITÉ</b>, puis choisissez un
+  pourcentage de 0 à 100, par paliers de 5. Touchez les pas auxquels l'appliquer.
+  Les touches affichent leur numéro et leur probabilité sur deux rangées.</p>
+  <p><b>100 %</b> joue à chaque passage ; <b>0 %</b> ne joue jamais ;
+  <b>50 %</b> donne une chance sur deux à chaque passage, sans garantir une
+  alternance régulière. Un trait violet repère les pas actifs sous 100 %.</p>
+  <p>Ce mode change seulement la probabilité : il n'allume ni n'efface les pas.
+  Désactivez PROBABILITÉ pour écrire normalement. La probabilité reste active
+  à la lecture même quand son mode d'édition est fermé. SUB STEP et ACCENT
+  quittent ce mode pour éviter de modifier plusieurs réglages à la fois.</p>
+  <p>Un seul tirage décide pour le pas entier, sous-pas compris. Un pas refusé
+  ne produit ni son ni note MIDI. Les frappes directes et les notes MIDI reçues
+  restent jouées normalement ; FILL utilise toujours son rythme prévu.
+  REC crée les nouveaux pas à 100 % et garde le réglage des pas déjà présents.</p>
+  <p>Les probabilités sont mémorisées par instrument et par motif. Les anciens
+  projets restent à 100 %. Le mode d'édition et le pourcentage à appliquer
+  reviennent à leur état initial au chargement. Utilisez v194 ou plus récent
+  pour conserver ces réglages lors du partage d'un projet.</p>
+  <p>L'export WAV du motif effectue ses propres tirages : deux rendus peuvent
+  différer, comme deux passages en direct. La relecture d'une prise MIDI rejoue
+  les notes déjà enregistrées et ne leur applique pas un second tirage.</p>
+
   <h3>Effets</h3>
   <p><b>ANALOG FX</b> ne touche que la couche analogique : un filtre passe-bas et une saturation, comme sur
   l'appareil où le circuit est réellement analogique. <b>REVERB</b> et <b>DELAY</b>, eux, reçoivent les deux
   couches.</p>
 
   <h3>Ce qui diffère</h3>
-  <p>Huit banques de seize motifs, mais pas de mode chanson ni d'échantillonnage par l'entrée. Les six
+  <p>Seize motifs mémorisés : les repères de banque A à H parcourent actuellement
+  ces mêmes motifs. Il n’y a pas encore de mode chanson ni d’échantillonnage par l’entrée. Les six
   potards assignables C1 à C6 de la vraie machine sont remplacés par les réglages fixes de chaque
   instrument : sans écran de menu, des potards sans affectation visible n'auraient rien voulu dire.</p>
   </div>
