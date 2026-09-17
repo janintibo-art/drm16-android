@@ -107,4 +107,8 @@ function stop(){
   host(false);
   midiHorloge(false);
 }
-window.__drmStop = stop;
+window.__drmStop = function(){
+  /* Le jeu réel est déjà arrêté avant le rendu : une perte de focus Android
+     ne doit pas débrancher les voix que le contexte hors ligne calcule. */
+  if(!WAVX.occupe && !ENR.ondesOccupe) stop();
+};

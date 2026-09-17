@@ -39,7 +39,7 @@ function wavStereo(buf){
   return ab;
 }
 function exporterWav(){
-  if(WAVX.occupe) return;
+  if(WAVX.occupe || ENR.ondesOccupe) return;
   var p = HOST;
   if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
   if(!MACHINE || !MACHINE.schedule){ signal("AUCUNE MACHINE À RENDRE"); return; }

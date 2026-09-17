@@ -140,6 +140,7 @@ function departEsclave(remise){
 
 /* réception */
 window.__midi = function(a,b,c){
+  if(WAVX.occupe || ENR.ondesOccupe) return;  /* le matériel ne modifie pas un rendu en cours */
   enrNoter(a,b,c);
   if(!MIDI.in) return;
   if(a === 0xF8){ if(MIDI.sync) ticExterne(); return; }
@@ -241,13 +242,13 @@ function rangMidi(r, note){
 }
 
 /* chaque machine reçoit les notes sur ses propres parties */
-function entreeNote(note, vel, canal){
+function entreeNote(note, vel, canal, cible){
   audioInit(); if(!ctx) return;
   var voix = GM_INV[note];
   /* Le canal était reçu puis ignoré : tout jouait sur la machine affichée.
      Pour enregistrer un vrai live, chaque source doit garder sa voix — une
      boîte à rythmes sur un canal, une basse sur un autre. */
-  var m = ENR.canaux[canal] || S.modele, k, i;
+  var m = cible || ENR.canaux[canal] || S.modele, k, i;
 
   if(m === "er1" || m === "er2"){
     busEffets();

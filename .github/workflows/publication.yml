@@ -46,6 +46,7 @@ jobs:
           pip install --quiet playwright==1.56.0
           python -m playwright install --with-deps chromium > /dev/null
           python outils/test-navigateur.py
+          python outils/test-export-midi.py
 
       - uses: gradle/actions/setup-gradle@v6
         with:

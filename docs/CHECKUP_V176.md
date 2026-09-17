@@ -2,6 +2,8 @@
 
 Audit du 17 septembre 2026, à partir de la v175. La v176 est une version de maintenance : corrections, tests de régression et paquet PC complet.
 
+**Suivi v177 :** le défaut d'export MIDI avec plusieurs machines décrit dans ce bilan est corrigé. Voir les [corrections et vérifications de la v177](CORRECTIONS_V177.md). Le reste du document conserve les constats du check-up v176.
+
 ## Résultat
 
 Les contrôles automatiques initiaux de la v175 passaient, mais ne couvraient pas plusieurs pertes d'état, erreurs de routage et refus d'écriture. Des reproductions ciblées ont permis de corriger ces cas et d'ajouter des tests.

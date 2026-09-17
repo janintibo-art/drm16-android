@@ -463,7 +463,7 @@ for(const commande of ['voie','table-on','table-rien'])for(const principale of [
 
 
 function chargerEcritureReelle(c){
-  Object.assign(c,{saveTmr:null,PROJET_EN_COURS:false,MEM:'memoire-test',memEchec:false,
+  Object.assign(c,{saveTmr:null,PROJET_EN_COURS:false,WAVX:{occupe:false},MEM:'memoire-test',memEchec:false,
     clearTimeout(){},vidages:[],ecrituresLocales:[],
     viderMachines(){c.vidages.push(copie(c.memoire));},
     localStorage:{setItem(cle,valeur){c.ecrituresLocales.push([cle,JSON.parse(valeur)]);}}});

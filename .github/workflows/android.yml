@@ -43,6 +43,7 @@ jobs:
           pip install --quiet playwright==1.56.0
           python -m playwright install --with-deps chromium > /dev/null
           python outils/test-navigateur.py
+          python outils/test-export-midi.py
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble

@@ -92,7 +92,9 @@ function viderMachines(){
 }
 function writeMem(){
   clearTimeout(saveTmr); saveTmr = null;
-  if(PROJET_EN_COURS) return false;
+  /* Les activations temporaires d'un export ne changent pas la machine
+     retrouvée au prochain démarrage. La sauvegarde reprend au retour. */
+  if(PROJET_EN_COURS || WAVX.occupe) return false;
   /* Un départ MC peut déjà s'entendre avant la prochaine image ou le prochain
      tour du SET. Sauver/exporter maintenant doit conserver ce clip-là. */
   if(typeof MC !== "undefined" && MC) suivreClipsMc();

@@ -131,8 +131,47 @@ console.log('Transport : SET interne/MIDI, longueurs 12/16, curseurs horodatés,
   c.entreeNote(37,1,0);assert.deepEqual(hits.pop(),['mc',1,2],'la piste synth conserve la gamme');
   c.S.modele='mc';c.ENR.canaux[0]='em1';c.entreeNote(36,1,0);assert.deepEqual(hits.pop(),['em1']);
   delete c.ENR.canaux[0];c.entreeNote(38,1,0);assert.deepEqual(hits.pop(),['mc',2,1],'le type de la piste ciblée prévaut sur la sélection');
+  c.ENR.canaux[0]='em1';c.entreeNote(36,1,0,'mc');assert.deepEqual(hits.pop(),['mc',0,1],'la destination figée de l’export prévaut sur un routage changé entre deux rendus');
 }
 console.log('Entrée MIDI : affectation EM-1 dans les deux sens, notes MC drum/synth et piste ciblée OK.');
+
+// Une entrée physique ne doit pas relancer le transport ou ajouter une note
+// pendant que les variables globales désignent un contexte de rendu.
+{
+  const source=lire(MIDI_SOURCE), debut=source.indexOf('window.__midi = function(a,b,c){');
+  const fin=source.indexOf('\n};',debut)+3, appels=[];
+  assert(debut>=0 && fin>debut);
+  const c=vm.createContext({WAVX:{occupe:false},ENR:{ondesOccupe:false},MIDI:{in:true,sync:true},S:{run:true},
+    enrNoter:()=>appels.push('enregistrer'),ticExterne:()=>appels.push('tic'),
+    departEsclave:()=>appels.push('depart'),stop:()=>appels.push('stop'),majPlayEm(){},
+    passeEnr:()=>true,entreeNote:()=>appels.push('note')});
+  c.window=c;vm.runInContext(source.slice(debut,fin),c);
+  for(const garde of ['wav','ondes']) {
+    c.WAVX.occupe=garde==='wav';c.ENR.ondesOccupe=garde==='ondes';
+    for(const statut of [0x90,0xF8,0xFA,0xFB,0xFC])c.__midi(statut,36,100);
+    assert.deepEqual(appels,[],garde+': ni note, ni horloge, ni stop pendant le calcul');
+  }
+  c.WAVX.occupe=false;c.ENR.ondesOccupe=false;c.__midi(0x90,36,100);
+  assert.deepEqual(appels,['enregistrer','note'],'la réception MIDI reprend après le calcul');
+}
+
+// Le vrai minuteur de mémoire ne doit pas persister la machine temporaire
+// d’un export, puis la sauvegarde doit reprendre avec la machine rendue.
+{
+  const valeurs=new Map(), timers=new Map();let id=0;
+  const c=vm.createContext({S:{modele:'16'},HUM:{},WAVX:{occupe:false},
+    document:{querySelectorAll:()=>[]},signal(){},
+    setTimeout(fn){timers.set(++id,fn);return id;},clearTimeout(i){timers.delete(i);},
+    localStorage:{getItem:k=>valeurs.get(k)||null,setItem:(k,v)=>valeurs.set(k,v)}});
+  vm.runInContext(lire('page/js/030-memoire.js'),c);
+  c.S.modele='mc';assert.equal(c.writeMem(),true);
+  const avant=valeurs.get('drm.reglages');
+  c.WAVX.occupe=true;c.S.modele='tr909';c.save();
+  timers.get(c.saveTmr)();assert.equal(valeurs.get('drm.reglages'),avant);
+  c.S.modele='mc';c.WAVX.occupe=false;c.save();timers.get(c.saveTmr)();
+  assert.equal(JSON.parse(valeurs.get('drm.reglages')).modele,'mc');
+}
+console.log('Rendu : MIDI physique suspendu puis rétabli ; aucune machine temporaire enregistrée par le minuteur.');
 
 // Le cache de rendu ne traverse ni un nouveau contexte, ni un changement de façade.
 {
@@ -171,25 +210,46 @@ class Contexte {
   createGain(){return new Noeud(this);}createDynamicsCompressor(){return new Noeud(this);}
   createWaveShaper(){return new Noeud(this);}createBiquadFilter(){return new Noeud(this);}
   createStereoPanner(){return new Noeud(this);}createAnalyser(){return new Noeud(this);}
-  createBuffer(ch,n,sr){return {getChannelData:()=>new Float32Array(n)};}
+  createBufferSource(){return new Noeud(this);}
+  createBuffer(ch,n,sr){
+    const canaux=Array.from({length:ch},()=>new Float32Array(n));
+    return {length:n,sampleRate:sr,numberOfChannels:ch,getChannelData:k=>canaux[k]};
+  }
 }
 async function verifierBusRendu() {
-  let refuser=false;
+  let refuser=false, panne='', creations=0, rendus=0;
+  const signaux=[], ecritures=[], claviers=new Set();
   class HorsLigne extends Contexte {
+    constructor(ch,n,sr){
+      super();creations++;
+      if(panne==='creation' && creations===1)throw Error('contexte refusé');
+      this.ch=ch;this.n=n;this.sampleRate=sr;
+    }
     startRendering(){
-      return refuser?Promise.reject(Error('rendu refusé')):
-        Promise.resolve({length:2,sampleRate:100,numberOfChannels:2,getChannelData:()=>new Float32Array(2)});
+      rendus++;
+      return refuser || (panne==='rendu2' && rendus===2)?Promise.reject(Error('rendu refusé')):
+        Promise.resolve(this.createBuffer(this.ch,this.n,this.sampleRate));
     }
   }
   const c=vm.createContext({console,ctx:new Contexte(),window:{OfflineAudioContext:HorsLigne},
-    S:{vol:.8,run:false,modele:'16'},WAVX:{occupe:false,mesures:1},HOST:{fichierSauver(){}},
-    audioInit(){},writeMem(){},refusWavTropLong:()=>false,signal(){},H:{inter(){}},stepDur:()=>.125,
-    cache:false,applyBass(){},pisterSources(){},construireMetal(){},document:{getElementById:()=>null},
-    ecrireDocument:()=>'',MACHINE:{schedule(){}},enLissant:f=>f(),majEnrUI(){},
-    ENR:{canaux:{},prises:[{duree:1000,nom:'prise',machine:'16',evts:[[0,144,36,100]]}],
+    S:{vol:.8,run:false,modele:'16'},PR:{lecture:false},WAVX:{occupe:false,mesures:1},HOST:{fichierSauver(){}},
+    audioInit(){},writeMem(){},refusWavTropLong:()=>false,signal:s=>signaux.push(s),H:{inter(){}},stepDur:()=>.125,
+    cache:false,applyBass(){},pisterSources(){},construireMetal(){},
+    document:{body:{inert:false},getElementById:()=>null,
+      addEventListener:(type,fn)=>claviers.add(fn),removeEventListener:(type,fn)=>claviers.delete(fn)},
+    ecrireDocument(p,nom,ab){
+      if(panne==='ecriture')return '';
+      if(panne==='exceptionEcriture')throw Error('disque inaccessible');
+      ecritures.push({nom,ab});return '/documents/'+nom;
+    },MACHINE:{schedule(){}},enLissant:f=>f(),majEnrUI(){},save(){},
+    metalBuf:{original:true},SOURCES:[],COLLECTE:null,queue:[],OFF_T:-1,
+    TD3:{noeuds:null},EUR:{bus:null,sources:null,noeuds:[]},TR:{m:'tr808'},ER:{v:1},EA:{v:1},ES:{v:1},MPC:{v:3000},
+    banqueEs(){},chargerEchs(){},ES_CHARGES:{},
+    ENR:{lecture:null,actif:false,canaux:{},prises:[{duree:1000,nom:'prise',machine:'16',evts:[[0,144,36,100]]}],
       affiche:{nom:'prise',duree:1000,evts:[[0,144,36,100],[500,145,36,100]]},decoupe:'canal'},
     entreeNote(){},passeEnr:()=>true,pistesDe:()=>[{c:0,n:-1,cle:'0'},{c:1,n:-1,cle:'1'}]});
   c.allerMachine=m=>{c.S.modele=m;};
+  c.stop=()=>{c.S.run=false;c.queue=[];};
   vm.runInContext(lire('page/js/150-le-set-plusieurs-machines-a-la-fois.js'),c);
   vm.runInContext(fonction('page/js/110-moteur-audio.js','razNoeudsMachines')+'\n'+
     fonction('page/js/110-moteur-audio.js','batirAudio')+'\nvar COMPENSATION_SORTIE_DB=2.5;',c);
@@ -207,5 +267,41 @@ async function verifierBusRendu() {
     c.SET.pan.ehx=.7;c.majVoieSet('ehx');assert.equal(tranche.p.pan.value,.7);
   }
   console.log('Exports : motif, prise et formes d’onde restaurent leurs bus, même sur échec ; MIDI externe silencieux hors ligne OK.');
+
+  // Chaque échec arrive dans la vraie chaîne de promesses du rendu des prises.
+  // Deux machines imposent deux rendus de voix, puis le rendu du mélange.
+  c.ENR.canaux={0:'mc',1:'16'};
+  c.ENR.prises[0].evts=[[0,144,37,100],[500,145,36,100]];
+  const encoder=c.wavStereo, originalMetal=c.metalBuf, originalSources=c.SOURCES;
+  for(const cas of ['creation','rendu2','conversion','ecriture','exceptionEcriture','']) {
+    refuser=false;panne=cas;creations=0;rendus=0;signaux.length=0;ecritures.length=0;
+    c.wavStereo=cas==='conversion'?()=>{throw Error('conversion refusée');}:encoder;
+    const operation=c.exporterPriseWav(0);
+    assert(c.WAVX.occupe,'export verrouillé avant tout passage asynchrone');
+    assert(c.document.body.inert,'interface protégée pendant le rendu');
+    assert.equal(claviers.size,1);
+    await operation;
+    assert.equal(c.WAVX.occupe,false,cas+': rendu déverrouillé');
+    assert.equal(c.document.body.inert,false,cas+': interface rendue');
+    assert.equal(claviers.size,0,cas+': interception clavier retirée');
+    assert.equal(c.ctx,contexte);assert.equal(c.master.ctx,contexte);
+    assert.equal(c.outBd,sortie);assert.equal(c.SET.bus,bus);
+    assert.equal(c.metalBuf,originalMetal);assert.equal(c.SOURCES,originalSources);
+    assert.equal(c.OFF_T,-1);assert.equal(c.S.modele,'16');
+    if(cas){
+      assert.equal(ecritures.length,0,cas+': aucun fichier de succès');
+      assert(!signaux.some(s=>s.includes('CRÊTE')),cas+': aucun faux succès');
+      assert(signaux.at(-1).includes(cas==='ecriture'?'ÉCRITURE REFUSÉE':'RENDU ÉCHOUÉ'));
+      if(cas==='rendu2')assert.equal(rendus,2,'la panne survient après le premier stem réussi');
+    }else{
+      assert.equal(rendus,3,'les deux machines sont rendues avant leur mélange final');
+      assert.equal(ecritures.length,1);assert(signaux.at(-1).includes('2 notes'));
+      const wav=new DataView(ecritures[0].ab);
+      assert.equal(wav.getUint32(24,true),44100);
+      assert.equal(wav.getUint32(40,true),Math.ceil(44100*4)*4,'durée et stéréo préservées');
+    }
+  }
+  console.log('Rendu multitimbral : refus de contexte, panne du deuxième rendu, conversion et écriture récupérés sans faux succès ; export suivant possible.');
 }
+
 verifierBusRendu().catch(err=>{console.error(err);process.exitCode=1;});
