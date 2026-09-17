@@ -44,10 +44,29 @@ function motifDbi(n){
 }
 var DBI = {motifs:[], cur:0, sel:0, color:false, colorSteps:false, repeatEdit:false, poly:false, roller:false, rec:false,
            swing:0, random:0, drive:0.25, dist:false, accent:false,
-           page:0, pos:-1, loop:null, loopEntendu:false, loopEvents:[], dernierEntendu:null, noeuds:{}, ohGain:null, distNode:null};
+           song:false, chaine:[0,1], songHeard:-1, songPosHeard:-1, horlogePos:-1, page:0, pos:-1, loop:null, loopEntendu:false, loopEvents:[], dernierEntendu:null, noeuds:{}, ohGain:null, distNode:null};
 for(var dbz=0; dbz<16; dbz++) DBI.motifs.push(motifDbi(dbz < 2 ? dbz : 9));
 
-function motifDbiCur(){ return DBI.motifs[DBI.cur]; }
+function indiceMotifDbi(){
+  return DBI.song ? ((S.run && DBI.songHeard >= 0) ? DBI.songHeard : DBI.chaine[0]) : DBI.cur;
+}
+function motifDbiCur(){ return DBI.motifs[indiceMotifDbi()]; }
+function editionDbiPermise(){
+  if(DBI.song && S.run){ signal("ARRETEZ SONG POUR MODIFIER LES MOTIFS"); return false; }
+  return true;
+}
+function resetSongDbi(){ DBI.songHeard = -1; DBI.songPosHeard = -1; DBI.horlogePos = -1; }
+function configSongDbi(){
+  if(S.run){ signal("ARRETEZ PLAY POUR MODIFIER SONG"); return; }
+  var v = window.prompt("Ordre des motifs (1 à 16), séparés par des espaces. De 1 à 16 positions ; répétez un numéro pour répéter le motif.", DBI.chaine.map(function(n){ return n + 1; }).join(" "));
+  if(v === null) return;
+  var mots = v.trim().split(/[\s,;]+/);
+  if(!v.trim() || mots.length > 16 || mots.some(function(n){ return !/^(1[0-6]|[1-9])$/.test(n); })){
+    signal("SONG : 1 A 16 NUMEROS ENTRE 1 ET 16"); return;
+  }
+  DBI.chaine = mots.map(function(n){ return Number(n) - 1; });
+  resetSongDbi(); resetLooperDbi(); majDbi(); majKnobsDbi(); memDbi();
+}
 function pisteDbiSel(){ return motifDbiCur().pistes[DBI.sel]; }
 
 /* Quatre blocs de seize bits : aucun décalage JavaScript au-delà du bit 15.
@@ -125,8 +144,8 @@ function parametresCouleurDbi(P, k, couleur){
 function editeCouleurDbi(k, nom){
   return DBI.colorSteps && DBI_VOIX[k].col.some(function(kn){ return kn[0] === nom; });
 }
-function voixDbi(t, k, acc, couleur){
-  var V = DBI_VOIX[k], P = motifDbiCur().pistes[k];
+function voixDbi(t, k, acc, couleur, motif){
+  var V = DBI_VOIX[k], P = (motif || motifDbiCur()).pistes[k];
   var dest = pasVoie(sortieDbi());
   var niv = mv("niv", P.p.niv) * (acc ? 1 : 0.68);
   var g = ctx.createGain();
@@ -240,7 +259,7 @@ function frapperDbi(k, acc){
   audioInit();
   if(!ctx) return;
   voixDbi(maintenantAudio() + 0.005, k, acc, DBI.colorSteps);
-  if(S.run && DBI.rec && !DBI.loop && !DBI.loopEntendu){
+  if(S.run && DBI.rec && !DBI.song && !DBI.loop && !DBI.loopEntendu){
     var P = motifDbiCur().pistes[k];
     var j = pasLePlusProche(DBI.pos, longueurPisteDbi(P));
     if(j >= 0){
@@ -253,8 +272,7 @@ function frapperDbi(k, acc){
 }
 
 /* ---------- séquenceur, avec polyrythmie ---------- */
-function longueurDbi(){
-  var m = motifDbiCur();
+function longueurMotifDbi(m){
   if(!DBI.poly) return m.last;
   /* en polyrythmie on parcourt le plus petit commun multiple, jusqu'à 64 pas,
      pour que le cycle complet se referme au bon endroit */
@@ -265,6 +283,23 @@ function longueurDbi(){
     if(l > 64) return 64;
   }
   return Math.max(1, l);
+}
+function longueurDbi(){
+  if(!DBI.song) return longueurMotifDbi(motifDbiCur());
+  return DBI.chaine.reduce(function(total, n){ return total + longueurMotifDbi(DBI.motifs[n]); }, 0);
+}
+/* Traduction sans état du compteur global : convient aussi au SET, au MIDI
+   et à l'export WAV, qui rendent directement 0..longueur-1. */
+function positionSongDbi(i){
+  var total = longueurDbi(), j = ((i % total) + total) % total;
+  if(DBI.song){
+    for(var pos=0;pos<DBI.chaine.length;pos++){
+      var n = DBI.chaine[pos], len = longueurMotifDbi(DBI.motifs[n]);
+      if(j < len) return {motif:n, pas:j, position:pos};
+      j -= len;
+    }
+  }
+  return {motif:DBI.cur, pas:j, position:-1};
 }
 function ppcmDbi(a, b){
   var x = a, y = b;
@@ -297,7 +332,7 @@ function commencerLooperDbi(n, geste){
   if(!S.run || MACHINE !== MACHINE_DBI){ signal("LOOPER : LANCEZ PLAY SUR DRUMBRUTE"); return false; }
   if(DBI.pos < 0){ signal("LOOPER : ATTENDEZ LE PREMIER PAS"); return false; }
   if(DBI.loop && DBI.loop.geste !== geste) return false;
-  var total = longueurDbi(), debut = Math.max(0, DBI.pos) % total;
+  var total = longueurDbi(), debut = Math.max(0, DBI.song ? DBI.horlogePos : DBI.pos) % total;
   DBI.loop = {touche:n, longueur:Math.min(n, total), debut:debut, offset:0, geste:geste};
   majLooperDbi();
   signal("LOOP " + DBI.loop.longueur + " PAS · RELACHEZ POUR REPRENDRE");
@@ -319,12 +354,12 @@ function resetLooperDbi(){
 }
 function scheduleDbi(i, t){
   var CHARGE_N = ouvrirPas(), frappes = [];
-  var m = motifDbiCur(), lecture = pasLooperDbi(i);
+  var lecture = pasLooperDbi(i), bloc = positionSongDbi(lecture), m = DBI.motifs[bloc.motif];
   if(DBI.swing && i % 2 === 1) t += stepDur() * DBI.swing * 0.5;
   for(var k=0;k<8;k++){
     var P = m.pistes[k];
     var lg = DBI.poly ? (P.len || 16) : m.last;
-    var s = lecture % lg;
+    var s = bloc.pas % lg;
     var joue = lirePasDbi(P, "pas", s);
     if(DBI.random > 0.01){
       /* le potard RANDOM ôte des coups et en ajoute, comme sur l'appareil */
@@ -347,10 +382,10 @@ function scheduleDbi(i, t){
   frappes.sort(function(a, b){
     return a.t - b.t || (a.k === 5 ? 8 : a.k) - (b.k === 5 ? 8 : b.k);
   });
-  frappes.forEach(function(f){ CHARGE_N++, voixDbi(f.t, f.k, f.acc, f.col); });
+  frappes.forEach(function(f){ CHARGE_N++, voixDbi(f.t, f.k, f.acc, f.col, m); });
   if(!cache){
-    queue.push({i:i, t:t});
-    DBI.loopEvents.push({i:lecture, t:t, loop:!!DBI.loop && S.run});
+    if(MACHINE === MACHINE_DBI) queue.push({i:i, t:t});
+    DBI.loopEvents.push({i:bloc.pas, horloge:lecture, motif:bloc.motif, position:bloc.position, t:t, loop:!!DBI.loop && S.run});
     if(DBI.loopEvents.length > 256) DBI.loopEvents.shift();
   }
   attenuerVoie("dbi", CHARGE_N, t);
@@ -362,18 +397,24 @@ function beatDbi(i){
     while(DBI.loopEvents.length && DBI.loopEvents[0].t <= maintenant){
       DBI.dernierEntendu = DBI.loopEvents.shift();
     }
-    if(DBI.dernierEntendu){ i = DBI.dernierEntendu.i; DBI.loopEntendu = DBI.dernierEntendu.loop; }
+    if(DBI.dernierEntendu){
+      var e = DBI.dernierEntendu, change = DBI.songHeard !== e.motif || DBI.songPosHeard !== e.position;
+      i = e.i; DBI.loopEntendu = e.loop; DBI.horlogePos = e.horloge;
+      DBI.songHeard = e.motif; DBI.songPosHeard = e.position;
+      if(DBI.song && change){ majDbi(); majKnobsDbi(); }
+    }
   }
   DBI.pos = i;
   var lg = DBI.poly ? (pisteDbiSel().len || 16) : motifDbiCur().last;
   for(var j=0;j<16;j++) dbiPas[j].classList.toggle("cur", (DBI.page * 16 + j) === (i % lg));
 }
 function arretDbi(){
-  resetLooperDbi();
+  resetLooperDbi(); resetSongDbi();
   DBI.pos = -1;
   for(var j=0;j<16;j++) dbiPas[j].classList.remove("cur");
   var b = document.getElementById("dbi-play");
   if(b) b.classList.remove("on");
+  if(DBI.song){ majDbi(); majKnobsDbi(); }
 }
 function boucleDbi(){ }
 var MACHINE_DBI = {schedule:scheduleDbi, beat:beatDbi, arret:arretDbi, boucle:boucleDbi,
@@ -409,6 +450,7 @@ var DBI_KNOBS = [];
     }
     var ty = e.target.closest(".dbi-type");
     if(ty){
+      if(!editionDbiPermise()) return;
       var P = motifDbiCur().pistes[+ty.dataset.t];
       P.type = P.type ? 0 : 1;
       majDbi(); memDbi(); H.cran();
@@ -425,6 +467,7 @@ var DBI_KNOBS = [];
   pas.addEventListener("click", function(e){
     var b2 = e.target.closest("button");
     if(!b2) return;
+    if(!editionDbiPermise()) return;
     var i2 = DBI.page * 16 + (+b2.dataset.i), P = pisteDbiSel();
     if(i2 >= longueurPisteDbi(P)){ signal("AUGMENTEZ LAST STEP OU TRACK LEN"); return; }
     if(DBI.repeatEdit){
@@ -451,6 +494,7 @@ function knobDbi(k, nom, etiq){
       return editeCouleurDbi(k, nom) ? valeurCouleurDbi(P, nom) : P.p[nom];
     },
     set:function(v){
+      if(!editionDbiPermise()) return;
       var P = motifDbiCur().pistes[k];
       if(editeCouleurDbi(k, nom)) P.colorPar[nom] = Math.max(0, Math.min(1, v));
       else P.p[nom] = v;
@@ -487,7 +531,7 @@ function lcdDbi(v, l, fugace){
 }
 function majLcdDbi(){
   var P = pisteDbiSel();
-  lcdDbi(DBI_VOIX[DBI.sel].nom, DBI.poly ? ("LEN " + (P.len || 16) + " · POLY") : ("PTN " + (DBI.cur + 1)));
+  lcdDbi(DBI_VOIX[DBI.sel].nom, DBI.poly ? ("LEN " + (P.len || 16) + " · POLY") : ("PTN " + (indiceMotifDbi() + 1)));
 }
 function majDbi(){
   var P = pisteDbiSel(), m = motifDbiCur(), i;
@@ -532,12 +576,15 @@ function majDbi(){
   document.getElementById("dbi-rec").classList.toggle("on", DBI.rec);
   document.getElementById("dbi-last").textContent = "LAST STEP " + m.last;
   document.getElementById("dbi-len").textContent = "TRACK LEN " + (P.len || 16);
-  document.getElementById("dbi-ptn").textContent = "PTN " + (DBI.cur + 1);
+  document.getElementById("dbi-ptn").textContent = "PTN " + (indiceMotifDbi() + 1);
+  var bs = document.getElementById("dbi-song");
+  bs.classList.toggle("on", DBI.song); bs.setAttribute("aria-pressed", String(DBI.song));
+  bs.textContent = DBI.song ? "SONG " + (Math.max(0, DBI.songPosHeard) + 1) + "/" + DBI.chaine.length : "SONG";
   majLcdDbi();
 }
 function memDbi(){
   memoire.dbi = {cur:DBI.cur, sel:DBI.sel, swing:DBI.swing, random:DBI.random,
-    drive:DBI.drive, dist:DBI.dist, poly:DBI.poly,
+    drive:DBI.drive, dist:DBI.dist, poly:DBI.poly, song:DBI.song, chaine:DBI.chaine.slice(),
     motifs:DBI.motifs.map(function(m){
       return {last:m.last, pistes:m.pistes.map(function(P){
         return {pas:P.pas, acc:P.acc, pasPlus:P.pasPlus.slice(), accPlus:P.accPlus.slice(), col:P.col, colPlus:P.colPlus.slice(), colorPar:Object.assign({}, P.colorPar), repeats:P.repeats.slice(), len:P.len, type:P.type, p:P.p};
@@ -546,13 +593,18 @@ function memDbi(){
   sauverMachine("dbi");
 }
 function chargerDbi(){
-  resetLooperDbi();
+  resetLooperDbi(); resetSongDbi();
+  DBI.song = false; DBI.chaine = [0,1];
   DBI.motifs = [];
   for(var i=0;i<16;i++) DBI.motifs.push(motifDbi(i < 2 ? i : 9));
   DBI.page = 0; DBI.pos = -1; DBI.rec = false; DBI.roller = false;
   DBI.cur = 0; DBI.sel = 0; DBI.color = false; DBI.colorSteps = false; DBI.repeatEdit = false; DBI.accent = false;
   var m = memLire("dbi");
   if(m){
+    if(Array.isArray(m.chaine) && m.chaine.length > 0 && m.chaine.length <= 16 &&
+       m.chaine.every(function(n){ return Number.isInteger(n) && n >= 0 && n < 16; })){
+      DBI.chaine = m.chaine.slice(); DBI.song = m.song === true;
+    }
     if(m.motifs && m.motifs.length === 16){
       DBI.motifs = m.motifs.map(function(o){
         var r = motifDbi(9);
@@ -587,6 +639,12 @@ function chargerDbi(){
   }
 }
 
+document.getElementById("dbi-song").addEventListener("click", function(){
+  if(S.run){ signal("ARRETEZ PLAY POUR CHANGER DE MODE"); return; }
+  DBI.song = !DBI.song; DBI.rec = false; resetSongDbi(); resetLooperDbi();
+  majDbi(); majKnobsDbi(); memDbi(); H.inter();
+});
+document.getElementById("dbi-song-edit").addEventListener("click", configSongDbi);
 document.getElementById("dbi-play").addEventListener("click", function(){
   audioInit();
   if(S.run){ stop(); H.stop(); } else { step = 0; start(); H.start(); }
@@ -597,6 +655,7 @@ document.getElementById("dbi-stop").addEventListener("click", function(){
   document.getElementById("dbi-play").classList.remove("on");
 });
 document.getElementById("dbi-rec").addEventListener("click", function(){
+  if(DBI.song){ signal("QUITTEZ SONG POUR ENREGISTRER LES PAS"); return; }
   DBI.rec = !DBI.rec; majDbi(); H.inter();
 });
 document.getElementById("dbi-color").addEventListener("click", function(){
@@ -649,6 +708,7 @@ document.getElementById("dbi-repeat").addEventListener("click", function(){
   signal(DBI.repeatEdit ? "STEP REPEAT : TOUCHEZ UN PAS POUR 1, 2, 3 OU 4 FRAPPES" : "LES TOUCHES POSENT LES PAS");
 });
 document.getElementById("dbi-poly").addEventListener("click", function(){
+  if(!editionDbiPermise()) return;
   relacherLooperDbi();
   DBI.poly = !DBI.poly;
   majDbi(); memDbi(); H.inter();
@@ -674,19 +734,22 @@ document.getElementById("dbi-len").addEventListener("click", function(){ choisir
   });
 });
 document.getElementById("dbi-copy").addEventListener("click", function(){
-  var v = window.prompt("Copier le motif " + (DBI.cur + 1) + " vers lequel ? (1 à 16)", "");
+  if(!editionDbiPermise()) return;
+  var v = window.prompt("Copier le motif " + (indiceMotifDbi() + 1) + " vers lequel ? (1 à 16)", "");
   var n = parseInt(v, 10) - 1;
   if(isNaN(n) || n < 0 || n > 15) return;
   DBI.motifs[n] = JSON.parse(JSON.stringify(motifDbiCur()));
   memDbi(); signal("COPIÉ VERS LE MOTIF " + (n + 1)); H.inter();
 });
 document.getElementById("dbi-erase").addEventListener("click", function(){
+  if(!editionDbiPermise()) return;
   var P = pisteDbiSel();
   P.pas = 0; P.acc = 0; P.pasPlus = [0,0,0]; P.accPlus = [0,0,0]; P.col = 0; P.colPlus = [0,0,0]; P.repeats = [];
   majDbi(); memDbi(); H.inter();
   signal("PISTE " + DBI_VOIX[DBI.sel].nom + " VIDÉE");
 });
 document.getElementById("dbi-ptn").addEventListener("click", function(){
+  if(DBI.song){ signal("QUITTEZ SONG POUR CHOISIR UN MOTIF"); return; }
   memDbi();
   relacherLooperDbi();
   DBI.cur = (DBI.cur + 1) % 16;

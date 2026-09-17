@@ -67,6 +67,21 @@
   STOP, le passage en arrière-plan et la perte de focus libèrent la boucle. Au clavier, maintenez
   Espace ou Entrée sur le bouton ; Échap libère également le Looper.</p>
 
+  <h3>SONG : enchaîner les motifs</h3>
+  <p>À l’arrêt, <b>EDIT SONG</b> définit de 1 à 16 positions. Entrez les numéros des motifs
+  de 1 à 16, séparés par des espaces : <b>1 1 2 3</b> joue deux fois le premier, puis le deuxième
+  et le troisième. <b>SONG</b> active la chaîne ; <b>PLAY</b> la répète en boucle. Chaque motif
+  garde sa longueur et ses accents, COLOR et STEP REPEAT. En polyrythmie, sa durée reste
+  celle du cycle calculé par l’application, plafonné à 64 pas par motif.</p>
+  <p>L’afficheur et les pas suivent le motif réellement entendu. <b>STOP</b> ramène au début
+  de la chaîne pour la prochaine lecture. Quittez SONG pour choisir librement un motif avec PTN.
+  Arrêtez la lecture pour modifier les motifs ou la chaîne ; REC est désactivé en mode SONG.
+  Les réglages globaux de tempo, swing, hasard et distorsion restent utilisables en direct.</p>
+  <p>Le Looper peut répéter un passage de la chaîne, puis reprendre sa position normale.
+  SONG fonctionne dans un set avec l’horloge interne, et sur la façade DrumBrute avec l’horloge MIDI externe. La chaîne et son activation sont
+  sauvegardées. En mode SONG, chaque cycle demandé à l’export WAV contient la chaîne entière ;
+  une longue chaîne peut atteindre la limite de durée du rendu.</p>
+
   <h3>Hasard et roulement</h3>
   <p>Le potard <b>RANDOM</b> ôte des coups et en ajoute : seize pas posés tombent entre sept et treize au
   maximum, et le motif change à chaque tour. <b>ROLLER</b> double les coups simples de la piste choisie.

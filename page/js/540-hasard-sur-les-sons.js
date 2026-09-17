@@ -13,6 +13,7 @@ function memMachineCourante(){
   try{ if(f && typeof window[f] === "function") window[f](); }catch(e){}
 }
 function sonsHasard(){
+  if(S.modele === "dbi" && !editionDbiPermise()) return;
   var m = S.modele, l = [], champs = null, i;
   function pousse(tab, n, c){ for(i=0;i<n;i++) if(tab[i]) l.push({o:tab[i], c:c}); }
   var doux = ["ton","dec","snap","acc","filt","pan","tune","pitch","debut","res","cut","egi","drv"];

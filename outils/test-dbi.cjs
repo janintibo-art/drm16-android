@@ -13,6 +13,7 @@ const c = {document:{getElementById(id){return elements[id] || (elements[id]=ele
   ouvrirPas(){return 0;},attenuerVoie(){},stepDur(){return .1;},cache:false,queue:[]};
 vm.createContext(c);
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../page/js/490-arturia-drumbrute-impact.js'),'utf8'),c);
+c.MACHINE=c.MACHINE_DBI;
 const vraieVoixDbi=c.voixDbi;
 let p = c.pisteDbi(0);
 for (let i=0;i<64;i++) {
@@ -186,3 +187,52 @@ assert.equal(boucleAudio.length,8);assert(boucleAudio.every(v=>v.k===0&&v.a&&v.c
 assert(Math.abs(boucleAudio[4].t-2.135)<1e-9);assert(boucleAudio[3].t<2.135);assert(boucleAudio[7].t<2.2);
 c.relacherLooperDbi();c.scheduleDbi(12,2.2);assert.equal(boucleAudio.length,8);
 console.log('Looper audio : notes du passage, accent, COLOR, répétitions et swing de l’horloge OK.');
+
+// SONG déterministe : motifs impairs/pairs, répétitions et aucune mutation de cur.
+c.saved=null;c.chargerDbi();c.S.run=true;c.MACHINE=c.MACHINE_DBI;c.cache=false;
+c.DBI.cur=5;c.DBI.song=true;c.DBI.chaine=[0,1,0];c.DBI.poly=false;c.DBI.swing=.7;c.DBI.random=0;
+c.DBI.motifs[0].last=3;c.DBI.motifs[1].last=4;
+c.DBI.motifs.forEach(m=>m.pistes.forEach(p=>{p.pas=0;p.pasPlus=[0,0,0];}));
+c.DBI.motifs[0].pistes[0].pas=7;c.DBI.motifs[1].pistes[0].pas=15;
+c.DBI.motifs[0].pistes[0].p.niv=.2;c.DBI.motifs[1].pistes[0].p.niv=.8;
+const songHits=[];c.voixDbi=(t,k,a,col,m)=>{songHits.push({t,m:c.DBI.motifs.indexOf(m),niv:m.pistes[k].p.niv});};
+assert.equal(c.longueurDbi(),10);c.queue=[];
+for(let i=0;i<10;i++)c.scheduleDbi(i,i*.1);
+assert.deepStrictEqual(songHits.map(h=>h.m),[0,0,0,1,1,1,1,0,0,0]);assert.equal(c.DBI.cur,5);
+assert.deepStrictEqual(songHits.map(h=>h.niv),[.2,.2,.2,.8,.8,.8,.8,.2,.2,.2]);
+assert(Math.abs(songHits[3].t-.335)<1e-9); // Swing de l'horloge, pas du pas local zéro.
+let songNow=.31;c.maintenantAudio=()=>songNow;c.beatDbi(3);assert.equal(c.DBI.songHeard,0);
+songNow=.34;c.beatDbi(3);assert.equal(c.DBI.songHeard,1);assert.equal(c.DBI.pos,0);assert.equal(c.DBI.horlogePos,3);
+assert.equal(elements['dbi-song'].textContent,'SONG 2/3');
+// La boucle reprend la dernière adresse entendue, puis SONG suit son horloge.
+assert(c.commencerLooperDbi(1,55));assert.equal(c.pasLooperDbi(8),3);c.relacherLooperDbi(55);assert.equal(c.pasLooperDbi(8),8);
+const avantSong=JSON.stringify(c.DBI.motifs);c.DBI.rec=true;
+// Garder une voix test qui accepte aussi les pads (motif implicite).
+c.voixDbi=()=>{};c.frapperDbi(0,true);elements['dbi-erase'].listeners.click();elements['dbi-poly'].listeners.click();
+assert.equal(JSON.stringify(c.DBI.motifs),avantSong);assert.equal(c.DBI.poly,false);
+c.memDbi();c.saved=JSON.parse(JSON.stringify(c.memoire.dbi));c.S.run=false;c.chargerDbi();
+assert(c.DBI.song);assert.equal(c.DBI.chaine.join(','),'0,1,0');assert.equal(c.DBI.cur,5);
+// L'export hors ligne parcourt le même cycle sans modifier le curseur entendu.
+c.cache=true;const exportHits=[];c.voixDbi=(t,k,a,col,m)=>exportHits.push(c.DBI.motifs.indexOf(m));
+for(let i=0;i<c.longueurDbi();i++)c.scheduleDbi(i,i*.1);
+assert.deepStrictEqual(exportHits,[0,0,0,1,1,1,1,0,0,0]);assert.equal(c.DBI.loopEvents.length,0);
+// Voie secondaire du SET : pas d'indice SONG dans la file d'une autre machine.
+c.cache=false;c.S.run=true;c.MACHINE={};c.queue=[];c.scheduleDbi(7,2);assert.equal(c.queue.length,0);assert.equal(c.DBI.loopEvents.length,1);
+c.arretDbi();assert.equal(c.DBI.loopEvents.length,0);assert.equal(c.DBI.songHeard,-1);
+c.MACHINE=c.MACHINE_DBI;c.S.run=false;
+c.window.prompt=()=> '1 1 2';c.configSongDbi();assert.equal(c.DBI.chaine.join(','),'0,0,1');
+c.S.run=true;songNow=4;c.scheduleDbi(3,3);c.beatDbi(3);assert.equal(elements['dbi-song'].textContent,'SONG 2/3');
+c.S.run=false;c.window.prompt=()=> '17 2';c.configSongDbi();assert.equal(c.DBI.chaine.join(','),'0,0,1');
+c.window.prompt=()=> '1 '.repeat(17);c.configSongDbi();assert.equal(c.DBI.chaine.join(','),'0,0,1');
+c.saved={...c.saved,chaine:[999],song:true};c.chargerDbi();assert.equal(c.DBI.song,false);
+c.saved={motifs:c.saved.motifs};c.chargerDbi();assert.equal(c.DBI.song,false);assert.equal(c.DBI.chaine.join(','),'0,1');
+console.log('SONG : longueurs 3/4, cycle10, swing global, timbres, affichage entendu, Looper, REC protégé, export, SET, sauvegarde et migration OK.');
+
+// Départ/arrêt réels : purge de la DBI secondaire, y compris en attente MIDI.
+vm.runInContext(fs.readFileSync(path.join(__dirname,'../page/js/130-decalage-humain.js'),'utf8'),c);
+c.SET={on:false};c.SYNC={};c.MIDI={sync:true,ouvert:0};c.timer=null;c.AUDIT={};
+c.clearInterval=()=>{};c.draw=()=>{};c.host=()=>{};c.midiHorloge=()=>{};c.midiSilence=()=>{};c.couperSourcesFutures=()=>{};
+c.MACHINE={arret(){}};c.DBI.loopEvents=[{i:2,t:100}];c.DBI.songHeard=1;
+c.start();assert.equal(c.DBI.loopEvents.length,0);assert.equal(c.DBI.songHeard,-1);assert.equal(c.step,0);assert.equal(c.SYNC.attente,true);
+c.DBI.loopEvents=[{i:2,t:100}];c.DBI.songHeard=1;c.stop();assert.equal(c.DBI.loopEvents.length,0);assert.equal(c.DBI.songHeard,-1);assert.equal(c.S.run,false);
+console.log('Transport global : départ/STOP purgent aussi la DBI secondaire, attente MIDI comprise.');

@@ -69,6 +69,7 @@ function tick(){
 function start(){
   audioInit();
   if(!ctx) return;
+  if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
   S.run=true; step=0; pasSet=0; queue=[];
   if(SET.on) preparerSet();
   if(MIDI.sync && MIDI.ouvert >= 0){
@@ -92,6 +93,7 @@ function stop(){
   couperSourcesFutures();
   midiSilence();
   if(MACHINE && MACHINE.arret) MACHINE.arret();
+  if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI && MACHINE !== MACHINE_DBI) MACHINE_DBI.arret();
   host(false);
   midiHorloge(false);
 }
