@@ -346,6 +346,7 @@ function sauverEch(id, buf){
 var ES_CHARGES = Object.create(null);
 function actualiserEchs(){
   majLedsEs();
+  if(typeof STK !== "undefined" && STK && S.modele === "stk"){ STK.ondePour = ""; majStk(); }
   if(typeof MC !== "undefined" && MC && S.modele === "mc") majMc();
   if(typeof KP !== "undefined" && KP && S.modele === "kp") majKp();
   var bib = document.getElementById("bib");
@@ -408,6 +409,8 @@ function usagesEch(id){
   });
   var km = S.modele === "kp" && typeof KP !== "undefined" && KP ? KP : memLire("kp");
   if(km && Array.isArray(km.banques)) km.banques.forEach(function(b){ if(b && b.ech === id) n++; });
+  var st = S.modele === "stk" && typeof STK !== "undefined" ? STK : memLire("stk");
+  if(st && Array.isArray(st.pistes)) st.pistes.forEach(function(p){ if(p && p.ech === id) n++; });
   var mc = S.modele === "mc" && typeof MC !== "undefined" ? MC : memLire("mc");
   if(mc && Array.isArray(mc.pistes)) mc.pistes.forEach(function(p){ if(!p) return;
     if(p.ech === id) n++;

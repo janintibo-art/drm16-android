@@ -11,11 +11,11 @@
 var STK_PISTES = 10, STK_MOTIFS = 8;
 
 function pisteStk(i){
-  return {ech:"b" + (i % 24), niv:0.8, pan:0, tune:0.5, dec:0.85, filt:1, muet:false};
+  return {ech:"b" + (i % 24), slice:false, tranche:0, niv:0.8, pan:0, tune:0.5, dec:0.85, filt:1, muet:false};
 }
 function motifStk(){
-  var m = {pas:[], last:16};
-  for(var i=0;i<STK_PISTES;i++) m.pas.push(0);
+  var m = {pas:[], tranches:[], last:16};
+  for(var i=0;i<STK_PISTES;i++){ m.pas.push(0); m.tranches.push(Array(16).fill(-1)); }
   return m;
 }
 var STK = {pistes:[], motifs:[], cur:0, sel:0, solo:-1, rec:false, pos:-1,
@@ -25,6 +25,27 @@ for(var sz2=0; sz2<STK_MOTIFS; sz2++) STK.motifs.push(motifStk());
 
 function motifStkCur(){ return STK.motifs[STK.cur]; }
 function pisteStkSel(){ return STK.pistes[STK.sel]; }
+
+/* v186 : huit tranches égales, sans création ni modification du fichier source.
+   -1 dans un pas conserve le son entier des anciens projets. */
+function numeroTrancheStk(v){
+  return Number.isInteger(v) && v >= 0 && v < 8 ? v : -1;
+}
+function bornesTrancheStk(buf, v){
+  var n = numeroTrancheStk(v);
+  return n < 0 ? {debut:0, fin:buf.length} :
+    {debut:Math.floor(buf.length * n / 8), fin:Math.floor(buf.length * (n + 1) / 8)};
+}
+function affecterSonStk(k, id){
+  if(typeof PROJET_EN_COURS !== "undefined" && PROJET_EN_COURS) return false;
+  if(!Number.isInteger(k) || k < 0 || k >= STK_PISTES || typeof id !== "string") return false;
+  banqueEs();
+  if(!ES.buf[id]){ signal("SON INDISPONIBLE"); return false; }
+  if(S.modele !== "stk") chargerStk();
+  STK.pistes[k].ech = id; STK.ondePour = ""; memStk();
+  if(S.modele === "stk") majStk();
+  return true;
+}
 
 function noeudsStk(){
   if(STK.noeuds && STK.noeuds.ctx === ctx) return STK.noeuds;
@@ -40,12 +61,15 @@ function passeStk(i){
   return !STK.pistes[i].muet;
 }
 
-function voixStk(t, i, acc){
+function voixStk(t, i, acc, tranche){
   audioInit(); if(!ctx) return;
   banqueEs();
   var P = STK.pistes[i];
   var buf = ES.buf[P.ech];
   if(!buf) return;
+  var partie = P.slice ? numeroTrancheStk(tranche === undefined ? P.tranche : tranche) : -1;
+  var bornes = bornesTrancheStk(buf, partie);
+  if(bornes.fin <= bornes.debut) return;
   var n = noeudsStk();
   var src = ctx.createBufferSource();
   src.playbackRate.value = Math.pow(2, (P.tune - 0.5) * 2);
@@ -56,15 +80,23 @@ function voixStk(t, i, acc){
   var g = ctx.createGain();
   var pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
   if(pan) pan.pan.value = P.pan;
-  var duree = Math.max(0.03, (buf.duration / src.playbackRate.value) * Math.max(0.05, P.dec));
+  var portion = (bornes.fin - bornes.debut) / buf.sampleRate;
+  var duree = partie < 0 ? Math.max(0.03, (buf.duration / src.playbackRate.value) * Math.max(0.05, P.dec))
+    : portion / src.playbackRate.value * Math.max(0.05, P.dec);
   var pic = P.niv * (acc ? 1 : 0.72);
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.linearRampToValueAtTime(pic, t + 0.002);
-  g.gain.setValueAtTime(pic, t + Math.max(0.005, duree - 0.02));
-  g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.02, duree));
+  var attaque = Math.min(0.002, duree * 0.1);
+  g.gain.linearRampToValueAtTime(Math.max(0.0001, pic), t + attaque);
+  g.gain.setValueAtTime(Math.max(0.0001, pic), t + Math.max(attaque, duree - Math.min(0.02, duree * 0.2)));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + duree);
   src.connect(f); f.connect(g);
   if(pan){ g.connect(pan); pan.connect(pasVoie(n.e)); } else g.connect(pasVoie(n.e));
-  src.start(t); src.stop(t + duree + 0.05);
+  if(partie < 0){ src.start(t); src.stop(t + duree + 0.05); }
+  else {
+    // La durée de start est exprimée dans le tampon, avant transposition.
+    src.start(t, bornes.debut / buf.sampleRate, portion * Math.max(0.05, P.dec));
+    src.stop(t + duree);
+  }
 }
 
 function scheduleStk(i, t){
@@ -74,7 +106,7 @@ function scheduleStk(i, t){
   for(var k=0;k<STK_PISTES;k++){
     if(!(m.pas[k] & (1 << i))) continue;
     if(!passeStk(k)) continue;
-    CHARGE_N++, voixStk(t, k, (i % 4) === 0);
+    CHARGE_N++, voixStk(t, k, (i % 4) === 0, m.tranches[k][i]);
   }
   if(!cache) queue.push({i:i, t:t});
   attenuerVoie("stk", CHARGE_N, t);
@@ -88,7 +120,7 @@ function arretStk(){
   if(STK.noeuds && STK.noeuds.ctx === ctx){
     try{ debrancherTout(STK.noeuds); }catch(e){}
   }
-  STK.noeuds = null;
+  STK.noeuds = null; beatStk(-1);
 }
 function boucleStk(){
   if(STK.song && STK.chaine.length){
@@ -101,28 +133,45 @@ var MACHINE_STK = {schedule:scheduleStk, beat:beatStk, arret:arretStk, boucle:bo
                    longueur:function(){ return motifStkCur().last; }};
 
 function memStk(){
-  memoire.stk = {cur:STK.cur, sel:STK.sel, chaine:STK.chaine,
+  memoire.stk = {cur:STK.cur, sel:STK.sel, chaine:STK.chaine.slice(),
     pistes:STK.pistes.map(function(P){
-      return {ech:P.ech, niv:P.niv, pan:P.pan, tune:P.tune, dec:P.dec, filt:P.filt, muet:P.muet};
+      return {ech:P.ech, slice:P.slice, tranche:P.tranche, niv:P.niv, pan:P.pan, tune:P.tune, dec:P.dec, filt:P.filt, muet:P.muet};
     }),
-    motifs:STK.motifs.map(function(m){ return {pas:m.pas, last:m.last}; })};
+    motifs:STK.motifs.map(function(m){ return {pas:m.pas.slice(), tranches:m.tranches.map(function(t){ return t.slice(); }), last:m.last}; })};
   sauverMachine("stk");
+}
+function nombreStk(v, min, max, repli){
+  return typeof v === "number" && isFinite(v) ? Math.max(min, Math.min(max, v)) : repli;
 }
 function chargerStk(){
   var m = memLire("stk");
-  if(!m) return;
-  if(typeof m.cur === "number") STK.cur = Math.max(0, Math.min(STK_MOTIFS - 1, m.cur));
-  if(typeof m.sel === "number") STK.sel = Math.max(0, Math.min(STK_PISTES - 1, m.sel));
-  if(m.chaine) STK.chaine = m.chaine.filter(function(x){ return x >= 0 && x < STK_MOTIFS; });
-  if(m.pistes) m.pistes.forEach(function(o, i){
-    if(i >= STK_PISTES || !o) return;
-    for(var q in o) if(STK.pistes[i][q] !== undefined) STK.pistes[i][q] = o[q];
-  });
-  if(m.motifs) m.motifs.forEach(function(o, i){
-    if(i >= STK_MOTIFS || !o) return;
-    if(o.pas && o.pas.length === STK_PISTES) STK.motifs[i].pas = o.pas.slice();
-    STK.motifs[i].last = o.last || 16;
-  });
+  if(!m || typeof m !== "object" || Array.isArray(m)) return;
+  STK.cur = Math.floor(nombreStk(m.cur, 0, STK_MOTIFS - 1, 0));
+  STK.sel = Math.floor(nombreStk(m.sel, 0, STK_PISTES - 1, 0));
+  STK.chaine = Array.isArray(m.chaine) ? m.chaine.filter(function(x){ return Number.isInteger(x) && x >= 0 && x < STK_MOTIFS; }).slice(0,256) : [];
+  for(var i=0;i<STK_PISTES;i++){
+    var P = pisteStk(i), o = Array.isArray(m.pistes) ? m.pistes[i] : null;
+    if(o && typeof o === "object"){
+      if(typeof o.ech === "string" && /^[bu][a-zA-Z0-9_-]{1,100}$/.test(o.ech)) P.ech = o.ech;
+      P.slice = o.slice === true; P.tranche = Math.max(0, numeroTrancheStk(o.tranche));
+      ["niv","tune","dec","filt"].forEach(function(k){ P[k] = nombreStk(o[k], 0, 1, P[k]); });
+      P.pan = nombreStk(o.pan, -1, 1, P.pan); P.muet = o.muet === true;
+    }
+    STK.pistes[i] = P;
+  }
+  for(var j=0;j<STK_MOTIFS;j++){
+    var motif = motifStk(), ancien = Array.isArray(m.motifs) ? m.motifs[j] : null;
+    if(ancien && typeof ancien === "object"){
+      motif.last = Math.floor(nombreStk(ancien.last, 1, 16, 16));
+      for(var k=0;k<STK_PISTES;k++){
+        var bits = Array.isArray(ancien.pas) ? ancien.pas[k] : 0;
+        motif.pas[k] = Number.isInteger(bits) ? bits & 65535 : 0;
+        var tr = Array.isArray(ancien.tranches) ? ancien.tranches[k] : null;
+        if(Array.isArray(tr)) for(var n=0;n<16;n++) motif.tranches[k][n] = numeroTrancheStk(tr[n]);
+      }
+    }
+    STK.motifs[j] = motif;
+  }
 }
 
 /* ---------- la façade du KAOSS PAD ---------- */
@@ -677,7 +726,7 @@ function dessinerStk(){
 
   g.fillStyle = "#e8e04a";
   g.font = "600 11px 'Roboto Condensed',Arial";
-  g.fillText("PISTE " + (STK.sel + 1) + "  ·  " + nomEch(P.ech), 8, 14);
+  g.fillText("PISTE " + (STK.sel + 1) + "  ·  " + nomBib(P.ech), 8, 14);
 
   if(buf){
     if(STK.ondePour !== P.ech){
@@ -693,6 +742,16 @@ function dessinerStk(){
     }
     g.fillStyle = "#4a4a28";
     g.fillRect(8, mi, L - 16, 1);
+    if(P.slice){
+      var largeur = (L - 16) / 8;
+      g.fillStyle = "rgba(232,224,74,0.22)";
+      g.fillRect(8 + P.tranche * largeur, 20, largeur, hOnde - 20);
+      g.fillStyle = "#f6f6a0";
+      for(var tr=0;tr<8;tr++){
+        g.fillRect(8 + tr * largeur, 20, 1, hOnde - 20);
+        g.fillText(String(tr + 1), 11 + tr * largeur, 32);
+      }
+    }
   } else {
     g.fillStyle = "#6a6a4a";
     g.fillText("aucun son", 8, 60);
@@ -720,6 +779,34 @@ function enveloppeBuf(buf, cols){
   return e;
 }
 
+function majTranchesStk(){
+  var P = pisteStkSel(), grille = document.getElementById("stk-tranches");
+  var cacheAvant = grille.hidden;
+  grille.hidden = !P.slice;
+  if(!grille.childNodes.length) for(var i=0;i<8;i++) (function(k){
+    var b = document.createElement("button"); b.textContent = "TR " + (k + 1);
+    b.addEventListener("click", function(){
+      pisteStkSel().tranche = k;
+      audioInit();
+      if(ctx && passeStk(STK.sel)) voixStk(maintenantAudio() + 0.005, STK.sel, false, k);
+      memStk(); majStk(); H.inter();
+    });
+    grille.appendChild(b);
+  })(i);
+  var buf = ES.buf[P.ech];
+  for(var j=0;j<8;j++){
+    var bt = grille.childNodes[j], bornes = buf ? bornesTrancheStk(buf,j) : null;
+    bt.disabled = !bornes || bornes.fin <= bornes.debut;
+    bt.classList.toggle("on", j === P.tranche);
+    bt.setAttribute("aria-pressed", String(j === P.tranche));
+    bt.setAttribute("aria-label", "Écouter et choisir la tranche " + (j + 1));
+  }
+  var mode = document.getElementById("stk-slice");
+  mode.textContent = P.slice ? "SLICE : OUI" : "SLICE : NON";
+  mode.setAttribute("aria-pressed", String(P.slice)); mode.classList.toggle("on", P.slice);
+  document.getElementById("stk-source").textContent = buf ? nomBib(P.ech) : "SON ABSENT · " + P.ech;
+  if(cacheAvant !== grille.hidden && S.modele === "stk") fit();
+}
 function majStk(){
   var dp = document.getElementById("stk-pads");
   if(!dp) return;
@@ -748,7 +835,12 @@ function majStk(){
   for(var k2=0;k2<16;k2++){
     bs[k2].classList.toggle("on",
       STK_MODE === "ptn" ? (k2 === STK.cur) : !!(m.pas[STK.sel] & (1 << k2)));
-    bs[k2].textContent = STK_MODE === "ptn" ? (k2 < STK_MOTIFS ? String(k2 + 1) : "·") : String(k2 + 1);
+    var tr = m.tranches[STK.sel][k2], actifPas = !!(m.pas[STK.sel] & (1 << k2));
+    bs[k2].textContent = STK_MODE === "ptn" ? (k2 < STK_MOTIFS ? String(k2 + 1) : "·") :
+      String(k2 + 1) + (pisteStkSel().slice && actifPas ? (tr >= 0 ? " · T" + (tr + 1) : " · ENT") : "");
+    bs[k2].disabled = STK_MODE === "ptn" ? k2 >= STK_MOTIFS : k2 >= m.last;
+    bs[k2].setAttribute("aria-label", STK_MODE === "ptn" ? "Motif " + (k2 + 1) :
+      "Pas " + (k2 + 1) + (actifPas ? (pisteStkSel().slice && tr >= 0 ? " · tranche " + (tr + 1) : " · son entier") : " · vide"));
   }
   var ts = document.getElementById("stk-trks").childNodes;
   for(var t2=0;t2<STK_PISTES;t2++){
@@ -756,7 +848,7 @@ function majStk(){
     ts[t2].classList.toggle("sel", t2 === STK.sel);
     ts[t2].classList.toggle("muet", !passeStk(t2));
     ts[t2].querySelector("i").style.background = couleurCanal(t2);
-    ts[t2].querySelector("em").textContent = nomEch(P.ech);
+    ts[t2].querySelector("em").textContent = nomBib(P.ech);
   }
   var bp = document.getElementById("stk-ptn");
   if(bp){ bp.textContent = "MOTIF " + (STK.cur + 1); bp.classList.toggle("on", STK_MODE === "ptn"); }
@@ -767,19 +859,25 @@ function majStk(){
   var et = document.getElementById("stk-etat");
   if(et) et.textContent = STK_MODE === "ptn"
     ? "Les pads choisissent le motif. Touchez MOTIF pour revenir aux pas."
+    : pisteStkSel().slice ? "Choisissez TR 1–8, puis un pas : écrire, remplacer ou retirer cette tranche."
     : "Les pads écrivent les pas de la piste " + (STK.sel + 1) +
       ". Retoucher une piste choisie la coupe.";
-  dessinerStk();
+  majTranchesStk(); dessinerStk();
 }
 function padStk(k){
+  if(!Number.isInteger(k) || k < 0 || k >= 16) return;
   audioInit();
   if(STK_MODE === "ptn"){
     if(k < STK_MOTIFS){ STK.cur = k; majStk(); memStk(); H.inter(); }
     return;
   }
-  var m = motifStkCur();
-  m.pas[STK.sel] ^= (1 << k);
-  if(m.pas[STK.sel] & (1 << k)) voixStk(maintenantAudio() + 0.005, STK.sel, false);
+  var m = motifStkCur(), P = pisteStkSel();
+  if(!Number.isInteger(k) || k < 0 || k >= m.last) return;
+  var tranche = P.slice ? P.tranche : -1;
+  var retirer = !!(m.pas[STK.sel] & (1 << k)) && (!P.slice || m.tranches[STK.sel][k] === tranche);
+  if(retirer){ m.pas[STK.sel] &= ~(1 << k); m.tranches[STK.sel][k] = -1; }
+  else { m.pas[STK.sel] |= (1 << k); m.tranches[STK.sel][k] = tranche; }
+  if(!retirer && ctx && passeStk(STK.sel)) voixStk(maintenantAudio() + 0.005, STK.sel, false, tranche);
   memStk(); majStk(); H.cran();
 }
 function knobStk(nom, etiq, min, max){
@@ -825,6 +923,12 @@ document.getElementById("stk-solo").addEventListener("click", function(){
   STK.solo = (STK.solo === STK.sel) ? -1 : STK.sel;
   majStk(); memStk(); H.inter();
 });
+document.getElementById("stk-slice").addEventListener("click", function(){
+  pisteStkSel().slice = !pisteStkSel().slice; memStk(); majStk(); H.inter();
+});
+document.getElementById("stk-import").addEventListener("click", function(){
+  BIB.cible = {machine:"stk", partie:STK.sel}; ouvrirBib();
+});
 document.getElementById("stk-son").addEventListener("click", function(){
   /* Le son suivant de la banque pour la piste choisie. */
   var P = pisteStkSel();
@@ -835,7 +939,7 @@ document.getElementById("stk-son").addEventListener("click", function(){
 });
 document.getElementById("stk-clear").addEventListener("click", function(){
   if(!window.confirm("Effacer les pas de la piste " + (STK.sel + 1) + " ?")) return;
-  motifStkCur().pas[STK.sel] = 0;
+  motifStkCur().pas[STK.sel] = 0; motifStkCur().tranches[STK.sel].fill(-1);
   memStk(); majStk(); H.inter();
 });
 

@@ -66,9 +66,14 @@ for(const id of ['ko','stk']) {
   assert(c.actions.includes('save:'+id),'le dernier modèle ouvert est mémorisé');
   const etat=c[id.toUpperCase()];
   assert.equal(etat.cur,2);assert.equal(etat.sel,3);
-  assert.deepStrictEqual(copie(etat.motifs),sauvegarde.motifs);
+  assert.deepStrictEqual(copie(etat.motifs).map(m=>id==='stk'?{pas:m.pas,last:m.last}:m),sauvegarde.motifs);
+  if(id==='stk') assert(etat.motifs.every(m=>m.tranches.every(t=>t.length===16&&t.every(n=>n===-1))),'anciens motifs : son entier');
   assert.deepStrictEqual(copie(etat.chaine),sauvegarde.chaine);
-  assert.deepStrictEqual(copie(etat[id==='stk'?'pistes':'sons']),sauvegarde[id==='stk'?'pistes':'sons']);
+  assert.deepStrictEqual(copie(etat[id==='stk'?'pistes':'sons']).map(p=>{
+    if(id!=='stk') return p;
+    assert.strictEqual(p.slice,false);assert.strictEqual(p.tranche,0);
+    const {slice,tranche,...ancien}=p;return ancien;
+  }),sauvegarde[id==='stk'?'pistes':'sons']);
   assert.equal(c.frappes.length,0,'ouvrir ne joue aucune note');
   c['schedule'+suffixe](5,1);
   assert.deepStrictEqual(c.frappes.map(f=>f[1]),[3],'la lecture utilise le motif restauré');

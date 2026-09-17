@@ -348,3 +348,10 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 
 #mc-boucle-info{grid-column:span 2;min-width:0;font:700 9px/1.4 Arial;color:#b5b5bd}
 #mc-pads button:disabled{cursor:default;opacity:.5}
+
+#stk-tranches{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:10px}
+#stk-tranches[hidden]{display:none}
+#stk-tranches button{min-width:0;padding:10px 2px;border:1px solid #5b582f;border-radius:5px;background:#28271c;color:#e8e04a;font:700 10px Arial}
+#stk-tranches button.on{background:#e8e04a;color:#141410}
+#stk-tranches button:disabled{opacity:.4}
+#stk-source{flex-basis:100%;font:700 10px Arial;color:#e8e04a;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

@@ -1565,10 +1565,83 @@ async def mc_looper(nav):
     finally:
         await contexte.close()
 
+async def stk_tranches(nav):
+    print('\n25. SmplTrek : import, tranches par pas, rendu réel et sauvegarde (v186)')
+    from pathlib import Path
+    import io,wave,math,struct
+    flux=io.BytesIO()
+    with wave.open(flux,'wb') as w:
+        w.setnchannels(1);w.setsampwidth(2);w.setframerate(32000)
+        w.writeframes(b''.join(struct.pack('<h',int(8000*math.sin(2*math.pi*(220*(i//8000+1))*i/32000))) for i in range(64000)))
+    contexte=await nav.new_context(viewport={'width':393,'height':851})
+    await contexte.add_init_script(PONT)
+    adresse=await servir_page(contexte);pg=await contexte.new_page();erreurs=[]
+    pg.on('pageerror',lambda e:erreurs.append(str(e)))
+    try:
+        await pg.goto(adresse)
+        await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=stk]').click()
+        await pg.locator('#stk-import').click()
+        ok(await pg.evaluate("BIB.cible.machine==='stk' && BIB.cible.partie===0 && bibParties('stk').length===10"),'bibliothèque : dix destinations SmplTrek')
+        await pg.set_input_files('#bib-fichier',{'name':'tranches-stk.wav','mimeType':'audio/wav','buffer':flux.getvalue()})
+        await pg.wait_for_function("Object.keys(BIB.noms).some(k=>BIB.noms[k]==='tranches-stk')")
+        ligne=pg.locator('.bib-ligne').filter(has=pg.locator('b',has_text='tranches-stk'))
+        await ligne.get_by_role('button',name='AFFECTER',exact=True).click()
+        await pg.evaluate('writeMem()');await pg.reload()
+        await pg.wait_for_function("document.body.classList.contains('pret') && ES.buf[STK.pistes[0].ech]")
+        await pg.locator('.pick[data-m=stk]').click()
+        ok(await pg.evaluate("STK.pistes[0].ech.startsWith('u') && usagesEch(STK.pistes[0].ech)===1"),'sample importé restauré et utilisation inventoriée')
+        await pg.locator('#stk-pads button').nth(3).click()
+        await pg.locator('#stk-slice').click()
+        ok(await pg.evaluate('STK.motifs[0].tranches[0][3]===-1'),'ancien pas conserve le son entier en activant SLICE')
+        await pg.locator('#stk-tranches button').nth(0).click()
+        await pg.locator('#stk-pads button').nth(0).click()
+        await pg.locator('#stk-tranches button').nth(7).click()
+        await pg.locator('#stk-pads button').nth(1).click()
+        await pg.locator('#stk-pads button').nth(0).click()
+        ok(await pg.evaluate('STK.motifs[0].tranches[0][0]===7 && STK.motifs[0].tranches[0][1]===7'),'autre tranche remplace un pas existant')
+        await pg.locator('#stk-pads button').nth(0).click()
+        ok(await pg.evaluate('!(STK.motifs[0].pas[0]&1)'),'retoucher la même tranche retire le pas')
+        await pg.locator('#stk-tranches button').nth(0).click()
+        await pg.locator('#stk-pads button').nth(0).click()
+        await pg.evaluate('memStk();writeMem()');await pg.reload()
+        await pg.wait_for_function("document.body.classList.contains('pret') && ES.buf[STK.pistes[0].ech]")
+        await pg.locator('.pick[data-m=stk]').click()
+        ok(await pg.evaluate('STK.pistes[0].slice && STK.motifs[0].tranches[0][0]===0 && STK.motifs[0].tranches[0][1]===7'),'tranches distinctes conservées au redémarrage')
+        resultat=await pg.evaluate('''async () => {
+          var avant={ctx:ctx,master:master,n:STK.noeuds,bus:busSet},P=STK.pistes[0];
+          async function rendre(tr,tune){
+            var off=new OfflineAudioContext(1,32000,32000);ctx=off;master=off.destination;STK.noeuds=null;busSet=function(){return null;};
+            P.tune=tune;P.dec=1;P.filt=1;P.niv=.5;P.pan=0;
+            ouvrirPas();voixStk(.01,0,true,tr);
+            var d=(await off.startRendering()).getChannelData(0),hz=0,pic=0,fin=0;
+            for(var i=1280;i<3200;i++){pic=Math.max(pic,Math.abs(d[i]));if(d[i-1]<=0&&d[i]>0)hz++;}
+            for(var i=Math.ceil((.02+.25/Math.pow(2,(tune-.5)*2))*32000);i<d.length;i++)fin=Math.max(fin,Math.abs(d[i]));
+            return {hz:hz*32000/1920,pic:pic,fin:fin};
+          }
+          try{return [await rendre(0,.5),await rendre(7,.5),await rendre(0,1)];}
+          finally{ctx=avant.ctx;master=avant.master;STK.noeuds=avant.n;busSet=avant.bus;P.tune=.5;}
+        }''')
+        ok(abs(resultat[0]['hz']-220)<25 and abs(resultat[1]['hz']-1760)<25 and abs(resultat[2]['hz']-440)<25 and all(r['pic']>.001 for r in resultat),'audio réel : première et dernière tranches correctes, transposition à l’octave')
+        ok(all(r['fin']<.00001 for r in resultat),'aucune lecture au-delà de la tranche, y compris après transposition')
+        await pg.locator('#stk-slice').click()
+        ok(await pg.evaluate('!STK.pistes[0].slice && STK.motifs[0].tranches[0][1]===7'),'SLICE désactivé conserve les découpes écrites')
+        await pg.locator('#stk-slice').click()
+        await pg.locator('#stk-play').click()
+        await pg.wait_for_function('STK.pos>=2')
+        await pg.locator('#stk-play').click()
+        ok(await pg.evaluate('!S.run && !STK.noeuds'),'lecture et arrêt du vrai séquenceur')
+        for w,h in ((393,851),(360,640),(880,400)):
+            await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+            await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('stk-v186-%sx%s.png'%(w,h))))
+        ok(not erreurs,'aucune erreur de page : '+str(erreurs))
+    finally:
+        await contexte.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches):
             try:
                 await t(nav)
             except Exception as e:

@@ -2,7 +2,7 @@
   <h3>Une station, pas une boîte à rythmes</h3>
   <p>Les vingt-six autres machines ont toutes le même modèle : un motif qui contient tout, sons compris.
   Ici c'est l'inverse, et c'est ce qui en fait une station multipiste : les <b>dix pistes persistent</b> —
-  leur son, leur hauteur, leur timbre, leur niveau — et les <b>huit motifs ne contiennent que les pas</b>.
+  leur son, leur hauteur, leur timbre, leur niveau — et les <b>huit motifs contiennent les pas et leurs choix de tranches</b>.
   On change de motif <b>sans perdre son mixage</b>.</p>
 
   <h3>L'écran</h3>
@@ -20,8 +20,34 @@
   <b>FILTER</b> la coupure, <b>LEVEL</b> le niveau, <b>PAN</b> la place. Ils suivent la piste, pas le
   motif : c'est le principe de la machine.</p>
 
+  <h3>Importer et découper un son</h3>
+  <p><b>CHOISIR SON</b> ouvre la bibliothèque sur la piste sélectionnée. Importez un
+  fichier si nécessaire puis touchez <b>AFFECTER</b>. La bibliothèque conserve au
+  maximum huit secondes, en mono à 32 kHz. <b>SON</b> parcourt toujours la banque interne.</p>
+  <p>Activez <b>SLICE</b> pour partager le sample en <b>huit tranches égales</b>.
+  Touchez TR 1 à TR 8 pour choisir et écouter une tranche ; la zone correspondante
+  s'éclaire sur la forme d'onde. Puis touchez un des seize pas pour y écrire cette
+  tranche. Vous pouvez utiliser une tranche différente sur chaque pas.</p>
+  <p>Un pas portant une autre tranche est remplacé. Retoucher un pas portant déjà
+  la tranche choisie l'efface. <b>T1</b> à <b>T8</b> indique la tranche écrite ;
+  <b>ENT</b> signifie que le pas joue le son entier. Les anciens pas restent ENT
+  jusqu'à leur modification, pour conserver les anciens motifs.</p>
+  <p>Désactiver SLICE fait jouer le son entier sur les pas actifs, sans oublier les
+  tranches enregistrées. Les réactiver retrouve ces choix. Modifier un pas avec
+  SLICE désactivé le retire ou écrit un son entier. EFFACER retire les pas et les
+  choix de tranches de la piste dans le motif courant.</p>
+  <p>TUNE transpose aussi les tranches ; DECAY raccourcit leur lecture. Le son ne
+  dépasse pas la limite de la tranche. Les auditions respectent MUTE et SOLO.
+  Changer de sample conserve les numéros de tranches, appliqués au nouveau son.
+  Le découpage ne modifie pas le fichier et ne détecte pas les attaques : il n'y a
+  ni découpage manuel ni timestretch dans cette première version.</p>
+  <p>Les tranches, leurs pas et le sample sont mémorisés avec le projet. Incluez les
+  samples personnels lors du partage et ouvrez le projet avec la v186 ou une version
+  ultérieure. Un sample absent est signalé et reste silencieux. Le MIDI conserve
+  son routage par piste : une note entrante utilise la tranche actuellement choisie.</p>
+
   <h3>Écrire</h3>
-  <p>Les seize pads écrivent les pas de la piste choisie ; toucher un pas allumé l'éteint. Un pas qu'on
+  <p>Avec SLICE désactivé, les seize pads écrivent les pas de la piste choisie ; toucher un pas allumé l'éteint. Un pas qu'on
   allume se fait entendre aussitôt, pour vérifier sans lancer la lecture.</p>
   <p><b>MOTIF</b> bascule les pads sur le choix du motif, de 1 à 8. <b>EFFACER</b> vide les pas de la piste
   choisie, après confirmation — les autres pistes ne sont pas touchées.</p>

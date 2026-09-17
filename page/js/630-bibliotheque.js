@@ -56,6 +56,8 @@ function bibAffecter(id){
     if(S.modele !== m) activerEr(2);
     if(id.charAt(0) === "b"){ ER.pat.son[k].pcm = +id.slice(1); memEr(); }
     else { signal("LES PARTIES PCM NE LISENT QUE LA BANQUE"); return; }
+  } else if(m === "stk"){
+    if(!affecterSonStk(k, id)) return;
   } else if(m === "mc"){
     if(!affecterSonMc(k, id)) return;
   } else if(m === "kp"){
@@ -67,13 +69,14 @@ function bibAffecter(id){
 }
 var BIB_MACHINES = [["es1","Electribe ES-1"],["es2","ES-1 mkII"],["esx","Electribe ESX-1"],
                     ["emx","Electribe EMX-1"],["er2","ER-1 mkII"],
-                    ["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["kp","Korg KAOSS PAD"],["mc","Roland MC-101"]];
+                    ["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["kp","Korg KAOSS PAD"],["mc","Roland MC-101"],["stk","Sonicware SmplTrek"]];
 function bibParties(m){
   var l = [], i;
   if(m === "es1" || m === "es2") for(i=0;i<9;i++) l.push(ES_PARTS[i].n);
   else if(m === "esx") for(i=0;i<14;i++) l.push(nomPartieSx(i));
   else if(m === "emx") for(i=0;i<9;i++) l.push("Drum " + MX_DRUMS[i]);
   else if(m === "er2") l = ["PCM 1", "PCM 2"];
+  else if(m === "stk") for(i=0;i<STK_PISTES;i++) l.push("Piste " + (i + 1));
   else if(m === "mc") l = ["Piste 2", "Piste 3", "Piste 4"];
   else if(m === "kp") l = ["Banque A", "Banque B", "Banque C", "Banque D"];
   else for(i=0;i<64;i++) l.push("Pad " + MPC_BANQUES[Math.floor(i/16)] + ((i%16)+1));
