@@ -55,6 +55,8 @@ function bibAffecter(id){
     if(S.modele !== m) activerEr(2);
     if(id.charAt(0) === "b"){ ER.pat.son[k].pcm = +id.slice(1); memEr(); }
     else { signal("LES PARTIES PCM NE LISENT QUE LA BANQUE"); return; }
+  } else if(m === "kp"){
+    if(!affecterSonKp(k, id)) return;
   }
   signal(nomBib(id) + " → " + bibNomPartie(m, k));
   majBibUI();
@@ -62,13 +64,14 @@ function bibAffecter(id){
 }
 var BIB_MACHINES = [["es1","Electribe ES-1"],["es2","ES-1 mkII"],["esx","Electribe ESX-1"],
                     ["emx","Electribe EMX-1"],["er2","ER-1 mkII"],
-                    ["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"]];
+                    ["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["kp","Korg KAOSS PAD"]];
 function bibParties(m){
   var l = [], i;
   if(m === "es1" || m === "es2") for(i=0;i<9;i++) l.push(ES_PARTS[i].n);
   else if(m === "esx") for(i=0;i<14;i++) l.push(nomPartieSx(i));
   else if(m === "emx") for(i=0;i<9;i++) l.push("Drum " + MX_DRUMS[i]);
   else if(m === "er2") l = ["PCM 1", "PCM 2"];
+  else if(m === "kp") l = ["Banque A", "Banque B", "Banque C", "Banque D"];
   else for(i=0;i<64;i++) l.push("Pad " + MPC_BANQUES[Math.floor(i/16)] + ((i%16)+1));
   return l;
 }
@@ -382,17 +385,21 @@ function bibMicro(){
       flux.getTracks().forEach(function(t){ t.stop(); });
       if(ES_REC.mr === mr) ES_REC.mr = null;
       new Blob(morceaux).arrayBuffer().then(function(ab){
-        return new Promise(function(res, rej){ ctx.decodeAudioData(ab, res, rej); });
+        return new Promise(function(res, rej){
+          var decode = ctx.decodeAudioData(ab, res, rej);
+          if(decode && decode.catch) decode.catch(rej);
+        });
       }).then(function(buf){
         var court = reduireEch(buf, 32000, 8);
         var r = traiterSon(court, BIB.preset || "punch", 0);
         court = r.buffer;
         var id = "u" + Date.now().toString(36);
         ES.buf[id] = court; ES.noms[id] = "mic";
-        sauverEch(id, court);
+        var garde = sauverEch(id, court);
         majBibUI();
-        signal(r.rapport ? ("SON AJOUTÉ · " + (r.rapport.gain >= 0 ? "+" : "") + r.rapport.gain + " dB")
-                         : "SON AJOUTÉ À LA BIBLIOTHÈQUE");
+        signal(!garde ? "SON DISPONIBLE POUR CETTE SESSION · ÉCHEC D'ÉCRITURE"
+          : (r.rapport ? ("SON AJOUTÉ · " + (r.rapport.gain >= 0 ? "+" : "") + r.rapport.gain + " dB")
+                       : "SON AJOUTÉ À LA BIBLIOTHÈQUE"));
       }).catch(function(){ signal("DÉCODAGE IMPOSSIBLE"); });
     };
     mr.start();
@@ -549,5 +556,5 @@ function ouvrirBib(){
 function fermerBib(){
   document.getElementById("bib").classList.remove("show");
   majNoteOuverte();
+  if(S.modele === "kp"){ majKp(); fit(); }     /* noms et sons modifiés dans le panneau */
 }
-

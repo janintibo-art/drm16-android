@@ -340,26 +340,42 @@ function sauverEch(id, buf){
   if(!ok) signal("ÉCHEC D'ÉCRITURE · SON PERDU AU REDÉMARRAGE");
   return ok;
 }
+/* v170 : les banques Kaoss peuvent réutiliser ces sons. Deux ouvertures de
+   panneau ne doivent pas lancer deux décodages concurrents du même fichier. */
+var ES_CHARGES = Object.create(null);
+function actualiserEchs(){
+  majLedsEs();
+  if(typeof KP !== "undefined" && KP && S.modele === "kp") majKp();
+  var bib = document.getElementById("bib");
+  if(bib && bib.classList.contains("show")) majBibUI();
+}
 function chargerEchs(){
   var p = HOST;
-  if(!p || !p.echListe) return;
+  if(!ctx || !p || !p.echListe || !p.echCharger) return;
   var l = "";
   try{ l = p.echListe() || ""; }catch(e){}
   l.split("\n").forEach(function(id){
-    if(!id || ES.buf[id]) return;
+    if(!id || ES.buf[id] || (ES_CHARGES[id] && ES_CHARGES[id].ctx === ctx)) return;
     var b64 = "";
     try{ b64 = p.echCharger(id) || ""; }catch(e){}
     if(!b64) return;
-    var bin = atob(b64), ab = new ArrayBuffer(bin.length), o = new Uint8Array(ab);
-    for(var i=0;i<bin.length;i++) o[i]=bin.charCodeAt(i);
-    var decode = ctx.decodeAudioData(ab, function(buf){
-      ES.buf[id]=buf;
-      if(ES.noms[id]===undefined) ES.noms[id]="mic";
-      majLedsEs();
-    }, function(){});
-    /* v145 : un son abîmé ne doit pas lever d'erreur non rattrapée (la promesse
-       rendue par decodeAudioData est rejetée en plus du rappel d'erreur) */
-    if(decode && decode.catch) decode.catch(function(){});
+    var token = {ctx:ctx}; ES_CHARGES[id] = token;
+    function finir(buf){
+      if(ES_CHARGES[id] !== token) return;      /* supprimé ou rechargé entre-temps */
+      delete ES_CHARGES[id];
+      if(buf && !ES.buf[id]){                  /* conserver un son déjà remplacé ou traité */
+        ES.buf[id]=buf;
+        if(ES.noms[id]===undefined) ES.noms[id]="mic";
+      }
+      actualiserEchs();                        /* jamais de lancement automatique */
+    }
+    try{
+      var bin = atob(b64), ab = new ArrayBuffer(bin.length), o = new Uint8Array(ab);
+      for(var i=0;i<bin.length;i++) o[i]=bin.charCodeAt(i);
+      var decode = token.ctx.decodeAudioData(ab, finir, function(){ finir(null); });
+      /* La promesse peut être rejetée en plus du rappel d'erreur. */
+      if(decode && decode.catch) decode.catch(function(){ finir(null); });
+    }catch(e){ finir(null); }
   });
 }
 /* un son peut servir dans plusieurs motifs et sur les trois échantillonneurs */
@@ -379,12 +395,22 @@ function usagesEch(id){
     var m = memLire(k);
     if(m && m.slots) compter(m.slots);
   });
+  var km = S.modele === "kp" && typeof KP !== "undefined" && KP ? KP : memLire("kp");
+  if(km && Array.isArray(km.banques)) km.banques.forEach(function(b){ if(b && b.ech === id) n++; });
   return n;
 }
 function supprimerEch(id){
+  delete ES_CHARGES[id];
   var p = HOST;
   if(p && p.echSupprimer) try{ p.echSupprimer(id); }catch(e){}
   delete ES.buf[id]; delete ES.inv[id]; delete ES.noms[id];
+  if(typeof KP !== "undefined" && KP){
+    KP.banques.forEach(function(b, k){
+      if(b.ech !== id) return;
+      arreterBanqueKp(k); KP.tranches[k] = null;
+    });
+  }
+  actualiserEchs();
 }
 
 function poserEch(k, buf, quoi){
@@ -912,4 +938,3 @@ function activerEs(v){
   actif = unitEs;
   save(); fit(); setTimeout(fit,120);
 }
-

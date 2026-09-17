@@ -223,6 +223,10 @@ function majKp(){
   bm.classList.toggle("on", KP.banques[KP.sel].mode === "one");
   bm.setAttribute("aria-label", "Mode banque " + "ABCD"[KP.sel] + " : " + bm.textContent + ", toucher pour changer");
   document.getElementById("kp-stop-banque").textContent = "STOP " + "ABCD"[KP.sel];
+  var son = KP.banques[KP.sel].ech, etatSon = "";
+  if(!ES.buf[son]) etatSon = typeof ES_CHARGES !== "undefined" && ES_CHARGES[son]
+    ? " · chargement…" : " · indisponible";
+  document.getElementById("kp-son-nom").textContent = nomEch(son) + etatSon;
   var v = document.getElementById("kp-val"), l = document.getElementById("kp-lab");
   if(v){ v.textContent = KP_EFFETS[KP.fx][1]; l.textContent = KP_EFFETS[KP.fx][2]; }
   [["kp-hold", KP.tenu], ["kp-motion", KP.enregistre], ["kp-rejoue", KP.rejoue],
@@ -244,6 +248,7 @@ function activerKp(){
   stop();
   KP.taps = [];
   audioInit(); banqueEs(); chargerEchs();
+  bibLire();
   chargerKp();
   poserMachine("kp");
   actif = document.getElementById("unit-kp");
@@ -323,11 +328,13 @@ document.getElementById("kp-son").addEventListener("click", function(){
      relance sa boucle aussitôt pour l'entendre sans avoir à la rallumer. */
   banqueEs();
   var B = KP.banques[KP.sel];
-  var i = ES_BANQUE.indexOf(nomEch(B.ech));
-  B.ech = "b" + (((i < 0 ? 0 : i) + 1) % ES_BANQUE.length);
-  KP.tranches[KP.sel] = null;
-  if(B.on) banqueKp(KP.sel, true);
-  majKp(); memKp(); H.cran();
+  var i = /^b\d+$/.test(B.ech) ? +B.ech.slice(1) : -1;
+  affecterSonKp(KP.sel, "b" + ((i + 1) % ES_BANQUE.length));
+  H.cran();
+});
+document.getElementById("kp-bib").addEventListener("click", function(){
+  BIB.onglet = 0; BIB.cible = {machine:"kp", partie:KP.sel};
+  ouvrirBib(); H.inter();
 });
 document.getElementById("kp-selection").addEventListener("click", function(){
   KP.sel = (KP.sel + 1) % 4;                    /* choisir sans déclencher ni couper */

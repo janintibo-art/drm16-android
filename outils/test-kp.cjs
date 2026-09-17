@@ -1,11 +1,15 @@
 // Kaoss Pad : comportement des quatre banques et durée de vie des voix.
 const fs = require('fs'), vm = require('vm'), assert = require('assert'), path = require('path');
-function element() {
-  const classes = new Set(), em = {textContent:''};
-  return {childNodes:[],listeners:{},style:{},textContent:'',attrs:{},innerHTML:'',
-    classList:{toggle(k,v){v ? classes.add(k) : classes.delete(k);},contains(k){return classes.has(k);}},
+function element(tag='div') {
+  const classes = new Set(), selectors = {};
+  const el={tagName:tag,childNodes:[],listeners:{},style:{},textContent:'',attrs:{},
+    classList:{toggle(k,v){v ? classes.add(k) : classes.delete(k);},contains(k){return classes.has(k);},
+      add(k){classes.add(k);},remove(k){classes.delete(k);}},
     addEventListener(k,f){this.listeners[k]=f;},appendChild(n){this.childNodes.push(n);},
-    setAttribute(k,v){this.attrs[k]=v;},querySelector(){return em;}};
+    setAttribute(k,v){this.attrs[k]=v;},querySelector(k){return selectors[k]||(selectors[k]=element(k));}};
+  Object.defineProperty(el,'innerHTML',{get(){return this.html||'';},set(v){this.html=v;this.childNodes.length=0;}});
+  Object.defineProperty(el,'options',{get(){return this.childNodes;}});
+  return el;
 }
 function param(value=0) { return {value,cancelAndHoldAtTime(){},cancelScheduledValues(){},
   setTargetAtTime(v){this.value=v;}}; }
@@ -38,10 +42,11 @@ class Context {
   }
 }
 function setup(saved) {
-  const el={}, c={saved,ctx:new Context(),master:new Node(),KP:null,memoire:{},S:{run:false,bpm:120},cache:false,queue:[],
+  const el={}, c={saved,ctx:new Context(),master:new Node(),KP:null,memoire:{},S:{modele:'kp',run:false,bpm:120},cache:false,queue:[],
     audioCalls:0,saveCalls:0,tempoSaves:0,fitCalls:0,signals:[],H:{inter(){},cran(){},start(){}},
     now:0,performance:{now(){return c.now;}},MIDI:{sync:false},kTempo:{set(v){c.knobBpm=v;}},
     saveSoon(){c.tempoSaves++;},
+    bibLire(){},
     audioInit(){c.audioCalls++; if(!c.ctx&&!c.audioUnavailable)c.ctx=new Context();},
     banqueEs(){},chargerEchs(){},busSet(){return null;},eurGain(v){const n=c.ctx.node();n.gain.value=v;return n;},
     ES:{buf:Object.fromEntries(Array.from({length:24},(_,i)=>['b'+i,{duration:.1}]))},
@@ -340,3 +345,73 @@ tracked.click('kp-selection');tracked.click('kp-selection');tracked.click('kp-se
 assert(!tracked.el['kp-tranches'].hidden);assert.equal(lc.fitCalls,initialFit+3);
 tracked.click('kp-slice');assert.equal(lc.fitCalls,initialFit+4);
 console.log('Kaoss SLICE : suivi des voix borné transport arrêté, démarrage refusé et ajustement de façade OK.');
+
+// Bibliothèque réelle : ouverture sur la banque choisie, choix des quatre
+// destinations et affectation de sons personnels sans lecture automatique.
+const library=setup(),bc=library.c;
+bc.BIB={noms:{},preset:'aucun',onglet:2,cible:{machine:'es1',partie:0}};
+bc.ES.noms={};bc.ES.inv={};bc.MEM='drm.reglages';bc.TRAITE_NOMS=['aucun','punch'];
+const bibMemory=new Map();bc.localStorage={getItem(k){return bibMemory.get(k);},setItem(k,v){bibMemory.set(k,v);}};
+bc.document.querySelectorAll=()=>[];bc.arcCharger=()=>{};bc.majNoteOuverte=()=>{};
+bc.fermerAutresPanneaux=id=>{bc.lastPanel=id;};
+const esSource=fs.readFileSync(path.join(__dirname,'../page/js/280-electribe-es-1.js'),'utf8');
+vm.runInContext(esSource.slice(esSource.indexOf('function nomEch('),esSource.indexOf('function inverse(')),bc);
+vm.runInContext(fs.readFileSync(path.join(__dirname,'../page/js/630-bibliotheque.js'),'utf8'),bc);
+const custom=fixture();bc.ES.buf.uLocal=custom;bc.ES.noms.uLocal='fichier';bc.BIB.noms.uLocal='Ma boucle';
+bc.bibEcrire();bc.KP.sel=2;bc.KP.banques[2].mode='one';bc.KP.banques[2].slice=true;bc.KP.banques[2].tranche=4;
+const beforeOpen=bc.audioCalls;library.click('kp-bib');
+assert.equal(bc.BIB.onglet,0);assert.equal(bc.BIB.cible.machine,'kp');assert.equal(bc.BIB.cible.partie,2);
+assert.equal(bc.lastPanel,'bib');assert(library.el.bib.classList.contains('show'));
+assert(bc.KP.sources.every(s=>s===null));
+const body=library.el['bib-corps'],head=body.childNodes[0],selectors=head.childNodes.find(n=>n.className==='bib-cible');
+assert.equal(selectors.childNodes[0].value,'kp');assert.equal(selectors.childNodes[1].value,2);
+assert.deepStrictEqual(selectors.childNodes[1].options.map(o=>o.textContent),['Banque A','Banque B','Banque C','Banque D']);
+assert.equal(bc.BIB_MACHINES.filter(m=>m[0]==='kp').length,1);
+const rows=()=>body.childNodes.filter(n=>n.className==='bib-ligne');
+function row(name){return rows().find(n=>n.querySelector('b').textContent===name);}
+function action(line,label){return line.childNodes[0].childNodes.find(n=>n.textContent===label).listeners.click();}
+action(row('Ma boucle'),'AFFECTER');
+assert.equal(bc.KP.banques[2].ech,'uLocal');assert.equal(bc.KP.banques[2].mode,'one');
+assert(bc.KP.banques[2].slice);assert.equal(bc.KP.banques[2].tranche,4);
+assert.equal(bc.memoire.kp.banques[2].ech,'uLocal');assert.equal(bc.KP.sources[2],null);
+assert.equal(library.el['kp-son-nom'].textContent,'Ma boucle');assert(bc.signals.at(-1).includes('Banque C'));
+assert.equal(bc.audioCalls,beforeOpen+1); // ouverture de BIB seulement ; affecter reste silencieux
+// Pendant la lecture, seule la banque visée repart avec le nouveau son.
+library.pad(0);library.pad(2);const untouched=bc.KP.sources[0],oldCustom=bc.KP.sources[2];
+bc.S.run=true;bc.ES.buf.uMic=fixture(32000,1,32000);bc.ES.noms.uMic='mic';
+bc.BIB.noms.uMic='Ma voix';bc.bibAffecter('uMic');const newCustom=bc.KP.sources[2];
+assert(newCustom!==oldCustom&&!newCustom.loop);assert.equal(oldCustom.stops,1);
+assert.equal(bc.KP.sources[0],untouched);assert(bc.S.run);
+assert.equal(bc.KP.tranches[2].original,bc.ES.buf.uMic);assert.equal(bc.KP.banques[2].tranche,4);
+oldCustom.onended();assert.equal(bc.KP.sources[2],newCustom);assert(bc.KP.banques[2].on);
+// Une affectation invalide conserve voix, réglage et mémoire, même depuis
+// une autre machine. Aucun message de réussite ne doit remplacer l'erreur.
+const beforeInvalid=JSON.stringify(bc.memoire.kp);bc.bibAffecter('absent');
+assert.equal(bc.KP.sources[2],newCustom);assert.equal(bc.KP.banques[2].ech,'uMic');
+assert.equal(JSON.stringify(bc.memoire.kp),beforeInvalid);assert(bc.signals.at(-1).includes('NON CHARGÉ'));
+bc.S.modele='es1';assert(!bc.affecterSonKp(3,'absent'));assert.equal(bc.S.modele,'es1');
+assert(!bc.affecterSonKp(-1,'uMic'));assert(!bc.affecterSonKp(1.5,'uMic'));assert(!bc.affecterSonKp(4,'uMic'));
+assert(!bc.affecterSonKp(0,'__proto__'));assert.equal(bc.S.modele,'es1');
+// La destination D reste explicite, même si KP.sel sauvegardée désigne B.
+bc.saved={sel:1,banques:[{ech:'b0'},{ech:'b3'},{ech:'b6'},{ech:'b9',mode:'one',slice:true,tranche:7}]};
+bc.BIB.cible={machine:'kp',partie:3};bc.bibAffecter('uLocal');
+assert.equal(bc.S.modele,'kp');assert.equal(bc.KP.sel,3);assert.equal(bc.KP.banques[3].ech,'uLocal');
+assert.equal(bc.KP.banques[3].mode,'one');assert.equal(bc.KP.banques[3].tranche,7);assert(!bc.KP.banques[3].on);
+assert.equal(bc.KP.banques[1].ech,'b3');
+// Les noms (y compris caractères ressemblant à du HTML) restent du texte ;
+// fermer le panneau et rouvrir la façade retrouve le nom enregistré.
+bc.window={prompt(){return '<b>Mon sample</b>';}};
+action(row('Ma boucle'),'RENOMMER');bc.fermerBib();
+assert.equal(library.el['kp-son-nom'].textContent,'<b>Mon sample</b>');
+assert.equal(library.el['kp-son-nom'].innerHTML,'');assert(!library.el.bib.classList.contains('show'));
+bc.saved=JSON.parse(JSON.stringify(bc.memoire.kp));bc.BIB.noms={};bc.activerKp();
+assert.equal(library.el['kp-son-nom'].textContent,'<b>Mon sample</b>');
+// SON avance par identifiant, même avec un nom personnalisé ou depuis un son importé.
+bc.KP.banques[3].slice=false;bc.affecterSonKp(3,'b9');bc.BIB.noms.b9='Interne renommé';
+library.click('kp-son');assert.equal(bc.KP.banques[3].ech,'b10');
+bc.affecterSonKp(3,'uLocal');library.click('kp-son');assert.equal(bc.KP.banques[3].ech,'b0');
+// Le nom indique explicitement les sons en cours de chargement ou manquants.
+bc.KP.banques[3].ech='uRetrouver';bc.ES_CHARGES={uRetrouver:{ctx:bc.ctx}};bc.majKp();
+assert(library.el['kp-son-nom'].textContent.includes('chargement'));
+delete bc.ES_CHARGES.uRetrouver;bc.majKp();assert(library.el['kp-son-nom'].textContent.includes('indisponible'));
+console.log('Kaoss bibliothèque : quatre destinations, import/micro affectables, relance isolée, erreurs sans perte, noms sûrs et mémoire OK.');

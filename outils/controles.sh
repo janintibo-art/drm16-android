@@ -42,6 +42,7 @@ etape "5. Syntaxe JavaScript"
 python3 outils/verifier-js.py
 node outils/test-dbi.cjs
 node outils/test-kp.cjs
+node outils/test-echantillons.cjs
 fin
 
 etape "6. Java : compilation de controle et tests"

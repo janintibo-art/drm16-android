@@ -1308,6 +1308,9 @@ body.kp .kpb{display:flex;flex-direction:column;min-height:82vh}
 .kp-ligne button{margin:0;padding:10px 3px;border:0;border-radius:6px;background:#1b2e24;
   color:#a8c0b4;font:800 9px/1.2 "Roboto Condensed",Arial;letter-spacing:.5px}
 .kp-ligne button.on{background:#e8344a;color:#fff}
+.kp-bib-l{grid-template-columns:1fr 3fr;align-items:center}
+#kp-son-nom{min-width:0;color:#7ee8a8;font:700 10px/1.3 "Roboto Condensed",Arial;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kp-slice-l{grid-template-columns:1fr 2fr;align-items:center}
 #kp-tranche-etat{min-width:0;color:#7ee8a8;text-align:center;
   font:800 9px/1.3 "Roboto Condensed",Arial}
@@ -3541,6 +3544,10 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="kp-reglages">
     <div class="kp-banques" id="kp-banques"></div>
+    <div class="kp-ligne kp-bib-l">
+      <button id="kp-bib">BIBLIO</button>
+      <output id="kp-son-nom" aria-label="Son de la banque choisie"></output>
+    </div>
     <div class="kp-ligne">
       <button id="kp-selection" title="Choisir une banque sans jouer">BANQUE A</button>
       <button id="kp-mode" title="Changer le mode de la banque choisie">LOOP</button>
@@ -4455,6 +4462,25 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   Le séquenceur et le PAD MOTION continuent jusqu'à leur propre arrêt.</p>
   <p><b>SON</b> change l'échantillon de la banque choisie, celle qui porte un liseré. Si elle joue, la
   lecture repart aussitôt avec le nouveau son, dans le même mode.</p>
+
+  <h3>Vos échantillons dans les banques A à D</h3>
+  <p><b>BIBLIO</b> ouvre le rayon <b>SONS</b>, avec le Kaoss et la banque choisie déjà sélectionnés.
+  Touchez <b>AFFECTER</b> sur un son pour le placer dans cette banque. Les réglages LOOP / ONE SHOT
+  et SLICE sont conservés. Si la banque joue, elle repart avec le nouveau son ; sinon, elle reste arrêtée.
+  Les autres banques continuent. <b>FERMER</b> revient au pavé, et le nom du son apparaît sous les banques.</p>
+  <p>Dans ce même rayon, <b>IMPORTER UN FICHIER</b> ajoute un son du téléphone, et
+  <b>ENREGISTRER AU MICRO</b> capture un son après autorisation du micro. Retouchez ce bouton pour
+  terminer l'enregistrement. Une fois le son ajouté à la liste, utilisez <b>AFFECTER</b>.
+  Vous pouvez aussi changer la destination dans les deux listes <b>Affecter à</b>.</p>
+  <p>Ces imports et prises au micro sont limités aux <b>huit premières secondes</b>, convertis en mono
+  à 32 kHz, puis traités selon le réglage <b>Traitement</b> de la bibliothèque.
+  Le son et son affectation sont conservés ; un échec d'écriture est signalé.
+  Au redémarrage, attendez la fin du chargement avant de jouer un son personnel.</p>
+  <p>Après <b>TRAITER</b> ou <b>OPTIMISER LA MÉMOIRE</b>, relancez les banques déjà en lecture
+  pour entendre la nouvelle version de leur son.</p>
+  <p><b>SON</b> reste un raccourci pour parcourir les sons internes ; après un son personnel, il revient
+  au premier son interne. Le renommage d'un son dans BIBLIO est repris sur la façade.
+  Le micro enregistre l'entrée du téléphone, pas la sortie traitée du Kaoss.</p>
 
   <h3>SLICE : jouer une tranche du son</h3>
   <p>Choisissez une banque, puis activez <b>SLICE : OUI</b>. Le son est partagé en <b>huit tranches</b>
@@ -8696,7 +8722,10 @@ function importerSonFichier(f){
   if(f.size > 40*1024*1024){ signal("FICHIER TROP GROS · 40 Mo AU PLUS"); return; }
   audioInit(); banqueEs();
   f.arrayBuffer().then(function(ab){
-    return new Promise(function(res,rej){ ctx.decodeAudioData(ab,res,rej); });
+    return new Promise(function(res,rej){
+      var decode = ctx.decodeAudioData(ab,res,rej);
+      if(decode && decode.catch) decode.catch(rej);
+    });
   }).then(function(buf){
     var court = reduireEch(buf, 32000, 8);
     var r = traiterSon(court, BIB.preset || "punch", 0);
@@ -8704,8 +8733,10 @@ function importerSonFichier(f){
     var id = "u" + Date.now().toString(36);
     ES.buf[id] = court; ES.noms[id] = "fichier";
     BIB.noms[id] = f.name.replace(/\.[^.]+$/, "").slice(0, 28);
-    bibEcrire(); sauverEch(id, court); majBibUI();
-    signal("IMPORTÉ : " + BIB.noms[id]);
+    bibEcrire();
+    var garde = sauverEch(id, court); majBibUI();
+    signal(garde ? "IMPORTÉ : " + BIB.noms[id]
+                 : "IMPORTÉ POUR CETTE SESSION · ÉCHEC D'ÉCRITURE");
   }).catch(function(){ signal("FICHIER ILLISIBLE"); });
 }
 document.getElementById("menu-pr").addEventListener("click", function(){
@@ -8878,7 +8909,6 @@ window.addEventListener("pagehide", writeMem);
     }
   }, 1200);
 })();
-
 /* ================= mise à l'échelle ================= */
 function fit(){
   var u = actif, large = (u === unit) ? "1040px" : "1120px";
@@ -12175,26 +12205,42 @@ function sauverEch(id, buf){
   if(!ok) signal("ÉCHEC D'ÉCRITURE · SON PERDU AU REDÉMARRAGE");
   return ok;
 }
+/* v170 : les banques Kaoss peuvent réutiliser ces sons. Deux ouvertures de
+   panneau ne doivent pas lancer deux décodages concurrents du même fichier. */
+var ES_CHARGES = Object.create(null);
+function actualiserEchs(){
+  majLedsEs();
+  if(typeof KP !== "undefined" && KP && S.modele === "kp") majKp();
+  var bib = document.getElementById("bib");
+  if(bib && bib.classList.contains("show")) majBibUI();
+}
 function chargerEchs(){
   var p = HOST;
-  if(!p || !p.echListe) return;
+  if(!ctx || !p || !p.echListe || !p.echCharger) return;
   var l = "";
   try{ l = p.echListe() || ""; }catch(e){}
   l.split("\n").forEach(function(id){
-    if(!id || ES.buf[id]) return;
+    if(!id || ES.buf[id] || (ES_CHARGES[id] && ES_CHARGES[id].ctx === ctx)) return;
     var b64 = "";
     try{ b64 = p.echCharger(id) || ""; }catch(e){}
     if(!b64) return;
-    var bin = atob(b64), ab = new ArrayBuffer(bin.length), o = new Uint8Array(ab);
-    for(var i=0;i<bin.length;i++) o[i]=bin.charCodeAt(i);
-    var decode = ctx.decodeAudioData(ab, function(buf){
-      ES.buf[id]=buf;
-      if(ES.noms[id]===undefined) ES.noms[id]="mic";
-      majLedsEs();
-    }, function(){});
-    /* v145 : un son abîmé ne doit pas lever d'erreur non rattrapée (la promesse
-       rendue par decodeAudioData est rejetée en plus du rappel d'erreur) */
-    if(decode && decode.catch) decode.catch(function(){});
+    var token = {ctx:ctx}; ES_CHARGES[id] = token;
+    function finir(buf){
+      if(ES_CHARGES[id] !== token) return;      /* supprimé ou rechargé entre-temps */
+      delete ES_CHARGES[id];
+      if(buf && !ES.buf[id]){                  /* conserver un son déjà remplacé ou traité */
+        ES.buf[id]=buf;
+        if(ES.noms[id]===undefined) ES.noms[id]="mic";
+      }
+      actualiserEchs();                        /* jamais de lancement automatique */
+    }
+    try{
+      var bin = atob(b64), ab = new ArrayBuffer(bin.length), o = new Uint8Array(ab);
+      for(var i=0;i<bin.length;i++) o[i]=bin.charCodeAt(i);
+      var decode = token.ctx.decodeAudioData(ab, finir, function(){ finir(null); });
+      /* La promesse peut être rejetée en plus du rappel d'erreur. */
+      if(decode && decode.catch) decode.catch(function(){ finir(null); });
+    }catch(e){ finir(null); }
   });
 }
 /* un son peut servir dans plusieurs motifs et sur les trois échantillonneurs */
@@ -12214,12 +12260,22 @@ function usagesEch(id){
     var m = memLire(k);
     if(m && m.slots) compter(m.slots);
   });
+  var km = S.modele === "kp" && typeof KP !== "undefined" && KP ? KP : memLire("kp");
+  if(km && Array.isArray(km.banques)) km.banques.forEach(function(b){ if(b && b.ech === id) n++; });
   return n;
 }
 function supprimerEch(id){
+  delete ES_CHARGES[id];
   var p = HOST;
   if(p && p.echSupprimer) try{ p.echSupprimer(id); }catch(e){}
   delete ES.buf[id]; delete ES.inv[id]; delete ES.noms[id];
+  if(typeof KP !== "undefined" && KP){
+    KP.banques.forEach(function(b, k){
+      if(b.ech !== id) return;
+      arreterBanqueKp(k); KP.tranches[k] = null;
+    });
+  }
+  actualiserEchs();
 }
 
 function poserEch(k, buf, quoi){
@@ -12747,7 +12803,6 @@ function activerEs(v){
   actif = unitEs;
   save(); fit(); setTimeout(fit,120);
 }
-
 /* ===================== ELECTRIBE EMX-1 ===================== */
 var MX_DRUMS = ["1","2","3","4","5","6A","6B","7A","7B","ACC"];
 var MX_SYNTHS = ["1","2","3","4","5","ACC"];
@@ -26277,6 +26332,23 @@ function frapperTrancheKp(k, i){
   banqueKp(k, true);                            /* un pad numéroté relance, même en LOOP */
 }
 
+/* v170 : une affectation depuis la bibliothèque vise une banque précise.
+   Un son encore absent ne doit ni remplacer son réglage ni couper sa voix. */
+function affecterSonKp(k, id){
+  if(typeof k !== "number" || k !== Math.floor(k) || k < 0 || k > 3){
+    signal("BANQUE KAOSS INVALIDE"); return false;
+  }
+  if(typeof id !== "string" || !Object.prototype.hasOwnProperty.call(ES.buf, id) || !ES.buf[id]){
+    signal("SON NON CHARGÉ · RÉESSAYEZ APRÈS LE CHARGEMENT"); return false;
+  }
+  if(S.modele !== "kp") activerKp();
+  var b = KP.banques[k];
+  b.ech = id; KP.sel = k; KP.tranches[k] = null;
+  if(b.on) banqueKp(k, true);
+  majKp(); memKp();
+  return true;
+}
+
 /* v168 : le tempo reste celui du séquenceur commun. On ne touche ni au
    transport ni à la vitesse des échantillons, qui appartient à l'effet VITESSE.
    Même plage que le tempo global mémorisé : 40 à 220 BPM. */
@@ -27001,6 +27073,10 @@ function majKp(){
   bm.classList.toggle("on", KP.banques[KP.sel].mode === "one");
   bm.setAttribute("aria-label", "Mode banque " + "ABCD"[KP.sel] + " : " + bm.textContent + ", toucher pour changer");
   document.getElementById("kp-stop-banque").textContent = "STOP " + "ABCD"[KP.sel];
+  var son = KP.banques[KP.sel].ech, etatSon = "";
+  if(!ES.buf[son]) etatSon = typeof ES_CHARGES !== "undefined" && ES_CHARGES[son]
+    ? " · chargement…" : " · indisponible";
+  document.getElementById("kp-son-nom").textContent = nomEch(son) + etatSon;
   var v = document.getElementById("kp-val"), l = document.getElementById("kp-lab");
   if(v){ v.textContent = KP_EFFETS[KP.fx][1]; l.textContent = KP_EFFETS[KP.fx][2]; }
   [["kp-hold", KP.tenu], ["kp-motion", KP.enregistre], ["kp-rejoue", KP.rejoue],
@@ -27022,6 +27098,7 @@ function activerKp(){
   stop();
   KP.taps = [];
   audioInit(); banqueEs(); chargerEchs();
+  bibLire();
   chargerKp();
   poserMachine("kp");
   actif = document.getElementById("unit-kp");
@@ -27101,11 +27178,13 @@ document.getElementById("kp-son").addEventListener("click", function(){
      relance sa boucle aussitôt pour l'entendre sans avoir à la rallumer. */
   banqueEs();
   var B = KP.banques[KP.sel];
-  var i = ES_BANQUE.indexOf(nomEch(B.ech));
-  B.ech = "b" + (((i < 0 ? 0 : i) + 1) % ES_BANQUE.length);
-  KP.tranches[KP.sel] = null;
-  if(B.on) banqueKp(KP.sel, true);
-  majKp(); memKp(); H.cran();
+  var i = /^b\d+$/.test(B.ech) ? +B.ech.slice(1) : -1;
+  affecterSonKp(KP.sel, "b" + ((i + 1) % ES_BANQUE.length));
+  H.cran();
+});
+document.getElementById("kp-bib").addEventListener("click", function(){
+  BIB.onglet = 0; BIB.cible = {machine:"kp", partie:KP.sel};
+  ouvrirBib(); H.inter();
 });
 document.getElementById("kp-selection").addEventListener("click", function(){
   KP.sel = (KP.sel + 1) % 4;                    /* choisir sans déclencher ni couper */
@@ -28047,6 +28126,8 @@ function bibAffecter(id){
     if(S.modele !== m) activerEr(2);
     if(id.charAt(0) === "b"){ ER.pat.son[k].pcm = +id.slice(1); memEr(); }
     else { signal("LES PARTIES PCM NE LISENT QUE LA BANQUE"); return; }
+  } else if(m === "kp"){
+    if(!affecterSonKp(k, id)) return;
   }
   signal(nomBib(id) + " → " + bibNomPartie(m, k));
   majBibUI();
@@ -28054,13 +28135,14 @@ function bibAffecter(id){
 }
 var BIB_MACHINES = [["es1","Electribe ES-1"],["es2","ES-1 mkII"],["esx","Electribe ESX-1"],
                     ["emx","Electribe EMX-1"],["er2","ER-1 mkII"],
-                    ["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"]];
+                    ["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["kp","Korg KAOSS PAD"]];
 function bibParties(m){
   var l = [], i;
   if(m === "es1" || m === "es2") for(i=0;i<9;i++) l.push(ES_PARTS[i].n);
   else if(m === "esx") for(i=0;i<14;i++) l.push(nomPartieSx(i));
   else if(m === "emx") for(i=0;i<9;i++) l.push("Drum " + MX_DRUMS[i]);
   else if(m === "er2") l = ["PCM 1", "PCM 2"];
+  else if(m === "kp") l = ["Banque A", "Banque B", "Banque C", "Banque D"];
   else for(i=0;i<64;i++) l.push("Pad " + MPC_BANQUES[Math.floor(i/16)] + ((i%16)+1));
   return l;
 }
@@ -28374,17 +28456,21 @@ function bibMicro(){
       flux.getTracks().forEach(function(t){ t.stop(); });
       if(ES_REC.mr === mr) ES_REC.mr = null;
       new Blob(morceaux).arrayBuffer().then(function(ab){
-        return new Promise(function(res, rej){ ctx.decodeAudioData(ab, res, rej); });
+        return new Promise(function(res, rej){
+          var decode = ctx.decodeAudioData(ab, res, rej);
+          if(decode && decode.catch) decode.catch(rej);
+        });
       }).then(function(buf){
         var court = reduireEch(buf, 32000, 8);
         var r = traiterSon(court, BIB.preset || "punch", 0);
         court = r.buffer;
         var id = "u" + Date.now().toString(36);
         ES.buf[id] = court; ES.noms[id] = "mic";
-        sauverEch(id, court);
+        var garde = sauverEch(id, court);
         majBibUI();
-        signal(r.rapport ? ("SON AJOUTÉ · " + (r.rapport.gain >= 0 ? "+" : "") + r.rapport.gain + " dB")
-                         : "SON AJOUTÉ À LA BIBLIOTHÈQUE");
+        signal(!garde ? "SON DISPONIBLE POUR CETTE SESSION · ÉCHEC D'ÉCRITURE"
+          : (r.rapport ? ("SON AJOUTÉ · " + (r.rapport.gain >= 0 ? "+" : "") + r.rapport.gain + " dB")
+                       : "SON AJOUTÉ À LA BIBLIOTHÈQUE"));
       }).catch(function(){ signal("DÉCODAGE IMPOSSIBLE"); });
     };
     mr.start();
@@ -28541,8 +28627,8 @@ function ouvrirBib(){
 function fermerBib(){
   document.getElementById("bib").classList.remove("show");
   majNoteOuverte();
+  if(S.modele === "kp"){ majKp(); fit(); }     /* noms et sons modifiés dans le panneau */
 }
-
 /* ================= projet .drm16 (v145) =================
    Un fichier unique qui contient TOUT l'état de l'application : réglages,
    motifs de chaque machine, set, prises MIDI, noms de la bibliothèque… (toutes

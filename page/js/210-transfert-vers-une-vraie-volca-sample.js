@@ -567,7 +567,10 @@ function importerSonFichier(f){
   if(f.size > 40*1024*1024){ signal("FICHIER TROP GROS · 40 Mo AU PLUS"); return; }
   audioInit(); banqueEs();
   f.arrayBuffer().then(function(ab){
-    return new Promise(function(res,rej){ ctx.decodeAudioData(ab,res,rej); });
+    return new Promise(function(res,rej){
+      var decode = ctx.decodeAudioData(ab,res,rej);
+      if(decode && decode.catch) decode.catch(rej);
+    });
   }).then(function(buf){
     var court = reduireEch(buf, 32000, 8);
     var r = traiterSon(court, BIB.preset || "punch", 0);
@@ -575,8 +578,10 @@ function importerSonFichier(f){
     var id = "u" + Date.now().toString(36);
     ES.buf[id] = court; ES.noms[id] = "fichier";
     BIB.noms[id] = f.name.replace(/\.[^.]+$/, "").slice(0, 28);
-    bibEcrire(); sauverEch(id, court); majBibUI();
-    signal("IMPORTÉ : " + BIB.noms[id]);
+    bibEcrire();
+    var garde = sauverEch(id, court); majBibUI();
+    signal(garde ? "IMPORTÉ : " + BIB.noms[id]
+                 : "IMPORTÉ POUR CETTE SESSION · ÉCHEC D'ÉCRITURE");
   }).catch(function(){ signal("FICHIER ILLISIBLE"); });
 }
 document.getElementById("menu-pr").addEventListener("click", function(){
@@ -749,4 +754,3 @@ window.addEventListener("pagehide", writeMem);
     }
   }, 1200);
 })();
-

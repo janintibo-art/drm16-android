@@ -78,6 +78,23 @@ function frapperTrancheKp(k, i){
   banqueKp(k, true);                            /* un pad numéroté relance, même en LOOP */
 }
 
+/* v170 : une affectation depuis la bibliothèque vise une banque précise.
+   Un son encore absent ne doit ni remplacer son réglage ni couper sa voix. */
+function affecterSonKp(k, id){
+  if(typeof k !== "number" || k !== Math.floor(k) || k < 0 || k > 3){
+    signal("BANQUE KAOSS INVALIDE"); return false;
+  }
+  if(typeof id !== "string" || !Object.prototype.hasOwnProperty.call(ES.buf, id) || !ES.buf[id]){
+    signal("SON NON CHARGÉ · RÉESSAYEZ APRÈS LE CHARGEMENT"); return false;
+  }
+  if(S.modele !== "kp") activerKp();
+  var b = KP.banques[k];
+  b.ech = id; KP.sel = k; KP.tranches[k] = null;
+  if(b.on) banqueKp(k, true);
+  majKp(); memKp();
+  return true;
+}
+
 /* v168 : le tempo reste celui du séquenceur commun. On ne touche ni au
    transport ni à la vitesse des échantillons, qui appartient à l'effet VITESSE.
    Même plage que le tempo global mémorisé : 40 à 220 BPM. */
