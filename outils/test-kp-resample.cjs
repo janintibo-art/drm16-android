@@ -102,7 +102,47 @@ function installCaptureUi(c){
   return controls;
 }
 
+function verifierControleWavNavigateur(){
+  // add_init_script et evaluate ont des portées distinctes : seul ce que le
+  // pont publie sur window peut être utilisé par le contrôle du WAV.
+  const navigateur=fs.readFileSync(path.join(__dirname,'test-navigateur.py'),'utf8');
+  const pont=navigateur.match(/^PONT = r"""([\s\S]*?)"""/m);
+  const controle=navigateur.match(/pg\.evaluate\("""(\(avant\) => \{\s*var ajoutes =[\s\S]*?)""", avant\)/);
+  assert(pont&&controle,'vrai pont et vrai contrôle WAV du test navigateur présents');
+  const stockage=new Map(),c={
+    atob(s){return Buffer.from(s,'base64').toString('binary');},
+    btoa(s){return Buffer.from(s,'binary').toString('base64');},
+    localStorage:{getItem(k){return stockage.get(k)||null;},setItem(k,v){stockage.set(k,v);}},
+    ctx:{sampleRate:48000},ES:{buf:{}},BIB:{noms:{}},
+    KP:{banques:[{ech:'b0',mode:'loop',on:false}],sources:[null,null,null,null]},
+  };
+  c.window=c;c.__kpEssai={banques:JSON.stringify(c.KP.banques)};
+  vm.createContext(c);vm.runInContext('(function(){'+pont[1]+'\n})();',c);
+  assert.equal(vm.runInContext('typeof __dec',c),'undefined','le décodeur privé ne fuit pas dans evaluate');
+  const echantillons=fs.readFileSync(path.join(__dirname,'../page/js/280-electribe-es-1.js'),'utf8');
+  const debut=echantillons.indexOf('function wavDe('),fin=echantillons.indexOf('function b64De(',debut);
+  assert(debut>=0&&fin>debut,'vrai encodeur WAV présent');
+  vm.runInContext(echantillons.slice(debut,fin),c);
+  const son=buffer(1,4800,48000),d=son.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=.2*Math.sin(2*Math.PI*440*i/48000);
+  const wav=Buffer.from(c.wavDe(son)).toString('base64');
+  c.DRM16.echSauver('prise-precedente',wav);
+  const avant=Object.keys(c.__E),id='prise-kaoss';
+  c.ES.buf[id]=son;c.BIB.noms[id]='KAOSS ESSAI';
+  assert(c.DRM16.echSauver(id,wav));
+  const resultat=vm.runInContext('('+controle[1]+')',c)(avant);
+  assert.equal(resultat.nombre,1);assert.equal(resultat.id,id);assert.equal(resultat.nom,'KAOSS ESSAI');
+  assert.equal(resultat.riff,'RIFF');assert.equal(resultat.wave,'WAVE');
+  assert.equal(resultat.format,1);assert.equal(resultat.bits,16);assert.equal(resultat.canaux,1);
+  assert.equal(resultat.taux,48000);assert.equal(resultat.tauxContexte,48000);assert.equal(resultat.duree,.1);
+  assert(Math.abs(resultat.rms-.2/Math.sqrt(2))<.00003,'le contrôle mesure les vrais échantillons PCM');
+  assert(resultat.taille&&resultat.tampon&&resultat.intact,'taille, tampon mémoire et banques inchangées');
+  assert.equal(JSON.parse(stockage.get('__pont')).e[id],wav,'WAV conservé par le vrai pont');
+  console.log('Kaoss navigateur : contrôle réel du WAV avec décodeur du pont privé, en-tête, RMS, taille et banques intactes OK.');
+}
+
 async function run(){
+  verifierControleWavNavigateur();
   // La conversion conserve le niveau et la moyenne stéréo, sans le preset
   // de la bibliothèque ; une capture longue ne dépasse jamais huit secondes.
   {

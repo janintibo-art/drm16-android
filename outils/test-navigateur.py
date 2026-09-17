@@ -218,7 +218,11 @@ async def kaoss_resample(nav):
             r = await pg.evaluate("""(avant) => {
               var ajoutes = Object.keys(__E).filter(id => avant.indexOf(id) < 0);
               if (ajoutes.length !== 1) return {nombre:ajoutes.length, etat:KP.priseEtat};
-              var id = ajoutes[0], bytes = __dec(__E[id]);
+              /* Les fonctions privées du pont ne sont pas dans la portée de
+                 evaluate(). Décoder ici les octets sauvegardés par HOST. */
+              var id = ajoutes[0], brut = atob(__E[id]);
+              var bytes = new Uint8Array(brut.length);
+              for (var j = 0; j < brut.length; j++) bytes[j] = brut.charCodeAt(j);
               var v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
               var taux = v.getUint32(24, true), canaux = v.getUint16(22, true);
               var n = v.getUint32(40, true) / 2, somme = 0;
