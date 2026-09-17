@@ -206,7 +206,7 @@ function frapperPad(k, vel){
   majPadsMpc(); majLcdMpc();
   if(MPC.amorce > 0) return;                /* pendant le décompte on joue sans enregistrer */
   if(S.run && (MPC.rec || MPC.over)){
-    MPC.annule = {p:MPC.piste, l:pi.evts.slice()};
+    MPC.annule = {seq:MPC.seq, p:MPC.piste, l:pi.evts.slice()};
     pi.evts.push({tic:caleMpc(ticCourant()), n:(pi.type === 0 ? k : MPC.pads[k].note), vel:vel});
     pi.evts.sort(function(a,b){ return a.tic - b.tic; });
     memMpc();
@@ -335,14 +335,16 @@ function chargerMpc(){
   for(var i=0;i<64;i++) MPC.pads.push(padMpc(i));
   for(var s=0;s<8;s++){ var q = seqMpc(); q.nom = "SEQ " + (s+1); MPC.seqs.push(q); }
   MPC.seqCur = 0; MPC.banque = 0; MPC.sel = 0; MPC.chanson = []; MPC.mode = 0; MPC.piste = 0;
-  MPC.chPos = 0; MPC.chTour = 0; MPC.amorce = 0; MPC.attente = false;
+  MPC.chPos = 0; MPC.chTour = 0; MPC.amorce = 0; MPC.attente = false; MPC.annule = null;
   var m = memLire("mpc" + MPC.v);
   if(m){
     if(m.pads && m.pads.length === 64) MPC.pads = m.pads;
     if(m.seqs && m.seqs.length === 8){
       MPC.seqs = m.seqs.map(function(o, i){
         var q = seqMpc();
-        q.mesures = o.mesures || 2; q.q = o.q || 3; q.swing = o.swing || 0; q.bpm = o.bpm || 0;
+        q.mesures = o.mesures || 2;
+        q.q = Number.isInteger(o.q) && o.q >= 0 && o.q < MPC_Q.length ? o.q : 3;
+        q.swing = o.swing || 0; q.bpm = o.bpm || 0;
         q.nom = o.nom || ("SEQ " + (i+1));
         if(o.pistes){
           o.pistes.forEach(function(p){
@@ -404,7 +406,7 @@ function chargerMpc(){
     }
     if(MPC.ecrase){                             /* effacement : on retire les frappes de ce pad */
       var pe = pisteCourante();
-      MPC.annule = {p:MPC.piste, l:pe.evts.slice()};
+      MPC.annule = {seq:MPC.seq, p:MPC.piste, l:pe.evts.slice()};
       var cible = (pe.type === 0) ? k : MPC.pads[k].note;
       pe.evts = pe.evts.filter(function(ev){ return ev.n !== cible; });
       memMpc(); majLcdMpc(); H.inter();
@@ -544,6 +546,7 @@ function chargerMpc(){
         var n2 = parseInt(v, 10) - 1;
         if(isNaN(n2) || n2 < 0 || n2 > 7){ signal("NUMÉRO ENTRE 1 ET 8"); return; }
         var d = MPC.seqs[n2];
+        if(MPC.annule && MPC.annule.seq === d) MPC.annule = null;
         d.mesures = src.mesures; d.q = src.q; d.swing = src.swing; d.bpm = src.bpm;
         d.pistes = src.pistes.map(function(pp){
           return {type:pp.type, canal:pp.canal, nom:pp.nom, mute:pp.mute, solo:pp.solo,
@@ -647,7 +650,7 @@ function majKnobsMpc(){
   function nudgeMpc(d){
     var pn = pisteCourante(), e = pn.evts[MPC.evtSel];
     if(!e) return;
-    MPC.annule = {p:MPC.piste, l:pn.evts.map(function(x){ return {tic:x.tic, n:x.n, vel:x.vel}; })};
+    MPC.annule = {seq:MPC.seq, p:MPC.piste, l:pn.evts.map(function(x){ return {tic:x.tic, n:x.n, vel:x.vel}; })};
     e.tic = (e.tic + d * (MPC_TPQ / 8) + ticsMpc()) % ticsMpc();
     pn.evts.sort(function(a,b){ return a.tic - b.tic; });
     MPC.evtSel = pn.evts.indexOf(e);
@@ -701,7 +704,7 @@ document.getElementById("mpc-efface").addEventListener("click", function(){
   if(MPC.mode === 1){                         /* pas à pas : retire l'événement choisi */
     var pz = pisteCourante(), e = pz.evts[MPC.evtSel];
     if(!e){ signal("AUCUN ÉVÉNEMENT"); return; }
-    MPC.annule = {p:MPC.piste, l:pz.evts.map(function(x){ return {tic:x.tic, n:x.n, vel:x.vel}; })};
+    MPC.annule = {seq:MPC.seq, p:MPC.piste, l:pz.evts.map(function(x){ return {tic:x.tic, n:x.n, vel:x.vel}; })};
     pz.evts.splice(MPC.evtSel, 1);
     MPC.evtSel = Math.max(0, Math.min(MPC.evtSel, pz.evts.length - 1));
     memMpc(); majLcdMpc(); H.inter();
@@ -731,10 +734,13 @@ document.getElementById("mpc-timing").addEventListener("click", function(){
 });
 document.getElementById("mpc-annule").addEventListener("click", function(){
   if(!MPC.annule){ signal("RIEN À ANNULER"); return; }
+  /* L'historique appartient à la séquence éditée, même si l'on en visite une
+     autre. Revenir à la première permet encore de l'annuler. */
+  if(MPC.annule.seq !== MPC.seq){ signal("RIEN À ANNULER DANS CETTE SÉQUENCE"); return; }
   var cible = MPC.seq.pistes[MPC.annule.p] || pisteCourante();
   var avant = cible.evts;
   cible.evts = MPC.annule.l;
-  MPC.annule = {p:MPC.annule.p, l:avant};
+  MPC.annule = {seq:MPC.seq, p:MPC.annule.p, l:avant};
   memMpc(); majLcdMpc(); H.inter();
   signal("SÉQUENCE REVENUE EN ARRIÈRE");
 });
@@ -811,4 +817,3 @@ function activerMpc(v){
   actif = unitMpc;
   save(); fit(); setTimeout(fit, 120);
 }
-

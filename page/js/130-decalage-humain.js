@@ -7,8 +7,28 @@ function decalageHumain(){
   if(!HUM.temps) return 0;
   return (Math.random() - 0.5) * (HUM.temps / 1000);
 }
+/* Horloge interne et MIDI partagent le même SET. Les machines secondaires
+   gardent leur longueur, mais seule la principale alimente son curseur.
+   Le rang absolu reste attaché à l'instant entendu pour la vue d'ensemble. */
+function programmerPas(i, t){
+  var debut = queue.length;
+  MACHINE.schedule(i, t);
+  for(var q=debut;q<queue.length;q++) queue[q].pasSet = pasSet;
+  if(SET.on) SET_VOIES.forEach(function(v){
+    var M = moteurSet(v[0]);
+    if(!M || M === MACHINE || !SET.actives[v[0]]) return;
+    var L = M.longueur ? M.longueur() : 16;
+    var j = ((pasSet % L) + L) % L;
+    var n = queue.length;
+    try{
+      M.schedule(j, t);
+      if(j === L - 1 && M.boucle) M.boucle();
+    }finally{ queue.splice(n); }
+  });
+  pasSet++;
+}
 function tick(){
-  if(!ctx) return;
+  if(!ctx || !S.run || (MIDI.sync && MIDI.ouvert >= 0)) return;
   surveillerAudio();
   if(!ctx) return;                    /* refaireAudio a pu tout remplacer */
   var maintenant = Date.now();
@@ -46,20 +66,7 @@ function tick(){
     var dh = decalageHumain();
     /* on ne recule jamais avant l'instant présent : le coup serait perdu */
     var tq = Math.max(maintenantAudio() + 0.005, nextT + dh);
-    MACHINE.schedule(step, tq);
-    /* Les autres machines du set tournent sur leur PROPRE longueur. Un compteur
-       qui ne repart jamais à zéro sert de référence commune : chacune y prend
-       son reste. C'est ce qui permet de faire tourner un motif de 16 pas
-       contre un de 12 sans que l'un impose sa mesure à l'autre. */
-    if(SET.on) SET_VOIES.forEach(function(v){
-      var M = moteurSet(v[0]);
-      if(!M || M === MACHINE || !SET.actives[v[0]]) return;
-      var L = M.longueur ? M.longueur() : 16;
-      var j = ((pasSet % L) + L) % L;
-      M.schedule(j, tq);
-      if(j === L - 1 && M.boucle) M.boucle();
-    });
-    pasSet++;
+    programmerPas(step, tq);
     if(METRO && step % 4 === 0) clicMetro(nextT, step === 0);
     nextT += stepDur();
     step = (step+1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
@@ -96,6 +103,7 @@ function stop(){
   if(MACHINE && MACHINE.arret) MACHINE.arret();
   if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI && MACHINE !== MACHINE_DBI) MACHINE_DBI.arret();
   if(typeof MACHINE_MC !== "undefined" && MACHINE_MC && MACHINE !== MACHINE_MC) MACHINE_MC.arret();
+  if(typeof MACHINE_KP !== "undefined" && MACHINE_KP && MACHINE !== MACHINE_KP) MACHINE_KP.arret();
   host(false);
   midiHorloge(false);
 }

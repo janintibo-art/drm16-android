@@ -677,18 +677,20 @@ function chargerDbi(){
   for(var i=0;i<16;i++) DBI.motifs.push(motifDbi(i < 2 ? i : 9));
   DBI.page = 0; DBI.pos = -1; DBI.rec = false; DBI.roller = false;
   DBI.cur = 0; DBI.sel = 0; DBI.color = false; DBI.colorSteps = false; DBI.repeatEdit = false; DBI.accent = false;
+  DBI.swing = 0; DBI.random = 0; DBI.drive = 0.25; DBI.dist = false; DBI.poly = false;
   var m = memLire("dbi");
-  if(m){
+  if(m && typeof m === "object" && !Array.isArray(m)){
     if(Array.isArray(m.chaine) && m.chaine.length > 0 && m.chaine.length <= 16 &&
        m.chaine.every(function(n){ return Number.isInteger(n) && n >= 0 && n < 16; })){
       DBI.chaine = m.chaine.slice(); DBI.song = m.song === true;
     }
-    if(m.motifs && m.motifs.length === 16){
+    if(Array.isArray(m.motifs) && m.motifs.length === 16){
       DBI.motifs = m.motifs.map(function(o){
         var r = motifDbi(9);
+        if(!o || typeof o !== "object" || Array.isArray(o)) return r;
         r.last = bornerLongueurDbi(o.last);
-        (o.pistes || []).forEach(function(P, k){
-          if(k >= 8) return;
+        (Array.isArray(o.pistes) ? o.pistes : []).forEach(function(P, k){
+          if(k >= 8 || !P || typeof P !== "object" || Array.isArray(P)) return;
           var d = r.pistes[k];
           d.pas = (P.pas || 0) & 65535; d.acc = (P.acc || 0) & 65535;
           ["pasPlus","accPlus","colPlus"].forEach(function(champ){
@@ -708,13 +710,18 @@ function chargerDbi(){
             if(Number.isFinite(v)) d.colorPar[kn[0]] = Math.max(0, Math.min(1, v));
           });
           d.len = bornerLongueurDbi(P.len); d.type = P.type === 1 ? 1 : 0;
-          if(P.p) for(var q in P.p) if(d.p[q] !== undefined) d.p[q] = P.p[q];
+          if(P.p && typeof P.p === "object") Object.keys(d.p).forEach(function(q){
+            if(Number.isFinite(P.p[q])) d.p[q] = Math.max(0, Math.min(1, P.p[q]));
+          });
         });
         return r;
       });
     }
-    ["cur","sel","swing","random","drive"].forEach(function(c){
-      if(typeof m[c] === "number") DBI[c] = m[c];
+    ["cur","sel"].forEach(function(c){
+      if(Number.isFinite(m[c])) DBI[c] = Math.floor(Math.max(0, Math.min(c === "cur" ? 15 : 7, m[c])));
+    });
+    ["swing","random","drive"].forEach(function(c){
+      if(Number.isFinite(m[c])) DBI[c] = Math.max(0, Math.min(c === "swing" ? 0.7 : 1, m[c]));
     });
     DBI.dist = !!m.dist; DBI.poly = !!m.poly;
   }
@@ -861,4 +868,3 @@ function activerDbi(){
   actif = unitDbi;
   save(); fit(); setTimeout(fit, 120);
 }
-

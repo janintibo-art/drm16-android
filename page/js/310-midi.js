@@ -40,6 +40,7 @@ function midiBrut(a,b,c){
 /* une note posée à l'heure du pas, l'ordonnanceur travaillant en avance */
 var midiAttente = [], midiOuvertes = [];
 function midiNoteA(note, t, vel, canal, duree){
+  if(ctx && ctx.startRendering) return;   /* un rendu WAV ne joue pas le matériel branché */
   if(!midiPret() || !MIDI.out || note === undefined) return;
   var d = Math.max(0, (t - maintenantAudio())*1000);
   var ms = Math.max(40, Math.min(4000, (duree !== undefined ? duree*1000 : 90)));
@@ -116,7 +117,7 @@ function ticExterne(){
   if(SYNC.ticks % 6 === 0){
     if(SYNC.attente){ SYNC.attente = false; signal("HORLOGE REÇUE"); }
     var t = maintenantAudio() + 0.03;      /* petite avance : elle absorbe la gigue du pont */
-    MACHINE.schedule(step, Math.max(maintenantAudio() + 0.005, t + decalageHumain()));
+    programmerPas(step, Math.max(maintenantAudio() + 0.005, t + decalageHumain()));
     if(METRO && step % 4 === 0) clicMetro(t, step === 0);
     step = (step+1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
     if(step === 0 && MACHINE.boucle) MACHINE.boucle();
@@ -124,12 +125,16 @@ function ticExterne(){
   SYNC.ticks++;
 }
 function departEsclave(remise){
-  if((remise || !S.run) && typeof MACHINE_MC !== "undefined" && MACHINE_MC){
-    MACHINE_MC.arret();
-    if(MACHINE === MACHINE_MC) queue = [];
+  audioInit();
+  if(!ctx) return;
+  if(remise){ stop(); step = 0; pasSet = 0; }
+  if(!S.run){
+    if(typeof MACHINE_MC !== "undefined" && MACHINE_MC) MACHINE_MC.arret();
+    if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
+    if(SET.on) preparerSet();
   }
+  clearInterval(timer); timer = null;
   SYNC.ticks = 0; SYNC.dernier = 0; SYNC.attente = false;
-  if(remise) step = 0;
   if(!S.run){ S.run = true; queue = []; draw(); host(true); majPlayEm(); }
 }
 
@@ -199,7 +204,10 @@ function routageMidi(m){
      note − MIDI.base et vérifie que le rang tombe dedans. */
   if(m === "mc")
     return {base:MC_PISTES, defaut:function(){ return MC.sel; },
-            jouer:function(k, vel){ voixMc(maintenantAudio() + 0.005, k, MC_GAMME[MC.note % 16], vel); }};
+            jouer:function(k, vel){
+              var note = MC.pistes[k].type === "drum" ? MC.note % 4 : MC_GAMME[MC.note % 16];
+              voixMc(maintenantAudio() + 0.005, k, note, vel);
+            }};
 
   if(m === "stk")
     return {base:STK_PISTES, defaut:function(){ return STK.sel; },
@@ -278,7 +286,7 @@ function entreeNote(note, vel, canal){
     enregistrerEntree(SX, k, note, k >= 10 && k < 12);
     return;
   }
-  if(S.modele === "em1"){
+  if(m === "em1"){
     busEffets();
     var k = -1, i;
     if(canal !== MIDI.canal){ k = (canal === 1) ? 9 : 8; }

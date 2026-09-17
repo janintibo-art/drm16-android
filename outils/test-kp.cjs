@@ -42,7 +42,7 @@ class Context {
   }
 }
 function setup(saved) {
-  const el={}, c={saved,ctx:new Context(),master:new Node(),KP:null,memoire:{},S:{modele:'kp',run:false,bpm:120},cache:false,queue:[],
+  const el={}, c={saved,PROJET_EN_COURS:false,ctx:new Context(),master:new Node(),KP:null,memoire:{},S:{modele:'kp',run:false,bpm:120},cache:false,queue:[],
     audioCalls:0,saveCalls:0,tempoSaves:0,fitCalls:0,signals:[],H:{inter(){},cran(){},start(){}},
     now:0,performance:{now(){return c.now;}},MIDI:{sync:false},kTempo:{set(v){c.knobBpm=v;}},
     saveSoon(){c.tempoSaves++;},
@@ -65,6 +65,71 @@ function setup(saved) {
   return {c,el,click(id){el[id].listeners.click.call(el[id]);},pad(k){el['kp-banques'].childNodes[k].listeners.click();}};
 }
 const {c,el,click,pad}=setup();
+// STOP global doit libérer les banques LOOP de KAOSS même si la façade
+// principale est une autre machine, ainsi que sa prise RESAMPLE éventuelle.
+for(const principale of [false,true]){
+  const f=setup(),k=f.c;k.S.run=true;k.SET={on:true,actives:{kp:true}};
+  let arretsKaoss=0,arretsPrincipale=0,arretsPrise=0,arretsPiste=0;
+  k.MACHINE_KP.arret=()=>{arretsKaoss++;k.arretKp();};
+  k.MACHINE=principale?k.MACHINE_KP:{arret(){arretsPrincipale++;}};
+  f.pad(0);const boucle=k.KP.sources[0],gain=boucle.connections[0],graphe=k.KP.noeuds;
+  const mr={state:'recording',onstop(){},ondataavailable(){},onerror(){},stop(){arretsPrise++;}};
+  k.KP.prise={ctx:k.ctx,phase:'enregistrement',morceaux:[],mr,
+    destination:{stream:{getTracks(){return [{stop(){arretsPiste++;}}];}},disconnect(){}}};
+  Object.assign(k,{timer:1,AUDIT:{tDernier:1},clearInterval(){},clearTimeout(){},
+    couperSourcesFutures(){},midiSilence(){},host(){},midiHorloge(){}});
+  const transport=fs.readFileSync(path.join(__dirname,'../page/js/130-decalage-humain.js'),'utf8');
+  vm.runInContext(transport.slice(transport.indexOf('function stop(){')),k);k.stop();
+  assert(!k.S.run);assert.equal(arretsKaoss,1,'un seul arrêt Kaoss par STOP');
+  assert.equal(arretsPrincipale,principale?0:1);
+  assert.equal(boucle.stops,1);assert.equal(boucle.disconnected,1);assert.equal(gain.disconnected,1);
+  assert(k.KP.sources.every(s=>s===null));assert(k.KP.banques.every(b=>!b.on));assert(graphe.e.disconnected);
+  assert.equal(k.KP.prise,null);assert.equal(arretsPrise,1);assert.equal(arretsPiste,1);
+  assert.equal(mr.onstop,null);assert.equal(mr.ondataavailable,null);assert.equal(mr.onerror,null);
+}
+// v176 : chaque sortie normale de capture conserve les points effectivement
+// enregistrés, même sans un second toucher sur MOTION.
+for(const fin of ['limite','rejouer','stop','motion']){
+  const f=setup({motion:[[.1,.2]]}),k=f.c;k.activerKp();
+  let ecritures=0;k.sauverMachine=()=>ecritures++;
+  f.click('kp-motion');k.KP.x=.8;k.KP.y=.9;
+  const nombre=fin==='limite'?256:3;
+  for(let i=0;i<nombre;i++)k.scheduleKp(i%16,i*.125);
+  if(fin==='rejouer')f.click('kp-rejoue');
+  if(fin==='stop')k.stop();
+  if(fin==='motion')f.click('kp-motion');
+  assert(!k.KP.enregistre,fin+' termine la capture');
+  assert.equal(ecritures,1,fin+' écrit le geste une fois');
+  const sauve=JSON.parse(JSON.stringify(k.memoire.kp));
+  assert.equal(sauve.motion.length,nombre);
+  assert.deepStrictEqual(sauve.motion,Array.from({length:nombre},()=>[.8,.9]));
+  k.KP.motion[0][0]=.01;assert.equal(k.memoire.kp.motion[0][0],.8,'mémoire sans alias');
+  const reprise=setup(sauve);reprise.c.activerKp();
+  assert.equal(reprise.c.KP.motion.length,nombre);assert.equal(reprise.c.KP.motion[0][0],.8);
+  reprise.c.KP.motion[0][0]=.1;assert.equal(sauve.motion[0][0],.8,'lecture sans alias');
+}
+// Effacer une relecture (ou commencer un nouveau geste) remet réellement
+// l'effet au repos lorsque ni HOLD ni le doigt ne le maintiennent.
+for(const action of ['kp-effacer','kp-motion']){
+  const f=setup({motion:[[.1,.2]]}),k=f.c;k.activerKp();
+  k.KP.rejoue=true;k.scheduleKp(0,1);
+  assert(k.KP.noeuds.f.frequency.value<200,'ancien geste audible');
+  f.click(action);assert.equal(k.KP.noeuds.f.frequency.value,20000);
+  assert(!k.KP.rejoue);assert.equal(k.KP.motion.length,0);
+}
+// Les gestes issus d'une mémoire partielle restent bornés et indépendants.
+{
+  const mauvais=[null,{},'xy',[null],[[NaN,.2],[.1,Infinity],[.1],['.1',.2]],[]];
+  for(const motion of mauvais){
+    const f=setup({motion}),k=f.c;k.KP.motion=[[.9,.9]];k.KP.rejoue=true;
+    k.activerKp();assert.equal(k.KP.motion.length,0);assert(!k.KP.rejoue);
+  }
+  const f=setup({motion:[[2,-1],[.3,.4],null,...Array.from({length:300},()=>[.5,.6])]}),k=f.c;
+  k.activerKp();assert(k.KP.motion.length<=256);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(k.KP.motion.slice(0,2))),[[1,0],[.3,.4]]);
+  k.KP.rejoue=true;for(let i=0;i<512;i++)k.scheduleKp(i%16,i*.125);
+  assert(Number.isFinite(k.KP.x)&&Number.isFinite(k.KP.y));
+}
 // Ancien comportement LOOP, banques indépendantes et arrêt sans réveil audio.
 pad(0);const a=c.KP.sources[0],ag=a.connections[0];assert(a.loop&&a.started&&c.KP.banques[0].on);
 pad(1);const b=c.KP.sources[1];pad(0);

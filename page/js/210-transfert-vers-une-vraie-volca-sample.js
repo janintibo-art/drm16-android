@@ -575,6 +575,7 @@ function importerSonFichier(f){
       if(decode && decode.catch) decode.catch(rej);
     });
   }).then(function(buf){
+    if(PROJET_EN_COURS) return;
     var court = reduireEch(buf, 32000, 8);
     var r = traiterSon(court, BIB.preset || "punch", 0);
     court = r.buffer;
@@ -719,8 +720,11 @@ document.addEventListener("visibilitychange", function(){
   }
   if(S.run){
     clearInterval(timer);
-    timer = setInterval(tick, periode());
-    tick();
+    timer = null;
+    if(!(MIDI.sync && MIDI.ouvert >= 0)){
+      timer = setInterval(tick, periode());
+      tick();
+    }
     if(!cache) draw();
   }
 });

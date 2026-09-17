@@ -50,15 +50,15 @@ code{background:#221e24;padding:2px 6px;border-radius:4px;font-size:14px}
 Windows affichera un avertissement d'éditeur inconnu : c'est le cas de tout programme non signé par un
 certificat payant. Choisissez <i>Informations complémentaires</i> puis <i>Exécuter quand même</i>.</p>
 <p><b>macOS, Linux, ou sans rien installer</b> — téléchargez
-<a id="lienhtml" href="#">le fichier <code>drm16.html</code></a> et ouvrez-le dans votre navigateur.
-Un seul fichier, aucune installation : c'est exactement la même application.</p>
+<a id="lienpc" href="#">l'archive <code>drm16-pc.zip</code></a>, décompressez tout le dossier,
+puis ouvrez <code>drm16.html</code> dans votre navigateur. Studio, Nexus et leurs sons sont inclus.
+La notice du ZIP explique le lancement local si le navigateur bloque leurs sons depuis le disque.<br>
+<a id="lienhtml" href="#">Le HTML seul</a> reste disponible, sans ces fichiers supplémentaires.</p>
 </div>
-<p class="petit">Sur ordinateur, le <b>MIDI</b> et la <b>bibliothèque de fichiers</b> ne sont pas
-disponibles : ils passent par le pont natif d'Android. Tout le reste fonctionne, l'Eurorack compris, et
-l'export WAV se fait par le téléchargement du navigateur.<br>
-Le fichier <code>drm16.html</code> ouvert directement depuis le disque a une limite de plus : certains
-navigateurs refusent la mémoire locale à une page ouverte ainsi, et les motifs peuvent alors ne pas être
-conservés d'une session à l'autre. L'installeur Windows n'a pas ce défaut.</p>
+<p class="petit">L'<b>installeur Windows</b> offre le MIDI externe et la bibliothèque native de fichiers.
+La <b>version navigateur</b> n'a pas ces fonctions natives ni les téléchargements archive.org ;
+l'export WAV passe par les téléchargements du navigateur. La conservation des motifs dépend de
+la mémoire locale autorisée par le navigateur et de l'adresse utilisée.</p>
 
 <h2>Ce qu'il y a dedans</h2>
 <ul>
@@ -112,6 +112,7 @@ Le code et la notice sont en français. <a id="depot" href="#">Voir le dépôt</
   if(!base) return;                     /* ouverte en local : on laisse les liens inertes */
   document.getElementById("lien").href     = base + "/releases/latest/download/drm16.apk";
   document.getElementById("lienexe").href  = base + "/releases/latest/download/DRM16-installeur.exe";
+  document.getElementById("lienpc").href   = base + "/releases/latest/download/drm16-pc.zip";
   document.getElementById("lienhtml").href = base + "/releases/latest/download/drm16.html";
   document.getElementById("depot").href    = base;
   document.getElementById("versions").href = base + "/releases";

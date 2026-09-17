@@ -365,14 +365,13 @@ for(const temps of [1.1,1.2,1.5]){
 }
 
 
-// L'horloge MIDI externe ne cadence que la machine principale : une MC
-// secondaire applique donc le choix directement, sans attente orpheline.
+// v176 : l'horloge MIDI cadence également les machines secondaires du SET.
+// Les scènes de la MC gardent donc leur frontière de mesure dans les deux cas.
 for(const principale of [false,true])for(const ouvert of [-1,0]){
   const {c}=fixtureMesure();if(!principale)c.MACHINE={};
   c.SET={on:true,actives:{mc:true}};c.MIDI={sync:true,ouvert};c.choisirSceneMc(2);
-  const quantifie=principale||ouvert<0;
-  assert.deepStrictEqual(clipsChoisis(c),Array(4).fill(quantifie?0:2));
-  assert.deepStrictEqual(attendreClips(c),Array(4).fill(quantifie?2:null));
+  assert.deepStrictEqual(clipsChoisis(c),Array(4).fill(0));
+  assert.deepStrictEqual(attendreClips(c),Array(4).fill(2));
   assert.equal(c.MC.depart,null);
 }
 
@@ -393,6 +392,26 @@ function chargerTransportReel(c){
   vm.runInContext(lire('page/js/130-decalage-humain.js'),c);
   const midi=lire('page/js/310-midi.js'),debut=midi.indexOf('function departEsclave('),fin=midi.indexOf('/* réception */',debut);
   assert(debut>=0&&fin>debut,'départ MIDI réel présent');vm.runInContext(midi.slice(debut,fin),c);
+}
+
+// Le vrai transport MIDI lance la MC secondaire au pas zéro de SA mesure,
+// même si la machine principale boucle sur douze pas.
+{
+  const {c}=fixtureMesure();chargerTransportReel(c);
+  Object.assign(c,{performance:{now:()=>0},HUM:{temps:0},METRO:false,SET_VOIES:[['mc']],
+    SET:{on:true,actives:{mc:true}},moteurSet(){return c.MACHINE_MC;}});
+  c.MACHINE={longueur:()=>12,schedule(i,t){c.queue.push({i,t});}};
+  const midi=lire('page/js/310-midi.js');
+  vm.runInContext(midi.slice(midi.indexOf('function ticExterne(){'),midi.indexOf('function departEsclave(')),c);
+  c.departEsclave(true);
+  function tics(n){for(let i=0;i<n;i++){c.maintenant+=1/48;c.ticExterne();}}
+  tics(24);c.choisirSceneMc(2);assert.deepStrictEqual(attendreClips(c),[2,2,2,2]);
+  tics(72);assert.equal(c.MC.depart,null);assert.deepStrictEqual(clipsChoisis(c),[0,0,0,0]);
+  assert.equal(c.step,4);assert.equal(c.pasSet,16);
+  tics(1);assert(c.MC.depart);assert.deepStrictEqual(Array.from(c.MC.depart.clips),[2,2,2,2]);
+  assert.deepStrictEqual(clipsChoisis(c),[0,0,0,0]);assert.equal(c.queue.length,17);
+  c.maintenant=c.MC.depart.t;c.suivreClipsMc();assert.deepStrictEqual(clipsChoisis(c),[2,2,2,2]);
+  assert(c.stocke.pistes.every(p=>p.clip===2));
 }
 
 // Les points d'entrée du transport réel réinitialisent également la MC-101,

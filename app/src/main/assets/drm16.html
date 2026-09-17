@@ -4637,8 +4637,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   les commandes de lancement sont brièvement verrouillées. STOP coupe le départ futur et conserve le clip
   déjà entendu. Une attente n'est jamais sauvegardée ; le mode DIRECT/MESURE et les clips effectivement
   sélectionnés le sont. Le SCATTER transforme les pas, sans déplacer cette frontière de mesure.</p>
-  <p>Avec une horloge MIDI externe, affichez la MC-101 comme machine principale pour utiliser le
-  lancement à la mesure : cette horloge ne fait pas avancer les machines secondaires du SET.</p>
+  <p>Le lancement à la mesure suit aussi l'horloge MIDI externe, y compris lorsque la MC-101 joue
+  comme machine secondaire du SET : elle garde sa propre mesure de seize pas.</p>
   <p>Choisissez un clip, touchez <b>COPIER</b>, choisissez la destination, puis <b>COLLER</b>.
   Vous pouvez coller sur la même piste ou sur une autre piste du même type : un motif mélodique
   va sur une piste mélodique, un motif rythmique sur une piste rythmique.
@@ -6807,29 +6807,39 @@ function memLire(id){
   return memoire[id];
 }
 function ecrireMachine(id){
-  if(!memoire[id] || PROJET_EN_COURS) return;
+  if(PROJET_EN_COURS) return false;
+  if(!memoire[id]) return true;
   try{
     localStorage.setItem(cleMachine(id), JSON.stringify(memoire[id]));
-    memEchec = false;
+    return true;
   }catch(e){
     if(!memEchec){ memEchec = true; signal("MÉMOIRE PLEINE · MOTIFS NON ENREGISTRÉS"); }
+    return false;
   }
 }
 function sauverMachine(id){
   clearTimeout(machineTmr[id]);
-  machineTmr[id] = setTimeout(function(){ ecrireMachine(id); delete machineTmr[id]; }, 250);
+  machineTmr[id] = setTimeout(function(){
+    if(ecrireMachine(id)) delete machineTmr[id];
+    else machineTmr[id] = null; /* échec : garder cette clé pour le prochain flush */
+  }, 250);
 }
 function viderMachines(){
-  for(var id in machineTmr){ clearTimeout(machineTmr[id]); ecrireMachine(id); }
-  machineTmr = {};
+  var ok = true;
+  Object.keys(machineTmr).forEach(function(id){
+    clearTimeout(machineTmr[id]);
+    if(ecrireMachine(id)) delete machineTmr[id];
+    else { machineTmr[id] = null; ok = false; }
+  });
+  return ok;
 }
 function writeMem(){
   clearTimeout(saveTmr); saveTmr = null;
-  if(PROJET_EN_COURS) return;
+  if(PROJET_EN_COURS) return false;
   /* Un départ MC peut déjà s'entendre avant la prochaine image ou le prochain
      tour du SET. Sauver/exporter maintenant doit conserver ce clip-là. */
   if(typeof MC !== "undefined" && MC) suivreClipsMc();
-  viderMachines();
+  var ok = viderMachines();
   try{
     memoire.modele = S.modele;
     memoire.vol = S.vol; memoire.bpm = S.bpm;
@@ -6842,10 +6852,12 @@ function writeMem(){
       hum:memoire.hum, wav:memoire.wav, set:memoire.set, latence:memoire.latence, satHaute:memoire.satHaute,
       "16":memoire["16"], "32":memoire["32"]
     }));
-    memEchec = false;
+    if(ok) memEchec = false;
   }catch(e){
     if(!memEchec){ memEchec = true; signal("MÉMOIRE PLEINE · RÉGLAGES NON ENREGISTRÉS"); }
+    ok = false;
   }
+  return ok;
 }
 /* toutes les écritures sont différées : la saisie d'un motif ne bloque plus l'affichage */
 function save(){ clearTimeout(saveTmr); saveTmr = setTimeout(writeMem, 250); }
@@ -7512,8 +7524,28 @@ function decalageHumain(){
   if(!HUM.temps) return 0;
   return (Math.random() - 0.5) * (HUM.temps / 1000);
 }
+/* Horloge interne et MIDI partagent le même SET. Les machines secondaires
+   gardent leur longueur, mais seule la principale alimente son curseur.
+   Le rang absolu reste attaché à l'instant entendu pour la vue d'ensemble. */
+function programmerPas(i, t){
+  var debut = queue.length;
+  MACHINE.schedule(i, t);
+  for(var q=debut;q<queue.length;q++) queue[q].pasSet = pasSet;
+  if(SET.on) SET_VOIES.forEach(function(v){
+    var M = moteurSet(v[0]);
+    if(!M || M === MACHINE || !SET.actives[v[0]]) return;
+    var L = M.longueur ? M.longueur() : 16;
+    var j = ((pasSet % L) + L) % L;
+    var n = queue.length;
+    try{
+      M.schedule(j, t);
+      if(j === L - 1 && M.boucle) M.boucle();
+    }finally{ queue.splice(n); }
+  });
+  pasSet++;
+}
 function tick(){
-  if(!ctx) return;
+  if(!ctx || !S.run || (MIDI.sync && MIDI.ouvert >= 0)) return;
   surveillerAudio();
   if(!ctx) return;                    /* refaireAudio a pu tout remplacer */
   var maintenant = Date.now();
@@ -7551,20 +7583,7 @@ function tick(){
     var dh = decalageHumain();
     /* on ne recule jamais avant l'instant présent : le coup serait perdu */
     var tq = Math.max(maintenantAudio() + 0.005, nextT + dh);
-    MACHINE.schedule(step, tq);
-    /* Les autres machines du set tournent sur leur PROPRE longueur. Un compteur
-       qui ne repart jamais à zéro sert de référence commune : chacune y prend
-       son reste. C'est ce qui permet de faire tourner un motif de 16 pas
-       contre un de 12 sans que l'un impose sa mesure à l'autre. */
-    if(SET.on) SET_VOIES.forEach(function(v){
-      var M = moteurSet(v[0]);
-      if(!M || M === MACHINE || !SET.actives[v[0]]) return;
-      var L = M.longueur ? M.longueur() : 16;
-      var j = ((pasSet % L) + L) % L;
-      M.schedule(j, tq);
-      if(j === L - 1 && M.boucle) M.boucle();
-    });
-    pasSet++;
+    programmerPas(step, tq);
     if(METRO && step % 4 === 0) clicMetro(nextT, step === 0);
     nextT += stepDur();
     step = (step+1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
@@ -7601,6 +7620,7 @@ function stop(){
   if(MACHINE && MACHINE.arret) MACHINE.arret();
   if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI && MACHINE !== MACHINE_DBI) MACHINE_DBI.arret();
   if(typeof MACHINE_MC !== "undefined" && MACHINE_MC && MACHINE !== MACHINE_MC) MACHINE_MC.arret();
+  if(typeof MACHINE_KP !== "undefined" && MACHINE_KP && MACHINE !== MACHINE_KP) MACHINE_KP.arret();
   host(false);
   midiHorloge(false);
 }
@@ -7613,8 +7633,11 @@ var led = document.getElementById("led-power");
 var T_PAS = 0;
 function draw(){
   if(!S.run) return;
-  var now = ctx ? maintenantAudio() : 0, cur=-1;
-  while(queue.length && queue[0].t <= now){ var e = queue.shift(); cur = e.i; T_PAS = e.t; }
+  var now = ctx ? maintenantAudio() : 0, cur=-1, pasEntendu=-1;
+  while(queue.length && queue[0].t <= now){
+    var e = queue.shift(); cur = e.i; T_PAS = e.t;
+    pasEntendu = typeof e.pasSet === "number" ? e.pasSet : e.i;
+  }
   if(cur>=0){
     MACHINE.beat(cur);
     /* En vue d'ensemble, toutes les machines du set sont à l'écran : leurs
@@ -7624,7 +7647,7 @@ function draw(){
       var M = moteurSet(v[0]);
       if(!M || M === MACHINE || !SET.actives[v[0]] || !M.beat) return;
       var L = M.longueur ? M.longueur() : 16;
-      try{ M.beat(((pasSet - 1) % L + L) % L); }catch(e){}
+      try{ M.beat(((pasEntendu % L) + L) % L); }catch(e){}
     });
   }
   requestAnimationFrame(draw);
@@ -7644,7 +7667,6 @@ function beatEhx(i){
 function arretEhx(){ led.classList.remove("beat"); }
 var MACHINE_EHX = {schedule:scheduleEhx, beat:beatEhx, arret:arretEhx};
 var MACHINE = MACHINE_EHX;
-
 /* ================= le set : plusieurs machines à la fois =================
    Jusqu'ici une seule machine jouait, et sa sortie allait droit au mélange
    général. Pour en faire tourner plusieurs ensemble il faut d'abord une voie
@@ -8850,6 +8872,7 @@ function importerSonFichier(f){
       if(decode && decode.catch) decode.catch(rej);
     });
   }).then(function(buf){
+    if(PROJET_EN_COURS) return;
     var court = reduireEch(buf, 32000, 8);
     var r = traiterSon(court, BIB.preset || "punch", 0);
     court = r.buffer;
@@ -8994,8 +9017,11 @@ document.addEventListener("visibilitychange", function(){
   }
   if(S.run){
     clearInterval(timer);
-    timer = setInterval(tick, periode());
-    tick();
+    timer = null;
+    if(!(MIDI.sync && MIDI.ouvert >= 0)){
+      timer = setInterval(tick, periode());
+      tick();
+    }
     if(!cache) draw();
   }
 });
@@ -12321,6 +12347,7 @@ function b64De(ab){
   return btoa(s);
 }
 function sauverEch(id, buf){
+  if(PROJET_EN_COURS) return false;
   var p = HOST;
   if(!p || !p.echSauver) return false;
   var ok = false;
@@ -12366,13 +12393,14 @@ function chargerEchs(){
     }catch(e){ finir(null); }
   });
 }
-/* un son peut servir dans plusieurs motifs et sur les trois échantillonneurs */
+/* Un son peut servir dans les motifs Electribe/Volca, les MPC et le Kaoss. */
 function usagesEch(id){
   var n = 0;
   function compter(slots){
-    if(!slots) return;
+    if(!Array.isArray(slots)) return;
     slots.forEach(function(p){
-      var sons = p.son || [];
+      var sons = p && p.son;
+      if(!Array.isArray(sons)) return;
       sons.forEach(function(so){ if(so && so.ech === id) n++; });
     });
   }
@@ -12382,6 +12410,14 @@ function usagesEch(id){
     if(k === S.modele) return;
     var m = memLire(k);
     if(m && m.slots) compter(m.slots);
+  });
+  ["mpc3000","mpc2000"].forEach(function(k){
+    var m = S.modele === k && typeof MPC !== "undefined" ? MPC : memLire(k);
+    if(m && Array.isArray(m.pads)) m.pads.forEach(function(p){ if(p && p.ech === id) n++; });
+  });
+  var v = S.modele === "vlc" && typeof VLC !== "undefined" ? VLC : memLire("vlc");
+  if(v && Array.isArray(v.motifs)) v.motifs.forEach(function(m){
+    if(m && Array.isArray(m.parties)) m.parties.forEach(function(p){ if(p && p.ech === id) n++; });
   });
   var km = S.modele === "kp" && typeof KP !== "undefined" && KP ? KP : memLire("kp");
   if(km && Array.isArray(km.banques)) km.banques.forEach(function(b){ if(b && b.ech === id) n++; });
@@ -12402,6 +12438,7 @@ function supprimerEch(id){
 }
 
 function poserEch(k, buf, quoi){
+  if(PROJET_EN_COURS) return;
   if(ES.protect){ lcdEs("PRT","PROTECT",true); return; }
   if(S.modele !== "es1" && S.modele !== "es2"){ signal("MACHINE CHANGÉE · SON NON AFFECTÉ"); return; }
   var court = reduireEch(buf, 32000, 6);
@@ -14894,6 +14931,7 @@ function echantillonnerSx(){
   }).catch(function(){ lcdSx("ERR","MICRO REFUSÉ",true); });
 }
 function poserEchSx(buf, quoi, cible){
+  if(PROJET_EN_COURS) return;
   if(SX.protect){ lcdSx("PROTECT","ÉCRITURE BLOQUÉE",true); return; }
   if(S.modele !== "esx"){ signal("MACHINE CHANGÉE · SON NON AFFECTÉ"); return; }
   var k = (cible === undefined) ? SX.sel : cible;
@@ -15057,7 +15095,6 @@ function activerSx(){
   actif = document.getElementById("unit-esx");
   save(); fit(); setTimeout(fit,120);
 }
-
 /* ===================== MIDI ===================== */
 var MIDI = {dispo:false, liste:[], ouvert:-1, out:true, in:true, clock:false,
             canal:9, canalSy:0, base:36, sync:false,
@@ -15100,6 +15137,7 @@ function midiBrut(a,b,c){
 /* une note posée à l'heure du pas, l'ordonnanceur travaillant en avance */
 var midiAttente = [], midiOuvertes = [];
 function midiNoteA(note, t, vel, canal, duree){
+  if(ctx && ctx.startRendering) return;   /* un rendu WAV ne joue pas le matériel branché */
   if(!midiPret() || !MIDI.out || note === undefined) return;
   var d = Math.max(0, (t - maintenantAudio())*1000);
   var ms = Math.max(40, Math.min(4000, (duree !== undefined ? duree*1000 : 90)));
@@ -15176,7 +15214,7 @@ function ticExterne(){
   if(SYNC.ticks % 6 === 0){
     if(SYNC.attente){ SYNC.attente = false; signal("HORLOGE REÇUE"); }
     var t = maintenantAudio() + 0.03;      /* petite avance : elle absorbe la gigue du pont */
-    MACHINE.schedule(step, Math.max(maintenantAudio() + 0.005, t + decalageHumain()));
+    programmerPas(step, Math.max(maintenantAudio() + 0.005, t + decalageHumain()));
     if(METRO && step % 4 === 0) clicMetro(t, step === 0);
     step = (step+1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
     if(step === 0 && MACHINE.boucle) MACHINE.boucle();
@@ -15184,12 +15222,16 @@ function ticExterne(){
   SYNC.ticks++;
 }
 function departEsclave(remise){
-  if((remise || !S.run) && typeof MACHINE_MC !== "undefined" && MACHINE_MC){
-    MACHINE_MC.arret();
-    if(MACHINE === MACHINE_MC) queue = [];
+  audioInit();
+  if(!ctx) return;
+  if(remise){ stop(); step = 0; pasSet = 0; }
+  if(!S.run){
+    if(typeof MACHINE_MC !== "undefined" && MACHINE_MC) MACHINE_MC.arret();
+    if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
+    if(SET.on) preparerSet();
   }
+  clearInterval(timer); timer = null;
   SYNC.ticks = 0; SYNC.dernier = 0; SYNC.attente = false;
-  if(remise) step = 0;
   if(!S.run){ S.run = true; queue = []; draw(); host(true); majPlayEm(); }
 }
 
@@ -15259,7 +15301,10 @@ function routageMidi(m){
      note − MIDI.base et vérifie que le rang tombe dedans. */
   if(m === "mc")
     return {base:MC_PISTES, defaut:function(){ return MC.sel; },
-            jouer:function(k, vel){ voixMc(maintenantAudio() + 0.005, k, MC_GAMME[MC.note % 16], vel); }};
+            jouer:function(k, vel){
+              var note = MC.pistes[k].type === "drum" ? MC.note % 4 : MC_GAMME[MC.note % 16];
+              voixMc(maintenantAudio() + 0.005, k, note, vel);
+            }};
 
   if(m === "stk")
     return {base:STK_PISTES, defaut:function(){ return STK.sel; },
@@ -15338,7 +15383,7 @@ function entreeNote(note, vel, canal){
     enregistrerEntree(SX, k, note, k >= 10 && k < 12);
     return;
   }
-  if(S.modele === "em1"){
+  if(m === "em1"){
     busEffets();
     var k = -1, i;
     if(canal !== MIDI.canal){ k = (canal === 1) ? 9 : 8; }
@@ -16651,7 +16696,7 @@ function frapperPad(k, vel){
   majPadsMpc(); majLcdMpc();
   if(MPC.amorce > 0) return;                /* pendant le décompte on joue sans enregistrer */
   if(S.run && (MPC.rec || MPC.over)){
-    MPC.annule = {p:MPC.piste, l:pi.evts.slice()};
+    MPC.annule = {seq:MPC.seq, p:MPC.piste, l:pi.evts.slice()};
     pi.evts.push({tic:caleMpc(ticCourant()), n:(pi.type === 0 ? k : MPC.pads[k].note), vel:vel});
     pi.evts.sort(function(a,b){ return a.tic - b.tic; });
     memMpc();
@@ -16780,14 +16825,16 @@ function chargerMpc(){
   for(var i=0;i<64;i++) MPC.pads.push(padMpc(i));
   for(var s=0;s<8;s++){ var q = seqMpc(); q.nom = "SEQ " + (s+1); MPC.seqs.push(q); }
   MPC.seqCur = 0; MPC.banque = 0; MPC.sel = 0; MPC.chanson = []; MPC.mode = 0; MPC.piste = 0;
-  MPC.chPos = 0; MPC.chTour = 0; MPC.amorce = 0; MPC.attente = false;
+  MPC.chPos = 0; MPC.chTour = 0; MPC.amorce = 0; MPC.attente = false; MPC.annule = null;
   var m = memLire("mpc" + MPC.v);
   if(m){
     if(m.pads && m.pads.length === 64) MPC.pads = m.pads;
     if(m.seqs && m.seqs.length === 8){
       MPC.seqs = m.seqs.map(function(o, i){
         var q = seqMpc();
-        q.mesures = o.mesures || 2; q.q = o.q || 3; q.swing = o.swing || 0; q.bpm = o.bpm || 0;
+        q.mesures = o.mesures || 2;
+        q.q = Number.isInteger(o.q) && o.q >= 0 && o.q < MPC_Q.length ? o.q : 3;
+        q.swing = o.swing || 0; q.bpm = o.bpm || 0;
         q.nom = o.nom || ("SEQ " + (i+1));
         if(o.pistes){
           o.pistes.forEach(function(p){
@@ -16849,7 +16896,7 @@ function chargerMpc(){
     }
     if(MPC.ecrase){                             /* effacement : on retire les frappes de ce pad */
       var pe = pisteCourante();
-      MPC.annule = {p:MPC.piste, l:pe.evts.slice()};
+      MPC.annule = {seq:MPC.seq, p:MPC.piste, l:pe.evts.slice()};
       var cible = (pe.type === 0) ? k : MPC.pads[k].note;
       pe.evts = pe.evts.filter(function(ev){ return ev.n !== cible; });
       memMpc(); majLcdMpc(); H.inter();
@@ -16989,6 +17036,7 @@ function chargerMpc(){
         var n2 = parseInt(v, 10) - 1;
         if(isNaN(n2) || n2 < 0 || n2 > 7){ signal("NUMÉRO ENTRE 1 ET 8"); return; }
         var d = MPC.seqs[n2];
+        if(MPC.annule && MPC.annule.seq === d) MPC.annule = null;
         d.mesures = src.mesures; d.q = src.q; d.swing = src.swing; d.bpm = src.bpm;
         d.pistes = src.pistes.map(function(pp){
           return {type:pp.type, canal:pp.canal, nom:pp.nom, mute:pp.mute, solo:pp.solo,
@@ -17092,7 +17140,7 @@ function majKnobsMpc(){
   function nudgeMpc(d){
     var pn = pisteCourante(), e = pn.evts[MPC.evtSel];
     if(!e) return;
-    MPC.annule = {p:MPC.piste, l:pn.evts.map(function(x){ return {tic:x.tic, n:x.n, vel:x.vel}; })};
+    MPC.annule = {seq:MPC.seq, p:MPC.piste, l:pn.evts.map(function(x){ return {tic:x.tic, n:x.n, vel:x.vel}; })};
     e.tic = (e.tic + d * (MPC_TPQ / 8) + ticsMpc()) % ticsMpc();
     pn.evts.sort(function(a,b){ return a.tic - b.tic; });
     MPC.evtSel = pn.evts.indexOf(e);
@@ -17146,7 +17194,7 @@ document.getElementById("mpc-efface").addEventListener("click", function(){
   if(MPC.mode === 1){                         /* pas à pas : retire l'événement choisi */
     var pz = pisteCourante(), e = pz.evts[MPC.evtSel];
     if(!e){ signal("AUCUN ÉVÉNEMENT"); return; }
-    MPC.annule = {p:MPC.piste, l:pz.evts.map(function(x){ return {tic:x.tic, n:x.n, vel:x.vel}; })};
+    MPC.annule = {seq:MPC.seq, p:MPC.piste, l:pz.evts.map(function(x){ return {tic:x.tic, n:x.n, vel:x.vel}; })};
     pz.evts.splice(MPC.evtSel, 1);
     MPC.evtSel = Math.max(0, Math.min(MPC.evtSel, pz.evts.length - 1));
     memMpc(); majLcdMpc(); H.inter();
@@ -17176,10 +17224,13 @@ document.getElementById("mpc-timing").addEventListener("click", function(){
 });
 document.getElementById("mpc-annule").addEventListener("click", function(){
   if(!MPC.annule){ signal("RIEN À ANNULER"); return; }
+  /* L'historique appartient à la séquence éditée, même si l'on en visite une
+     autre. Revenir à la première permet encore de l'annuler. */
+  if(MPC.annule.seq !== MPC.seq){ signal("RIEN À ANNULER DANS CETTE SÉQUENCE"); return; }
   var cible = MPC.seq.pistes[MPC.annule.p] || pisteCourante();
   var avant = cible.evts;
   cible.evts = MPC.annule.l;
-  MPC.annule = {p:MPC.annule.p, l:avant};
+  MPC.annule = {seq:MPC.seq, p:MPC.annule.p, l:avant};
   memMpc(); majLcdMpc(); H.inter();
   signal("SÉQUENCE REVENUE EN ARRIÈRE");
 });
@@ -17256,7 +17307,6 @@ function activerMpc(v){
   actif = unitMpc;
   save(); fit(); setTimeout(fit, 120);
 }
-
 /* ===================== ROLAND TR-808 / TR-909 =====================
    Un seul moteur : le séquenceur, les motifs, les variations et l'interface sont
    communs ; chaque modèle apporte sa liste d'instruments et ses voix. */
@@ -24144,18 +24194,20 @@ function chargerDbi(){
   for(var i=0;i<16;i++) DBI.motifs.push(motifDbi(i < 2 ? i : 9));
   DBI.page = 0; DBI.pos = -1; DBI.rec = false; DBI.roller = false;
   DBI.cur = 0; DBI.sel = 0; DBI.color = false; DBI.colorSteps = false; DBI.repeatEdit = false; DBI.accent = false;
+  DBI.swing = 0; DBI.random = 0; DBI.drive = 0.25; DBI.dist = false; DBI.poly = false;
   var m = memLire("dbi");
-  if(m){
+  if(m && typeof m === "object" && !Array.isArray(m)){
     if(Array.isArray(m.chaine) && m.chaine.length > 0 && m.chaine.length <= 16 &&
        m.chaine.every(function(n){ return Number.isInteger(n) && n >= 0 && n < 16; })){
       DBI.chaine = m.chaine.slice(); DBI.song = m.song === true;
     }
-    if(m.motifs && m.motifs.length === 16){
+    if(Array.isArray(m.motifs) && m.motifs.length === 16){
       DBI.motifs = m.motifs.map(function(o){
         var r = motifDbi(9);
+        if(!o || typeof o !== "object" || Array.isArray(o)) return r;
         r.last = bornerLongueurDbi(o.last);
-        (o.pistes || []).forEach(function(P, k){
-          if(k >= 8) return;
+        (Array.isArray(o.pistes) ? o.pistes : []).forEach(function(P, k){
+          if(k >= 8 || !P || typeof P !== "object" || Array.isArray(P)) return;
           var d = r.pistes[k];
           d.pas = (P.pas || 0) & 65535; d.acc = (P.acc || 0) & 65535;
           ["pasPlus","accPlus","colPlus"].forEach(function(champ){
@@ -24175,13 +24227,18 @@ function chargerDbi(){
             if(Number.isFinite(v)) d.colorPar[kn[0]] = Math.max(0, Math.min(1, v));
           });
           d.len = bornerLongueurDbi(P.len); d.type = P.type === 1 ? 1 : 0;
-          if(P.p) for(var q in P.p) if(d.p[q] !== undefined) d.p[q] = P.p[q];
+          if(P.p && typeof P.p === "object") Object.keys(d.p).forEach(function(q){
+            if(Number.isFinite(P.p[q])) d.p[q] = Math.max(0, Math.min(1, P.p[q]));
+          });
         });
         return r;
       });
     }
-    ["cur","sel","swing","random","drive"].forEach(function(c){
-      if(typeof m[c] === "number") DBI[c] = m[c];
+    ["cur","sel"].forEach(function(c){
+      if(Number.isFinite(m[c])) DBI[c] = Math.floor(Math.max(0, Math.min(c === "cur" ? 15 : 7, m[c])));
+    });
+    ["swing","random","drive"].forEach(function(c){
+      if(Number.isFinite(m[c])) DBI[c] = Math.max(0, Math.min(c === "swing" ? 0.7 : 1, m[c]));
     });
     DBI.dist = !!m.dist; DBI.poly = !!m.poly;
   }
@@ -24328,7 +24385,6 @@ function activerDbi(){
   actif = unitDbi;
   save(); fit(); setTimeout(fit, 120);
 }
-
 /* ===================== ROLAND CR-5000 =====================
    Boîte à présélections de 1980 : on ne programme rien. On choisit un des
    vingt-quatre rythmes, et l'ARRANGER y ajoute des instruments par-dessus.
@@ -25573,7 +25629,7 @@ function frapperDmx(k){
   voixDmx(maintenantAudio() + 0.005, k, 1);
   if(S.run && DMX.rec){
     var s = seqDmxCur();
-    DMX.annule = s.evts.slice();
+    DMX.annule = {seq:s, evts:s.evts.slice()};
     s.evts.push({tic:caleDmx(ticDmx()), k:k, vel:1});
     s.evts.sort(function(a, b){ return a.tic - b.tic; });
     memDmx();
@@ -25679,7 +25735,7 @@ var DMX_FADERS = [["bass","BASS"],["snare","SNARE"],["hat","HI-HAT"],["toms","TO
     else if(c === "l"){ s.mesures = [1,2,4,8][([1,2,4,8].indexOf(s.mesures) + 1) % 4];
                         affDmx("LENGTH " + s.mesures, true); }
     else if(c === "x"){
-      DMX.annule = s.evts.slice();
+      DMX.annule = {seq:s, evts:s.evts.slice()};
       s.evts = [];
       affDmx("ERASED", true);
     }
@@ -25688,6 +25744,7 @@ var DMX_FADERS = [["bass","BASS"],["snare","SNARE"],["hat","HI-HAT"],["toms","TO
       var d = parseInt(v, 10) - 1;
       if(!isNaN(d) && d >= 0 && d < 8){
         var dst = DMX.seqs[d];
+        if(DMX.annule && DMX.annule.seq === dst) DMX.annule = null;
         dst.mesures = s.mesures; dst.q = s.q; dst.swing = s.swing;
         dst.evts = s.evts.map(function(x2){ return {tic:x2.tic, k:x2.k, vel:x2.vel}; });
         affDmx("COPIED > " + (d + 1), true);
@@ -25697,8 +25754,9 @@ var DMX_FADERS = [["bass","BASS"],["snare","SNARE"],["hat","HI-HAT"],["toms","TO
     else if(c === "s"){ affDmx("4/4 FIXED", true); }
     else if(c === "g" || c === "p"){ affDmx("NOT ON DMX", true); }
     else if(c === "e"){
-      if(!DMX.annule){ affDmx("NOTHING", true); }
-      else { var av = s.evts; s.evts = DMX.annule; DMX.annule = av; affDmx("UNDO", true); }
+      if(!DMX.annule || DMX.annule.seq !== s){ affDmx("NOTHING", true); }
+      else { var av = s.evts; s.evts = DMX.annule.evts;
+             DMX.annule = {seq:s, evts:av}; affDmx("UNDO", true); }
     }
     else if(c === "n"){ ouvrirNotice(); }
     memDmx(); majAffDmx(); H.inter();
@@ -25750,14 +25808,16 @@ function memDmx(){
 function chargerDmx(){
   DMX.seqs = [];
   for(var i=0;i<8;i++) DMX.seqs.push(seqDmx(i + 1));
-  DMX.cur = 0; DMX.rec = false;
+  DMX.cur = 0; DMX.rec = false; DMX.annule = null;
   var m = memLire("dmx");
   if(m){
     if(m.niv) for(var c in DMX.niv) if(typeof m.niv[c] === "number") DMX.niv[c] = m.niv[c];
     if(m.seqs && m.seqs.length === 8){
       DMX.seqs = m.seqs.map(function(o, k){
         var s = seqDmx(k + 1);
-        s.mesures = o.mesures || 2; s.q = o.q || 3; s.swing = o.swing || 0;
+        s.mesures = o.mesures || 2;
+        s.q = Number.isInteger(o.q) && o.q >= 0 && o.q < DMX_Q.length ? o.q : 3;
+        s.swing = o.swing || 0;
         s.evts = (o.evts || []).map(function(e){ return {tic:e[0], k:e[1], vel:1}; });
         return s;
       });
@@ -25780,7 +25840,6 @@ function activerDmx(){
   save(); fit();
   setTimeout(function(){ fit(); majFadersDmx(); }, 120);
 }
-
 /* ================= traitement du son =================
    Chaîne reprise de MOC'TA BASS (janintibo-art), transposée en traitement
    hors ligne. Deux règles de son auteur, gardées telles quelles :
@@ -26157,11 +26216,13 @@ function exporterWav(){
      recrée au retour */
   var ctxVrai = ctx, masterVrai = master, bruitVrai = noiseBuf, cacheVrai = cache;
   var sortiesVraies = {outBd:outBd, outMix:outMix, panBd:panBd, panMix:panMix};
+  var busVrais = SET.bus;
   var off;
   try{ off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(taux * total), taux); }
   catch(e){ WAVX.occupe = false; signal("RENDU IMPOSSIBLE SUR CET APPAREIL"); return; }
 
   ctx = off;
+  SET.bus = {};                                /* les sorties réelles gardent leurs tranches */
   batirAudio();                                 /* tout est refait dans le contexte de rendu */
   cache = true;                                 /* pas d'animation pendant le rendu */
 
@@ -26169,6 +26230,7 @@ function exporterWav(){
   function remettre(){
     WAVX.occupe = false;
     ctx = ctxVrai; master = masterVrai; noiseBuf = bruitVrai; cache = cacheVrai;
+    SET.bus = busVrais;
     /* Tout ce que les machines ont rebâti pendant le rendu appartient au
        contexte de rendu. Celles qui ne refont pas leurs bus en s'activant —
        la DRM16, les Electribe, la MPC — rebrancheraient leurs voix dessus,
@@ -26213,7 +26275,6 @@ function exporterWav(){
     signal("RENDU ÉCHOUÉ");
   });
 }
-
 /* ================= Pocket Operator K.O! =================
    Un échantillonneur de poche : seize emplacements, un séquenceur de seize
    pas, seize motifs qu'on enchaîne. Deux moitiés qui ne se jouent pas pareil —
@@ -26890,10 +26951,24 @@ function appliquerKp(){
 
 /* Le geste enregistré. On relève la position à chaque pas du séquenceur, ce
    qui lie la boucle au tempo : le trajet se rejoue toujours en mesure. */
+function lireGesteKp(source){
+  if(!Array.isArray(source)) return [];
+  return source.slice(0, 256).filter(function(point){
+    return Array.isArray(point) && typeof point[0] === "number" && isFinite(point[0]) &&
+      typeof point[1] === "number" && isFinite(point[1]);
+  }).map(function(point){
+    return [Math.max(0, Math.min(1, point[0])), Math.max(0, Math.min(1, point[1]))];
+  });
+}
+function terminerGesteKp(){
+  if(!KP.enregistre) return;
+  KP.enregistre = false; KP.mpos = 0;
+  memKp(); majKp();
+}
 function scheduleKp(i, t){
   if(KP.enregistre){
     KP.motion.push([KP.x, KP.y]);
-    if(KP.motion.length >= 256) KP.enregistre = false;   /* 256 points au plus */
+    if(KP.motion.length >= 256) terminerGesteKp();      /* garder aussi la fin automatique */
   } else if(KP.rejoue && KP.motion.length){
     /* v127 : on lit le point COURANT, puis on avance. Avant, l'index avançait
        d'abord : la lecture commençait au deuxième point, et le premier
@@ -26908,6 +26983,7 @@ function scheduleKp(i, t){
 }
 function beatKp(i){ KP.pos = i; majTempoKp(); }
 function arretKp(){
+  terminerGesteKp();
   annulerPriseKp();
   KP.taps = [];
   toutArreterKp();
@@ -26922,7 +26998,7 @@ var MACHINE_KP = {schedule:scheduleKp, beat:beatKp, arret:arretKp,
                   longueur:function(){ return 16; }};
 
 function memKp(){
-  memoire.kp = {fx:KP.fx, prof:KP.prof, motion:KP.motion, sel:KP.sel,
+  memoire.kp = {fx:KP.fx, prof:KP.prof, motion:lireGesteKp(KP.motion), sel:KP.sel,
                 banques:KP.banques.map(function(b){
                   return {ech:b.ech, mode:b.mode, slice:!!b.slice, tranche:numeroTrancheKp(b.tranche)};
                 })};
@@ -26932,11 +27008,13 @@ function chargerKp(){
   var m = memLire("kp");
   /* Une ancienne sauvegarde conserve le son entier en boucle. */
   KP.tranches = [];
+  KP.motion = lireGesteKp(m && m.motion); KP.mpos = 0;
+  KP.enregistre = false;
+  if(!KP.motion.length) KP.rejoue = false;
   KP.banques.forEach(function(b){ b.mode = "loop"; b.slice = false; b.tranche = 0; });
   if(!m) return;
   if(typeof m.fx === "number" && isFinite(m.fx)) KP.fx = Math.max(0, Math.min(KP_EFFETS.length - 1, m.fx|0));
   if(typeof m.prof === "number" && isFinite(m.prof)) KP.prof = Math.max(0, Math.min(1, m.prof));
-  if(m.motion && m.motion.length) KP.motion = m.motion;
   if(typeof m.sel === "number" && isFinite(m.sel)) KP.sel = Math.max(0, Math.min(3, m.sel|0));
   if(Array.isArray(m.banques)) m.banques.forEach(function(o, i){
     if(i >= 4 || !o) return;
@@ -27050,8 +27128,7 @@ function suivreClipsMc(){
 }
 function lectureClipsMc(){
   return S.run && ctx && !ctx.startRendering &&
-    (MACHINE === MACHINE_MC || (typeof SET !== "undefined" && SET.on && SET.actives.mc &&
-      !(typeof MIDI !== "undefined" && MIDI.sync && MIDI.ouvert >= 0)));
+    (MACHINE === MACHINE_MC || (typeof SET !== "undefined" && SET.on && SET.actives.mc));
 }
 function indiceClipMc(k){
   if(typeof k !== "number" || Math.floor(k) !== k || k < 0 || k >= MC_CLIPS){
@@ -27654,13 +27731,14 @@ document.getElementById("kp-hold").addEventListener("click", function(){
   KP.tenu = !KP.tenu; appliquerKp(); majKp(); H.inter();
 });
 document.getElementById("kp-motion").addEventListener("click", function(){
-  KP.enregistre = !KP.enregistre;
-  if(KP.enregistre){ KP.motion = []; KP.rejoue = false; }
-  else { KP.mpos = 0; memKp(); }
+  if(KP.enregistre) terminerGesteKp();
+  else { KP.enregistre = true; KP.motion = []; KP.rejoue = false; }
+  appliquerKp();
   majKp(); H.inter();
 });
 document.getElementById("kp-rejoue").addEventListener("click", function(){
   if(!KP.motion.length){ signal("AUCUN GESTE ENREGISTRÉ"); return; }
+  terminerGesteKp();
   KP.rejoue = !KP.rejoue; KP.enregistre = false;
   if(KP.rejoue) KP.mpos = 0;          /* chaque relecture repart du début du geste */
   appliquerKp(); majKp(); H.inter();
@@ -27729,7 +27807,7 @@ document.getElementById("kp-fx").addEventListener("click", function(){
 });
 document.getElementById("kp-effacer").addEventListener("click", function(){
   KP.motion = []; KP.rejoue = false; KP.enregistre = false; KP.mpos = 0;
-  memKp(); majKp(); H.inter();
+  appliquerKp(); memKp(); majKp(); H.inter();
 });
 document.getElementById("kp-prof").addEventListener("input", function(){
   KP.prof = parseFloat(this.value);
@@ -28117,15 +28195,17 @@ function majKnobsStk(){
   [kStkTune, kStkDec, kStkFilt, kStkNiv, kStkPan].forEach(function(k){ k.maj(); });
 }
 function activerStk(){
+  stop();
   audioInit(); banqueEs(); chargerEchs();
+  chargerStk();
   poserMachine("stk");
   actif = document.getElementById("unit-stk");
   MACHINE = MACHINE_STK;
   S.modele = "stk";
-  noeudsStk();
+  if(ctx) noeudsStk();
   STK_MODE = "pas"; STK.ondePour = "";
   majStk(); majKnobsStk();
-  fit();
+  save(); fit();
 }
 document.getElementById("stk-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
@@ -28226,15 +28306,17 @@ function padKo(k){
   H.inter();
 }
 function activerKo(){
+  stop();
   audioInit(); banqueEs(); chargerEchs();
+  chargerKo();
   poserMachine("ko");
   actif = document.getElementById("unit-ko");
   MACHINE = MACHINE_KO;
   S.modele = "ko";
-  noeudsKo();
+  if(ctx) noeudsKo();
   KO_MODE = "son";
   majKo();
-  fit();
+  save(); fit();
 }
 document.getElementById("ko-son").addEventListener("click", function(){ KO_MODE = "son"; majKo(); H.cran(); });
 document.getElementById("ko-ptn").addEventListener("click", function(){ KO_MODE = "ptn"; majKo(); H.cran(); });
@@ -28295,17 +28377,20 @@ function exporterPriseWav(i){
 
   var ctxVrai = ctx, masterVrai = master, bruitVrai = noiseBuf, cacheVrai = cache;
   var sortiesVraies = {outBd:outBd, outMix:outMix, panBd:panBd, panMix:panMix};
+  var busVrais = SET.bus;
   var off;
   try{ off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(taux * total), taux); }
   catch(e){ WAVX.occupe = false; signal("RENDU IMPOSSIBLE SUR CET APPAREIL"); return; }
 
   ctx = off;
+  SET.bus = {};
   batirAudio();
   cache = true;
 
   function remettre(){
     WAVX.occupe = false;
     ctx = ctxVrai; master = masterVrai; noiseBuf = bruitVrai; cache = cacheVrai;
+    SET.bus = busVrais;
     razNoeudsMachines();
     outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
@@ -28363,13 +28448,12 @@ function exporterPriseWav(i){
    reconstruit des façades, ce qui n'a aucun sens hors ligne et coûte cher quand
    un live alterne entre deux machines à chaque note. On ne rebâtit donc que si
    la machine change vraiment. */
-var RENDU_MACHINE = "";
+var RENDU_MACHINE = "", RENDU_CTX = null;
 function allerMachineRendu(m){
-  if(m === RENDU_MACHINE) return;
-  RENDU_MACHINE = m;
+  if(m === RENDU_MACHINE && ctx === RENDU_CTX && S.modele === m) return;
   allerMachine(m);
+  RENDU_MACHINE = m; RENDU_CTX = ctx;
 }
-
 /* ================= formes d'onde par piste =================
    Pour dessiner une piste comme dans un séquenceur, il faut son SON, pas ses
    notes. On rend donc chaque piste séparément hors ligne et on garde l'enveloppe.
@@ -28394,11 +28478,13 @@ function ondesEnr(){
   var total = A.duree / 1000 + 2;
   var ctxVrai = ctx, masterVrai = master, bruitVrai = noiseBuf, cacheVrai = cache;
   var sortiesVraies = {outBd:outBd, outMix:outMix, panBd:panBd, panMix:panMix};
+  var busVrais = SET.bus;
   var resultat = {};
 
   function remettre(){
     ENR.ondesOccupe = false;
     ctx = ctxVrai; master = masterVrai; noiseBuf = bruitVrai; cache = cacheVrai;
+    SET.bus = busVrais;
     razNoeudsMachines();
     outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
@@ -28418,7 +28504,7 @@ function ondesEnr(){
     var off;
     try{ off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, Math.ceil(ONDE_TAUX * total), ONDE_TAUX); }
     catch(e){ remettre(); signal("CALCUL IMPOSSIBLE ICI"); return; }
-    ctx = off; batirAudio(); cache = true;
+    ctx = off; SET.bus = {}; batirAudio(); cache = true;
     RENDU_MACHINE = "";
     try{
       A.evts.forEach(function(e){
@@ -28455,7 +28541,6 @@ function enveloppe(data){
   }
   return e;
 }
-
 /* ================= la collection archive.org =================
    470 machines, 48 000 échantillons. Le dépôt sert les fichiers un par un
    depuis l'intérieur des archives ZIP : on ne télécharge donc jamais une
@@ -28591,6 +28676,7 @@ function arcSon(f, importer){
     });
   }).then(function(buf){
     ARC.occupe = false;
+    if(PROJET_EN_COURS) return;
     if(!importer){
       var src = ctx.createBufferSource(); src.buffer = buf;
       var g = ctx.createGain(); g.gain.value = 0.85;
@@ -28694,7 +28780,6 @@ function bibRendreArchive(corps){
   }
 }
 function majArcUI(){ if(BIB.onglet === 3) majBibUI(); }
-
 /* ================= bibliothèque =================
    Trois rayons : les sons, les prises MIDI, et les sauvegardes des vraies machines.
    Tout y est renommable. Les sauvegardes sont de vrais fichiers .syx dans Documents. */
@@ -28707,6 +28792,7 @@ function bibLire(){
   }catch(e){}
 }
 function bibEcrire(){
+  if(PROJET_EN_COURS) return;
   try{ localStorage.setItem(MEM + ".bib", JSON.stringify({noms:BIB.noms, preset:BIB.preset})); }
   catch(e){ signal("MÉMOIRE PLEINE · NOMS NON GARDÉS"); }
 }
@@ -28734,7 +28820,7 @@ function bibSons(){
   return out;
 }
 function bibAffecter(id){
-  var m = BIB.cible.machine, k = BIB.cible.partie;
+  var m = BIB.cible.machine, k = bibIndexReel(m, BIB.cible.partie);
   if(m === "es1" || m === "es2"){
     if(S.modele !== m) activerEs(m === "es2" ? 2 : 1);
     ES.pat.son[k].ech = id; delete ES.inv[id]; majLedsEs(); memEs();
@@ -28962,11 +29048,11 @@ function bibRendreSons(corps){
       if(!b){ signal("SON INTROUVABLE"); return; }
       var r = traiterSon(b, BIB.preset || "punch", 0);
       if(!r.rapport){ signal("AUCUN TRAITEMENT CHOISI"); return; }
-      ES.buf[s.id] = r.buffer;
-      sauverEch(s.id, r.buffer);
+      ES.buf[s.id] = r.buffer; delete ES.inv[s.id];
+      var garde = sauverEch(s.id, r.buffer);
       majBibUI();
-      signal((r.rapport.gain >= 0 ? "+" : "") + r.rapport.gain + " dB · CRÊTE " +
-             r.rapport.apres.crete + " dB");
+      signal(!garde ? "SON TRAITÉ POUR CETTE SESSION · ÉCHEC D'ÉCRITURE"
+        : (r.rapport.gain >= 0 ? "+" : "") + r.rapport.gain + " dB · CRÊTE " + r.rapport.apres.crete + " dB");
     });
     boutonBib(a, "RENOMMER", function(){
       renommer("Nom du son", s.nom, function(v){
@@ -29087,6 +29173,7 @@ function bibMicro(){
           if(decode && decode.catch) decode.catch(rej);
         });
       }).then(function(buf){
+        if(PROJET_EN_COURS) return;
         var court = reduireEch(buf, 32000, 8);
         var r = traiterSon(court, BIB.preset || "punch", 0);
         court = r.buffer;
@@ -29120,6 +29207,7 @@ function bibEgaliser(){
   var parties = bibPartiesNiveau();
   if(!parties.length){ signal("PASSEZ SUR UN ÉCHANTILLONNEUR OU UNE MPC"); return; }
   var mesures = [], i, p;
+  var champ = S.modele === "mpc3000" || S.modele === "mpc2000" ? "niv" : "lvl";
   for(i=0;i<parties.length;i++){
     p = parties[i];
     var b = ES.buf[p.son.ech];
@@ -29135,7 +29223,7 @@ function bibEgaliser(){
      de sons n'ont pas pu l'atteindre. */
   var niv0 = [];
   for(i=0;i<parties.length;i++)
-    if(mesures[i] !== null) niv0.push(mesures[i] + linDb(mv("niv", parties[i].son.niv)));
+    if(mesures[i] !== null) niv0.push(mesures[i] + linDb(parties[i].son[champ]));
   niv0.sort(function(a, b){ return a - b; });
   var cible = niv0[Math.floor(niv0.length / 2)];
   var ecart = 0;
@@ -29144,25 +29232,25 @@ function bibEgaliser(){
     for(i=0;i<parties.length;i++){
       if(mesures[i] === null) continue;
       p = parties[i];
-      var actuel = mesures[i] + linDb(mv("niv", p.son.niv));
+      var actuel = mesures[i] + linDb(p.son[champ]);
       var delta = cible - actuel;
       if(Math.abs(delta) < 0.3) continue;
       ecart = Math.max(ecart, Math.abs(delta));
       /* on cherche le réglage de bouton qui donne le niveau visé */
-      var voulu = mv("niv", p.son.niv) * dbLin(delta);
+      var voulu = p.son[champ] * dbLin(delta);
       var lo = 0, hi = 1;
       for(var it=0; it<24; it++){
         var mi = (lo + hi) / 2;
-        if(mv("niv", mi) < voulu) lo = mi; else hi = mi;
+        if(mi < voulu) lo = mi; else hi = mi;
       }
-      p.son.niv = Math.max(0, Math.min(1, (lo + hi) / 2));
+      p.son[champ] = Math.max(0, Math.min(1, (lo + hi) / 2));
     }
   }
   var reste = 0, courts = 0;
   for(i=0;i<parties.length;i++){
     if(mesures[i] === null) continue;
-    var e2 = (mesures[i] + linDb(mv("niv", parties[i].son.niv))) - cible;
-    if(e2 < -0.5 && parties[i].son.niv >= 0.999){ courts++; continue; }  /* bouton au maximum */
+    var e2 = (mesures[i] + linDb(parties[i].son[champ])) - cible;
+    if(e2 < -0.5 && parties[i].son[champ] >= 0.999){ courts++; continue; }  /* bouton au maximum */
     reste = Math.max(reste, Math.abs(e2));
   }
   if(S.modele === "es1" || S.modele === "es2"){ majLedsEs(); memEs(); }
@@ -29176,7 +29264,7 @@ function bibOptimiser(){
   audioInit(); banqueEs();
   var l = listeEch().filter(function(id){ return id.charAt(0) !== "b"; });
   if(!l.length){ signal("AUCUN SON À VOUS"); return; }
-  var avant = 0, apres = 0, touches = 0;
+  var avant = 0, apres = 0, touches = 0, rates = 0;
   l.forEach(function(id){
     var b = ES.buf[id];
     if(!b) return;
@@ -29184,15 +29272,16 @@ function bibOptimiser(){
     var t = trTauxConseille(b);
     if(t < b.sampleRate){
       var n = reechantillonner(b, t);
-      ES.buf[id] = n;
-      sauverEch(id, n);
+      ES.buf[id] = n; delete ES.inv[id];
+      if(!sauverEch(id, n)) rates++;
       apres += n.length * 2;
       touches++;
     } else apres += b.length * 2;
   });
   var gain = avant ? Math.round((1 - apres / avant) * 100) : 0;
   majBibUI();
-  signal(touches + " SONS ALLÉGÉS · " + gain + " % DE MÉMOIRE GAGNÉE");
+  signal(touches + " SONS ALLÉGÉS · " + gain + " % DE MÉMOIRE GAGNÉE" +
+         (rates ? " · " + rates + " SON(S) POUR CETTE SESSION SEULEMENT, ÉCHEC D'ÉCRITURE" : ""));
   H.inter();
 }
 
@@ -29281,21 +29370,21 @@ function projetHorodatage(){
 
 /* L'état complet, prêt à écrire. sautes : les sons laissés de côté faute de place. */
 function projetContenu(){
-  writeMem();
+  if(writeMem() === false) throw new Error("mémoire courante non enregistrée");
   var memoireProjet = {};
   for(var i=0;i<localStorage.length;i++){
     var k = localStorage.key(i);
     if(k === MEM || k.indexOf(MEM + ".") === 0) memoireProjet[k] = localStorage.getItem(k);
   }
-  var total = JSON.stringify(memoireProjet).length, sons = {}, sautes = [];
+  var total = JSON.stringify(memoireProjet).length, sons = {}, sautes = [], erreurs = [];
   if(HOST.echListe && HOST.echCharger){
     var noms = "";
-    try{ noms = HOST.echListe() || ""; }catch(e){}
+    try{ noms = HOST.echListe() || ""; }catch(e){ erreurs.push("liste des sons"); }
     noms.split("\n").forEach(function(n){
       if(!n) return;
       var b = "";
       try{ b = HOST.echCharger(n) || ""; }catch(e){}
-      if(!b) return;
+      if(!b){ erreurs.push(n); return; }
       if(total + b.length > PROJET_MAX - 65536){ sautes.push(n); return; }
       sons[n] = b; total += b.length + n.length + 8;
     });
@@ -29303,14 +29392,15 @@ function projetContenu(){
   return {
     doc: {format:PROJET_FORMAT, version:PROJET_VERSION, date:new Date().toISOString(),
           plateforme:HOST.plateforme, memoire:memoireProjet, sons:sons},
-    sautes: sautes
+    sautes: sautes, erreurs: erreurs
   };
 }
 
 /* Enregistre le projet dans les documents ; rend le nom écrit, ou "" */
-function projetEnregistrer(prefixe, silencieux){
+function projetEnregistrer(prefixe, silencieux, contenu){
   if(!HOST.fichierSauver){ if(!silencieux) signal("ÉCRITURE IMPOSSIBLE ICI"); return ""; }
-  var c = projetContenu();
+  var c;
+  try{ c = contenu || projetContenu(); }catch(e){ if(!silencieux) signal("LECTURE DU PROJET IMPOSSIBLE"); return ""; }
   var octets = new TextEncoder().encode(JSON.stringify(c.doc));
   if(octets.length > PROJET_MAX){ if(!silencieux) signal("PROJET TROP GROS"); return ""; }
   var nom = (prefixe || "projet") + "-" + projetHorodatage() + ".drm16";
@@ -29318,9 +29408,47 @@ function projetEnregistrer(prefixe, silencieux){
   if(!chemin){ if(!silencieux) signal("ÉCRITURE REFUSÉE"); return ""; }
   if(!silencieux){
     signal("PROJET ENREGISTRÉ · " + octetsTexte(octets.length) +
-           (c.sautes.length ? " · " + c.sautes.length + " SON(S) LAISSÉ(S) DE CÔTÉ, PLACE INSUFFISANTE" : ""));
+           (c.sautes.length ? " · " + c.sautes.length + " SON(S) LAISSÉ(S) DE CÔTÉ, PLACE INSUFFISANTE" : "") +
+           (c.erreurs.length ? " · " + c.erreurs.length + " SON(S) ILLISIBLE(S)" : ""));
   }
   return nom;
+}
+
+/* v176 : le préfixe Base64 de RIFF ne prouve pas qu'il s'agit d'un WAV.
+   On contrôle le conteneur et ses limites avant de remplacer un son existant.
+   Les chunks supplémentaires et tous les codecs WAV restent acceptés. */
+function projetWavValide(b64){
+  try{
+    /* Parcours linéaire : une regex à groupes répétés épuise la pile sur un
+       vrai fichier de plusieurs Mo, pourtant inférieur au plafond projet. */
+    if(typeof b64 !== "string" || !b64.length || b64.length%4) return false;
+    var finBase64 = b64.length;
+    while(finBase64 && b64.charAt(finBase64-1) === "=") finBase64--;
+    if(b64.length-finBase64 > 2) return false;
+    for(var j=0;j<finBase64;j++){
+      var c = b64.charCodeAt(j);
+      if(!((c>=65 && c<=90) || (c>=97 && c<=122) || (c>=48 && c<=57) || c===43 || c===47)) return false;
+    }
+    var s = atob(b64), n = s.length;
+    if(n < 44 || s.slice(0,4) !== "RIFF" || s.slice(8,12) !== "WAVE") return false;
+    function u32(i){ return (s.charCodeAt(i) + s.charCodeAt(i+1)*256 + s.charCodeAt(i+2)*65536 + s.charCodeAt(i+3)*16777216); }
+    function u16(i){ return s.charCodeAt(i) + s.charCodeAt(i+1)*256; }
+    var fin = u32(4) + 8, fmt = false, data = false;
+    if(fin !== n) return false;
+    for(var p=12;p<fin;){
+      if(p+8 > fin) return false;
+      var genre = s.slice(p,p+4), taille = u32(p+4), debut = p+8;
+      if(debut+taille > fin) return false;
+      if(genre === "fmt "){
+        if(taille < 16 || !u16(debut) || !u16(debut+2) || !u32(debut+4) || !u16(debut+12)) return false;
+        fmt = true;
+      }
+      if(genre === "data") data = taille > 0;
+      p = debut + taille + (taille%2);
+      if(p > fin) return false;
+    }
+    return fmt && data;
+  }catch(e){ return false; }
 }
 
 /* Rend le projet validé, ou un texte qui dit ce qui ne va pas */
@@ -29331,59 +29459,91 @@ function projetValider(texte){
   if(typeof d.version !== "number" || d.version < 1) return "PROJET ABÎMÉ";
   if(d.version > PROJET_VERSION) return "PROJET D'UNE VERSION PLUS RÉCENTE · METTEZ L'APPLICATION À JOUR";
   var m = d.memoire;
-  if(!m || typeof m !== "object" || typeof m[MEM] !== "string") return "PROJET INCOMPLET";
+  if(!m || typeof m !== "object" || Array.isArray(m) || typeof m[MEM] !== "string") return "PROJET INCOMPLET";
   for(var k in m){
     if(!Object.prototype.hasOwnProperty.call(m, k)) continue;
     if(k !== MEM && k.indexOf(MEM + ".") !== 0) return "PROJET ABÎMÉ (CLÉ INCONNUE)";
     if(typeof m[k] !== "string") return "PROJET ABÎMÉ (VALEUR)";
-    try{ JSON.parse(m[k]); }catch(e){ return "PROJET ABÎMÉ (VALEUR ILLISIBLE)"; }
+    try{
+      var valeur = JSON.parse(m[k]);
+      if(k === MEM && (!valeur || typeof valeur !== "object" || Array.isArray(valeur))) return "PROJET ABÎMÉ (RÉGLAGES)";
+    }catch(e){ return "PROJET ABÎMÉ (VALEUR ILLISIBLE)"; }
   }
   var s = d.sons || {};
-  if(typeof s !== "object") return "PROJET ABÎMÉ (SONS)";
+  if(typeof s !== "object" || Array.isArray(s)) return "PROJET ABÎMÉ (SONS)";
   for(var n in s){
     if(!Object.prototype.hasOwnProperty.call(s, n)) continue;
-    if(!/^[A-Za-z0-9_.-]{1,64}$/.test(n)) return "PROJET ABÎMÉ (NOM DE SON)";
-    if(typeof s[n] !== "string" || s[n].indexOf("UklGR") !== 0) return "PROJET ABÎMÉ (SON « " + n + " »)";
+    if(!/^[A-Za-z0-9_.-]{1,64}$/.test(n) || n === "." || n === "..") return "PROJET ABÎMÉ (NOM DE SON)";
+    if(!projetWavValide(s[n])) return "PROJET ABÎMÉ (SON « " + n + " »)";
   }
   d.sons = s;
   return d;
 }
 
-/* Remplace tout l'état par celui du projet, puis recharge la page */
+/* Le stockage de la page ne fournit pas de transaction. On garde donc une
+   copie exacte des anciennes valeurs et un fichier de secours complet avant
+   toute écriture, puis on restaure ces valeurs si une seule écriture échoue. */
+function projetPoserMemoire(m){
+  var cles = [];
+  for(var i=0;i<localStorage.length;i++){
+    var k = localStorage.key(i);
+    if(k === MEM || k.indexOf(MEM + ".") === 0) cles.push(k);
+  }
+  cles.forEach(function(k){ localStorage.removeItem(k); });
+  Object.keys(m).forEach(function(k){ localStorage.setItem(k, m[k]); });
+}
+
+/* Remplace tout l'état par celui du projet, puis recharge la page. */
 function projetOuvrir(texte, nom){
+  if(PROJET_EN_COURS){ signal("OUVERTURE DÉJÀ EN COURS"); return false; }
   var d = projetValider(texte);
   if(typeof d === "string"){ signal(d); return false; }
   var nbSons = Object.keys(d.sons).length;
+  if(nbSons && (!HOST.echSauver || !HOST.echCharger || !HOST.echSupprimer)){
+    signal("OUVERTURE IMPOSSIBLE ICI · ÉCRITURE DES SONS INDISPONIBLE"); return false;
+  }
   if(!window.confirm("Ouvrir le projet « " + (nom || "sans nom") + " » ?\n\n" +
                      "Il remplace tout : réglages, motifs, set, prises" +
                      (nbSons ? ", et " + nbSons + " son(s) de la bibliothèque" : "") + ".\n" +
                      "L'état actuel est d'abord enregistré en « avant-ouverture »."))
     return false;
   if(S.run) stop();
-  projetEnregistrer("avant-ouverture", true);
-  /* plus aucune écriture de l'ancien état, même au déchargement de la page */
+  var avant, secours;
+  try{ avant = projetContenu(); }catch(e){ signal("OUVERTURE ANNULÉE · SAUVEGARDE DE L'ÉTAT ACTUEL IMPOSSIBLE"); return false; }
+  if(avant.sautes.length || avant.erreurs.length){
+    signal("OUVERTURE ANNULÉE · SAUVEGARDE DE SECOURS INCOMPLÈTE"); return false;
+  }
+  secours = projetEnregistrer("avant-ouverture", true, avant);
+  if(!secours){ signal("OUVERTURE ANNULÉE · SAUVEGARDE DE SECOURS IMPOSSIBLE"); return false; }
   PROJET_EN_COURS = true;
-  var ecrits = 0, rates = 0;
-  for(var n in d.sons){
-    var ok = false;
-    try{ ok = !!(HOST.echSauver && HOST.echSauver(n, d.sons[n])); }catch(e){}
-    if(ok) ecrits++; else rates++;
-  }
-  var anciennes = [];
-  for(var i=0;i<localStorage.length;i++){
-    var k = localStorage.key(i);
-    if(k === MEM || k.indexOf(MEM + ".") === 0) anciennes.push(k);
-  }
-  anciennes.forEach(function(k){ localStorage.removeItem(k); });
+  var touches = [];
   try{
-    for(var c in d.memoire) localStorage.setItem(c, d.memoire[c]);
+    /* Tester d'abord la mémoire évite de toucher aux sons en cas de quota. */
+    projetPoserMemoire(d.memoire);
+    Object.keys(d.sons).forEach(function(n){
+      touches.push(n);
+      if(!HOST.echSauver(n, d.sons[n])) throw new Error("son non écrit");
+    });
   }catch(e){
-    signal("MÉMOIRE PLEINE · PROJET INCOMPLET");
+    var restaure = true;
+    try{ projetPoserMemoire(avant.doc.memoire); }catch(err){ restaure = false; }
+    touches.forEach(function(n){
+      var ancien = Object.prototype.hasOwnProperty.call(avant.doc.sons,n) ? avant.doc.sons[n] : "";
+      try{
+        if((HOST.echCharger(n) || "") !== ancien){
+          if(ancien) HOST.echSauver(n, ancien); else HOST.echSupprimer(n);
+          if((HOST.echCharger(n) || "") !== ancien) restaure = false;
+        }
+      }catch(err){ restaure = false; }
+    });
+    PROJET_EN_COURS = false;
+    signal(restaure ? "OUVERTURE ANNULÉE · ÉCRITURE REFUSÉE, ÉTAT PRÉCÉDENT CONSERVÉ"
+                    : "OUVERTURE ANNULÉE · RESTAURATION INCOMPLÈTE, SECOURS : " + secours);
+    return false;
   }
-  signal("PROJET OUVERT" + (rates ? " · " + rates + " SON(S) NON ÉCRIT(S)" : ""));
-  /* une seconde avant de recharger (v151) : le temps que le navigateur range ce
-     qui vient d'être écrit — prudence, le test l'a vu perdu en file:// */
-  setTimeout(function(){ location.reload(); }, rates ? 1500 : 1000);
+  signal("PROJET OUVERT");
+  /* Laisser au WebView le temps de ranger le stockage avant le rechargement. */
+  setTimeout(function(){ location.reload(); }, 1000);
   return true;
 }
 

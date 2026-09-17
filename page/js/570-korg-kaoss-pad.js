@@ -509,10 +509,24 @@ function appliquerKp(){
 
 /* Le geste enregistré. On relève la position à chaque pas du séquenceur, ce
    qui lie la boucle au tempo : le trajet se rejoue toujours en mesure. */
+function lireGesteKp(source){
+  if(!Array.isArray(source)) return [];
+  return source.slice(0, 256).filter(function(point){
+    return Array.isArray(point) && typeof point[0] === "number" && isFinite(point[0]) &&
+      typeof point[1] === "number" && isFinite(point[1]);
+  }).map(function(point){
+    return [Math.max(0, Math.min(1, point[0])), Math.max(0, Math.min(1, point[1]))];
+  });
+}
+function terminerGesteKp(){
+  if(!KP.enregistre) return;
+  KP.enregistre = false; KP.mpos = 0;
+  memKp(); majKp();
+}
 function scheduleKp(i, t){
   if(KP.enregistre){
     KP.motion.push([KP.x, KP.y]);
-    if(KP.motion.length >= 256) KP.enregistre = false;   /* 256 points au plus */
+    if(KP.motion.length >= 256) terminerGesteKp();      /* garder aussi la fin automatique */
   } else if(KP.rejoue && KP.motion.length){
     /* v127 : on lit le point COURANT, puis on avance. Avant, l'index avançait
        d'abord : la lecture commençait au deuxième point, et le premier
@@ -527,6 +541,7 @@ function scheduleKp(i, t){
 }
 function beatKp(i){ KP.pos = i; majTempoKp(); }
 function arretKp(){
+  terminerGesteKp();
   annulerPriseKp();
   KP.taps = [];
   toutArreterKp();
@@ -541,7 +556,7 @@ var MACHINE_KP = {schedule:scheduleKp, beat:beatKp, arret:arretKp,
                   longueur:function(){ return 16; }};
 
 function memKp(){
-  memoire.kp = {fx:KP.fx, prof:KP.prof, motion:KP.motion, sel:KP.sel,
+  memoire.kp = {fx:KP.fx, prof:KP.prof, motion:lireGesteKp(KP.motion), sel:KP.sel,
                 banques:KP.banques.map(function(b){
                   return {ech:b.ech, mode:b.mode, slice:!!b.slice, tranche:numeroTrancheKp(b.tranche)};
                 })};
@@ -551,11 +566,13 @@ function chargerKp(){
   var m = memLire("kp");
   /* Une ancienne sauvegarde conserve le son entier en boucle. */
   KP.tranches = [];
+  KP.motion = lireGesteKp(m && m.motion); KP.mpos = 0;
+  KP.enregistre = false;
+  if(!KP.motion.length) KP.rejoue = false;
   KP.banques.forEach(function(b){ b.mode = "loop"; b.slice = false; b.tranche = 0; });
   if(!m) return;
   if(typeof m.fx === "number" && isFinite(m.fx)) KP.fx = Math.max(0, Math.min(KP_EFFETS.length - 1, m.fx|0));
   if(typeof m.prof === "number" && isFinite(m.prof)) KP.prof = Math.max(0, Math.min(1, m.prof));
-  if(m.motion && m.motion.length) KP.motion = m.motion;
   if(typeof m.sel === "number" && isFinite(m.sel)) KP.sel = Math.max(0, Math.min(3, m.sel|0));
   if(Array.isArray(m.banques)) m.banques.forEach(function(o, i){
     if(i >= 4 || !o) return;

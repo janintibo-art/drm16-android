@@ -102,8 +102,7 @@ function suivreClipsMc(){
 }
 function lectureClipsMc(){
   return S.run && ctx && !ctx.startRendering &&
-    (MACHINE === MACHINE_MC || (typeof SET !== "undefined" && SET.on && SET.actives.mc &&
-      !(typeof MIDI !== "undefined" && MIDI.sync && MIDI.ouvert >= 0)));
+    (MACHINE === MACHINE_MC || (typeof SET !== "undefined" && SET.on && SET.actives.mc));
 }
 function indiceClipMc(k){
   if(typeof k !== "number" || Math.floor(k) !== k || k < 0 || k >= MC_CLIPS){

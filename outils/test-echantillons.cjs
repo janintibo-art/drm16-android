@@ -127,9 +127,9 @@ const microEnd=librarySource.indexOf('/* ---------- égaliser le kit',microBegin
 assert(microBegin>=0&&microEnd>microBegin);
 async function verifierEcritureImportEtMicro(){
   const flush=()=>new Promise(resolve=>setImmediate(resolve));
-  for(const kind of ['import','micro']) for(const persisted of [false,true,'decode-failure']){
+  for(const kind of ['import','micro']) for(const persisted of [false,true,'decode-failure','opening']){
     const buffer={name:'son décodé'},c={
-      ES:{buf:{},noms:{}},ES_REC:{mr:null},BIB:{preset:'aucun',noms:{}},
+      PROJET_EN_COURS:false,ES:{buf:{},noms:{}},ES_REC:{mr:null},BIB:{preset:'aucun',noms:{}},
       signals:[],writes:[],refreshes:0,trackStops:0,
       audioInit(){},banqueEs(){},bibEcrire(){},majBibUI(){c.refreshes++;},
       signal(s){c.signals.push(s);},
@@ -141,6 +141,7 @@ async function verifierEcritureImportEtMicro(){
           const error=Error('audio endommagé');fail(error);
           return Promise.reject(error); // Le navigateur rejette aussi sa promesse native.
         }
+        if(persisted==='opening')c.PROJET_EN_COURS=true;
         ok(buffer);return Promise.resolve(buffer);
       }},
       HOST:{micro(){return true;}},
@@ -163,6 +164,10 @@ async function verifierEcritureImportEtMicro(){
     }
     await flush();
     if(kind==='micro'){assert.equal(c.ES_REC.mr,null);assert.equal(c.trackStops,1);}
+    if(persisted==='opening'){
+      assert.equal(c.writes.length,0);assert.equal(Object.keys(c.ES.buf).length,0);assert.equal(Object.keys(c.BIB.noms).length,0);
+      continue;
+    }
     if(persisted==='decode-failure'){
       assert.equal(c.writes.length,0);assert.equal(Object.keys(c.ES.buf).length,0);assert.equal(c.refreshes,0);
       assert.equal(c.signals.at(-1),kind==='import'?'FICHIER ILLISIBLE':'DÉCODAGE IMPOSSIBLE');
@@ -182,3 +187,51 @@ async function verifierEcritureImportEtMicro(){
   console.log('Import/micro : succès durable ou échec d’écriture explicite, tampon conservé pour la session, double rejet de décodage rattrapé, micro arrêté et libéré OK.');
 }
 verifierEcritureImportEtMicro().catch(error=>{console.error(error);process.exitCode=1;});
+
+// Les MPC et la Volca partagent les mêmes fichiers : leur usage doit aussi
+// déclencher la confirmation de suppression, sans compter deux fois l'actif.
+{
+  const {c}=setup();
+  c.saved.mpc3000={pads:[{ech:'u-mpc'},{ech:'u-mpc'}]};
+  c.saved.mpc2000={pads:[{ech:'u-mpc'}]};
+  c.saved.vlc={motifs:[{parties:[{ech:'u-mpc'},{ech:'b0'}]}]};
+  assert.equal(c.usagesEch('u-mpc'),4);
+  c.S.modele='mpc3000';c.MPC={pads:[{ech:'u-mpc'}]};
+  assert.equal(c.usagesEch('u-mpc'),3);
+  c.S.modele='vlc';c.VLC={motifs:[{parties:[{ech:'u-mpc'},{ech:'u-mpc'}]}]};
+  assert.equal(c.usagesEch('u-mpc'),5);
+  c.saved.es1={slots:[null,{son:null}]};assert.equal(c.usagesEch('u-mpc'),5);
+}
+console.log('Échantillons : usages MPC3000/MPC2000/Volca actifs ou mémorisés comptés sans doublon OK.');
+
+// Pendant le remplacement d'un projet, une fin de prise ES/ESX et les
+// écritures communes des imports ne doivent pas écraser la nouvelle mémoire.
+{
+  const c={PROJET_EN_COURS:true,HOST:{echSauver(){throw Error('écriture tardive de son');}},
+    localStorage:{setItem(){throw Error('écriture tardive des noms');}}};
+  vm.createContext(c);
+  vm.runInContext(source.slice(source.indexOf('function sauverEch('),source.indexOf('/* v170 :')),c);
+  vm.runInContext(source.slice(source.indexOf('function poserEch('),source.indexOf('function echantillonner(')),c);
+  const sx=fs.readFileSync(path.join(__dirname,'../page/js/300-electribe-esx-1.js'),'utf8');
+  vm.runInContext(sx.slice(sx.indexOf('function poserEchSx('),sx.indexOf('document.getElementById("sx-import")')),c);
+  vm.runInContext(librarySource.slice(librarySource.indexOf('function bibEcrire('),librarySource.indexOf('/* le nom donné')),c);
+  assert.equal(c.sauverEch('u-tardif',{}),false);c.bibEcrire();c.poserEch(0,{},'mic');c.poserEchSx({},'mic',0);
+}
+async function verifierImportArchivePendantProjet(){
+  const ar=fs.readFileSync(path.join(__dirname,'../page/js/620-la-collection-archive-org.js'),'utf8');
+  const fragment=ar.slice(ar.indexOf('function arcSon('),ar.indexOf('/* ---------- interface ---------- */'));
+  for(const ouverture of [false,true]){
+    const c={PROJET_EN_COURS:false,ARC:{occupe:false,base:'https://example.invalid',machine:{zip:'kit.zip',nom:'kit'}},
+      ES:{buf:{},noms:{}},BIB:{noms:{},preset:'aucun'},writes:0,names:0,
+      audioInit(){},banqueEs(){},majArcUI(){},signal(){},H:{inter(){}},
+      netCharger:()=>Promise.resolve('AQID'),b64VersOctets:()=>new Uint8Array(3),
+      ctx:{decodeAudioData(ab,ok){c.PROJET_EN_COURS=ouverture;ok({duration:1,sampleRate:32000})}},
+      reduireEch:b=>b,traiterSon:b=>({buffer:b}),bibEcrire(){c.names++},sauverEch(){c.writes++}};
+    vm.createContext(c);vm.runInContext(fragment,c);c.arcSon({interne:'test.wav',nom:'test.wav'},true);
+    await new Promise(resolve=>setImmediate(resolve));assert.equal(c.ARC.occupe,false);
+    assert.equal(c.writes,ouverture?0:1);assert.equal(c.names,ouverture?0:1);
+    assert.equal(Object.keys(c.ES.buf).length,ouverture?0:1);
+  }
+  console.log('Ouverture de projet : import/micro/archive tardifs ignorés, affectations ES/ESX et écritures sons/noms protégées OK.');
+}
+verifierImportArchivePendantProjet().catch(error=>{console.error(error);process.exitCode=1;});

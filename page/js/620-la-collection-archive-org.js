@@ -133,6 +133,7 @@ function arcSon(f, importer){
     });
   }).then(function(buf){
     ARC.occupe = false;
+    if(PROJET_EN_COURS) return;
     if(!importer){
       var src = ctx.createBufferSource(); src.buffer = buf;
       var g = ctx.createGain(); g.gain.value = 0.85;
@@ -236,4 +237,3 @@ function bibRendreArchive(corps){
   }
 }
 function majArcUI(){ if(BIB.onglet === 3) majBibUI(); }
-

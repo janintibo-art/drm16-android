@@ -809,6 +809,9 @@ async def mc_lancements(nav):
            r["attente"] == [None] * 4 and r["depart"] is None and await pg.evaluate(reglages) == attendu,
            "le mode MESURE et la scène sont restaurés, sans lancement en attente")
 
+        # Le démarrage restaure la machine derrière le menu. Après avoir
+        # vérifié cet état, rouvrir sa tuile comme le ferait l'utilisateur.
+        await pg.locator(".pick[data-m=mc]").click()
         await pg.evaluate("() => { S.bpm = 90; MIDI.sync = false; HUM.temps = 0; }")
         await pg.locator("#mc-play").click()
         # Une fenêtre au milieu de la mesure, puis des clics dans une seule
@@ -957,6 +960,9 @@ async def mc_scenes(nav):
            await pg.evaluate(relever) == contenu,
            "au redémarrage les scènes sont restaurées et la mémorisation reste désarmée")
 
+        # La restauration est déjà vérifiée ; fermer le menu de démarrage
+        # en choisissant la tuile avant de manipuler la façade restaurée.
+        await pg.locator(".pick[data-m=mc]").click()
         await scenes.nth(0).click()
         await pg.locator("#mc-quantifie").click()
         await pg.evaluate("() => { S.bpm = 90; MIDI.sync = false; HUM.temps = 0; }")

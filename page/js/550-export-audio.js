@@ -62,11 +62,13 @@ function exporterWav(){
      recrée au retour */
   var ctxVrai = ctx, masterVrai = master, bruitVrai = noiseBuf, cacheVrai = cache;
   var sortiesVraies = {outBd:outBd, outMix:outMix, panBd:panBd, panMix:panMix};
+  var busVrais = SET.bus;
   var off;
   try{ off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(taux * total), taux); }
   catch(e){ WAVX.occupe = false; signal("RENDU IMPOSSIBLE SUR CET APPAREIL"); return; }
 
   ctx = off;
+  SET.bus = {};                                /* les sorties réelles gardent leurs tranches */
   batirAudio();                                 /* tout est refait dans le contexte de rendu */
   cache = true;                                 /* pas d'animation pendant le rendu */
 
@@ -74,6 +76,7 @@ function exporterWav(){
   function remettre(){
     WAVX.occupe = false;
     ctx = ctxVrai; master = masterVrai; noiseBuf = bruitVrai; cache = cacheVrai;
+    SET.bus = busVrais;
     /* Tout ce que les machines ont rebâti pendant le rendu appartient au
        contexte de rendu. Celles qui ne refont pas leurs bus en s'activant —
        la DRM16, les Electribe, la MPC — rebrancheraient leurs voix dessus,
@@ -118,4 +121,3 @@ function exporterWav(){
     signal("RENDU ÉCHOUÉ");
   });
 }
-

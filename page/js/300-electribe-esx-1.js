@@ -879,6 +879,7 @@ function echantillonnerSx(){
   }).catch(function(){ lcdSx("ERR","MICRO REFUSÉ",true); });
 }
 function poserEchSx(buf, quoi, cible){
+  if(PROJET_EN_COURS) return;
   if(SX.protect){ lcdSx("PROTECT","ÉCRITURE BLOQUÉE",true); return; }
   if(S.modele !== "esx"){ signal("MACHINE CHANGÉE · SON NON AFFECTÉ"); return; }
   var k = (cible === undefined) ? SX.sel : cible;
@@ -1042,4 +1043,3 @@ function activerSx(){
   actif = document.getElementById("unit-esx");
   save(); fit(); setTimeout(fit,120);
 }
-

@@ -311,13 +311,14 @@ document.getElementById("kp-hold").addEventListener("click", function(){
   KP.tenu = !KP.tenu; appliquerKp(); majKp(); H.inter();
 });
 document.getElementById("kp-motion").addEventListener("click", function(){
-  KP.enregistre = !KP.enregistre;
-  if(KP.enregistre){ KP.motion = []; KP.rejoue = false; }
-  else { KP.mpos = 0; memKp(); }
+  if(KP.enregistre) terminerGesteKp();
+  else { KP.enregistre = true; KP.motion = []; KP.rejoue = false; }
+  appliquerKp();
   majKp(); H.inter();
 });
 document.getElementById("kp-rejoue").addEventListener("click", function(){
   if(!KP.motion.length){ signal("AUCUN GESTE ENREGISTRÉ"); return; }
+  terminerGesteKp();
   KP.rejoue = !KP.rejoue; KP.enregistre = false;
   if(KP.rejoue) KP.mpos = 0;          /* chaque relecture repart du début du geste */
   appliquerKp(); majKp(); H.inter();
@@ -386,7 +387,7 @@ document.getElementById("kp-fx").addEventListener("click", function(){
 });
 document.getElementById("kp-effacer").addEventListener("click", function(){
   KP.motion = []; KP.rejoue = false; KP.enregistre = false; KP.mpos = 0;
-  memKp(); majKp(); H.inter();
+  appliquerKp(); memKp(); majKp(); H.inter();
 });
 document.getElementById("kp-prof").addEventListener("input", function(){
   KP.prof = parseFloat(this.value);
@@ -774,15 +775,17 @@ function majKnobsStk(){
   [kStkTune, kStkDec, kStkFilt, kStkNiv, kStkPan].forEach(function(k){ k.maj(); });
 }
 function activerStk(){
+  stop();
   audioInit(); banqueEs(); chargerEchs();
+  chargerStk();
   poserMachine("stk");
   actif = document.getElementById("unit-stk");
   MACHINE = MACHINE_STK;
   S.modele = "stk";
-  noeudsStk();
+  if(ctx) noeudsStk();
   STK_MODE = "pas"; STK.ondePour = "";
   majStk(); majKnobsStk();
-  fit();
+  save(); fit();
 }
 document.getElementById("stk-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
@@ -883,15 +886,17 @@ function padKo(k){
   H.inter();
 }
 function activerKo(){
+  stop();
   audioInit(); banqueEs(); chargerEchs();
+  chargerKo();
   poserMachine("ko");
   actif = document.getElementById("unit-ko");
   MACHINE = MACHINE_KO;
   S.modele = "ko";
-  noeudsKo();
+  if(ctx) noeudsKo();
   KO_MODE = "son";
   majKo();
-  fit();
+  save(); fit();
 }
 document.getElementById("ko-son").addEventListener("click", function(){ KO_MODE = "son"; majKo(); H.cran(); });
 document.getElementById("ko-ptn").addEventListener("click", function(){ KO_MODE = "ptn"; majKo(); H.cran(); });

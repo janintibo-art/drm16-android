@@ -116,13 +116,20 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
-      # La version PC ne coûte rien à produire : c'est le fichier HTML tel quel.
-      # Il n'y a aucune raison de ne l'avoir qu'au moment d'une publication.
+      # Le ZIP conserve tous les assets de Studio/Nexus et le Syro disponible.
+      # Le HTML seul reste joint pour les anciens liens et usages simples.
       - name: Joindre la version PC
         run: |
           mkdir -p pc
+          python3 outils/paquet-pc.py pc/drm16-pc.zip
           cp app/src/main/assets/drm16.html pc/drm16.html
           ls -lh pc/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: drm16-pc-complet
+          path: pc/drm16-pc.zip
+          if-no-files-found: error
 
       - uses: actions/upload-artifact@v7
         with:

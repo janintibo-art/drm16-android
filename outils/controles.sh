@@ -45,6 +45,11 @@ node outils/test-kp.cjs
 node outils/test-kp-resample.cjs
 node outils/test-mc.cjs
 node outils/test-echantillons.cjs
+node outils/test-transport.cjs
+node outils/test-restauration-machines.cjs
+node outils/test-projet.cjs
+node outils/test-bibliotheque.cjs
+node outils/test-memoire.cjs
 fin
 
 etape "6. Java : compilation de controle et tests"
@@ -52,11 +57,13 @@ SORTIE="$(mktemp -d)"
 java outils/java/Verif.java "$SORTIE" outils/java/android-simule app/src/main/java outils/java/tests
 java -cp "$SORTIE" fr.tibo.drm16.TestFichiers
 java -cp "$SORTIE" fr.tibo.drm16.TestMidi
+java -cp "$SORTIE" fr.tibo.drm16.TestMidiOuverture
 rm -rf "$SORTIE"
 fin
 
 etape "7. Version de bureau : coque complete, page fabriquee par preparer.sh"
 bash verifier-bureau.sh
+python3 outils/paquet-pc.py --verifier
 fin
 
 echo

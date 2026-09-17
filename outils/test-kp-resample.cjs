@@ -11,7 +11,7 @@ function buffer(channels,length,rate){
 function setup(options={}){
   const timers=new Map(),events={document:{},window:{}},destinations=[],recorders=[];
   let nextTimer=0;
-  const c={signals:[],writes:[],decodes:[],blobTypes:[],updates:0,bibWrites:0,now:1000,
+  const c={PROJET_EN_COURS:false,signals:[],writes:[],decodes:[],blobTypes:[],updates:0,bibWrites:0,now:1000,
     S:{modele:'kp',run:false,bg:true},ES:{buf:{},noms:{},inv:{}},BIB:{noms:{},preset:'punch'},
     signal(message){c.signals.push(message);},audioInit(){},banqueEs(){},bibLire(){},
     bibEcrire(){c.bibWrites++;},actualiserEchs(){c.updates++;},majKp(){c.updates++;},majPriseKp(){c.updates++;},

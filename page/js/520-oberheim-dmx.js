@@ -228,7 +228,7 @@ function frapperDmx(k){
   voixDmx(maintenantAudio() + 0.005, k, 1);
   if(S.run && DMX.rec){
     var s = seqDmxCur();
-    DMX.annule = s.evts.slice();
+    DMX.annule = {seq:s, evts:s.evts.slice()};
     s.evts.push({tic:caleDmx(ticDmx()), k:k, vel:1});
     s.evts.sort(function(a, b){ return a.tic - b.tic; });
     memDmx();
@@ -334,7 +334,7 @@ var DMX_FADERS = [["bass","BASS"],["snare","SNARE"],["hat","HI-HAT"],["toms","TO
     else if(c === "l"){ s.mesures = [1,2,4,8][([1,2,4,8].indexOf(s.mesures) + 1) % 4];
                         affDmx("LENGTH " + s.mesures, true); }
     else if(c === "x"){
-      DMX.annule = s.evts.slice();
+      DMX.annule = {seq:s, evts:s.evts.slice()};
       s.evts = [];
       affDmx("ERASED", true);
     }
@@ -343,6 +343,7 @@ var DMX_FADERS = [["bass","BASS"],["snare","SNARE"],["hat","HI-HAT"],["toms","TO
       var d = parseInt(v, 10) - 1;
       if(!isNaN(d) && d >= 0 && d < 8){
         var dst = DMX.seqs[d];
+        if(DMX.annule && DMX.annule.seq === dst) DMX.annule = null;
         dst.mesures = s.mesures; dst.q = s.q; dst.swing = s.swing;
         dst.evts = s.evts.map(function(x2){ return {tic:x2.tic, k:x2.k, vel:x2.vel}; });
         affDmx("COPIED > " + (d + 1), true);
@@ -352,8 +353,9 @@ var DMX_FADERS = [["bass","BASS"],["snare","SNARE"],["hat","HI-HAT"],["toms","TO
     else if(c === "s"){ affDmx("4/4 FIXED", true); }
     else if(c === "g" || c === "p"){ affDmx("NOT ON DMX", true); }
     else if(c === "e"){
-      if(!DMX.annule){ affDmx("NOTHING", true); }
-      else { var av = s.evts; s.evts = DMX.annule; DMX.annule = av; affDmx("UNDO", true); }
+      if(!DMX.annule || DMX.annule.seq !== s){ affDmx("NOTHING", true); }
+      else { var av = s.evts; s.evts = DMX.annule.evts;
+             DMX.annule = {seq:s, evts:av}; affDmx("UNDO", true); }
     }
     else if(c === "n"){ ouvrirNotice(); }
     memDmx(); majAffDmx(); H.inter();
@@ -405,14 +407,16 @@ function memDmx(){
 function chargerDmx(){
   DMX.seqs = [];
   for(var i=0;i<8;i++) DMX.seqs.push(seqDmx(i + 1));
-  DMX.cur = 0; DMX.rec = false;
+  DMX.cur = 0; DMX.rec = false; DMX.annule = null;
   var m = memLire("dmx");
   if(m){
     if(m.niv) for(var c in DMX.niv) if(typeof m.niv[c] === "number") DMX.niv[c] = m.niv[c];
     if(m.seqs && m.seqs.length === 8){
       DMX.seqs = m.seqs.map(function(o, k){
         var s = seqDmx(k + 1);
-        s.mesures = o.mesures || 2; s.q = o.q || 3; s.swing = o.swing || 0;
+        s.mesures = o.mesures || 2;
+        s.q = Number.isInteger(o.q) && o.q >= 0 && o.q < DMX_Q.length ? o.q : 3;
+        s.swing = o.swing || 0;
         s.evts = (o.evts || []).map(function(e){ return {tic:e[0], k:e[1], vel:1}; });
         return s;
       });
@@ -435,4 +439,3 @@ function activerDmx(){
   save(); fit();
   setTimeout(function(){ fit(); majFadersDmx(); }, 120);
 }
-

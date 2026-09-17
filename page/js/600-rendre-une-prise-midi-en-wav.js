@@ -25,17 +25,20 @@ function exporterPriseWav(i){
 
   var ctxVrai = ctx, masterVrai = master, bruitVrai = noiseBuf, cacheVrai = cache;
   var sortiesVraies = {outBd:outBd, outMix:outMix, panBd:panBd, panMix:panMix};
+  var busVrais = SET.bus;
   var off;
   try{ off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(taux * total), taux); }
   catch(e){ WAVX.occupe = false; signal("RENDU IMPOSSIBLE SUR CET APPAREIL"); return; }
 
   ctx = off;
+  SET.bus = {};
   batirAudio();
   cache = true;
 
   function remettre(){
     WAVX.occupe = false;
     ctx = ctxVrai; master = masterVrai; noiseBuf = bruitVrai; cache = cacheVrai;
+    SET.bus = busVrais;
     razNoeudsMachines();
     outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
@@ -93,10 +96,9 @@ function exporterPriseWav(i){
    reconstruit des façades, ce qui n'a aucun sens hors ligne et coûte cher quand
    un live alterne entre deux machines à chaque note. On ne rebâtit donc que si
    la machine change vraiment. */
-var RENDU_MACHINE = "";
+var RENDU_MACHINE = "", RENDU_CTX = null;
 function allerMachineRendu(m){
-  if(m === RENDU_MACHINE) return;
-  RENDU_MACHINE = m;
+  if(m === RENDU_MACHINE && ctx === RENDU_CTX && S.modele === m) return;
   allerMachine(m);
+  RENDU_MACHINE = m; RENDU_CTX = ctx;
 }
-

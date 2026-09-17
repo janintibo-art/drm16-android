@@ -197,6 +197,14 @@ public class Midi {
                         if (depuisAppareil != null) depuisAppareil.connect(recepteur);
                     }
                 }
+                /* Un appareil peut etre ouvert alors que tous ses ports sont
+                   occupes ou indisponibles. Ne pas allumer le temoin dans ce
+                   cas : il n'existe encore aucune liaison utilisable. */
+                if (versAppareil == null && depuisAppareil == null) {
+                    fermer();
+                    signaler("echec", sonNom);
+                    return;
+                }
                 ouvertId = info.getId();
                 signaler("ouvert", sonNom);
             }

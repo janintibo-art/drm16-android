@@ -15,6 +15,25 @@ vm.createContext(c);
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../page/js/490-arturia-drumbrute-impact.js'),'utf8'),c);
 c.MACHINE=c.MACHINE_DBI;
 const vraieVoixDbi=c.voixDbi;
+// v176 : une mémoire JSON valide mais incomplète ne casse ni l'activation
+// ni la piste choisie. Aucun nombre non fini ne rejoint les nœuds audio.
+for(const saved of [{cur:16},{sel:8},{cur:-1,sel:2.9},
+  {cur:NaN,sel:Infinity,swing:Infinity,random:NaN,drive:-4},
+  {motifs:Array(16).fill(null)},
+  {motifs:Array.from({length:16},()=>({pistes:{}}))},
+  {motifs:Array.from({length:16},()=>({pistes:[null,{},'abime',[],{p:{niv:NaN,dec:-3,pit:8,ton:'a'}}]}))}]){
+  c.saved=saved;c.chargerDbi();c.majDbi();c.majKnobsDbi();
+  assert(Number.isInteger(c.DBI.cur)&&c.DBI.cur>=0&&c.DBI.cur<16);
+  assert(Number.isInteger(c.DBI.sel)&&c.DBI.sel>=0&&c.DBI.sel<8);
+  assert(c.DBI.swing>=0&&c.DBI.swing<=.7);assert(c.DBI.random>=0&&c.DBI.random<=1);
+  assert(c.DBI.drive>=0&&c.DBI.drive<=1);
+  assert.equal(c.DBI.motifs.length,16);
+  for(const m of c.DBI.motifs){
+    assert.equal(m.pistes.length,8);
+    for(const p of m.pistes)for(const v of Object.values(p.p))assert(Number.isFinite(v)&&v>=0&&v<=1);
+  }
+}
+c.saved=undefined;c.chargerDbi();
 let p = c.pisteDbi(0);
 for (let i=0;i<64;i++) {
   c.ecrirePasDbi(p,'pas',i,true);

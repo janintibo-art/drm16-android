@@ -6,8 +6,11 @@ var led = document.getElementById("led-power");
 var T_PAS = 0;
 function draw(){
   if(!S.run) return;
-  var now = ctx ? maintenantAudio() : 0, cur=-1;
-  while(queue.length && queue[0].t <= now){ var e = queue.shift(); cur = e.i; T_PAS = e.t; }
+  var now = ctx ? maintenantAudio() : 0, cur=-1, pasEntendu=-1;
+  while(queue.length && queue[0].t <= now){
+    var e = queue.shift(); cur = e.i; T_PAS = e.t;
+    pasEntendu = typeof e.pasSet === "number" ? e.pasSet : e.i;
+  }
   if(cur>=0){
     MACHINE.beat(cur);
     /* En vue d'ensemble, toutes les machines du set sont à l'écran : leurs
@@ -17,7 +20,7 @@ function draw(){
       var M = moteurSet(v[0]);
       if(!M || M === MACHINE || !SET.actives[v[0]] || !M.beat) return;
       var L = M.longueur ? M.longueur() : 16;
-      try{ M.beat(((pasSet - 1) % L + L) % L); }catch(e){}
+      try{ M.beat(((pasEntendu % L) + L) % L); }catch(e){}
     });
   }
   requestAnimationFrame(draw);
@@ -37,4 +40,3 @@ function beatEhx(i){
 function arretEhx(){ led.classList.remove("beat"); }
 var MACHINE_EHX = {schedule:scheduleEhx, beat:beatEhx, arret:arretEhx};
 var MACHINE = MACHINE_EHX;
-

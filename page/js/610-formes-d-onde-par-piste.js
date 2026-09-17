@@ -22,11 +22,13 @@ function ondesEnr(){
   var total = A.duree / 1000 + 2;
   var ctxVrai = ctx, masterVrai = master, bruitVrai = noiseBuf, cacheVrai = cache;
   var sortiesVraies = {outBd:outBd, outMix:outMix, panBd:panBd, panMix:panMix};
+  var busVrais = SET.bus;
   var resultat = {};
 
   function remettre(){
     ENR.ondesOccupe = false;
     ctx = ctxVrai; master = masterVrai; noiseBuf = bruitVrai; cache = cacheVrai;
+    SET.bus = busVrais;
     razNoeudsMachines();
     outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
@@ -46,7 +48,7 @@ function ondesEnr(){
     var off;
     try{ off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, Math.ceil(ONDE_TAUX * total), ONDE_TAUX); }
     catch(e){ remettre(); signal("CALCUL IMPOSSIBLE ICI"); return; }
-    ctx = off; batirAudio(); cache = true;
+    ctx = off; SET.bus = {}; batirAudio(); cache = true;
     RENDU_MACHINE = "";
     try{
       A.evts.forEach(function(e){
@@ -83,4 +85,3 @@ function enveloppe(data){
   }
   return e;
 }
-

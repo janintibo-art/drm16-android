@@ -333,6 +333,7 @@ function b64De(ab){
   return btoa(s);
 }
 function sauverEch(id, buf){
+  if(PROJET_EN_COURS) return false;
   var p = HOST;
   if(!p || !p.echSauver) return false;
   var ok = false;
@@ -378,13 +379,14 @@ function chargerEchs(){
     }catch(e){ finir(null); }
   });
 }
-/* un son peut servir dans plusieurs motifs et sur les trois échantillonneurs */
+/* Un son peut servir dans les motifs Electribe/Volca, les MPC et le Kaoss. */
 function usagesEch(id){
   var n = 0;
   function compter(slots){
-    if(!slots) return;
+    if(!Array.isArray(slots)) return;
     slots.forEach(function(p){
-      var sons = p.son || [];
+      var sons = p && p.son;
+      if(!Array.isArray(sons)) return;
       sons.forEach(function(so){ if(so && so.ech === id) n++; });
     });
   }
@@ -394,6 +396,14 @@ function usagesEch(id){
     if(k === S.modele) return;
     var m = memLire(k);
     if(m && m.slots) compter(m.slots);
+  });
+  ["mpc3000","mpc2000"].forEach(function(k){
+    var m = S.modele === k && typeof MPC !== "undefined" ? MPC : memLire(k);
+    if(m && Array.isArray(m.pads)) m.pads.forEach(function(p){ if(p && p.ech === id) n++; });
+  });
+  var v = S.modele === "vlc" && typeof VLC !== "undefined" ? VLC : memLire("vlc");
+  if(v && Array.isArray(v.motifs)) v.motifs.forEach(function(m){
+    if(m && Array.isArray(m.parties)) m.parties.forEach(function(p){ if(p && p.ech === id) n++; });
   });
   var km = S.modele === "kp" && typeof KP !== "undefined" && KP ? KP : memLire("kp");
   if(km && Array.isArray(km.banques)) km.banques.forEach(function(b){ if(b && b.ech === id) n++; });
@@ -414,6 +424,7 @@ function supprimerEch(id){
 }
 
 function poserEch(k, buf, quoi){
+  if(PROJET_EN_COURS) return;
   if(ES.protect){ lcdEs("PRT","PROTECT",true); return; }
   if(S.modele !== "es1" && S.modele !== "es2"){ signal("MACHINE CHANGÉE · SON NON AFFECTÉ"); return; }
   var court = reduireEch(buf, 32000, 6);

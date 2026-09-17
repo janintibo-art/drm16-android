@@ -10,6 +10,7 @@ function bibLire(){
   }catch(e){}
 }
 function bibEcrire(){
+  if(PROJET_EN_COURS) return;
   try{ localStorage.setItem(MEM + ".bib", JSON.stringify({noms:BIB.noms, preset:BIB.preset})); }
   catch(e){ signal("MÉMOIRE PLEINE · NOMS NON GARDÉS"); }
 }
@@ -37,7 +38,7 @@ function bibSons(){
   return out;
 }
 function bibAffecter(id){
-  var m = BIB.cible.machine, k = BIB.cible.partie;
+  var m = BIB.cible.machine, k = bibIndexReel(m, BIB.cible.partie);
   if(m === "es1" || m === "es2"){
     if(S.modele !== m) activerEs(m === "es2" ? 2 : 1);
     ES.pat.son[k].ech = id; delete ES.inv[id]; majLedsEs(); memEs();
@@ -265,11 +266,11 @@ function bibRendreSons(corps){
       if(!b){ signal("SON INTROUVABLE"); return; }
       var r = traiterSon(b, BIB.preset || "punch", 0);
       if(!r.rapport){ signal("AUCUN TRAITEMENT CHOISI"); return; }
-      ES.buf[s.id] = r.buffer;
-      sauverEch(s.id, r.buffer);
+      ES.buf[s.id] = r.buffer; delete ES.inv[s.id];
+      var garde = sauverEch(s.id, r.buffer);
       majBibUI();
-      signal((r.rapport.gain >= 0 ? "+" : "") + r.rapport.gain + " dB · CRÊTE " +
-             r.rapport.apres.crete + " dB");
+      signal(!garde ? "SON TRAITÉ POUR CETTE SESSION · ÉCHEC D'ÉCRITURE"
+        : (r.rapport.gain >= 0 ? "+" : "") + r.rapport.gain + " dB · CRÊTE " + r.rapport.apres.crete + " dB");
     });
     boutonBib(a, "RENOMMER", function(){
       renommer("Nom du son", s.nom, function(v){
@@ -390,6 +391,7 @@ function bibMicro(){
           if(decode && decode.catch) decode.catch(rej);
         });
       }).then(function(buf){
+        if(PROJET_EN_COURS) return;
         var court = reduireEch(buf, 32000, 8);
         var r = traiterSon(court, BIB.preset || "punch", 0);
         court = r.buffer;
@@ -423,6 +425,7 @@ function bibEgaliser(){
   var parties = bibPartiesNiveau();
   if(!parties.length){ signal("PASSEZ SUR UN ÉCHANTILLONNEUR OU UNE MPC"); return; }
   var mesures = [], i, p;
+  var champ = S.modele === "mpc3000" || S.modele === "mpc2000" ? "niv" : "lvl";
   for(i=0;i<parties.length;i++){
     p = parties[i];
     var b = ES.buf[p.son.ech];
@@ -438,7 +441,7 @@ function bibEgaliser(){
      de sons n'ont pas pu l'atteindre. */
   var niv0 = [];
   for(i=0;i<parties.length;i++)
-    if(mesures[i] !== null) niv0.push(mesures[i] + linDb(mv("niv", parties[i].son.niv)));
+    if(mesures[i] !== null) niv0.push(mesures[i] + linDb(parties[i].son[champ]));
   niv0.sort(function(a, b){ return a - b; });
   var cible = niv0[Math.floor(niv0.length / 2)];
   var ecart = 0;
@@ -447,25 +450,25 @@ function bibEgaliser(){
     for(i=0;i<parties.length;i++){
       if(mesures[i] === null) continue;
       p = parties[i];
-      var actuel = mesures[i] + linDb(mv("niv", p.son.niv));
+      var actuel = mesures[i] + linDb(p.son[champ]);
       var delta = cible - actuel;
       if(Math.abs(delta) < 0.3) continue;
       ecart = Math.max(ecart, Math.abs(delta));
       /* on cherche le réglage de bouton qui donne le niveau visé */
-      var voulu = mv("niv", p.son.niv) * dbLin(delta);
+      var voulu = p.son[champ] * dbLin(delta);
       var lo = 0, hi = 1;
       for(var it=0; it<24; it++){
         var mi = (lo + hi) / 2;
-        if(mv("niv", mi) < voulu) lo = mi; else hi = mi;
+        if(mi < voulu) lo = mi; else hi = mi;
       }
-      p.son.niv = Math.max(0, Math.min(1, (lo + hi) / 2));
+      p.son[champ] = Math.max(0, Math.min(1, (lo + hi) / 2));
     }
   }
   var reste = 0, courts = 0;
   for(i=0;i<parties.length;i++){
     if(mesures[i] === null) continue;
-    var e2 = (mesures[i] + linDb(mv("niv", parties[i].son.niv))) - cible;
-    if(e2 < -0.5 && parties[i].son.niv >= 0.999){ courts++; continue; }  /* bouton au maximum */
+    var e2 = (mesures[i] + linDb(parties[i].son[champ])) - cible;
+    if(e2 < -0.5 && parties[i].son[champ] >= 0.999){ courts++; continue; }  /* bouton au maximum */
     reste = Math.max(reste, Math.abs(e2));
   }
   if(S.modele === "es1" || S.modele === "es2"){ majLedsEs(); memEs(); }
@@ -479,7 +482,7 @@ function bibOptimiser(){
   audioInit(); banqueEs();
   var l = listeEch().filter(function(id){ return id.charAt(0) !== "b"; });
   if(!l.length){ signal("AUCUN SON À VOUS"); return; }
-  var avant = 0, apres = 0, touches = 0;
+  var avant = 0, apres = 0, touches = 0, rates = 0;
   l.forEach(function(id){
     var b = ES.buf[id];
     if(!b) return;
@@ -487,15 +490,16 @@ function bibOptimiser(){
     var t = trTauxConseille(b);
     if(t < b.sampleRate){
       var n = reechantillonner(b, t);
-      ES.buf[id] = n;
-      sauverEch(id, n);
+      ES.buf[id] = n; delete ES.inv[id];
+      if(!sauverEch(id, n)) rates++;
       apres += n.length * 2;
       touches++;
     } else apres += b.length * 2;
   });
   var gain = avant ? Math.round((1 - apres / avant) * 100) : 0;
   majBibUI();
-  signal(touches + " SONS ALLÉGÉS · " + gain + " % DE MÉMOIRE GAGNÉE");
+  signal(touches + " SONS ALLÉGÉS · " + gain + " % DE MÉMOIRE GAGNÉE" +
+         (rates ? " · " + rates + " SON(S) POUR CETTE SESSION SEULEMENT, ÉCHEC D'ÉCRITURE" : ""));
   H.inter();
 }
 

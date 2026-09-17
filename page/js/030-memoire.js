@@ -64,29 +64,39 @@ function memLire(id){
   return memoire[id];
 }
 function ecrireMachine(id){
-  if(!memoire[id] || PROJET_EN_COURS) return;
+  if(PROJET_EN_COURS) return false;
+  if(!memoire[id]) return true;
   try{
     localStorage.setItem(cleMachine(id), JSON.stringify(memoire[id]));
-    memEchec = false;
+    return true;
   }catch(e){
     if(!memEchec){ memEchec = true; signal("MÉMOIRE PLEINE · MOTIFS NON ENREGISTRÉS"); }
+    return false;
   }
 }
 function sauverMachine(id){
   clearTimeout(machineTmr[id]);
-  machineTmr[id] = setTimeout(function(){ ecrireMachine(id); delete machineTmr[id]; }, 250);
+  machineTmr[id] = setTimeout(function(){
+    if(ecrireMachine(id)) delete machineTmr[id];
+    else machineTmr[id] = null; /* échec : garder cette clé pour le prochain flush */
+  }, 250);
 }
 function viderMachines(){
-  for(var id in machineTmr){ clearTimeout(machineTmr[id]); ecrireMachine(id); }
-  machineTmr = {};
+  var ok = true;
+  Object.keys(machineTmr).forEach(function(id){
+    clearTimeout(machineTmr[id]);
+    if(ecrireMachine(id)) delete machineTmr[id];
+    else { machineTmr[id] = null; ok = false; }
+  });
+  return ok;
 }
 function writeMem(){
   clearTimeout(saveTmr); saveTmr = null;
-  if(PROJET_EN_COURS) return;
+  if(PROJET_EN_COURS) return false;
   /* Un départ MC peut déjà s'entendre avant la prochaine image ou le prochain
      tour du SET. Sauver/exporter maintenant doit conserver ce clip-là. */
   if(typeof MC !== "undefined" && MC) suivreClipsMc();
-  viderMachines();
+  var ok = viderMachines();
   try{
     memoire.modele = S.modele;
     memoire.vol = S.vol; memoire.bpm = S.bpm;
@@ -99,10 +109,12 @@ function writeMem(){
       hum:memoire.hum, wav:memoire.wav, set:memoire.set, latence:memoire.latence, satHaute:memoire.satHaute,
       "16":memoire["16"], "32":memoire["32"]
     }));
-    memEchec = false;
+    if(ok) memEchec = false;
   }catch(e){
     if(!memEchec){ memEchec = true; signal("MÉMOIRE PLEINE · RÉGLAGES NON ENREGISTRÉS"); }
+    ok = false;
   }
+  return ok;
 }
 /* toutes les écritures sont différées : la saisie d'un motif ne bloque plus l'affichage */
 function save(){ clearTimeout(saveTmr); saveTmr = setTimeout(writeMem, 250); }

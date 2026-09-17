@@ -108,8 +108,9 @@ jobs:
           # de la page de téléchargement ne change jamais.
           cp app/build/outputs/apk/release/*.apk "publication/drm16-v$V.apk"
           cp app/build/outputs/apk/release/*.apk "publication/drm16.apk"
-          # Le fichier autonome : c'est LA version PC la plus simple. Aucune
-          # compilation, il s'ouvre dans n'importe quel navigateur.
+          # Tous les assets des modules invites, avec le Syro s'il est disponible.
+          python3 outils/paquet-pc.py publication/drm16-pc.zip
+          # Compatibilite avec l'ancien lien : le HTML seul reste disponible.
           cp app/src/main/assets/drm16.html "publication/drm16.html"
           ls -lh publication/
 
@@ -136,20 +137,20 @@ jobs:
           ### Sur ordinateur
           **Windows** : \`DRM16-installeur.exe\`, ajouté à cette version quelques minutes après l'APK.
 
-          **Tout autre système** : téléchargez \`drm16.html\` et ouvrez-le dans votre navigateur.
-          Un seul fichier, rien à installer — c'est la même application.
+          **Sans installation** : téléchargez \`drm16-pc.zip\`, décompressez tout le dossier,
+          puis ouvrez \`drm16.html\`. Studio, Nexus et leurs sons sont inclus ; la notice du ZIP
+          explique le lancement local si votre navigateur bloque leurs sons depuis le disque.
+          L'ancien téléchargement \`drm16.html\` reste proposé, mais ne contient pas ces modules.
 
-          Sur ordinateur, le **MIDI** et la **bibliothèque de fichiers** ne sont pas disponibles :
-          ils passent par le pont natif d'Android. Tout le reste fonctionne, l'Eurorack compris,
-          et l'export WAV se fait par le téléchargement du navigateur.
-          Ouvert directement depuis le disque, \`drm16.html\` peut aussi se voir refuser la mémoire
-          locale par le navigateur : les motifs ne seraient alors pas conservés d'une session à l'autre.
-          L'installeur Windows n'a pas ce défaut.
+          L'**installeur Windows** offre le MIDI externe et la bibliothèque native de fichiers.
+          La **version navigateur** n'a pas ces fonctions natives ni les téléchargements archive.org ;
+          son export WAV passe par les téléchargements du navigateur. La conservation des motifs
+          dépend de la mémoire locale autorisée par le navigateur et de l'adresse utilisée.
           FIN
           gh release create "$ETIQ" \
             --title "Version $V" \
             --notes-file notes.md \
-            publication/drm16-v$V.apk publication/drm16.apk publication/drm16.html
+            publication/drm16-v$V.apk publication/drm16.apk publication/drm16.html publication/drm16-pc.zip
 
       # La page de la version Windows est préparée ICI, sous Linux, où le Syro
       # vient d'être compilé : le poste Windows n'a plus qu'à la reprendre (v136).

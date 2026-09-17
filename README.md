@@ -3,15 +3,23 @@
 **[Télécharger l'application](../../releases/latest)** — Android 7 minimum, hors ligne, sans compte.
 Pour publier une nouvelle version, voir [PUBLIER.md](PUBLIER.md).
 
+Le [bilan du grand check-up v176](docs/CHECKUP_V176.md) décrit les corrections, les tests réalisés et les défauts restant à traiter.
+
 ### Ce que produit chaque envoi
 
 | Quand | Ce qu'on obtient | Où |
 |---|---|---|
-| À chaque `git push` | l'**APK** et la **version PC** (`drm16.html`) | Actions → APK → Artifacts |
+| À chaque `git push` | l'**APK**, le **ZIP PC complet** (`drm16-pc.zip`) et le HTML seul | Actions → APK → Artifacts |
 | À la demande | l'**exécutable Windows** | Actions → Exécutable Windows → Run workflow |
-| Sur une étiquette `vNN` | une **version publiée** : APK signé, HTML et exécutable | Releases |
+| Sur une étiquette `vNN` | une **version publiée** : APK signé, ZIP PC, HTML et exécutable | Releases |
 
-La version PC est le fichier HTML tel quel : on l'ouvre dans un navigateur, rien à installer.
+Pour le navigateur, décompressez entièrement `drm16-pc.zip`, puis ouvrez `drm16.html`.
+L'archive garde Studio, Nexus et leurs sons, ainsi que Syro lorsqu'il a été compilé.
+Sa notice explique le lancement local si le navigateur bloque les sons des modules depuis le disque.
+Le HTML seul reste disponible pour compatibilité, sans ces fichiers supplémentaires.
+L'installeur Windows offre le MIDI externe et la bibliothèque native de fichiers ; la version
+navigateur n'a pas ces fonctions natives ni les téléchargements archive.org, et exporte les WAV
+par téléchargement. La conservation des motifs dépend de la mémoire locale et de l'adresse utilisée.
 L'exécutable demande dix à quinze minutes de compilation Rust, d'où son lancement à la demande.
 
 > Projet personnel, sans lien avec Roland, Akai, Korg, Arturia, Behringer, Oberheim ni aucun autre
