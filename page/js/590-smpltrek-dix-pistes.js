@@ -156,10 +156,8 @@ function majKp(){
       var e = document.createElement("button");
       e.innerHTML = n + "<em></em>";
       e.addEventListener("click", function(){
-        /* Une banque allumée joue en boucle ; la retoucher l'éteint. Toucher
-           une banque éteinte la choisit AUSSI, pour que SON agisse dessus. */
         KP.sel = k;
-        banqueKp(k, !KP.banques[k].on);
+        frapperBanqueKp(k);
         majKp(); memKp(); H.inter();
       });
       b.appendChild(e);
@@ -169,8 +167,17 @@ function majKp(){
   for(var i=0;i<4;i++){
     bs[i].classList.toggle("on", KP.banques[i].on);
     bs[i].style.boxShadow = (KP.sel === i) ? "inset 0 0 0 2px #e8344a" : "none";
-    bs[i].querySelector("em").textContent = nomEch(KP.banques[i].ech);
+    var mode = KP.banques[i].mode === "one" ? "ONE SHOT" : "LOOP";
+    bs[i].querySelector("em").textContent = mode + " · " + nomEch(KP.banques[i].ech);
+    bs[i].setAttribute("aria-pressed", String(KP.banques[i].on));
+    bs[i].setAttribute("aria-label", "Banque " + "ABCD"[i] + " · " + mode + " · " + nomEch(KP.banques[i].ech));
   }
+  document.getElementById("kp-selection").textContent = "BANQUE " + "ABCD"[KP.sel];
+  var bm = document.getElementById("kp-mode");
+  bm.textContent = KP.banques[KP.sel].mode === "one" ? "ONE SHOT" : "LOOP";
+  bm.classList.toggle("on", KP.banques[KP.sel].mode === "one");
+  bm.setAttribute("aria-label", "Mode banque " + "ABCD"[KP.sel] + " : " + bm.textContent + ", toucher pour changer");
+  document.getElementById("kp-stop-banque").textContent = "STOP " + "ABCD"[KP.sel];
   var v = document.getElementById("kp-val"), l = document.getElementById("kp-lab");
   if(v){ v.textContent = KP_EFFETS[KP.fx][1]; l.textContent = KP_EFFETS[KP.fx][2]; }
   [["kp-hold", KP.tenu], ["kp-motion", KP.enregistre], ["kp-rejoue", KP.rejoue],
@@ -189,14 +196,17 @@ function majKp(){
   majPavKp(); majTraceKp();
 }
 function activerKp(){
+  stop();
   audioInit(); banqueEs(); chargerEchs();
+  chargerKp();
   poserMachine("kp");
   actif = document.getElementById("unit-kp");
   MACHINE = MACHINE_KP;
   S.modele = "kp";
-  noeudsKp();
+  if(ctx) noeudsKp();
+  document.getElementById("kp-prof").value = KP.prof;
   majKp();
-  fit();
+  save(); fit();
 }
 (function pavKp(){
   var pav = document.getElementById("kp-pav");
@@ -262,6 +272,20 @@ document.getElementById("kp-son").addEventListener("click", function(){
   B.ech = "b" + (((i < 0 ? 0 : i) + 1) % ES_BANQUE.length);
   if(B.on) banqueKp(KP.sel, true);
   majKp(); memKp(); H.cran();
+});
+document.getElementById("kp-selection").addEventListener("click", function(){
+  KP.sel = (KP.sel + 1) % 4;                    /* choisir sans déclencher ni couper */
+  majKp(); memKp(); H.cran();
+});
+document.getElementById("kp-mode").addEventListener("click", function(){
+  modeBanqueKp(KP.sel, KP.banques[KP.sel].mode === "one" ? "loop" : "one");
+  majKp(); memKp(); H.inter();
+});
+document.getElementById("kp-stop-banque").addEventListener("click", function(){
+  arreterBanqueKp(KP.sel); majKp(); H.inter();
+});
+document.getElementById("kp-stop-tout").addEventListener("click", function(){
+  toutArreterKp(); majKp(); H.inter();
 });
 document.getElementById("kp-fx").addEventListener("click", function(){
   KP.fx = (KP.fx + 1) % KP_EFFETS.length;
@@ -701,4 +725,3 @@ document.getElementById("ko-bpm-b").addEventListener("click", function(){
   b.addEventListener("pointercancel", lacher);
   b.addEventListener("pointerleave", lacher);
 })();
-

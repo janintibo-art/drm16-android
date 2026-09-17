@@ -127,10 +127,10 @@ body.kp .kpb{display:flex;flex-direction:column;min-height:82vh}
 .kp-nom{font:800 19px/1 "Roboto Condensed",Arial;letter-spacing:1px;color:#e8e8ea}
 .kp-reglages{flex:none;display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 .kp-banques{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.kp-banques button{padding:12px 3px;border:0;border-radius:7px;background:#1b2e24;color:#a8c0b4;
+.kp-banques button{min-width:0;padding:12px 3px;border:0;border-radius:7px;background:#1b2e24;color:#a8c0b4;
   font:800 12px/1.2 "Roboto Condensed",Arial}
 .kp-banques button em{display:block;margin-top:3px;font:400 7.5px/1.1 "Roboto Condensed",Arial;
-  font-style:normal;opacity:.7;overflow:hidden;white-space:nowrap}
+  font-style:normal;opacity:.7;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .kp-banques button.on{background:#e8344a;color:#fff}
 .kp-ligne{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .kp-ligne button{margin:0;padding:10px 3px;border:0;border-radius:6px;background:#1b2e24;
@@ -299,4 +299,3 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 .ko-pads .kb em{display:block;margin-top:5px;font:400 7px/1.1 "Roboto Condensed",Arial;
   font-style:normal;letter-spacing:.4px;opacity:.7;overflow:hidden;white-space:nowrap}
 .ko-pied{font:400 10.5px/1.5 "Roboto Condensed",Arial;color:#7a7a7a;text-align:center}
-

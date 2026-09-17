@@ -25,38 +25,73 @@ var KP_EFFETS = [
 var KP = {fx:0, x:0.5, y:0.5, tenu:false, touche:false,
           motion:[], enregistre:false, rejoue:false, mpos:0,
           prof:0.8, noeuds:null, muet:false,
-          banques:[{ech:"b0", on:false}, {ech:"b3", on:false},
-                   {ech:"b6", on:false}, {ech:"b9", on:false}],
+          banques:[{ech:"b0", mode:"loop", on:false}, {ech:"b3", mode:"loop", on:false},
+                   {ech:"b6", mode:"loop", on:false}, {ech:"b9", mode:"loop", on:false}],
           sel:0, sources:[null, null, null, null], vitesse:1};
 
-/* Une banque en boucle. On relance la source à chaque fois : un BufferSource
-   ne se rallume pas une fois arrêté, c'est la règle de Web Audio. */
+/* v167 : LOOP bascule marche/arrêt ; ONE SHOT repart à chaque frappe.
+   Une fin de source peut arriver après la frappe suivante : elle ne doit
+   jamais éteindre la nouvelle voix. Le gain est libéré avec sa source. */
+function arreterBanqueKp(k){
+  var b = KP.banques[k];
+  if(!b) return;
+  var src = KP.sources[k];
+  KP.sources[k] = null; b.on = false;
+  if(src){
+    try{ src.stop(); }catch(e){}
+    if(src.libererKp) src.libererKp();
+  }
+}
 function banqueKp(k, allumer){
+  var b = KP.banques[k];
+  if(!b) return;
+  arreterBanqueKp(k);
+  /* Arrêter ne doit pas réveiller ni reconstruire le moteur audio. */
+  if(!allumer) return;
   audioInit(); if(!ctx) return;
   banqueEs();
+  var buf = ES.buf[b.ech];
+  if(!buf){ signal("SON INDISPONIBLE · BANQUE " + "ABCD"[k]); return; }
   var n = noeudsKp();
-  if(KP.sources[k]){
-    try{ KP.sources[k].stop(); }catch(e){}
-    KP.sources[k] = null;
-  }
-  KP.banques[k].on = !!allumer;
-  if(!allumer) return;
-  var buf = ES.buf[KP.banques[k].ech];
-  if(!buf) return;
   var src = ctx.createBufferSource();
-  src.buffer = buf; src.loop = true;
+  src.buffer = buf; src.loop = b.mode !== "one";
   src.playbackRate.value = KP.vitesse;         /* une banque rallumée suit le pavé */
   var g = eurGain(0.55);
+  var libere = false;
+  src.libererKp = function(){
+    if(libere) return;
+    libere = true;
+    try{ src.disconnect(); }catch(e){}
+    try{ g.disconnect(); }catch(e){}
+  };
+  src.onended = function(){
+    src.libererKp();
+    if(KP.sources[k] !== src) return;
+    KP.sources[k] = null; b.on = false;
+    majKp();
+  };
   src.connect(g); g.connect(n.e);
-  src.start();
-  KP.sources[k] = src;
+  KP.sources[k] = src; b.on = true;
+  try{ src.start(); }
+  catch(e){ arreterBanqueKp(k); signal("LECTURE IMPOSSIBLE · BANQUE " + "ABCD"[k]); }
+}
+function frapperBanqueKp(k){
+  var b = KP.banques[k];
+  if(b) banqueKp(k, b.mode === "one" || !b.on);
+}
+function modeBanqueKp(k, mode){
+  var b = KP.banques[k];
+  if(!b) return;
+  b.mode = mode === "one" ? "one" : "loop";
+  if(b.on) banqueKp(k, true);                  /* nouveau mode, départ au début */
 }
 function toutArreterKp(){
-  for(var k=0;k<4;k++) banqueKp(k, false);
+  for(var k=0;k<4;k++) arreterBanqueKp(k);
 }
 
 function noeudsKp(){
   if(KP.noeuds && KP.noeuds.ctx === ctx) return KP.noeuds;
+  if(KP.noeuds) arretKp();                     /* ancien contexte : aucune voix conservée */
   var e = eurGain(1);
   /* La chaîne complète est bâtie une fois ; chaque effet n'utilise que ce dont
      il a besoin, les autres nœuds restant neutres. Reconstruire le graphe à
@@ -233,28 +268,32 @@ function scheduleKp(i, t){
 function beatKp(i){ KP.pos = i; }
 function arretKp(){
   toutArreterKp();
-  if(KP.noeuds && KP.noeuds.ctx === ctx){
+  if(KP.noeuds){
     try{ debrancherTout(KP.noeuds); }catch(e){}
   }
   KP.noeuds = null;
+  majKp();
 }
 var MACHINE_KP = {schedule:scheduleKp, beat:beatKp, arret:arretKp,
                   longueur:function(){ return 16; }};
 
 function memKp(){
   memoire.kp = {fx:KP.fx, prof:KP.prof, motion:KP.motion, sel:KP.sel,
-                banques:KP.banques.map(function(b){ return {ech:b.ech}; })};
+                banques:KP.banques.map(function(b){ return {ech:b.ech, mode:b.mode}; })};
   sauverMachine("kp");
 }
 function chargerKp(){
   var m = memLire("kp");
+  /* Une ancienne sauvegarde (ou une banque absente) conserve la boucle. */
+  KP.banques.forEach(function(b){ b.mode = "loop"; });
   if(!m) return;
-  if(typeof m.fx === "number") KP.fx = Math.max(0, Math.min(KP_EFFETS.length - 1, m.fx));
-  if(typeof m.prof === "number") KP.prof = m.prof;
+  if(typeof m.fx === "number" && isFinite(m.fx)) KP.fx = Math.max(0, Math.min(KP_EFFETS.length - 1, m.fx|0));
+  if(typeof m.prof === "number" && isFinite(m.prof)) KP.prof = Math.max(0, Math.min(1, m.prof));
   if(m.motion && m.motion.length) KP.motion = m.motion;
-  if(typeof m.sel === "number") KP.sel = Math.max(0, Math.min(3, m.sel));
-  if(m.banques) m.banques.forEach(function(o, i){
-    if(i < 4 && o && o.ech) KP.banques[i].ech = o.ech;
+  if(typeof m.sel === "number" && isFinite(m.sel)) KP.sel = Math.max(0, Math.min(3, m.sel|0));
+  if(Array.isArray(m.banques)) m.banques.forEach(function(o, i){
+    if(i >= 4 || !o) return;
+    if(typeof o.ech === "string" && o.ech) KP.banques[i].ech = o.ech;
+    KP.banques[i].mode = o.mode === "one" ? "one" : "loop";
   });
 }
-
