@@ -125,7 +125,7 @@ const ordreHats=[];c.voixDbi=(t,k)=>ordreHats.push([k,Math.round(t*1000)]);
 c.scheduleDbi(0,0);
 assert.deepStrictEqual(ordreHats,[[6,0],[5,0],[5,25],[6,50],[5,50],[5,75]]);
 // Chaque OH est coupée par la suivante ou par la fermeture finale.
-function gainNode(){return {gain:{cancel:[],target:[],cancelScheduledValues(t){this.cancel.push(t);},setTargetAtTime(v,t){this.target.push(t);}},connect(){}};}
+function gainNode(){return {gain:{cancel:[],target:[],setValueAtTime(v,t){this.value=v;},cancelScheduledValues(t){this.cancel.push(t);},setTargetAtTime(v,t){this.target.push(t);}},connect(){}};}
 c.ctx={createGain:gainNode,createBiquadFilter(){return {frequency:{},connect(){}};}};
 c.sortieDbi=()=>({});c.pasVoie=x=>x;c.mv=(name,v)=>v;c.trMetal=()=>({connect(){}});c.trEnv=()=>{};
 c.midiNoteA=()=>{};c.MIDI={canal:1};c.DBI.ohGain=null;
@@ -133,7 +133,7 @@ const ouvertures=[];
 for(const t of [0,.025,.05,.075]){vraieVoixDbi(t,6,false,false);ouvertures.push(c.DBI.ohGain);}
 vraieVoixDbi(.1,5,false,false);
 [.025,.05,.075,.1].forEach((t,i)=>assert.deepStrictEqual(ouvertures[i].gain.target,[t]));
-c.DBI.ohGain=null;vraieVoixDbi(1,6,false,false);const simultanee=c.DBI.ohGain;vraieVoixDbi(1,5,false,false);
+c.DBI.ohGain=null;c.DBI.hats=[];vraieVoixDbi(1,6,false,false);const simultanee=c.DBI.ohGain;vraieVoixDbi(1,5,false,false);
 assert.deepStrictEqual(simultanee.gain.target,[1]);
 console.log('Hats répétés : programmation chronologique et coupure de chaque ouverture OK.');
 
@@ -236,3 +236,60 @@ c.MACHINE={arret(){}};c.DBI.loopEvents=[{i:2,t:100}];c.DBI.songHeard=1;
 c.start();assert.equal(c.DBI.loopEvents.length,0);assert.equal(c.DBI.songHeard,-1);assert.equal(c.step,0);assert.equal(c.SYNC.attente,true);
 c.DBI.loopEvents=[{i:2,t:100}];c.DBI.songHeard=1;c.stop();assert.equal(c.DBI.loopEvents.length,0);assert.equal(c.DBI.songHeard,-1);assert.equal(c.S.run,false);
 console.log('Transport global : départ/STOP purgent aussi la DBI secondaire, attente MIDI comprise.');
+
+// Groove local : zéro est une vraie valeur ; null suit le global.
+c.saved=null;c.chargerDbi();c.S.run=false;c.MACHINE=c.MACHINE_DBI;c.cache=false;
+c.DBI.swing=.7;c.DBI.random=1;c.DBI.poly=false;c.DBI.song=false;c.DBI.cur=0;
+p=c.pisteDbiSel();assert.equal(c.reglageGrooveDbi(p,'swing'),.7);p.swing=0;assert.equal(c.reglageGrooveDbi(p,'swing'),0);
+assert.equal(c.texteSwingDbi(.7),'67.5%');
+elements['dbi-groove'].listeners.click();c.reglerGrooveDbi('swing',.3);c.reglerGrooveDbi('random',0);
+assert.equal(p.swing,.3);assert.equal(p.random,0);assert.equal(c.DBI.swing,.7);assert.equal(c.DBI.random,1);
+c.memDbi();c.saved=JSON.parse(JSON.stringify(c.memoire.dbi));c.chargerDbi();p=c.pisteDbiSel();
+assert.equal(p.swing,.3);assert.equal(p.random,0);
+c.window.prompt=()=> '2';elements['dbi-copy'].listeners.click();p.swing=.2;assert.equal(c.DBI.motifs[1].pistes[0].swing,.3);
+elements['dbi-groove-reset'].listeners.click();assert.equal(p.swing,null);assert.equal(p.random,null);
+c.saved.motifs.forEach(m=>m.pistes.forEach(p=>{delete p.swing;delete p.random;}));c.chargerDbi();p=c.pisteDbiSel();assert.equal(p.swing,null);assert.equal(p.random,null);
+c.DBI.song=true;c.S.run=true;c.DBI.groovePiste=true;c.reglerGrooveDbi('swing',.5);assert.equal(p.swing,null);
+c.S.run=false;c.DBI.song=false;
+// Deux pistes au même pas impair ont chacune leur retard et leurs répétitions.
+c.DBI.motifs[0].last=16;c.DBI.random=0;c.DBI.swing=.7;
+c.motifDbiCur().pistes.forEach(p=>{p.pas=0;p.pasPlus=[0,0,0];p.repeats=[];p.random=0;});
+const tracks=c.motifDbiCur().pistes;tracks[0].pas=2;tracks[1].pas=2;tracks[0].swing=0;tracks[1].swing=.7;tracks[1].repeats[1]=4;
+const grooveHits=[];c.voixDbi=(t,k)=>grooveHits.push([t,k]);c.scheduleDbi(1,1);
+assert.equal(grooveHits[0][0],1);assert.equal(grooveHits[0][1],0);
+assert(Math.abs(grooveHits[1][0]-1.035)<1e-9);assert(grooveHits.every(x=>x[0]<1.1));
+// RANDOM ne modifie jamais les notes stockées et respecte un override nul.
+c.Math=Object.create(Math);c.Math.random=()=>0;c.DBI.random=1;tracks[1].random=1;
+const rythmeAvant=JSON.stringify(tracks.map(p=>[p.pas,p.pasPlus]));grooveHits.length=0;c.scheduleDbi(1,2);
+assert.deepStrictEqual(grooveHits.map(h=>h[1]),[0]);grooveHits.length=0;c.scheduleDbi(2,2.1);assert.deepStrictEqual(grooveHits.map(h=>h[1]),[1]);
+assert.equal(JSON.stringify(tracks.map(p=>[p.pas,p.pasPlus])),rythmeAvant);c.Math.random=Math.random;
+// Transition SONG : les répétitions utilisent le swing du prochain motif.
+c.DBI.song=true;c.DBI.chaine=[0,1];c.DBI.random=0;c.DBI.motifs[0].last=1;c.DBI.motifs[1].last=1;
+c.DBI.motifs.forEach(m=>m.pistes.forEach(p=>{p.pas=0;p.random=0;p.repeats=[];}));
+let a=c.DBI.motifs[0].pistes[0],b=c.DBI.motifs[1].pistes[0];a.pas=1;b.pas=1;a.swing=0;b.swing=.7;a.repeats[0]=4;
+grooveHits.length=0;c.scheduleDbi(0,3);c.scheduleDbi(1,3.1);
+assert(Math.abs(grooveHits[3][0]-3.10125)<1e-9);assert(Math.abs(grooveHits[4][0]-3.135)<1e-9);
+console.log('Groove : héritage/null, override0, potards, sauvegarde, copie/reset, anciens motifs, SONG protégé, swing par piste et RANDOM non destructif OK.');
+
+// Hat futur programmé avant fermeture plus tôt : ni silence prématuré ni fuite.
+let tempsHat=0;c.maintenantAudio=()=>tempsHat;c.DBI.hats=[];c.DBI.hatsCtx=null;c.contexteHatsDbi();
+const hg=[gainNode(),gainNode(),gainNode(),gainNode()];
+[0,.03375,.0675,.10125].forEach((t,i)=>c.enregistrerHatDbi(t,false,hg[i]));c.enregistrerHatDbi(.1,true,null);
+assert.deepStrictEqual(hg[0].gain.target,[.03375]);assert.deepStrictEqual(hg[1].gain.target,[.0675]);
+assert.equal(c.DBI.hats.find(h=>h.g===hg[2]).coupe,.1);assert.equal(c.DBI.hats.find(h=>h.g===hg[3]).coupe,Infinity);
+assert.equal(hg[3].gain.target.length,0);
+c.DBI.hats=[];c.enregistrerHatDbi(.3,true,null);const avantFermeture=gainNode();c.enregistrerHatDbi(.2,false,avantFermeture);
+assert.deepStrictEqual(avantFermeture.gain.target,[.3]);
+c.DBI.hats=[];c.enregistrerHatDbi(1,true,null);const memeTemps=gainNode();c.enregistrerHatDbi(1,false,memeTemps);assert.deepStrictEqual(memeTemps.gain.target,[1]);
+// STOP supprime les futurs événements annulés et leurs futures coupures.
+c.DBI.hats=[];const tenue=gainNode();c.enregistrerHatDbi(.1,false,tenue);c.enregistrerHatDbi(.3,true,null);
+tempsHat=.15;c.arreterHatsDbi();assert.equal(c.DBI.hats.length,1);assert.equal(c.DBI.hats[0].coupe,Infinity);assert.equal(tenue.gain.value,1);
+const apresStop=gainNode();c.enregistrerHatDbi(.16,false,apresStop);assert.equal(apresStop.gain.target.length,0);
+c.DBI.noeuds={};c.contexteHatsDbi();assert.equal(c.DBI.hats.length,0);
+c.enregistrerHatDbi(.2,false,gainNode());c.ctx={};c.contexteHatsDbi();assert.equal(c.DBI.hats.length,0);
+console.log('Charleys avec swings distincts : ordre inversé, priorité fermé, coupure minimale, STOP/pad et reconstruction du contexte OK.');
+
+// STOP est aussi appelé au chargement, avant la création du contexte audio.
+c.ctx=null;c.maintenantAudio=()=>{throw new Error('horloge sans contexte');};
+c.arretDbi();assert.equal(c.DBI.hats.length,0);
+console.log('STOP avant initialisation audio OK.');

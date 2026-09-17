@@ -24,7 +24,7 @@ var DBI_VOIX = [
 ];
 var DBI_MIDI = [36, 38, 40, 45, 49, 42, 46, 39];
 function pisteDbi(i){
-  return {pas:0, acc:0, pasPlus:[0,0,0], accPlus:[0,0,0], col:0, colPlus:[0,0,0], colorPar:{}, repeats:[], len:16,
+  return {pas:0, acc:0, pasPlus:[0,0,0], accPlus:[0,0,0], col:0, colPlus:[0,0,0], colorPar:{}, repeats:[], swing:null, random:null, len:16,
           p:{dec:0.5, pit:0.5, ton:0.5, niv:0.8, drive:0, body:0.3, clap:0,
              harm:0.3, mpit:0.5, fmamt:0.4, penv:0.3},
           type:0};
@@ -43,8 +43,8 @@ function motifDbi(n){
   return m;
 }
 var DBI = {motifs:[], cur:0, sel:0, color:false, colorSteps:false, repeatEdit:false, poly:false, roller:false, rec:false,
-           swing:0, random:0, drive:0.25, dist:false, accent:false,
-           song:false, chaine:[0,1], songHeard:-1, songPosHeard:-1, horlogePos:-1, page:0, pos:-1, loop:null, loopEntendu:false, loopEvents:[], dernierEntendu:null, noeuds:{}, ohGain:null, distNode:null};
+           groovePiste:false, swing:0, random:0, drive:0.25, dist:false, accent:false,
+           song:false, chaine:[0,1], songHeard:-1, songPosHeard:-1, horlogePos:-1, page:0, pos:-1, loop:null, loopEntendu:false, loopEvents:[], dernierEntendu:null, noeuds:{}, ohGain:null, hats:[], hatsCtx:null, hatsNoeuds:null, distNode:null};
 for(var dbz=0; dbz<16; dbz++) DBI.motifs.push(motifDbi(dbz < 2 ? dbz : 9));
 
 function indiceMotifDbi(){
@@ -144,12 +144,57 @@ function parametresCouleurDbi(P, k, couleur){
 function editeCouleurDbi(k, nom){
   return DBI.colorSteps && DBI_VOIX[k].col.some(function(kn){ return kn[0] === nom; });
 }
+/* Registre temporel : avec des swings différents, un appel suivant peut
+   ajouter un hat AVANT une répétition déjà programmée. Un gain séparé coupe
+   les OH sans toucher à leur enveloppe. À égalité le CH garde la priorité. */
+function contexteHatsDbi(){
+  if(DBI.hatsCtx !== ctx || DBI.hatsNoeuds !== DBI.noeuds){
+    DBI.hats = []; DBI.hatsCtx = ctx; DBI.hatsNoeuds = DBI.noeuds; DBI.ohGain = null;
+  }
+}
+function purgerHatsDbi(t){
+  contexteHatsDbi();
+  /* En direct garder les futurs événements pour STOP ; en rendu hors ligne,
+     currentTime reste à zéro pendant la programmation, le curseur t suffit. */
+  var borne = ctx && typeof ctx.startRendering === "function" ? t : Math.min(t, maintenantAudio());
+  var dernier = -1;
+  for(var i=0;i<DBI.hats.length;i++) if(DBI.hats[i].t < borne) dernier = i;
+  if(dernier > 0) DBI.hats.splice(0, dernier);
+}
+function arreterHatsDbi(){
+  if(!ctx){ DBI.hats = []; DBI.hatsCtx = null; DBI.ohGain = null; return; }
+  contexteHatsDbi();
+  var maintenant = maintenantAudio();
+  DBI.hats = DBI.hats.filter(function(h){ return h.t <= maintenant; }).slice(-1);
+  var h = DBI.hats[0];
+  if(h && h.g && h.coupe > maintenant){
+    h.g.gain.cancelScheduledValues(maintenant);
+    h.g.gain.setValueAtTime(1, maintenant);
+    h.coupe = Infinity;
+  }
+  DBI.ohGain = h && h.g ? h.g : null;
+}
+function couperHatDbi(h, t){
+  if(!h || !h.g || t >= h.coupe) return;
+  h.g.gain.cancelScheduledValues(t);
+  h.g.gain.setTargetAtTime(0.0001, t, 0.004);
+  h.coupe = t;
+}
+function enregistrerHatDbi(t, ferme, g){
+  contexteHatsDbi();
+  var h = {t:t, ferme:ferme, g:g, coupe:Infinity};
+  DBI.hats.push(h);
+  DBI.hats.sort(function(a,b){ return a.t - b.t || Number(a.ferme) - Number(b.ferme); });
+  var i = DBI.hats.indexOf(h);
+  if(i > 0) couperHatDbi(DBI.hats[i - 1], t);
+  if(i + 1 < DBI.hats.length) couperHatDbi(h, DBI.hats[i + 1].t);
+}
 function voixDbi(t, k, acc, couleur, motif){
   var V = DBI_VOIX[k], P = (motif || motifDbiCur()).pistes[k];
   var dest = pasVoie(sortieDbi());
   var niv = mv("niv", P.p.niv) * (acc ? 1 : 0.68);
-  var g = ctx.createGain();
-  g.connect(dest);
+  var g = ctx.createGain(), gate = V.id === "ohh" ? ctx.createGain() : null;
+  if(gate){ g.connect(gate); gate.connect(dest); } else g.connect(dest);
   var p = parametresCouleurDbi(P, k, couleur);
 
   if(V.id === "kick"){
@@ -229,11 +274,8 @@ function voixDbi(t, k, acc, couleur, motif){
     hh2.frequency.value = 6000 + (V.id === "chh" ? p.ton : 0.5) * 5000;
     trEnv(g, t, niv * 1.35, dh, 0.0008);
     mh.connect(hh2); hh2.connect(g);
-    if(DBI.ohGain){
-      try{ DBI.ohGain.gain.cancelScheduledValues(t);
-           DBI.ohGain.gain.setTargetAtTime(0.0001, t, 0.004); }catch(e){}
-    }
-    if(V.id === "ohh") DBI.ohGain = g;
+    enregistrerHatDbi(t, V.id === "chh", gate);
+    if(V.id === "ohh") DBI.ohGain = gate;
   }
   else {                                        /* FM DRUM : une vraie modulation de fréquence */
     var porteuse = 40 * Math.pow(2, p.pit * 3.2);
@@ -258,6 +300,7 @@ function voixDbi(t, k, acc, couleur, motif){
 function frapperDbi(k, acc){
   audioInit();
   if(!ctx) return;
+  purgerHatsDbi(maintenantAudio());
   voixDbi(maintenantAudio() + 0.005, k, acc, DBI.colorSteps);
   if(S.run && DBI.rec && !DBI.song && !DBI.loop && !DBI.loopEntendu){
     var P = motifDbiCur().pistes[k];
@@ -312,10 +355,17 @@ function repetitionsDbi(P, i){
   var n = P.repeats && P.repeats[i];
   return Number.isInteger(n) && n >= 1 && n <= 4 ? n : 1;
 }
-function dureePasDbi(i){
+function reglageGrooveDbi(P, nom){
+  var v = P && Number.isFinite(P[nom]) ? P[nom] : DBI[nom];
+  return Number.isFinite(v) ? Math.max(0, Math.min(nom === "swing" ? 0.7 : 1, v)) : 0;
+}
+function texteSwingDbi(v){ return (50 + v * 25).toFixed(1) + "%"; }
+function dureePasDbi(i, swing, suivantSwingValeur){
+  if(swing === undefined) swing = reglageGrooveDbi(null, "swing");
+  if(suivantSwingValeur === undefined) suivantSwingValeur = swing;
   var suivant = (i + 1) % longueurDbi();
-  var courantSwing = (i % 2) ? DBI.swing * 0.5 : 0;
-  var suivantSwing = (suivant % 2) ? DBI.swing * 0.5 : 0;
+  var courantSwing = (i % 2) ? swing * 0.5 : 0;
+  var suivantSwing = (suivant % 2) ? suivantSwingValeur * 0.5 : 0;
   return stepDur() * (1 + suivantSwing - courantSwing);
 }
 /* Le Looper ne touche jamais au compteur de l'horloge : au relâchement,
@@ -354,26 +404,32 @@ function resetLooperDbi(){
 }
 function scheduleDbi(i, t){
   var CHARGE_N = ouvrirPas(), frappes = [];
+  purgerHatsDbi(t);
   var lecture = pasLooperDbi(i), bloc = positionSongDbi(lecture), m = DBI.motifs[bloc.motif];
-  if(DBI.swing && i % 2 === 1) t += stepDur() * DBI.swing * 0.5;
+  /* pasLooperDbi a avancé offset : lire le suivant sans le consommer. */
+  var prochain = DBI.loop && S.run && !cache ? (DBI.loop.debut + DBI.loop.offset) % longueurDbi() : (i + 1) % longueurDbi();
+  var prochainMotif = DBI.motifs[positionSongDbi(prochain).motif];
+  var tempsAffichage = t + (i % 2 ? stepDur() * reglageGrooveDbi(null, "swing") * 0.5 : 0);
   for(var k=0;k<8;k++){
     var P = m.pistes[k];
     var lg = DBI.poly ? (P.len || 16) : m.last;
     var s = bloc.pas % lg;
     var joue = lirePasDbi(P, "pas", s);
-    if(DBI.random > 0.01){
-      /* le potard RANDOM ôte des coups et en ajoute, comme sur l'appareil */
-      if(joue && Math.random() < DBI.random * 0.35) joue = false;
-      else if(!joue && Math.random() < DBI.random * 0.12) joue = true;
+    var hasard = reglageGrooveDbi(P, "random");
+    if(hasard > 0.01){
+      if(joue && Math.random() < hasard * 0.35) joue = false;
+      else if(!joue && Math.random() < hasard * 0.12) joue = true;
     }
     if(!joue) continue;
     var acc = lirePasDbi(P, "acc", s);
     var rep = repetitionsDbi(P, s);
     var rollerSeul = DBI.roller && k === DBI.sel && rep === 1;
     if(rollerSeul) rep = 2;
-    var intervalle = dureePasDbi(i) / rep;
+    var swing = reglageGrooveDbi(P, "swing");
+    var depart = t + (i % 2 ? stepDur() * swing * 0.5 : 0);
+    var intervalle = dureePasDbi(i, swing, reglageGrooveDbi(prochainMotif.pistes[k], "swing")) / rep;
     for(var frappe=0;frappe<rep;frappe++){
-      frappes.push({t:t + frappe * intervalle, k:k,
+      frappes.push({t:depart + frappe * intervalle, k:k,
         acc:rollerSeul && frappe > 0 ? false : acc, col:lirePasDbi(P, "col", s)});
     }
   }
@@ -384,8 +440,8 @@ function scheduleDbi(i, t){
   });
   frappes.forEach(function(f){ CHARGE_N++, voixDbi(f.t, f.k, f.acc, f.col, m); });
   if(!cache){
-    if(MACHINE === MACHINE_DBI) queue.push({i:i, t:t});
-    DBI.loopEvents.push({i:bloc.pas, horloge:lecture, motif:bloc.motif, position:bloc.position, t:t, loop:!!DBI.loop && S.run});
+    if(MACHINE === MACHINE_DBI) queue.push({i:i, t:tempsAffichage});
+    DBI.loopEvents.push({i:bloc.pas, horloge:lecture, motif:bloc.motif, position:bloc.position, t:tempsAffichage, loop:!!DBI.loop && S.run});
     if(DBI.loopEvents.length > 256) DBI.loopEvents.shift();
   }
   attenuerVoie("dbi", CHARGE_N, t);
@@ -409,6 +465,7 @@ function beatDbi(i){
   for(var j=0;j<16;j++) dbiPas[j].classList.toggle("cur", (DBI.page * 16 + j) === (i % lg));
 }
 function arretDbi(){
+  arreterHatsDbi();
   resetLooperDbi(); resetSongDbi();
   DBI.pos = -1;
   for(var j=0;j<16;j++) dbiPas[j].classList.remove("cur");
@@ -480,6 +537,7 @@ var DBI_KNOBS = [];
       ecrirePasDbi(P, "pas", i2, !lirePasDbi(P, "pas", i2));
       if(!S.run && lirePasDbi(P, "pas", i2)){
         audioInit();
+        purgerHatsDbi(maintenantAudio());
         voixDbi(maintenantAudio() + 0.01, DBI.sel, lirePasDbi(P, "acc", i2), lirePasDbi(P, "col", i2));
       }
     }
@@ -505,10 +563,28 @@ function knobDbi(k, nom, etiq){
 DBI_VOIX.forEach(function(V, k){
   V.kns.concat(V.col).forEach(function(kn){ DBI_KNOBS.push(knobDbi(k, kn[0], kn[1])); });
 });
-var kDbiSwing = knobEm("dbi-k-swing", {min:0, max:0.7, get:function(){ return DBI.swing; },
-  set:function(v){ DBI.swing = v; lcdDbi(String(Math.round(50 + v*35)) + "%", "SWING", true); memDbi(); }});
-var kDbiRand = knobEm("dbi-k-random", {min:0, max:1, get:function(){ return DBI.random; },
-  set:function(v){ DBI.random = v; lcdDbi(String(Math.round(v*100)), "RANDOM", true); memDbi(); }});
+function reglerGrooveDbi(nom, v){
+  if(DBI.groovePiste && !editionDbiPermise()) return;
+  v = Math.max(0, Math.min(nom === "swing" ? 0.7 : 1, v));
+  if(DBI.groovePiste) pisteDbiSel()[nom] = v; else DBI[nom] = v;
+  var cible = DBI.groovePiste ? DBI_VOIX[DBI.sel].nom : "GLOBAL";
+  lcdDbi(nom === "swing" ? texteSwingDbi(v) : String(Math.round(v * 100)), cible + " " + nom.toUpperCase(), true);
+  majGrooveDbi(); memDbi();
+}
+var kDbiSwing = knobEm("dbi-k-swing", {min:0, max:0.7,
+  get:function(){ return reglageGrooveDbi(DBI.groovePiste ? pisteDbiSel() : null, "swing"); },
+  set:function(v){ reglerGrooveDbi("swing", v); }});
+var kDbiRand = knobEm("dbi-k-random", {min:0, max:1,
+  get:function(){ return reglageGrooveDbi(DBI.groovePiste ? pisteDbiSel() : null, "random"); },
+  set:function(v){ reglerGrooveDbi("random", v); }});
+function majGrooveDbi(){
+  var P = pisteDbiSel(), b = document.getElementById("dbi-groove");
+  b.textContent = DBI.groovePiste ? "GROOVE PISTE" : "GROOVE GLOBAL";
+  b.classList.toggle("on", DBI.groovePiste); b.setAttribute("aria-pressed", String(DBI.groovePiste));
+  document.getElementById("dbi-groove-info").textContent = DBI_VOIX[DBI.sel].nom +
+    " · SW " + (Number.isFinite(P.swing) ? texteSwingDbi(P.swing) : "GLOBAL") +
+    " · RND " + (Number.isFinite(P.random) ? Math.round(P.random * 100) + "%" : "GLOBAL");
+}
 var kDbiDrive = knobEm("dbi-k-drive", {min:0, max:1, get:function(){ return DBI.drive; },
   set:function(v){ DBI.drive = v; majDistDbi(); lcdDbi(String(Math.round(v*100)), "DISTORTION", true); memDbi(); }});
 var kDbiVol = knobEm("dbi-k-vol", {min:0, max:1, get:function(){ return S.vol; },
@@ -534,6 +610,7 @@ function majLcdDbi(){
   lcdDbi(DBI_VOIX[DBI.sel].nom, DBI.poly ? ("LEN " + (P.len || 16) + " · POLY") : ("PTN " + (indiceMotifDbi() + 1)));
 }
 function majDbi(){
+  majGrooveDbi();
   var P = pisteDbiSel(), m = motifDbiCur(), i;
   var lg = DBI.poly ? (P.len || 16) : m.last;
   for(i=0;i<16;i++){
@@ -587,13 +664,14 @@ function memDbi(){
     drive:DBI.drive, dist:DBI.dist, poly:DBI.poly, song:DBI.song, chaine:DBI.chaine.slice(),
     motifs:DBI.motifs.map(function(m){
       return {last:m.last, pistes:m.pistes.map(function(P){
-        return {pas:P.pas, acc:P.acc, pasPlus:P.pasPlus.slice(), accPlus:P.accPlus.slice(), col:P.col, colPlus:P.colPlus.slice(), colorPar:Object.assign({}, P.colorPar), repeats:P.repeats.slice(), len:P.len, type:P.type, p:P.p};
+        return {pas:P.pas, acc:P.acc, pasPlus:P.pasPlus.slice(), accPlus:P.accPlus.slice(), col:P.col, colPlus:P.colPlus.slice(), colorPar:Object.assign({}, P.colorPar), repeats:P.repeats.slice(), swing:P.swing, random:P.random, len:P.len, type:P.type, p:P.p};
       })};
     })};
   sauverMachine("dbi");
 }
 function chargerDbi(){
   resetLooperDbi(); resetSongDbi();
+  DBI.groovePiste = false;
   DBI.song = false; DBI.chaine = [0,1];
   DBI.motifs = [];
   for(var i=0;i<16;i++) DBI.motifs.push(motifDbi(i < 2 ? i : 9));
@@ -621,6 +699,9 @@ function chargerDbi(){
           d.repeats = Array.from({length:64}, function(_, i){
             return repetitionsDbi(P, i);
           });
+          ["swing","random"].forEach(function(nom){
+            d[nom] = Number.isFinite(P[nom]) ? Math.max(0, Math.min(nom === "swing" ? 0.7 : 1, P[nom])) : null;
+          });
           d.col = (P.col || 0) & 65535;
           if(P.colorPar) DBI_VOIX[k].col.forEach(function(kn){
             var v = P.colorPar[kn[0]];
@@ -639,6 +720,15 @@ function chargerDbi(){
   }
 }
 
+document.getElementById("dbi-groove").addEventListener("click", function(){
+  DBI.groovePiste = !DBI.groovePiste; majGrooveDbi(); majKnobsDbi(); H.inter();
+});
+document.getElementById("dbi-groove-reset").addEventListener("click", function(){
+  if(!editionDbiPermise()) return;
+  var P = pisteDbiSel(); P.swing = null; P.random = null;
+  majGrooveDbi(); majKnobsDbi(); memDbi(); H.inter();
+  signal(DBI_VOIX[DBI.sel].nom + " SUIT LE SWING ET LE HASARD GLOBAUX");
+});
 document.getElementById("dbi-song").addEventListener("click", function(){
   if(S.run){ signal("ARRETEZ PLAY POUR CHANGER DE MODE"); return; }
   DBI.song = !DBI.song; DBI.rec = false; resetSongDbi(); resetLooperDbi();
@@ -766,7 +856,7 @@ function activerDbi(){
   poserMachine("dbi");
   audioInit();
   chargerDbi();
-  debrancherTout(DBI.noeuds); DBI.noeuds = {}; DBI.ohGain = null;
+  debrancherTout(DBI.noeuds); DBI.noeuds = {}; DBI.ohGain = null; DBI.hats = []; DBI.hatsCtx = null;
   majDbi(); majKnobsDbi();
   actif = unitDbi;
   save(); fit(); setTimeout(fit, 120);
