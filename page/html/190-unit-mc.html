@@ -19,7 +19,12 @@
   <div class="mc-trks" id="mc-trks"></div>
 
   <div class="mc-clips" id="mc-clips" role="group" aria-label="Clips de la piste choisie"></div>
-  <div class="mc-scenes" id="mc-scenes" role="group" aria-label="Scènes : même numéro de clip sur les quatre pistes"></div>
+  <div class="mc-scenes" id="mc-scenes" role="group" aria-label="Scènes : combinaisons de clips sur les quatre pistes"></div>
+  <div class="mc-scenes-memoire">
+    <button id="mc-memoriser-scene" aria-pressed="false">MÉMORISER</button>
+    <button id="mc-retablir-scenes" title="Rétablir les quatre scènes d'origine" disabled>RÉTABLIR</button>
+    <output id="mc-scenes-etat" aria-live="polite">CLIPS DES PISTES 1 · 2 · 3 · 4</output>
+  </div>
   <div class="mc-lancement">
     <button id="mc-quantifie" aria-label="Lancement à la mesure" aria-pressed="false">DIRECT</button>
     <button id="mc-annuler" disabled>ANNULER</button>

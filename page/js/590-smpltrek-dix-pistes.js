@@ -426,8 +426,11 @@ function majClipsMc(){
   if(!scenes.childNodes.length){
     for(var s=0;s<MC_CLIPS;s++) (function(k){
       var bt = document.createElement("button"); bt.type = "button";
-      bt.textContent = "SCÈNE " + (k + 1);
-      bt.addEventListener("click", function(){ choisirSceneMc(k); H.cran(); });
+      bt.innerHTML = "SCÈNE " + (k + 1) + "<em></em>";
+      bt.addEventListener("click", function(){
+        if(MC.memoScene) memoriserSceneMc(k); else choisirSceneMc(k);
+        H.cran();
+      });
       scenes.appendChild(bt);
     })(s);
   }
@@ -437,23 +440,37 @@ function majClipsMc(){
     if(suite !== null && suite !== MC.pistes[p].clip) demandes.push("P" + (p + 1) + " → C" + (suite + 1));
   }
   for(var n=0;n<MC_CLIPS;n++){
-    var choisi = MC.pistes.every(function(piste){ return piste.clip === n; });
+    var combinaison = MC.scenes[n];
+    var choisi = MC.pistes.every(function(piste, k){ return piste.clip === combinaison[k]; });
     var prevu = demandes.length > 0 && MC.pistes.every(function(piste, k){
       var futur = MC.depart ? MC.depart.clips[k] : MC.attente[k];
-      return (futur === null ? piste.clip : futur) === n;
+      return (futur === null ? piste.clip : futur) === combinaison[k];
     });
     var scene = scenes.childNodes[n];
     scene.classList.toggle("sel", choisi); scene.classList.toggle("attente", prevu);
+    scene.classList.toggle("ecriture", MC.memoScene);
     scene.disabled = !!MC.depart; scene.setAttribute("aria-pressed", String(choisi));
+    scene.querySelector("em").textContent = resumeSceneMc(combinaison);
+    scene.setAttribute("aria-label", (MC.memoScene ? "Mémoriser dans la scène " : "Scène ") + (n + 1) + " : " +
+      combinaison.map(function(k, p){ return "piste " + (p + 1) + " clip " + (k + 1); }).join(", "));
   }
+  var memoriser = document.getElementById("mc-memoriser-scene");
+  memoriser.disabled = !!MC.depart || demandes.length > 0;
+  memoriser.classList.toggle("on", MC.memoScene);
+  memoriser.setAttribute("aria-pressed", String(MC.memoScene));
+  document.getElementById("mc-retablir-scenes").disabled = !!MC.depart || demandes.length > 0 || !scenesPersonnaliseesMc();
+  document.getElementById("mc-scenes-etat").textContent = MC.memoScene
+    ? "À MÉMORISER · " + resumeSceneMc(MC.pistes.map(function(P){ return P.clip; }))
+    : "CLIPS DES PISTES 1 · 2 · 3 · 4";
   var mode = document.getElementById("mc-quantifie");
   mode.textContent = MC.quantifie ? "MESURE" : "DIRECT";
   mode.classList.toggle("on", MC.quantifie); mode.disabled = !!MC.depart;
   mode.setAttribute("aria-pressed", String(MC.quantifie));
-  document.getElementById("mc-annuler").disabled = !!MC.depart || !demandes.length;
+  document.getElementById("mc-annuler").disabled = !!MC.depart || (!demandes.length && !MC.memoScene);
   document.getElementById("mc-clip").disabled = !!MC.depart;
   document.getElementById("mc-lancement-etat").textContent = MC.depart ? "DÉPART IMMINENT · " + demandes.join(" / ")
     : demandes.length ? "PROCHAINE MESURE · " + demandes.join(" / ")
+    : MC.memoScene ? "TOUCHEZ LA SCÈNE À MÉMORISER"
     : MC.quantifie ? "CLIPS ET SCÈNES AU DÉBUT DE LA MESURE" : "CLIPS ET SCÈNES EN DIRECT";
   var copie = MC.copie, coller = document.getElementById("mc-coller");
   coller.disabled = !copie || copie.type !== P.type;
@@ -587,6 +604,12 @@ document.getElementById("mc-quantifie").addEventListener("click", function(){
 });
 document.getElementById("mc-annuler").addEventListener("click", function(){
   annulerClipsMc(); H.inter();
+});
+document.getElementById("mc-memoriser-scene").addEventListener("click", function(){
+  armerSceneMc(); H.inter();
+});
+document.getElementById("mc-retablir-scenes").addEventListener("click", function(){
+  retablirScenesMc(); H.inter();
 });
 document.getElementById("mc-copier").addEventListener("click", function(){
   copierClipMc(); H.inter();

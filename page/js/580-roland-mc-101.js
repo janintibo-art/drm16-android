@@ -35,9 +35,31 @@ function pisteMc(i){
   for(var c=0;c<MC_CLIPS;c++) p.clips.push(clipMc());
   return p;
 }
+function scenesOrigineMc(){
+  var scenes = [];
+  for(var s=0;s<MC_CLIPS;s++){
+    var clips = [];
+    for(var p=0;p<MC_PISTES;p++) clips.push(s);
+    scenes.push(clips);
+  }
+  return scenes;
+}
+function lireScenesMc(source){
+  var scenes = scenesOrigineMc();
+  if(!Array.isArray(source)) return scenes;
+  for(var s=0;s<MC_CLIPS;s++){
+    if(!Array.isArray(source[s])) continue;
+    for(var p=0;p<MC_PISTES;p++){
+      var n = source[s][p];
+      if(typeof n === "number" && Math.floor(n) === n && n >= 0 && n < MC_CLIPS) scenes[s][p] = n;
+    }
+  }
+  return scenes;
+}
 var MC = {pistes:[], sel:0, pos:-1, noeuds:null,
           scatOn:false, scatType:0, scatProf:0.5, note:0, copie:null,
-          quantifie:false, attente:[null,null,null,null], depart:null, contexte:null};
+          quantifie:false, attente:[null,null,null,null], depart:null, contexte:null,
+          scenes:scenesOrigineMc(), memoScene:false};
 for(var mz=0; mz<MC_PISTES; mz++) MC.pistes.push(pisteMc(mz));
 
 function pisteMcSel(){ return MC.pistes[MC.sel]; }
@@ -65,6 +87,7 @@ function lireClipMc(pas, type){
    départ reste verrouillé jusqu'à son heure audio, même sans animation. */
 function viderAttenteMc(){
   MC.attente = [null,null,null,null]; MC.depart = null; MC.contexte = null;
+  MC.memoScene = false;
 }
 function validerDepartMc(){
   if(MC.contexte && MC.contexte !== ctx){ viderAttenteMc(); return false; }
@@ -95,6 +118,7 @@ function commandeClipsMc(){
 }
 function choisirClipMc(k){
   if(!indiceClipMc(k) || !commandeClipsMc()) return false;
+  MC.memoScene = false;
   var P = pisteMcSel();
   if(MC.quantifie && lectureClipsMc()){
     MC.contexte = ctx;
@@ -108,14 +132,61 @@ function choisirClipMc(k){
 }
 function choisirSceneMc(k){
   if(!indiceClipMc(k) || !commandeClipsMc()) return false;
-  var attendre = MC.quantifie && lectureClipsMc();
+  MC.memoScene = false;
+  var attendre = MC.quantifie && lectureClipsMc(), scene = MC.scenes[k];
   for(var i=0;i<MC_PISTES;i++){
-    MC.attente[i] = attendre && MC.pistes[i].clip !== k ? k : null;
-    if(!attendre) MC.pistes[i].clip = k;
+    MC.attente[i] = attendre && MC.pistes[i].clip !== scene[i] ? scene[i] : null;
+    if(!attendre) MC.pistes[i].clip = scene[i];
   }
   MC.contexte = attendre ? ctx : null;
   if(!attendre) memMc();
   majMc();
+  return true;
+}
+/* v175 : une scène ne contient que quatre références de clips. Les notes,
+   paramètres et sourdines restent ceux des pistes. L'armement est temporaire. */
+function resumeSceneMc(clips){
+  return clips.map(function(k){ return k + 1; }).join(" · ");
+}
+function editionScenesMc(){
+  if(!commandeClipsMc()) return false;
+  if(MC.attente.some(function(k){ return k !== null; })){
+    signal("ANNULEZ L'ATTENTE AVANT DE MÉMORISER OU RÉTABLIR LES SCÈNES"); return false;
+  }
+  return true;
+}
+function armerSceneMc(){
+  if(!editionScenesMc()) return false;
+  MC.memoScene = !MC.memoScene; majClipsMc();
+  return true;
+}
+function memoriserSceneMc(k){
+  if(!indiceClipMc(k) || !editionScenesMc()) return false;
+  if(!MC.memoScene){ signal("TOUCHEZ MÉMORISER PUIS UNE SCÈNE"); return false; }
+  var clips = MC.pistes.map(function(P){ return P.clip; });
+  var change = clips.some(function(n, p){ return n !== MC.scenes[k][p]; });
+  MC.memoScene = false;
+  if(change && !window.confirm("Remplacer la scène " + (k + 1) + " (" + resumeSceneMc(MC.scenes[k]) +
+      ") par les clips " + resumeSceneMc(clips) + " des pistes 1 à 4 ?")){
+    majClipsMc(); return false;
+  }
+  MC.scenes[k] = clips;
+  memMc(); majClipsMc();
+  signal("SCÈNE " + (k + 1) + " MÉMORISÉE · " + resumeSceneMc(clips));
+  return true;
+}
+function scenesPersonnaliseesMc(){
+  return MC.scenes.some(function(scene, s){ return scene.some(function(k){ return k !== s; }); });
+}
+function retablirScenesMc(){
+  if(!editionScenesMc()) return false;
+  MC.memoScene = false;
+  if(scenesPersonnaliseesMc() && !window.confirm("Rétablir les quatre scènes d'origine ? Les associations personnalisées seront remplacées ; les notes et les clips en cours sont conservés.")){
+    majClipsMc(); return false;
+  }
+  MC.scenes = scenesOrigineMc();
+  memMc(); majClipsMc();
+  signal("SCÈNES D'ORIGINE RÉTABLIES");
   return true;
 }
 function modeClipsMc(mesure){
@@ -287,6 +358,7 @@ var MACHINE_MC = {schedule:scheduleMc, beat:beatMc, arret:arretMc,
 function memMc(){
   if(validerDepartMc()) majMc();
   memoire.mc = {sel:MC.sel, scatType:MC.scatType, scatProf:MC.scatProf, note:MC.note, quantifie:MC.quantifie,
+    scenes:MC.scenes.map(function(scene){ return scene.slice(); }),
     pistes:MC.pistes.map(function(P){
       return {type:P.type, onde:P.onde, cut:P.cut, dec:P.dec, niv:P.niv,
               muet:P.muet, oct:P.oct, clip:P.clip, clips:P.clips.map(function(c){ return c.slice(); })};
@@ -296,7 +368,9 @@ function memMc(){
 function chargerMc(){
   viderAttenteMc();
   var m = memLire("mc");
+  MC.scenes = scenesOrigineMc();
   if(!m || typeof m !== "object" || Array.isArray(m)) return;
+  MC.scenes = lireScenesMc(m.scenes);
   MC.quantifie = m.quantifie === true;
   MC.sel = nombreMc(m.sel, 0, MC_PISTES - 1, 0, true);
   MC.scatType = nombreMc(m.scatType, 0, MC_SCATTER.length - 1, 0, true);

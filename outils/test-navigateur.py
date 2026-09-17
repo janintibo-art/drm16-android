@@ -869,10 +869,140 @@ async def mc_lancements(nav):
     finally:
         await ctx.close()
 
+async def mc_scenes(nav):
+    print("\n18. MC-101 : scènes personnalisées, rappels et restauration (v175)")
+    ctx = await nav.new_context(viewport={"width": 393, "height": 851})
+    adresse = await servir_page(ctx)
+    pg = await ctx.new_page()
+    err, dialogues = [], []
+    pg.on("pageerror", lambda e: err.append(str(e)))
+
+    async def refuser(dialogue):
+        dialogues.append("refus")
+        await dialogue.dismiss()
+
+    async def accepter(dialogue):
+        dialogues.append("accord")
+        await dialogue.accept()
+
+    try:
+        await pg.goto(adresse)
+        await pg.wait_for_function("() => document.body.classList.contains('pret')")
+        await pg.evaluate("() => document.querySelector('.pick[data-m=mc]').click()")
+        scenes = pg.locator("#mc-scenes > button")
+        pistes = pg.locator("#mc-trks > button")
+        clips = pg.locator("#mc-clips > button")
+        origine = [[i] * 4 for i in range(4)]
+        melange = [0, 1, 2, 3]
+        ok(await pg.evaluate("() => MC.scenes") == origine,
+           "les quatre scènes d'origine conservent les anciens rappels")
+        # La première piste est déjà sélectionnée : la retoucher la mettrait
+        # en sourdine. Toutes les notes et sélections passent par la façade.
+        await pg.locator("#mc-pads > button").nth(0).click()
+        for i in range(1, 4):
+            await pistes.nth(i).click()
+            await clips.nth(i).click()
+            await pg.locator("#mc-pads > button").nth(i * 3).click()
+        relever = """() => ({sel:MC.sel, pistes:MC.pistes.map(p => ({type:p.type,
+          onde:p.onde, cut:p.cut, dec:p.dec, niv:p.niv, muet:p.muet, oct:p.oct, clips:p.clips}))})"""
+        contenu = await pg.evaluate(relever)
+        await pg.evaluate("""() => {
+          window.__mcSceneVoix = voixMc; window.__mcSceneAppels = 0;
+          voixMc = function(t,p,n,v){ __mcSceneAppels++; return __mcSceneVoix(t,p,n,v); };
+        }""")
+
+        await pg.locator("#mc-memoriser-scene").click()
+        ok(await pg.evaluate("() => MC.memoScene") and await pg.locator("#mc-annuler").is_enabled(),
+           "MÉMORISER arme le choix d'une destination et rend ANNULER disponible")
+        pg.once("dialog", refuser)
+        await scenes.nth(1).click()
+        ok(dialogues == ["refus"] and await pg.evaluate("() => MC.scenes") == origine and
+           await pg.evaluate("() => MC.pistes.map(p => p.clip)") == melange and
+           not await pg.evaluate("() => MC.memoScene"),
+           "refuser le remplacement désarme et conserve la scène et les quatre clips courants")
+        await pg.locator("#mc-memoriser-scene").click()
+        pg.once("dialog", accepter)
+        await scenes.nth(1).click()
+        personnalisees = [origine[0], melange, origine[2], origine[3]]
+        r = await pg.evaluate("""() => ({scenes:MC.scenes, clips:MC.pistes.map(p => p.clip),
+          arme:MC.memoScene, run:S.run, appels:__mcSceneAppels})""")
+        ok(dialogues == ["refus", "accord"] and r["scenes"] == personnalisees and
+           r["clips"] == melange and not r["arme"] and not r["run"] and r["appels"] == 0 and
+           await pg.evaluate(relever) == contenu,
+           "la scène mémorise la combinaison sans changer les clips, les notes ou jouer un son")
+        ok((await scenes.nth(1).locator("em").text_content()).strip() == "1 · 2 · 3 · 4",
+           "le bouton affiche le numéro de clip de chacune des quatre pistes")
+
+        await scenes.nth(0).click()
+        ok(await pg.evaluate("() => MC.pistes.map(p => p.clip)") == [0] * 4,
+           "le rappel d'origine choisit le clip 1 de chaque piste")
+        await scenes.nth(1).click()
+        ok(await pg.evaluate("() => MC.pistes.map(p => p.clip)") == melange and
+           await pg.evaluate("() => __mcSceneAppels") == 0 and await pg.evaluate(relever) == contenu,
+           "le rappel DIRECT restitue la combinaison personnalisée sans modifier les motifs")
+        await pg.locator("#mc-memoriser-scene").click()
+        await pg.locator("#mc-annuler").click()
+        ok(not await pg.evaluate("() => MC.memoScene") and
+           await pg.evaluate("() => MC.scenes") == personnalisees,
+           "ANNULER désarme la mémorisation sans changer les scènes")
+        await pg.locator("#mc-memoriser-scene").click()
+        await pg.evaluate("() => { memMc(); writeMem(); }")
+        await pg.reload()
+        await pg.wait_for_function("() => document.body.classList.contains('pret') && S.modele === 'mc'")
+        r = await pg.evaluate("""() => ({scenes:MC.scenes, clips:MC.pistes.map(p => p.clip),
+          arme:MC.memoScene, independantes:new Set(MC.scenes).size === 4,
+          attente:MC.attente, depart:MC.depart})""")
+        ok(r["scenes"] == personnalisees and r["clips"] == melange and not r["arme"] and
+           r["independantes"] and r["attente"] == [None] * 4 and r["depart"] is None and
+           await pg.evaluate(relever) == contenu,
+           "au redémarrage les scènes sont restaurées et la mémorisation reste désarmée")
+
+        await scenes.nth(0).click()
+        await pg.locator("#mc-quantifie").click()
+        await pg.evaluate("() => { S.bpm = 90; MIDI.sync = false; HUM.temps = 0; }")
+        await pg.locator("#mc-play").click()
+        await pg.wait_for_function("() => S.run && MC.pos >= 2 && MC.pos <= 6 && !MC.depart")
+        r = await pg.evaluate("""() => {
+          document.querySelector('#mc-scenes').children[1].click();
+          var memoriser = document.getElementById('mc-memoriser-scene');
+          var retablir = document.getElementById('mc-retablir-scenes');
+          memoriser.click(); retablir.click();
+          return {attente:MC.attente.slice(), clips:MC.pistes.map(p => p.clip),
+            interdit:memoriser.disabled && retablir.disabled, arme:MC.memoScene, scenes:MC.scenes};
+        }""")
+        ok(r["attente"] == [None, 1, 2, 3] and r["clips"] == [0] * 4 and r["interdit"] and
+           not r["arme"] and r["scenes"] == personnalisees,
+           "la scène mixte attend la mesure ; mémoriser et rétablir sont bloqués pendant l'attente")
+        await pg.wait_for_function("""() => MC.pistes.every((p,i) => p.clip === i) &&
+          !MC.depart && MC.attente.every(c => c === null)""", timeout=12000)
+        ok(await pg.evaluate("() => S.run && document.querySelector('#mc-scenes').children[1].classList.contains('sel')") and
+           await pg.evaluate(relever) == contenu,
+           "le vrai transport rappelle la combinaison mixte à la mesure sans altérer les motifs")
+        await pg.locator("#mc-memoriser-scene").click()
+        await pg.locator("#mc-play").click()
+        ok(await pg.evaluate("() => !S.run && !MC.memoScene") and
+           await pg.evaluate("() => MC.pistes.map(p => p.clip)") == melange,
+           "STOP annule l'armement et conserve les clips entendus")
+
+        pg.once("dialog", refuser)
+        await pg.locator("#mc-retablir-scenes").click()
+        ok(dialogues[-1] == "refus" and await pg.evaluate("() => MC.scenes") == personnalisees,
+           "refuser la restauration conserve les scènes personnalisées")
+        pg.once("dialog", accepter)
+        await pg.locator("#mc-retablir-scenes").click()
+        ok(dialogues == ["refus", "accord", "refus", "accord"] and
+           await pg.evaluate("() => MC.scenes") == origine and
+           await pg.evaluate("() => MC.pistes.map(p => p.clip)") == melange and
+           not await pg.evaluate("() => S.run") and await pg.evaluate(relever) == contenu,
+           "rétablir les quatre scènes d'origine conserve les clips, les notes et le transport arrêté")
+        ok(not err, "aucune erreur de page %s" % err[:1])
+    finally:
+        await ctx.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes):
             try:
                 await t(nav)
             except Exception as e:

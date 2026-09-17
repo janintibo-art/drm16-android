@@ -468,4 +468,133 @@ for(const temps of [1.1,1.3]){
   assert.equal(c.vidages.length,1);assert.equal(c.ecrituresLocales.length,1,'writeMem reste utilisable avant l’initialisation de MC');
 }
 
-console.log('MC-101 : restauration, copies indépendantes, scènes, demandes annulables, frontière audio de mesure, arrêt, mémoire, SCATTER, arrière-plan et SET OK.');
+// v175 : une scène mémorise seulement quatre indices de clips. Les anciens
+// projets reçoivent les quatre combinaisons d'origine, sans tableau partagé.
+function scenesOrigine(){return Array.from({length:4},(_,i)=>Array(4).fill(i));}
+function choisirCombinaison(c,indices){indices.forEach((k,i)=>c.MC.pistes[i].clip=k);c.majMc();}
+{
+  for(const ancienne of [undefined,{},memoireExemple()]){
+    const {c}=setup(ancienne);c.activerMc();assert.deepStrictEqual(copie(c.MC.scenes),scenesOrigine());
+    assert.strictEqual(c.MC.memoScene,false);assert.equal(new Set(c.MC.scenes).size,4);
+  }
+  const scenes=[[3,2,1,0],[0,2,3,1],[2,3,0,1],[1,0,2,3]];
+  const {c}=setup({...memoireExemple(),scenes:copie(scenes),memoScene:true});c.activerMc();
+  assert.deepStrictEqual(copie(c.MC.scenes),scenes);assert.strictEqual(c.MC.memoScene,false,'un projet ne peut armer une écriture de scène');
+  c.MC.scenes[0][0]=1;assert.equal(c.memoire.mc.scenes[0][0],3,'chargement sans alias avec la mémoire');
+  c.armerSceneMc();c.memMc();assert(!('memoScene' in c.stocke),'armement non persistant');
+  const enregistre=copie(c.stocke.scenes);c.MC.scenes[1][0]=3;
+  assert.deepStrictEqual(copie(c.memoire.mc.scenes),enregistre,'sauvegarde indépendante des changements suivants');
+  const reprise=setup(copie(c.stocke));reprise.c.activerMc();
+  assert.deepStrictEqual(copie(reprise.c.MC.scenes),enregistre);assert.strictEqual(reprise.c.MC.memoScene,false);
+}
+{
+  const cas=[
+    [undefined,scenesOrigine()],[null,scenesOrigine()],['1234',scenesOrigine()],[{0:[3,2,1,0]},scenesOrigine()],
+    [[],scenesOrigine()],
+    [[[3,2,1,0],[2,-1,4,1.5],[NaN,Infinity,'1',null],[0,3]],[[3,2,1,0],[2,1,1,1],[2,2,2,2],[0,3,3,3]]],
+    [[[1,2,3,0,2],{},'0123',false,[0,0,0,0]],[[1,2,3,0],[1,1,1,1],[2,2,2,2],[3,3,3,3]]],
+  ];
+  for(const [scenes,attendues] of cas){
+    const {c}=setup({scenes});c.activerMc();assert.deepStrictEqual(copie(c.MC.scenes),attendues);
+    assert.equal(c.MC.scenes.length,4);assert.equal(new Set(c.MC.scenes).size,4);
+    for(const ligne of c.MC.scenes){assert.equal(ligne.length,4);assert(ligne.every(n=>Number.isInteger(n)&&n>=0&&n<4));}
+  }
+}
+
+// MÉMORISER arme le prochain bouton de scène. Refuser le remplacement désarme
+// sans effacer la destination ; accepter conserve tous les sons et réglages.
+{
+  const f=setup(memoireExemple()),{c,el}=f;c.activerMc();const indices=[0,2,1,3];choisirCombinaison(c,indices);
+  c.S.run=true;const pistes=copie(c.MC.pistes),sel=c.MC.sel,arrets=c.arrets,ecritures=c.ecritures;
+  f.click('mc-memoriser-scene');assert(c.MC.memoScene);assert(!el['mc-annuler'].disabled);assert.equal(c.ecritures,ecritures);
+  f.click('mc-memoriser-scene');assert(!c.MC.memoScene,'deuxième toucher désarme');assert(el['mc-annuler'].disabled);
+  f.click('mc-memoriser-scene');c.confirmation=false;el['mc-scenes'].childNodes[1].click();
+  assert.equal(c.confirms.length,1);assert(!c.MC.memoScene);assert.deepStrictEqual(copie(c.MC.scenes),scenesOrigine());
+  assert.deepStrictEqual(copie(c.MC.pistes),pistes);assert.equal(c.ecritures,ecritures);
+  c.confirmation=true;f.click('mc-memoriser-scene');el['mc-scenes'].childNodes[1].click();
+  assert.equal(c.confirms.length,2);assert(!c.MC.memoScene);assert.deepStrictEqual(Array.from(c.MC.scenes[1]),indices);
+  assert.deepStrictEqual(copie(c.MC.pistes),pistes,'mémoriser ne change ni choix de clips, ni notes, ni sons, ni mutes');
+  assert.equal(c.MC.sel,sel);assert.equal(c.arrets,arrets);assert(c.S.run);assert.equal(c.sons.length,0);
+  assert.equal(el['mc-scenes'].childNodes[1].querySelector('em').textContent,'1 · 3 · 2 · 4');
+  assert(el['mc-scenes'].childNodes[1].classList.contains('sel'),'la combinaison mixte entendue est reconnue');
+  assert.deepStrictEqual(c.stocke.scenes[1],indices);assert(!('memoScene' in c.stocke));
+  const confirmations=c.confirms.length;f.click('mc-memoriser-scene');el['mc-scenes'].childNodes[1].click();
+  assert.equal(c.confirms.length,confirmations,'mémoriser la même combinaison est sans confirmation');assert(!c.MC.memoScene);
+  c.MC.pistes[2].clip=3;assert.equal(c.MC.scenes[1][2],1,'la scène reste un instantané de la sélection');
+  c.majMc();assert(!el['mc-scenes'].childNodes[1].classList.contains('sel'));
+  el['mc-scenes'].childNodes[1].click();assert.deepStrictEqual(clipsChoisis(c),indices,'toucher non armé rappelle la combinaison');
+  assert.deepStrictEqual(copie(c.MC.pistes),pistes);assert.equal(c.sons.length,0);
+  const reprise=setup(copie(c.stocke));reprise.c.activerMc();assert.deepStrictEqual(Array.from(reprise.c.MC.scenes[1]),indices);
+}
+
+// Une API appelée sans armement ou avec un numéro invalide n'écrit aucune
+// scène. ANNULER et les commandes de clips sortent du mode de mémorisation.
+{
+  const f=setup(),{c}=f;c.activerMc();choisirCombinaison(c,[3,1,0,2]);
+  const origine=copie(c.MC.scenes),ecritures=c.ecritures;c.memoriserSceneMc(0);
+  assert.deepStrictEqual(copie(c.MC.scenes),origine);assert.equal(c.ecritures,ecritures);assert.equal(c.confirms.length,0);
+  for(const k of [-1,4,1.5,NaN,Infinity,'2',null]){
+    c.MC.memoScene=false;c.armerSceneMc();c.memoriserSceneMc(k);
+    assert.deepStrictEqual(copie(c.MC.scenes),origine);assert.equal(c.ecritures,ecritures);assert.equal(c.confirms.length,0);
+  }
+}
+for(const quitter of ['annuler','clip','mode','stop','start','charger']){
+  const f=setup(),{c,el}=f;c.activerMc();c.armerSceneMc();assert(c.MC.memoScene);
+  if(quitter==='annuler')f.click('mc-annuler');
+  if(quitter==='clip')c.choisirClipMc(1);
+  if(quitter==='mode')c.modeClipsMc(true);
+  if(quitter==='stop')c.stop();
+  if(quitter==='start'){chargerTransportReel(c);c.start();}
+  if(quitter==='charger')c.chargerMc();
+  assert.strictEqual(c.MC.memoScene,false,quitter+' désarme la mémorisation');
+  c.majMc();assert(el['mc-annuler'].disabled);assert.deepStrictEqual(copie(c.MC.scenes),scenesOrigine());
+}
+
+// Une scène mixte rejoint la prochaine vraie mesure en une seule opération.
+// Le tableau mémorisé reste séparé de la demande et du départ déjà programmé.
+{
+  const f=fixtureMesure(),{c,el}=f;const indices=[3,1,0,2];c.MC.scenes[2]=indices.slice();c.MC.sel=2;c.MC.pistes[3].muet=true;
+  const pistes=copie(c.MC.pistes);c.choisirSceneMc(2);
+  assert.deepStrictEqual(attendreClips(c),[3,1,null,2]);assert.deepStrictEqual(clipsChoisis(c),[0,0,0,0]);
+  assert(el['mc-scenes'].childNodes[2].classList.contains('attente'),'une scène mixte demandée est indiquée');
+  c.MC.scenes[2][0]=1;assert.equal(c.MC.attente[0],3,'la demande ne suit pas les modifications de scène');
+  c.scheduleMc(15,1.1);assert.deepStrictEqual(notesJouees(c),[[0,0],[1,20],[2,40]]);
+  c.sons=[];c.scheduleMc(0,1.2);assert.deepStrictEqual(notesJouees(c),[[0,3],[1,21],[2,40]]);
+  assert.deepStrictEqual(Array.from(c.MC.depart.clips),indices);assert.deepStrictEqual(clipsChoisis(c),[0,0,0,0]);
+  c.MC.scenes[2][1]=3;assert.equal(c.MC.depart.clips[1],1,'le départ ne partage pas le tableau de scène');
+  c.maintenant=1.2;c.beatMc(0);assert.deepStrictEqual(clipsChoisis(c),indices);assert(c.MC.pistes[3].muet);
+  pistes.forEach((p,i)=>p.clip=indices[i]);assert.deepStrictEqual(copie(c.MC.pistes),pistes);assert.equal(c.MC.sel,2);
+}
+for(const temps of [1.1,1.3]){
+  const {c}=fixtureMesure();c.MC.scenes[0]=[2,0,3,1];c.choisirSceneMc(0);c.scheduleMc(0,1.2);c.maintenant=temps;c.stop();
+  assert.deepStrictEqual(clipsChoisis(c),temps<1.2?[0,0,0,0]:[2,0,3,1]);
+  assert.deepStrictEqual(Array.from(c.MC.scenes[0]),[2,0,3,1]);assert(!c.MC.memoScene);assert.equal(c.MC.depart,null);
+}
+
+// Une scène ne se réécrit ni ne se rétablit pendant une demande de lancement.
+// Le refus vaut aussi pour les appels directs, même si l'armement est forcé.
+for(const programme of [false,true]){
+  const f=fixtureMesure(),{c,el}=f;c.MC.scenes[0]=[1,2,3,0];c.choisirSceneMc(0);if(programme)c.scheduleMc(0,1.2);
+  const scenes=copie(c.MC.scenes),pistes=copie(c.MC.pistes),attente=attendreClips(c),depart=c.MC.depart,ecritures=c.ecritures;
+  c.armerSceneMc();assert(!c.MC.memoScene);assert(el['mc-memoriser-scene'].disabled);assert(el['mc-retablir-scenes'].disabled);
+  c.MC.memoScene=true;c.memoriserSceneMc(2);c.retablirScenesMc();
+  assert.deepStrictEqual(copie(c.MC.scenes),scenes);assert.deepStrictEqual(copie(c.MC.pistes),pistes);
+  assert.deepStrictEqual(attendreClips(c),attente);assert.strictEqual(c.MC.depart,depart);
+  assert.equal(c.ecritures,ecritures);assert.equal(c.confirms.length,0,'aucun dialogue de remplacement pendant un lancement');
+}
+
+// RÉTABLIR restaure les quatre associations d'origine, seulement après accord,
+// et garde les clips courants, les notes, les sons et la lecture en cours.
+{
+  const f=setup(memoireExemple()),{c,el}=f;c.activerMc();c.MC.scenes[0]=[3,1,2,0];c.MC.scenes[3]=[1,0,3,2];c.majMc();c.S.run=true;
+  const pistes=copie(c.MC.pistes),scenes=copie(c.MC.scenes),sel=c.MC.sel,arrets=c.arrets,ecritures=c.ecritures;
+  c.confirmation=false;f.click('mc-retablir-scenes');assert.equal(c.confirms.length,1);
+  assert.deepStrictEqual(copie(c.MC.scenes),scenes);assert.deepStrictEqual(copie(c.MC.pistes),pistes);assert.equal(c.ecritures,ecritures);
+  c.confirmation=true;f.click('mc-retablir-scenes');assert.equal(c.confirms.length,2);assert.deepStrictEqual(copie(c.MC.scenes),scenesOrigine());
+  assert.deepStrictEqual(copie(c.MC.pistes),pistes);assert.equal(c.MC.sel,sel);assert.equal(c.arrets,arrets);assert(c.S.run);assert.equal(c.sons.length,0);
+  assert.deepStrictEqual(c.stocke.scenes,scenesOrigine());
+  for(let i=0;i<4;i++)assert.equal(el['mc-scenes'].childNodes[i].querySelector('em').textContent,Array(4).fill(i+1).join(' · '));
+  const confirmations=c.confirms.length;c.retablirScenesMc();assert.equal(c.confirms.length,confirmations,'les scènes déjà d’origine ne demandent pas confirmation');
+}
+
+console.log('MC-101 : restauration, copies indépendantes, scènes personnalisées, sauvegarde, demandes annulables, frontière audio de mesure, arrêt, mémoire, SCATTER, arrière-plan et SET OK.');
