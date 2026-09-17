@@ -126,6 +126,21 @@ function chargerStk(){
 }
 
 /* ---------- la façade du KAOSS PAD ---------- */
+function majPriseKp(){
+  var bt = document.getElementById("kp-resample"), et = document.getElementById("kp-prise-etat");
+  if(!bt || !et) return;
+  var r = KP.prise, rec = r && r.phase === "enregistrement";
+  bt.textContent = rec ? "STOP REC" : (r ? "PATIENTER…" : "RESAMPLE");
+  bt.disabled = !!r && !rec;
+  bt.classList.toggle("on", !!rec);
+  bt.setAttribute("aria-pressed", String(!!rec));
+  document.getElementById("kp-annuler-prise").disabled = !r;
+  var texte = !r ? KP.priseEtat : (rec
+    ? "REC · " + Math.min(8, Math.floor((performance.now() - r.debut) / 1000)) + " / 8 S"
+    : (r.phase === "preparation" ? "PRÉPARATION AUDIO…" : "CONVERSION DE LA PRISE…"));
+  if(et.textContent !== texte) et.textContent = texte;
+  et.title = texte;
+}
 function majTranchesKp(){
   var b = KP.banques[KP.sel], grille = document.getElementById("kp-tranches");
   if(!grille) return;
@@ -242,7 +257,7 @@ function majKp(){
     : (KP.rejoue ? "Le geste tourne en boucle, calé sur le tempo."
     : (KP.tenu ? "HOLD : l'effet reste où le doigt l'a laissé."
                : "Touchez le pavé : l'effet suit le doigt."));
-  majPavKp(); majTraceKp(); majTempoKp(); majTranchesKp();
+  majPavKp(); majTraceKp(); majTempoKp(); majTranchesKp(); majPriseKp();
 }
 function activerKp(){
   stop();
@@ -335,6 +350,17 @@ document.getElementById("kp-son").addEventListener("click", function(){
 document.getElementById("kp-bib").addEventListener("click", function(){
   BIB.onglet = 0; BIB.cible = {machine:"kp", partie:KP.sel};
   ouvrirBib(); H.inter();
+});
+document.getElementById("kp-resample").addEventListener("click", function(){
+  if(KP.prise) terminerPriseKp(); else demarrerPriseKp();
+  H.inter();
+});
+document.getElementById("kp-annuler-prise").addEventListener("click", function(){
+  annulerPriseKp(); H.inter();
+});
+window.addEventListener("pagehide", function(){ annulerPriseKp(); });
+document.addEventListener("visibilitychange", function(){
+  if(document.hidden) annulerPriseKp();
 });
 document.getElementById("kp-selection").addEventListener("click", function(){
   KP.sel = (KP.sel + 1) % 4;                    /* choisir sans déclencher ni couper */

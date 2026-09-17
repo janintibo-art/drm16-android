@@ -139,6 +139,11 @@ body.kp .kpb{display:flex;flex-direction:column;min-height:82vh}
 .kp-bib-l{grid-template-columns:1fr 3fr;align-items:center}
 #kp-son-nom{min-width:0;color:#7ee8a8;font:700 10px/1.3 "Roboto Condensed",Arial;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kp-prise-l{grid-template-columns:1fr 1fr 2fr;align-items:center}
+.kp-prise-l button{min-width:0;touch-action:manipulation}
+.kp-prise-l button:disabled{opacity:.45}
+#kp-prise-etat{min-width:0;color:#7ee8a8;font:700 9px/1.3 "Roboto Condensed",Arial;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kp-slice-l{grid-template-columns:1fr 2fr;align-items:center}
 #kp-tranche-etat{min-width:0;color:#7ee8a8;text-align:center;
   font:800 9px/1.3 "Roboto Condensed",Arial}

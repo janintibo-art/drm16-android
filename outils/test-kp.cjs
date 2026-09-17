@@ -55,7 +55,8 @@ function setup(saved) {
     poserMachine(){},fit(){c.fitCalls++;},save(){c.saveCalls++;},
     stop(){c.S.run=false;if(c.MACHINE)c.MACHINE.arret();},start(){c.S.run=true;},
     debrancherTout(o){for(const k in o)if(o[k] instanceof Node){o[k].disconnect();o[k].stop();}},
-    document:{getElementById(id){return el[id]||(el[id]=element());},createElement:element}};
+    window:{addEventListener(){}},
+    document:{addEventListener(){},getElementById(id){return el[id]||(el[id]=element());},createElement:element}};
   vm.createContext(c);
   vm.runInContext(fs.readFileSync(path.join(__dirname,'../page/js/570-korg-kaoss-pad.js'),'utf8'),c);
   const ui=fs.readFileSync(path.join(__dirname,'../page/js/590-smpltrek-dix-pistes.js'),'utf8');

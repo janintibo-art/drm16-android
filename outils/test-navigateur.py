@@ -181,6 +181,77 @@ async def kaoss(nav):
     ok(not err, "aucune erreur de page")
     await pg.close()
 
+async def kaoss_resample(nav):
+    print("\n3b. Kaoss RESAMPLE : vrai enregistrement, WAV sauvegardé et limite de huit secondes (v171)")
+    pg, err = await nouvelle_page(nav, pont=True)
+    try:
+        pret = await pg.evaluate("""() => {
+          audioInit(); document.querySelector('.pick[data-m=kp]').click();
+          if (!window.MediaRecorder || !ctx.createMediaStreamDestination)
+            return {disponible:false};
+          KP.fx = 0; KP.touche = false; KP.tenu = false; KP.rejoue = false; KP.muet = false;
+          appliquerKp();
+          var o = ctx.createOscillator(), g = ctx.createGain();
+          o.frequency.value = 440; g.gain.value = 0.2;
+          o.connect(g); g.connect(noeudsKp().e); o.start();
+          window.__kpEssai = {osc:o, gain:g, banques:JSON.stringify(KP.banques)};
+          return {disponible:true, avant:Object.keys(__E)};
+        }""")
+        if not pret["disponible"]:
+            raise RuntimeError("Chromium ne fournit pas MediaRecorder et MediaStreamAudioDestinationNode")
+        bouton = pg.locator("#kp-resample")
+        ok(await bouton.is_visible() and (await bouton.text_content()).strip() == "RESAMPLE",
+           "la commande RESAMPLE est visible sur la façade")
+        avant = pret["avant"]
+        for automatique in (False, True):
+            await bouton.click()
+            await pg.wait_for_function("() => KP.prise && KP.prise.phase === 'enregistrement'", timeout=5000)
+            ok((await bouton.text_content()).strip() == "STOP REC" and await bouton.is_enabled(),
+               "STOP REC est disponible pendant la prise " + ("automatique" if automatique else "courte"))
+            if not automatique:
+                # Laisser passer du vrai son, sans simuler les événements du recorder.
+                await pg.wait_for_function(
+                    "() => KP.prise && performance.now() - KP.prise.debut >= 500", timeout=5000)
+                await bouton.click()
+            # La seconde prise atteint réellement le minuteur de huit secondes.
+            await pg.wait_for_function("() => KP.prise === null", timeout=20000)
+            r = await pg.evaluate("""(avant) => {
+              var ajoutes = Object.keys(__E).filter(id => avant.indexOf(id) < 0);
+              if (ajoutes.length !== 1) return {nombre:ajoutes.length, etat:KP.priseEtat};
+              var id = ajoutes[0], bytes = __dec(__E[id]);
+              var v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+              var taux = v.getUint32(24, true), canaux = v.getUint16(22, true);
+              var n = v.getUint32(40, true) / 2, somme = 0;
+              for (var i = 0; i < n; i++) { var x = v.getInt16(44 + i * 2, true) / 32768; somme += x * x; }
+              var b = ES.buf[id];
+              return {nombre:1, id:id, nom:BIB.noms[id],
+                riff:String.fromCharCode.apply(null, bytes.subarray(0, 4)),
+                wave:String.fromCharCode.apply(null, bytes.subarray(8, 12)),
+                format:v.getUint16(20, true), bits:v.getUint16(34, true), canaux:canaux,
+                taux:taux, tauxContexte:ctx.sampleRate, duree:n / taux, rms:Math.sqrt(somme / n),
+                taille:bytes.length === 44 + n * 2,
+                tampon:!!b && b.numberOfChannels === 1 && b.length === n && b.sampleRate === taux,
+                intact:JSON.stringify(KP.banques) === __kpEssai.banques && KP.sources.every(s => s === null)};
+            }""", avant)
+            if r["nombre"] != 1:
+                raise RuntimeError("RESAMPLE n'a pas sauvegardé exactement un son : " + str(r))
+            ok(r["riff"] == "RIFF" and r["wave"] == "WAVE" and r["format"] == 1
+               and r["bits"] == 16 and r["canaux"] == 1 and r["taille"] and r["tampon"],
+               "la prise traverse MediaRecorder, le décodeur et HOST vers un vrai WAV mono 16 bits")
+            ok(r["rms"] > 0.02 and r["taux"] == r["tauxContexte"],
+               "le WAV contient le son du graphe, à la fréquence du contexte (RMS %.3f)" % r["rms"])
+            ok(0 < r["duree"] <= 8 and (not automatique or r["duree"] >= 7.5),
+               "durée sauvegardée %.3f s, %s" % (r["duree"],
+                   "arrêt automatique à huit secondes" if automatique else "arrêt par STOP REC"))
+            ok(r["intact"] and r["nom"].startswith("KAOSS "),
+               "la bibliothèque reçoit la prise sans affecter ni lancer une banque")
+            ok((await bouton.text_content()).strip() == "RESAMPLE" and await bouton.is_enabled(),
+               "RESAMPLE redevient disponible après la conversion")
+            avant.append(r["id"])
+        ok(not err, "aucune erreur de page pendant les deux captures %s" % err[:1])
+    finally:
+        await pg.close()
+
 async def fichiers(nav):
     print("\n4. Écriture par morceaux et refus des rendus trop longs (v128)")
     pg, err = await nouvelle_page(nav, pont=True)
@@ -606,7 +677,7 @@ async def confort(nav):
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage, vitesse):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, confort, liens, chaine, lissage, vitesse):
             try:
                 await t(nav)
             except Exception as e:

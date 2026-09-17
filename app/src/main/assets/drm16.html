@@ -1311,6 +1311,11 @@ body.kp .kpb{display:flex;flex-direction:column;min-height:82vh}
 .kp-bib-l{grid-template-columns:1fr 3fr;align-items:center}
 #kp-son-nom{min-width:0;color:#7ee8a8;font:700 10px/1.3 "Roboto Condensed",Arial;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kp-prise-l{grid-template-columns:1fr 1fr 2fr;align-items:center}
+.kp-prise-l button{min-width:0;touch-action:manipulation}
+.kp-prise-l button:disabled{opacity:.45}
+#kp-prise-etat{min-width:0;color:#7ee8a8;font:700 9px/1.3 "Roboto Condensed",Arial;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kp-slice-l{grid-template-columns:1fr 2fr;align-items:center}
 #kp-tranche-etat{min-width:0;color:#7ee8a8;text-align:center;
   font:800 9px/1.3 "Roboto Condensed",Arial}
@@ -3548,6 +3553,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
       <button id="kp-bib">BIBLIO</button>
       <output id="kp-son-nom" aria-label="Son de la banque choisie"></output>
     </div>
+    <div class="kp-ligne kp-prise-l">
+      <button id="kp-resample" aria-pressed="false" title="Enregistrer le mélange du Kaoss avec ses effets">RESAMPLE</button>
+      <button id="kp-annuler-prise" disabled>ANNULER</button>
+      <output id="kp-prise-etat" aria-live="polite">SORTIE + EFFETS · 8 S MAX</output>
+    </div>
     <div class="kp-ligne">
       <button id="kp-selection" title="Choisir une banque sans jouer">BANQUE A</button>
       <button id="kp-mode" title="Changer le mode de la banque choisie">LOOP</button>
@@ -4481,6 +4491,25 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p><b>SON</b> reste un raccourci pour parcourir les sons internes ; après un son personnel, il revient
   au premier son interne. Le renommage d'un son dans BIBLIO est repris sur la façade.
   Le micro enregistre l'entrée du téléphone, pas la sortie traitée du Kaoss.</p>
+
+  <h3>RESAMPLE : garder le son avec ses effets</h3>
+  <p>Touchez <b>RESAMPLE</b>, jouez les banques et le pavé, puis <b>STOP REC</b>.
+  La prise s'arrête aussi toute seule après <b>huit secondes</b>. Le compteur indique la durée en cours.
+  Vous pouvez commencer avant de jouer ou pendant la lecture : les banques continuent sans être relancées.</p>
+  <p>Le mélange des banques, avec les effets, HOLD et PAD MOTION, devient un nouveau son nommé
+  <b>KAOSS</b> suivi de l'heure dans <b>BIBLIO</b>. Ouvrez BIBLIO, choisissez la banque puis
+  <b>AFFECTER</b> pour le réutiliser en LOOP, ONE SHOT ou SLICE. Aucune banque n'est remplacée
+  automatiquement. La prise reste aussi disponible pour les autres échantillonneurs.</p>
+  <p>La capture prend la sortie propre au Kaoss : <b>MUTE</b> y fait du silence, et les niveaux du set,
+  le volume général et le limiteur de sortie ne sont pas enregistrés. Elle ne demande pas le micro.
+  Le fichier est conservé en <b>mono</b>, à la fréquence du son décodé, sans normalisation ni
+  traitement supplémentaire de la bibliothèque. La durée est libre, sans calage automatique sur les mesures.</p>
+  <p><b>ANNULER</b> abandonne la prise sans modifier vos sons. L'arrêt global avec <b>PLAY</b>,
+  le changement de machine et le passage de l'application en arrière-plan annulent aussi une prise
+  en cours ou en conversion, même si la lecture en arrière-plan est autorisée.
+  <b>STOP TOUT</b> arrête les banques mais laisse finir la capture et les queues d'effets.
+  Une erreur d'enregistrement ou de sauvegarde est signalée ; en cas d'échec d'écriture,
+  la prise ajoutée reste utilisable pendant la session.</p>
 
   <h3>SLICE : jouer une tranche du son</h3>
   <p>Choisissez une banque, puis activez <b>SLICE : OUI</b>. Le son est partagé en <b>huit tranches</b>
@@ -26283,7 +26312,152 @@ var KP = {fx:0, x:0.5, y:0.5, tenu:false, touche:false,
                    {ech:"b3", mode:"loop", slice:false, tranche:0, on:false},
                    {ech:"b6", mode:"loop", slice:false, tranche:0, on:false},
                    {ech:"b9", mode:"loop", slice:false, tranche:0, on:false}],
-          sel:0, sources:[null, null, null, null], vitesse:1, taps:[], tranches:[]};
+          sel:0, sources:[null, null, null, null], vitesse:1, taps:[], tranches:[],
+          prise:null, priseEtat:"SORTIE + EFFETS · 8 S MAX"};
+
+/* v171 : capture du mélange après les effets et MUTE, avant le bus du set.
+   Le flux vient du graphe audio : aucune entrée micro, aucun retour vers le
+   graphe, aucune banque remplacée. Une prise possède ses ressources et son
+   contexte jusqu'au bout ; les événements d'une prise annulée sont ignorés. */
+function priseCouranteKp(r){
+  return KP.prise === r && r.ctx === ctx && S.modele === "kp";
+}
+function debrancherPriseKp(r){
+  if(!r.branche) return;
+  r.branche = false;
+  try{ r.sortie.disconnect(r.destination); }catch(e){}
+}
+function libererPriseKp(r){
+  clearTimeout(r.limite); clearTimeout(r.attente); clearInterval(r.horloge);
+  debrancherPriseKp(r);
+  if(r.mr) r.mr.ondataavailable = r.mr.onstop = r.mr.onerror = null;
+  if(r.destination){
+    r.destination.stream.getTracks().forEach(function(t){ try{ t.stop(); }catch(e){} });
+    try{ r.destination.disconnect(); }catch(e){}
+    r.destination = null;
+  }
+}
+function annulerPriseKp(message){
+  var r = KP.prise;
+  if(!r) return;
+  KP.prise = null;                              /* invalider AVANT de provoquer onstop */
+  if(r.mr){
+    r.mr.ondataavailable = r.mr.onstop = r.mr.onerror = null;
+    try{ if(r.mr.state !== "inactive") r.mr.stop(); }catch(e){}
+  }
+  libererPriseKp(r); r.morceaux = [];
+  KP.priseEtat = message || "PRISE ANNULÉE";
+  majPriseKp(); signal(KP.priseEtat);
+}
+function copierPriseKp(buf, contexte){
+  var n = Math.min(buf.length, Math.floor(buf.sampleRate * 8));
+  if(n < 1 || !buf.numberOfChannels) throw new Error("prise vide");
+  /* Le stockage WAV commun est mono. Garder la fréquence décodée et le
+     niveau, sans normalisation ni preset : le timbre vient déjà du pavé. */
+  var out = contexte.createBuffer(1, n, buf.sampleRate), q = out.getChannelData(0);
+  var a = buf.getChannelData(0), b = buf.numberOfChannels > 1 ? buf.getChannelData(1) : null;
+  for(var i=0;i<n;i++){
+    var v = b ? (a[i] + b[i]) * 0.5 : a[i];
+    q[i] = isFinite(v) ? Math.max(-1, Math.min(1, v)) : 0;
+  }
+  return out;
+}
+function terminerPriseKp(){
+  var r = KP.prise;
+  if(!r || r.phase !== "enregistrement") return;
+  if(!priseCouranteKp(r)){ annulerPriseKp(); return; }
+  r.phase = "conversion";
+  clearTimeout(r.limite); clearInterval(r.horloge);
+  debrancherPriseKp(r);                         /* ne jamais couper la sortie vers l'écoute */
+  majPriseKp();
+  r.attente = setTimeout(function(){
+    if(KP.prise === r) annulerPriseKp("PRISE IMPOSSIBLE · DÉLAI DÉPASSÉ");
+  }, 15000);
+  try{ r.mr.stop(); }
+  catch(e){ annulerPriseKp("ARRÊT DE LA PRISE IMPOSSIBLE"); }
+}
+function demarrerPriseKp(){
+  if(KP.prise) return;
+  if(S.modele !== "kp" || document.hidden) return;
+  /* La reprise d'un contexte existant est attendue et rattrapée ci-dessous.
+     audioInit() le reprendrait aussi, sans suivre sa promesse de reprise. */
+  try{ if(!ctx) audioInit(); }
+  catch(e){ signal("AUDIO INDISPONIBLE"); return; }
+  if(!ctx || ctx.startRendering || !ctx.createMediaStreamDestination || !window.MediaRecorder){
+    signal("RESAMPLE INDISPONIBLE SUR CET APPAREIL"); return;
+  }
+  var r = {ctx:ctx, sortie:null, destination:null, mr:null, morceaux:[], octets:0,
+           phase:"preparation", branche:false};
+  /* Construire le graphe avant de publier la prise : le remplacement d'un
+     ancien contexte peut appeler arretKp(). */
+  try{ r.sortie = noeudsKp().out; }
+  catch(e){ signal("AUDIO INDISPONIBLE"); return; }
+  KP.prise = r; majPriseKp();
+  function echec(message){ if(KP.prise === r) annulerPriseKp(message); }
+  function lancer(){
+    if(!priseCouranteKp(r)){ echec("PRISE ANNULÉE"); return; }
+    if(r.ctx.state !== "running"){ echec("AUDIO EN PAUSE · RÉESSAYEZ"); return; }
+    clearTimeout(r.attente);
+    try{
+      r.destination = r.ctx.createMediaStreamDestination();
+      r.mr = new window.MediaRecorder(r.destination.stream);
+      r.mr.ondataavailable = function(ev){
+        if(!priseCouranteKp(r) || !ev.data || !ev.data.size) return;
+        r.octets += ev.data.size;
+        if(r.octets > 8 * 1024 * 1024){ echec("PRISE TROP VOLUMINEUSE"); return; }
+        r.morceaux.push(ev.data);
+      };
+      r.mr.onerror = function(){ echec("ENREGISTREMENT IMPOSSIBLE"); };
+      r.mr.onstop = function(){
+        if(!priseCouranteKp(r)){ echec("PRISE ANNULÉE"); return; }
+        /* Seul STOP REC (ou sa limite de huit secondes) valide la prise.
+           Une fin de flux inattendue ne crée pas un son partiel silencieux. */
+        if(r.phase !== "conversion"){ echec("PRISE INTERROMPUE"); return; }
+        var type = r.mr.mimeType;
+        libererPriseKp(r);
+        if(!r.morceaux.length){ echec("PRISE VIDE · RÉESSAYEZ"); return; }
+        r.attente = setTimeout(function(){ echec("DÉCODAGE TROP LONG · RÉESSAYEZ"); }, 15000);
+        Promise.resolve().then(function(){
+          if(!priseCouranteKp(r)) return null;
+          var blob = new Blob(r.morceaux, {type:type}); r.morceaux = [];
+          return blob.arrayBuffer();
+        }).then(function(ab){
+          if(!ab || !priseCouranteKp(r)) return null;
+          return new Promise(function(res, rej){
+            var decode = r.ctx.decodeAudioData(ab, res, rej);
+            if(decode && decode.catch) decode.catch(rej);
+          });
+        }).then(function(buf){
+          if(!buf || !priseCouranteKp(r)) return;
+          var court = copierPriseKp(buf, r.ctx), base = "u" + Date.now().toString(36) + "kp", id = base, k = 1;
+          while(ES.buf[id] || BIB.noms[id]) id = base + (k++);
+          ES.buf[id] = court; ES.noms[id] = "kaoss";
+          BIB.noms[id] = "KAOSS " + new Date().toLocaleTimeString();
+          bibEcrire();
+          var garde = sauverEch(id, court);
+          libererPriseKp(r); KP.prise = null;
+          KP.priseEtat = garde ? "PRISE AJOUTÉE · BIBLIO" : "PRISE POUR CETTE SESSION · ÉCHEC D'ÉCRITURE";
+          actualiserEchs(); majPriseKp(); signal(KP.priseEtat);
+        }).catch(function(){ echec("PRISE ILLISIBLE · RÉESSAYEZ"); });
+      };
+      r.sortie.connect(r.destination); r.branche = true;
+      r.mr.start(250);
+      r.phase = "enregistrement"; r.debut = performance.now();
+      r.limite = setTimeout(function(){ if(KP.prise === r) terminerPriseKp(); }, 8000);
+      r.horloge = setInterval(function(){
+        if(!priseCouranteKp(r) || r.ctx.state !== "running") echec("PRISE INTERROMPUE");
+        else majPriseKp();
+      }, 200);
+      majPriseKp(); signal("RESAMPLE · JOUEZ, PUIS STOP REC");
+    }catch(e){ echec("ENREGISTREMENT IMPOSSIBLE"); }
+  }
+  if(r.ctx.state === "running") lancer();
+  else{
+    r.attente = setTimeout(function(){ echec("AUDIO EN PAUSE · RÉESSAYEZ"); }, 5000);
+    try{ Promise.resolve(r.ctx.resume()).then(lancer, function(){ echec("AUDIO INDISPONIBLE"); }); }
+    catch(e){ echec("AUDIO INDISPONIBLE"); }
+  }
+}
 
 /* v169 : huit portions contiguës, sans arrondir leur durée en secondes.
    On conserve l'original et une seule copie de tranche par banque. Un tampon
@@ -26636,6 +26810,7 @@ function scheduleKp(i, t){
 }
 function beatKp(i){ KP.pos = i; majTempoKp(); }
 function arretKp(){
+  annulerPriseKp();
   KP.taps = [];
   toutArreterKp();
   KP.tranches = [];
@@ -26976,6 +27151,21 @@ function chargerStk(){
 }
 
 /* ---------- la façade du KAOSS PAD ---------- */
+function majPriseKp(){
+  var bt = document.getElementById("kp-resample"), et = document.getElementById("kp-prise-etat");
+  if(!bt || !et) return;
+  var r = KP.prise, rec = r && r.phase === "enregistrement";
+  bt.textContent = rec ? "STOP REC" : (r ? "PATIENTER…" : "RESAMPLE");
+  bt.disabled = !!r && !rec;
+  bt.classList.toggle("on", !!rec);
+  bt.setAttribute("aria-pressed", String(!!rec));
+  document.getElementById("kp-annuler-prise").disabled = !r;
+  var texte = !r ? KP.priseEtat : (rec
+    ? "REC · " + Math.min(8, Math.floor((performance.now() - r.debut) / 1000)) + " / 8 S"
+    : (r.phase === "preparation" ? "PRÉPARATION AUDIO…" : "CONVERSION DE LA PRISE…"));
+  if(et.textContent !== texte) et.textContent = texte;
+  et.title = texte;
+}
 function majTranchesKp(){
   var b = KP.banques[KP.sel], grille = document.getElementById("kp-tranches");
   if(!grille) return;
@@ -27092,7 +27282,7 @@ function majKp(){
     : (KP.rejoue ? "Le geste tourne en boucle, calé sur le tempo."
     : (KP.tenu ? "HOLD : l'effet reste où le doigt l'a laissé."
                : "Touchez le pavé : l'effet suit le doigt."));
-  majPavKp(); majTraceKp(); majTempoKp(); majTranchesKp();
+  majPavKp(); majTraceKp(); majTempoKp(); majTranchesKp(); majPriseKp();
 }
 function activerKp(){
   stop();
@@ -27185,6 +27375,17 @@ document.getElementById("kp-son").addEventListener("click", function(){
 document.getElementById("kp-bib").addEventListener("click", function(){
   BIB.onglet = 0; BIB.cible = {machine:"kp", partie:KP.sel};
   ouvrirBib(); H.inter();
+});
+document.getElementById("kp-resample").addEventListener("click", function(){
+  if(KP.prise) terminerPriseKp(); else demarrerPriseKp();
+  H.inter();
+});
+document.getElementById("kp-annuler-prise").addEventListener("click", function(){
+  annulerPriseKp(); H.inter();
+});
+window.addEventListener("pagehide", function(){ annulerPriseKp(); });
+document.addEventListener("visibilitychange", function(){
+  if(document.hidden) annulerPriseKp();
 });
 document.getElementById("kp-selection").addEventListener("click", function(){
   KP.sel = (KP.sel + 1) % 4;                    /* choisir sans déclencher ni couper */
