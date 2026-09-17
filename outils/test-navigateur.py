@@ -1495,10 +1495,80 @@ async def mc_samples(nav):
     finally:
         await contexte.close()
 
+async def mc_looper(nav):
+    from pathlib import Path
+    print('\n24. MC-101 : Looper, rendu réel, tempo, arrêt et mémoire (v185)')
+    contexte=await nav.new_context(viewport={'width':393,'height':851})
+    await contexte.add_init_script(PONT)
+    adresse=await servir_page(contexte)
+    pg=await contexte.new_page(); erreurs=[]
+    pg.on('pageerror',lambda e: erreurs.append(str(e)))
+    try:
+        await pg.goto(adresse)
+        await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=mc]').click()
+        await pg.locator('#mc-trks button').nth(1).click()
+        await pg.evaluate('''() => {
+          audioInit(); var b=ctx.createBuffer(1,32000,32000),d=b.getChannelData(0);
+          for(var i=0;i<d.length;i++)d[i]=.3*Math.sin(2*Math.PI*440*i/32000);
+          ES.buf.uloop=b; sauverEch('uloop',b);
+          MC.pistes[1].clips[0][0]=12; MC.pistes[1].ech='uloop';
+        }''')
+        await pg.locator('#mc-looper').click()
+        ok(await pg.evaluate("affecterSonMc(1,'uloop')"),'affectation au clip Looper')
+        await pg.locator('#mc-copier').click()
+        await pg.locator('#mc-clips button').nth(15).click()
+        await pg.locator('#mc-coller').click()
+        ok(await pg.evaluate("MC.pistes[1].boucles[15]==='uloop' && MC.pistes[1].clips[0][0]===12"),'copie de boucle indépendante des notes')
+        await pg.evaluate('''() => { memMc(); writeMem(); }''')
+        await pg.reload()
+        await pg.wait_for_function("document.body.classList.contains('pret') && ES.buf.uloop")
+        ok(await pg.evaluate("MC.pistes[1].looper && MC.pistes[1].boucles[15]==='uloop' && usagesEch('uloop')>=3"),'boucles, mode et son personnel restaurés ; références inventoriées')
+        await pg.locator('.pick[data-m=mc]').click()
+        result=await pg.evaluate('''async () => {
+          var avant={ctx:ctx,master:master,n:MC.noeuds,bus:busSet,dur:stepDur};
+          async function rendre(dur,nombre,muet){
+            var off=new OfflineAudioContext(1,96000,32000);
+            ctx=off;master=off.destination;MC.noeuds=null;busSet=function(){return null;};stepDur=function(){return dur;};
+            MC.pistes[1].cut=1;MC.pistes[1].niv=.5;MC.pistes[1].muet=false;
+            for(var i=0;i<nombre;i++){
+              if(muet && i===8)MC.pistes[1].muet=true;
+              ouvrirPas();jouerBoucleMc(1,15,i%16,.01+i*dur);
+            }
+            var d=(await off.startRendering()).getChannelData(0),pic=0,hz=0,fin=0;
+            for(var j=2000;j<6000;j++){pic=Math.max(pic,Math.abs(d[j]));if(d[j-1]<=0&&d[j]>0)hz++;}
+            for(var j=Math.ceil((.05+(muet?8:nombre)*dur)*32000);j<d.length;j++)fin=Math.max(fin,Math.abs(d[j]));
+            return {pic:pic,hz:hz*8,fin:fin};
+          }
+          try{return [await rendre(.125,16,false),await rendre(.0625,32,false),await rendre(.125,1,false),await rendre(.125,16,true)];}
+          finally{ctx=avant.ctx;master=avant.master;MC.noeuds=avant.n;busSet=avant.bus;stepDur=avant.dur;MC.pistes[1].muet=false;}
+        }''')
+        ok(result[0]['pic']>.01 and abs(result[0]['hz']-220)<12 and abs(result[1]['hz']-440)<12,'rendu audio réel : calage sur la mesure et hauteur liée au tempo')
+        ok(all(r['fin']<.00001 for r in result),'silence après fin, arrêt de l’horloge et sourdine')
+        await pg.evaluate('''() => { S.bpm=240; MC.pistes[1].clip=0; MC.quantifie=false; start(); majMc(); }''')
+        await pg.wait_for_function('MC.pos>=2 && MC.pos<=6')
+        await pg.locator('#mc-clips button').nth(15).click()
+        ok(await pg.evaluate('MC.pistes[1].clip===0 && MC.attente[1]===15'),'boucle quantifiée même en mode DIRECT')
+        await pg.wait_for_function('MC.pistes[1].clip===15')
+        ok(await pg.locator('#mc-looper').is_disabled(),'changement de mode verrouillé pendant PLAY')
+        await pg.evaluate('''() => { window.__loop=MC.noeuds.boucles[1]; window.__ended=false; __loop.src.onended=function(){__ended=true;}; stop(); }''')
+        await pg.wait_for_function('window.__ended && !MC.noeuds')
+        ok(True,'STOP termine réellement la source audio')
+        await pg.locator('#mc-looper').click()
+        ok(await pg.evaluate("!MC.pistes[1].looper && MC.pistes[1].ech==='uloop' && MC.pistes[1].clips[0][0]===12"),'retour aux notes sans perte du sample ni des boucles')
+        await pg.locator('#mc-looper').click()
+        for w,h in ((393,851),(360,640),(880,400)):
+            await pg.set_viewport_size({'width':w,'height':h})
+            await pg.evaluate('fit()')
+            await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('mc-v185-%sx%s.png'%(w,h))))
+        ok(not erreurs,'aucune erreur de page : '+str(erreurs))
+    finally:
+        await contexte.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper):
             try:
                 await t(nav)
             except Exception as e:

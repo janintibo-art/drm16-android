@@ -413,15 +413,15 @@ function majClipsMc(){
   var P = pisteMcSel();
   zone.setAttribute("aria-label", "Clips de la piste " + (MC.sel + 1));
   for(var j=0;j<MC_CLIPS;j++){
-    var nb = P.clips[j].filter(function(n){ return n >= 0; }).length;
+    var nb = P.looper ? (P.boucles[j] ? 1 : 0) : P.clips[j].filter(function(n){ return n >= 0; }).length;
     var b = zone.childNodes[j];
     var prochain = MC.depart ? MC.depart.clips[MC.sel] : MC.attente[MC.sel];
     var enAttente = prochain === j && P.clip !== j;
     b.classList.toggle("sel", P.clip === j); b.classList.toggle("plein", nb > 0);
     b.classList.toggle("attente", enAttente); b.disabled = !!MC.depart;
-    b.querySelector("em").textContent = enAttente ? (MC.depart ? "IMMINENT" : "EN ATTENTE") : (nb ? nb + "/16 PAS" : "VIDE");
+    b.querySelector("em").textContent = enAttente ? (MC.depart ? "IMMINENT" : "EN ATTENTE") : (nb ? (P.looper ? "BOUCLE" : nb + "/16 PAS") : "VIDE");
     b.setAttribute("aria-pressed", String(P.clip === j));
-    b.setAttribute("aria-label", "Clip " + (j + 1) + " de la piste " + (MC.sel + 1) + " · " + nb + " pas actifs" + (enAttente ? " · en attente" : ""));
+    b.setAttribute("aria-label", "Clip " + (j + 1) + " de la piste " + (MC.sel + 1) + " · " + (P.looper ? (nb ? "boucle" : "vide") : nb + " pas actifs") + (enAttente ? " · en attente" : ""));
   }
   var scenes = document.getElementById("mc-scenes");
   if(!scenes.childNodes.length){
@@ -464,7 +464,7 @@ function majClipsMc(){
     ? "À MÉMORISER · " + resumeSceneMc(MC.pistes.map(function(P){ return P.clip; }))
     : "CLIPS DES PISTES 1 · 2 · 3 · 4";
   var mode = document.getElementById("mc-quantifie");
-  mode.textContent = MC.quantifie ? "MESURE" : "DIRECT";
+  mode.textContent = MC.quantifie ? "MESURE" : P.looper ? "MESURE · LOOP" : "DIRECT";
   mode.classList.toggle("on", MC.quantifie); mode.disabled = !!MC.depart;
   mode.setAttribute("aria-pressed", String(MC.quantifie));
   document.getElementById("mc-annuler").disabled = !!MC.depart || (!demandes.length && !MC.memoScene);
@@ -472,18 +472,22 @@ function majClipsMc(){
   document.getElementById("mc-lancement-etat").textContent = MC.depart ? "DÉPART IMMINENT · " + demandes.join(" / ")
     : demandes.length ? "PROCHAINE MESURE · " + demandes.join(" / ")
     : MC.memoScene ? "TOUCHEZ LA SCÈNE À MÉMORISER"
-    : MC.quantifie ? "CLIPS ET SCÈNES AU DÉBUT DE LA MESURE" : "CLIPS ET SCÈNES EN DIRECT";
-  document.getElementById("mc-sample").disabled = P.type !== "synth";
-  document.getElementById("mc-synthe").disabled = !P.ech;
-  document.getElementById("mc-onde").disabled = P.type !== "synth" || !!P.ech;
+    : P.looper ? "BOUCLES ET SCÈNES AU DÉBUT DE LA MESURE" : MC.quantifie ? "CLIPS ET SCÈNES AU DÉBUT DE LA MESURE" : "CLIPS ET SCÈNES EN DIRECT";
+  document.getElementById("mc-sample").disabled = P.type !== "synth" || (P.looper && S.run);
+  document.getElementById("mc-synthe").disabled = (!P.ech && !P.looper) || (P.looper && S.run);
+  document.getElementById("mc-onde").disabled = P.type !== "synth" || !!P.ech || P.looper;
+  var source = P.looper ? P.boucles[P.clip] : P.ech;
   document.getElementById("mc-source").textContent = P.type === "drum" ? "KIT RYTHMIQUE" :
-    P.ech ? (ES.buf[P.ech] ? nomBib(P.ech) : "SON ABSENT · " + P.ech) : "SYNTHÉ";
+    source ? (ES.buf[source] ? nomBib(source) : "SON ABSENT · " + source) : P.looper ? "CLIP SANS BOUCLE" : "SYNTHÉ";
+  var loop = document.getElementById("mc-looper");
+  loop.textContent = P.looper ? "LOOPER : OUI" : "LOOPER : NON";
+  loop.disabled = P.type !== "synth" || S.run; loop.setAttribute("aria-pressed", String(P.looper));
   var copie = MC.copie, coller = document.getElementById("mc-coller");
-  coller.disabled = !copie || copie.type !== P.type;
+  coller.disabled = !copie || copie.type !== P.type || !!copie.looper !== P.looper || (P.looper && S.run);
   coller.title = !copie ? "Copiez d'abord un clip" : (copie.type !== P.type
     ? "Choisissez une piste du même type que la copie" : "Coller les seize pas dans le clip choisi");
   document.getElementById("mc-copie-etat").textContent = !copie ? "AUCUNE COPIE"
-    : "COPIE P" + (copie.piste + 1) + " / C" + (copie.clip + 1) + " · " + (copie.type === "drum" ? "RYTHME" : "MÉLODIE");
+    : "COPIE P" + (copie.piste + 1) + " / C" + (copie.clip + 1) + " · " + (copie.looper ? "BOUCLE" : copie.type === "drum" ? "RYTHME" : "MÉLODIE");
 }
 function majMc(){
   if(validerDepartMc()) memMc();
@@ -511,9 +515,10 @@ function majMc(){
   }
   var P = pisteMcSel(), clip = clipMcCur(MC.sel), bs = dp.childNodes;
   for(var k2=0;k2<16;k2++){
-    bs[k2].classList.toggle("on", clip[k2] >= 0);
+    bs[k2].disabled = P.looper;
+    bs[k2].classList.toggle("on", !P.looper && clip[k2] >= 0);
     bs[k2].classList.toggle("cur", S.run && MC.pos === k2);
-    bs[k2].textContent = clip[k2] >= 0
+    bs[k2].textContent = !P.looper && clip[k2] >= 0
       ? (P.type === "drum" ? ["GC","CC","CH","CL"][clip[k2] % 4] : nomNoteMc(clip[k2]))
       : String(k2 + 1);
   }
@@ -522,7 +527,7 @@ function majMc(){
     ts[t2].classList.toggle("sel", t2 === MC.sel);
     ts[t2].classList.toggle("muet", MC.pistes[t2].muet);
     ts[t2].querySelector("em").textContent =
-      MC.pistes[t2].type === "drum" ? "RYTHME" : MC.pistes[t2].ech ? "SAMPLE" : MC.pistes[t2].onde.slice(0, 4).toUpperCase();
+      MC.pistes[t2].type === "drum" ? "RYTHME" : MC.pistes[t2].looper ? "LOOPER" : MC.pistes[t2].ech ? "SAMPLE" : MC.pistes[t2].onde.slice(0, 4).toUpperCase();
   }
   var c = document.getElementById("mc-clip");
   if(c) c.textContent = "CLIP " + (P.clip + 1);
@@ -540,12 +545,13 @@ function majMc(){
     ll.textContent = MC.scatOn ? "SCATTER" : ("PISTE " + (MC.sel + 1));
   }
   var e = document.getElementById("mc-etat");
-  if(e) e.textContent = MC.scatOn
+  if(e) e.textContent = P.looper ? "Boucle d’une mesure · tempo et hauteur liés · SCATTER inactif" : MC.scatOn
     ? MC_SCATTER[MC.scatType][1] + " · le motif n'est pas modifié"
     : "Le potard NOTE choisit ce qu'on écrit ; les pads posent ou retirent.";
   majClipsMc();
 }
 function padMc(k){
+  if(pisteMcSel().looper) return;
   audioInit();
   suivreClipsMc();
   var P = pisteMcSel(), clip = clipMcCur(MC.sel);
@@ -558,6 +564,7 @@ function knobMc(nom, etiq, min, max, get, set){
   return knobEm("mc-k-" + nom, {min:min, max:max,
     get:get || function(){ return pisteMcSel()[nom]; },
     set:function(v){
+      if(pisteMcSel().looper && (nom === "note" || nom === "dec")) return;
       if(set) set(v); else pisteMcSel()[nom] = v;
       var e = document.getElementById("mc-etat");
       if(e) e.textContent = etiq + " " + Math.round(v * 100);
@@ -623,6 +630,7 @@ document.getElementById("mc-copier").addEventListener("click", function(){
 document.getElementById("mc-coller").addEventListener("click", function(){
   collerClipMc(); H.inter();
 });
+document.getElementById("mc-looper").addEventListener("click", modeLooperMc);
 document.getElementById("mc-sample").addEventListener("click", function(){
   if(pisteMcSel().type !== "synth") return;
   BIB.onglet = 0; BIB.cible = {machine:"mc", partie:MC.sel - 1};
@@ -638,6 +646,13 @@ document.getElementById("mc-onde").addEventListener("click", function(){
 });
 document.getElementById("mc-clear").addEventListener("click", function(){
   suivreClipsMc();
+  if(pisteMcSel().looper){
+    if(S.run){ signal("ARRÊTEZ PLAY POUR EFFACER UNE BOUCLE"); return; }
+    if(window.confirm("Retirer la boucle de ce clip sans supprimer le son ?")){
+      pisteMcSel().boucles[pisteMcSel().clip] = ""; memMc(); majMc();
+    }
+    return;
+  }
   if(!window.confirm("Effacer le clip " + (pisteMcSel().clip + 1) +
                      " de la piste " + (MC.sel + 1) + " ?")) return;
   var c = clipMcCur(MC.sel);

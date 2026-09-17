@@ -31,7 +31,7 @@ function clipMc(){
 }
 function pisteMc(i){
   var p = {type:(i === 0 ? "drum" : "synth"), onde:(i % 2 ? "sawtooth" : "square"),
-           ech:"", cut:0.6, dec:0.4, niv:0.8, muet:false, oct:0, clip:0, clips:[]};
+           ech:"", looper:false, boucles:Array(MC_CLIPS).fill(""), cut:0.6, dec:0.4, niv:0.8, muet:false, oct:0, clip:0, clips:[]};
   for(var c=0;c<MC_CLIPS;c++) p.clips.push(clipMc());
   return p;
 }
@@ -119,7 +119,7 @@ function choisirClipMc(k){
   if(!indiceClipMc(k) || !commandeClipsMc()) return false;
   MC.memoScene = false;
   var P = pisteMcSel();
-  if(MC.quantifie && lectureClipsMc()){
+  if((MC.quantifie || P.looper) && lectureClipsMc()){
     MC.contexte = ctx;
     MC.attente[MC.sel] = P.clip === k || MC.attente[MC.sel] === k ? null : k;
   } else {
@@ -138,7 +138,7 @@ function indiceSceneMc(k){
 function choisirSceneMc(k){
   if(!indiceSceneMc(k) || !commandeClipsMc()) return false;
   MC.memoScene = false;
-  var attendre = MC.quantifie && lectureClipsMc(), scene = MC.scenes[k];
+  var attendre = (MC.quantifie || MC.pistes.some(function(p){ return p.looper; })) && lectureClipsMc(), scene = MC.scenes[k];
   for(var i=0;i<MC_PISTES;i++){
     MC.attente[i] = attendre && MC.pistes[i].clip !== scene[i] ? scene[i] : null;
     if(!attendre) MC.pistes[i].clip = scene[i];
@@ -208,7 +208,7 @@ function annulerClipsMc(){
 function copierClipMc(){
   suivreClipsMc();
   var P = pisteMcSel();
-  MC.copie = {type:P.type, piste:MC.sel, clip:P.clip, pas:lireClipMc(clipMcCur(MC.sel), P.type)};
+  MC.copie = {looper:P.looper, boucle:P.boucles[P.clip], type:P.type, piste:MC.sel, clip:P.clip, pas:lireClipMc(clipMcCur(MC.sel), P.type)};
   majClipsMc();
   signal("PISTE " + (MC.sel + 1) + " · CLIP " + (P.clip + 1) + " COPIÉ");
 }
@@ -216,9 +216,14 @@ function collerClipMc(){
   suivreClipsMc();
   var copie = MC.copie, P = pisteMcSel();
   if(!copie){ signal("COPIEZ D'ABORD UN CLIP"); return false; }
-  if(copie.type !== P.type){
+  if(copie.type !== P.type || !!copie.looper !== P.looper){
     signal("COPIE " + (copie.type === "drum" ? "RYTHMIQUE" : "MÉLODIQUE") + " · CHOISISSEZ UNE PISTE DU MÊME TYPE");
     return false;
+  }
+  if(P.looper){
+    if(S.run){ signal("ARRÊTEZ PLAY POUR MODIFIER UNE BOUCLE"); return false; }
+    if(P.boucles[P.clip] && !window.confirm("Remplacer la boucle de ce clip ?")) return false;
+    P.boucles[P.clip] = copie.boucle || ""; memMc(); majMc(); return true;
   }
   var cible = clipMcCur(MC.sel);
   if(cible.some(function(n){ return n >= 0; }) &&
@@ -239,7 +244,12 @@ function affecterSonMc(k, id){
   if(!ES.buf[id]){ signal("SON INDISPONIBLE"); return false; }
   if(S.modele !== "mc") chargerMc();
   if(MC.pistes[k].type !== "synth"){ signal("CHOISISSEZ UNE PISTE MÉLODIQUE"); return false; }
-  MC.pistes[k].ech = id;
+  if(MC.pistes[k].looper){
+    if(S.run){ signal("ARRÊTEZ PLAY POUR MODIFIER UNE BOUCLE"); return false; }
+    var P = MC.pistes[k];
+    if(P.boucles[P.clip] && P.boucles[P.clip] !== id && !window.confirm("Remplacer la boucle du clip " + (P.clip + 1) + " ?")) return false;
+    P.boucles[P.clip] = id;
+  } else MC.pistes[k].ech = id;
   memMc();
   if(S.modele === "mc") majMc();
   return true;
@@ -247,14 +257,65 @@ function affecterSonMc(k, id){
 function retirerSonMc(){
   var P = pisteMcSel();
   if(P.type !== "synth") return;
-  P.ech = ""; memMc(); majMc();
+  if(S.run && P.looper){ signal("ARRÊTEZ PLAY POUR QUITTER LOOPER"); return; }
+  P.looper = false; P.ech = ""; memMc(); majMc();
+}
+
+/* v185 : boucles d'une mesure. Les clips de notes restent conservés à part. */
+function modeLooperMc(){
+  var P = pisteMcSel();
+  if(P.type !== "synth") return false;
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER DE MODE"); return false; }
+  P.looper = !P.looper; viderAttenteMc(); memMc(); majMc(); return true;
+}
+function couperBoucleMc(b, t){
+  if(!b) return;
+  try{
+    b.g.gain.cancelScheduledValues(t);
+    b.g.gain.setTargetAtTime(0, t, 0.001);
+    b.src.stop(t + 0.005);
+  }catch(e){}
+}
+function jouerBoucleMc(k, clip, i, t){
+  var P = MC.pistes[k], n = noeudsMc(), b = n.boucles[k];
+  var id = P.boucles[clip], buf = ES.buf[id], dur = stepDur();
+  if(P.muet || !id || !buf){
+    couperBoucleMc(b,t); n.boucles[k] = null; return false;
+  }
+  if(i === 0){
+    if(b){ try{ b.src.stop(t); }catch(e){} }
+    var src = ctx.createBufferSource(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+    var vitesse = buf.duration / (16 * dur);
+    src.playbackRate.value = vitesse;
+    poserTampon(src, buf, vitesse); src.loop = true;
+    f.type = "lowpass";
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(P.niv, t + 0.003);
+    src.connect(f); f.connect(g); g.connect(pasVoie(n.e));
+    b = {src:src, g:g, f:f, clip:clip, id:id, duree:buf.duration, fin:t+dur};
+    n.boucles[k] = b;
+    src.start(t);
+  } else if(!b || b.clip !== clip || b.id !== id || b.fin < t - 0.01){
+    // Un son chargé tard ou une piste réactivée attend le prochain pas zéro.
+    return false;
+  }
+  b.src.playbackRate.setValueAtTime(b.duree / (16 * dur), t);
+  b.f.frequency.setTargetAtTime(Math.min(ctx.sampleRate * 0.45, 160 * Math.pow(115, P.cut)), t, 0.003);
+  if(i !== 0) b.g.gain.setTargetAtTime(P.niv, t, 0.003);
+  b.fin = t + dur;
+  // Chaque pas prolonge l'arrêt prévu. Si l'horloge s'arrête, aucune boucle infinie.
+  b.src.stop(b.fin);
+  if(i === 15){
+    b.g.gain.setValueAtTime(P.niv, Math.max(t, b.fin - 0.003));
+    b.g.gain.linearRampToValueAtTime(0, b.fin);
+  }
+  return i === 0;
 }
 
 function noeudsMc(){
   if(MC.noeuds && MC.noeuds.ctx === ctx) return MC.noeuds;
   var e = eurGain(1);
   e.connect(busSet("mc") || master);
-  MC.noeuds = {ctx:ctx, e:e};
+  MC.noeuds = {ctx:ctx, e:e, boucles:[null,null,null,null]};
   return MC.noeuds;
 }
 
@@ -262,7 +323,9 @@ function noeudsMc(){
    l'instrument —, les trois autres sont mélodiques. */
 function voixMc(t, i, note, vel){
   audioInit(); if(!ctx) return;
-  var P = MC.pistes[i], n = noeudsMc();
+  var P = MC.pistes[i];
+  if(P.looper) return; // Le MIDI et les pads ne déclenchent pas une deuxième boucle.
+  var n = noeudsMc();
   var tampon = null;
   if(P.type === "synth" && P.ech){
     banqueEs(); tampon = ES.buf[P.ech];
@@ -368,11 +431,12 @@ function scheduleMc(i, t){
   }
   var CHARGE_N = ouvrirPas();
   var s = scatterMc(i);
-  if(s.pas < 0) { if(!cache && MACHINE === MACHINE_MC) queue.push({i:i, t:t}); return; }
+
   for(var k=0;k<MC_PISTES;k++){
     var P = MC.pistes[k];
-    if(P.muet) continue;
     var clip = direct && MC.depart ? MC.depart.clips[k] : P.clip;
+    if(P.looper){ if(jouerBoucleMc(k, clip, i, t)) CHARGE_N++; continue; }
+    if(P.muet || s.pas < 0) continue;
     var note = P.clips[clip][s.pas];
     if(note < 0) continue;
     for(var r=0;r<s.coups;r++)
@@ -392,7 +456,13 @@ function arretMc(){
   viderAttenteMc();
   if(entendu) memMc();
   if(MC.noeuds && MC.noeuds.ctx === ctx){
-    try{ debrancherTout(MC.noeuds); }catch(e){}
+    var anciens = MC.noeuds;
+    if(anciens.boucles && anciens.boucles.some(function(b){ return !!b; }) && !ctx.startRendering){
+      var t = maintenantAudio();
+      anciens.boucles.forEach(function(b){ couperBoucleMc(b,t); });
+      anciens.e.gain.cancelScheduledValues(t); anciens.e.gain.setTargetAtTime(0,t,0.001);
+      setTimeout(function(){ try{ debrancherTout(anciens); }catch(e){} }, 30);
+    } else { try{ debrancherTout(anciens); }catch(e){} }
   }
   MC.noeuds = null;
   beatMc(-1);
@@ -406,7 +476,7 @@ function memMc(){
   memoire.mc = {sel:MC.sel, scatType:MC.scatType, scatProf:MC.scatProf, note:MC.note, quantifie:MC.quantifie,
     scenes:MC.scenes.map(function(scene){ return scene.slice(); }),
     pistes:MC.pistes.map(function(P){
-      return {type:P.type, onde:P.onde, ech:P.ech, cut:P.cut, dec:P.dec, niv:P.niv,
+      return {type:P.type, onde:P.onde, ech:P.ech, looper:P.looper, boucles:P.boucles.slice(), cut:P.cut, dec:P.dec, niv:P.niv,
               muet:P.muet, oct:P.oct, clip:P.clip, clips:P.clips.map(function(c){ return c.slice(); })};
     })};
   sauverMachine("mc");
@@ -428,6 +498,11 @@ function chargerMc(){
       if(o.type === "drum" || o.type === "synth") P.type = o.type;
       if(["sawtooth","square","triangle","sine"].indexOf(o.onde) >= 0) P.onde = o.onde;
       if(P.type === "synth" && typeof o.ech === "string" && /^[bu][a-zA-Z0-9_-]{1,100}$/.test(o.ech)) P.ech = o.ech;
+      P.looper = P.type === "synth" && o.looper === true;
+      if(Array.isArray(o.boucles)) for(var b=0;b<MC_CLIPS;b++){
+        var ref = o.boucles[b];
+        if(typeof ref === "string" && /^[bu][a-zA-Z0-9_-]{1,100}$/.test(ref)) P.boucles[b] = ref;
+      }
       P.cut = nombreMc(o.cut, 0, 1, P.cut, false);
       P.dec = nombreMc(o.dec, 0, 1, P.dec, false);
       P.niv = nombreMc(o.niv, 0, 1, P.niv, false);

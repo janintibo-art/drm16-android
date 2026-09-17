@@ -409,7 +409,10 @@ function usagesEch(id){
   var km = S.modele === "kp" && typeof KP !== "undefined" && KP ? KP : memLire("kp");
   if(km && Array.isArray(km.banques)) km.banques.forEach(function(b){ if(b && b.ech === id) n++; });
   var mc = S.modele === "mc" && typeof MC !== "undefined" ? MC : memLire("mc");
-  if(mc && Array.isArray(mc.pistes)) mc.pistes.forEach(function(p){ if(p && p.ech === id) n++; });
+  if(mc && Array.isArray(mc.pistes)) mc.pistes.forEach(function(p){ if(!p) return;
+    if(p.ech === id) n++;
+    if(Array.isArray(p.boucles)) p.boucles.forEach(function(b){ if(b === id) n++; });
+  });
   return n;
 }
 function supprimerEch(id){

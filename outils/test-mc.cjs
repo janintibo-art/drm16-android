@@ -46,7 +46,7 @@ function setup(saved,options={}){
 }
 function memoireExemple(){
   return {sel:2,note:5,scatType:3,scatProf:.7,pistes:Array.from({length:4},(_,i)=>({
-    ech:'',type:i===0?'drum':'synth',onde:i%2?'sawtooth':'square',cut:.3,dec:.4,niv:.6,muet:i===3,oct:0,clip:i,
+    ech:'',looper:false,boucles:Array(16).fill(''),type:i===0?'drum':'synth',onde:i%2?'sawtooth':'square',cut:.3,dec:.4,niv:.6,muet:i===3,oct:0,clip:i,
     clips:Array.from({length:4},(_,j)=>Array.from({length:16},(_,k)=>k===i+j?(i===0?j:i*7+j):-1)),
   }))};
 }
@@ -657,3 +657,22 @@ console.log('MC-101 v183 : migration, 64 clips isolés, scène avec clip 16, rap
  c.PROJET_EN_COURS=true;assert(!c.affecterSonMc(1,'uessai'));
 }
 console.log('MC-101 v184 : samples mélodiques, garde projet, refus, notes intactes, mémoire et retour synthé OK.');
+
+// v185 : migration, séparation notes/boucles, refus des éditions en lecture.
+{
+  const f=setup(),{c}=f;c.activerMc();f.piste(1);
+  c.ES.buf.uloop={duration:1};c.MC.pistes[1].clips[0][0]=24;
+  assert(c.modeLooperMc());assert(c.affecterSonMc(1,'uloop'));
+  c.copierClipMc();c.choisirClipMc(15);assert(c.collerClipMc());
+  assert.equal(c.MC.pistes[1].boucles[15],'uloop');
+  c.S.run=true;assert(!c.modeLooperMc());assert(!c.affecterSonMc(1,'uloop'));
+  assert(!c.collerClipMc());c.S.run=false;
+  c.memMc();const saved=copie(c.stocke);saved.pistes[1].boucles[4]='../absent';
+  const autre=setup(saved);autre.c.activerMc();
+  assert(autre.c.MC.pistes[1].looper);assert.equal(autre.c.MC.pistes[1].boucles[4],'');
+  assert.equal(autre.c.MC.pistes[1].boucles[15],'uloop');
+  assert(autre.c.modeLooperMc());assert.equal(autre.c.MC.pistes[1].clips[0][0],24);
+  assert(!autre.c.collerClipMc(),'pas de collage sans copie de session');
+  assert(c.modeLooperMc());assert(!c.collerClipMc(),'boucle incompatible avec notes');
+}
+console.log('MC-101 v185 : boucles, copie, migration et protections OK.');
