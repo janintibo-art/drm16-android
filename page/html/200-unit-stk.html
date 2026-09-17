@@ -30,6 +30,14 @@
     <output id="stk-source" aria-live="polite"></output>
   </div>
   <div id="stk-tranches" role="group" aria-label="Huit tranches égales du son" hidden></div>
+  <div class="stk-motifs-commandes">
+    <button id="stk-quantifie" aria-pressed="false">DIRECT</button>
+    <button id="stk-annuler" disabled>ANNULER</button>
+    <output id="stk-lancement-etat" aria-live="polite">CHANGEMENT EN DIRECT</output>
+    <button id="stk-copier">COPIER MOTIF</button>
+    <button id="stk-coller" disabled>COLLER MOTIF</button>
+    <output id="stk-copie-etat" aria-live="polite">AUCUNE COPIE</output>
+  </div>
   <div class="stk-pads" id="stk-pads"></div>
   <div class="stk-trks" id="stk-trks"></div>
   <div class="stk-pied"><span id="stk-etat">Choisissez une piste, puis écrivez ses pas.</span></div>

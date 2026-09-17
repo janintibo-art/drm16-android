@@ -78,6 +78,7 @@ function start(){
   if(!ctx) return;
   if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
   if(typeof MACHINE_MC !== "undefined" && MACHINE_MC) MACHINE_MC.arret();
+  if(typeof MACHINE_STK !== "undefined" && MACHINE_STK) MACHINE_STK.arret();
   S.run=true; step=0; pasSet=0; queue=[];
   if(SET.on) preparerSet();
   if(MIDI.sync && MIDI.ouvert >= 0){
@@ -103,6 +104,7 @@ function stop(){
   if(MACHINE && MACHINE.arret) MACHINE.arret();
   if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI && MACHINE !== MACHINE_DBI) MACHINE_DBI.arret();
   if(typeof MACHINE_MC !== "undefined" && MACHINE_MC && MACHINE !== MACHINE_MC) MACHINE_MC.arret();
+  if(typeof MACHINE_STK !== "undefined" && MACHINE_STK && MACHINE !== MACHINE_STK) MACHINE_STK.arret();
   if(typeof MACHINE_KP !== "undefined" && MACHINE_KP && MACHINE !== MACHINE_KP) MACHINE_KP.arret();
   host(false);
   midiHorloge(false);

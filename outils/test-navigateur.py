@@ -1638,10 +1638,72 @@ async def stk_tranches(nav):
     finally:
         await contexte.close()
 
+async def stk_motifs(nav):
+    print('\n26. SmplTrek : copie et lancement des motifs avec le vrai transport (v187)')
+    from pathlib import Path
+    contexte=await nav.new_context(viewport={'width':393,'height':851})
+    adresse=await servir_page(contexte);pg=await contexte.new_page();erreurs=[]
+    pg.on('pageerror',lambda e:erreurs.append(str(e)))
+    try:
+        await pg.goto(adresse)
+        await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=stk]').click()
+        await pg.evaluate('''() => {
+          STK.pistes[0].slice=true;STK.motifs[0].pas[0]=65535;STK.motifs[0].tranches[0].fill(0);
+          STK.motifs[0].pas[9]=16;STK.motifs[0].tranches[9][4]=5;
+          window.__mix=JSON.stringify(STK.pistes);majStk();
+        }''')
+        await pg.locator('#stk-copier').click()
+        await pg.locator('#stk-ptn').click()
+        await pg.locator('#stk-pads button').nth(7).click()
+        await pg.locator('#stk-coller').click()
+        ok(await pg.evaluate('STK.motifs[7].pas[9]===16 && STK.motifs[7].tranches[9][4]===5 && JSON.stringify(STK.pistes)===__mix'),'copie des dix pistes et de leurs tranches, mixage conservé')
+        await pg.evaluate('STK.motifs[7].tranches[0].fill(7)')
+        ok(await pg.evaluate('STK.motifs[0].tranches[0].every(n=>n===0) && STK.copie.motif.tranches[0].every(n=>n===0)'),'édition de la copie sans modifier la source ni le presse-papiers')
+        await pg.locator('#stk-pads button').nth(0).click()
+        await pg.locator('#stk-quantifie').click()
+        await pg.evaluate('''() => {
+          window.__voixStk=voixStk;window.__notesStk=[];
+          voixStk=function(t,k,a,tr){if(k===0)__notesStk.push({t:t,tr:tr});return __voixStk(t,k,a,tr);};
+          S.bpm=180;
+        }''')
+        await pg.locator('#stk-play').click()
+        await pg.wait_for_function('STK.pos>=2 && STK.pos<=5')
+        await pg.locator('#stk-pads button').nth(7).click()
+        ok(await pg.evaluate('STK.cur===0 && STK.attente===7'),'motif demandé en attente, ancien motif encore sélectionné')
+        await pg.locator('#stk-annuler').click()
+        ok(await pg.evaluate('STK.cur===0 && STK.attente===null'),'ANNULER garde le motif courant')
+        await pg.locator('#stk-pads button').nth(7).click()
+        await pg.wait_for_function('STK.depart!==null')
+        depart=await pg.evaluate('STK.depart.t')
+        ok(await pg.evaluate('STK.cur===0') and await pg.locator('#stk-annuler').is_disabled(),'départ programmé verrouillé avant la frontière audio')
+        await pg.wait_for_function('STK.cur===7')
+        r=await pg.evaluate('({notes:__notesStk,temps:maintenantAudio(),mix:JSON.stringify(STK.pistes)===__mix})')
+        nouvelles=[n for n in r['notes'] if n['tr']==7]
+        ok(nouvelles and all(n['t']>=depart for n in nouvelles) and r['temps']>=depart and r['mix'],'tranches du nouveau motif au départ retenu, jamais avant ; réglages inchangés')
+        ok(await pg.locator('#stk-coller').is_disabled(),'collage indisponible pendant PLAY')
+        await pg.locator('#stk-play').click()
+        ok(await pg.evaluate('!S.run && STK.cur===7 && STK.attente===null && STK.depart===null'),'STOP conserve le motif entendu et vide les demandes')
+        await pg.evaluate('memStk();writeMem()');await pg.reload()
+        await pg.wait_for_function("document.body.classList.contains('pret') && S.modele==='stk'")
+        await pg.locator('.pick[data-m=stk]').click()
+        ok(await pg.evaluate('STK.quantifie && STK.cur===7 && STK.motifs[7].tranches[0][0]===7 && STK.copie===null && STK.attente===null'),'mode et motifs restaurés, copie et demandes temporaires effacées')
+        # Le STOP global annule aussi une demande de la machine secondaire du SET.
+        await pg.evaluate('''() => { SET.on=true;SET.actives.stk=true;S.run=true;MACHINE=MACHINE_MC;choisirMotifStk(0); }''')
+        ok(await pg.evaluate('STK.attente===0'),'demande quantifiée en machine secondaire du SET')
+        await pg.evaluate('stop();SET.on=false;MACHINE=MACHINE_STK;majStk()')
+        ok(await pg.evaluate('STK.attente===null && STK.depart===null'),'STOP global nettoie le SmplTrek secondaire')
+        for w,h in ((393,851),(360,640),(880,400)):
+            await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+            await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('stk-v187-%sx%s.png'%(w,h))))
+        ok(not erreurs,'aucune erreur de page : '+str(erreurs))
+    finally:
+        await contexte.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs):
             try:
                 await t(nav)
             except Exception as e:

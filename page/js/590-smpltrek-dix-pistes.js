@@ -19,12 +19,69 @@ function motifStk(){
   return m;
 }
 var STK = {pistes:[], motifs:[], cur:0, sel:0, solo:-1, rec:false, pos:-1,
-           noeuds:null, chaine:[], chainePos:0, song:false, onde:null, ondePour:""};
+           noeuds:null, chaine:[], chainePos:0, song:false, onde:null, ondePour:"",
+           quantifie:false, attente:null, depart:null, contexte:null, copie:null};
 for(var sz=0; sz<STK_PISTES; sz++) STK.pistes.push(pisteStk(sz));
 for(var sz2=0; sz2<STK_MOTIFS; sz2++) STK.motifs.push(motifStk());
 
 function motifStkCur(){ return STK.motifs[STK.cur]; }
 function pisteStkSel(){ return STK.pistes[STK.sel]; }
+
+/* v187 : l'affichage reste sur le motif entendu jusqu'au départ audio.
+   Une demande non programmée est annulable, un départ déjà programmé est verrouillé. */
+function viderAttenteStk(){ STK.attente = null; STK.depart = null; STK.contexte = null; }
+function validerDepartStk(){
+  if(STK.contexte && STK.contexte !== ctx){ viderAttenteStk(); return false; }
+  var d = STK.depart;
+  if(!d || !ctx || ctx.startRendering || maintenantAudio() < d.t) return false;
+  STK.cur = d.motif; STK.depart = null; STK.contexte = null; return true;
+}
+function suivreMotifsStk(){ if(validerDepartStk()){ memStk(); majStk(); } }
+function lectureMotifsStk(){
+  return S.run && ctx && !ctx.startRendering &&
+    (MACHINE === MACHINE_STK || (typeof SET !== "undefined" && SET.on && SET.actives.stk));
+}
+function commandeMotifsStk(){
+  suivreMotifsStk();
+  if(STK.depart){ signal("DÉPART IMMINENT"); return false; }
+  return true;
+}
+function choisirMotifStk(k){
+  if(!Number.isInteger(k) || k < 0 || k >= STK_MOTIFS) return false;
+  if(!commandeMotifsStk()) return false;
+  if(STK.quantifie && lectureMotifsStk()){
+    if(STK.motifs[k].last !== motifStkCur().last){
+      signal("ARRÊTEZ PLAY POUR CHANGER LA LONGUEUR DU MOTIF"); return false;
+    }
+    STK.attente = STK.cur === k || STK.attente === k ? null : k;
+    STK.contexte = STK.attente === null ? null : ctx;
+  } else { viderAttenteStk(); STK.cur = k; memStk(); }
+  STK.song = false; majStk(); return true;
+}
+function modeMotifsStk(){
+  if(!commandeMotifsStk()) return false;
+  STK.quantifie = !STK.quantifie; viderAttenteStk(); memStk(); majStk(); return true;
+}
+function annulerMotifStk(){
+  if(!commandeMotifsStk()) return false;
+  viderAttenteStk(); majStk(); return true;
+}
+function copieMotifStk(m){
+  return {last:m.last, pas:m.pas.slice(), tranches:m.tranches.map(function(t){ return t.slice(); })};
+}
+function copierMotifStk(){
+  suivreMotifsStk();
+  STK.copie = {origine:STK.cur, motif:copieMotifStk(motifStkCur())};
+  majStk(); signal("MOTIF " + (STK.cur + 1) + " COPIÉ · DIX PISTES");
+}
+function collerMotifStk(){
+  if(!STK.copie){ signal("COPIEZ D'ABORD UN MOTIF"); return false; }
+  if(S.run){ signal("ARRÊTEZ PLAY POUR COLLER UN MOTIF"); return false; }
+  if(motifStkCur().pas.some(function(p){ return p !== 0; }) &&
+    !window.confirm("Remplacer les dix pistes du motif " + (STK.cur + 1) + " par la copie ? Les sons et le mixage restent inchangés.")) return false;
+  STK.motifs[STK.cur] = copieMotifStk(STK.copie.motif);
+  memStk(); majStk(); signal("MOTIF COLLÉ · DIX PISTES"); return true;
+}
 
 /* v186 : huit tranches égales, sans création ni modification du fichier source.
    -1 dans un pas conserve le son entier des anciens projets. */
@@ -100,8 +157,16 @@ function voixStk(t, i, acc, tranche){
 }
 
 function scheduleStk(i, t){
+  var direct = ctx && !ctx.startRendering;
+  if(direct){
+    suivreMotifsStk();
+    if(i === 0 && lectureMotifsStk() && !STK.depart && STK.attente !== null){
+      STK.depart = {t:t, motif:STK.attente}; STK.attente = null; majStk();
+    }
+    if(STK.depart) t = Math.max(t, STK.depart.t);
+  }
   var CHARGE_N = ouvrirPas();
-  var m = motifStkCur();
+  var m = STK.motifs[direct && STK.depart ? STK.depart.motif : STK.cur];
   if(i >= m.last) return;
   for(var k=0;k<STK_PISTES;k++){
     if(!(m.pas[k] & (1 << i))) continue;
@@ -112,18 +177,22 @@ function scheduleStk(i, t){
   attenuerVoie("stk", CHARGE_N, t);
 }
 function beatStk(i){
+  suivreMotifsStk();
   STK.pos = i;
   var b = document.querySelectorAll("#stk-pads .sb");
-  for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i);
+  for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i && (typeof STK_MODE === "undefined" || STK_MODE !== "ptn"));
 }
 function arretStk(){
+  var entendu = validerDepartStk(); viderAttenteStk();
+  if(entendu) memStk();
   if(STK.noeuds && STK.noeuds.ctx === ctx){
     try{ debrancherTout(STK.noeuds); }catch(e){}
   }
   STK.noeuds = null; beatStk(-1);
+  if(S.modele === "stk") majStk();
 }
 function boucleStk(){
-  if(STK.song && STK.chaine.length){
+  if(STK.song && STK.chaine.length && STK.attente === null && !STK.depart){
     STK.chainePos = (STK.chainePos + 1) % STK.chaine.length;
     STK.cur = STK.chaine[STK.chainePos];
     majStk();
@@ -133,7 +202,8 @@ var MACHINE_STK = {schedule:scheduleStk, beat:beatStk, arret:arretStk, boucle:bo
                    longueur:function(){ return motifStkCur().last; }};
 
 function memStk(){
-  memoire.stk = {cur:STK.cur, sel:STK.sel, chaine:STK.chaine.slice(),
+  if(validerDepartStk()) majStk();
+  memoire.stk = {quantifie:STK.quantifie, cur:STK.cur, sel:STK.sel, chaine:STK.chaine.slice(),
     pistes:STK.pistes.map(function(P){
       return {ech:P.ech, slice:P.slice, tranche:P.tranche, niv:P.niv, pan:P.pan, tune:P.tune, dec:P.dec, filt:P.filt, muet:P.muet};
     }),
@@ -144,8 +214,10 @@ function nombreStk(v, min, max, repli){
   return typeof v === "number" && isFinite(v) ? Math.max(min, Math.min(max, v)) : repli;
 }
 function chargerStk(){
+  viderAttenteStk();
   var m = memLire("stk");
   if(!m || typeof m !== "object" || Array.isArray(m)) return;
+  STK.quantifie = m.quantifie === true;
   STK.cur = Math.floor(nombreStk(m.cur, 0, STK_MOTIFS - 1, 0));
   STK.sel = Math.floor(nombreStk(m.sel, 0, STK_PISTES - 1, 0));
   STK.chaine = Array.isArray(m.chaine) ? m.chaine.filter(function(x){ return Number.isInteger(x) && x >= 0 && x < STK_MOTIFS; }).slice(0,256) : [];
@@ -808,6 +880,7 @@ function majTranchesStk(){
   if(cacheAvant !== grille.hidden && S.modele === "stk") fit();
 }
 function majStk(){
+  if(validerDepartStk()) memStk();
   var dp = document.getElementById("stk-pads");
   if(!dp) return;
   if(!dp.childNodes.length){
@@ -835,10 +908,14 @@ function majStk(){
   for(var k2=0;k2<16;k2++){
     bs[k2].classList.toggle("on",
       STK_MODE === "ptn" ? (k2 === STK.cur) : !!(m.pas[STK.sel] & (1 << k2)));
+    bs[k2].classList.toggle("cur", STK_MODE !== "ptn" && k2 === STK.pos);
     var tr = m.tranches[STK.sel][k2], actifPas = !!(m.pas[STK.sel] & (1 << k2));
     bs[k2].textContent = STK_MODE === "ptn" ? (k2 < STK_MOTIFS ? String(k2 + 1) : "·") :
       String(k2 + 1) + (pisteStkSel().slice && actifPas ? (tr >= 0 ? " · T" + (tr + 1) : " · ENT") : "");
-    bs[k2].disabled = STK_MODE === "ptn" ? k2 >= STK_MOTIFS : k2 >= m.last;
+    var suivant = STK.depart ? STK.depart.motif : STK.attente;
+    bs[k2].classList.toggle("attente", STK_MODE === "ptn" && k2 === suivant);
+    if(STK_MODE === "ptn" && k2 === suivant) bs[k2].textContent += " →";
+    bs[k2].disabled = STK_MODE === "ptn" ? k2 >= STK_MOTIFS || !!STK.depart : k2 >= m.last;
     bs[k2].setAttribute("aria-label", STK_MODE === "ptn" ? "Motif " + (k2 + 1) :
       "Pas " + (k2 + 1) + (actifPas ? (pisteStkSel().slice && tr >= 0 ? " · tranche " + (tr + 1) : " · son entier") : " · vide"));
   }
@@ -850,6 +927,16 @@ function majStk(){
     ts[t2].querySelector("i").style.background = couleurCanal(t2);
     ts[t2].querySelector("em").textContent = nomBib(P.ech);
   }
+  var qm = document.getElementById("stk-quantifie");
+  qm.textContent = STK.quantifie ? "FIN MOTIF" : "DIRECT";
+  qm.classList.toggle("on", STK.quantifie); qm.disabled = !!STK.depart;
+  qm.setAttribute("aria-pressed", String(STK.quantifie));
+  document.getElementById("stk-annuler").disabled = STK.attente === null || !!STK.depart;
+  document.getElementById("stk-lancement-etat").textContent = STK.depart ? "DÉPART IMMINENT · MOTIF " + (STK.depart.motif + 1)
+    : STK.attente !== null ? "EN ATTENTE · MOTIF " + (STK.attente + 1)
+    : STK.quantifie ? "CHANGEMENT À LA FIN DU MOTIF" : "CHANGEMENT EN DIRECT";
+  document.getElementById("stk-coller").disabled = !STK.copie || S.run;
+  document.getElementById("stk-copie-etat").textContent = STK.copie ? "COPIE MOTIF " + (STK.copie.origine + 1) + " · 10 PISTES" : "AUCUNE COPIE";
   var bp = document.getElementById("stk-ptn");
   if(bp){ bp.textContent = "MOTIF " + (STK.cur + 1); bp.classList.toggle("on", STK_MODE === "ptn"); }
   var bs2 = document.getElementById("stk-solo");
@@ -868,9 +955,10 @@ function padStk(k){
   if(!Number.isInteger(k) || k < 0 || k >= 16) return;
   audioInit();
   if(STK_MODE === "ptn"){
-    if(k < STK_MOTIFS){ STK.cur = k; majStk(); memStk(); H.inter(); }
+    if(k < STK_MOTIFS){ choisirMotifStk(k); H.inter(); }
     return;
   }
+  suivreMotifsStk();
   var m = motifStkCur(), P = pisteStkSel();
   if(!Number.isInteger(k) || k < 0 || k >= m.last) return;
   var tranche = P.slice ? P.tranche : -1;
@@ -915,6 +1003,10 @@ document.getElementById("stk-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
   majStk(); H.start();
 });
+document.getElementById("stk-quantifie").addEventListener("click", modeMotifsStk);
+document.getElementById("stk-annuler").addEventListener("click", annulerMotifStk);
+document.getElementById("stk-copier").addEventListener("click", copierMotifStk);
+document.getElementById("stk-coller").addEventListener("click", collerMotifStk);
 document.getElementById("stk-ptn").addEventListener("click", function(){
   STK_MODE = (STK_MODE === "ptn") ? "pas" : "ptn";
   majStk(); H.cran();

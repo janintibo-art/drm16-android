@@ -4,10 +4,11 @@ const source=fs.readFileSync(path.join(__dirname,'../page/js/590-smpltrek-dix-pi
 const moteur=source.slice(0,source.indexOf('/* ---------- la façade du KAOSS PAD'));
 const copie=o=>JSON.parse(JSON.stringify(o));
 function setup(m){
- const c={S:{modele:'stk'},ctx:{},ES:{buf:{uessai:{length:17}}},memoire:{stk:m},queue:[],cache:false,
+ const c={S:{modele:'stk',run:false},ctx:{},now:1,confirmation:true,
+  maintenantAudio(){return c.now;},window:{confirm(){return c.confirmation;}},document:{querySelectorAll(){return [];}},SET:{on:false,actives:{}},ES:{buf:{uessai:{length:17}}},memoire:{stk:m},queue:[],cache:false,
   memLire(){return c.memoire.stk;},sauverMachine(){},banqueEs(){},signal(){},majStk(){},
   ouvrirPas(){return 0;},attenuerVoie(){}};
- vm.createContext(c);vm.runInContext(moteur,c);return c;
+ vm.createContext(c);vm.runInContext(moteur,c);c.MACHINE=c.MACHINE_STK;return c;
 }
 {
  const c=setup();for(let i=0;i<8;i++){
@@ -45,3 +46,52 @@ function setup(m){
  assert(c.STK.motifs[0].tranches.every(t=>t.every(n=>n===-1)),'ancien projet sans résidus du précédent');
 }
 console.log('SmplTrek v186 : bornes, tranches par pas, mute/solo, import, mémoire et migration OK.');
+
+// v187 : demande annulable, verrouillage puis validation à l'heure audio.
+{
+ const c=setup(),s=c.STK,sons=[];c.voixStk=(...n)=>sons.push(n);
+ s.motifs[0].pas[0]=65535;s.motifs[0].tranches[0].fill(0);
+ s.motifs[7].pas[0]=65535;s.motifs[7].tranches[0].fill(7);
+ assert(c.modeMotifsStk());c.S.run=true;
+ assert(c.choisirMotifStk(7));assert.equal(s.cur,0);assert.equal(s.attente,7);
+ c.memStk();assert.equal(c.memoire.stk.cur,0);assert(c.memoire.stk.quantifie);
+ assert(!('attente' in c.memoire.stk));
+ assert(c.annulerMotifStk());assert.equal(s.attente,null);
+ c.choisirMotifStk(7);c.choisirMotifStk(7);assert.equal(s.attente,null);
+ c.choisirMotifStk(7);c.scheduleStk(15,1.8);assert.equal(sons.at(-1)[3],0);
+ c.scheduleStk(0,2);assert.equal(sons.at(-1)[3],7);assert.equal(s.cur,0);
+ assert.equal(s.depart.t,2);assert(!c.choisirMotifStk(3));assert(!c.annulerMotifStk());
+ assert(!c.modeMotifsStk());c.memStk();assert.equal(c.memoire.stk.cur,0);
+ c.scheduleStk(1,1.7);assert.equal(sons.at(-1)[0],2,'rafale MIDI ne joue pas avant le départ retenu');
+ c.copierMotifStk();assert.equal(s.copie.origine,0,'copie du motif entendu');
+ c.arretStk();assert.equal(s.cur,0);assert.equal(s.depart,null);assert.equal(s.attente,null);
+ c.choisirMotifStk(7);c.scheduleStk(0,2);c.now=2;c.cache=true;
+ c.scheduleStk(1,2.125);assert.equal(s.cur,7,'validation même sans animation');
+ assert.equal(c.memoire.stk.cur,7);
+ c.S.run=false;c.choisirMotifStk(0);c.S.run=true;
+ c.choisirMotifStk(7);c.scheduleStk(0,3);c.now=3;c.arretStk();assert.equal(s.cur,7,'STOP après frontière conserve le motif entendu');
+ c.S.run=false;assert(c.choisirMotifStk(2));assert.equal(s.cur,2);
+ c.S.run=true;c.MACHINE={};c.SET={on:true,actives:{stk:true}};
+ c.choisirMotifStk(7);assert.equal(s.attente,7);c.scheduleStk(0,4);
+ assert.equal(s.cur,2);c.ctx={};c.suivreMotifsStk();assert.equal(s.depart,null,'ancien contexte invalidé');
+ s.motifs[3].last=8;assert(!c.choisirMotifStk(3),'longueur différente exige arrêt en mode quantifié');
+ c.choisirMotifStk(7);assert(c.modeMotifsStk());assert.equal(s.attente,null);
+ assert(c.choisirMotifStk(1));assert.equal(s.cur,1,'mode DIRECT préservé');
+ for(const k of [-1,8,2.5,NaN,'2'])assert(!c.choisirMotifStk(k));
+}
+{
+ const c=setup(),s=c.STK;const reglages=copie(s.pistes);
+ s.motifs[0].pas[9]=128;s.motifs[0].tranches[9][7]=6;
+ c.copierMotifStk();s.motifs[0].tranches[9][7]=3;
+ c.choisirMotifStk(6);assert(c.collerMotifStk());
+ assert.equal(s.motifs[6].tranches[9][7],6);assert.equal(s.motifs[6].pas[9],128);
+ s.motifs[6].tranches[9][7]=2;c.choisirMotifStk(5);assert(c.collerMotifStk());
+ assert.equal(s.motifs[5].tranches[9][7],6,'collages indépendants');
+ assert.deepStrictEqual(copie(s.pistes),reglages,'sons et mixage conservés');
+ c.confirmation=false;s.motifs[5].pas[0]=9;assert(!c.collerMotifStk());assert.equal(s.motifs[5].pas[0],9);
+ c.S.run=true;assert(!c.collerMotifStk());
+ c.S.run=false;c.memStk();const d=setup(copie(c.memoire.stk));d.chargerStk();
+ assert.equal(d.STK.motifs[6].tranches[9][7],2);assert.equal(d.STK.copie,null);
+ assert.equal(d.STK.attente,null);assert.equal(d.STK.depart,null);
+}
+console.log('SmplTrek v187 : motifs quantifiés, heure audio, MIDI/SET, arrêt, copies indépendantes et mémoire OK.');
