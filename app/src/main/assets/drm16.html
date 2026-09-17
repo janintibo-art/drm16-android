@@ -1409,6 +1409,7 @@ body.m32 .mcb,body.em1 .mcb,body.er1 .mcb,body.ea1 .mcb,body.es1 .mcb,body.emx .
 .mc-copie button{min-width:0;margin:0;padding:9px 2px;border:0;border-radius:6px;background:#22222a;
   color:#cfcfd4;font:800 9px/1.2 "Roboto Condensed",Arial;touch-action:manipulation}
 .mc-copie button:disabled{opacity:.4}
+#mc-source{min-width:0;overflow-wrap:anywhere;font:700 10px/1.4 "Roboto Condensed",Arial;color:#b6ebcf}
 #mc-copie-etat{min-width:0;font:700 8px/1.4 "Roboto Condensed",Arial;color:#8a8a92}
 .mc-kns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:11px}
 .mc-kn{text-align:center}
@@ -3657,6 +3658,12 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <output id="mc-copie-etat" aria-live="polite">AUCUNE COPIE</output>
   </div>
 
+  <div class="mc-copie">
+    <button id="mc-sample">CHOISIR SON</button>
+    <button id="mc-synthe">SYNTHÉ</button>
+    <output id="mc-source" aria-live="polite">SYNTHÉ</output>
+  </div>
+
   <div class="mc-kns">
     <div class="mc-kn" id="mc-k-cut"><div class="bt"><i></i></div><em>C1 · FILTRE</em></div>
     <div class="mc-kn" id="mc-k-dec"><div class="bt"><i></i></div><em>C2 · DÉCLIN</em></div>
@@ -4612,6 +4619,18 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   début de mesure encore disponible. Le clip en cours reste vert, celui qui attend devient ambré.
   Vous pouvez préparer plusieurs pistes : elles changeront ensemble. Les pads, COPIER et COLLER
   agissent toujours sur le clip en cours, jusqu'au départ du suivant.</p>
+  <h3>Samples sur les pistes 2 à 4</h3>
+  <p><b>CHOISIR SON</b> ouvre la bibliothèque sur la piste sélectionnée. Utilisez
+  <b>IMPORTER UN FICHIER</b> si nécessaire, puis <b>AFFECTER</b> sur le son choisi.
+  L’import de la bibliothèque conserve au maximum 8 secondes, en mono à 32 kHz.
+  Les clips existants jouent désormais ce sample : la note 0 le lit à sa hauteur
+  d'origine, les autres notes le transposent. Le filtre et le niveau restent actifs ;
+  DÉCLIN règle la portion jouée, jusqu'au son entier à sa valeur maximale.</p>
+  <p><b>SYNTHÉ</b> remet l'oscillateur sans effacer les clips. La piste 1 garde son
+  kit rythmique. Un sample absent est signalé et reste silencieux. Les samples
+  personnels doivent être inclus lors de l'échange du projet entre appareils.
+  Ce mode joue des sons déclenchés par les pas : il ne synchronise pas une boucle
+  par timestretch et ne constitue pas encore une piste Looper.</p>
   <p>Les anciens projets conservent leurs clips 1 à 4 ; les clips 5 à 16 sont initialement vides. Les nouvelles sauvegardes doivent être ouvertes avec la v183 ou une version ultérieure pour conserver tous les clips.</p>
   <p>Les quatre boutons <b>SCÈNE</b> rappellent chacun une combinaison de clips des quatre pistes. Les chiffres
   sous le bouton correspondent aux pistes 1, 2, 3 et 4 : <b>1 · 3 · 2 · 4</b> choisit le clip 1 de la
@@ -12652,6 +12671,7 @@ function sauverEch(id, buf){
 var ES_CHARGES = Object.create(null);
 function actualiserEchs(){
   majLedsEs();
+  if(typeof MC !== "undefined" && MC && S.modele === "mc") majMc();
   if(typeof KP !== "undefined" && KP && S.modele === "kp") majKp();
   var bib = document.getElementById("bib");
   if(bib && bib.classList.contains("show")) majBibUI();
@@ -12713,6 +12733,8 @@ function usagesEch(id){
   });
   var km = S.modele === "kp" && typeof KP !== "undefined" && KP ? KP : memLire("kp");
   if(km && Array.isArray(km.banques)) km.banques.forEach(function(b){ if(b && b.ech === id) n++; });
+  var mc = S.modele === "mc" && typeof MC !== "undefined" ? MC : memLire("mc");
+  if(mc && Array.isArray(mc.pistes)) mc.pistes.forEach(function(p){ if(p && p.ech === id) n++; });
   return n;
 }
 function supprimerEch(id){
@@ -27353,7 +27375,7 @@ function clipMc(){
 }
 function pisteMc(i){
   var p = {type:(i === 0 ? "drum" : "synth"), onde:(i % 2 ? "sawtooth" : "square"),
-           cut:0.6, dec:0.4, niv:0.8, muet:false, oct:0, clip:0, clips:[]};
+           ech:"", cut:0.6, dec:0.4, niv:0.8, muet:false, oct:0, clip:0, clips:[]};
   for(var c=0;c<MC_CLIPS;c++) p.clips.push(clipMc());
   return p;
 }
@@ -27553,6 +27575,25 @@ function collerClipMc(){
   return true;
 }
 
+/* v184 : source sample facultative des pistes mélodiques ; les clips restent des notes. */
+function affecterSonMc(k, id){
+  if(typeof PROJET_EN_COURS !== "undefined" && PROJET_EN_COURS) return false;
+  if(!Number.isInteger(k) || k < 1 || k >= MC_PISTES || typeof id !== "string") return false;
+  banqueEs();
+  if(!ES.buf[id]){ signal("SON INDISPONIBLE"); return false; }
+  if(S.modele !== "mc") chargerMc();
+  if(MC.pistes[k].type !== "synth"){ signal("CHOISISSEZ UNE PISTE MÉLODIQUE"); return false; }
+  MC.pistes[k].ech = id;
+  memMc();
+  if(S.modele === "mc") majMc();
+  return true;
+}
+function retirerSonMc(){
+  var P = pisteMcSel();
+  if(P.type !== "synth") return;
+  P.ech = ""; memMc(); majMc();
+}
+
 function noeudsMc(){
   if(MC.noeuds && MC.noeuds.ctx === ctx) return MC.noeuds;
   var e = eurGain(1);
@@ -27566,6 +27607,11 @@ function noeudsMc(){
 function voixMc(t, i, note, vel){
   audioInit(); if(!ctx) return;
   var P = MC.pistes[i], n = noeudsMc();
+  var tampon = null;
+  if(P.type === "synth" && P.ech){
+    banqueEs(); tampon = ES.buf[P.ech];
+    if(!tampon) return; // Ne jamais remplacer silencieusement un sample absent par un synthé.
+  }
   var g = ctx.createGain();
   var pic = P.niv * (vel === undefined ? 1 : vel);
   g.connect(pasVoie(n.e));
@@ -27591,6 +27637,23 @@ function voixMc(t, i, note, vel){
       g.gain.exponentialRampToValueAtTime(0.0001, t + d);
       b.connect(f); f.connect(g); b.stop(t + d + 0.05);
     }
+    return;
+  }
+
+  if(tampon){
+    var src = ctx.createBufferSource();
+    var vitesse = Math.pow(2, (note + P.oct * 12) / 12);
+    src.playbackRate.value = vitesse; poserTampon(src, tampon, vitesse);
+    var filtre = ctx.createBiquadFilter(); filtre.type = "lowpass";
+    filtre.frequency.value = Math.min(ctx.sampleRate * 0.45, 160 * Math.pow(115, P.cut));
+    var duree = Math.max(0.001, tampon.duration / vitesse * (0.05 + 0.95 * P.dec));
+    var attaque = Math.min(0.003, duree * 0.1);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(Math.max(0.0001, pic), t + attaque);
+    g.gain.setValueAtTime(Math.max(0.0001, pic), t + duree * 0.8);
+    g.gain.linearRampToValueAtTime(0.0001, t + duree);
+    src.connect(filtre); filtre.connect(g);
+    src.start(t); src.stop(t + duree);
     return;
   }
 
@@ -27687,7 +27750,7 @@ function memMc(){
   memoire.mc = {sel:MC.sel, scatType:MC.scatType, scatProf:MC.scatProf, note:MC.note, quantifie:MC.quantifie,
     scenes:MC.scenes.map(function(scene){ return scene.slice(); }),
     pistes:MC.pistes.map(function(P){
-      return {type:P.type, onde:P.onde, cut:P.cut, dec:P.dec, niv:P.niv,
+      return {type:P.type, onde:P.onde, ech:P.ech, cut:P.cut, dec:P.dec, niv:P.niv,
               muet:P.muet, oct:P.oct, clip:P.clip, clips:P.clips.map(function(c){ return c.slice(); })};
     })};
   sauverMachine("mc");
@@ -27708,6 +27771,7 @@ function chargerMc(){
     if(o && typeof o === "object" && !Array.isArray(o)){
       if(o.type === "drum" || o.type === "synth") P.type = o.type;
       if(["sawtooth","square","triangle","sine"].indexOf(o.onde) >= 0) P.onde = o.onde;
+      if(P.type === "synth" && typeof o.ech === "string" && /^[bu][a-zA-Z0-9_-]{1,100}$/.test(o.ech)) P.ech = o.ech;
       P.cut = nombreMc(o.cut, 0, 1, P.cut, false);
       P.dec = nombreMc(o.dec, 0, 1, P.dec, false);
       P.niv = nombreMc(o.niv, 0, 1, P.niv, false);
@@ -28195,6 +28259,11 @@ function majClipsMc(){
     : demandes.length ? "PROCHAINE MESURE · " + demandes.join(" / ")
     : MC.memoScene ? "TOUCHEZ LA SCÈNE À MÉMORISER"
     : MC.quantifie ? "CLIPS ET SCÈNES AU DÉBUT DE LA MESURE" : "CLIPS ET SCÈNES EN DIRECT";
+  document.getElementById("mc-sample").disabled = P.type !== "synth";
+  document.getElementById("mc-synthe").disabled = !P.ech;
+  document.getElementById("mc-onde").disabled = P.type !== "synth" || !!P.ech;
+  document.getElementById("mc-source").textContent = P.type === "drum" ? "KIT RYTHMIQUE" :
+    P.ech ? (ES.buf[P.ech] ? nomBib(P.ech) : "SON ABSENT · " + P.ech) : "SYNTHÉ";
   var copie = MC.copie, coller = document.getElementById("mc-coller");
   coller.disabled = !copie || copie.type !== P.type;
   coller.title = !copie ? "Copiez d'abord un clip" : (copie.type !== P.type
@@ -28239,7 +28308,7 @@ function majMc(){
     ts[t2].classList.toggle("sel", t2 === MC.sel);
     ts[t2].classList.toggle("muet", MC.pistes[t2].muet);
     ts[t2].querySelector("em").textContent =
-      MC.pistes[t2].type === "drum" ? "RYTHME" : MC.pistes[t2].onde.slice(0, 4).toUpperCase();
+      MC.pistes[t2].type === "drum" ? "RYTHME" : MC.pistes[t2].ech ? "SAMPLE" : MC.pistes[t2].onde.slice(0, 4).toUpperCase();
   }
   var c = document.getElementById("mc-clip");
   if(c) c.textContent = "CLIP " + (P.clip + 1);
@@ -28290,7 +28359,7 @@ function majKnobsMc(){ [kMcCut, kMcDec, kMcNiv, kMcNote].forEach(function(k){ k.
 
 function activerMc(){
   stop();
-  audioInit();
+  audioInit(); banqueEs(); chargerEchs();
   chargerMc();
   poserMachine("mc");
   actif = document.getElementById("unit-mc");
@@ -28340,6 +28409,12 @@ document.getElementById("mc-copier").addEventListener("click", function(){
 document.getElementById("mc-coller").addEventListener("click", function(){
   collerClipMc(); H.inter();
 });
+document.getElementById("mc-sample").addEventListener("click", function(){
+  if(pisteMcSel().type !== "synth") return;
+  BIB.onglet = 0; BIB.cible = {machine:"mc", partie:MC.sel - 1};
+  ouvrirBib(); H.inter();
+});
+document.getElementById("mc-synthe").addEventListener("click", retirerSonMc);
 document.getElementById("mc-onde").addEventListener("click", function(){
   var P = pisteMcSel();
   if(P.type === "drum"){ signal("PISTE RYTHMIQUE · FORME D'ONDE FIXE"); return; }
@@ -29222,6 +29297,8 @@ function bibAffecter(id){
     if(S.modele !== m) activerEr(2);
     if(id.charAt(0) === "b"){ ER.pat.son[k].pcm = +id.slice(1); memEr(); }
     else { signal("LES PARTIES PCM NE LISENT QUE LA BANQUE"); return; }
+  } else if(m === "mc"){
+    if(!affecterSonMc(k, id)) return;
   } else if(m === "kp"){
     if(!affecterSonKp(k, id)) return;
   }
@@ -29231,23 +29308,26 @@ function bibAffecter(id){
 }
 var BIB_MACHINES = [["es1","Electribe ES-1"],["es2","ES-1 mkII"],["esx","Electribe ESX-1"],
                     ["emx","Electribe EMX-1"],["er2","ER-1 mkII"],
-                    ["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["kp","Korg KAOSS PAD"]];
+                    ["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["kp","Korg KAOSS PAD"],["mc","Roland MC-101"]];
 function bibParties(m){
   var l = [], i;
   if(m === "es1" || m === "es2") for(i=0;i<9;i++) l.push(ES_PARTS[i].n);
   else if(m === "esx") for(i=0;i<14;i++) l.push(nomPartieSx(i));
   else if(m === "emx") for(i=0;i<9;i++) l.push("Drum " + MX_DRUMS[i]);
   else if(m === "er2") l = ["PCM 1", "PCM 2"];
+  else if(m === "mc") l = ["Piste 2", "Piste 3", "Piste 4"];
   else if(m === "kp") l = ["Banque A", "Banque B", "Banque C", "Banque D"];
   else for(i=0;i<64;i++) l.push("Pad " + MPC_BANQUES[Math.floor(i/16)] + ((i%16)+1));
   return l;
 }
 function bibNomPartie(m, k){
   var l = bibParties(m);
+  if(m === "mc") k--;
   if(m === "er2") k = (k === 5) ? 1 : 0;
   return l[k] !== undefined ? l[k] : ("partie " + (k+1));
 }
 function bibIndexReel(m, k){
+  if(m === "mc") return k + 1;
   if(m === "er2") return k ? 5 : 4;      /* les deux parties PCM de l'ER-1 mkII */
   return k;
 }

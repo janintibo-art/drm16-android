@@ -1436,10 +1436,69 @@ async def mc_scenes(nav):
     finally:
         await ctx.close()
 
+async def mc_samples(nav):
+    print("\n23. MC-101 : import WAV, affectation, son réel et sauvegarde (v184)")
+    import io, wave, math, struct
+    flux = io.BytesIO()
+    with wave.open(flux, 'wb') as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(32000)
+        w.writeframes(b''.join(struct.pack('<h', int(8000 * math.sin(2*math.pi*440*i/32000))) for i in range(16000)))
+    contexte = await nav.new_context(viewport={"width":393,"height":851})
+    await contexte.add_init_script(PONT)
+    adresse = await servir_page(contexte)
+    pg = await contexte.new_page(); erreurs=[]
+    pg.on('pageerror',lambda e: erreurs.append(str(e)))
+    try:
+        await pg.goto(adresse)
+        await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=mc]').click()
+        ok(await pg.locator('#mc-sample').is_disabled(), 'kit rythmique préservé')
+        await pg.locator('#mc-trks button').nth(1).click()
+        await pg.locator('#mc-sample').click()
+        ok(await pg.evaluate("BIB.cible.machine === 'mc' && BIB.cible.partie === 0"), 'bibliothèque ciblée sur la piste 2')
+        await pg.set_input_files('#bib-fichier', {'name':'test-mc.wav','mimeType':'audio/wav','buffer':flux.getvalue()})
+        await pg.wait_for_function("Object.keys(BIB.noms).some(k=>BIB.noms[k]==='test-mc')")
+        ligne=pg.locator('.bib-ligne').filter(has=pg.locator('b',has_text='test-mc'))
+        await ligne.get_by_role('button',name='AFFECTER',exact=True).click()
+        idson=await pg.evaluate("MC.pistes[1].ech")
+        ok(idson.startswith('u') and await pg.evaluate("usagesEch(MC.pistes[1].ech) === 1"), 'sample affecté et usage inventorié avant suppression')
+        await pg.evaluate("() => { MC.pistes[1].clips[15][0]=12; MC.pistes[1].clip=15; memMc(); writeMem(); }")
+        await pg.reload()
+        await pg.wait_for_function("document.body.classList.contains('pret') && ES.buf[MC.pistes[1].ech]")
+        ok(await pg.evaluate("MC.pistes[1].ech") == idson and await pg.evaluate("MC.pistes[1].clips[15][0]") == 12,
+           'sample personnel rechargé depuis le pont, référence et clip 16 conservés')
+        # Le vrai moteur tourne dans un contexte hors ligne ; mesurer la fréquence
+        # permet de distinguer le sample demandé du synthé par défaut.
+        r=await pg.evaluate("""async () => {
+          async function rendre(note, absent){
+            var ancien=ctx, masterAvant=master, noeuds=MC.noeuds, ech=MC.pistes[1].ech;
+            var voie=busSet, off=new OfflineAudioContext(1,32000,32000);
+            try {
+              ctx=off; master=off.destination; MC.noeuds=null; busSet=function(){return null;};
+              MC.pistes[1].dec=1; MC.pistes[1].cut=1; MC.pistes[1].oct=0;
+              if(absent) MC.pistes[1].ech='uabsent';
+              ouvrirPas(); voixMc(0.01,1,note,0.5);
+              var b=await off.startRendering(),d=b.getChannelData(0),pic=0,passages=0;
+              for(var i=2000;i<5000;i++){pic=Math.max(pic,Math.abs(d[i]));if(d[i-1]<=0&&d[i]>0)passages++;}
+              return {pic:pic,hz:passages*32000/3000};
+            } finally {ctx=ancien; master=masterAvant; MC.noeuds=noeuds;busSet=voie;MC.pistes[1].ech=ech;}
+          }
+          return [await rendre(0,false),await rendre(12,false),await rendre(0,true)];
+        }""")
+        ok(r[0]['pic']>0.001 and abs(r[0]['hz']-440)<20 and abs(r[1]['hz']-880)<25,
+           'rendu réel non silencieux : hauteur originale et octave supérieure')
+        ok(r[2]['pic']==0, 'sample absent silencieux sans substitution par un oscillateur')
+        await pg.locator('.pick[data-m=mc]').click()
+        await pg.locator('#mc-synthe').click()
+        ok(await pg.evaluate("!MC.pistes[1].ech && MC.pistes[1].clips[15][0]===12"), 'retour au synthé sans effacer le clip')
+        ok(not erreurs,'aucune erreur de page : '+str(erreurs))
+    finally:
+        await contexte.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples):
             try:
                 await t(nav)
             except Exception as e:

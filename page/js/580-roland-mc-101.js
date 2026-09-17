@@ -31,7 +31,7 @@ function clipMc(){
 }
 function pisteMc(i){
   var p = {type:(i === 0 ? "drum" : "synth"), onde:(i % 2 ? "sawtooth" : "square"),
-           cut:0.6, dec:0.4, niv:0.8, muet:false, oct:0, clip:0, clips:[]};
+           ech:"", cut:0.6, dec:0.4, niv:0.8, muet:false, oct:0, clip:0, clips:[]};
   for(var c=0;c<MC_CLIPS;c++) p.clips.push(clipMc());
   return p;
 }
@@ -231,6 +231,25 @@ function collerClipMc(){
   return true;
 }
 
+/* v184 : source sample facultative des pistes mélodiques ; les clips restent des notes. */
+function affecterSonMc(k, id){
+  if(typeof PROJET_EN_COURS !== "undefined" && PROJET_EN_COURS) return false;
+  if(!Number.isInteger(k) || k < 1 || k >= MC_PISTES || typeof id !== "string") return false;
+  banqueEs();
+  if(!ES.buf[id]){ signal("SON INDISPONIBLE"); return false; }
+  if(S.modele !== "mc") chargerMc();
+  if(MC.pistes[k].type !== "synth"){ signal("CHOISISSEZ UNE PISTE MÉLODIQUE"); return false; }
+  MC.pistes[k].ech = id;
+  memMc();
+  if(S.modele === "mc") majMc();
+  return true;
+}
+function retirerSonMc(){
+  var P = pisteMcSel();
+  if(P.type !== "synth") return;
+  P.ech = ""; memMc(); majMc();
+}
+
 function noeudsMc(){
   if(MC.noeuds && MC.noeuds.ctx === ctx) return MC.noeuds;
   var e = eurGain(1);
@@ -244,6 +263,11 @@ function noeudsMc(){
 function voixMc(t, i, note, vel){
   audioInit(); if(!ctx) return;
   var P = MC.pistes[i], n = noeudsMc();
+  var tampon = null;
+  if(P.type === "synth" && P.ech){
+    banqueEs(); tampon = ES.buf[P.ech];
+    if(!tampon) return; // Ne jamais remplacer silencieusement un sample absent par un synthé.
+  }
   var g = ctx.createGain();
   var pic = P.niv * (vel === undefined ? 1 : vel);
   g.connect(pasVoie(n.e));
@@ -269,6 +293,23 @@ function voixMc(t, i, note, vel){
       g.gain.exponentialRampToValueAtTime(0.0001, t + d);
       b.connect(f); f.connect(g); b.stop(t + d + 0.05);
     }
+    return;
+  }
+
+  if(tampon){
+    var src = ctx.createBufferSource();
+    var vitesse = Math.pow(2, (note + P.oct * 12) / 12);
+    src.playbackRate.value = vitesse; poserTampon(src, tampon, vitesse);
+    var filtre = ctx.createBiquadFilter(); filtre.type = "lowpass";
+    filtre.frequency.value = Math.min(ctx.sampleRate * 0.45, 160 * Math.pow(115, P.cut));
+    var duree = Math.max(0.001, tampon.duration / vitesse * (0.05 + 0.95 * P.dec));
+    var attaque = Math.min(0.003, duree * 0.1);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(Math.max(0.0001, pic), t + attaque);
+    g.gain.setValueAtTime(Math.max(0.0001, pic), t + duree * 0.8);
+    g.gain.linearRampToValueAtTime(0.0001, t + duree);
+    src.connect(filtre); filtre.connect(g);
+    src.start(t); src.stop(t + duree);
     return;
   }
 
@@ -365,7 +406,7 @@ function memMc(){
   memoire.mc = {sel:MC.sel, scatType:MC.scatType, scatProf:MC.scatProf, note:MC.note, quantifie:MC.quantifie,
     scenes:MC.scenes.map(function(scene){ return scene.slice(); }),
     pistes:MC.pistes.map(function(P){
-      return {type:P.type, onde:P.onde, cut:P.cut, dec:P.dec, niv:P.niv,
+      return {type:P.type, onde:P.onde, ech:P.ech, cut:P.cut, dec:P.dec, niv:P.niv,
               muet:P.muet, oct:P.oct, clip:P.clip, clips:P.clips.map(function(c){ return c.slice(); })};
     })};
   sauverMachine("mc");
@@ -386,6 +427,7 @@ function chargerMc(){
     if(o && typeof o === "object" && !Array.isArray(o)){
       if(o.type === "drum" || o.type === "synth") P.type = o.type;
       if(["sawtooth","square","triangle","sine"].indexOf(o.onde) >= 0) P.onde = o.onde;
+      if(P.type === "synth" && typeof o.ech === "string" && /^[bu][a-zA-Z0-9_-]{1,100}$/.test(o.ech)) P.ech = o.ech;
       P.cut = nombreMc(o.cut, 0, 1, P.cut, false);
       P.dec = nombreMc(o.dec, 0, 1, P.dec, false);
       P.niv = nombreMc(o.niv, 0, 1, P.niv, false);

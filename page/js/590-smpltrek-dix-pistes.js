@@ -473,6 +473,11 @@ function majClipsMc(){
     : demandes.length ? "PROCHAINE MESURE · " + demandes.join(" / ")
     : MC.memoScene ? "TOUCHEZ LA SCÈNE À MÉMORISER"
     : MC.quantifie ? "CLIPS ET SCÈNES AU DÉBUT DE LA MESURE" : "CLIPS ET SCÈNES EN DIRECT";
+  document.getElementById("mc-sample").disabled = P.type !== "synth";
+  document.getElementById("mc-synthe").disabled = !P.ech;
+  document.getElementById("mc-onde").disabled = P.type !== "synth" || !!P.ech;
+  document.getElementById("mc-source").textContent = P.type === "drum" ? "KIT RYTHMIQUE" :
+    P.ech ? (ES.buf[P.ech] ? nomBib(P.ech) : "SON ABSENT · " + P.ech) : "SYNTHÉ";
   var copie = MC.copie, coller = document.getElementById("mc-coller");
   coller.disabled = !copie || copie.type !== P.type;
   coller.title = !copie ? "Copiez d'abord un clip" : (copie.type !== P.type
@@ -517,7 +522,7 @@ function majMc(){
     ts[t2].classList.toggle("sel", t2 === MC.sel);
     ts[t2].classList.toggle("muet", MC.pistes[t2].muet);
     ts[t2].querySelector("em").textContent =
-      MC.pistes[t2].type === "drum" ? "RYTHME" : MC.pistes[t2].onde.slice(0, 4).toUpperCase();
+      MC.pistes[t2].type === "drum" ? "RYTHME" : MC.pistes[t2].ech ? "SAMPLE" : MC.pistes[t2].onde.slice(0, 4).toUpperCase();
   }
   var c = document.getElementById("mc-clip");
   if(c) c.textContent = "CLIP " + (P.clip + 1);
@@ -568,7 +573,7 @@ function majKnobsMc(){ [kMcCut, kMcDec, kMcNiv, kMcNote].forEach(function(k){ k.
 
 function activerMc(){
   stop();
-  audioInit();
+  audioInit(); banqueEs(); chargerEchs();
   chargerMc();
   poserMachine("mc");
   actif = document.getElementById("unit-mc");
@@ -618,6 +623,12 @@ document.getElementById("mc-copier").addEventListener("click", function(){
 document.getElementById("mc-coller").addEventListener("click", function(){
   collerClipMc(); H.inter();
 });
+document.getElementById("mc-sample").addEventListener("click", function(){
+  if(pisteMcSel().type !== "synth") return;
+  BIB.onglet = 0; BIB.cible = {machine:"mc", partie:MC.sel - 1};
+  ouvrirBib(); H.inter();
+});
+document.getElementById("mc-synthe").addEventListener("click", retirerSonMc);
 document.getElementById("mc-onde").addEventListener("click", function(){
   var P = pisteMcSel();
   if(P.type === "drum"){ signal("PISTE RYTHMIQUE · FORME D'ONDE FIXE"); return; }

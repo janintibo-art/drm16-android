@@ -22,7 +22,7 @@ function element(tag='div'){
 function setup(saved,options={}){
   const el={};for(const m of html.matchAll(/\bid="([^"]+)"/g))el[m[1]]=element();
   const c={memoire:saved===undefined?{}:{mc:saved},S:{modele:'16',run:false},ctx:options.sansAudio?null:{},
-    master:{},cache:false,queue:[],sons:[],signals:[],confirms:[],confirmation:true,arrets:0,sauves:0,ecritures:0,
+    master:{},ES:{buf:{}},banqueEs(){},chargerEchs(){},nomBib:id=>id,cache:false,queue:[],sons:[],signals:[],confirms:[],confirmation:true,arrets:0,sauves:0,ecritures:0,
     maintenant:1,SET:{on:false,actives:{}},
     H:{inter(){},cran(){},start(){}},
     document:{getElementById(id){return el[id]||null;},createElement:element,
@@ -46,7 +46,7 @@ function setup(saved,options={}){
 }
 function memoireExemple(){
   return {sel:2,note:5,scatType:3,scatProf:.7,pistes:Array.from({length:4},(_,i)=>({
-    type:i===0?'drum':'synth',onde:i%2?'sawtooth':'square',cut:.3,dec:.4,niv:.6,muet:i===3,oct:0,clip:i,
+    ech:'',type:i===0?'drum':'synth',onde:i%2?'sawtooth':'square',cut:.3,dec:.4,niv:.6,muet:i===3,oct:0,clip:i,
     clips:Array.from({length:4},(_,j)=>Array.from({length:16},(_,k)=>k===i+j?(i===0?j:i*7+j):-1)),
   }))};
 }
@@ -640,3 +640,20 @@ console.log('MC-101 : restauration, copies indépendantes, scènes personnalisé
  assert.equal(el['mc-scenes'].childNodes.length,4);
 }
 console.log('MC-101 v183 : migration, 64 clips isolés, scène avec clip 16, rappel à la mesure et retour au clip 1 OK.');
+
+// v184 : affectation mélodique, refus sans mutation, sauvegarde et retour synthé.
+{
+ const f=setup(memoireExemple()),{c,el}=f;c.activerMc();c.ES.buf.uessai={duration:1};
+ const notes=copie(c.MC.pistes.map(p=>p.clips));
+ assert(!c.affecterSonMc(0,'uessai'));assert(!c.affecterSonMc(4,'uessai'));
+ assert(!c.affecterSonMc(1,'absent'));assert(c.affecterSonMc(2,'uessai'));
+ assert.equal(c.stocke.pistes[2].ech,'uessai');assert.equal(el['mc-source'].textContent,'uessai');
+ assert(el['mc-onde'].disabled);assert(!el['mc-synthe'].disabled);
+ assert.deepStrictEqual(copie(c.MC.pistes.map(p=>p.clips)),notes);
+ const r=setup(copie(c.stocke));r.c.activerMc();assert.equal(r.c.MC.pistes[2].ech,'uessai');
+ assert(r.el['mc-source'].textContent.includes('SON ABSENT'));
+ r.click('mc-synthe');assert.equal(r.c.stocke.pistes[2].ech,'');
+ assert.deepStrictEqual(copie(r.c.MC.pistes.map(p=>p.clips)),notes);
+ c.PROJET_EN_COURS=true;assert(!c.affecterSonMc(1,'uessai'));
+}
+console.log('MC-101 v184 : samples mélodiques, garde projet, refus, notes intactes, mémoire et retour synthé OK.');
