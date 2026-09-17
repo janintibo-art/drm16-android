@@ -27,7 +27,50 @@ var KP = {fx:0, x:0.5, y:0.5, tenu:false, touche:false,
           prof:0.8, noeuds:null, muet:false,
           banques:[{ech:"b0", mode:"loop", on:false}, {ech:"b3", mode:"loop", on:false},
                    {ech:"b6", mode:"loop", on:false}, {ech:"b9", mode:"loop", on:false}],
-          sel:0, sources:[null, null, null, null], vitesse:1};
+          sel:0, sources:[null, null, null, null], vitesse:1, taps:[]};
+
+/* v168 : le tempo reste celui du séquenceur commun. On ne touche ni au
+   transport ni à la vitesse des échantillons, qui appartient à l'effet VITESSE.
+   Même plage que le tempo global mémorisé : 40 à 220 BPM. */
+function tempoExterneKp(){
+  return typeof MIDI !== "undefined" && MIDI.sync;
+}
+function reglerTempoKp(bpm){
+  if(tempoExterneKp()){
+    KP.taps = []; majTempoKp();
+    signal("TEMPO PILOTÉ PAR MIDI · CHOISIR HORLOGE INTERNE POUR RÉGLER");
+    return false;
+  }
+  if(typeof bpm !== "number" || !isFinite(bpm)) return false;
+  S.bpm = Math.max(40, Math.min(220, Math.round(bpm)));
+  kTempo.set(S.bpm);
+  saveSoon(); majTempoKp();
+  return true;
+}
+function ajusterTempoKp(delta){
+  KP.taps = [];
+  if(reglerTempoKp(S.bpm + delta)) signal(S.bpm + " BPM");
+}
+function tapTempoKp(){
+  if(tempoExterneKp()){ reglerTempoKp(S.bpm); return; }
+  var now = performance.now(), ts = KP.taps;
+  if(!isFinite(now)) return;
+  if(ts.length){
+    var dt = now - ts[ts.length - 1];
+    if(dt >= 0 && dt < 120) return;            /* double événement / appui parasite */
+    if(dt <= 0 || dt > 2200) ts = KP.taps = [];
+    else if(dt < 60000 / 220 - 1 || dt > 1501){
+      KP.taps = [now];                         /* ne pas polluer la moyenne suivante */
+      signal("TAP · CADENCE ENTRE 40 ET 220 BPM");
+      return;
+    }
+  }
+  ts.push(now);
+  if(ts.length > 5) ts.shift();                 /* moyenne des quatre derniers intervalles */
+  if(ts.length < 2){ signal("TAP · ENCORE UNE FOIS"); return; }
+  var bpm = 60000 * (ts.length - 1) / (now - ts[0]);
+  if(reglerTempoKp(bpm)) signal(S.bpm + " BPM · TAP");
+}
 
 /* v167 : LOOP bascule marche/arrêt ; ONE SHOT repart à chaque frappe.
    Une fin de source peut arriver après la frappe suivante : elle ne doit
@@ -265,8 +308,9 @@ function scheduleKp(i, t){
   }
   if(!cache) queue.push({i:i, t:t});
 }
-function beatKp(i){ KP.pos = i; }
+function beatKp(i){ KP.pos = i; majTempoKp(); }
 function arretKp(){
+  KP.taps = [];
   toutArreterKp();
   if(KP.noeuds){
     try{ debrancherTout(KP.noeuds); }catch(e){}

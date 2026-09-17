@@ -29,8 +29,10 @@ class Context {
   createBuffer(ch,n,sr) { return {duration:n/sr,getChannelData(){return new Float32Array(n);}}; }
 }
 function setup(saved) {
-  const el={}, c={saved,ctx:new Context(),master:new Node(),KP:null,memoire:{},S:{run:false},cache:false,queue:[],
-    audioCalls:0,saveCalls:0,signals:[],H:{inter(){},cran(){},start(){}},
+  const el={}, c={saved,ctx:new Context(),master:new Node(),KP:null,memoire:{},S:{run:false,bpm:120},cache:false,queue:[],
+    audioCalls:0,saveCalls:0,tempoSaves:0,signals:[],H:{inter(){},cran(){},start(){}},
+    now:0,performance:{now(){return c.now;}},MIDI:{sync:false},kTempo:{set(v){c.knobBpm=v;}},
+    saveSoon(){c.tempoSaves++;},
     audioInit(){c.audioCalls++; if(!c.ctx&&!c.audioUnavailable)c.ctx=new Context();},
     banqueEs(){},chargerEchs(){},busSet(){return null;},eurGain(v){const n=c.ctx.node();n.gain.value=v;return n;},
     ES:{buf:Object.fromEntries(Array.from({length:24},(_,i)=>['b'+i,{duration:.1}]))},
@@ -113,3 +115,87 @@ c.MACHINE=c.MACHINE_KP;c.saved=saved;c.activerKp();assert.equal(current.stops,1)
 assert(c.KP.banques.every(x=>!x.on));assert(c.KP.sources.every(x=>x===null));
 assert(!el['kp-banques'].childNodes[2].classList.contains('on'));
 console.log('Kaoss : LOOP/ONE SHOT, relances, fin naturelle, voyants, sélection silencieuse, STOP, vitesse, échecs audio, mémoire et changement de contexte OK.');
+
+// TAP au timestamp zéro, cadence irrégulière, puis nouvelle cadence : seuls
+// les quatre derniers intervalles comptent, sans réinitialiser la lecture.
+const tempo=setup(), tc=tempo.c;
+tempo.pad(0);tc.vitesseKp(.7,.02);tc.S.run=true;tc.KP.rejoue=true;tc.KP.mpos=3;
+const playing=tc.KP.sources[0],audioCalls=tc.audioCalls;
+function tapAt(t){tc.now=t;tempo.click('kp-tap');}
+tapAt(0);assert.equal(tc.tempoSaves,0);assert.equal(tc.KP.taps.length,1);
+[500,1000,1520,2000].forEach(tapAt);assert.equal(tc.S.bpm,120);
+[2400,2800,3200,3600].forEach(tapAt);assert.equal(tc.S.bpm,150);
+assert.equal(tc.KP.taps.length,5);assert.equal(tc.knobBpm,150);
+assert.equal(tempo.el['kp-tempo'].textContent,'150 BPM');
+assert.equal(tc.KP.sources[0],playing);assert.equal(playing.stops,0);
+assert.equal(playing.playbackRate.value,.7);assert.equal(tc.audioCalls,audioCalls);
+assert(tc.S.run&&tc.KP.rejoue);assert.equal(tc.KP.mpos,3);
+const seq=fs.readFileSync(path.join(__dirname,'../page/js/120-sequenceur.js'),'utf8');
+vm.runInContext(seq.match(/function stepDur\(\)\{[^\n]+/)[0],tc);
+assert.equal(tc.stepDur(),.1); // 150 BPM => dixième de seconde par double croche.
+
+// Rebond ignoré sans déplacer le dernier tap, pause et intervalle invalide
+// repartent d'une frappe propre, et ne changent pas le tempo à eux seuls.
+tc.KP.taps=[];tapAt(0);tapAt(30);assert.equal(tc.KP.taps.length,1);
+tapAt(500);assert.equal(tc.S.bpm,120);
+const savesBeforePause=tc.tempoSaves;tapAt(4000);
+assert.equal(tc.KP.taps.length,1);assert.equal(tc.tempoSaves,savesBeforePause);
+tapAt(4400);assert.equal(tc.S.bpm,150);
+tc.KP.taps=[];tapAt(0);tapAt(200);assert.equal(tc.KP.taps.length,1);
+assert.equal(tc.S.bpm,150);tapAt(800);assert.equal(tc.S.bpm,100);
+tapAt(2500);assert.equal(tc.S.bpm,100);assert.equal(tc.KP.taps.length,1);
+tapAt(3000);assert.equal(tc.S.bpm,120);
+tapAt(2000);assert.equal(tc.KP.taps.length,1);tapAt(2500);assert.equal(tc.S.bpm,120);
+for(const bpm of [40,220]){
+  tc.KP.taps=[];tapAt(0);tapAt(60000/bpm);assert.equal(tc.S.bpm,bpm);
+}
+tempo.click('kp-tempo-plus');assert.equal(tc.S.bpm,220);assert.equal(tc.KP.taps.length,0);
+tempo.click('kp-tempo-moins');assert.equal(tc.S.bpm,219);
+tc.reglerTempoKp(40);tempo.click('kp-tempo-moins');assert.equal(tc.S.bpm,40);
+assert(!tc.reglerTempoKp(NaN));assert(!tc.reglerTempoKp(Infinity));assert.equal(tc.S.bpm,40);
+tc.ctx=null;tc.KP.taps=[];tapAt(0);tapAt(600);assert.equal(tc.S.bpm,100);
+assert.equal(tc.ctx,null);assert.equal(tc.audioCalls,audioCalls);
+
+// Véritables points d'entrée MIDI : changement de synchronisation, réception
+// à l'arrêt et démarrage de page avant que KP soit initialisé.
+const midi=fs.readFileSync(path.join(__dirname,'../page/js/310-midi.js'),'utf8');
+vm.runInContext(midi.slice(midi.indexOf('function ticExterne(){'),midi.indexOf('function departEsclave(')),tc);
+vm.runInContext(midi.slice(midi.indexOf('function majMidiUI(){'),midi.indexOf('/* ---- appareils MIDI')),tc);
+for(const id of ['bOut','bIn','bClk','bCh','bChSy','bBase','bSync']) tc[id]=element();
+tc.boxMidi={querySelectorAll(){return [];}};tc.nomNote=()=> 'DO';tc.S.modele='kp';
+tc.MIDI.sync=true;tc.majMidiUI();
+assert.equal(tc.KP.taps.length,0);assert.equal(tempo.el['kp-tempo'].textContent,'100 BPM · MIDI');
+for(const id of ['kp-tap','kp-tempo-moins','kp-tempo-plus']) assert(tempo.el[id].disabled);
+const lockedSaves=tc.tempoSaves;
+tapAt(5000);tempo.click('kp-tempo-plus');tc.reglerTempoKp(180);
+assert.equal(tc.S.bpm,100);assert.equal(tc.tempoSaves,lockedSaves);assert.equal(tc.KP.taps.length,0);
+tc.S.run=false;
+for(const bpm of [30,260]){
+  tc.SYNC={dernier:100,bpmEst:bpm,ticks:0};tc.now=100+60000/bpm/24;tc.ticExterne();
+  assert.equal(tc.S.bpm,bpm);assert.equal(tempo.el['kp-tempo'].textContent,bpm+' BPM · MIDI');
+}
+const kpState=tc.KP;tc.KP=undefined;assert.doesNotThrow(()=>tc.majMidiUI());tc.KP=kpState;
+tc.MIDI.sync=false;tc.majMidiUI();assert.equal(tempo.el['kp-tempo'].textContent,'260 BPM');
+for(const id of ['kp-tap','kp-tempo-moins','kp-tempo-plus']) assert(!tempo.el[id].disabled);
+tapAt(6000);assert.equal(tc.S.bpm,260);tapAt(6500);assert.equal(tc.S.bpm,120);
+tc.S.bpm=140;tc.beatKp(4);assert.equal(tempo.el['kp-tempo'].textContent,'140 BPM');
+tc.activerKp();assert.equal(tc.KP.taps.length,0);
+
+// Sauvegarde réelle du tempo GLOBAL et restauration au rechargement : les
+// frappes intermédiaires ne sont jamais écrites dans la mémoire du Kaoss.
+const storage=new Map(),memorySource=fs.readFileSync(path.join(__dirname,'../page/js/030-memoire.js'),'utf8');
+function connectMemory(target){
+  const c=target.c;c.HUM={};c.WAVX={};c.MIDI={sync:false};c.H={cran(){},inter(){},start(){}};
+  c.localStorage={getItem(k){return storage.get(k);},setItem(k,v){storage.set(k,v);}};
+  c.document.querySelectorAll=()=>[{dataset:{m:'kp'}}];c.setTimeout=()=>0;c.clearTimeout=()=>{};
+  vm.runInContext(memorySource,c);
+}
+const persisted=setup();connectMemory(persisted);persisted.c.S.modele='kp';
+persisted.c.now=0;persisted.click('kp-tap');persisted.c.now=400;persisted.click('kp-tap');
+persisted.c.memKp();persisted.c.writeMem();
+assert.equal(JSON.parse(storage.get('drm.reglages')).bpm,150);
+assert(!Object.hasOwn(persisted.c.memoire.kp,'taps'));
+const restored=setup();connectMemory(restored);restored.c.activerKp();
+assert.equal(restored.c.S.bpm,150);assert.equal(restored.el['kp-tempo'].textContent,'150 BPM');
+assert.equal(restored.c.KP.taps.length,0);
+console.log('Kaoss tempo : TAP moyenné, rebonds, pauses, bornes, ±1 BPM, transport et voix conservés, MIDI et mémoire globale OK.');

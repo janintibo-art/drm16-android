@@ -136,6 +136,12 @@ body.kp .kpb{display:flex;flex-direction:column;min-height:82vh}
 .kp-ligne button{margin:0;padding:10px 3px;border:0;border-radius:6px;background:#1b2e24;
   color:#a8c0b4;font:800 9px/1.2 "Roboto Condensed",Arial;letter-spacing:.5px}
 .kp-ligne button.on{background:#e8344a;color:#fff}
+.kp-tempo-l{grid-template-columns:1fr .75fr 1.5fr .75fr}
+.kp-tempo-l button{min-width:0;touch-action:manipulation}
+.kp-tempo-l button:disabled{opacity:.45}
+#kp-tempo{display:flex;align-items:center;justify-content:center;min-width:0;
+  background:#0a1410;border:1px solid #24483a;border-radius:4px;color:#7ee8a8;
+  font:800 9px/1.3 "Roboto Condensed",Arial;text-align:center}
 .kp-prof-l{grid-template-columns:auto 1fr 1.4fr;align-items:center}
 .kp-prof-l label{font:800 8px/1.2 "Roboto Condensed",Arial;letter-spacing:1.2px;color:#6a8a78}
 .kp-prof-l input{width:100%;margin:0}

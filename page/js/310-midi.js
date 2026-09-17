@@ -105,7 +105,10 @@ function ticExterne(){
       var bpm = 60000/(dt*24);
       SYNC.bpmEst = SYNC.bpmEst*0.85 + bpm*0.15;
       var arr = Math.round(SYNC.bpmEst);
-      if(arr >= 20 && arr <= 300 && Math.abs(arr - S.bpm) >= 1) S.bpm = arr;
+      if(arr >= 20 && arr <= 300 && Math.abs(arr - S.bpm) >= 1){
+        S.bpm = arr;
+        if(S.modele === "kp" && typeof KP !== "undefined" && KP) majTempoKp();
+      }
     }
   }
   SYNC.dernier = now;
@@ -385,6 +388,10 @@ function majMidiUI(){
   bSync.textContent = "HORLOGE : " + (MIDI.sync ? "SUIVIE" : "INTERNE");
   var bs = boxMidi.querySelectorAll("button");
   for(var i=0;i<bs.length;i++) bs[i].classList.toggle("on", i === MIDI.ouvert);
+  /* initMidi s'exécute avant la construction de KP au chargement de la page. */
+  if(S.modele === "kp" && typeof KP !== "undefined" && KP){
+    KP.taps = []; majTempoKp();
+  }
 }
 /* ---- appareils MIDI (v131) ----
    Le pont Java prévient la page de chaque branchement, débranchement,
@@ -549,4 +556,3 @@ bSync.addEventListener("click", function(){
   if(MIDI.dispo && pontIds()){ chercherMidi(); return; }
   majMidiUI();
 })();
-

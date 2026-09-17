@@ -1308,6 +1308,12 @@ body.kp .kpb{display:flex;flex-direction:column;min-height:82vh}
 .kp-ligne button{margin:0;padding:10px 3px;border:0;border-radius:6px;background:#1b2e24;
   color:#a8c0b4;font:800 9px/1.2 "Roboto Condensed",Arial;letter-spacing:.5px}
 .kp-ligne button.on{background:#e8344a;color:#fff}
+.kp-tempo-l{grid-template-columns:1fr .75fr 1.5fr .75fr}
+.kp-tempo-l button{min-width:0;touch-action:manipulation}
+.kp-tempo-l button:disabled{opacity:.45}
+#kp-tempo{display:flex;align-items:center;justify-content:center;min-width:0;
+  background:#0a1410;border:1px solid #24483a;border-radius:4px;color:#7ee8a8;
+  font:800 9px/1.3 "Roboto Condensed",Arial;text-align:center}
 .kp-prof-l{grid-template-columns:auto 1fr 1.4fr;align-items:center}
 .kp-prof-l label{font:800 8px/1.2 "Roboto Condensed",Arial;letter-spacing:1.2px;color:#6a8a78}
 .kp-prof-l input{width:100%;margin:0}
@@ -3549,6 +3555,12 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
       <input type="range" id="kp-prof" min="0" max="1" step="0.01" value="0.8">
       <div class="kp-lcd"><b id="kp-val">PASSE-BAS RÉSONANT</b><u id="kp-lab">X · Y</u></div>
     </div>
+    <div class="kp-ligne kp-tempo-l">
+      <button id="kp-tap">TAP BPM</button>
+      <button id="kp-tempo-moins" aria-label="Diminuer le tempo de 1 BPM">− BPM</button>
+      <output id="kp-tempo" aria-label="Tempo commun">120 BPM</output>
+      <button id="kp-tempo-plus" aria-label="Augmenter le tempo de 1 BPM">+ BPM</button>
+    </div>
   </div>
 
   <div class="kp-pav" id="kp-pav"><i id="kp-point"></i><u id="kp-trace"></u></div>
@@ -4435,6 +4447,19 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   plutôt que réglable. Avec HOLD, il reste où on l'a laissé.</p>
   <p>Huit effets, parcourus avec <b>EFFET</b>. Ce que font X et Y est indiqué sous le nom et change avec
   l'effet. <b>FX DEPTH</b> dose l'ensemble. <b>MUTE</b> coupe la sortie.</p>
+
+  <h3>Le tempo au doigt</h3>
+  <p>Touchez <b>TAP BPM</b> régulièrement : dès le deuxième appui, le tempo suit votre cadence.
+  La moyenne des quatre derniers intervalles stabilise la mesure. Après une pause, les appuis
+  repartent sur une nouvelle série. Les frappes trop rapides ou trop lentes sont écartées.
+  <b>− BPM</b> et <b>+ BPM</b> ajustent le tempo d'une unité, entre <b>40 et 220 BPM</b>.</p>
+  <p>Ce tempo est commun aux machines et mémorisé. Il règle la cadence du séquenceur et du
+  <b>PAD MOTION</b>, sans relancer la lecture. Les banques gardent leur durée et leur hauteur :
+  TAP BPM ne les étire pas et ne modifie pas leur vitesse, qui reste commandée par l'effet <b>VITESSE</b>.
+  L'écho et le hachoir gardent leurs réglages sur le pavé.</p>
+  <p>Quand <b>HORLOGE : SUIVIE</b> est sélectionné dans MIDI, l'affichage porte <b>MIDI</b> et les
+  trois commandes de tempo sont désactivées. Choisissez <b>HORLOGE : INTERNE</b> dans ce panneau
+  pour retrouver TAP BPM et les réglages manuels.</p>
 
   <h3>Le geste enregistré</h3>
   <p>C'est la signature de cette machine. Lancez la lecture, touchez <b>PAD MOTION</b> et promenez le
@@ -14932,7 +14957,10 @@ function ticExterne(){
       var bpm = 60000/(dt*24);
       SYNC.bpmEst = SYNC.bpmEst*0.85 + bpm*0.15;
       var arr = Math.round(SYNC.bpmEst);
-      if(arr >= 20 && arr <= 300 && Math.abs(arr - S.bpm) >= 1) S.bpm = arr;
+      if(arr >= 20 && arr <= 300 && Math.abs(arr - S.bpm) >= 1){
+        S.bpm = arr;
+        if(S.modele === "kp" && typeof KP !== "undefined" && KP) majTempoKp();
+      }
     }
   }
   SYNC.dernier = now;
@@ -15212,6 +15240,10 @@ function majMidiUI(){
   bSync.textContent = "HORLOGE : " + (MIDI.sync ? "SUIVIE" : "INTERNE");
   var bs = boxMidi.querySelectorAll("button");
   for(var i=0;i<bs.length;i++) bs[i].classList.toggle("on", i === MIDI.ouvert);
+  /* initMidi s'exécute avant la construction de KP au chargement de la page. */
+  if(S.modele === "kp" && typeof KP !== "undefined" && KP){
+    KP.taps = []; majTempoKp();
+  }
 }
 /* ---- appareils MIDI (v131) ----
    Le pont Java prévient la page de chaque branchement, débranchement,
@@ -15376,7 +15408,6 @@ bSync.addEventListener("click", function(){
   if(MIDI.dispo && pontIds()){ chercherMidi(); return; }
   majMidiUI();
 })();
-
 /* ================= télécommande des vraies machines =================
    Quand un bouton bouge dans l'application, le message correspondant part vers
    la machine branchée. Tables : ES-1 d'après sa notice d'implémentation officielle,
@@ -26165,7 +26196,50 @@ var KP = {fx:0, x:0.5, y:0.5, tenu:false, touche:false,
           prof:0.8, noeuds:null, muet:false,
           banques:[{ech:"b0", mode:"loop", on:false}, {ech:"b3", mode:"loop", on:false},
                    {ech:"b6", mode:"loop", on:false}, {ech:"b9", mode:"loop", on:false}],
-          sel:0, sources:[null, null, null, null], vitesse:1};
+          sel:0, sources:[null, null, null, null], vitesse:1, taps:[]};
+
+/* v168 : le tempo reste celui du séquenceur commun. On ne touche ni au
+   transport ni à la vitesse des échantillons, qui appartient à l'effet VITESSE.
+   Même plage que le tempo global mémorisé : 40 à 220 BPM. */
+function tempoExterneKp(){
+  return typeof MIDI !== "undefined" && MIDI.sync;
+}
+function reglerTempoKp(bpm){
+  if(tempoExterneKp()){
+    KP.taps = []; majTempoKp();
+    signal("TEMPO PILOTÉ PAR MIDI · CHOISIR HORLOGE INTERNE POUR RÉGLER");
+    return false;
+  }
+  if(typeof bpm !== "number" || !isFinite(bpm)) return false;
+  S.bpm = Math.max(40, Math.min(220, Math.round(bpm)));
+  kTempo.set(S.bpm);
+  saveSoon(); majTempoKp();
+  return true;
+}
+function ajusterTempoKp(delta){
+  KP.taps = [];
+  if(reglerTempoKp(S.bpm + delta)) signal(S.bpm + " BPM");
+}
+function tapTempoKp(){
+  if(tempoExterneKp()){ reglerTempoKp(S.bpm); return; }
+  var now = performance.now(), ts = KP.taps;
+  if(!isFinite(now)) return;
+  if(ts.length){
+    var dt = now - ts[ts.length - 1];
+    if(dt >= 0 && dt < 120) return;            /* double événement / appui parasite */
+    if(dt <= 0 || dt > 2200) ts = KP.taps = [];
+    else if(dt < 60000 / 220 - 1 || dt > 1501){
+      KP.taps = [now];                         /* ne pas polluer la moyenne suivante */
+      signal("TAP · CADENCE ENTRE 40 ET 220 BPM");
+      return;
+    }
+  }
+  ts.push(now);
+  if(ts.length > 5) ts.shift();                 /* moyenne des quatre derniers intervalles */
+  if(ts.length < 2){ signal("TAP · ENCORE UNE FOIS"); return; }
+  var bpm = 60000 * (ts.length - 1) / (now - ts[0]);
+  if(reglerTempoKp(bpm)) signal(S.bpm + " BPM · TAP");
+}
 
 /* v167 : LOOP bascule marche/arrêt ; ONE SHOT repart à chaque frappe.
    Une fin de source peut arriver après la frappe suivante : elle ne doit
@@ -26403,8 +26477,9 @@ function scheduleKp(i, t){
   }
   if(!cache) queue.push({i:i, t:t});
 }
-function beatKp(i){ KP.pos = i; }
+function beatKp(i){ KP.pos = i; majTempoKp(); }
 function arretKp(){
+  KP.taps = [];
   toutArreterKp();
   if(KP.noeuds){
     try{ debrancherTout(KP.noeuds); }catch(e){}
@@ -26738,6 +26813,17 @@ function chargerStk(){
 }
 
 /* ---------- la façade du KAOSS PAD ---------- */
+function majTempoKp(){
+  var e = document.getElementById("kp-tempo");
+  if(!e) return;
+  var ext = tempoExterneKp(), texte = Math.round(S.bpm) + " BPM" + (ext ? " · MIDI" : "");
+  if(e.textContent !== texte) e.textContent = texte;
+  ["kp-tap", "kp-tempo-moins", "kp-tempo-plus"].forEach(function(id){
+    var b = document.getElementById(id);
+    b.disabled = !!ext;
+    b.title = ext ? "Tempo piloté par l'horloge MIDI suivie" : "Tempo commun : 40 à 220 BPM";
+  });
+}
 function majPavKp(){
   var pav = document.getElementById("kp-pav"), pt = document.getElementById("kp-point");
   if(!pav || !pt) return;
@@ -26805,10 +26891,11 @@ function majKp(){
     : (KP.rejoue ? "Le geste tourne en boucle, calé sur le tempo."
     : (KP.tenu ? "HOLD : l'effet reste où le doigt l'a laissé."
                : "Touchez le pavé : l'effet suit le doigt."));
-  majPavKp(); majTraceKp();
+  majPavKp(); majTraceKp(); majTempoKp();
 }
 function activerKp(){
   stop();
+  KP.taps = [];
   audioInit(); banqueEs(); chargerEchs();
   chargerKp();
   poserMachine("kp");
@@ -26874,6 +26961,15 @@ document.getElementById("kp-mute").addEventListener("click", function(){
 document.getElementById("kp-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
   majKp(); H.start();
+});
+document.getElementById("kp-tap").addEventListener("click", function(){
+  tapTempoKp(); H.cran();
+});
+document.getElementById("kp-tempo-moins").addEventListener("click", function(){
+  ajusterTempoKp(-1); H.cran();
+});
+document.getElementById("kp-tempo-plus").addEventListener("click", function(){
+  ajusterTempoKp(1); H.cran();
 });
 document.getElementById("kp-son").addEventListener("click", function(){
   /* Le son suivant de la banque, pour la banque choisie. Si elle joue, on

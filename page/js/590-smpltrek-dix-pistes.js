@@ -126,6 +126,17 @@ function chargerStk(){
 }
 
 /* ---------- la façade du KAOSS PAD ---------- */
+function majTempoKp(){
+  var e = document.getElementById("kp-tempo");
+  if(!e) return;
+  var ext = tempoExterneKp(), texte = Math.round(S.bpm) + " BPM" + (ext ? " · MIDI" : "");
+  if(e.textContent !== texte) e.textContent = texte;
+  ["kp-tap", "kp-tempo-moins", "kp-tempo-plus"].forEach(function(id){
+    var b = document.getElementById(id);
+    b.disabled = !!ext;
+    b.title = ext ? "Tempo piloté par l'horloge MIDI suivie" : "Tempo commun : 40 à 220 BPM";
+  });
+}
 function majPavKp(){
   var pav = document.getElementById("kp-pav"), pt = document.getElementById("kp-point");
   if(!pav || !pt) return;
@@ -193,10 +204,11 @@ function majKp(){
     : (KP.rejoue ? "Le geste tourne en boucle, calé sur le tempo."
     : (KP.tenu ? "HOLD : l'effet reste où le doigt l'a laissé."
                : "Touchez le pavé : l'effet suit le doigt."));
-  majPavKp(); majTraceKp();
+  majPavKp(); majTraceKp(); majTempoKp();
 }
 function activerKp(){
   stop();
+  KP.taps = [];
   audioInit(); banqueEs(); chargerEchs();
   chargerKp();
   poserMachine("kp");
@@ -262,6 +274,15 @@ document.getElementById("kp-mute").addEventListener("click", function(){
 document.getElementById("kp-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
   majKp(); H.start();
+});
+document.getElementById("kp-tap").addEventListener("click", function(){
+  tapTempoKp(); H.cran();
+});
+document.getElementById("kp-tempo-moins").addEventListener("click", function(){
+  ajusterTempoKp(-1); H.cran();
+});
+document.getElementById("kp-tempo-plus").addEventListener("click", function(){
+  ajusterTempoKp(1); H.cran();
 });
 document.getElementById("kp-son").addEventListener("click", function(){
   /* Le son suivant de la banque, pour la banque choisie. Si elle joue, on
