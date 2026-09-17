@@ -25,9 +25,58 @@ var KP_EFFETS = [
 var KP = {fx:0, x:0.5, y:0.5, tenu:false, touche:false,
           motion:[], enregistre:false, rejoue:false, mpos:0,
           prof:0.8, noeuds:null, muet:false,
-          banques:[{ech:"b0", mode:"loop", on:false}, {ech:"b3", mode:"loop", on:false},
-                   {ech:"b6", mode:"loop", on:false}, {ech:"b9", mode:"loop", on:false}],
-          sel:0, sources:[null, null, null, null], vitesse:1, taps:[]};
+          banques:[{ech:"b0", mode:"loop", slice:false, tranche:0, on:false},
+                   {ech:"b3", mode:"loop", slice:false, tranche:0, on:false},
+                   {ech:"b6", mode:"loop", slice:false, tranche:0, on:false},
+                   {ech:"b9", mode:"loop", slice:false, tranche:0, on:false}],
+          sel:0, sources:[null, null, null, null], vitesse:1, taps:[], tranches:[]};
+
+/* v169 : huit portions contiguës, sans arrondir leur durée en secondes.
+   On conserve l'original et une seule copie de tranche par banque. Un tampon
+   découpé finit naturellement, même si l'effet VITESSE change pendant le son. */
+function numeroTrancheKp(i){
+  return typeof i === "number" && isFinite(i) ? Math.max(0, Math.min(7, Math.floor(i))) : 0;
+}
+function bornesTrancheKp(buf, i){
+  i = numeroTrancheKp(i);
+  return {debut:Math.floor(buf.length * i / 8), fin:Math.floor(buf.length * (i + 1) / 8)};
+}
+function tamponBanqueKp(k, buf){
+  var b = KP.banques[k];
+  if(!b.slice){ KP.tranches[k] = null; return buf; }
+  var i = numeroTrancheKp(b.tranche), p = bornesTrancheKp(buf, i);
+  if(p.fin <= p.debut){ KP.tranches[k] = null; signal("TRANCHE VIDE · SON TROP COURT"); return null; }
+  var ancien = KP.tranches[k];
+  var coupe = ancien && ancien.original === buf && ancien.ctx === ctx && ancien.index === i
+    ? ancien.tampon : ctx.createBuffer(buf.numberOfChannels, p.fin - p.debut, buf.sampleRate);
+  /* NORMALIZE peut modifier l'original sans changer son identité. On recopie
+     à chaque frappe, en réutilisant le tampon si ses bornes n'ont pas changé. */
+  /* Un fondu d'au plus 1 ms à chaque bord limite les clics de découpe. Les
+     portions minuscules gardent leurs données ; le son entier reste intact. */
+  var fondu = Math.min(Math.floor(buf.sampleRate * 0.001), Math.floor(coupe.length / 4));
+  for(var ch=0;ch<buf.numberOfChannels;ch++){
+    var q = coupe.getChannelData(ch);
+    buf.copyFromChannel(q, ch, p.debut);
+    if(fondu > 1) for(var j=0;j<fondu;j++){
+      var v = j / (fondu - 1);
+      q[j] *= v; q[q.length - 1 - j] *= v;
+    }
+  }
+  KP.tranches[k] = {original:buf, ctx:ctx, index:i, tampon:coupe};
+  return coupe;
+}
+function decouperBanqueKp(k, actif){
+  var b = KP.banques[k];
+  if(!b) return;
+  b.slice = !!actif; KP.tranches[k] = null;
+  if(b.on) banqueKp(k, true);
+}
+function frapperTrancheKp(k, i){
+  var b = KP.banques[k];
+  if(!b) return;
+  b.slice = true; b.tranche = numeroTrancheKp(i);
+  banqueKp(k, true);                            /* un pad numéroté relance, même en LOOP */
+}
 
 /* v168 : le tempo reste celui du séquenceur commun. On ne touche ni au
    transport ni à la vitesse des échantillons, qui appartient à l'effet VITESSE.
@@ -96,6 +145,9 @@ function banqueKp(k, allumer){
   var buf = ES.buf[b.ech];
   if(!buf){ signal("SON INDISPONIBLE · BANQUE " + "ABCD"[k]); return; }
   var n = noeudsKp();
+  try{ buf = tamponBanqueKp(k, buf); }
+  catch(e){ KP.tranches[k] = null; signal("DÉCOUPE IMPOSSIBLE · BANQUE " + "ABCD"[k]); return; }
+  if(!buf) return;
   var src = ctx.createBufferSource();
   src.buffer = buf; src.loop = b.mode !== "one";
   src.playbackRate.value = KP.vitesse;         /* une banque rallumée suit le pavé */
@@ -106,6 +158,9 @@ function banqueKp(k, allumer){
     libere = true;
     try{ src.disconnect(); }catch(e){}
     try{ g.disconnect(); }catch(e){}
+    /* Les banques se jouent aussi séquenceur arrêté : sa purge ne tourne
+       alors pas. Ne pas retenir les anciennes copies de tranches dans SOURCES. */
+    if(typeof SOURCES !== "undefined") SOURCES = SOURCES.filter(function(s){ return s.n !== src; });
   };
   src.onended = function(){
     src.libererKp();
@@ -312,6 +367,7 @@ function beatKp(i){ KP.pos = i; majTempoKp(); }
 function arretKp(){
   KP.taps = [];
   toutArreterKp();
+  KP.tranches = [];
   if(KP.noeuds){
     try{ debrancherTout(KP.noeuds); }catch(e){}
   }
@@ -323,13 +379,16 @@ var MACHINE_KP = {schedule:scheduleKp, beat:beatKp, arret:arretKp,
 
 function memKp(){
   memoire.kp = {fx:KP.fx, prof:KP.prof, motion:KP.motion, sel:KP.sel,
-                banques:KP.banques.map(function(b){ return {ech:b.ech, mode:b.mode}; })};
+                banques:KP.banques.map(function(b){
+                  return {ech:b.ech, mode:b.mode, slice:!!b.slice, tranche:numeroTrancheKp(b.tranche)};
+                })};
   sauverMachine("kp");
 }
 function chargerKp(){
   var m = memLire("kp");
-  /* Une ancienne sauvegarde (ou une banque absente) conserve la boucle. */
-  KP.banques.forEach(function(b){ b.mode = "loop"; });
+  /* Une ancienne sauvegarde conserve le son entier en boucle. */
+  KP.tranches = [];
+  KP.banques.forEach(function(b){ b.mode = "loop"; b.slice = false; b.tranche = 0; });
   if(!m) return;
   if(typeof m.fx === "number" && isFinite(m.fx)) KP.fx = Math.max(0, Math.min(KP_EFFETS.length - 1, m.fx|0));
   if(typeof m.prof === "number" && isFinite(m.prof)) KP.prof = Math.max(0, Math.min(1, m.prof));
@@ -339,5 +398,7 @@ function chargerKp(){
     if(i >= 4 || !o) return;
     if(typeof o.ech === "string" && o.ech) KP.banques[i].ech = o.ech;
     KP.banques[i].mode = o.mode === "one" ? "one" : "loop";
+    KP.banques[i].slice = o.slice === true;
+    KP.banques[i].tranche = numeroTrancheKp(o.tranche);
   });
 }

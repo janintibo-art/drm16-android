@@ -1308,6 +1308,15 @@ body.kp .kpb{display:flex;flex-direction:column;min-height:82vh}
 .kp-ligne button{margin:0;padding:10px 3px;border:0;border-radius:6px;background:#1b2e24;
   color:#a8c0b4;font:800 9px/1.2 "Roboto Condensed",Arial;letter-spacing:.5px}
 .kp-ligne button.on{background:#e8344a;color:#fff}
+.kp-slice-l{grid-template-columns:1fr 2fr;align-items:center}
+#kp-tranche-etat{min-width:0;color:#7ee8a8;text-align:center;
+  font:800 9px/1.3 "Roboto Condensed",Arial}
+.kp-tranches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.kp-tranches[hidden]{display:none}
+.kp-tranches button{min-width:0;min-height:40px;border:1px solid #335344;border-radius:6px;
+  background:#0a1410;color:#a8c0b4;font:800 12px/1.2 "Roboto Condensed",Arial;touch-action:manipulation}
+.kp-tranches button.on{background:#e8344a;color:#fff}
+.kp-tranches button:disabled{opacity:.35}
 .kp-tempo-l{grid-template-columns:1fr .75fr 1.5fr .75fr}
 .kp-tempo-l button{min-width:0;touch-action:manipulation}
 .kp-tempo-l button:disabled{opacity:.45}
@@ -3538,6 +3547,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
       <button id="kp-stop-banque">STOP A</button>
       <button id="kp-stop-tout">STOP TOUT</button>
     </div>
+    <div class="kp-ligne kp-slice-l">
+      <button id="kp-slice" aria-pressed="false">SLICE : NON</button>
+      <output id="kp-tranche-etat">BANQUE A · SON ENTIER</output>
+    </div>
+    <div class="kp-tranches" id="kp-tranches" role="group" aria-label="Tranches de la banque A" hidden></div>
     <div class="kp-ligne">
       <button id="kp-son">SON</button>
       <button id="kp-fx">EFFET</button>
@@ -4441,6 +4455,22 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   Le séquenceur et le PAD MOTION continuent jusqu'à leur propre arrêt.</p>
   <p><b>SON</b> change l'échantillon de la banque choisie, celle qui porte un liseré. Si elle joue, la
   lecture repart aussitôt avec le nouveau son, dans le même mode.</p>
+
+  <h3>SLICE : jouer une tranche du son</h3>
+  <p>Choisissez une banque, puis activez <b>SLICE : OUI</b>. Le son est partagé en <b>huit tranches</b>
+  régulières. Les huit touches numérotées apparaissent : touchez-en
+  une pour choisir cette portion et la jouer depuis son début. La touche sélectionnée reste colorée.
+  Il s'agit d'un partage régulier, sans détection des attaques.</p>
+  <p>En <b>LOOP</b>, seule cette tranche tourne en boucle ; en <b>ONE SHOT</b>, elle joue une fois.
+  Une touche numérotée relance toujours sa tranche. Les touches <b>A à D</b> gardent leur rôle habituel :
+  marche/arrêt en LOOP et relance en ONE SHOT. Le pavé continue à traiter le son.</p>
+  <p>Le mode SLICE et le numéro choisi sont mémorisés séparément pour chaque banque.
+  <b>SLICE : NON</b> retrouve le son entier. Changer ce réglage pendant la lecture relance uniquement
+  la banque choisie ; à l'arrêt, cela ne déclenche aucun son. <b>SON</b> conserve le mode et le numéro
+  de tranche avec le nouvel échantillon. Les tranches vides d'un son trop court sont désactivées.</p>
+  <p>L'échantillon d'origine reste intact. Un très court fondu aux bords des tranches limite les clics.
+  Le tempo ne recale pas leur durée : l'effet <b>VITESSE</b> conserve son action sur leur vitesse
+  et leur hauteur.</p>
 
   <h3>Le pavé</h3>
   <p>Sans <b>HOLD</b>, l'effet meurt en même temps que le doigt : c'est ce qui rend cette machine vivante
@@ -26194,9 +26224,58 @@ var KP_EFFETS = [
 var KP = {fx:0, x:0.5, y:0.5, tenu:false, touche:false,
           motion:[], enregistre:false, rejoue:false, mpos:0,
           prof:0.8, noeuds:null, muet:false,
-          banques:[{ech:"b0", mode:"loop", on:false}, {ech:"b3", mode:"loop", on:false},
-                   {ech:"b6", mode:"loop", on:false}, {ech:"b9", mode:"loop", on:false}],
-          sel:0, sources:[null, null, null, null], vitesse:1, taps:[]};
+          banques:[{ech:"b0", mode:"loop", slice:false, tranche:0, on:false},
+                   {ech:"b3", mode:"loop", slice:false, tranche:0, on:false},
+                   {ech:"b6", mode:"loop", slice:false, tranche:0, on:false},
+                   {ech:"b9", mode:"loop", slice:false, tranche:0, on:false}],
+          sel:0, sources:[null, null, null, null], vitesse:1, taps:[], tranches:[]};
+
+/* v169 : huit portions contiguës, sans arrondir leur durée en secondes.
+   On conserve l'original et une seule copie de tranche par banque. Un tampon
+   découpé finit naturellement, même si l'effet VITESSE change pendant le son. */
+function numeroTrancheKp(i){
+  return typeof i === "number" && isFinite(i) ? Math.max(0, Math.min(7, Math.floor(i))) : 0;
+}
+function bornesTrancheKp(buf, i){
+  i = numeroTrancheKp(i);
+  return {debut:Math.floor(buf.length * i / 8), fin:Math.floor(buf.length * (i + 1) / 8)};
+}
+function tamponBanqueKp(k, buf){
+  var b = KP.banques[k];
+  if(!b.slice){ KP.tranches[k] = null; return buf; }
+  var i = numeroTrancheKp(b.tranche), p = bornesTrancheKp(buf, i);
+  if(p.fin <= p.debut){ KP.tranches[k] = null; signal("TRANCHE VIDE · SON TROP COURT"); return null; }
+  var ancien = KP.tranches[k];
+  var coupe = ancien && ancien.original === buf && ancien.ctx === ctx && ancien.index === i
+    ? ancien.tampon : ctx.createBuffer(buf.numberOfChannels, p.fin - p.debut, buf.sampleRate);
+  /* NORMALIZE peut modifier l'original sans changer son identité. On recopie
+     à chaque frappe, en réutilisant le tampon si ses bornes n'ont pas changé. */
+  /* Un fondu d'au plus 1 ms à chaque bord limite les clics de découpe. Les
+     portions minuscules gardent leurs données ; le son entier reste intact. */
+  var fondu = Math.min(Math.floor(buf.sampleRate * 0.001), Math.floor(coupe.length / 4));
+  for(var ch=0;ch<buf.numberOfChannels;ch++){
+    var q = coupe.getChannelData(ch);
+    buf.copyFromChannel(q, ch, p.debut);
+    if(fondu > 1) for(var j=0;j<fondu;j++){
+      var v = j / (fondu - 1);
+      q[j] *= v; q[q.length - 1 - j] *= v;
+    }
+  }
+  KP.tranches[k] = {original:buf, ctx:ctx, index:i, tampon:coupe};
+  return coupe;
+}
+function decouperBanqueKp(k, actif){
+  var b = KP.banques[k];
+  if(!b) return;
+  b.slice = !!actif; KP.tranches[k] = null;
+  if(b.on) banqueKp(k, true);
+}
+function frapperTrancheKp(k, i){
+  var b = KP.banques[k];
+  if(!b) return;
+  b.slice = true; b.tranche = numeroTrancheKp(i);
+  banqueKp(k, true);                            /* un pad numéroté relance, même en LOOP */
+}
 
 /* v168 : le tempo reste celui du séquenceur commun. On ne touche ni au
    transport ni à la vitesse des échantillons, qui appartient à l'effet VITESSE.
@@ -26265,6 +26344,9 @@ function banqueKp(k, allumer){
   var buf = ES.buf[b.ech];
   if(!buf){ signal("SON INDISPONIBLE · BANQUE " + "ABCD"[k]); return; }
   var n = noeudsKp();
+  try{ buf = tamponBanqueKp(k, buf); }
+  catch(e){ KP.tranches[k] = null; signal("DÉCOUPE IMPOSSIBLE · BANQUE " + "ABCD"[k]); return; }
+  if(!buf) return;
   var src = ctx.createBufferSource();
   src.buffer = buf; src.loop = b.mode !== "one";
   src.playbackRate.value = KP.vitesse;         /* une banque rallumée suit le pavé */
@@ -26275,6 +26357,9 @@ function banqueKp(k, allumer){
     libere = true;
     try{ src.disconnect(); }catch(e){}
     try{ g.disconnect(); }catch(e){}
+    /* Les banques se jouent aussi séquenceur arrêté : sa purge ne tourne
+       alors pas. Ne pas retenir les anciennes copies de tranches dans SOURCES. */
+    if(typeof SOURCES !== "undefined") SOURCES = SOURCES.filter(function(s){ return s.n !== src; });
   };
   src.onended = function(){
     src.libererKp();
@@ -26481,6 +26566,7 @@ function beatKp(i){ KP.pos = i; majTempoKp(); }
 function arretKp(){
   KP.taps = [];
   toutArreterKp();
+  KP.tranches = [];
   if(KP.noeuds){
     try{ debrancherTout(KP.noeuds); }catch(e){}
   }
@@ -26492,13 +26578,16 @@ var MACHINE_KP = {schedule:scheduleKp, beat:beatKp, arret:arretKp,
 
 function memKp(){
   memoire.kp = {fx:KP.fx, prof:KP.prof, motion:KP.motion, sel:KP.sel,
-                banques:KP.banques.map(function(b){ return {ech:b.ech, mode:b.mode}; })};
+                banques:KP.banques.map(function(b){
+                  return {ech:b.ech, mode:b.mode, slice:!!b.slice, tranche:numeroTrancheKp(b.tranche)};
+                })};
   sauverMachine("kp");
 }
 function chargerKp(){
   var m = memLire("kp");
-  /* Une ancienne sauvegarde (ou une banque absente) conserve la boucle. */
-  KP.banques.forEach(function(b){ b.mode = "loop"; });
+  /* Une ancienne sauvegarde conserve le son entier en boucle. */
+  KP.tranches = [];
+  KP.banques.forEach(function(b){ b.mode = "loop"; b.slice = false; b.tranche = 0; });
   if(!m) return;
   if(typeof m.fx === "number" && isFinite(m.fx)) KP.fx = Math.max(0, Math.min(KP_EFFETS.length - 1, m.fx|0));
   if(typeof m.prof === "number" && isFinite(m.prof)) KP.prof = Math.max(0, Math.min(1, m.prof));
@@ -26508,6 +26597,8 @@ function chargerKp(){
     if(i >= 4 || !o) return;
     if(typeof o.ech === "string" && o.ech) KP.banques[i].ech = o.ech;
     KP.banques[i].mode = o.mode === "one" ? "one" : "loop";
+    KP.banques[i].slice = o.slice === true;
+    KP.banques[i].tranche = numeroTrancheKp(o.tranche);
   });
 }
 /* ================= Roland MC-101 =================
@@ -26813,6 +26904,37 @@ function chargerStk(){
 }
 
 /* ---------- la façade du KAOSS PAD ---------- */
+function majTranchesKp(){
+  var b = KP.banques[KP.sel], grille = document.getElementById("kp-tranches");
+  if(!grille) return;
+  var etaitCache = grille.hidden;
+  var bt = document.getElementById("kp-slice"), index = numeroTrancheKp(b.tranche);
+  bt.textContent = b.slice ? "SLICE : OUI" : "SLICE : NON";
+  bt.classList.toggle("on", b.slice);
+  bt.setAttribute("aria-pressed", String(b.slice));
+  document.getElementById("kp-tranche-etat").textContent = "BANQUE " + "ABCD"[KP.sel] + " · " +
+    (b.slice ? "TRANCHE " + (index + 1) + "/8" : "SON ENTIER");
+  grille.hidden = !b.slice;
+  grille.setAttribute("aria-label", "Tranches de la banque " + "ABCD"[KP.sel]);
+  if(!grille.childNodes.length){
+    for(var i=0;i<8;i++) (function(j){
+      var p = document.createElement("button"); p.textContent = String(j + 1);
+      p.addEventListener("click", function(){
+        frapperTrancheKp(KP.sel, j); majKp(); memKp(); H.inter();
+      });
+      grille.appendChild(p);
+    })(i);
+  }
+  var buf = ES.buf[b.ech];
+  for(var k=0;k<8;k++){
+    var bouton = grille.childNodes[k], bornes = buf ? bornesTrancheKp(buf, k) : null;
+    bouton.disabled = !!bornes && bornes.fin <= bornes.debut;
+    bouton.classList.toggle("on", k === index);
+    bouton.setAttribute("aria-pressed", String(k === index));
+    bouton.setAttribute("aria-label", "Jouer la tranche " + (k + 1) + " de la banque " + "ABCD"[KP.sel]);
+  }
+  if(etaitCache !== grille.hidden && S.modele === "kp") fit();
+}
 function majTempoKp(){
   var e = document.getElementById("kp-tempo");
   if(!e) return;
@@ -26866,9 +26988,12 @@ function majKp(){
     bs[i].classList.toggle("on", KP.banques[i].on);
     bs[i].style.boxShadow = (KP.sel === i) ? "inset 0 0 0 2px #e8344a" : "none";
     var mode = KP.banques[i].mode === "one" ? "ONE SHOT" : "LOOP";
-    bs[i].querySelector("em").textContent = mode + " · " + nomEch(KP.banques[i].ech);
+    bs[i].querySelector("em").textContent = mode + " · " +
+      (KP.banques[i].slice ? "S" + (numeroTrancheKp(KP.banques[i].tranche) + 1) + " · " : "") +
+      nomEch(KP.banques[i].ech);
     bs[i].setAttribute("aria-pressed", String(KP.banques[i].on));
-    bs[i].setAttribute("aria-label", "Banque " + "ABCD"[i] + " · " + mode + " · " + nomEch(KP.banques[i].ech));
+    bs[i].setAttribute("aria-label", "Banque " + "ABCD"[i] + " · " + mode + " · " + nomEch(KP.banques[i].ech) +
+      (KP.banques[i].slice ? " · tranche " + (numeroTrancheKp(KP.banques[i].tranche) + 1) + "/8" : " · son entier"));
   }
   document.getElementById("kp-selection").textContent = "BANQUE " + "ABCD"[KP.sel];
   var bm = document.getElementById("kp-mode");
@@ -26891,7 +27016,7 @@ function majKp(){
     : (KP.rejoue ? "Le geste tourne en boucle, calé sur le tempo."
     : (KP.tenu ? "HOLD : l'effet reste où le doigt l'a laissé."
                : "Touchez le pavé : l'effet suit le doigt."));
-  majPavKp(); majTraceKp(); majTempoKp();
+  majPavKp(); majTraceKp(); majTempoKp(); majTranchesKp();
 }
 function activerKp(){
   stop();
@@ -26978,6 +27103,7 @@ document.getElementById("kp-son").addEventListener("click", function(){
   var B = KP.banques[KP.sel];
   var i = ES_BANQUE.indexOf(nomEch(B.ech));
   B.ech = "b" + (((i < 0 ? 0 : i) + 1) % ES_BANQUE.length);
+  KP.tranches[KP.sel] = null;
   if(B.on) banqueKp(KP.sel, true);
   majKp(); memKp(); H.cran();
 });
@@ -26987,6 +27113,10 @@ document.getElementById("kp-selection").addEventListener("click", function(){
 });
 document.getElementById("kp-mode").addEventListener("click", function(){
   modeBanqueKp(KP.sel, KP.banques[KP.sel].mode === "one" ? "loop" : "one");
+  majKp(); memKp(); H.inter();
+});
+document.getElementById("kp-slice").addEventListener("click", function(){
+  decouperBanqueKp(KP.sel, !KP.banques[KP.sel].slice);
   majKp(); memKp(); H.inter();
 });
 document.getElementById("kp-stop-banque").addEventListener("click", function(){

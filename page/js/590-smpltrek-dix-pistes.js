@@ -126,6 +126,37 @@ function chargerStk(){
 }
 
 /* ---------- la façade du KAOSS PAD ---------- */
+function majTranchesKp(){
+  var b = KP.banques[KP.sel], grille = document.getElementById("kp-tranches");
+  if(!grille) return;
+  var etaitCache = grille.hidden;
+  var bt = document.getElementById("kp-slice"), index = numeroTrancheKp(b.tranche);
+  bt.textContent = b.slice ? "SLICE : OUI" : "SLICE : NON";
+  bt.classList.toggle("on", b.slice);
+  bt.setAttribute("aria-pressed", String(b.slice));
+  document.getElementById("kp-tranche-etat").textContent = "BANQUE " + "ABCD"[KP.sel] + " · " +
+    (b.slice ? "TRANCHE " + (index + 1) + "/8" : "SON ENTIER");
+  grille.hidden = !b.slice;
+  grille.setAttribute("aria-label", "Tranches de la banque " + "ABCD"[KP.sel]);
+  if(!grille.childNodes.length){
+    for(var i=0;i<8;i++) (function(j){
+      var p = document.createElement("button"); p.textContent = String(j + 1);
+      p.addEventListener("click", function(){
+        frapperTrancheKp(KP.sel, j); majKp(); memKp(); H.inter();
+      });
+      grille.appendChild(p);
+    })(i);
+  }
+  var buf = ES.buf[b.ech];
+  for(var k=0;k<8;k++){
+    var bouton = grille.childNodes[k], bornes = buf ? bornesTrancheKp(buf, k) : null;
+    bouton.disabled = !!bornes && bornes.fin <= bornes.debut;
+    bouton.classList.toggle("on", k === index);
+    bouton.setAttribute("aria-pressed", String(k === index));
+    bouton.setAttribute("aria-label", "Jouer la tranche " + (k + 1) + " de la banque " + "ABCD"[KP.sel]);
+  }
+  if(etaitCache !== grille.hidden && S.modele === "kp") fit();
+}
 function majTempoKp(){
   var e = document.getElementById("kp-tempo");
   if(!e) return;
@@ -179,9 +210,12 @@ function majKp(){
     bs[i].classList.toggle("on", KP.banques[i].on);
     bs[i].style.boxShadow = (KP.sel === i) ? "inset 0 0 0 2px #e8344a" : "none";
     var mode = KP.banques[i].mode === "one" ? "ONE SHOT" : "LOOP";
-    bs[i].querySelector("em").textContent = mode + " · " + nomEch(KP.banques[i].ech);
+    bs[i].querySelector("em").textContent = mode + " · " +
+      (KP.banques[i].slice ? "S" + (numeroTrancheKp(KP.banques[i].tranche) + 1) + " · " : "") +
+      nomEch(KP.banques[i].ech);
     bs[i].setAttribute("aria-pressed", String(KP.banques[i].on));
-    bs[i].setAttribute("aria-label", "Banque " + "ABCD"[i] + " · " + mode + " · " + nomEch(KP.banques[i].ech));
+    bs[i].setAttribute("aria-label", "Banque " + "ABCD"[i] + " · " + mode + " · " + nomEch(KP.banques[i].ech) +
+      (KP.banques[i].slice ? " · tranche " + (numeroTrancheKp(KP.banques[i].tranche) + 1) + "/8" : " · son entier"));
   }
   document.getElementById("kp-selection").textContent = "BANQUE " + "ABCD"[KP.sel];
   var bm = document.getElementById("kp-mode");
@@ -204,7 +238,7 @@ function majKp(){
     : (KP.rejoue ? "Le geste tourne en boucle, calé sur le tempo."
     : (KP.tenu ? "HOLD : l'effet reste où le doigt l'a laissé."
                : "Touchez le pavé : l'effet suit le doigt."));
-  majPavKp(); majTraceKp(); majTempoKp();
+  majPavKp(); majTraceKp(); majTempoKp(); majTranchesKp();
 }
 function activerKp(){
   stop();
@@ -291,6 +325,7 @@ document.getElementById("kp-son").addEventListener("click", function(){
   var B = KP.banques[KP.sel];
   var i = ES_BANQUE.indexOf(nomEch(B.ech));
   B.ech = "b" + (((i < 0 ? 0 : i) + 1) % ES_BANQUE.length);
+  KP.tranches[KP.sel] = null;
   if(B.on) banqueKp(KP.sel, true);
   majKp(); memKp(); H.cran();
 });
@@ -300,6 +335,10 @@ document.getElementById("kp-selection").addEventListener("click", function(){
 });
 document.getElementById("kp-mode").addEventListener("click", function(){
   modeBanqueKp(KP.sel, KP.banques[KP.sel].mode === "one" ? "loop" : "one");
+  majKp(); memKp(); H.inter();
+});
+document.getElementById("kp-slice").addEventListener("click", function(){
+  decouperBanqueKp(KP.sel, !KP.banques[KP.sel].slice);
   majKp(); memKp(); H.inter();
 });
 document.getElementById("kp-stop-banque").addEventListener("click", function(){

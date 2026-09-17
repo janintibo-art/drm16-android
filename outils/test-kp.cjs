@@ -14,7 +14,11 @@ class Node {
     for(const k of ['gain','playbackRate','frequency','Q','delayTime']) this[k]=param(); }
   connect(n) { this.connections.push(n); }
   disconnect() { this.disconnected++; }
-  start() { if(this.failStart) throw Error('start refusé'); this.started=true; }
+  start() {
+    if(this.context&&this.context.trackSource) this.context.trackSource(this);
+    if(this.failStart) throw Error('start refusé');
+    this.started=true;
+  }
   stop() { this.stops++; }
 }
 class Context {
@@ -26,11 +30,16 @@ class Context {
   createDelay() { return this.node(); }
   createConvolver() { return this.node(); }
   createOscillator() { return this.node(); }
-  createBuffer(ch,n,sr) { return {duration:n/sr,getChannelData(){return new Float32Array(n);}}; }
+  createBuffer(ch,n,sr) {
+    assert(n>0&&Number.isInteger(n));
+    const data=Array.from({length:ch},()=>new Float32Array(n));
+    return {length:n,numberOfChannels:ch,sampleRate:sr,duration:n/sr,getChannelData(k){return data[k];},
+      copyFromChannel(target,k,start){target.set(data[k].subarray(start,start+target.length));}};
+  }
 }
 function setup(saved) {
   const el={}, c={saved,ctx:new Context(),master:new Node(),KP:null,memoire:{},S:{run:false,bpm:120},cache:false,queue:[],
-    audioCalls:0,saveCalls:0,tempoSaves:0,signals:[],H:{inter(){},cran(){},start(){}},
+    audioCalls:0,saveCalls:0,tempoSaves:0,fitCalls:0,signals:[],H:{inter(){},cran(){},start(){}},
     now:0,performance:{now(){return c.now;}},MIDI:{sync:false},kTempo:{set(v){c.knobBpm=v;}},
     saveSoon(){c.tempoSaves++;},
     audioInit(){c.audioCalls++; if(!c.ctx&&!c.audioUnavailable)c.ctx=new Context();},
@@ -38,7 +47,7 @@ function setup(saved) {
     ES:{buf:Object.fromEntries(Array.from({length:24},(_,i)=>['b'+i,{duration:.1}]))},
     ES_BANQUE:Array.from({length:24},(_,i)=>'son '+i),nomEch(e){return 'son '+e.slice(1);},
     memLire(){return c.saved;},sauverMachine(){},signal(s){c.signals.push(s);},
-    poserMachine(){},fit(){},save(){c.saveCalls++;},
+    poserMachine(){},fit(){c.fitCalls++;},save(){c.saveCalls++;},
     stop(){c.S.run=false;if(c.MACHINE)c.MACHINE.arret();},start(){c.S.run=true;},
     debrancherTout(o){for(const k in o)if(o[k] instanceof Node){o[k].disconnect();o[k].stop();}},
     document:{getElementById(id){return el[id]||(el[id]=element());},createElement:element}};
@@ -93,7 +102,7 @@ c.audioUnavailable=true;pad(0);assert.equal(c.ctx,null);assert(!c.KP.banques[0].
 // Sauvegarde des sons/modes/sélection, jamais de source ni d'état en marche.
 c.audioUnavailable=false;c.KP.sel=3;c.modeBanqueKp(0,'one');c.modeBanqueKp(3,'one');pad(3);c.memKp();
 const saved=JSON.parse(JSON.stringify(c.memoire.kp));
-assert.deepStrictEqual(Object.keys(saved.banques[3]).sort(),['ech','mode']);
+assert.deepStrictEqual(Object.keys(saved.banques[3]).sort(),['ech','mode','slice','tranche']);
 const reopened=setup(saved);reopened.c.activerKp();
 assert.equal(reopened.c.KP.sel,3);assert.equal(reopened.c.KP.banques[3].mode,'one');
 assert.equal(reopened.c.KP.banques[1].ech,'b4');assert.equal(reopened.c.S.modele,'kp');
@@ -199,3 +208,135 @@ const restored=setup();connectMemory(restored);restored.c.activerKp();
 assert.equal(restored.c.S.bpm,150);assert.equal(restored.el['kp-tempo'].textContent,'150 BPM');
 assert.equal(restored.c.KP.taps.length,0);
 console.log('Kaoss tempo : TAP moyenné, rebonds, pauses, bornes, ±1 BPM, transport et voix conservés, MIDI et mémoire globale OK.');
+
+// SLICE : huit régions contiguës, y compris la dernière frame d'une longueur
+// non divisible par huit, tous les canaux et le taux d'origine conservés.
+const sliced=setup(),sc=sliced.c;
+function fixture(length=8195,channels=2,rate=32000){
+  const buf=sc.ctx.createBuffer(channels,length,rate);
+  for(let ch=0;ch<channels;ch++) for(let i=0;i<length;i++) buf.getChannelData(ch)[i]=(ch+1)*.1+i/100000;
+  return buf;
+}
+const original=fixture(),unchanged=Array.from({length:2},(_,k)=>Array.from(original.getChannelData(k)));
+sc.ES.buf.b0=original;
+assert(sliced.el['kp-tranches'].hidden);const noAudio=sc.audioCalls;
+sliced.click('kp-slice');assert(!sliced.el['kp-tranches'].hidden);assert.equal(sc.audioCalls,noAudio);
+assert.equal(sc.KP.sources[0],null);assert.equal(sliced.el['kp-tranches'].childNodes.length,8);
+const hitSlice=i=>sliced.el['kp-tranches'].childNodes[i].listeners.click();
+let previousEnd=0;
+for(let i=0;i<8;i++){
+  hitSlice(i);const src=sc.KP.sources[0],buf=src.buffer;
+  const begin=Math.floor(i*original.length/8),end=Math.floor((i+1)*original.length/8);
+  assert.equal(begin,previousEnd);previousEnd=end;
+  assert(src.loop&&src.started);assert.equal(buf.length,end-begin);
+  assert.equal(buf.numberOfChannels,2);assert.equal(buf.sampleRate,32000);
+  const fade=32;
+  for(let ch=0;ch<2;ch++){
+    const data=buf.getChannelData(ch);
+    assert.equal(data[0],0);assert.equal(data[data.length-1],0);
+    for(let j=fade;j<data.length-fade;j++) assert.equal(data[j],original.getChannelData(ch)[begin+j]);
+    assert(data[15]>0&&data[15]<original.getChannelData(ch)[begin+15]);
+  }
+  assert(sliced.el['kp-tranches'].childNodes[i].classList.contains('on'));
+  assert.equal(sliced.el['kp-tranche-etat'].textContent,'BANQUE A · TRANCHE '+(i+1)+'/8');
+  assert(sliced.el['kp-banques'].childNodes[0].attrs['aria-label'].includes('tranche '+(i+1)+'/8'));
+}
+assert.equal(previousEnd,original.length);
+for(let ch=0;ch<2;ch++) assert.deepStrictEqual(Array.from(original.getChannelData(ch)),unchanged[ch]);
+// Relance rapide en LOOP, voix remplacée mais tampon réutilisé. Une édition
+// NORMALIZE de l'original en place doit être audible à la frappe suivante.
+const oldSlice=sc.KP.sources[0],cached=oldSlice.buffer;
+hitSlice(7);const repeated=sc.KP.sources[0];assert(repeated!==oldSlice);
+assert.equal(repeated.buffer,cached);assert.equal(oldSlice.stops,1);
+oldSlice.onended();assert.equal(sc.KP.sources[0],repeated);assert(sc.KP.banques[0].on);
+const start7=Math.floor(7*original.length/8);
+original.getChannelData(1)[start7+100]=-.75;hitSlice(7);
+assert.equal(sc.KP.sources[0].buffer,cached);assert.equal(cached.getChannelData(1)[100],-.75);
+// ONE SHOT, vitesse variable, fin naturelle et STOP restent ceux de la banque.
+sliced.click('kp-mode');const oneSlice=sc.KP.sources[0];assert(!oneSlice.loop);
+sc.vitesseKp(.5,.01);assert.equal(oneSlice.playbackRate.value,.5);
+hitSlice(6);const otherSlice=sc.KP.sources[0];assert(!otherSlice.loop&&otherSlice!==oneSlice);
+assert.equal(otherSlice.playbackRate.value,.5);oneSlice.onended();assert(sc.KP.banques[0].on);
+sc.vitesseKp(2,.01);assert.equal(otherSlice.playbackRate.value,2);
+otherSlice.onended();assert.equal(sc.KP.sources[0],null);assert(!sc.KP.banques[0].on);
+assert.equal(sc.KP.banques[0].tranche,6);assert(!sliced.el['kp-tranches'].hidden);
+// Les autres banques continuent ; SLICE NON retrouve l'original en entier.
+sliced.pad(1);const bankB=sc.KP.sources[1];sliced.click('kp-selection'); // banque C, silencieuse
+assert.equal(sc.KP.sources[1],bankB);assert(sliced.el['kp-tranches'].hidden);
+sc.KP.sel=0;sc.majKp();hitSlice(2);sliced.click('kp-slice');
+assert.equal(sc.KP.sources[0].buffer,original);assert.equal(sc.KP.tranches[0],null);
+assert.equal(sc.KP.sources[1],bankB);assert(sliced.el['kp-tranches'].hidden);
+sliced.click('kp-slice');assert(sc.KP.sources[0].buffer!==original);assert.equal(sc.KP.banques[0].tranche,2);
+// SON, même à l'arrêt, efface le cache ; le mode et le numéro sont conservés.
+sliced.click('kp-stop-banque');assert(sc.KP.tranches[0]);sliced.click('kp-son');
+assert.equal(sc.KP.tranches[0],null);assert(sc.KP.banques[0].slice);assert.equal(sc.KP.banques[0].tranche,2);
+const replacement=fixture(4096,1,22050);sc.ES.buf.b1=replacement;hitSlice(2);
+assert.equal(sc.KP.sources[0].buffer.numberOfChannels,1);assert.equal(sc.KP.sources[0].buffer.sampleRate,22050);
+const beforeReplace=sc.KP.sources[0].buffer;sc.ES.buf.b1=fixture(4099,1,44100);hitSlice(2);
+assert(sc.KP.sources[0].buffer!==beforeReplace);assert.equal(sc.KP.tranches[0].original,sc.ES.buf.b1);
+// Tampons minuscules : aucune tranche de zéro frame n'est créée. Les touches
+// vides sont désactivées ; une demande directe échoue sans voyant fantôme.
+sc.ES.buf.b1=fixture(3,1);sc.majKp();
+for(let i=0;i<8;i++){
+  const empty=Math.floor(3*i/8)===Math.floor(3*(i+1)/8);
+  assert.equal(sliced.el['kp-tranches'].childNodes[i].disabled,empty);
+  hitSlice(i);
+  if(empty){assert.equal(sc.KP.sources[0],null);assert(!sc.KP.banques[0].on);}
+  else {assert.equal(sc.KP.sources[0].buffer.length,1);assert(sc.KP.sources[0].buffer.getChannelData(0)[0]>0);}
+}
+// Un échec d'allocation ne laisse ni source ni cache ; les autres banques restent actives.
+sc.ES.buf.b1=fixture();const create=sc.ctx.createBuffer;sc.ctx.createBuffer=()=>{throw Error('mémoire');};
+hitSlice(1);assert.equal(sc.KP.sources[0],null);assert.equal(sc.KP.tranches[0],null);
+assert(!sc.KP.banques[0].on);assert.equal(sc.KP.sources[1],bankB);sc.ctx.createBuffer=create;
+// Sauvegarde indépendante par banque, migration et validation des valeurs.
+hitSlice(3);sc.KP.banques[2].slice=true;sc.KP.banques[2].tranche=7;sc.memKp();
+const slicedMemory=JSON.parse(JSON.stringify(sc.memoire.kp));assert(!Object.hasOwn(slicedMemory,'tranches'));
+sc.saved=slicedMemory;sc.chargerKp();assert.equal(sc.KP.tranches.length,0);
+assert(sc.KP.banques[0].slice);assert.equal(sc.KP.banques[0].tranche,3);
+assert(!sc.KP.banques[1].slice);assert.equal(sc.KP.banques[2].tranche,7);
+for(const saved of [{banques:[{ech:'b0',mode:'one'}]},{banques:{}},undefined]){
+  sc.saved=saved;sc.chargerKp();assert(sc.KP.banques.every(b=>!b.slice&&b.tranche===0));
+}
+sc.saved={banques:[{slice:'oui',tranche:'4'},{slice:true,tranche:Infinity},{slice:true,tranche:-2},{slice:true,tranche:19}]};
+sc.chargerKp();assert(!sc.KP.banques[0].slice);assert.equal(sc.KP.banques[0].tranche,0);
+assert.equal(sc.KP.banques[1].tranche,0);assert.equal(sc.KP.banques[2].tranche,0);assert.equal(sc.KP.banques[3].tranche,7);
+// Rechargement réel d'un projet et changement de contexte : paramètres gardés,
+// anciennes voix libérées et copies audio reconstruites dans le bon contexte.
+const slicePersisted=setup();connectMemory(slicePersisted);slicePersisted.c.S.modele='kp';
+slicePersisted.c.KP.banques[3].slice=true;slicePersisted.c.KP.banques[3].tranche=5;
+slicePersisted.c.KP.sel=3;slicePersisted.c.memKp();slicePersisted.c.writeMem();
+const sliceRestored=setup();connectMemory(sliceRestored);sliceRestored.c.activerKp();
+assert(sliceRestored.c.KP.banques[3].slice);assert.equal(sliceRestored.c.KP.banques[3].tranche,5);
+assert(!sliceRestored.el['kp-tranches'].hidden);assert(sliceRestored.c.KP.sources.every(s=>s===null));
+sc.saved=slicedMemory;sc.arretKp();sc.chargerKp();sc.KP.sel=0;hitSlice(2);
+const beforeContext=sc.KP.sources[0];sc.ctx=new Context();hitSlice(2);
+assert(beforeContext.disconnected);assert.equal(sc.KP.tranches[0].ctx,sc.ctx);
+assert(sc.KP.sources[0].buffer!==beforeContext.buffer);beforeContext.onended();assert(sc.KP.banques[0].on);
+sc.arretKp();assert.equal(sc.KP.tranches.length,0);assert(sc.KP.sources.every(s=>s===null));
+console.log('Kaoss SLICE : huit régions complètes, stéréo, fondus, original intact, relances, cache, sons courts, mémoire et contexte OK.');
+
+// Jouer longtemps avec le transport arrêté ne retient pas chaque ancienne
+// voix/copie dans le suivi global ; les sources d'autres machines sont gardées.
+const tracked=setup(),lc=tracked.c,unrelated={n:{},t:1},future={n:{},t:999};
+lc.SOURCES=[unrelated,future];lc.ctx.trackSource=n=>lc.SOURCES.push({n,t:1});
+lc.S.modele='kp';lc.ES.buf.b0=fixture();
+const initialFit=lc.fitCalls;tracked.click('kp-slice');assert.equal(lc.fitCalls,initialFit+1);
+for(let j=0;j<100;j++) lc.frapperTrancheKp(0,j%8);
+assert(!lc.S.run);assert.equal(lc.SOURCES.length,5); // deux autres voix, deux oscillateurs FX, une banque
+assert(lc.SOURCES.includes(unrelated)&&lc.SOURCES.includes(future));
+assert.equal(lc.SOURCES.filter(s=>s.n.buffer).length,1);
+lc.majKp();assert.equal(lc.fitCalls,initialFit+1); // pas de recalage sur chaque frappe
+tracked.click('kp-stop-banque');assert.equal(lc.SOURCES.filter(s=>s.n.buffer).length,0);
+lc.modeBanqueKp(0,'one');lc.frapperTrancheKp(0,1);lc.KP.sources[0].onended();
+assert.equal(lc.SOURCES.filter(s=>s.n.buffer).length,0);
+lc.ctx.failStart=true;lc.frapperTrancheKp(0,2);
+assert.equal(lc.KP.sources[0],null);assert.equal(lc.SOURCES.filter(s=>s.n.buffer).length,0);
+assert(lc.SOURCES.includes(unrelated)&&lc.SOURCES.includes(future));
+// La façade se recale uniquement quand la grille apparaît/disparaît, aussi
+// lors d'une sélection silencieuse entre banques découpée et entière.
+tracked.click('kp-selection');assert(tracked.el['kp-tranches'].hidden);
+assert.equal(lc.fitCalls,initialFit+2);
+tracked.click('kp-selection');tracked.click('kp-selection');tracked.click('kp-selection');
+assert(!tracked.el['kp-tranches'].hidden);assert.equal(lc.fitCalls,initialFit+3);
+tracked.click('kp-slice');assert.equal(lc.fitCalls,initialFit+4);
+console.log('Kaoss SLICE : suivi des voix borné transport arrêté, démarrage refusé et ajustement de façade OK.');
