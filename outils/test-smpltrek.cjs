@@ -95,3 +95,39 @@ console.log('SmplTrek v186 : bornes, tranches par pas, mute/solo, import, mémoi
  assert.equal(d.STK.attente,null);assert.equal(d.STK.depart,null);
 }
 console.log('SmplTrek v187 : motifs quantifiés, heure audio, MIDI/SET, arrêt, copies indépendantes et mémoire OK.');
+
+// v188 : chaîne répétée, ordonnancement en avance et position réellement entendue.
+{
+ const c=setup(),s=c.STK,notes=[];c.voixStk=(t,k,a,tr)=>notes.push({t,k,tr});
+ assert(!c.modeChaineStk(),'chaîne vide non activable');
+ for(let j=0;j<8;j++){s.motifs[j].pas[0]=65535;s.motifs[j].tranches[0].fill(j);}
+ assert(c.ajouterChaineStk());assert(c.ajouterChaineStk());
+ c.choisirMotifStk(2);assert(c.ajouterChaineStk());c.choisirMotifStk(7);assert(c.ajouterChaineStk());
+ assert.deepStrictEqual(copie(s.chaine),[0,0,2,7]);const mix=copie(s.pistes);
+ assert(c.modeChaineStk());assert.equal(s.cur,0);assert(c.preparerChaineStk());c.S.run=true;c.cache=true;
+ for(let tour=0;tour<5;tour++)for(let i=0;i<16;i++)c.scheduleStk(i,2+tour*2+i*.125);
+ assert.deepStrictEqual(notes.filter((_,i)=>i%16===0).map(n=>n.tr),[0,0,2,7,0]);
+ assert.equal(s.chaineDeparts.length,5);assert.equal(s.cur,0);assert.equal(s.chainePos,0);
+ assert(!c.choisirMotifStk(3));assert(!c.ajouterChaineStk());assert(!c.retirerChaineStk());assert(!c.viderChaineStk());assert(!c.modeChaineStk());
+ c.now=4.1;c.suivreMotifsStk();assert.equal(s.chainePos,1);assert.equal(s.cur,0,'répétition conservée');
+ c.now=6.1;c.suivreMotifsStk();assert.equal(s.chainePos,2);assert.equal(s.cur,2);assert.equal(c.memoire.stk.cur,2);
+ c.now=8.1;c.S.run=false;c.arretStk();assert.equal(s.cur,7);assert.equal(s.chaineDeparts.length,0);assert.equal(s.chaineProgramme,-1);
+ assert.deepStrictEqual(copie(s.pistes),mix);assert(s.song,'STOP garde le mode chaîne');
+ assert(c.preparerChaineStk());assert.equal(s.cur,0);c.S.run=true;c.scheduleStk(0,9);assert.equal(notes.at(-1).tr,0,'PLAY repart du début');
+ c.ctx={};c.suivreMotifsStk();assert.equal(s.chaineDeparts.length,0);assert.equal(s.chaineProgramme,-1);
+ c.S.run=false;c.memStk();const saved=copie(c.memoire.stk),d=setup(saved);d.chargerStk();
+ assert(d.STK.song);assert.deepStrictEqual(copie(d.STK.chaine),[0,0,2,7]);assert.equal(d.STK.chaineDeparts.length,0);
+ assert(c.retirerChaineStk());assert.deepStrictEqual(copie(s.chaine),[0,0,2]);
+ c.confirmation=false;assert(!c.viderChaineStk());c.confirmation=true;assert(c.viderChaineStk());assert(!s.song);
+ assert.equal(s.motifs[7].pas[0],65535,'vider la chaîne préserve les motifs');
+}
+{
+ const c=setup(),s=c.STK;s.chaine=[0,1];s.motifs[1].last=8;
+ assert(!c.modeChaineStk());s.song=true;assert(!c.preparerChaineStk(),'refus après changement de longueur par collage');
+ s.song=false;s.chaine=[0];s.cur=1;assert(!c.ajouterChaineStk());
+ s.chaine=Array(256).fill(0);assert(!c.ajouterChaineStk());assert.equal(s.chaine.length,256);
+ s.cur=0;s.motifs[1].last=16;s.chaine=[0,1];assert(c.modeChaineStk());
+ c.choisirMotifStk(3);assert(!s.song);assert.equal(c.memoire.stk.song,false,'sélection manuelle arrête durablement le mode chaîne');
+ c.memoire.stk={song:true,chaine:[],pistes:[],motifs:[]};c.chargerStk();assert(!s.song);
+}
+console.log('SmplTrek v188 : répétitions, plusieurs départs anticipés, position audio, STOP/PLAY, limites et sauvegarde de chaîne OK.');

@@ -1700,10 +1700,63 @@ async def stk_motifs(nav):
     finally:
         await contexte.close()
 
+async def stk_chaine(nav):
+    print('\n27. SmplTrek : chaîne, répétitions, STOP/PLAY et sauvegarde (v188)')
+    from pathlib import Path
+    contexte=await nav.new_context(viewport={'width':393,'height':851})
+    adresse=await servir_page(contexte);pg=await contexte.new_page();erreurs=[]
+    pg.on('pageerror',lambda e:erreurs.append(str(e)))
+    try:
+        await pg.goto(adresse);await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=stk]').click()
+        await pg.evaluate('''() => {
+          STK.pistes[0].slice=true;
+          STK.motifs.forEach(function(m,k){m.pas[0]=1;m.tranches[0][0]=k;});
+          S.bpm=220;majStk();
+        }''')
+        ok(await pg.locator('#stk-chaine').is_disabled(),'chaîne vide désactivée')
+        await pg.locator('#stk-chaine-ajout').click();await pg.locator('#stk-chaine-ajout').click()
+        await pg.locator('#stk-ptn').click();await pg.locator('#stk-pads button').nth(2).click()
+        await pg.locator('#stk-chaine-ajout').click()
+        await pg.locator('#stk-pads button').nth(7).click();await pg.locator('#stk-chaine-ajout').click()
+        ok(await pg.evaluate('JSON.stringify(STK.chaine)==="[0,0,2,7]"'),'chaîne 1 → 1 → 3 → 8 créée avec les boutons')
+        await pg.locator('#stk-chaine').click()
+        await pg.evaluate('''() => {
+          window.__originalStk=voixStk;window.__chaineNotes=[];
+          voixStk=function(t,k,a,tr){if(k===0)__chaineNotes.push({t:t,tr:tr});return __originalStk(t,k,a,tr);};
+        }''')
+        await pg.locator('#stk-play').click()
+        ok(await pg.locator('#stk-chaine-ajout').is_disabled() and await pg.locator('#stk-pads button').nth(2).is_disabled(),'édition et sélection manuelle verrouillées pendant la chaîne')
+        await pg.wait_for_function('STK.chainePos===2 && STK.cur===2')
+        ok('LECTURE 3/4' in await pg.locator('#stk-chaine-etat').inner_text(),'position affichée sur le motif réellement entendu')
+        await pg.wait_for_function('__chaineNotes.length>=5')
+        r=await pg.evaluate('__chaineNotes.slice(0,5)')
+        ok([n['tr'] for n in r]==[0,0,2,7,0] and all(r[i+1]['t']>r[i]['t'] for i in range(4)),'vrai transport : répétition, succession et retour au début')
+        ok(await pg.evaluate('''() => { suivreMotifsStk();var courant=STK.cur;stop();return STK.cur===courant && STK.chaineDeparts.length===0 && STK.chaineProgramme===-1; }'''),'STOP conserve le motif entendu et vide les départs anticipés')
+        await pg.evaluate('__chaineNotes=[]');await pg.locator('#stk-play').click()
+        await pg.wait_for_function('__chaineNotes.length>0')
+        ok(await pg.evaluate('__chaineNotes[0].tr===0 && STK.chaineProgramme===0'),'nouveau PLAY repart du premier motif')
+        await pg.locator('#stk-play').click()
+        await pg.evaluate('memStk();writeMem()');await pg.reload()
+        await pg.wait_for_function("document.body.classList.contains('pret') && S.modele==='stk'")
+        await pg.locator('.pick[data-m=stk]').click()
+        ok(await pg.evaluate('STK.song && JSON.stringify(STK.chaine)==="[0,0,2,7]" && !S.run && STK.chaineDeparts.length===0'),'chaîne et mode restaurés sans lecture automatique')
+        await pg.locator('#stk-chaine-retirer').click()
+        ok(await pg.evaluate('JSON.stringify(STK.chaine)==="[0,0,2]" && STK.motifs[7].pas[0]===1'),'RETIRER FIN conserve les motifs')
+        for w,h in ((393,851),(360,640),(880,400)):
+            await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+            await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('stk-v188-%sx%s.png'%(w,h))))
+        pg.once('dialog',lambda d:d.accept())
+        await pg.locator('#stk-chaine-vider').click()
+        ok(await pg.evaluate('!STK.song && STK.chaine.length===0 && STK.motifs[2].pas[0]===1'),'VIDER demande confirmation et conserve les notes')
+        ok(not erreurs,'aucune erreur de page : '+str(erreurs))
+    finally:
+        await contexte.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine):
             try:
                 await t(nav)
             except Exception as e:

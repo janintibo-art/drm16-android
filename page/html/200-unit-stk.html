@@ -38,6 +38,14 @@
     <button id="stk-coller" disabled>COLLER MOTIF</button>
     <output id="stk-copie-etat" aria-live="polite">AUCUNE COPIE</output>
   </div>
+  <div class="stk-chaine-commandes">
+    <button id="stk-chaine" aria-pressed="false">CHAÎNE : NON</button>
+    <button id="stk-chaine-ajout">+ MOTIF 1</button>
+    <button id="stk-chaine-retirer" disabled>RETIRER FIN</button>
+    <button id="stk-chaine-vider" disabled>VIDER</button>
+  </div>
+  <div id="stk-chaine-liste" tabindex="0" aria-label="Ordre des motifs de la chaîne"></div>
+  <output id="stk-chaine-etat" aria-live="polite"></output>
   <div class="stk-pads" id="stk-pads"></div>
   <div class="stk-trks" id="stk-trks"></div>
   <div class="stk-pied"><span id="stk-etat">Choisissez une piste, puis écrivez ses pas.</span></div>

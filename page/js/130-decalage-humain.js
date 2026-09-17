@@ -79,6 +79,10 @@ function start(){
   if(typeof MACHINE_DBI !== "undefined" && MACHINE_DBI) MACHINE_DBI.arret();
   if(typeof MACHINE_MC !== "undefined" && MACHINE_MC) MACHINE_MC.arret();
   if(typeof MACHINE_STK !== "undefined" && MACHINE_STK) MACHINE_STK.arret();
+  if(typeof preparerChaineStk === "function" &&
+     (MACHINE === MACHINE_STK || (SET.on && SET.actives.stk)) && !preparerChaineStk()){
+    S.run = false; return;
+  }
   S.run=true; step=0; pasSet=0; queue=[];
   if(SET.on) preparerSet();
   if(MIDI.sync && MIDI.ouvert >= 0){

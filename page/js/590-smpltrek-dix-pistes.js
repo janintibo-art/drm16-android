@@ -20,7 +20,8 @@ function motifStk(){
 }
 var STK = {pistes:[], motifs:[], cur:0, sel:0, solo:-1, rec:false, pos:-1,
            noeuds:null, chaine:[], chainePos:0, song:false, onde:null, ondePour:"",
-           quantifie:false, attente:null, depart:null, contexte:null, copie:null};
+           quantifie:false, attente:null, depart:null, contexte:null, copie:null,
+           chaineDeparts:[], chaineProgramme:-1, chaineContexte:null, chaineTemps:0};
 for(var sz=0; sz<STK_PISTES; sz++) STK.pistes.push(pisteStk(sz));
 for(var sz2=0; sz2<STK_MOTIFS; sz2++) STK.motifs.push(motifStk());
 
@@ -30,11 +31,21 @@ function pisteStkSel(){ return STK.pistes[STK.sel]; }
 /* v187 : l'affichage reste sur le motif entendu jusqu'au départ audio.
    Une demande non programmée est annulable, un départ déjà programmé est verrouillé. */
 function viderAttenteStk(){ STK.attente = null; STK.depart = null; STK.contexte = null; }
+function viderLectureChaineStk(){
+  STK.chaineDeparts = []; STK.chaineProgramme = -1; STK.chaineContexte = null; STK.chaineTemps = 0;
+}
 function validerDepartStk(){
-  if(STK.contexte && STK.contexte !== ctx){ viderAttenteStk(); return false; }
-  var d = STK.depart;
-  if(!d || !ctx || ctx.startRendering || maintenantAudio() < d.t) return false;
-  STK.cur = d.motif; STK.depart = null; STK.contexte = null; return true;
+  if(STK.contexte && STK.contexte !== ctx) viderAttenteStk();
+  if(STK.chaineContexte && STK.chaineContexte !== ctx) viderLectureChaineStk();
+  if(!ctx || ctx.startRendering) return false;
+  var change = false, d = STK.depart;
+  if(d && maintenantAudio() >= d.t){
+    STK.cur = d.motif; STK.depart = null; STK.contexte = null; change = true;
+  }
+  while(STK.chaineDeparts.length && maintenantAudio() >= STK.chaineDeparts[0].t){
+    var c = STK.chaineDeparts.shift(); STK.cur = c.motif; STK.chainePos = c.position; change = true;
+  }
+  return change;
 }
 function suivreMotifsStk(){ if(validerDepartStk()){ memStk(); majStk(); } }
 function lectureMotifsStk(){
@@ -43,12 +54,14 @@ function lectureMotifsStk(){
 }
 function commandeMotifsStk(){
   suivreMotifsStk();
+  if(STK.song && S.run){ signal("ARRÊTEZ PLAY POUR QUITTER LA CHAÎNE"); return false; }
   if(STK.depart){ signal("DÉPART IMMINENT"); return false; }
   return true;
 }
 function choisirMotifStk(k){
   if(!Number.isInteger(k) || k < 0 || k >= STK_MOTIFS) return false;
   if(!commandeMotifsStk()) return false;
+  STK.song = false;
   if(STK.quantifie && lectureMotifsStk()){
     if(STK.motifs[k].last !== motifStkCur().last){
       signal("ARRÊTEZ PLAY POUR CHANGER LA LONGUEUR DU MOTIF"); return false;
@@ -59,6 +72,7 @@ function choisirMotifStk(k){
   STK.song = false; majStk(); return true;
 }
 function modeMotifsStk(){
+  if(STK.song) return false;
   if(!commandeMotifsStk()) return false;
   STK.quantifie = !STK.quantifie; viderAttenteStk(); memStk(); majStk(); return true;
 }
@@ -81,6 +95,49 @@ function collerMotifStk(){
     !window.confirm("Remplacer les dix pistes du motif " + (STK.cur + 1) + " par la copie ? Les sons et le mixage restent inchangés.")) return false;
   STK.motifs[STK.cur] = copieMotifStk(STK.copie.motif);
   memStk(); majStk(); signal("MOTIF COLLÉ · DIX PISTES"); return true;
+}
+
+/* v188 : chaîne de motifs de même longueur, bouclée, éditable à l'arrêt. */
+function chaineValideStk(){
+  if(!STK.chaine.length) return false;
+  var premier = STK.motifs[STK.chaine[0]];
+  return !!premier && STK.chaine.every(function(k){ return STK.motifs[k] && STK.motifs[k].last === premier.last; });
+}
+function ajouterChaineStk(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR MODIFIER LA CHAÎNE"); return false; }
+  if(STK.chaine.length >= 256){ signal("CHAÎNE PLEINE · 256 ENTRÉES"); return false; }
+  if(STK.chaine.length && STK.motifs[STK.chaine[0]].last !== motifStkCur().last){
+    signal("LES MOTIFS DE LA CHAÎNE DOIVENT AVOIR LA MÊME LONGUEUR"); return false;
+  }
+  STK.chaine.push(STK.cur); memStk(); majStk(); return true;
+}
+function retirerChaineStk(){
+  if(S.run || !STK.chaine.length) return false;
+  STK.chaine.pop(); if(!STK.chaine.length) STK.song = false;
+  memStk(); majStk(); return true;
+}
+function viderChaineStk(){
+  if(S.run || !STK.chaine.length) return false;
+  if(!window.confirm("Vider la chaîne ? Les motifs et leurs notes sont conservés.")) return false;
+  STK.chaine = []; STK.song = false; memStk(); majStk(); return true;
+}
+function modeChaineStk(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER DE MODE"); return false; }
+  if(!STK.song && !chaineValideStk()){
+    signal("AJOUTEZ DES MOTIFS DE MÊME LONGUEUR À LA CHAÎNE"); return false;
+  }
+  viderAttenteStk(); viderLectureChaineStk();
+  STK.song = !STK.song;
+  if(STK.song){ STK.cur = STK.chaine[0]; STK.chainePos = 0; }
+  memStk(); majStk(); return true;
+}
+function preparerChaineStk(){
+  if(!STK.song) return true;
+  if(!chaineValideStk()){
+    signal("CHAÎNE INVALIDE · VÉRIFIEZ LA LONGUEUR DES MOTIFS"); return false;
+  }
+  viderAttenteStk(); viderLectureChaineStk(); STK.cur = STK.chaine[0]; STK.chainePos = 0;
+  memStk(); if(S.modele === "stk") majStk(); return true;
 }
 
 /* v186 : huit tranches égales, sans création ni modification du fichier source.
@@ -160,13 +217,23 @@ function scheduleStk(i, t){
   var direct = ctx && !ctx.startRendering;
   if(direct){
     suivreMotifsStk();
-    if(i === 0 && lectureMotifsStk() && !STK.depart && STK.attente !== null){
+    if(STK.song && lectureMotifsStk() && STK.chaine.length){
+      if(i === 0){
+        STK.chaineProgramme = (STK.chaineProgramme + 1) % STK.chaine.length;
+        STK.chaineContexte = ctx; STK.chaineTemps = Math.max(t, STK.chaineTemps);
+        STK.chaineDeparts.push({t:STK.chaineTemps, motif:STK.chaine[STK.chaineProgramme], position:STK.chaineProgramme});
+      }
+      t = Math.max(t, STK.chaineTemps);
+    }
+    if(i === 0 && lectureMotifsStk() && !STK.song && !STK.depart && STK.attente !== null){
       STK.depart = {t:t, motif:STK.attente}; STK.attente = null; majStk();
     }
     if(STK.depart) t = Math.max(t, STK.depart.t);
   }
   var CHARGE_N = ouvrirPas();
-  var m = STK.motifs[direct && STK.depart ? STK.depart.motif : STK.cur];
+  var numero = direct && STK.song && STK.chaineProgramme >= 0 ? STK.chaine[STK.chaineProgramme]
+    : direct && STK.depart ? STK.depart.motif : STK.cur;
+  var m = STK.motifs[numero];
   if(i >= m.last) return;
   for(var k=0;k<STK_PISTES;k++){
     if(!(m.pas[k] & (1 << i))) continue;
@@ -183,7 +250,7 @@ function beatStk(i){
   for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i && (typeof STK_MODE === "undefined" || STK_MODE !== "ptn"));
 }
 function arretStk(){
-  var entendu = validerDepartStk(); viderAttenteStk();
+  var entendu = validerDepartStk(); viderAttenteStk(); viderLectureChaineStk();
   if(entendu) memStk();
   if(STK.noeuds && STK.noeuds.ctx === ctx){
     try{ debrancherTout(STK.noeuds); }catch(e){}
@@ -191,19 +258,12 @@ function arretStk(){
   STK.noeuds = null; beatStk(-1);
   if(S.modele === "stk") majStk();
 }
-function boucleStk(){
-  if(STK.song && STK.chaine.length && STK.attente === null && !STK.depart){
-    STK.chainePos = (STK.chainePos + 1) % STK.chaine.length;
-    STK.cur = STK.chaine[STK.chainePos];
-    majStk();
-  }
-}
-var MACHINE_STK = {schedule:scheduleStk, beat:beatStk, arret:arretStk, boucle:boucleStk,
+var MACHINE_STK = {schedule:scheduleStk, beat:beatStk, arret:arretStk,
                    longueur:function(){ return motifStkCur().last; }};
 
 function memStk(){
   if(validerDepartStk()) majStk();
-  memoire.stk = {quantifie:STK.quantifie, cur:STK.cur, sel:STK.sel, chaine:STK.chaine.slice(),
+  memoire.stk = {song:STK.song, quantifie:STK.quantifie, cur:STK.cur, sel:STK.sel, chaine:STK.chaine.slice(),
     pistes:STK.pistes.map(function(P){
       return {ech:P.ech, slice:P.slice, tranche:P.tranche, niv:P.niv, pan:P.pan, tune:P.tune, dec:P.dec, filt:P.filt, muet:P.muet};
     }),
@@ -214,7 +274,7 @@ function nombreStk(v, min, max, repli){
   return typeof v === "number" && isFinite(v) ? Math.max(min, Math.min(max, v)) : repli;
 }
 function chargerStk(){
-  viderAttenteStk();
+  viderAttenteStk(); viderLectureChaineStk(); STK.song = false; STK.chainePos = 0;
   var m = memLire("stk");
   if(!m || typeof m !== "object" || Array.isArray(m)) return;
   STK.quantifie = m.quantifie === true;
@@ -244,6 +304,7 @@ function chargerStk(){
     }
     STK.motifs[j] = motif;
   }
+  STK.song = m.song === true && chaineValideStk();
 }
 
 /* ---------- la façade du KAOSS PAD ---------- */
@@ -879,6 +940,21 @@ function majTranchesStk(){
   document.getElementById("stk-source").textContent = buf ? nomBib(P.ech) : "SON ABSENT · " + P.ech;
   if(cacheAvant !== grille.hidden && S.modele === "stk") fit();
 }
+function majChaineStk(){
+  var bt = document.getElementById("stk-chaine");
+  bt.textContent = STK.song ? "CHAÎNE : OUI" : "CHAÎNE : NON";
+  bt.classList.toggle("on", STK.song); bt.disabled = S.run || (!STK.song && !STK.chaine.length);
+  bt.setAttribute("aria-pressed", String(STK.song));
+  document.getElementById("stk-chaine-ajout").disabled = S.run || STK.chaine.length >= 256;
+  document.getElementById("stk-chaine-ajout").textContent = "+ MOTIF " + (STK.cur + 1);
+  document.getElementById("stk-chaine-retirer").disabled = S.run || !STK.chaine.length;
+  document.getElementById("stk-chaine-vider").disabled = S.run || !STK.chaine.length;
+  var liste = document.getElementById("stk-chaine-liste");
+  liste.textContent = STK.chaine.length ? STK.chaine.map(function(k){ return k + 1; }).join(" → ") : "CHAÎNE VIDE · CHOISISSEZ UN MOTIF PUIS + MOTIF";
+  var etat = document.getElementById("stk-chaine-etat");
+  etat.textContent = STK.song ? (S.run ? "LECTURE " + (STK.chainePos + 1) + "/" + STK.chaine.length + " · MOTIF " + (STK.cur + 1)
+    : "PRÊT · PLAY REPART DU DÉBUT") : STK.chaine.length + "/256 ENTRÉES · BOUCLE";
+}
 function majStk(){
   if(validerDepartStk()) memStk();
   var dp = document.getElementById("stk-pads");
@@ -915,7 +991,7 @@ function majStk(){
     var suivant = STK.depart ? STK.depart.motif : STK.attente;
     bs[k2].classList.toggle("attente", STK_MODE === "ptn" && k2 === suivant);
     if(STK_MODE === "ptn" && k2 === suivant) bs[k2].textContent += " →";
-    bs[k2].disabled = STK_MODE === "ptn" ? k2 >= STK_MOTIFS || !!STK.depart : k2 >= m.last;
+    bs[k2].disabled = STK_MODE === "ptn" ? k2 >= STK_MOTIFS || !!STK.depart || (STK.song && S.run) : k2 >= m.last;
     bs[k2].setAttribute("aria-label", STK_MODE === "ptn" ? "Motif " + (k2 + 1) :
       "Pas " + (k2 + 1) + (actifPas ? (pisteStkSel().slice && tr >= 0 ? " · tranche " + (tr + 1) : " · son entier") : " · vide"));
   }
@@ -929,10 +1005,10 @@ function majStk(){
   }
   var qm = document.getElementById("stk-quantifie");
   qm.textContent = STK.quantifie ? "FIN MOTIF" : "DIRECT";
-  qm.classList.toggle("on", STK.quantifie); qm.disabled = !!STK.depart;
+  qm.classList.toggle("on", STK.quantifie); qm.disabled = !!STK.depart || STK.song;
   qm.setAttribute("aria-pressed", String(STK.quantifie));
   document.getElementById("stk-annuler").disabled = STK.attente === null || !!STK.depart;
-  document.getElementById("stk-lancement-etat").textContent = STK.depart ? "DÉPART IMMINENT · MOTIF " + (STK.depart.motif + 1)
+  document.getElementById("stk-lancement-etat").textContent = STK.song ? "MOTIFS PILOTÉS PAR LA CHAÎNE" : STK.depart ? "DÉPART IMMINENT · MOTIF " + (STK.depart.motif + 1)
     : STK.attente !== null ? "EN ATTENTE · MOTIF " + (STK.attente + 1)
     : STK.quantifie ? "CHANGEMENT À LA FIN DU MOTIF" : "CHANGEMENT EN DIRECT";
   document.getElementById("stk-coller").disabled = !STK.copie || S.run;
@@ -949,7 +1025,7 @@ function majStk(){
     : pisteStkSel().slice ? "Choisissez TR 1–8, puis un pas : écrire, remplacer ou retirer cette tranche."
     : "Les pads écrivent les pas de la piste " + (STK.sel + 1) +
       ". Retoucher une piste choisie la coupe.";
-  majTranchesStk(); dessinerStk();
+  majChaineStk(); majTranchesStk(); dessinerStk();
 }
 function padStk(k){
   if(!Number.isInteger(k) || k < 0 || k >= 16) return;
@@ -1003,6 +1079,10 @@ document.getElementById("stk-play").addEventListener("click", function(){
   if(S.run) stop(); else start();
   majStk(); H.start();
 });
+document.getElementById("stk-chaine").addEventListener("click", modeChaineStk);
+document.getElementById("stk-chaine-ajout").addEventListener("click", ajouterChaineStk);
+document.getElementById("stk-chaine-retirer").addEventListener("click", retirerChaineStk);
+document.getElementById("stk-chaine-vider").addEventListener("click", viderChaineStk);
 document.getElementById("stk-quantifie").addEventListener("click", modeMotifsStk);
 document.getElementById("stk-annuler").addEventListener("click", annulerMotifStk);
 document.getElementById("stk-copier").addEventListener("click", copierMotifStk);
