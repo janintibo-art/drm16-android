@@ -8,6 +8,8 @@ Audit du 17 septembre 2026, à partir de la v175. La v176 est une version de mai
 
 **Suivi v179 :** les sauvegardes de projet créées dans la même seconde gardent des fichiers distincts et leur contenu est relu après écriture. Le [bilan v179](CORRECTIONS_V179.md) précise cette protection ; la reprise automatique après arrêt brutal pendant une ouverture reste à réaliser.
 
+**Suivi v180 :** la reprise automatique est désormais effectuée avant le démarrage des machines : journal natif, deux copies vérifiées, restauration/reprise selon la phase enregistrée et blocage si elle ne peut pas être vérifiée. Le [bilan v180](CORRECTIONS_V180.md) distingue les simulations de coupure et les essais matériels encore à faire.
+
 ## Résultat
 
 Les contrôles automatiques initiaux de la v175 passaient, mais ne couvraient pas plusieurs pertes d'état, erreurs de routage et refus d'écriture. Des reproductions ciblées ont permis de corriger ces cas et d'ajouter des tests.

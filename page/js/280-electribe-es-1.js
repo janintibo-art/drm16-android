@@ -410,6 +410,7 @@ function usagesEch(id){
   return n;
 }
 function supprimerEch(id){
+  if(typeof PROJET_EN_COURS !== "undefined" && PROJET_EN_COURS) return;
   delete ES_CHARGES[id];
   var p = HOST;
   if(p && p.echSupprimer) try{ p.echSupprimer(id); }catch(e){}

@@ -140,6 +140,7 @@ function departEsclave(remise){
 
 /* réception */
 window.__midi = function(a,b,c){
+  if(typeof PROJET_EN_COURS !== "undefined" && PROJET_EN_COURS) return;
   if(WAVX.occupe || ENR.ondesOccupe) return;  /* le matériel ne modifie pas un rendu en cours */
   enrNoter(a,b,c);
   if(!MIDI.in) return;
@@ -477,6 +478,7 @@ function ouvrirDernierMidi(){
   }
 }
 window.__midiEtat = function(e){
+  if(typeof PROJET_EN_COURS !== "undefined" && PROJET_EN_COURS) return;
   if(!e || typeof e !== "object") return;
   MIDI.dispo = true;
   MIDI.appareils = (e.appareils || []).map(function(a){ return {nom:String(a.nom), id:a.id|0}; });

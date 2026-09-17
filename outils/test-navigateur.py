@@ -396,10 +396,13 @@ class CoqueSimulee:
 async def bureau(nav):
     print("\n8. Version de bureau, côté page : HOST par requêtes synchrones, réseau, MIDI et autotest (v139-v141)")
     coque = CoqueSimulee()
+    appels = []
     ctx = await nav.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Edg/130")
     async def servir(route, req):
         try:
-            r = coque.appeler(req.url.rsplit('/', 1)[-1], json.loads(req.post_data or '[]'))
+            nom = req.url.rsplit('/', 1)[-1]
+            appels.append(nom)
+            r = coque.appeler(nom, json.loads(req.post_data or '[]'))
             await route.fulfill(status=200, body=json.dumps({'r': r}),
                                 headers={'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'})
         except KeyError:
@@ -445,6 +448,42 @@ async def bureau(nav):
         await pg.evaluate("(n) => document.getElementById(n + '-fermer').click()", invite)
     ok(not refus, "aucun blocage par la politique de sécurité %s" % refus[:2])
     ok(not err, "aucune erreur de page %s" % err[:1])
+    # v180 : l'autotest natif reste actif, mais ne doit écrire aucun de ses
+    # fichiers ni échantillons si la reprise empêche de démarrer l'application.
+    coque.docs['drm16-ouverture.json'] = b'{suivi interrompu'
+    docs_avant, sons_avant = dict(coque.docs), dict(coque.ech)
+    await pg.evaluate("() => { PROJET_EN_COURS = true; }")
+    await ctx.add_init_script(r"""
+window.__bureauV180Ecritures = [];
+var poser = Storage.prototype.setItem, retirer = Storage.prototype.removeItem;
+Storage.prototype.setItem = function(k,v){
+  if(this === localStorage && (k === 'drm.reglages' || k.indexOf('drm.reglages.') === 0))
+    __bureauV180Ecritures.push('poser ' + k);
+  return poser.call(this,k,v);
+};
+Storage.prototype.removeItem = function(k){
+  if(this === localStorage && (k === 'drm.reglages' || k.indexOf('drm.reglages.') === 0))
+    __bureauV180Ecritures.push('retirer ' + k);
+  return retirer.call(this,k);
+};
+""")
+    coque.rapport.clear(); appels.clear()
+    await pg.reload()
+    await pg.locator('#projet-reprise-reessayer').wait_for(state='visible')
+    for _ in range(40):
+        if coque.rapport: break
+        await pg.wait_for_timeout(250)
+    r = await pg.evaluate("""() => ({application:typeof S, ecritures:__bureauV180Ecritures,
+      bloque:PROJET_DEMARRAGE.bloque, plateforme:HOST.plateforme})""")
+    mutations = {'fichierSauver', 'fichierOuvrir', 'fichierAjouter', 'fichierFermer',
+                 'fichierSupprimer', 'echSauver', 'echSupprimer'}
+    ok(coque.rapport.get('ok') is False and 'reprise' in coque.rapport.get('texte', '').lower() and
+       appels.count('autotestFin') == 1 and not mutations.intersection(appels) and
+       coque.docs == docs_avant and coque.ech == sons_avant,
+       "reprise bloquée : l'autotest bureau rend son refus sans écrire de fichier ni de son")
+    ok(r['application'] == 'undefined' and r['bloque'] and r['plateforme'] == 'bureau' and
+       not r['ecritures'] and not err and not refus,
+       "reprise bloquée avec autotest : aucune machine, migration ou erreur de page")
     await ctx.close()
 
 async def liens(nav):
@@ -718,6 +757,139 @@ async def projet_sauvegarde(nav):
         ok(not err, "aucune erreur de page %s" % err[:1])
     finally:
         await ctx.close()
+
+async def projet_reprise(nav):
+    print("\n10c. Projet .drm16 : reprise avant les machines, suivi persistant et nouvel essai (v180)")
+    instrumentation = r"""
+window.__v180Demarrage = +(sessionStorage.getItem('__v180Demarrage') || 0) + 1;
+sessionStorage.setItem('__v180Demarrage', String(__v180Demarrage));
+window.__v180Ecritures = [];
+var __v180Poser = Storage.prototype.setItem, __v180Retirer = Storage.prototype.removeItem;
+Storage.prototype.setItem = function(k,v){
+  if(this === localStorage && (k === 'drm.reglages' || k.indexOf('drm.reglages.') === 0))
+    __v180Ecritures.push('poser ' + k);
+  return __v180Poser.call(this,k,v);
+};
+Storage.prototype.removeItem = function(k){
+  if(this === localStorage && (k === 'drm.reglages' || k.indexOf('drm.reglages.') === 0))
+    __v180Ecritures.push('retirer ' + k);
+  return __v180Retirer.call(this,k);
+};
+window.addEventListener('pagehide', function(){
+  var sorties = JSON.parse(sessionStorage.getItem('__v180Sorties') || '[]');
+  sorties.push({demarrage:__v180Demarrage, application:typeof S !== 'undefined',
+    suivi:!!__F['drm16-ouverture.json'],
+    bloque:typeof PROJET_DEMARRAGE !== 'undefined' && PROJET_DEMARRAGE.bloque,
+    ecritures:__v180Ecritures.slice()});
+  sessionStorage.setItem('__v180Sorties', JSON.stringify(sorties));
+});
+"""
+    preparer = r"""(phase) => {
+      audioInit(); allerMachine('kp'); S.bpm = 117; memKp(); writeMem();
+      var ancien = b64De(wavDe(ctx.createBuffer(1, 320, 32000)));
+      var nouveau = b64De(wavDe(ctx.createBuffer(1, 640, 32000)));
+      var exterieur = b64De(wavDe(ctx.createBuffer(1, 960, 32000)));
+      HOST.echSauver('u-reprise', ancien);
+      HOST.echSauver('u-exterieur', exterieur);
+      localStorage.setItem('exterieur-v180', 'à conserver');
+      localStorage.setItem(MEM + '.reprise-v180', JSON.stringify({etat:'avant'}));
+      var avant = projetContenu().doc;
+      var apres = JSON.parse(JSON.stringify(avant));
+      var reglages = JSON.parse(apres.memoire[MEM]);
+      reglages.modele = 'tr909'; reglages.bpm = 163;
+      apres.memoire[MEM] = JSON.stringify(reglages);
+      apres.memoire[MEM + '.reprise-v180'] = JSON.stringify({etat:'apres'});
+      apres.memoire[MEM + '.nouveau-v180'] = JSON.stringify({nouveau:true});
+      apres.sons = {'u-reprise':nouveau, 'u-nouveau-v180':nouveau};
+      function sauver(prefixe, doc){
+        var nom = projetEnregistrer(prefixe, true, {doc:doc, sautes:[], erreurs:[]});
+        if(!nom) throw new Error('Préparation du secours impossible');
+        return nom;
+      }
+      var nomAvant = sauver('avant-ouverture-browser', avant);
+      var nomApres = sauver('ouverture-verifiee-browser', apres);
+      var suivi = {version:1, phase:phase, avant:projetReference(nomAvant,avant),
+        apres:projetReference(nomApres,apres), sons:Object.keys(apres.sons)};
+      projetEcrireJournal(suivi);
+      PROJET_EN_COURS = true; // comme pendant l'ouverture, bloquer les sauvegardes de pagehide
+      /* État interrompu : sons déjà remplacés, mémoire seulement en partie. */
+      var partiel = JSON.parse(JSON.stringify(apres.memoire));
+      reglages.bpm = 80; partiel[MEM] = JSON.stringify(reglages);
+      delete partiel[MEM + '.reprise-v180'];
+      projetPoserMemoire(partiel);
+      HOST.echSauver('u-reprise', nouveau);
+      HOST.echSauver('u-nouveau-v180', nouveau);
+      return {avant:ancien, apres:nouveau, exterieur:exterieur,
+        nomAvant:nomAvant, copieAvant:HOST.fichierCharger(nomAvant)};
+    }"""
+    relever = r"""() => ({
+      modele:S.modele, bpm:S.bpm, suivi:!!__F[PROJET_JOURNAL],
+      etat:JSON.parse(localStorage.getItem(MEM + '.reprise-v180')).etat,
+      nouveau:localStorage.getItem(MEM + '.nouveau-v180'),
+      son:HOST.echCharger('u-reprise'), ajout:HOST.echCharger('u-nouveau-v180'),
+      exterieur:HOST.echCharger('u-exterieur'), autre:localStorage.getItem('exterieur-v180'),
+      demarrage:__v180Demarrage,
+      sorties:JSON.parse(sessionStorage.getItem('__v180Sorties') || '[]')
+    })"""
+    for phase in ('avant', 'apres', 'secours-abime'):
+        ctx = await nav.new_context(viewport={"width":393, "height":851})
+        await ctx.add_init_script(PONT + instrumentation)
+        adresse = await servir_page(ctx)
+        pg = await ctx.new_page()
+        err = []
+        pg.on('pageerror', lambda e: err.append(str(e)))
+        try:
+            await pg.goto(adresse)
+            await pg.wait_for_function("() => document.body.classList.contains('pret')")
+            donnees = await pg.evaluate(preparer, 'apres' if phase == 'apres' else 'avant')
+            if phase == 'secours-abime':
+                await pg.evaluate("""(n) => {
+                  var o = __F[n].slice(); o[o.length-1] ^= 1;
+                  DRM16.fichierSauver(n, octetsVersB64(o));
+                }""", donnees['nomAvant'])
+            await pg.reload(wait_until='domcontentloaded')
+            if phase == 'secours-abime':
+                await pg.locator('#projet-reprise-reessayer').wait_for(state='visible')
+                r = await pg.evaluate("""() => ({
+                  application:typeof S, memoire:localStorage.getItem('drm.reglages'),
+                  ecritures:__v180Ecritures.slice(), suivi:!!__F[PROJET_JOURNAL],
+                  erreur:document.getElementById('projet-reprise-erreur').textContent,
+                  secours:document.getElementById('projet-reprise-secours').textContent,
+                  defilement:document.documentElement.scrollWidth <= innerWidth,
+                  focus:document.activeElement.id, bloque:PROJET_DEMARRAGE.bloque
+                })""")
+                ok(r['application'] == 'undefined' and not r['ecritures'] and r['suivi'] and r['bloque'] and
+                   json.loads(r['memoire'])['bpm'] == 80,
+                   "un secours abîmé bloque avant toute initialisation ou migration de machine")
+                ok(donnees['nomAvant'] in r['erreur'] and donnees['nomAvant'] in r['secours'] and
+                   r['focus'] == 'projet-reprise-reessayer' and r['defilement'],
+                   "le secours à rétablir et Réessayer restent lisibles et accessibles sur téléphone")
+                await pg.keyboard.press('Control+s')
+                await pg.keyboard.press('Escape')
+                await pg.keyboard.press('Space')
+                await pg.wait_for_timeout(300)
+                ok(await pg.evaluate("() => typeof S === 'undefined' && __v180Ecritures.length === 0 && !!__F[PROJET_JOURNAL]"),
+                   "les raccourcis ne lancent aucune machine et ne modifient pas l'état bloqué")
+                await pg.evaluate("(d) => DRM16.fichierSauver(d.nomAvant, d.copieAvant)", donnees)
+                async with pg.expect_navigation():
+                    await pg.locator('#projet-reprise-reessayer').click()
+            await pg.wait_for_function("""() => typeof S !== 'undefined' &&
+              document.body.classList.contains('pret') && !__F['drm16-ouverture.json']""", timeout=15000)
+            r = await pg.evaluate(relever)
+            apres = phase == 'apres'
+            ok(r['modele'] == ('tr909' if apres else 'kp') and r['bpm'] == (163 if apres else 117) and
+               r['etat'] == ('apres' if apres else 'avant') and bool(r['nouveau']) == apres and
+               r['son'] == donnees['apres' if apres else 'avant'] and
+               r['ajout'] == (donnees['apres'] if apres else ''),
+               "%s : réglages, son remplacé et son ajouté retrouvent un état cohérent" % phase)
+            ok(r['exterieur'] == donnees['exterieur'] and r['autre'] == 'à conserver',
+               "%s : le son extérieur à l'ouverture et le stockage voisin restent intacts" % phase)
+            ok(not r['suivi'] and r['demarrage'] >= 3 and
+               any(not s['application'] and s['suivi'] and s['bloque'] and s['ecritures'] for s in r['sorties']),
+               "%s : le suivi survit à la restauration puis disparaît après vérification au redémarrage" % phase)
+            ok(not err, "%s : aucune erreur de page %s" % (phase, err[:1]))
+        finally:
+            await ctx.close()
 
 async def confort(nav):
     print("\n11. Confort sur ordinateur : clavier, molette, glisser-déposer (v146)")
@@ -1109,7 +1281,7 @@ async def mc_scenes(nav):
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes):
             try:
                 await t(nav)
             except Exception as e:

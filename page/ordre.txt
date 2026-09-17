@@ -78,6 +78,8 @@ html/580-note-es.html
 html/590-note-mx.html
 html/600-note-sx.html
 js/010-hote.js
+js/015-reprise-projet.js
+html/605-application.html
 js/020-etat.js
 js/030-memoire.js
 js/040-mouvement-des-effets.js
@@ -146,4 +148,6 @@ js/640-travail-du-midi-editeur-en-rouleau.js
 js/650-transfert-exclusif-vers-une-vraie-korg.js
 js/660-choix-du-modele.js
 js/665-clavier-et-souris.js
+html/609-demarrage.html
+js/005-demarrage-projet.js
 html/610-fin.html

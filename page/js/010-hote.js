@@ -71,6 +71,10 @@ var HOST = (function(){
     window.addEventListener("error", function(e){ erreurs.push(String(e.message)); });
     window.addEventListener("load", function(){ setTimeout(lancer, 2500); });
     function lancer(){
+      if(typeof PROJET_DEMARRAGE !== "undefined" && PROJET_DEMARRAGE.bloque){
+        try{ natif("autotestFin", [false, "La reprise du projet bloque le démarrage."]); }catch(e){}
+        return;
+      }
       var l = [], ok = true;
       function t(c, m){ l.push((c ? "ok    " : "FAUX  ") + m); if(!c) ok = false; }
       try{

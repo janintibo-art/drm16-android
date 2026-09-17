@@ -12,6 +12,7 @@ function enrCharger(){
   }catch(e){}
 }
 function enrEcrire(){
+  if(typeof PROJET_EN_COURS !== "undefined" && PROJET_EN_COURS) return;
   try{ localStorage.setItem(MEM + ".midicanaux", JSON.stringify(ENR.canaux)); }catch(e){}
   try{ localStorage.setItem(MEM + ".midirec", JSON.stringify(ENR.prises)); }
   catch(e){ signal("MÉMOIRE PLEINE · PRISE NON GARDÉE"); }
@@ -714,4 +715,3 @@ function fermerEnr(){
   document.getElementById("enr").classList.remove("show");
   majNoteOuverte();
 }
-

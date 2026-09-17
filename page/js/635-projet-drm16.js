@@ -12,9 +12,6 @@
    Ouvrir un projet REMPLACE l'état courant ; l'état courant est d'abord
    enregistré en « avant-ouverture-….drm16 », puis la page est rechargée.
    Plafond : 16 Mo, le même dans les deux ponts (Java et Rust). */
-var PROJET_FORMAT = "drm16-projet";
-var PROJET_VERSION = 1;
-var PROJET_MAX = 16 * 1024 * 1024;
 
 function projetHorodatage(){
   var d = new Date();
@@ -30,7 +27,7 @@ function projetContenu(){
     var k = localStorage.key(i);
     if(k === MEM || k.indexOf(MEM + ".") === 0) memoireProjet[k] = localStorage.getItem(k);
   }
-  var total = JSON.stringify(memoireProjet).length, sons = {}, sautes = [], erreurs = [];
+  var total = JSON.stringify(memoireProjet).length, sons = Object.create(null), sautes = [], erreurs = [];
   if(HOST.echListe && HOST.echCharger){
     var noms = "";
     try{ noms = HOST.echListe() || ""; }catch(e){ erreurs.push("liste des sons"); }
@@ -112,136 +109,106 @@ function projetEnregistrer(prefixe, silencieux, contenu){
   return nom;
 }
 
-/* v176 : le préfixe Base64 de RIFF ne prouve pas qu'il s'agit d'un WAV.
-   On contrôle le conteneur et ses limites avant de remplacer un son existant.
-   Les chunks supplémentaires et tous les codecs WAV restent acceptés. */
-function projetWavValide(b64){
-  try{
-    /* Parcours linéaire : une regex à groupes répétés épuise la pile sur un
-       vrai fichier de plusieurs Mo, pourtant inférieur au plafond projet. */
-    if(typeof b64 !== "string" || !b64.length || b64.length%4) return false;
-    var finBase64 = b64.length;
-    while(finBase64 && b64.charAt(finBase64-1) === "=") finBase64--;
-    if(b64.length-finBase64 > 2) return false;
-    for(var j=0;j<finBase64;j++){
-      var c = b64.charCodeAt(j);
-      if(!((c>=65 && c<=90) || (c>=97 && c<=122) || (c>=48 && c<=57) || c===43 || c===47)) return false;
-    }
-    var s = atob(b64), n = s.length;
-    if(n < 44 || s.slice(0,4) !== "RIFF" || s.slice(8,12) !== "WAVE") return false;
-    function u32(i){ return (s.charCodeAt(i) + s.charCodeAt(i+1)*256 + s.charCodeAt(i+2)*65536 + s.charCodeAt(i+3)*16777216); }
-    function u16(i){ return s.charCodeAt(i) + s.charCodeAt(i+1)*256; }
-    var fin = u32(4) + 8, fmt = false, data = false;
-    if(fin !== n) return false;
-    for(var p=12;p<fin;){
-      if(p+8 > fin) return false;
-      var genre = s.slice(p,p+4), taille = u32(p+4), debut = p+8;
-      if(debut+taille > fin) return false;
-      if(genre === "fmt "){
-        if(taille < 16 || !u16(debut) || !u16(debut+2) || !u32(debut+4) || !u16(debut+12)) return false;
-        fmt = true;
-      }
-      if(genre === "data") data = taille > 0;
-      p = debut + taille + (taille%2);
-      if(p > fin) return false;
-    }
-    return fmt && data;
-  }catch(e){ return false; }
+/* Le journal reste présent jusqu'à la vérification au démarrage suivant.
+   Les callbacks tardifs restent bloqués, même si la restauration a échoué. */
+function projetAttendreReprise(secours, erreur, recharger){
+  PROJET_EN_COURS = true;
+  PROJET_REPRISE = {restauree:false, secours:secours, erreur:erreur, recharger:recharger};
+  projetArreterJeu();
+  projetBloquerReprise();
 }
 
-/* Rend le projet validé, ou un texte qui dit ce qui ne va pas */
-function projetValider(texte){
-  var d;
-  try{ d = JSON.parse(texte); }catch(e){ return "FICHIER ILLISIBLE"; }
-  if(!d || typeof d !== "object" || d.format !== PROJET_FORMAT) return "CE N'EST PAS UN PROJET DRM16";
-  if(typeof d.version !== "number" || d.version < 1) return "PROJET ABÎMÉ";
-  if(d.version > PROJET_VERSION) return "PROJET D'UNE VERSION PLUS RÉCENTE · METTEZ L'APPLICATION À JOUR";
-  var m = d.memoire;
-  if(!m || typeof m !== "object" || Array.isArray(m) || typeof m[MEM] !== "string") return "PROJET INCOMPLET";
-  for(var k in m){
-    if(!Object.prototype.hasOwnProperty.call(m, k)) continue;
-    if(k !== MEM && k.indexOf(MEM + ".") !== 0) return "PROJET ABÎMÉ (CLÉ INCONNUE)";
-    if(typeof m[k] !== "string") return "PROJET ABÎMÉ (VALEUR)";
-    try{
-      var valeur = JSON.parse(m[k]);
-      if(k === MEM && (!valeur || typeof valeur !== "object" || Array.isArray(valeur))) return "PROJET ABÎMÉ (RÉGLAGES)";
-    }catch(e){ return "PROJET ABÎMÉ (VALEUR ILLISIBLE)"; }
+function projetArreterJeu(){
+  /* Les banques Kaoss et le looper peuvent jouer avec S.run déjà faux. */
+  stop();
+  if(typeof ENR !== "undefined"){
+    if(ENR.actif) enrArreter();
+    if(ENR.lecture !== null) enrArreterLecture();
   }
-  var s = d.sons || {};
-  if(typeof s !== "object" || Array.isArray(s)) return "PROJET ABÎMÉ (SONS)";
-  for(var n in s){
-    if(!Object.prototype.hasOwnProperty.call(s, n)) continue;
-    if(!/^[A-Za-z0-9_.-]{1,64}$/.test(n) || n === "." || n === "..") return "PROJET ABÎMÉ (NOM DE SON)";
-    if(!projetWavValide(s[n])) return "PROJET ABÎMÉ (SON « " + n + " »)";
-  }
-  d.sons = s;
-  return d;
+  if(typeof PR !== "undefined" && PR.lecture) prArreter();
 }
 
-/* Le stockage de la page ne fournit pas de transaction. On garde donc une
-   copie exacte des anciennes valeurs et un fichier de secours complet avant
-   toute écriture, puis on restaure ces valeurs si une seule écriture échoue. */
-function projetPoserMemoire(m){
-  var cles = [];
-  for(var i=0;i<localStorage.length;i++){
-    var k = localStorage.key(i);
-    if(k === MEM || k.indexOf(MEM + ".") === 0) cles.push(k);
-  }
-  cles.forEach(function(k){ localStorage.removeItem(k); });
-  Object.keys(m).forEach(function(k){ localStorage.setItem(k, m[k]); });
-}
-
-/* Remplace tout l'état par celui du projet, puis recharge la page. */
+/* v180 : deux copies vérifiées et un journal natif précèdent les mutations.
+   « avant » restaure l'ancien état ; « apres » termine le nouveau. */
 function projetOuvrir(texte, nom){
   if(PROJET_EN_COURS){ signal("OUVERTURE DÉJÀ EN COURS"); return false; }
   var d = projetValider(texte);
   if(typeof d === "string"){ signal(d); return false; }
-  var nbSons = Object.keys(d.sons).length;
-  if(nbSons && (!HOST.echSauver || !HOST.echCharger || !HOST.echSupprimer)){
-    signal("OUVERTURE IMPOSSIBLE ICI · ÉCRITURE DES SONS INDISPONIBLE"); return false;
+  var noms = Object.keys(d.sons), nbSons = noms.length;
+  if(!HOST.fichierSauver || !HOST.fichierCharger || !HOST.fichierListe || !HOST.fichierSupprimer){
+    signal("OUVERTURE IMPOSSIBLE ICI · SUIVI DES FICHIERS INDISPONIBLE"); return false;
+  }
+  try{ projetVerifierPontSons(noms); }
+  catch(e){ signal("OUVERTURE IMPOSSIBLE ICI · ÉCRITURE DES SONS INDISPONIBLE"); return false; }
+  try{
+    if(projetLireJournal()){
+      projetAttendreReprise("", "Une ouverture précédente doit être terminée.", false);
+      return false;
+    }
+  }catch(e){
+    projetAttendreReprise("", e.message, false);
+    return false;
   }
   if(!window.confirm("Ouvrir le projet « " + (nom || "sans nom") + " » ?\n\n" +
                      "Il remplace tout : réglages, motifs, set, prises" +
                      (nbSons ? ", et " + nbSons + " son(s) de la bibliothèque" : "") + ".\n" +
                      "L'état actuel est d'abord enregistré en « avant-ouverture »."))
     return false;
-  if(S.run) stop();
-  var avant, secours;
+  projetArreterJeu();
+  var avant, secours, cible;
   try{ avant = projetContenu(); }catch(e){ signal("OUVERTURE ANNULÉE · SAUVEGARDE DE L'ÉTAT ACTUEL IMPOSSIBLE"); return false; }
   if(avant.sautes.length || avant.erreurs.length){
     signal("OUVERTURE ANNULÉE · SAUVEGARDE DE SECOURS INCOMPLÈTE"); return false;
   }
+  if(typeof projetValider(JSON.stringify(avant.doc)) === "string"){
+    signal("OUVERTURE ANNULÉE · L'ÉTAT ACTUEL NE PEUT PAS ÊTRE RESTAURÉ"); return false;
+  }
+  try{ projetVerifierNomsSons(avant.doc,noms); }
+  catch(e){ signal("OUVERTURE ANNULÉE · NOMS DE SONS AMBIGUS · " + e.message); return false; }
   secours = projetEnregistrer("avant-ouverture", true, avant);
   if(!secours){ signal("OUVERTURE ANNULÉE · SAUVEGARDE DE SECOURS IMPOSSIBLE OU NON VÉRIFIÉE"); return false; }
+  cible = projetEnregistrer("ouverture-verifiee", true, {doc:d, sautes:[], erreurs:[]});
+  if(!cible){ signal("OUVERTURE ANNULÉE · COPIE DU PROJET NON VÉRIFIÉE"); return false; }
+  var j = {version:1, phase:"avant", avant:projetReference(secours,avant.doc),
+    apres:projetReference(cible,d), sons:noms};
   PROJET_EN_COURS = true;
-  var touches = [];
+  var commence = false, commit = false;
   try{
+    projetEcrireJournal(j);
+    commence = true;
     /* Tester d'abord la mémoire évite de toucher aux sons en cas de quota. */
     projetPoserMemoire(d.memoire);
-    Object.keys(d.sons).forEach(function(n){
-      touches.push(n);
-      if(!HOST.echSauver(n, d.sons[n])) throw new Error("son non écrit");
+    noms.forEach(function(n){
+      if(!HOST.echSauver(n,d.sons[n]) || !projetSonEgale(d,n)) throw new Error("Son non écrit : " + n);
     });
+    if(!projetEtatEgale(d,noms)) throw new Error("Le projet écrit ne correspond pas au fichier.");
+    commit = true;
+    j.phase = "apres";
+    projetEcrireJournal(j);
   }catch(e){
-    var restaure = true;
-    try{ projetPoserMemoire(avant.doc.memoire); }catch(err){ restaure = false; }
-    touches.forEach(function(n){
-      var ancien = Object.prototype.hasOwnProperty.call(avant.doc.sons,n) ? avant.doc.sons[n] : "";
+    if(commence){
       try{
-        if((HOST.echCharger(n) || "") !== ancien){
-          if(ancien) HOST.echSauver(n, ancien); else HOST.echSupprimer(n);
-          if((HOST.echCharger(n) || "") !== ancien) restaure = false;
-        }
-      }catch(err){ restaure = false; }
-    });
-    PROJET_EN_COURS = false;
-    signal(restaure ? "OUVERTURE ANNULÉE · ÉCRITURE REFUSÉE, ÉTAT PRÉCÉDENT CONSERVÉ"
-                    : "OUVERTURE ANNULÉE · RESTAURATION INCOMPLÈTE, SECOURS : " + secours);
+        /* Une écriture du commit peut avoir réussi malgré un retour d'erreur.
+           Ne restaurer l'ancien qu'après avoir revérifié la phase « avant ». */
+        if(commit){ j.phase = "avant"; projetEcrireJournal(j); }
+        projetRestaurerEtat(avant.doc,noms);
+      }catch(err){
+        signal("OUVERTURE ANNULÉE · RESTAURATION À TERMINER · " + secours);
+        projetAttendreReprise(secours, err.message, false);
+        return false;
+      }
+      signal("OUVERTURE ANNULÉE · ÉTAT PRÉCÉDENT RESTAURÉ");
+      projetAttendreReprise(secours, "", true);
+    }else{
+      /* Le journal peut exister même si sa relecture a échoué. Ne pas laisser
+         de nouvelles modifications déborder la copie de secours. */
+      signal("OUVERTURE ANNULÉE · SUIVI NON VÉRIFIÉ");
+      projetAttendreReprise(secours, e.message, false);
+    }
     return false;
   }
   signal("PROJET OUVERT");
-  /* Laisser au WebView le temps de ranger le stockage avant le rechargement. */
-  setTimeout(function(){ location.reload(); }, 1000);
+  projetAttendreReprise(secours, "", true);
   return true;
 }
 

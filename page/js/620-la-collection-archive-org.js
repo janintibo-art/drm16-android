@@ -48,6 +48,7 @@ function arcCharger(){
   }catch(e){}
 }
 function arcGarder(){
+  if(typeof PROJET_EN_COURS !== "undefined" && PROJET_EN_COURS) return;
   try{ localStorage.setItem(MEM + ".arc", JSON.stringify({machines:ARC.machines, date:Date.now()})); }
   catch(e){}
 }

@@ -7,6 +7,7 @@ Le [bilan du grand check-up v176](docs/CHECKUP_V176.md) décrit les corrections,
 La [v177 corrige l'export WAV des prises MIDI avec plusieurs machines](docs/CORRECTIONS_V177.md), avec conservation des notes et vérification du retour au jeu.
 La [v178 ordonne les connexions MIDI de la version Windows](docs/CORRECTIONS_V178.md), avec tests des ouvertures lentes, fermetures et changements d'appareil.
 La [v179 protège les sauvegardes de projet](docs/CORRECTIONS_V179.md) contre les noms identiques et vérifie leur contenu après écriture.
+La [v180 reprend les ouvertures de projet interrompues](docs/CORRECTIONS_V180.md) avant de démarrer les machines, avec maintien du secours en cas de restauration impossible.
 
 ### Ce que produit chaque envoi
 
