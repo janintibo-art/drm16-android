@@ -27,6 +27,9 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # v178 : les tests MIDI natifs utilisent seulement la bibliothèque Rust standard.
+      - uses: dtolnay/rust-toolchain@stable
+
       - name: Contrôles automatiques
         run: bash outils/controles.sh
 
@@ -80,6 +83,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: bureau/src-tauri
+
+      - name: Tester les commandes MIDI natives
+        run: python outils/test-midi-bureau.py
 
       - name: Installer l'outil Tauri
         run: cargo install tauri-cli --version "^2.0" --locked

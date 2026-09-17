@@ -28,6 +28,9 @@ jobs:
 
       # Contrôles automatiques AVANT tout le reste (v134) : une faute détectée ici
       # coûte une minute au lieu de toute la compilation. Détail : outils/controles.sh
+      # v178 : les tests MIDI natifs utilisent seulement la bibliothèque Rust standard.
+      - uses: dtolnay/rust-toolchain@stable
+
       - name: Contrôles automatiques
         run: bash outils/controles.sh
 

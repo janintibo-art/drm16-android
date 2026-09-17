@@ -8,6 +8,7 @@ mod fenetre;
 mod fichiers;
 mod hote;
 mod midi;
+mod midi_commandes;
 mod reseau;
 
 fn main() {

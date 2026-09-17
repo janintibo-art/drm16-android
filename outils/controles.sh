@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Tous les controles automatiques, dans l'ordre. S'arrete au premier echec.
 # Lances par GitHub Actions AVANT la compilation de l'APK ; utilisables aussi
-# dans Termux si python, node et un JDK sont installes :
-#     pkg install python nodejs openjdk-17
+# dans Termux si python, node, Rust et un JDK sont installes :
+#     pkg install python nodejs rust openjdk-17
 #     bash ~/drm16_android/outils/controles.sh
 set -e
 cd "$(dirname "$0")/.."
@@ -64,6 +64,10 @@ fin
 etape "7. Version de bureau : coque complete, page fabriquee par preparer.sh"
 bash verifier-bureau.sh
 python3 outils/paquet-pc.py --verifier
+fin
+
+etape "8. MIDI bureau : commandes concurrentes et ports simules"
+python3 outils/test-midi-bureau.py
 fin
 
 echo

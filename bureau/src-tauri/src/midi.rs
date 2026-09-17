@@ -21,6 +21,7 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 use midir::{Ignore, MidiInput, MidiInputConnection, MidiOutput, MidiOutputConnection};
 
 use crate::fenetre::{chaine_js, executer};
+use crate::midi_commandes::{Commande, File, Pilote};
 
 const SYSEX_MAX: usize = 262_144;
 
@@ -177,13 +178,38 @@ pub fn ouvert_id() -> i64 {
 }
 
 pub fn ouvrir(index: i64) {
-    let l = releve();
-    if index >= 0 && (index as usize) < l.len() {
-        ouvrir_id(l[index as usize].1);
-    }
+    file().envoyer(Commande::OuvrirIndex(index));
 }
 
 pub fn ouvrir_id(id: i64) {
+    file().envoyer(Commande::OuvrirId(id));
+}
+
+pub fn fermer_signale() {
+    file().envoyer(Commande::Fermer);
+}
+
+pub fn horloge_depart(bpm: f64) {
+    // Le tempo reste immédiat. Un midiTempo reçu après ce départ doit garder
+    // la priorité même si une ouverture lente retarde l'exécution du départ.
+    tempo(bpm);
+    file().envoyer(Commande::Horloge(true));
+}
+
+pub fn horloge_arret() {
+    file().envoyer(Commande::Horloge(false));
+}
+
+// Seul le worker de file() appelle ces opérations. Ni le pont, ni un second
+// fil de surveillance ne peuvent fermer ou remplacer une connexion en cours.
+fn ouvrir_direct(index: i64) {
+    let l = releve();
+    if index >= 0 && (index as usize) < l.len() {
+        ouvrir_id_direct(l[index as usize].1);
+    }
+}
+
+fn ouvrir_id_direct(id: i64) {
     let nom = {
         let e = etat();
         if id < 1 || id as usize > e.noms.len() {
@@ -197,7 +223,7 @@ pub fn ouvrir_id(id: i64) {
         signaler("echec", "");
         return;
     };
-    fermer();
+    fermer_direct();
     let mut sortie = None;
     let mut entree = None;
     // chaque refus est noté mot pour mot : c'est lui qui s'affiche à l'utilisateur
@@ -241,12 +267,13 @@ pub fn ouvrir_id(id: i64) {
         e.sortie = sortie;
         e.entree = entree;
         e.ouvert = id;
+        e.erreur.clear();
     }
     signaler("ouvert", &nom);
 }
 
-pub fn fermer() {
-    horloge_arret();
+fn fermer_direct() {
+    horloge_arret_direct();
     let (sortie, entree) = {
         let mut e = etat();
         e.ouvert = -1;
@@ -261,9 +288,9 @@ pub fn fermer() {
     }
 }
 
-pub fn fermer_signale() {
+fn fermer_signale_direct() {
     let etait = etat().ouvert >= 0;
-    fermer();
+    fermer_direct();
     if etait {
         signaler("ferme", "");
     }
@@ -352,16 +379,19 @@ fn minuterie_fine() {
     });
 }
 
-pub fn horloge_depart(b: f64) {
-    tempo(b);
+fn horloge_depart_direct() {
+    // Une entrée seule ne peut pas émettre d'horloge. Le worker a déjà vérifié
+    // l'appareil ouvert et aucune autre opération ne peut le fermer ici.
+    if etat().sortie.is_none() {
+        return;
+    }
     minuterie_fine();
     let mien = GENERATION.fetch_add(1, Ordering::SeqCst) + 1;
     HORLOGE.store(true, Ordering::SeqCst);
     envoyer_octets(&[0xFA]);
     thread::spawn(move || {
         let mut prochain = Instant::now();
-        while HORLOGE.load(Ordering::SeqCst) && GENERATION.load(Ordering::SeqCst) == mien {
-            envoyer_octets(&[0xF8]);
+        while impulsion_horloge(mien) {
             prochain += Duration::from_secs_f64(60.0 / (bpm() * 24.0));
             loop {
                 let maintenant = Instant::now();
@@ -383,7 +413,21 @@ pub fn horloge_depart(b: f64) {
     });
 }
 
-pub fn horloge_arret() {
+// Le contrôle de génération et l'envoi partagent le verrou de la sortie.
+// Même suspendu juste avant l'envoi, un ancien fil ne peut donc pas émettre
+// une impulsion sur l'appareil ouvert par la commande suivante.
+fn impulsion_horloge(mien: u64) -> bool {
+    let mut e = etat();
+    if !HORLOGE.load(Ordering::SeqCst) || GENERATION.load(Ordering::SeqCst) != mien {
+        return false;
+    }
+    match e.sortie.as_mut() {
+        Some(s) => { let _ = s.send(&[0xF8]); true }
+        None => false,
+    }
+}
+
+fn horloge_arret_direct() {
     let tournait = HORLOGE.swap(false, Ordering::SeqCst);
     GENERATION.fetch_add(1, Ordering::SeqCst);
     if tournait {
@@ -393,34 +437,86 @@ pub fn horloge_arret() {
 
 // ---------- surveillance des branchements ----------
 
-pub fn surveiller() {
-    thread::spawn(|| {
-        let mut avant: BTreeSet<String> = releve().into_iter().map(|(n, _)| n).collect();
-        loop {
-            thread::sleep(Duration::from_millis(1500));
-            let apres: BTreeSet<String> = releve().into_iter().map(|(n, _)| n).collect();
-            if apres == avant {
-                continue;
-            }
-            for n in apres.difference(&avant) {
-                signaler("ajout", n);
-            }
-            for n in avant.difference(&apres) {
-                let ouvert_disparu = {
-                    let e = etat();
-                    e.ouvert >= 1 && e.noms.get(e.ouvert as usize - 1) == Some(n)
-                };
-                if ouvert_disparu {
-                    fermer();
-                    signaler("perdu", n);
-                } else {
-                    signaler("retrait", n);
-                }
-            }
-            avant = apres;
-        }
-    });
+struct Ports {
+    avant: Option<BTreeSet<String>>,
 }
+
+impl Pilote for Ports {
+    fn ouvrir_index(&mut self, index: i64) { ouvrir_direct(index); }
+    fn ouvrir_id(&mut self, id: i64) { ouvrir_id_direct(id); }
+    fn fermer(&mut self) { fermer_signale_direct(); }
+    fn connexion_ouverte(&self) -> bool { etat().ouvert >= 1 }
+    fn horloge_depart(&mut self) { horloge_depart_direct(); }
+    fn horloge_arret(&mut self) { horloge_arret_direct(); }
+
+    fn relever(&mut self) {
+        let apres: BTreeSet<String> = releve().into_iter().map(|(n, _)| n).collect();
+        let Some(avant) = self.avant.replace(apres.clone()) else { return };
+        // Un appareil peut être listé et ouvert, puis disparaître entre deux
+        // relevés périodiques sans jamais figurer dans « avant ». Vérifier la
+        // connexion réelle, et pas seulement la différence des inventaires.
+        let perdu = {
+            let e = etat();
+            if e.ouvert >= 1 {
+                e.noms.get(e.ouvert as usize - 1).filter(|n| !apres.contains(*n)).cloned()
+            } else {
+                None
+            }
+        };
+        if let Some(nom) = perdu.as_ref() {
+            fermer_direct();
+            signaler("perdu", nom);
+        }
+        for n in apres.difference(&avant) {
+            signaler("ajout", n);
+        }
+        for n in avant.difference(&apres) {
+            if perdu.as_ref() != Some(n) {
+                signaler("retrait", n);
+            }
+        }
+    }
+}
+
+fn file() -> &'static File {
+    static FILE: OnceLock<File> = OnceLock::new();
+    FILE.get_or_init(|| {
+        #[cfg(not(test))]
+        let file = File::demarrer(Ports { avant: None });
+        #[cfg(test)]
+        let file = File::demarrer_pour_test(Ports { avant: None });
+        file
+    })
+}
+
+pub fn surveiller() {
+    let _ = file();
+}
+
+#[cfg(test)]
+pub(crate) fn test_synchroniser() {
+    let (fin, attente) = std::sync::mpsc::channel();
+    file().envoyer(Commande::Synchroniser(fin));
+    attente.recv_timeout(Duration::from_secs(10)).expect("la file MIDI est bloquée");
+}
+
+#[cfg(test)]
+pub(crate) fn test_relever() {
+    file().envoyer(Commande::Relever);
+    test_synchroniser();
+}
+
+#[cfg(test)]
+pub(crate) fn test_horloge_active() -> bool { HORLOGE.load(Ordering::SeqCst) }
+
+#[cfg(test)]
+pub(crate) fn test_bpm() -> f64 { bpm() }
+
+#[cfg(test)]
+pub(crate) fn test_generation() -> u64 { GENERATION.load(Ordering::SeqCst) }
+
+#[cfg(test)]
+pub(crate) fn test_impulsion(generation: u64) -> bool { impulsion_horloge(generation) }
 
 #[cfg(test)]
 mod tests {

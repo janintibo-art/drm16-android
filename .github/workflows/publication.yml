@@ -31,6 +31,9 @@ jobs:
 
       # Contrôles automatiques AVANT tout le reste (v134) : une faute détectée ici
       # coûte une minute au lieu de toute la compilation. Détail : outils/controles.sh
+      # v178 : les tests MIDI natifs utilisent seulement la bibliothèque Rust standard.
+      - uses: dtolnay/rust-toolchain@stable
+
       - name: Contrôles automatiques
         run: bash outils/controles.sh
 
@@ -210,6 +213,9 @@ jobs:
           }
           if (Test-Path "bureau/dist/syro/syro.js") { Write-Host "Transfert volca : présent." }
           else { Write-Host "::warning::Transfert volca absent de cet exécutable." }
+
+      - name: Tester les commandes MIDI natives
+        run: python outils/test-midi-bureau.py
 
       - name: Installer l'outil Tauri
         run: cargo install tauri-cli --version "^2.0" --locked

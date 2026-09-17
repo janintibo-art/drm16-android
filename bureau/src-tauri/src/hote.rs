@@ -76,21 +76,19 @@ fn appeler(nom: &str, a: &[Value]) -> Option<Value> {
         "midiListe" => json!(m::liste()),
         "midiAppareils" => json!(m::appareils()),
         "midiOuvertId" => json!(m::ouvert_id()),
-        // Ouvrir et fermer se font sur un fil à part, comme sur Android (runOnUiThread) :
-        // la page reprend la main aussitôt, et l'événement arrive ensuite par
-        // __midiEtat — jamais depuis l'intérieur de la requête en cours (v142).
+        // La file MIDI (v178) conserve l'ordre ouvrir/fermer/horloge, sans
+        // attendre les pilotes depuis la requête synchrone de la page.
+        // L'événement arrive sur son worker par __midiEtat, comme en v142.
         "midiOuvrir" => {
-            let i = entier(a, 0);
-            std::thread::spawn(move || m::ouvrir(i));
+            m::ouvrir(entier(a, 0));
             Value::Null
         }
         "midiOuvrirId" => {
-            let id = entier(a, 0);
-            std::thread::spawn(move || m::ouvrir_id(id));
+            m::ouvrir_id(entier(a, 0));
             Value::Null
         }
         "midiFermer" => {
-            std::thread::spawn(m::fermer_signale);
+            m::fermer_signale();
             Value::Null
         }
         "midiEnvoyer" => {
