@@ -776,6 +776,7 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-edition-instrument").textContent = T1K_INSTR[T1K.sel].nom;
   document.getElementById("t1k-copier-sequence").disabled = S.run;
   document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
   document.getElementById("t1k-doubler-sequence").disabled = S.run;
@@ -1069,3 +1070,8 @@ document.getElementById("t1k-inverser-sequence").addEventListener("click", inver
 document.getElementById("t1k-effacer-sequence").addEventListener("click", effacerSequenceT1k);
 
 document.getElementById("t1k-doubler-sequence").addEventListener("click", doublerSequenceT1k);
+
+// Réadapter la façade quand le panneau change de hauteur.
+document.getElementById("t1k-edition").addEventListener("toggle", function(){
+  if(S.modele === "t1k") fit();
+});

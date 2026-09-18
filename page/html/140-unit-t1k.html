@@ -28,16 +28,9 @@
     <button id="t1k-last">LAST 16</button>
     <select id="t1k-banque" aria-label="Banque de motifs TR-1000"></select>
     <select id="t1k-ptn" aria-label="Motif TR-1000 dans la banque sélectionnée"><option value="0">PTN 1</option><option value="1">PTN 2</option><option value="2">PTN 3</option><option value="3">PTN 4</option><option value="4">PTN 5</option><option value="5">PTN 6</option><option value="6">PTN 7</option><option value="7">PTN 8</option><option value="8">PTN 9</option><option value="9">PTN 10</option><option value="10">PTN 11</option><option value="11">PTN 12</option><option value="12">PTN 13</option><option value="13">PTN 14</option><option value="14">PTN 15</option><option value="15">PTN 16</option></select>
-    <button id="t1k-copier-sequence" aria-label="Copier la séquence de l’instrument sélectionné">COPIER SÉQ</button>
-    <button id="t1k-coller-sequence" aria-label="Coller la séquence sur l’instrument sélectionné">COLLER SÉQ</button>
-    <button id="t1k-copier">COPIER</button>
-    <button id="t1k-coller" disabled>COLLER</button>
+    <button id="t1k-copier">COPIER MOTIF</button>
+    <button id="t1k-coller" disabled>COLLER MOTIF</button>
     <button id="t1k-annuler" disabled>ANNULER</button>
-    <button id="t1k-doubler-sequence" aria-label="Doubler la longueur en répétant la séquence sélectionnée">DOUBLER SÉQ</button>
-    <button id="t1k-effacer-sequence" aria-label="Effacer les 16 pas de l’instrument sélectionné">EFFACER SÉQ</button>
-    <button id="t1k-inverser-sequence" aria-label="Inverser l’ordre des pas de l’instrument sélectionné">INVERSER SÉQ</button>
-    <button id="t1k-tourner-gauche" aria-label="Décaler la séquence sélectionnée d’un pas à gauche">← PAS</button>
-    <button id="t1k-tourner-droite" aria-label="Décaler la séquence sélectionnée d’un pas à droite">PAS →</button>
     <button id="t1k-ech">SAMPLE B</button>
     <button id="t1k-afx">ANALOG FX</button>
     <button id="t1k-ma">SET A</button>
@@ -60,6 +53,19 @@
     <input id="t1k-nom-motif" type="text" maxlength="24" placeholder="Ex. Intro, Break…" autocomplete="off" enterkeyhint="done" aria-label="Nom du motif courant, 24 caractères maximum">
   </div>
   <div class="t1k-instr" id="t1k-instr"></div>
+  <details class="t1k-edition" id="t1k-edition">
+    <summary>ÉDITER LA SÉQUENCE · <span id="t1k-edition-instrument">BASS DRUM</span></summary>
+    <p>À l’arrêt · Choisissez l’instrument avec son pad. ANNULER reste dans la barre principale.</p>
+    <div class="t1k-edition-actions">
+    <button id="t1k-copier-sequence" aria-label="Copier la séquence de l’instrument sélectionné">COPIER SÉQ</button>
+    <button id="t1k-coller-sequence" aria-label="Coller la séquence sur l’instrument sélectionné">COLLER SÉQ</button>
+    <button id="t1k-doubler-sequence" aria-label="Doubler la longueur en répétant la séquence sélectionnée">DOUBLER SÉQ</button>
+    <button id="t1k-inverser-sequence" aria-label="Inverser l’ordre des pas de l’instrument sélectionné">INVERSER SÉQ</button>
+    <button id="t1k-tourner-gauche" aria-label="Décaler la séquence sélectionnée d’un pas à gauche">← PAS</button>
+    <button id="t1k-tourner-droite" aria-label="Décaler la séquence sélectionnée d’un pas à droite">PAS →</button>
+    <button id="t1k-effacer-sequence" aria-label="Effacer les 16 pas de l’instrument sélectionné">EFFACER SÉQ</button>
+    </div>
+  </details>
   <div class="t1k-proba-bar">
     <label for="t1k-longueur">PAS</label>
     <select id="t1k-longueur" aria-label="Longueur du cycle de l’instrument sélectionné"><option value="0">SUIVRE LAST</option><option value="1">1 PAS</option><option value="2">2 PAS</option><option value="3">3 PAS</option><option value="4">4 PAS</option><option value="5">5 PAS</option><option value="6">6 PAS</option><option value="7">7 PAS</option><option value="8">8 PAS</option><option value="9">9 PAS</option><option value="10">10 PAS</option><option value="11">11 PAS</option><option value="12">12 PAS</option><option value="13">13 PAS</option><option value="14">14 PAS</option><option value="15">15 PAS</option><option value="16">16 PAS</option></select>

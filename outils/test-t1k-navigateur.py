@@ -419,6 +419,14 @@ async def main():
             pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-annuler').click()
             assert await pg.evaluate('motifT1kCur().reglages[0][0].tune===.7')
             print('OK : boutons annuler collage et effacement, confirmation refusée/acceptée, restauration complète',flush=True)
+            # v216 : les éditions sont maintenant dans un panneau repliable.
+            assert not await pg.locator('#t1k-edition').evaluate('(e)=>e.open')
+            assert not await pg.locator('#t1k-tourner-droite').is_visible()
+            avant=await pg.evaluate('JSON.stringify(motifT1kCur())')
+            await pg.locator('#t1k-edition summary').click()
+            assert await pg.locator('#t1k-tourner-droite').is_visible()
+            assert await pg.locator('#t1k-annuler').is_visible()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur())')==avant
             # v211 : rotation des notes et variations dans la longueur choisie.
             await pg.evaluate("T1K.sel=0;let m=motifT1kCur();m.longueurs[0]=3;m.pas[0]=257;m.reglages[0].fill(null);m.reglages[0][0]={tune:.7};majT1k()")
             await pg.locator('#t1k-tourner-droite').click()
@@ -489,6 +497,10 @@ async def main():
             assert await pg.locator('#t1k-doubler-sequence').is_disabled()
             await pg.locator('#t1k-stop').click()
             print('OK : doublement, longueur actualisée, confirmation, annulation et protection PLAY',flush=True)
+            assert await pg.locator('#t1k-edition-instrument').inner_text()==await pg.evaluate('T1K_INSTR[T1K.sel].nom')
+            await pg.locator('#t1k-edition summary').click()
+            assert not await pg.locator('#t1k-effacer-sequence').is_visible()
+            assert await pg.locator('#t1k-annuler').is_visible()
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

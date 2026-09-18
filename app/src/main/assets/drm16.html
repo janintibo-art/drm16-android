@@ -1919,6 +1919,15 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 #t1k-effacer-sequence:disabled{opacity:.45}
 
 #t1k-doubler-sequence:disabled{opacity:.45}
+
+/* v216 : commandes de séquence regroupées, repliées au chargement. */
+.t1k-edition{margin:8px 0;border:1px solid #757e89;border-radius:5px;background:#c4c9d0;color:#232b35}
+.t1k-edition summary{padding:12px 10px;min-height:44px;box-sizing:border-box;cursor:pointer;font:700 11px/1.5 Arial;overflow-wrap:anywhere}
+.t1k-edition summary:focus-visible{outline:3px solid #17628f;outline-offset:2px}
+.t1k-edition[open] summary{border-bottom:1px solid #8f99a5;background:#d4e4ed}
+.t1k-edition p{margin:9px 10px;font:12px/1.4 Arial;color:#313e4b}
+.t1k-edition-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;padding:0 10px 12px}
+.t1k-edition-actions button{min-height:44px;font-size:10px;white-space:normal}
 /* ===================== MACHINE D'ARCHIVE ===================== */
 body.arcm .arcmb{display:block}
 body.arcm #unit,body.arcm .em,body.arcm .er,body.arcm .ea,body.arcm .es,body.arcm .mx,body.arcm .sx,
@@ -3508,16 +3517,9 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="t1k-last">LAST 16</button>
     <select id="t1k-banque" aria-label="Banque de motifs TR-1000"></select>
     <select id="t1k-ptn" aria-label="Motif TR-1000 dans la banque sélectionnée"><option value="0">PTN 1</option><option value="1">PTN 2</option><option value="2">PTN 3</option><option value="3">PTN 4</option><option value="4">PTN 5</option><option value="5">PTN 6</option><option value="6">PTN 7</option><option value="7">PTN 8</option><option value="8">PTN 9</option><option value="9">PTN 10</option><option value="10">PTN 11</option><option value="11">PTN 12</option><option value="12">PTN 13</option><option value="13">PTN 14</option><option value="14">PTN 15</option><option value="15">PTN 16</option></select>
-    <button id="t1k-copier-sequence" aria-label="Copier la séquence de l’instrument sélectionné">COPIER SÉQ</button>
-    <button id="t1k-coller-sequence" aria-label="Coller la séquence sur l’instrument sélectionné">COLLER SÉQ</button>
-    <button id="t1k-copier">COPIER</button>
-    <button id="t1k-coller" disabled>COLLER</button>
+    <button id="t1k-copier">COPIER MOTIF</button>
+    <button id="t1k-coller" disabled>COLLER MOTIF</button>
     <button id="t1k-annuler" disabled>ANNULER</button>
-    <button id="t1k-doubler-sequence" aria-label="Doubler la longueur en répétant la séquence sélectionnée">DOUBLER SÉQ</button>
-    <button id="t1k-effacer-sequence" aria-label="Effacer les 16 pas de l’instrument sélectionné">EFFACER SÉQ</button>
-    <button id="t1k-inverser-sequence" aria-label="Inverser l’ordre des pas de l’instrument sélectionné">INVERSER SÉQ</button>
-    <button id="t1k-tourner-gauche" aria-label="Décaler la séquence sélectionnée d’un pas à gauche">← PAS</button>
-    <button id="t1k-tourner-droite" aria-label="Décaler la séquence sélectionnée d’un pas à droite">PAS →</button>
     <button id="t1k-ech">SAMPLE B</button>
     <button id="t1k-afx">ANALOG FX</button>
     <button id="t1k-ma">SET A</button>
@@ -3540,6 +3542,19 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <input id="t1k-nom-motif" type="text" maxlength="24" placeholder="Ex. Intro, Break…" autocomplete="off" enterkeyhint="done" aria-label="Nom du motif courant, 24 caractères maximum">
   </div>
   <div class="t1k-instr" id="t1k-instr"></div>
+  <details class="t1k-edition" id="t1k-edition">
+    <summary>ÉDITER LA SÉQUENCE · <span id="t1k-edition-instrument">BASS DRUM</span></summary>
+    <p>À l’arrêt · Choisissez l’instrument avec son pad. ANNULER reste dans la barre principale.</p>
+    <div class="t1k-edition-actions">
+    <button id="t1k-copier-sequence" aria-label="Copier la séquence de l’instrument sélectionné">COPIER SÉQ</button>
+    <button id="t1k-coller-sequence" aria-label="Coller la séquence sur l’instrument sélectionné">COLLER SÉQ</button>
+    <button id="t1k-doubler-sequence" aria-label="Doubler la longueur en répétant la séquence sélectionnée">DOUBLER SÉQ</button>
+    <button id="t1k-inverser-sequence" aria-label="Inverser l’ordre des pas de l’instrument sélectionné">INVERSER SÉQ</button>
+    <button id="t1k-tourner-gauche" aria-label="Décaler la séquence sélectionnée d’un pas à gauche">← PAS</button>
+    <button id="t1k-tourner-droite" aria-label="Décaler la séquence sélectionnée d’un pas à droite">PAS →</button>
+    <button id="t1k-effacer-sequence" aria-label="Effacer les 16 pas de l’instrument sélectionné">EFFACER SÉQ</button>
+    </div>
+  </details>
   <div class="t1k-proba-bar">
     <label for="t1k-longueur">PAS</label>
     <select id="t1k-longueur" aria-label="Longueur du cycle de l’instrument sélectionné"><option value="0">SUIVRE LAST</option><option value="1">1 PAS</option><option value="2">2 PAS</option><option value="3">3 PAS</option><option value="4">4 PAS</option><option value="5">5 PAS</option><option value="6">6 PAS</option><option value="7">7 PAS</option><option value="8">8 PAS</option><option value="9">9 PAS</option><option value="10">10 PAS</option><option value="11">11 PAS</option><option value="12">12 PAS</option><option value="13">13 PAS</option><option value="14">14 PAS</option><option value="15">15 PAS</option><option value="16">16 PAS</option></select>
@@ -5411,6 +5426,12 @@ conserve son nom, jusqu’à 24 caractères. Vider le champ enlève le nom sans 
 la musique. Les noms sont sauvegardés dans le projet et repris par COPIER/COLLER ;
 renommez la copie pour distinguer vos variantes. Les anciens motifs restent sans nom.</p>
 <h3>Annuler un collage ou un effacement</h3>
+<p><b>ÉDITER LA SÉQUENCE :</b> ce panneau, sous les instruments, regroupe
+COPIER SÉQ, COLLER SÉQ, DOUBLER SÉQ, INVERSER SÉQ, les deux décalages et
+EFFACER SÉQ. Touchez son titre pour ouvrir ou replier les commandes. Le titre
+indique l’instrument sélectionné. Le panneau est replié au chargement ; son
+ouverture ne modifie ni les notes ni la lecture. ANNULER et les commandes
+COPIER MOTIF / COLLER MOTIF restent dans la barre principale.</p>
 <p>Après COLLER, DOUBLER SÉQ, EFFACER SÉQ, EFFACER VAR. ou un décalage ou une inversion de séquence, ANNULER permet de retrouver le motif entier tel
 qu’il était juste avant cette action. Revenez sur le motif concerné et arrêtez PLAY.
 Une confirmation prévient que les modifications effectuées depuis seront également
@@ -24709,6 +24730,7 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-edition-instrument").textContent = T1K_INSTR[T1K.sel].nom;
   document.getElementById("t1k-copier-sequence").disabled = S.run;
   document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
   document.getElementById("t1k-doubler-sequence").disabled = S.run;
@@ -25002,6 +25024,11 @@ document.getElementById("t1k-inverser-sequence").addEventListener("click", inver
 document.getElementById("t1k-effacer-sequence").addEventListener("click", effacerSequenceT1k);
 
 document.getElementById("t1k-doubler-sequence").addEventListener("click", doublerSequenceT1k);
+
+// Réadapter la façade quand le panneau change de hauteur.
+document.getElementById("t1k-edition").addEventListener("toggle", function(){
+  if(S.modele === "t1k") fit();
+});
 /* ===================== ARTURIA DRUMBRUTE IMPACT =====================
    Huit voix analogiques, et une chose qu'aucune autre machine d'ici ne fait :
    la polyrythmie. Chaque piste garde sa propre longueur, et les motifs se
