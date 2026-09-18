@@ -704,7 +704,7 @@ function majT1k(){
   document.getElementById("t1k-afx").classList.toggle("on", T1K.afx.on);
   document.getElementById("t1k-fill").classList.toggle("on", T1K.fill);
   document.getElementById("t1k-last").textContent = "LAST " + m.last;
-  document.getElementById("t1k-ptn").textContent = "PTN " + "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1);
+  document.getElementById("t1k-ptn").value = String(T1K.cur);
   document.getElementById("t1k-ma").classList.toggle("on", !!T1K.mA);
   document.getElementById("t1k-mb").classList.toggle("on", !!T1K.mB);
   majLcdT1k();
@@ -797,9 +797,8 @@ document.getElementById("t1k-last").addEventListener("click", function(){
   m.last = v[(v.indexOf(m.last) + 1) % v.length];
   majT1k(); memT1k(); H.cran();
 });
-document.getElementById("t1k-ptn").addEventListener("click", function(){
-  var suivant = (T1K.banq * 16 + T1K.cur + 1) % 128;
-  if(choisirMotifT1k(Math.floor(suivant / 16), suivant % 16)) H.inter();
+document.getElementById("t1k-ptn").addEventListener("change", function(){
+  if(choisirMotifT1k(T1K.banq, +this.value)) H.inter();
 });
 (function(){
   var banque = document.getElementById("t1k-banque");

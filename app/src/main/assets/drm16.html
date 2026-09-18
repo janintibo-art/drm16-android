@@ -1890,7 +1890,7 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 .t1k-pas button.aleatoire{border-bottom:3px solid #ca73ff}
 
 /* v195 : accès direct aux huit banques de motifs. */
-#t1k-banque{max-width:105px;padding:7px 3px;border:1px solid #7c848e;border-radius:4px;background:#23262c;color:#e4eef7;font:700 9px Arial}
+#t1k-banque,#t1k-ptn{max-width:105px;padding:7px 3px;border:1px solid #7c848e;border-radius:4px;background:#23262c;color:#e4eef7;font:700 9px Arial}
 #t1k-banque:disabled,#t1k-ptn:disabled{opacity:.45}
 
 .t1k-proba-bar label{font:700 9px Arial;color:#434a53}
@@ -3491,7 +3491,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="t1k-accent">ACCENT</button>
     <button id="t1k-last">LAST 16</button>
     <select id="t1k-banque" aria-label="Banque de motifs TR-1000"></select>
-    <button id="t1k-ptn">PTN A1</button>
+    <select id="t1k-ptn" aria-label="Motif TR-1000 dans la banque sélectionnée"><option value="0">PTN 1</option><option value="1">PTN 2</option><option value="2">PTN 3</option><option value="3">PTN 4</option><option value="4">PTN 5</option><option value="5">PTN 6</option><option value="6">PTN 7</option><option value="7">PTN 8</option><option value="8">PTN 9</option><option value="9">PTN 10</option><option value="10">PTN 11</option><option value="11">PTN 12</option><option value="12">PTN 13</option><option value="13">PTN 14</option><option value="14">PTN 15</option><option value="15">PTN 16</option></select>
     <button id="t1k-copier">COPIER</button>
     <button id="t1k-coller" disabled>COLLER</button>
     <button id="t1k-ech">SAMPLE B</button>
@@ -5193,8 +5193,9 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <h3>Banques et motifs</h3>
   <p><b>BANQUE A</b> ouvre le choix des huit banques A à H. Chacune possède
-  seize motifs indépendants, soit <b>128 motifs</b>. Le bouton <b>PTN</b>
-  passe au motif suivant : A16 devient B1 et H16 revient à A1. Choisir directement
+  seize motifs indépendants, soit <b>128 motifs</b>. Le sélecteur <b>PTN</b>
+  permet de choisir directement un numéro de 1 à 16 dans la banque courante,
+  sans faire défiler les motifs intermédiaires. Choisir directement
   une banque conserve le numéro du motif. Arrêtez PLAY avant de changer.</p>
   <p>Chaque motif garde ses pas, accents, sous-pas, probabilités et réglages
   d'instruments, y compris le sample choisi. Les effets et les états de MORPH
@@ -24551,7 +24552,7 @@ function majT1k(){
   document.getElementById("t1k-afx").classList.toggle("on", T1K.afx.on);
   document.getElementById("t1k-fill").classList.toggle("on", T1K.fill);
   document.getElementById("t1k-last").textContent = "LAST " + m.last;
-  document.getElementById("t1k-ptn").textContent = "PTN " + "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1);
+  document.getElementById("t1k-ptn").value = String(T1K.cur);
   document.getElementById("t1k-ma").classList.toggle("on", !!T1K.mA);
   document.getElementById("t1k-mb").classList.toggle("on", !!T1K.mB);
   majLcdT1k();
@@ -24644,9 +24645,8 @@ document.getElementById("t1k-last").addEventListener("click", function(){
   m.last = v[(v.indexOf(m.last) + 1) % v.length];
   majT1k(); memT1k(); H.cran();
 });
-document.getElementById("t1k-ptn").addEventListener("click", function(){
-  var suivant = (T1K.banq * 16 + T1K.cur + 1) % 128;
-  if(choisirMotifT1k(Math.floor(suivant / 16), suivant % 16)) H.inter();
+document.getElementById("t1k-ptn").addEventListener("change", function(){
+  if(choisirMotifT1k(T1K.banq, +this.value)) H.inter();
 });
 (function(){
   var banque = document.getElementById("t1k-banque");

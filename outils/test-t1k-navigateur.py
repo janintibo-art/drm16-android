@@ -99,10 +99,21 @@ async def main():
             assert await pg.locator('#t1k-banque').is_disabled() and await pg.locator('#t1k-ptn').is_disabled()
             assert await pg.evaluate('!choisirMotifT1k(2,0)&&T1K.banq===1')
             await pg.locator('#t1k-stop').click()
-            await pg.evaluate('choisirMotifT1k(0,15)');await pg.locator('#t1k-ptn').click()
-            assert await pg.evaluate('T1K.banq===1&&T1K.cur===0')
-            await pg.evaluate('choisirMotifT1k(7,15)');await pg.locator('#t1k-ptn').click()
-            assert await pg.evaluate('T1K.banq===0&&T1K.cur===0')
+            # v208 : sélection directe à travers les vraies listes.
+            await pg.locator('#t1k-banque').select_option('0')
+            await pg.locator('#t1k-ptn').select_option('15')
+            assert await pg.evaluate('T1K.banq===0&&T1K.cur===15')
+            await pg.locator('#t1k-banque').select_option('7')
+            assert await pg.evaluate('T1K.banq===7&&T1K.cur===15')
+            await pg.locator('#t1k-ptn').select_option('3')
+            assert await pg.evaluate('T1K.banq===7&&T1K.cur===3')
+            await pg.evaluate('writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.locator('#t1k-ptn').input_value()=='3'
+            assert await pg.locator('#t1k-banque').input_value()=='7'
+            await pg.locator('#t1k-banque').select_option('0')
+            await pg.locator('#t1k-ptn').select_option('0')
+            assert await pg.evaluate('T1K.banq===0&&T1K.cur===0&&motifT1kCur().pas[0]===1')
             await pg.evaluate('''() => {
               let anciens=Array.from({length:16},()=>motifT1k(9));anciens[3].pas[2]=17;anciens[3].prob[2][4]=25;
               memoire.t1k={cur:3,banq:5,sel:2,motifs:anciens};chargerT1k();majT1k();majKnobsT1k();memT1k();writeMem();
@@ -113,7 +124,7 @@ async def main():
             for w,h in ((393,851),(360,640),(880,400)):
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v195-%sx%s.png'%(w,h))))
-            print('OK : banques indépendantes, sélection sauvegardée, limites A16/B1 et H16/A1, blocage PLAY et migration des anciens projets',flush=True)
+            print('OK : banques indépendantes, sélection sauvegardée, sélection directe A16/H16/H4/A1, blocage PLAY et migration des anciens projets',flush=True)
             # v196 : sens, curseur à l'heure audio, sauvegarde et vraies ondes.
             await pg.evaluate('''() => {
               choisirMotifT1k(0,0);T1K.sel=0;let m=motifT1kCur();m.last=4;m.pas.fill(0);m.acc.fill(0);m.pas[0]=1;m.acc[0]=1;
@@ -371,7 +382,7 @@ async def main():
             await pg.locator('#t1k-longueur').select_option('3')
             for w,h in ((393,851),(360,640),(880,400)):
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
-                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v207-%sx%s.png'%(w,h))))
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v208-%sx%s.png'%(w,h))))
             print('OK : longueur indépendante, vrais WAV des trois directions, sauvegarde, protection PLAY et SUIVRE LAST',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
