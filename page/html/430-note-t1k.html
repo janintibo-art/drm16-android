@@ -198,7 +198,7 @@ conserve son nom, jusqu’à 24 caractères. Vider le champ enlève le nom sans 
 la musique. Les noms sont sauvegardés dans le projet et repris par COPIER/COLLER ;
 renommez la copie pour distinguer vos variantes. Les anciens motifs restent sans nom.</p>
 <h3>Annuler un collage ou un effacement</h3>
-<p>Après COLLER, EFFACER VAR. ou un décalage de séquence, ANNULER permet de retrouver le motif entier tel
+<p>Après COLLER, EFFACER VAR. ou un décalage ou une inversion de séquence, ANNULER permet de retrouver le motif entier tel
 qu’il était juste avant cette action. Revenez sur le motif concerné et arrêtez PLAY.
 Une confirmation prévient que les modifications effectuées depuis seront également
 remplacées. Annuler cette confirmation conserve tout en l’état.</p>
@@ -212,7 +212,14 @@ VARIATIONS du motif destination sont conservés. Les variations copiées peuvent
 modifier le timbre de l’instrument destination. ANNULER restaure le motif précédent.
 Cette copie temporaire est indépendante de COPIER/COLLER le motif et disparaît
 au rechargement. MOTION REC est désarmé au collage.</p>
-<p>Un seul état précédent est conservé : un nouveau décalage, collage ou effacement confirmé
+<p><b>INVERSER SÉQ :</b> à l’arrêt, inverse l’ordre des cellules de l’instrument
+sélectionné, dans sa longueur propre ou LAST. Sur quatre pas, 1–2–3–4 devient
+4–3–2–1. Notes, accents, sous-pas, probabilités, cycles, retards et variations
+suivent les cellules, même sans note. Les cellules au-delà de la longueur restent
+intactes. Le sens de lecture, le son de base et les autres instruments ne changent
+pas. MOTION REC est désarmé. ANNULER restaure le motif précédent ; une seconde
+inversion remet les cellules dans leur ordre initial.</p>
+<p>Un seul état précédent est conservé : une nouvelle inversion, un décalage, un collage ou un effacement confirmé
 le remplace. Cette réserve est temporaire et disparaît au rechargement de la machine
 ou du projet, notamment après un export qui recharge la machine. Le motif restauré
 est sauvegardé normalement. Il n’y a pas de commande pour refaire l’action annulée.</p>

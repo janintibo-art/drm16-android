@@ -398,6 +398,7 @@ var t1kPas = [];
 function beatT1k(i){
   document.getElementById("t1k-copier-sequence").disabled = S.run;
   document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
+  document.getElementById("t1k-inverser-sequence").disabled = S.run;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
   document.getElementById("t1k-tourner-droite").disabled = S.run;
   document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
@@ -553,6 +554,26 @@ function collerSequenceT1k(){
   m.longueurs[k] = longueurInstrumentT1k(source, j);
   T1K.motionRec = false; resetLectureT1k(); memT1k(); majT1k();
   signal("SÉQUENCE COLLÉE · " + T1K_INSTR[k].nom); return true;
+}
+
+/* v213 : miroir des cellules, sans changer le sens de lecture. */
+function inverserSequenceT1k(){
+  if(S.run) return false;
+  var m = motifT1kCur(), k = T1K.sel, L = longueurInstrumentT1k(m, k);
+  if(L <= 1){ signal("UN SEUL PAS · AUCUNE INVERSION"); return false; }
+  memoriserAnnulationT1k("l’inversion de la séquence");
+  var masque = (1 << L) - 1;
+  ["pas","acc"].forEach(function(nom){
+    var avant = m[nom][k], apres = avant & ~masque;
+    for(var j=0;j<L;j++) if(avant & (1 << j)) apres |= 1 << (L - 1 - j);
+    m[nom][k] = apres;
+  });
+  ["sub","prob","cycle","retard","reglages"].forEach(function(nom){
+    var avant = m[nom][k].slice();
+    for(var j=0;j<L;j++) m[nom][k][L - 1 - j] = nom === "reglages" ? lireReglagesT1k(avant[j]) : avant[j];
+  });
+  T1K.motionRec = false; resetLectureT1k(); memT1k(); majT1k();
+  signal("SÉQUENCE INVERSÉE · " + T1K_INSTR[k].nom); return true;
 }
 
 /* ---------- interface ---------- */
@@ -713,6 +734,7 @@ function majLcdT1k(){
 function majT1k(){
   document.getElementById("t1k-copier-sequence").disabled = S.run;
   document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
+  document.getElementById("t1k-inverser-sequence").disabled = S.run;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
   document.getElementById("t1k-tourner-droite").disabled = S.run;
   document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
@@ -995,3 +1017,5 @@ document.getElementById("t1k-tourner-droite").addEventListener("click", function
 
 document.getElementById("t1k-copier-sequence").addEventListener("click", copierSequenceT1k);
 document.getElementById("t1k-coller-sequence").addEventListener("click", collerSequenceT1k);
+
+document.getElementById("t1k-inverser-sequence").addEventListener("click", inverserSequenceT1k);

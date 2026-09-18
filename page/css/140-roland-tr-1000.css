@@ -95,3 +95,5 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 #t1k-tourner-gauche:disabled,#t1k-tourner-droite:disabled{opacity:.45}
 
 #t1k-copier-sequence:disabled,#t1k-coller-sequence:disabled{opacity:.45}
+
+#t1k-inverser-sequence:disabled{opacity:.45}

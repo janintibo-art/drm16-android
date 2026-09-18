@@ -247,3 +247,20 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  assert(c.collerSequenceT1k());c.memT1k();c.chargerT1k();assert.deepStrictEqual(copie(c.motifT1kCur()),attendu);assert.equal(c.T1K.copieSequence,null);
  console.log('TR-1000 v212 : copie indépendante, toutes les données de séquence, autre banque/instrument, longueur effective, confirmation, annulation, mémoire et protection PLAY OK.');
 }
+{
+ const c=setup();c.signal=()=>{};c.majKnobsT1k=()=>{};c.window={confirm:()=>true};
+ for(const L of [3,4,16]){
+  const m=c.motifT1kCur();m.longueurs[0]=L;m.direction[0]='pingpong';m.pas[0]=1|(1<<8);m.acc[0]=2|(1<<9);
+  for(let j=0;j<16;j++){m.sub[0][j]=j%4+1;m.prob[0][j]=j*5;m.cycle[0][j]=(j%4+1)+':4';m.retard[0][j]=[0,1,2,4,8][j%5];m.reglages[0][j]={tune:j/16};}
+  const avant=copie(m),attendu=copie(m),masque=(1<<L)-1;
+  for(const nom of ['pas','acc']){attendu[nom][0]=avant[nom][0]&~masque;for(let j=0;j<L;j++)if(avant[nom][0]&(1<<j))attendu[nom][0]|=1<<(L-1-j);}
+  for(const nom of ['sub','prob','cycle','retard','reglages'])attendu[nom][0]=avant[nom][0].slice(0,L).reverse().concat(avant[nom][0].slice(L));
+  c.T1K.motionRec=true;assert(c.inverserSequenceT1k());assert(!c.T1K.motionRec);assert.deepStrictEqual(copie(m),attendu);assert.deepStrictEqual(copie(c.memoire.t1k.motifs[0]),attendu);
+  assert(c.inverserSequenceT1k());assert.deepStrictEqual(copie(m),avant);
+  assert(c.annulerModificationT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),attendu);
+ }
+ let m=c.motifT1kCur();m.longueurs[0]=1;const a=c.T1K.annulation,b=copie(m);assert(!c.inverserSequenceT1k());assert.strictEqual(c.T1K.annulation,a);assert.deepStrictEqual(copie(m),b);
+ m.longueurs[0]=0;m.last=4;m.pas[0]=1;c.S.run=true;assert(!c.inverserSequenceT1k());assert.equal(m.pas[0],1);c.S.run=false;assert(c.inverserSequenceT1k());assert.equal(m.pas[0],8);
+ const sauvegarde=copie(m);c.chargerT1k();assert.deepStrictEqual(copie(c.motifT1kCur()),sauvegarde);
+ console.log('TR-1000 v213 : inversion 3/4/16 pas, métadonnées, double inversion, annulation, LAST, mémoire et protection PLAY OK.');
+}

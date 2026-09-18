@@ -448,6 +448,19 @@ async def main():
             assert await pg.locator('#t1k-coller-sequence').is_disabled()
             await pg.locator('#t1k-stop').click()
             print('OK : copier/coller séquence, confirmation, annulation et protection PLAY',flush=True)
+            # v213 : inversion de la grille, variations et annulation.
+            await pg.evaluate("T1K.sel=0;let m=motifT1kCur();m.longueurs[0]=4;m.pas[0]=257;m.reglages[0].fill(null);m.reglages[0][0]={tune:.7};majT1k()")
+            avant=await pg.evaluate('JSON.stringify(motifT1kCur())')
+            await pg.locator('#t1k-inverser-sequence').click()
+            assert await pg.evaluate('motifT1kCur().pas[0]===264&&motifT1kCur().reglages[0][3].tune===.7')
+            await pg.locator('#t1k-inverser-sequence').click()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur())')==avant
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-annuler').click()
+            assert await pg.evaluate('motifT1kCur().pas[0]===264')
+            await pg.locator('#t1k-start').click()
+            assert await pg.locator('#t1k-inverser-sequence').is_disabled()
+            await pg.locator('#t1k-stop').click()
+            print('OK : inversion, variations, double inversion, annulation et protection PLAY',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:
