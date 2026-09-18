@@ -279,6 +279,35 @@ async def main():
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v203-%sx%s.png'%(w,h))))
             print('OK : solo, déplacement, sauvegarde, sortie pendant PLAY et vrais WAV respectant les mutes',flush=True)
+            # v204 : édition ciblée et impact vérifié sur les vrais WAV.
+            await pg.evaluate('let m=motifT1kCur();m.solo=-1;m.muet.fill(false);T1K.sel=0;majT1k()')
+            await pg.locator('#t1k-params').click()
+            await pg.locator('#t1k-param-nom').select_option('niv')
+            await pg.locator('#t1k-param-valeur').select_option('0')
+            await pg.locator('#t1k-pas button').nth(0).click()
+            assert await pg.evaluate('T1K.params&&!T1K.decalage&&!T1K.cycles&&!T1K.proba&&motifT1kCur().reglages[0][0].niv===0&&motifT1kCur().pas[0]===1&&motifT1kCur().reglages[1][0]===null')
+            assert await pic_wav()<.0001
+            await pg.locator('#t1k-params').click()
+            await pg.locator('#t1k-param-nom').select_option('niv')
+            await pg.locator('#t1k-param-valeur').select_option('100')
+            await pg.locator('#t1k-pas button').nth(0).click()
+            await pg.locator('#t1k-param-nom').select_option('tune')
+            await pg.locator('#t1k-param-valeur').select_option('75')
+            await pg.locator('#t1k-pas button').nth(0).click()
+            assert await pic_wav()>.001
+            await pg.evaluate('memT1k();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate('motifT1kCur().reglages[0][0].niv===1&&motifT1kCur().reglages[0][0].tune===.75&&!T1K.params')
+            await pg.locator('#t1k-params').click()
+            await pg.locator('#t1k-param-nom').select_option('niv')
+            await pg.locator('#t1k-param-valeur').select_option('base')
+            await pg.locator('#t1k-pas button').nth(0).click()
+            assert await pg.evaluate('motifT1kCur().reglages[0][0].niv===undefined&&motifT1kCur().reglages[0][0].tune===.75')
+            await pg.locator('#t1k-param-nom').select_option('tune')
+            for w,h in ((393,851),(360,640),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v204-%sx%s.png'%(w,h))))
+            print('OK : paramètres par pas, WAV LEVEL 0/100%, mémoire et retour BASE ciblé',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

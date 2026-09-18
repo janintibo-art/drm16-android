@@ -138,3 +138,16 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  m.solo=3;assert.equal(c.lireMotifT1k(m).solo,3,'copie du solo');
  console.log('TR-1000 v203 : solo prioritaire, déplacement, restauration des mutes, mémoire et validation OK.');
 }
+{
+ const c=setup(),m=c.motifT1kCur();m.pas.fill(0);m.pas[0]=1;m.last=4;m.direction[0]='arriere';m.sub[0][0]=3;
+ assert(c.poserReglageT1k(0,0,'niv',0));assert(c.poserReglageT1k(0,0,'tune',.75));assert.equal(c.valeurPasT1k(0,'niv',m.reglages[0][0]),0);
+ const base=m.instr[0].tune;c.T1K.mA=m.instr.map(x=>({...x,tune:.1}));c.T1K.mB=m.instr.map(x=>({...x,tune:.9}));c.T1K.morph=.5;
+ assert.equal(c.valeurPasT1k(0,'tune',m.reglages[0][0]),.75);assert.equal(c.valeurPasT1k(0,'tune',null),.5);assert.equal(m.instr[0].tune,base);
+ for(let i=0;i<4;i++)c.scheduleT1k(i,2+i*.12);assert.equal(c.voix.length,3);assert(c.voix.every(v=>v[3].niv===0&&v[3].tune===.75));
+ c.memT1k();c.poserReglageT1k(0,0,'niv',null);assert.equal(m.reglages[0][0].tune,.75);assert.equal(c.memoire.t1k.motifs[0].reglages[0][0].niv,0);
+ c.chargerT1k();assert.equal(c.motifT1kCur().reglages[0][0].niv,0);const copieMotif=c.lireMotifT1k(c.motifT1kCur());copieMotif.reglages[0][0].tune=0;assert.equal(c.motifT1kCur().reglages[0][0].tune,.75);
+ assert(!c.poserReglageT1k(10,0,'niv',.5));assert(!c.poserReglageT1k(0,0,'inconnu',.5));assert(!c.poserReglageT1k(0,0,'niv',NaN));
+ assert.deepStrictEqual(copie(c.lireReglagesT1k({tune:2,dec:-1,niv:'1',mix:null})),{tune:1,dec:0});
+ c.memoire.t1k.motifs.forEach(m=>delete m.reglages);c.chargerT1k();assert(c.T1K.motifs.every(m=>m.reglages.every(r=>r.every(v=>v===null))));
+ console.log('TR-1000 v204 : paramètres source, sous-pas, priorité morph, effacement ciblé, mémoire et migration OK.');
+}
