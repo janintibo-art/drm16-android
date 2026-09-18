@@ -396,6 +396,8 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-tourner-gauche").disabled = S.run;
+  document.getElementById("t1k-tourner-droite").disabled = S.run;
   document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
   document.getElementById("t1k-nom-motif").disabled = S.run;
   document.getElementById("t1k-effacer-vars").disabled = S.run;
@@ -505,6 +507,27 @@ function effacerVariationsT1k(){
   m.reglages[k] = Array(16).fill(null);
   T1K.motionRec = false;
   memT1k(); majT1k(); signal("VARIATIONS EFFACÉES · " + T1K_INSTR[k].nom);
+  return true;
+}
+
+/* v211 : rotation de la grille, avec tous les réglages attachés aux pas. */
+function tournerSequenceT1k(sens){
+  if(S.run || (sens !== -1 && sens !== 1)) return false;
+  var m = motifT1kCur(), k = T1K.sel, L = longueurInstrumentT1k(m, k);
+  if(L <= 1){ signal("UN SEUL PAS · AUCUN DÉCALAGE"); return false; }
+  memoriserAnnulationT1k("le décalage de la séquence");
+  var masque = (1 << L) - 1;
+  ["pas","acc"].forEach(function(nom){
+    var avant = m[nom][k], apres = avant & ~masque;
+    for(var j=0;j<L;j++) if(avant & (1 << j)) apres |= 1 << ((j + sens + L) % L);
+    m[nom][k] = apres;
+  });
+  ["sub","prob","cycle","retard","reglages"].forEach(function(nom){
+    var avant = m[nom][k].slice();
+    for(var j=0;j<L;j++) m[nom][k][(j + sens + L) % L] = nom === "reglages" ? lireReglagesT1k(avant[j]) : avant[j];
+  });
+  T1K.motionRec = false; resetLectureT1k(); memT1k(); majT1k();
+  signal(T1K_INSTR[k].nom + (sens > 0 ? " · UN PAS À DROITE" : " · UN PAS À GAUCHE"));
   return true;
 }
 
@@ -664,6 +687,8 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-tourner-gauche").disabled = S.run;
+  document.getElementById("t1k-tourner-droite").disabled = S.run;
   document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
   var champNom = document.getElementById("t1k-nom-motif");
   champNom.value = motifT1kCur().nom;
@@ -938,3 +963,6 @@ document.getElementById("t1k-nom-motif").addEventListener("change", function(e){
 document.getElementById("t1k-nom-motif").addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); this.blur(); } });
 
 document.getElementById("t1k-annuler").addEventListener("click", annulerModificationT1k);
+
+document.getElementById("t1k-tourner-gauche").addEventListener("click", function(){ tournerSequenceT1k(-1); });
+document.getElementById("t1k-tourner-droite").addEventListener("click", function(){ tournerSequenceT1k(1); });

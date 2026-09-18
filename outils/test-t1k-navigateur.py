@@ -419,6 +419,19 @@ async def main():
             pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-annuler').click()
             assert await pg.evaluate('motifT1kCur().reglages[0][0].tune===.7')
             print('OK : boutons annuler collage et effacement, confirmation refusée/acceptée, restauration complète',flush=True)
+            # v211 : rotation des notes et variations dans la longueur choisie.
+            await pg.evaluate("T1K.sel=0;let m=motifT1kCur();m.longueurs[0]=3;m.pas[0]=257;m.reglages[0].fill(null);m.reglages[0][0]={tune:.7};majT1k()")
+            await pg.locator('#t1k-tourner-droite').click()
+            assert await pg.evaluate('motifT1kCur().pas[0]===258&&motifT1kCur().reglages[0][1].tune===.7')
+            await pg.locator('#t1k-tourner-gauche').click()
+            assert await pg.evaluate('motifT1kCur().pas[0]===257&&motifT1kCur().reglages[0][0].tune===.7')
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-annuler').click()
+            assert await pg.evaluate('motifT1kCur().pas[0]===258&&motifT1kCur().reglages[0][1].tune===.7')
+            await pg.locator('#t1k-start').click()
+            assert await pg.locator('#t1k-tourner-gauche').is_disabled()
+            assert await pg.locator('#t1k-tourner-droite').is_disabled()
+            await pg.locator('#t1k-stop').click()
+            print('OK : rotation gauche/droite, variations, annulation et protection PLAY',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

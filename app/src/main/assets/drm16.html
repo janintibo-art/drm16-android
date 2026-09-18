@@ -1909,6 +1909,8 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 #t1k-nom-motif:disabled{opacity:.45}
 
 #t1k-annuler:disabled{opacity:.45}
+
+#t1k-tourner-gauche:disabled,#t1k-tourner-droite:disabled{opacity:.45}
 /* ===================== MACHINE D'ARCHIVE ===================== */
 body.arcm .arcmb{display:block}
 body.arcm #unit,body.arcm .em,body.arcm .er,body.arcm .ea,body.arcm .es,body.arcm .mx,body.arcm .sx,
@@ -3501,6 +3503,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="t1k-copier">COPIER</button>
     <button id="t1k-coller" disabled>COLLER</button>
     <button id="t1k-annuler" disabled>ANNULER</button>
+    <button id="t1k-tourner-gauche" aria-label="Décaler la séquence sélectionnée d’un pas à gauche">← PAS</button>
+    <button id="t1k-tourner-droite" aria-label="Décaler la séquence sélectionnée d’un pas à droite">PAS →</button>
     <button id="t1k-ech">SAMPLE B</button>
     <button id="t1k-afx">ANALOG FX</button>
     <button id="t1k-ma">SET A</button>
@@ -5394,14 +5398,24 @@ conserve son nom, jusqu’à 24 caractères. Vider le champ enlève le nom sans 
 la musique. Les noms sont sauvegardés dans le projet et repris par COPIER/COLLER ;
 renommez la copie pour distinguer vos variantes. Les anciens motifs restent sans nom.</p>
 <h3>Annuler un collage ou un effacement</h3>
-<p>Après COLLER ou EFFACER VAR., ANNULER permet de retrouver le motif entier tel
+<p>Après COLLER, EFFACER VAR. ou un décalage de séquence, ANNULER permet de retrouver le motif entier tel
 qu’il était juste avant cette action. Revenez sur le motif concerné et arrêtez PLAY.
 Une confirmation prévient que les modifications effectuées depuis seront également
 remplacées. Annuler cette confirmation conserve tout en l’état.</p>
-<p>Un seul état précédent est conservé : un nouveau collage ou effacement confirmé
+<p>Un seul état précédent est conservé : un nouveau décalage, collage ou effacement confirmé
 le remplace. Cette réserve est temporaire et disparaît au rechargement de la machine
 ou du projet, notamment après un export qui recharge la machine. Le motif restauré
 est sauvegardé normalement. Il n’y a pas de commande pour refaire l’action annulée.</p>
+<h3>Décaler une séquence</h3>
+<p>À l’arrêt, sélectionnez l’instrument puis utilisez ← PAS ou PAS →. Les notes
+font une rotation d’une case dans la grille : le dernier pas revient au premier
+vers la droite, et le premier au dernier vers la gauche. La longueur de l’instrument
+est respectée ; les pas grisés hors de cette longueur restent intacts.</p>
+<p>Accents, sous-pas, probabilités, cycles, retards et variations se déplacent avec
+les pas, y compris leurs réglages préparés sur des cases sans note. Les autres
+instruments et le kit restent inchangés. Les flèches désignent les positions de la
+grille, quel que soit le sens de lecture. ANNULER restaure le motif avant le dernier
+décalage. MOTION REC est désarmé après cette opération.</p>
   </div>
   <div class="doc" id="note-dbi" data-titre="DRUMBRUTE IMPACT">
   <h3>Motifs de 1 à 64 pas</h3>
@@ -24269,6 +24283,8 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-tourner-gauche").disabled = S.run;
+  document.getElementById("t1k-tourner-droite").disabled = S.run;
   document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
   document.getElementById("t1k-nom-motif").disabled = S.run;
   document.getElementById("t1k-effacer-vars").disabled = S.run;
@@ -24378,6 +24394,27 @@ function effacerVariationsT1k(){
   m.reglages[k] = Array(16).fill(null);
   T1K.motionRec = false;
   memT1k(); majT1k(); signal("VARIATIONS EFFACÉES · " + T1K_INSTR[k].nom);
+  return true;
+}
+
+/* v211 : rotation de la grille, avec tous les réglages attachés aux pas. */
+function tournerSequenceT1k(sens){
+  if(S.run || (sens !== -1 && sens !== 1)) return false;
+  var m = motifT1kCur(), k = T1K.sel, L = longueurInstrumentT1k(m, k);
+  if(L <= 1){ signal("UN SEUL PAS · AUCUN DÉCALAGE"); return false; }
+  memoriserAnnulationT1k("le décalage de la séquence");
+  var masque = (1 << L) - 1;
+  ["pas","acc"].forEach(function(nom){
+    var avant = m[nom][k], apres = avant & ~masque;
+    for(var j=0;j<L;j++) if(avant & (1 << j)) apres |= 1 << ((j + sens + L) % L);
+    m[nom][k] = apres;
+  });
+  ["sub","prob","cycle","retard","reglages"].forEach(function(nom){
+    var avant = m[nom][k].slice();
+    for(var j=0;j<L;j++) m[nom][k][(j + sens + L) % L] = nom === "reglages" ? lireReglagesT1k(avant[j]) : avant[j];
+  });
+  T1K.motionRec = false; resetLectureT1k(); memT1k(); majT1k();
+  signal(T1K_INSTR[k].nom + (sens > 0 ? " · UN PAS À DROITE" : " · UN PAS À GAUCHE"));
   return true;
 }
 
@@ -24537,6 +24574,8 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-tourner-gauche").disabled = S.run;
+  document.getElementById("t1k-tourner-droite").disabled = S.run;
   document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
   var champNom = document.getElementById("t1k-nom-motif");
   champNom.value = motifT1kCur().nom;
@@ -24811,6 +24850,9 @@ document.getElementById("t1k-nom-motif").addEventListener("change", function(e){
 document.getElementById("t1k-nom-motif").addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); this.blur(); } });
 
 document.getElementById("t1k-annuler").addEventListener("click", annulerModificationT1k);
+
+document.getElementById("t1k-tourner-gauche").addEventListener("click", function(){ tournerSequenceT1k(-1); });
+document.getElementById("t1k-tourner-droite").addEventListener("click", function(){ tournerSequenceT1k(1); });
 /* ===================== ARTURIA DRUMBRUTE IMPACT =====================
    Huit voix analogiques, et une chose qu'aucune autre machine d'ici ne fait :
    la polyrythmie. Chaque piste garde sa propre longueur, et les motifs se

@@ -198,12 +198,22 @@ conserve son nom, jusqu’à 24 caractères. Vider le champ enlève le nom sans 
 la musique. Les noms sont sauvegardés dans le projet et repris par COPIER/COLLER ;
 renommez la copie pour distinguer vos variantes. Les anciens motifs restent sans nom.</p>
 <h3>Annuler un collage ou un effacement</h3>
-<p>Après COLLER ou EFFACER VAR., ANNULER permet de retrouver le motif entier tel
+<p>Après COLLER, EFFACER VAR. ou un décalage de séquence, ANNULER permet de retrouver le motif entier tel
 qu’il était juste avant cette action. Revenez sur le motif concerné et arrêtez PLAY.
 Une confirmation prévient que les modifications effectuées depuis seront également
 remplacées. Annuler cette confirmation conserve tout en l’état.</p>
-<p>Un seul état précédent est conservé : un nouveau collage ou effacement confirmé
+<p>Un seul état précédent est conservé : un nouveau décalage, collage ou effacement confirmé
 le remplace. Cette réserve est temporaire et disparaît au rechargement de la machine
 ou du projet, notamment après un export qui recharge la machine. Le motif restauré
 est sauvegardé normalement. Il n’y a pas de commande pour refaire l’action annulée.</p>
+<h3>Décaler une séquence</h3>
+<p>À l’arrêt, sélectionnez l’instrument puis utilisez ← PAS ou PAS →. Les notes
+font une rotation d’une case dans la grille : le dernier pas revient au premier
+vers la droite, et le premier au dernier vers la gauche. La longueur de l’instrument
+est respectée ; les pas grisés hors de cette longueur restent intacts.</p>
+<p>Accents, sous-pas, probabilités, cycles, retards et variations se déplacent avec
+les pas, y compris leurs réglages préparés sur des cases sans note. Les autres
+instruments et le kit restent inchangés. Les flèches désignent les positions de la
+grille, quel que soit le sens de lecture. ANNULER restaure le motif avant le dernier
+décalage. MOTION REC est désarmé après cette opération.</p>
   </div>

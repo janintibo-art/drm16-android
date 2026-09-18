@@ -212,3 +212,24 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  assert(c.effacerVariationsT1k());c.memT1k();c.chargerT1k();assert.equal(c.T1K.annulation,null);assert.equal(c.motifT1kCur().reglages[2][3],null);
  console.log('TR-1000 v210 : annuler collage/effacement, confirmation, bonne destination, garde PLAY, restauration complète et mémoire OK.');
 }
+{
+ const c=setup();c.signal=()=>{};c.majKnobsT1k=()=>{};c.window={confirm:()=>true};const m=c.motifT1kCur();
+ m.longueurs[0]=3;m.direction[0]='arriere';m.pas[0]=1|256;m.acc[0]=4|256;
+ for(let j=0;j<16;j++){m.sub[0][j]=j%4+1;m.prob[0][j]=j*5;m.cycle[0][j]=(j%4+1)+':4';m.retard[0][j]=[0,1,2,4,8][j%5];m.reglages[0][j]={tune:j/16};}
+ const avant=copie(m);c.T1K.motionRec=true;assert(c.tournerSequenceT1k(1));assert(!c.T1K.motionRec);
+ assert.equal(m.pas[0],2|256);assert.equal(m.acc[0],1|256);
+ for(const nom of ['sub','prob','cycle','retard','reglages']){
+  for(let j=0;j<3;j++)assert.deepStrictEqual(copie(m[nom][0][(j+1)%3]),avant[nom][0][j]);
+  assert.deepStrictEqual(copie(m[nom][0].slice(3)),avant[nom][0].slice(3));
+  assert.deepStrictEqual(copie(m[nom].slice(1)),avant[nom].slice(1));
+ }
+ assert.deepStrictEqual(copie(m.instr),avant.instr);assert.equal(m.direction[0],'arriere');
+ assert.deepStrictEqual(copie(c.T1K.annulation.motif),avant);assert.deepStrictEqual(copie(c.memoire.t1k.motifs[0]),copie(m));
+ assert(c.tournerSequenceT1k(-1));assert.deepStrictEqual(copie(m),avant);
+ assert(c.tournerSequenceT1k(1));assert(c.annulerModificationT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),avant);
+ const n=c.motifT1kCur();n.longueurs[0]=16;n.pas[0]=32768;assert(c.tournerSequenceT1k(1));assert.equal(n.pas[0],1);assert(c.tournerSequenceT1k(-1));assert.equal(n.pas[0],32768);
+ n.longueurs[0]=1;const annulation=c.T1K.annulation;assert(!c.tournerSequenceT1k(1));assert.strictEqual(c.T1K.annulation,annulation);
+ n.longueurs[0]=3;const bloque=copie(n);c.S.run=true;assert(!c.tournerSequenceT1k(1));c.S.run=false;assert(!c.tournerSequenceT1k(0));assert.deepStrictEqual(copie(n),bloque);
+ c.memT1k();c.chargerT1k();assert.deepStrictEqual(copie(c.motifT1kCur()),bloque);
+ console.log('TR-1000 v211 : rotations, métadonnées, limites 1/3/16, pistes préservées, annulation, mémoire et protection PLAY OK.');
+}
