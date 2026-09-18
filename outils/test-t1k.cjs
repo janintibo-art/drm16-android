@@ -172,3 +172,20 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.basculerMotionT1k();c.memT1k();c.chargerT1k();assert(!c.motifT1kCur().motionActive);assert.equal(c.lireMotifT1k({}).motionActive,true);assert.equal(c.lireMotifT1k(c.motifT1kCur()).motionActive,false);
  console.log('TR-1000 v206 : bypass réversible, effacement ciblé et confirmé, protection PLAY, mémoire et migration OK.');
 }
+{
+ const c=setup();c.signal=()=>{};const m=c.motifT1kCur();m.last=4;m.longueurs[0]=3;m.longueurs[1]=7;m.pas.fill(0);
+ for(const sens of ['avant','arriere','pingpong']){
+   c.resetLectureT1k();m.direction[0]=sens;
+   for(let i=0;i<12;i++)c.scheduleT1k(i%4,2+i*.12);
+   const p=copie(c.T1K.departs.map(e=>e.positions[0]));
+   const attendu=sens==='avant'?[0,1,2,0,1,2,0,1,2,0,1,2]:sens==='arriere'?[2,1,0,2,1,0,2,1,0,2,1,0]:[0,1,2,1,0,1,2,1,0,1,2,1];
+   assert.deepStrictEqual(p,attendu);assert.deepStrictEqual(copie(c.T1K.departs.map(e=>e.positions[1])),[0,1,2,3,4,5,6,0,1,2,3,4]);
+ }
+ m.direction[0]='avant';c.maintenantAudio=()=>2.48;c.resetLectureT1k();for(let i=0;i<5;i++)c.scheduleT1k(i%4,2+i*.12);assert.equal(c.pasEnregistreT1k(0),1);
+ c.T1K.motionRec=true;c.S.run=true;assert(c.enregistrerGesteT1k(0,'tune',.7));assert.equal(m.reglages[0][1].tune,.7);
+ assert(!c.choisirLongueurT1k(5));assert.equal(m.longueurs[0],3);c.S.run=false;assert(c.choisirLongueurT1k(1));assert.equal(c.longueurInstrumentT1k(m,0),1);
+ c.memT1k();m.longueurs[0]=9;assert.equal(c.memoire.t1k.motifs[0].longueurs[0],1);c.chargerT1k();assert.equal(c.motifT1kCur().longueurs[0],1);
+ assert.equal(c.lireMotifT1k({last:4}).longueurs[0],0);assert.equal(c.longueurInstrumentT1k(c.lireMotifT1k({last:4}),0),4);
+ for(const v of [-1,17,null,'3',3.5])assert.equal(c.longueurPisteT1k(v),0);
+ console.log('TR-1000 v207 : longueurs 3/7 sur transport 4, directions, REC/MOTION, protection PLAY, mémoire et migration OK.');
+}

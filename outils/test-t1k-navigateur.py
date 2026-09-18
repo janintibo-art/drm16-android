@@ -353,6 +353,26 @@ async def main():
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v206-%sx%s.png'%(w,h))))
             print('OK : ON/OFF réel dans les WAV, persistance, effacement annulé/confirmé et protection PLAY',flush=True)
+            # v207 : longueur de trois pas continue malgré un tour de quatre pas.
+            await pg.evaluate("let m=motifT1kCur();m.last=4;m.pas.fill(0);m.pas[0]=1;m.sub[0].fill(1);m.prob[0].fill(100);m.cycle[0].fill('1:1');m.retard[0].fill(0);m.reglages[0].fill(null);m.solo=-1;m.muet.fill(false);Object.assign(m.instr[0],{mix:0,niv:.3,dec:0});T1K.sel=0;T1K.mA=null;T1K.mB=null;S.bpm=120;WAVX.mesures=3;majT1k()")
+            await pg.locator('#t1k-longueur').select_option('3')
+            assert await pg.evaluate('motifT1kCur().longueurs[0]===3&&motifT1kCur().longueurs[1]===0')
+            assert 'hors' in (await pg.locator('#t1k-pas button').nth(3).get_attribute('class'))
+            for direction,attendus in [('avant',[0,3,6,9]),('arriere',[2,5,8,11]),('pingpong',[0,4,8])]:
+                r=await pg.evaluate(rendu_direction,direction)
+                assert [i for i,x in enumerate(r['pics']) if x>.001]==attendus,r
+            await pg.evaluate('memT1k();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate('motifT1kCur().longueurs[0]===3')
+            await pg.locator('#t1k-start').click();assert await pg.locator('#t1k-longueur').is_disabled()
+            await pg.locator('#t1k-stop').click()
+            await pg.locator('#t1k-longueur').select_option('0')
+            assert await pg.evaluate('longueurInstrumentT1k(motifT1kCur(),0)===4')
+            await pg.locator('#t1k-longueur').select_option('3')
+            for w,h in ((393,851),(360,640),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v207-%sx%s.png'%(w,h))))
+            print('OK : longueur indépendante, vrais WAV des trois directions, sauvegarde, protection PLAY et SUIVRE LAST',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

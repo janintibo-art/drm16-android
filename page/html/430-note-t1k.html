@@ -177,4 +177,17 @@ les variations enregistrées. EFFACER VAR., à l’arrêt, demande confirmation 
 efface les six paramètres par pas de l’instrument sélectionné dans le motif courant.
 Les autres instruments, notes et réglages de base sont conservés ; MOTION REC est
 désarmé après l’effacement. Pour retirer un seul paramètre d’un seul pas, utilisez BASE.</p>
+<h3>Longueur indépendante par instrument</h3>
+<p>À l’arrêt, sélectionnez un instrument puis choisissez sa longueur dans PAS :
+1 à 16 pas, ou SUIVRE LAST pour garder la longueur générale. Un cycle de 3 pas peut
+ainsi tourner en même temps qu’un cycle de 16 pas, sans repartir à zéro à chaque
+fin de motif. Les pas au-delà de la longueur choisie restent conservés et grisés.</p>
+<p>Chaque instrument garde son sens de lecture. REC des notes, MOTION REC, accents,
+sous-pas et paramètres suivent ses positions. STOP puis START remet tous les cycles
+au début. Les longueurs sont sauvegardées et copiées avec le motif. Les anciens
+projets restent sur SUIVRE LAST.</p>
+<p>LAST continue de définir le tour du transport : les conditions A:B, FILL et le
+nombre de tours exportés en WAV utilisent cette durée générale. Un export court
+peut donc ne pas contenir un cycle complet de tous les instruments. FILL utilise
+son rythme général, indépendamment des longueurs individuelles.</p>
   </div>

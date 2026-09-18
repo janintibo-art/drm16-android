@@ -21,7 +21,7 @@ function instrT1k(i){
   return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5};
 }
 function motifT1k(n){
-  var m = {motionActive:true, reglages:[], solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
+  var m = {longueurs:Array(10).fill(0), motionActive:true, reglages:[], solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
   for(var k=0;k<10;k++){
     m.pas.push(0); m.acc.push(0);
     m.reglages.push(Array(16).fill(null)); m.retard.push(Array(16).fill(0)); m.cycle.push(Array(16).fill("1:1")); m.sub.push([]); m.prob.push(Array(16).fill(100));
@@ -109,6 +109,7 @@ function lireMotifT1k(o){
       r.retard[k][j] = retardT1k(Array.isArray(o.retard) && Array.isArray(o.retard[k]) ? o.retard[k][j] : undefined);
       r.sub[k][j] = Math.floor(borneT1k(sub, 1, 4, 1));
     }
+    r.longueurs[k] = longueurPisteT1k(Array.isArray(o.longueurs) ? o.longueurs[k] : 0);
     r.direction[k] = directionT1k(Array.isArray(o.direction) ? o.direction[k] : undefined);
     var I = Array.isArray(o.instr) ? o.instr[k] : null;
     if(I && typeof I === "object"){
@@ -126,6 +127,14 @@ function choisirMotifT1k(banque, motif){
 }
 /* v196 : directions par instrument ; le curseur suit l'heure audio. */
 function directionT1k(v){ return v === "arriere" || v === "pingpong" ? v : "avant"; }
+/* 0 suit LAST ; 1..16 définit un cycle indépendant, continu entre les tours. */
+function longueurPisteT1k(v){ return Number.isInteger(v) && v >= 1 && v <= 16 ? v : 0; }
+function longueurInstrumentT1k(m, k){ return longueurPisteT1k(m.longueurs[k]) || m.last; }
+function choisirLongueurT1k(v){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER LA LONGUEUR"); majT1k(); return false; }
+  motifT1kCur().longueurs[T1K.sel] = longueurPisteT1k(v);
+  resetLectureT1k(); memT1k(); majT1k(); return true;
+}
 function pasDirectionT1k(direction, absolu, longueur){
   if(longueur <= 1) return 0;
   if(direction === "arriere") return longueur - 1 - (absolu % longueur);
@@ -153,9 +162,9 @@ function curseurT1k(){
 function pasEnregistreT1k(k){
   validerLectureT1k();
   var e = T1K.entendu, m = motifT1kCur();
-  if(!e) return pasLePlusProche(T1K.pos, m.last);
+  if(!e) return pasLePlusProche(T1K.pos, longueurInstrumentT1k(m, k));
   var avance = (maintenantAudio() - e.t) / stepDur() > .5 ? 1 : 0;
-  return e.fill ? (e.i + avance) % m.last : pasDirectionT1k(m.direction[k], e.absolu + avance, m.last);
+  return e.fill ? (e.i + avance) % m.last : pasDirectionT1k(m.direction[k], e.absolu + avance, longueurInstrumentT1k(m, k));
 }
 function choisirDirectionT1k(v){
   if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER LE SENS"); majT1k(); return false; }
@@ -357,7 +366,7 @@ function scheduleT1k(i, t){
   var absolu = T1K.tour * m.last + i, positions = [], CHARGE_N = ouvrirPas();
   var pas = T1K.fill ? T1K_FILL : m.pas;
   for(var k=0;k<10;k++){
-    var j = T1K.fill ? i : pasDirectionT1k(m.direction[k], absolu, m.last); positions.push(j);
+    var j = T1K.fill ? i : pasDirectionT1k(m.direction[k], absolu, longueurInstrumentT1k(m, k)); positions.push(j);
     if(m.solo >= 0 ? k !== m.solo : m.muet[k]) continue;
     if(!(pas[k] & (1 << j))) continue;
     if(!T1K.fill && !passeCycleT1k(m.cycle[k][j], T1K.tour)) continue;
@@ -381,6 +390,7 @@ function beatT1k(i){
   document.getElementById("t1k-coller").disabled = S.run || !T1K.copie;
   curseurT1k();
   document.getElementById("t1k-direction").disabled = S.run;
+  document.getElementById("t1k-longueur").disabled = S.run;
   document.getElementById("t1k-last").disabled = S.run;
   document.getElementById("t1k-banque").disabled = S.run;
   document.getElementById("t1k-ptn").disabled = S.run;
@@ -621,6 +631,7 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-longueur").value = String(motifT1kCur().longueurs[T1K.sel]);
   var motion = motifT1kCur().motionActive;
   document.getElementById("t1k-motion-active").textContent = motion ? "MOTION ON" : "MOTION OFF";
   document.getElementById("t1k-motion-active").setAttribute("aria-pressed", String(motion));
@@ -632,6 +643,7 @@ function majT1k(){
   document.getElementById("t1k-coller").disabled = S.run || !T1K.copie;
   document.getElementById("t1k-direction").value = motifT1kCur().direction[T1K.sel];
   document.getElementById("t1k-direction").disabled = S.run;
+  document.getElementById("t1k-longueur").disabled = S.run;
   document.getElementById("t1k-last").disabled = S.run;
   curseurT1k();
   document.getElementById("t1k-banque").value = String(T1K.banq);
@@ -642,7 +654,7 @@ function majT1k(){
     t1kPas[i].classList.toggle("act", T1K.accent ? !!(m.acc[T1K.sel] & (1 << i))
                                                  : !!(m.pas[T1K.sel] & (1 << i)));
     t1kPas[i].classList.toggle("sub", (m.sub[T1K.sel][i] || 1) > 1);
-    t1kPas[i].classList.toggle("hors", i >= m.last);
+    t1kPas[i].classList.toggle("hors", i >= longueurInstrumentT1k(m, T1K.sel));
     var proba = probabiliteT1k(m.prob[T1K.sel][i]);
     t1kPas[i].querySelector(".t1k-prob-val").textContent = T1K.params ? (m.reglages[T1K.sel][i] && typeof m.reglages[T1K.sel][i][T1K.paramNom] === "number" ? Math.round(m.reglages[T1K.sel][i][T1K.paramNom] * 100) + "%" : "BASE") : T1K.decalage ? texteRetardT1k(m.retard[T1K.sel][i]) : T1K.cycles ? m.cycle[T1K.sel][i] : proba + "%";
     t1kPas[i].classList.toggle("retarde", m.retard[T1K.sel][i] > 0 && !!(m.pas[T1K.sel] & (1 << i)));
@@ -706,7 +718,7 @@ function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
-      return {motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
+      return {longueurs:m.longueurs.slice(), motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
               instr:m.instr.map(function(I){
                 return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
                         ech:I.ech, pech:I.pech};
@@ -877,3 +889,5 @@ document.getElementById("t1k-motion-rec").addEventListener("click", function(){
 
 document.getElementById("t1k-motion-active").addEventListener("click", basculerMotionT1k);
 document.getElementById("t1k-effacer-vars").addEventListener("click", effacerVariationsT1k);
+
+document.getElementById("t1k-longueur").addEventListener("change", function(e){ choisirLongueurT1k(+e.target.value); });
