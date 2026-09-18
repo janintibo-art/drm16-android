@@ -8,7 +8,7 @@ function releveAudio(){
          " · PIC " + AUDIT.pic + " SOURCES DONT " + AUDIT.picAvenir + " À VENIR" +
          " · PAUSE MAX " + AUDIT.pause + " ms" +
          (AUDIT.trous ? " (" + AUDIT.trous + " AU-DESSUS DE 150)" : " (AUCUN TROU)") +
-         " · " + AUDIT.decroche + " DÉCROCHAGES" +
+         " · " + AUDIT.decroche + " RECALAGES" +
          (min > 0.2 ? " (" + (Math.round(AUDIT.decroche / min * 10) / 10) + " PAR MIN)" : "") +
          (AUDIT.relances ? " · " + AUDIT.relances + " RELANCES" : "");
 }

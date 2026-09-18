@@ -321,3 +321,20 @@ verifierBusRendu().catch(err=>{console.error(err);process.exitCode=1;});
  c.start();assert.equal(resets,1);c.stop();assert.equal(resets,2);
  c.departEsclave(false);assert.equal(resets,3);c.departEsclave(false);assert.equal(resets,3,'CONTINUE pendant lecture ne réinitialise pas la phase');
 }
+
+// v200 : un retard modéré ne doit pas rabattre plusieurs pas au même instant.
+for(const bpm of [120,300]){
+ const {c,frappes}=fixture();c.S.bpm=bpm;c.ctx.state='running';c.AUDIT.decroche=0;c.start();
+ const n=frappes.length,prochain=c.step;c.maintenant=c.nextT+.25;c.tick();
+ const suite=frappes.slice(n).filter(x=>x[0]==='principal');assert(suite.length);
+ assert.equal(suite[0][1],prochain);assert(Math.abs(suite[0][2]-c.maintenant-.08)<1e-9);
+ for(let i=1;i<suite.length;i++)assert(Math.abs(suite[i][2]-suite[i-1][2]-c.stepDur())<1e-9);
+ assert.equal(c.AUDIT.decroche,1);
+ const nb=frappes.length,position=c.step,prochaineDate=c.nextT;c.ctx.state='suspended';c.maintenant+=.5;c.tick();
+ assert.equal(frappes.length,nb);assert.equal(c.step,position);assert.equal(c.nextT,prochaineDate);assert.equal(c.AUDIT.tDernier,0);
+ c.ctx.state='running';c.tick();assert(frappes.length>nb);assert.equal(c.AUDIT.decroche,2);
+}
+{
+ const {c}=fixture();c.ctx.state='running';c.AUDIT.decroche=0;c.start();c.maintenant=c.nextT+.01;c.tick();assert.equal(c.AUDIT.decroche,0,'tolérance pour un petit retard');
+}
+console.log('Transport v200 : reprise sans rafale, suspension, reprise et tolérance OK.');

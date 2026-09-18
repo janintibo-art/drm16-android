@@ -30,7 +30,12 @@ function programmerPas(i, t){
 function tick(){
   if(!ctx || !S.run || (MIDI.sync && MIDI.ouvert >= 0)) return;
   surveillerAudio();
-  if(!ctx) return;                    /* refaireAudio a pu tout remplacer */
+  if(!ctx || !S.run) return;          /* refaireAudio a pu tout remplacer */
+  /* v200 : une horloge suspendue ne doit pas remplir la file à l'arrêt. */
+  if(ctx.state && ctx.state !== "running"){
+    AUDIT.tDernier = 0;
+    return;
+  }
   var maintenant = Date.now();
   if(AUDIT.tDernier){
     var trou = maintenant - AUDIT.tDernier;
@@ -55,10 +60,11 @@ function tick(){
   var av = 0;
   for(var q=0;q<SOURCES.length;q++) if(SOURCES[q].t > maintenantAudio()) av++;
   if(av > AUDIT.picAvenir) AUDIT.picAvenir = av;
-  if(nextT < maintenantAudio() - 0.4){
-    /* l'ordonnanceur a pris trop de retard : on recale. Chaque recalage
-       s'entend comme un trou ou un grésillement, on les compte pour pouvoir
-       le constater au lieu de le supposer. */
+  if(nextT < maintenantAudio() - Math.min(0.04, stepDur() / 2)){
+    /* v200 : ne pas attendre 400 ms : à tempo rapide plusieurs pas échus
+       seraient sinon tous rabattus sur maintenant + 5 ms, créant une rafale.
+       On reprend au prochain pas non programmé, sans rejouer le retard.
+       Ce compteur relève les recalages, pas une mesure directe du son. */
     AUDIT.decroche++; AUDIT.quand = Date.now();
     nextT = maintenantAudio() + 0.08; queue=[];
   }
