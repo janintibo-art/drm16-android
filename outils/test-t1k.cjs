@@ -151,3 +151,15 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.memoire.t1k.motifs.forEach(m=>delete m.reglages);c.chargerT1k();assert(c.T1K.motifs.every(m=>m.reglages.every(r=>r.every(v=>v===null))));
  console.log('TR-1000 v204 : paramètres source, sous-pas, priorité morph, effacement ciblé, mémoire et migration OK.');
 }
+{
+ const c=setup(),m=c.motifT1kCur();m.last=4;m.direction[0]='arriere';c.T1K.motionRec=true;c.S.run=true;c.maintenantAudio=()=>2;
+ assert(!c.enregistrerGesteT1k(0,'tune',.2),'pas encore entendu');c.scheduleT1k(0,2);c.validerLectureT1k();
+ assert(c.enregistrerGesteT1k(0,'tune',.2));assert.equal(m.reglages[0][3].tune,.2);
+ c.maintenantAudio=()=>2.07;assert(c.enregistrerGesteT1k(0,'tune',.8));assert.equal(m.reglages[0][2].tune,.8);
+ assert(c.enregistrerGesteT1k(0,'dec',.4));assert.equal(m.reglages[0][2].dec,.4);
+ c.T1K.fill=true;assert(!c.enregistrerGesteT1k(0,'tune',.1));c.T1K.fill=false;
+ c.ctx.startRendering=()=>{};assert(!c.enregistrerGesteT1k(0,'tune',.1));delete c.ctx.startRendering;
+ c.S.run=false;assert(!c.enregistrerGesteT1k(0,'tune',.1));c.S.run=true;c.T1K.motionRec=false;assert(!c.enregistrerGesteT1k(0,'tune',.1));
+ c.memT1k();c.T1K.motionRec=true;c.chargerT1k();assert(!c.T1K.motionRec);assert.equal(c.motifT1kCur().reglages[0][2].tune,.8);
+ console.log('TR-1000 v205 : gestes sur pas entendu, quantification arrière, paramètres multiples, garde-fous et mémoire OK.');
+}

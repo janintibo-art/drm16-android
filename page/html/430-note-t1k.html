@@ -151,5 +151,19 @@ notes. Les variations suivent les directions, cycles, probabilités, mutes et so
 elles sont sauvegardées et copiées avec le motif, et rendues dans le WAV.</p>
 <p>Les frappes directes et FILL gardent les réglages de base. Ces paramètres de
 synthèse ne sont pas envoyés comme contrôleurs MIDI. Il s’agit d’édition par pas,
-pas encore de l’enregistrement en direct des mouvements de potards.</p>
+distincte du mode MOTION REC décrit ci-dessous.</p>
+<h3>Enregistrer les mouvements : MOTION REC</h3>
+<p>Armez MOTION REC, lancez PLAY puis bougez TUNE, DECAY, C1, C2, A/B ou le curseur
+LEVEL d’un instrument. Chaque geste inscrit sa valeur sur le pas le plus proche de
+la position entendue, en suivant le sens propre à l’instrument. REC des notes est
+indépendant : il n’est pas nécessaire pour enregistrer les paramètres.</p>
+<p>Le réglage de base suit aussi votre geste. Les variations déjà présentes sur
+les autres pas restent conservées. Plusieurs mouvements sur le même pas et le même
+paramètre gardent la dernière valeur. Aucun pas n’est activé par l’enregistrement.
+Un potard immobile ne remplit pas automatiquement les pas suivants ; il n’y a pas
+d’interpolation entre les gestes. Les coups déjà programmés peuvent ne refléter la
+variation qu’au passage suivant. FILL et l’attente du premier pas n’enregistrent pas.</p>
+<p>STOP désarme MOTION REC. Les variations sont sauvegardées avec le motif, mais
+l’armement ne l’est pas. Pour corriger ou effacer un geste, utilisez PARAM PAS puis
+une valeur ou BASE. Le morphing et les effets globaux ne sont pas enregistrés ici.</p>
   </div>

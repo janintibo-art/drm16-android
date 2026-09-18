@@ -108,6 +108,7 @@ function start(){
   midiHorloge(true, depart - maintenantAudio());
 }
 function stop(){
+  if(typeof T1K !== "undefined") T1K.motionRec = false;
   if(typeof resetLectureT1k === "function") resetLectureT1k();
   S.run=false; clearInterval(timer); timer=null; queue=[];
   AUDIT.tDernier = 0;                 /* le chrono ne compte que le jeu réel */

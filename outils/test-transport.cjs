@@ -338,3 +338,6 @@ for(const bpm of [120,300]){
  const {c}=fixture();c.ctx.state='running';c.AUDIT.decroche=0;c.start();c.maintenant=c.nextT+.01;c.tick();assert.equal(c.AUDIT.decroche,0,'tolérance pour un petit retard');
 }
 console.log('Transport v200 : reprise sans rafale, suspension, reprise et tolérance OK.');
+{
+ const {c}=fixture();c.T1K={motionRec:true};c.stop();assert.equal(c.T1K.motionRec,false,'STOP désarme aussi la TR-1000 secondaire');
+}

@@ -308,6 +308,29 @@ async def main():
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v204-%sx%s.png'%(w,h))))
             print('OK : paramètres par pas, WAV LEVEL 0/100%, mémoire et retour BASE ciblé',flush=True)
+            # v205 : véritables gestes de souris sur potard et fader, REC notes désactivé.
+            await pg.set_viewport_size({'width':393,'height':851})
+            await pg.evaluate("T1K.params=false;T1K.rec=false;let m=motifT1kCur();m.last=16;m.direction[0]='avant';m.reglages[0].fill(null);window.__pasAvant=m.pas.slice();S.bpm=90;majT1k();fit()")
+            await pg.locator('#t1k-motion-rec').click()
+            assert await pg.evaluate('T1K.motionRec&&!T1K.rec')
+            await pg.locator('#t1k-start').click();await pg.wait_for_function('T1K.entendu!==null')
+            boite=await pg.locator('#t1k-k-0-tune').bounding_box()
+            x=boite['x']+boite['width']/2;y=boite['y']+boite['height']/2
+            await pg.mouse.move(x,y);await pg.mouse.down();await pg.mouse.move(x,y-30,steps=10);await pg.mouse.up()
+            assert await pg.evaluate('motifT1kCur().reglages[0].some(r=>r&&typeof r.tune==="number")')
+            rail=await pg.locator('.t1k-f[data-f="0"]').bounding_box()
+            await pg.mouse.click(rail['x']+rail['width']/2,rail['y']+rail['height']*.7)
+            assert await pg.evaluate('motifT1kCur().reglages[0].some(r=>r&&typeof r.niv==="number")&&JSON.stringify(motifT1kCur().pas)===JSON.stringify(__pasAvant)')
+            await pg.locator('#t1k-stop').click();assert await pg.evaluate('!T1K.motionRec')
+            attendu=await pg.evaluate('JSON.stringify(motifT1kCur().reglages[0])')
+            await pg.evaluate('memT1k();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur().reglages[0])')==attendu
+            assert await pg.evaluate('!T1K.motionRec')
+            for w,h in ((393,851),(360,640),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v205-%sx%s.png'%(w,h))))
+            print('OK : gestes réels TUNE/LEVEL enregistrés sans REC notes, STOP désarme et sauvegarde conservée',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

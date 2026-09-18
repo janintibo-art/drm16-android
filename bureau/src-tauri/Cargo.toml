@@ -2,8 +2,8 @@
 # — une fenêtre, un moteur web, et rien d'autre. Tout est dans le HTML.
 [package]
 name = "drm16"
-version = "204.0.0"   # recopie de app/build.gradle par bureau/preparer.sh
-edition = "2041"
+version = "205.0.0"   # recopie de app/build.gradle par bureau/preparer.sh
+edition = "2051"
 description = "Boites a rythmes et samplers autonomes"
 authors = ["tibo"]
 

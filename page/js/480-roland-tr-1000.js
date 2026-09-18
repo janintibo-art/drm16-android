@@ -34,7 +34,7 @@ function motifT1k(n){
   return m;
 }
 var T1K = {copie:null, motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
-           morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, cycles:false, cycleValeur:"1:1", decalage:false, retardValeur:0, params:false, paramNom:"tune", paramValeur:null, layer:0,
+           morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, cycles:false, cycleValeur:"1:1", decalage:false, retardValeur:0, motionRec:false, params:false, paramNom:"tune", paramValeur:null, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
            fill:false, ohGain:null, tour:-1, departs:[], entendu:null, contexteLecture:null};
@@ -384,6 +384,7 @@ function beatT1k(i){
   document.getElementById("t1k-ptn").disabled = S.run;
 }
 function arretT1k(){
+  T1K.motionRec = false;
   resetLectureT1k();
   T1K.pos = -1; T1K.fill = false;
   for(var j=0;j<16;j++) t1kPas[j].classList.remove("cur");
@@ -433,6 +434,16 @@ function basculerSoloT1k(){
   signal(m.solo < 0 ? "SOLO DÉSACTIVÉ · MUTES RÉTABLIS" : "SOLO · " + T1K_INSTR[m.solo].nom);
 }
 
+/* v205 : les gestes écrivent dans le pas entendu, jamais celui anticipé. */
+function enregistrerGesteT1k(k, nom, valeur){
+  if(!T1K.motionRec || !S.run || !ctx || ctx.startRendering || T1K.fill) return false;
+  validerLectureT1k();
+  if(!T1K.entendu || T1K.entendu.fill) return false;
+  var j = pasEnregistreT1k(k);
+  if(j < 0 || !poserReglageT1k(k, j, nom, valeur)) return false;
+  return true;
+}
+
 /* ---------- interface ---------- */
 var T1K_KNOBS = [];
 (function construireT1k(){
@@ -465,6 +476,7 @@ var T1K_KNOBS = [];
     var y = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
     var k = +rail.dataset.f;
     motifT1kCur().instr[k].niv = 1 - y;
+    enregistrerGesteT1k(k, "niv", 1 - y);
     rail.querySelector("b").style.top = Math.round(y * (r.height - 13)) + "px";
     lcdT1k(String(Math.round((1 - y) * 100)), T1K_INSTR[k].nom + " LEVEL", true);
   }
@@ -538,6 +550,7 @@ function knobT1k(k, nom, etiq){
     get:function(){ return motifT1kCur().instr[k][nom]; },
     set:function(v){
       motifT1kCur().instr[k][nom] = v;
+      enregistrerGesteT1k(k, nom, v);
       lcdT1k(String(Math.round(v*100)), T1K_INSTR[k].nom + " " + etiq, true);
       memT1k();
     }});
@@ -587,6 +600,8 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-motion-rec").classList.toggle("on", T1K.motionRec);
+  document.getElementById("t1k-motion-rec").setAttribute("aria-pressed", String(T1K.motionRec));
   document.getElementById("t1k-copier").disabled = S.run;
   document.getElementById("t1k-coller").disabled = S.run || !T1K.copie;
   document.getElementById("t1k-direction").value = motifT1kCur().direction[T1K.sel];
@@ -674,6 +689,7 @@ function memT1k(){
   sauverMachine("t1k");
 }
 function chargerT1k(){
+  T1K.motionRec = false;
   T1K.copie = null;
   resetLectureT1k();
   T1K.motifs = [];
@@ -826,3 +842,9 @@ document.getElementById("t1k-params").addEventListener("click", function(){
 });
 document.getElementById("t1k-param-nom").addEventListener("change", function(e){ T1K.paramNom = e.target.value; majT1k(); });
 document.getElementById("t1k-param-valeur").addEventListener("change", function(e){ T1K.paramValeur = e.target.value === "base" ? null : +e.target.value / 100; });
+
+document.getElementById("t1k-motion-rec").addEventListener("click", function(){
+  T1K.motionRec = !T1K.motionRec;
+  majT1k();
+  signal(T1K.motionRec ? "MOTION REC ARMÉ · LANCEZ PLAY ET BOUGEZ LES POTARDS" : "MOTION REC DÉSARMÉ");
+});
