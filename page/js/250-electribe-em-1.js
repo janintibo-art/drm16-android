@@ -326,8 +326,39 @@ var EM_PARTS = [
   {t:"Accent", nom:"DRUM ACCENT",  accent:true},
   {t:"Accent", nom:"SYNTH ACCENT", accent:true}
 ];
-var ONDES = ["SAW","SQR","TRI","SIN"];
+var ONDES = ["SAW","SQR","TRI","SIN","P25","P12","ORG","ODD"];
 var TYPES_ONDE = ["sawtooth","square","triangle","sine"];
+/* v217 : anciens indices inchangés ; ondes supplémentaires propres à chaque contexte. */
+var EM_ONDES_CACHE = new WeakMap();
+function indiceOndeEm(v){
+  return typeof v === "number" && Number.isInteger(v) && v >= 0 && v < ONDES.length ? v : 0;
+}
+function changerOndeEm(v, d){
+  return ((indiceOndeEm(v) + d) % ONDES.length + ONDES.length) % ONDES.length;
+}
+function appliquerOndeEm(osc, valeur){
+  var indice = indiceOndeEm(valeur);
+  if(indice < TYPES_ONDE.length){ osc.type = TYPES_ONDE[indice]; return; }
+  var cache = EM_ONDES_CACHE.get(ctx);
+  if(!cache){ cache = {}; EM_ONDES_CACHE.set(ctx, cache); }
+  if(!cache[indice]){
+    var reel = new Float32Array(65), imag = new Float32Array(65);
+    if(indice === 4 || indice === 5){
+      var rapport = indice === 4 ? 0.25 : 0.125;
+      for(var n=1;n<65;n++){
+        reel[n] = Math.sin(2 * Math.PI * n * rapport) / (Math.PI * n);
+        imag[n] = (1 - Math.cos(2 * Math.PI * n * rapport)) / (Math.PI * n);
+      }
+    }else if(indice === 6){
+      imag[1]=1; imag[2]=0.5; imag[4]=0.25; imag[8]=0.125;
+    }else{
+      imag[1]=1; imag[3]=0.45; imag[5]=0.22; imag[7]=0.1;
+    }
+    cache[indice] = ctx.createPeriodicWave(reel, imag);
+  }
+  osc.setPeriodicWave(cache[indice]);
+}
+
 function nomNote(n){
   var noms=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
   return noms[((n%12)+12)%12] + (Math.floor(n/12)-1);
@@ -442,8 +473,8 @@ function voixSynth(t,k,note,vel){
   var dur = EM.pat.amp[k] ? 0.06 + egt*1.1 : stepDur()*0.9;
   env(g, t, 0.5*vel, Math.max(0.08,dur), 0.004);
   var o1 = ctx.createOscillator(), o2 = ctx.createOscillator();
-  o1.type = TYPES_ONDE[EM.pat.onde[k]]; o1.frequency.value = f0;
-  o2.type = TYPES_ONDE[EM.pat.onde[k]]; o2.frequency.value = f0*0.5; o2.detune.value = 7;
+  appliquerOndeEm(o1, EM.pat.onde[k]); o1.frequency.value = f0;
+  appliquerOndeEm(o2, EM.pat.onde[k]); o2.frequency.value = f0*0.5; o2.detune.value = 7;
   o1.connect(lp); o2.connect(lp); lp.connect(ws); ws.connect(g); g.connect(dest);
   o1.start(t); o2.start(t); o1.stop(t+dur+0.1); o2.stop(t+dur+0.1);
 }
@@ -545,7 +576,7 @@ function majLcd(){
   var k = EM.sel, p = EM.pat;
   if(EM.param===0) lcd(("00"+(EM.cur+1)).slice(-3), "PATTERN");
   else if(EM.param===1) lcd(String(S.bpm), "TEMPO");
-  else if(EM.param===2) lcd(EM_PARTS[k].synth ? ONDES[p.onde[k]] : (TIMBRES[p.tim[k]]||TIMBRES[0]).n, "WAVE");
+  else if(EM.param===2) lcd(EM_PARTS[k].synth ? ONDES[indiceOndeEm(p.onde[k])] : (TIMBRES[p.tim[k]]||TIMBRES[0]).n, "WAVE");
   else if(EM.param===3){
     var lab = (EM.pasSel>=0 && p.st[k][EM.pasSel]) ? "NOTE · PAS "+(EM.pasSel+1) : "NOTE NO.";
     var nn = (EM.pasSel>=0 && p.st[k][EM.pasSel]) ? p.nt[k][EM.pasSel] : EM.note;
@@ -850,6 +881,7 @@ function deserialiser(o){
   if(o.st) o.st.forEach(function(s,k){ for(var i=0;i<16;i++) p.st[k][i] = s.charAt(i)==="1"?1:0; });
   if(o.nt) o.nt.forEach(function(s,k){ p.nt[k] = s.split(",").map(Number); });
   ["lvl","pan","pit","amp","roll","fx","onde","mot","tim"].forEach(function(c){ if(o[c]) p[c]=o[c]; });
+  p.onde = Array.from({length:12}, function(_, k){return indiceOndeEm(p.onde[k]);});
   if(o.motFx) p.motFx = o.motFx;
   return p;
 }
@@ -1008,7 +1040,7 @@ function majKnobsPartie(){ kEmPit.maj(); kEmLvl.maj(); kEmPan.maj(); }
     } else if(EM.param===1){
       S.bpm = Math.max(40, Math.min(220, S.bpm + d));
     } else if(EM.param===2){
-      if(EM_PARTS[k].synth) p.onde[k] = (p.onde[k] + d + 4)%4;
+      if(EM_PARTS[k].synth) p.onde[k] = changerOndeEm(p.onde[k], d);
       else if(!EM_PARTS[k].accent) p.tim[k] = (p.tim[k] + d + TIMBRES.length) % TIMBRES.length;
     } else if(EM.param===3){
       if(EM.pasSel >= 0 && EM_PARTS[k].synth && p.st[k][EM.pasSel]){
