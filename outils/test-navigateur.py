@@ -1905,10 +1905,47 @@ async def stk_edition_chaine(nav):
     finally:
         await contexte.close()
 
+async def em_64_pas(nav):
+    print('\n31. EM-1 : 64 pas, pages et export complet (v218)')
+    pg, err = await nouvelle_page(nav, pont=True)
+    try:
+        await pg.locator('.pick[data-m=em1]').click()
+        await pg.evaluate('EM.pat=motifVide();EM.pat.st.forEach(r=>r.fill(0));EM.sel=0;EM.page=0;majTouches()')
+        await pg.locator('#em-longueur').select_option('64')
+        await pg.locator('#em-page').select_option('3')
+        await pg.locator('#em-keys button').nth(15).click()
+        ok(await pg.evaluate('EM.pat.st[0][63]===1 && EM.pat.st[0][15]===0'),'le bouton 64 écrit le dernier pas, sans toucher le pas 16')
+        await pg.locator('#em-longueur').select_option('16')
+        ok(await pg.evaluate('EM.page===0 && EM.pat.st[0][63]===1'),'raccourcir conserve les pas masqués et revient à une page valide')
+        await pg.locator('#em-longueur').select_option('64')
+        await pg.evaluate('memEm();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=em1]').click()
+        ok(await pg.evaluate('EM.pat.len===64 && EM.pat.st[0][63]===1'),'longueur et pas 64 restaurés')
+        await pg.locator('#em-page').select_option('3')
+        await pg.evaluate('beatEm(63)')
+        ok('cur' in (await pg.locator('#em-keys button').nth(15).get_attribute('class')),'curseur sur le pas 64')
+        await pg.evaluate('S.run=true;majPagesEm()')
+        ok(await pg.locator('#em-longueur').is_disabled(),'longueur verrouillée pendant la lecture')
+        await pg.evaluate('S.run=false;arretEm()')
+        r=await pg.evaluate('''async () => {
+          audioInit();EM.mode=0;EM.pat.st.forEach(r=>r.fill(0));EM.pat.st[8][63]=1;EM.pat.nt[8][63]=60;
+          EM.pat.onde[8]=7;EM.pat.fx.fill(false);EM.dDepth=0;EM.pat.len=64;S.bpm=120;WAVX.mesures=1;
+          memEm();exporterWav();for(let i=0;i<150&&WAVX.occupe;i++)await new Promise(r=>setTimeout(r,100));
+          let n=Object.keys(__F).find(n=>/^drm-em1.*\\.wav$/.test(n));if(!n)return {taille:false,avant:1,fin:0};
+          let o=__F[n],v=new DataView(o.buffer,o.byteOffset,o.byteLength),avant=0,fin=0;
+          for(let j=0;j<44100;j++)avant=Math.max(avant,Math.abs(v.getInt16(44+4*j,true)));
+          for(let j=Math.floor(7.93*44100);j<Math.floor(8.02*44100);j++)fin=Math.max(fin,Math.abs(v.getInt16(44+4*j,true)));
+          return {taille:o.length===tailleWavStereo(64*stepDur()+2.5,44100),avant,fin};
+        }''')
+        ok(r['taille'] and r['avant']==0 and r['fin']>10,'vrai WAV : durée de 64 pas et son présent au dernier pas avec la nouvelle onde ODD')
+        ok(not err,'aucune erreur de page : '+str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas):
             try:
                 await t(nav)
             except Exception as e:

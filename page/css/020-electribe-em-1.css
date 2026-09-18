@@ -141,3 +141,8 @@ body.em1 #unit{display:none}
 .pick.pem{background:linear-gradient(165deg,#4a4d50,#26292c 55%,#33363a)}
 .pick.pem b{color:#f2f0ea;text-shadow:0 2px 0 #000}
 .pick.pem span{color:#b0aea8}
+
+.em-pages{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px;font:700 10px Arial;color:#e3e8ef}
+.em-pages select{padding:8px;min-height:36px;border:1px solid #8f9aaa;border-radius:4px;background:#202833;color:#fff;font:700 11px Arial}
+.em-pages select:disabled{opacity:.5}
+#em-position{margin-left:auto;color:#90d6fa;font-variant-numeric:tabular-nums}

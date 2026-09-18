@@ -4,7 +4,7 @@ const src=fs.readFileSync(path.join(__dirname,'../page/js/250-electribe-em-1.js'
 function fonction(n){const i=src.indexOf('function '+n+'(');assert(i>=0);return src.slice(i,src.indexOf('\n}',i)+2);}
 const c={};vm.createContext(c);
 vm.runInContext(src.slice(src.indexOf('var ONDES ='),src.indexOf('function nomNote(')),c);
-vm.runInContext('function ligneVide(){return Array(16).fill(0);}\n'+['motifVide','serialiser','deserialiser','voixSynth'].map(fonction).join('\n'),c);
+vm.runInContext(src.slice(src.indexOf('function ligneVide('),src.indexOf('function motifVide('))+['motifVide','serialiser','deserialiser','voixSynth'].map(fonction).join('\n'),c);
 function contexte(){return {waves:[],osc:[],createPeriodicWave(re,im){const w={re:Array.from(re),im:Array.from(im)};this.waves.push(w);return w;},createOscillator(){const o={frequency:{},detune:{},connect(){},start(t){this.debut=t;},stop(t){this.fin=t;},setPeriodicWave(w){this.wave=w;}};this.osc.push(o);return o;},createBiquadFilter(){return {frequency:{setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){}},Q:{},connect(){}};},createWaveShaper(){return {connect(){}};},createGain(){return {connect(){}};}};}
 c.ctx=contexte();
 for(let i=0;i<4;i++){const o=c.ctx.createOscillator();c.appliquerOndeEm(o,i);assert.equal(o.type,['sawtooth','square','triangle','sine'][i]);}

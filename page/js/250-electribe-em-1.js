@@ -366,12 +366,14 @@ function nomNote(n){
 
 /* --- motifs --- */
 function ligneVide(){ return [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]; }
+function ligneEmVide(){ return Array(64).fill(0); }
+function longueurEm(v){ return Number.isInteger(v) && v >= 1 && v <= 64 ? v : 16; }
 function motifVide(){
   var p = {sw:0, len:16, rollN:4, gamme:0, mot:[], tim:[], st:[], nt:[], lvl:[], pan:[], pit:[], amp:[], roll:[], fx:[], onde:[]};
   var TIM_DEF = [0,4,8,10,13,15,17,19,0,0,0,0];
   for(var k=0;k<12;k++){
-    p.st.push(ligneVide());
-    p.nt.push([36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36]);
+    p.st.push(ligneEmVide());
+    p.nt.push(Array(64).fill(36));
     p.lvl.push(0.8); p.pan.push(0); p.pit.push(0);
     p.amp.push(false); p.roll.push(false); p.fx.push(false); p.onde.push(0);
     p.mot.push(null); p.tim.push(TIM_DEF[k]);
@@ -386,13 +388,13 @@ function motifUsine(n){
     poser(p,0,"x...x...x...x..."); poser(p,2,"....x.......x...");
     poser(p,4,"..x...x...x...x."); poser(p,5,"......x.......x.");
     poser(p,8,"x.....x...x.....");
-    p.nt[8]=[36,36,36,36,36,36,43,43,43,43,36,36,36,36,36,36];
+    p.nt[8]=[36,36,36,36,36,36,43,43,43,43,36,36,36,36,36,36].concat(Array(48).fill(36));
     poser(p,10,"x...x...x...x...");
   } else if(n===1){
     poser(p,0,"x..x..x...x.x..."); poser(p,1,"....x.......x...");
     poser(p,4,"xxxxxxxxxxxxxxxx"); poser(p,7,"..x.......x.....");
     poser(p,9,"..x...x.....x..x");
-    p.nt[9]=[48,48,51,48,48,48,55,48,48,48,48,48,53,48,48,51];
+    p.nt[9]=[48,48,51,48,48,48,55,48,48,48,48,48,53,48,48,51].concat(Array(48).fill(36));
     p.sw=0.15;
   } else if(n===2){
     poser(p,0,"x.......x......."); poser(p,1,"....x.......x...");
@@ -412,7 +414,7 @@ var GAMMES = [
   {n:"BLUES", i:[0,3,5,6,7,10,12,15,17,18,19,22,24,27,29,30]}
 ];
 var EM = {
-  kb:false, oct:3, pasSel:-1, protect:false, clip:null, clipSon:null, pset:false, mute:[], solo:[],
+  page:0, kb:false, oct:3, pasSel:-1, protect:false, clip:null, clipSon:null, pset:false, mute:[], solo:[],
   song:[], spos:0, ssel:0,
   pat: motifUsine(0), slots: [], cur: 0, sel: 0, param: 0, mode: 0,
   rec:false, shift:false, delayEdit:false, motion:false,
@@ -503,7 +505,7 @@ function enregMotion(champ, val){
   if(!EM.rec || !S.run || EM.pos < 0){ m.p = champ; return; }
   if(m.p !== champ || !m.v){
     m.p = champ; m.v = [];
-    for(var i=0;i<16;i++) m.v.push(val);
+    for(var i=0;i<64;i++) m.v.push(val);
   }
   m.v[EM.pos] = val;
 }
@@ -545,6 +547,7 @@ function scheduleEm(i,t){
 var beatsEls = [], keysEls = [];
 function beatEm(i){
   EM.pos = i;
+  majPagesEm();
   if(EM.mode === 2){
     for(var q=0;q<16;q++){
       beatsEls[q].classList.toggle("on", q===EM.spos);
@@ -553,12 +556,13 @@ function beatEm(i){
     return;
   }
   for(var j=0;j<16;j++){
-    beatsEls[j].classList.toggle("on", j===i);
-    keysEls[j].classList.toggle("cur", j===i);
+    beatsEls[j].classList.toggle("on", j + EM.page*16===i);
+    keysEls[j].classList.toggle("cur", j + EM.page*16===i);
   }
 }
 function arretEm(){
   EM.pos = -1;
+  majPagesEm();
   var pb = document.getElementById("em-play"); if(pb) pb.classList.remove("on");
   for(var j=0;j<16;j++){ beatsEls[j].classList.remove("on"); keysEls[j].classList.remove("cur"); }
 }
@@ -674,10 +678,11 @@ EM.note = 36;
     var i = +b.dataset.i;
     if(EM.shift){ fonctionShift(i); return; }
     if(EM.pset){ allerMotifEm(i); return; }
-    if(EM.mode === 1){ choisirPasEm(i); return; }
+    if(EM.mode === 1){ choisirPasEm(i + EM.page*16); return; }
     if(EM.mode === 2){ toucheSong(i); return; }
     if(EM.kb){ toucheClavier(i); return; }
     if(EM.protect){ lcd("PRT","PROTECT",true); return; }
+    i += EM.page*16;
     var k = EM.sel, p = EM.pat;
     p.st[k][i] = p.st[k][i] ? 0 : 1;
     if(p.st[k][i] && EM_PARTS[k].synth) p.nt[k][i] = EM.note;
@@ -699,6 +704,7 @@ function choisirPasEm(i){
   else lcd("ON", "PAS "+(i+1)+" · "+EM_PARTS[k].nom, true);
 }
 function majTouches(){
+  majPagesEm();
   var p = EM.pat, k = EM.sel, i;
   if(EM.pset){
     for(i=0;i<16;i++){
@@ -730,11 +736,14 @@ function majTouches(){
     return;
   }
   for(i=0;i<16;i++){
-    keysEls[i].textContent = String(i+1);
-    keysEls[i].classList.toggle("act", !!p.st[k][i]);
-    keysEls[i].classList.toggle("sel", i === EM.pasSel);
-    keysEls[i].classList.toggle("hors", i >= (p.len||16));
-    beatsEls[i].classList.toggle("hors", i >= (p.len||16));
+    var pas = i + EM.page*16;
+    keysEls[i].textContent = String(pas+1);
+    keysEls[i].classList.toggle("act", !!p.st[k][pas]);
+    keysEls[i].classList.toggle("sel", pas === EM.pasSel);
+    keysEls[i].classList.toggle("cur", pas === EM.pos);
+    beatsEls[i].classList.toggle("on", pas === EM.pos);
+    keysEls[i].classList.toggle("hors", pas >= p.len);
+    beatsEls[i].classList.toggle("hors", pas >= p.len);
   }
 }
 function toucheSong(i){
@@ -781,8 +790,8 @@ function fonctionShift(i){
   var ecrit = !EM.protect;
   if(i===0){                                  /* Length */
     if(!ecrit) return protege();
-    v=[16,12,8,6,4,2,1]; n=(v.indexOf(p.len)+1)%v.length;
-    p.len = v[n]; majTouches(); memEm();
+    v=[16,32,48,64,12,8,6,4,2,1]; n=(v.indexOf(p.len)+1)%v.length;
+    if(!choisirLongueurEm(v[n])) return;
     lcd(String(p.len), "LENGTH", true);
   } else if(i===1){                           /* Scale / Beat */
     if(!ecrit) return protege();
@@ -801,8 +810,10 @@ function fonctionShift(i){
     lcd("x"+p.rollN, "ROLL TYPE", true);
   } else if(i===4){                           /* Move Data : décale la partie d'un pas */
     if(!ecrit) return protege();
-    p.st[k].unshift(p.st[k].pop());
-    p.nt[k].unshift(p.nt[k].pop());
+    ["st","nt"].forEach(function(nom){
+      var ligne = p[nom][k].slice(0,p.len); ligne.unshift(ligne.pop());
+      p[nom][k] = ligne.concat(p[nom][k].slice(p.len));
+    });
     majTouches(); memEm();
     lcd(">>1", "MOVE DATA", true);
   } else if(i===5){                           /* Copy Part */
@@ -818,7 +829,7 @@ function fonctionShift(i){
     lcd("CLR", "CLEAR MOTION", true);
   } else if(i===8){                           /* Clear Part */
     if(!ecrit) return protege();
-    p.st[k] = ligneVide(); majTouches(); memEm();
+    p.st[k] = ligneEmVide(); majTouches(); memEm();
     lcd("CLR", "CLEAR PART", true);
   } else if(i===9){                           /* Swap Part : échange avec la copie */
     if(!ecrit) return protege();
@@ -877,9 +888,12 @@ function deserialiser(o){
   var p = motifVide();
   if(!o) return p;
   p.sw = o.sw||0;
-  p.len = o.len||16; p.rollN = o.rollN||4; p.gamme = o.gamme||0;
-  if(o.st) o.st.forEach(function(s,k){ for(var i=0;i<16;i++) p.st[k][i] = s.charAt(i)==="1"?1:0; });
-  if(o.nt) o.nt.forEach(function(s,k){ p.nt[k] = s.split(",").map(Number); });
+  p.len = longueurEm(o.len); p.rollN = o.rollN||4; p.gamme = o.gamme||0;
+  if(Array.isArray(o.st)) o.st.slice(0,12).forEach(function(s,k){ if(typeof s === "string") for(var i=0;i<64;i++) p.st[k][i] = s.charAt(i)==="1"?1:0; });
+  if(Array.isArray(o.nt)) o.nt.slice(0,12).forEach(function(s,k){
+    var notes = typeof s === "string" ? s.split(",").map(Number) : [];
+    for(var i=0;i<64;i++) p.nt[k][i] = Number.isFinite(notes[i]) ? Math.max(0,Math.min(127,notes[i])) : 36;
+  });
   ["lvl","pan","pit","amp","roll","fx","onde","mot","tim"].forEach(function(c){ if(o[c]) p[c]=o[c]; });
   p.onde = Array.from({length:12}, function(_, k){return indiceOndeEm(p.onde[k]);});
   if(o.motFx) p.motFx = o.motFx;
@@ -973,10 +987,10 @@ var kEmVol = knobEm("em-k-vol",{min:0,max:1,get:function(){return S.vol;},set:fu
 var kEmE1 = knobEm("em-k-e1",{min:0,max:1,get:function(){return EM.delayEdit?EM.dTime/1.2:EM.e1;},
   set:function(v){
     if(EM.delayEdit){ EM.dTime = 0.03+v*1.1; if(dlyNode) dlyNode.delayTime.setTargetAtTime(EM.dTime,maintenantAudio(),0.05);
-      motFxEcrire(EM.pat.motFx, "dTime", v, EM.rec && S.run, EM.pos);
+      motFxEcrire(EM.pat.motFx, "dTime", v, EM.rec && S.run, EM.pos, 64);
       lcd(Math.round(EM.dTime*1000)+"","DELAY TIME",true); }
     else { EM.e1=v; construireFx();
-      motFxEcrire(EM.pat.motFx, "e1", v, EM.rec && S.run, EM.pos);
+      motFxEcrire(EM.pat.motFx, "e1", v, EM.rec && S.run, EM.pos, 64);
       lcd(String(Math.round(v*127)),"EDIT 1",true); }
   }});
 var kEmE2 = knobEm("em-k-e2",{min:0,max:1,get:function(){return EM.delayEdit?EM.dDepth:EM.e2;},
@@ -984,10 +998,10 @@ var kEmE2 = knobEm("em-k-e2",{min:0,max:1,get:function(){return EM.delayEdit?EM.
     if(EM.delayEdit){ EM.dDepth=v;
       if(dlyIn) dlyIn.gain.setTargetAtTime(v*0.6, maintenantAudio(), 0.05);
       if(dlyFb) dlyFb.gain.setTargetAtTime(0.12+v*0.48, maintenantAudio(), 0.05);
-      motFxEcrire(EM.pat.motFx, "dDep", v, EM.rec && S.run, EM.pos);
+      motFxEcrire(EM.pat.motFx, "dDep", v, EM.rec && S.run, EM.pos, 64);
       lcd(String(Math.round(v*127)),"DELAY DEPTH",true); }
     else { EM.e2=v; construireFx();
-      motFxEcrire(EM.pat.motFx, "e2", v, EM.rec && S.run, EM.pos);
+      motFxEcrire(EM.pat.motFx, "e2", v, EM.rec && S.run, EM.pos, 64);
       lcd(String(Math.round(v*127)),"EDIT 2",true); }
   }});
 knobEm("em-k-cut",{min:0,max:1,get:function(){return EM.cut;},
@@ -1108,7 +1122,7 @@ document.getElementById("em-mseq").addEventListener("click", function(){
   m.mode = (m.mode+1)%3;
   if(m.mode && !m.v){
     m.v = [];
-    for(var i=0;i<16;i++) m.v.push(valeurCourante(m.p));
+    for(var i=0;i<64;i++) m.v.push(valeurCourante(m.p));
   }
   majMotionLeds(); memEm(); H.inter();
   lcd(m.mode===0?"OFF":(m.mode===1?"SMTH":"HOLD"), "MOTION · "+m.p.toUpperCase(), true);
@@ -1155,7 +1169,7 @@ document.getElementById("em-motion").addEventListener("click", function(){
   if(p.motFx.mode && !p.motFx.v){
     p.motFx.p = EM.delayEdit ? "dTime" : "e1";
     var d = EM.delayEdit ? EM.dTime : EM.e1;
-    p.motFx.v = []; for(var i=0;i<16;i++) p.motFx.v.push(d);
+    p.motFx.v = []; for(var i=0;i<64;i++) p.motFx.v.push(d);
   }
   this.classList.toggle("on", !!p.motFx.mode);
   memEm();
@@ -1184,7 +1198,7 @@ document.getElementById("em-erase").addEventListener("click", function(){
     }
     return;
   }
-  EM.pat.st[EM.sel] = ligneVide();
+  EM.pat.st[EM.sel] = ligneEmVide();
   majTouches(); memEm();
   lcd("CLR", EM_PARTS[EM.sel].nom, true);
   H.inter();
@@ -1268,7 +1282,7 @@ function ecrireVol(k){
     else jouerTimbre(EM.pat.tim[k], maintenantAudio()+0.01, 1, sortiePartie(k, maintenantAudio()+0.01));
   }
   if(EM.rec && S.run && EM.pos >= 0){
-    var i = (EM.pos + 1) % 16;
+    var i = (EM.pos + 1) % EM.pat.len;
     EM.pat.st[k][i] = 1;
     if(part.synth) EM.pat.nt[k][i] = EM.note;
     if(k === EM.sel) majTouches();
@@ -1304,3 +1318,26 @@ function activerEm(){
   save(); fit(); setTimeout(fit,120);
 }
 
+
+/* v218 : pages d'édition indépendantes du transport commun. */
+function majPagesEm(){
+  EM.page = Math.max(0,Math.min(Math.ceil(EM.pat.len/16)-1,EM.page||0));
+  var select = document.getElementById("em-page");
+  select.value = String(EM.page);
+  select.disabled = EM.kb || EM.pset || EM.mode === 2 || EM.shift;
+  for(var i=0;i<4;i++) select.options[i].disabled = i*16 >= EM.pat.len;
+  document.getElementById("em-longueur").value = String(EM.pat.len);
+  document.getElementById("em-longueur").disabled = S.run || EM.protect;
+  document.getElementById("em-position").textContent = EM.pos < 0 ? "À L’ARRÊT" : "LECTURE " + (EM.pos+1) + " / " + EM.pat.len;
+}
+function choisirLongueurEm(v){
+  if(S.run || EM.protect || !Number.isInteger(v) || v < 1 || v > 64) return false;
+  EM.pat.len = v; EM.pasSel = -1;
+  majTouches(); memEm(); return true;
+}
+function choisirPageEm(v){
+  if(!Number.isInteger(v) || v < 0 || v > 3 || v*16 >= EM.pat.len || EM.kb || EM.pset || EM.mode === 2 || EM.shift) return false;
+  EM.page = v; EM.pasSel = -1; majTouches(); return true;
+}
+document.getElementById("em-page").addEventListener("change", function(){ choisirPageEm(+this.value); });
+document.getElementById("em-longueur").addEventListener("change", function(){ choisirLongueurEm(+this.value); majPagesEm(); });

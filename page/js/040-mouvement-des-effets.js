@@ -7,12 +7,12 @@ function motFxValeur(m, i, L){
   var v = m.v[i % (L||16)];
   return (typeof v === "number") ? v : null;
 }
-function motFxEcrire(m, champ, val, enCours, pos){
+function motFxEcrire(m, champ, val, enCours, pos, longueur){
   if(!m || !m.mode) return;
   if(!enCours || pos < 0){ m.p = champ; return; }
   if(m.p !== champ || !m.v){
     m.p = champ; m.v = [];
-    for(var i=0;i<16;i++) m.v.push(val);
+    for(var i=0;i<(longueur || 16);i++) m.v.push(val);
   }
   m.v[pos] = val;
 }
