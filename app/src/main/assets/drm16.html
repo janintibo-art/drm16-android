@@ -3524,6 +3524,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <select id="t1k-cycle-valeur" aria-label="Cycle à appliquer aux pas" disabled><option value="1:1">TOUS</option><option value="1:2">1:2</option><option value="2:2">2:2</option><option value="1:3">1:3</option><option value="2:3">2:3</option><option value="3:3">3:3</option><option value="1:4">1:4</option><option value="2:4">2:4</option><option value="3:4">3:4</option><option value="4:4">4:4</option></select>
     <button id="t1k-decalage" aria-pressed="false">RETARD</button>
     <select id="t1k-retard-valeur" aria-label="Retard à appliquer, en fraction de pas" disabled><option value="0">0</option><option value="1">+1/16</option><option value="2">+2/16</option><option value="4">+4/16</option><option value="8">+8/16</option></select>
+    <button id="t1k-motion-active" aria-pressed="true">MOTION ON</button>
+    <button id="t1k-effacer-vars">EFFACER VAR.</button>
     <button id="t1k-params" aria-pressed="false">PARAM PAS</button>
     <select id="t1k-param-nom" aria-label="Paramètre à régler par pas" disabled><option value="tune">TUNE</option><option value="dec">DECAY</option><option value="c1">C1</option><option value="c2">C2</option><option value="niv">LEVEL</option><option value="mix">A/B</option></select>
     <select id="t1k-param-valeur" aria-label="Valeur par pas en pourcentage" disabled><option value="base">BASE</option><option value="0">0%</option><option value="5">5%</option><option value="10">10%</option><option value="15">15%</option><option value="20">20%</option><option value="25">25%</option><option value="30">30%</option><option value="35">35%</option><option value="40">40%</option><option value="45">45%</option><option value="50">50%</option><option value="55">55%</option><option value="60">60%</option><option value="65">65%</option><option value="70">70%</option><option value="75">75%</option><option value="80">80%</option><option value="85">85%</option><option value="90">90%</option><option value="95">95%</option><option value="100">100%</option></select>
@@ -5348,6 +5350,17 @@ variation qu’au passage suivant. FILL et l’attente du premier pas n’enregi
 <p>STOP désarme MOTION REC. Les variations sont sauvegardées avec le motif, mais
 l’armement ne l’est pas. Pour corriger ou effacer un geste, utilisez PARAM PAS puis
 une valeur ou BASE. Le morphing et les effets globaux ne sont pas enregistrés ici.</p>
+<h3>Comparer et effacer les variations</h3>
+<p>MOTION OFF suspend toutes les variations par pas du motif, sans les supprimer.
+Les réglages de base et le morphing reprennent la main. MOTION ON les rétablit.
+Ce choix est sauvegardé et copié avec le motif ; le WAV le respecte. Les notes
+et autres réglages rythmiques continuent de fonctionner normalement. Les coups
+déjà programmés ne sont pas modifiés rétroactivement.</p>
+<p>MOTION REC peut encore écrire quand MOTION est OFF : remettez ON pour entendre
+les variations enregistrées. EFFACER VAR., à l’arrêt, demande confirmation puis
+efface les six paramètres par pas de l’instrument sélectionné dans le motif courant.
+Les autres instruments, notes et réglages de base sont conservés ; MOTION REC est
+désarmé après l’effacement. Pour retirer un seul paramètre d’un seul pas, utilisez BASE.</p>
   </div>
   <div class="doc" id="note-dbi" data-titre="DRUMBRUTE IMPACT">
   <h3>Motifs de 1 à 64 pas</h3>
@@ -23840,7 +23853,7 @@ function instrT1k(i){
   return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5};
 }
 function motifT1k(n){
-  var m = {reglages:[], solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
+  var m = {motionActive:true, reglages:[], solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
   for(var k=0;k<10;k++){
     m.pas.push(0); m.acc.push(0);
     m.reglages.push(Array(16).fill(null)); m.retard.push(Array(16).fill(0)); m.cycle.push(Array(16).fill("1:1")); m.sub.push([]); m.prob.push(Array(16).fill(100));
@@ -23911,6 +23924,7 @@ function lireMotifT1k(o){
   var r = motifT1k(9);
   o = o && typeof o === "object" ? o : {};
   for(var z=0;z<10;z++) r.muet[z] = Array.isArray(o.muet) && o.muet[z] === true;
+  r.motionActive = o.motionActive !== false;
   r.solo = Number.isInteger(o.solo) && o.solo >= 0 && o.solo < 10 ? o.solo : -1;
   r.last = Math.floor(borneT1k(o.last, 1, 16, 16));
   for(var k=0;k<10;k++){
@@ -24183,7 +24197,7 @@ function scheduleT1k(i, t){
     var acc = !!(m.acc[k] & (1 << j));
     var sub = T1K.fill ? 1 : (m.sub[k][j] || 1);
     var duree = stepDur(), retard = T1K.fill ? 0 : duree * retardT1k(m.retard[k][j]) / 16;
-    for(var r=0;r<sub;r++) CHARGE_N++, voixT1k(t + retard + (duree * r / sub), k, acc && r === 0, T1K.fill ? null : m.reglages[k][j]);
+    for(var r=0;r<sub;r++) CHARGE_N++, voixT1k(t + retard + (duree * r / sub), k, acc && r === 0, (T1K.fill || !m.motionActive) ? null : m.reglages[k][j]);
   }
   if(ctx && !ctx.startRendering){
     T1K.departs.push({i:i,t:t,absolu:absolu,positions:positions,fill:T1K.fill});
@@ -24194,6 +24208,7 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-effacer-vars").disabled = S.run;
   document.getElementById("t1k-copier").disabled = S.run;
   document.getElementById("t1k-coller").disabled = S.run || !T1K.copie;
   curseurT1k();
@@ -24260,6 +24275,25 @@ function enregistrerGesteT1k(k, nom, valeur){
   if(!T1K.entendu || T1K.entendu.fill) return false;
   var j = pasEnregistreT1k(k);
   if(j < 0 || !poserReglageT1k(k, j, nom, valeur)) return false;
+  return true;
+}
+
+/* v206 : comparaison sans suppression et effacement ciblé confirmé. */
+function basculerMotionT1k(){
+  var m = motifT1kCur(); m.motionActive = !m.motionActive;
+  memT1k(); majT1k();
+  signal(m.motionActive ? "VARIATIONS ACTIVÉES" : "VARIATIONS SUSPENDUES · RÉGLAGES DE BASE");
+}
+function effacerVariationsT1k(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR EFFACER LES VARIATIONS"); return false; }
+  var m = motifT1kCur(), k = T1K.sel;
+  if(!m.reglages[k].some(function(r){return r !== null;})){ signal("AUCUNE VARIATION SUR CET INSTRUMENT"); return false; }
+  if(!window.confirm("Effacer toutes les variations de " + T1K_INSTR[k].nom +
+      " dans le motif " + "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1) +
+      " ? Les notes et les réglages de base sont conservés.")) return false;
+  m.reglages[k] = Array(16).fill(null);
+  T1K.motionRec = false;
+  memT1k(); majT1k(); signal("VARIATIONS EFFACÉES · " + T1K_INSTR[k].nom);
   return true;
 }
 
@@ -24419,6 +24453,11 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  var motion = motifT1kCur().motionActive;
+  document.getElementById("t1k-motion-active").textContent = motion ? "MOTION ON" : "MOTION OFF";
+  document.getElementById("t1k-motion-active").setAttribute("aria-pressed", String(motion));
+  document.getElementById("t1k-motion-active").classList.toggle("on", motion);
+  document.getElementById("t1k-effacer-vars").disabled = S.run;
   document.getElementById("t1k-motion-rec").classList.toggle("on", T1K.motionRec);
   document.getElementById("t1k-motion-rec").setAttribute("aria-pressed", String(T1K.motionRec));
   document.getElementById("t1k-copier").disabled = S.run;
@@ -24499,7 +24538,7 @@ function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
-      return {reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
+      return {motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
               instr:m.instr.map(function(I){
                 return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
                         ech:I.ech, pech:I.pech};
@@ -24667,6 +24706,9 @@ document.getElementById("t1k-motion-rec").addEventListener("click", function(){
   majT1k();
   signal(T1K.motionRec ? "MOTION REC ARMÉ · LANCEZ PLAY ET BOUGEZ LES POTARDS" : "MOTION REC DÉSARMÉ");
 });
+
+document.getElementById("t1k-motion-active").addEventListener("click", basculerMotionT1k);
+document.getElementById("t1k-effacer-vars").addEventListener("click", effacerVariationsT1k);
 /* ===================== ARTURIA DRUMBRUTE IMPACT =====================
    Huit voix analogiques, et une chose qu'aucune autre machine d'ici ne fait :
    la polyrythmie. Chaque piste garde sa propre longueur, et les motifs se

@@ -331,6 +331,28 @@ async def main():
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v205-%sx%s.png'%(w,h))))
             print('OK : gestes réels TUNE/LEVEL enregistrés sans REC notes, STOP désarme et sauvegarde conservée',flush=True)
+            # v206 : ON/OFF audible dans les WAV, effacement confirmé et ciblé.
+            await pg.evaluate("let m=motifT1kCur();m.pas.fill(0);m.pas[0]=1;m.muet.fill(false);m.solo=-1;m.motionActive=true;m.direction[0]='avant';m.reglages[0].fill(null);m.reglages[0][0]={niv:0};m.reglages[1][2]={dec:.2};m.instr[0].niv=.3;T1K.sel=0;majT1k()")
+            assert await pic_wav()<.0001
+            await pg.locator('#t1k-motion-active').click()
+            assert await pg.evaluate('!motifT1kCur().motionActive&&motifT1kCur().reglages[0][0].niv===0')
+            assert await pic_wav()>.001
+            await pg.evaluate('memT1k();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate('!motifT1kCur().motionActive')
+            await pg.locator('#t1k-motion-active').click();assert await pic_wav()<.0001
+            pg.once('dialog',lambda d:d.dismiss());await pg.locator('#t1k-effacer-vars').click()
+            assert await pg.evaluate('motifT1kCur().reglages[0][0].niv===0')
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-effacer-vars').click()
+            assert await pg.evaluate('motifT1kCur().reglages[0].every(v=>v===null)&&motifT1kCur().reglages[1][2].dec===.2&&motifT1kCur().pas[0]===1')
+            assert await pic_wav()>.001
+            await pg.locator('#t1k-start').click();assert await pg.locator('#t1k-effacer-vars').is_disabled()
+            await pg.locator('#t1k-motion-active').click();assert await pg.evaluate('S.run&&!motifT1kCur().motionActive')
+            await pg.locator('#t1k-stop').click()
+            for w,h in ((393,851),(360,640),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v206-%sx%s.png'%(w,h))))
+            print('OK : ON/OFF réel dans les WAV, persistance, effacement annulé/confirmé et protection PLAY',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

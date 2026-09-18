@@ -21,7 +21,7 @@ function instrT1k(i){
   return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5};
 }
 function motifT1k(n){
-  var m = {reglages:[], solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
+  var m = {motionActive:true, reglages:[], solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
   for(var k=0;k<10;k++){
     m.pas.push(0); m.acc.push(0);
     m.reglages.push(Array(16).fill(null)); m.retard.push(Array(16).fill(0)); m.cycle.push(Array(16).fill("1:1")); m.sub.push([]); m.prob.push(Array(16).fill(100));
@@ -92,6 +92,7 @@ function lireMotifT1k(o){
   var r = motifT1k(9);
   o = o && typeof o === "object" ? o : {};
   for(var z=0;z<10;z++) r.muet[z] = Array.isArray(o.muet) && o.muet[z] === true;
+  r.motionActive = o.motionActive !== false;
   r.solo = Number.isInteger(o.solo) && o.solo >= 0 && o.solo < 10 ? o.solo : -1;
   r.last = Math.floor(borneT1k(o.last, 1, 16, 16));
   for(var k=0;k<10;k++){
@@ -364,7 +365,7 @@ function scheduleT1k(i, t){
     var acc = !!(m.acc[k] & (1 << j));
     var sub = T1K.fill ? 1 : (m.sub[k][j] || 1);
     var duree = stepDur(), retard = T1K.fill ? 0 : duree * retardT1k(m.retard[k][j]) / 16;
-    for(var r=0;r<sub;r++) CHARGE_N++, voixT1k(t + retard + (duree * r / sub), k, acc && r === 0, T1K.fill ? null : m.reglages[k][j]);
+    for(var r=0;r<sub;r++) CHARGE_N++, voixT1k(t + retard + (duree * r / sub), k, acc && r === 0, (T1K.fill || !m.motionActive) ? null : m.reglages[k][j]);
   }
   if(ctx && !ctx.startRendering){
     T1K.departs.push({i:i,t:t,absolu:absolu,positions:positions,fill:T1K.fill});
@@ -375,6 +376,7 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-effacer-vars").disabled = S.run;
   document.getElementById("t1k-copier").disabled = S.run;
   document.getElementById("t1k-coller").disabled = S.run || !T1K.copie;
   curseurT1k();
@@ -441,6 +443,25 @@ function enregistrerGesteT1k(k, nom, valeur){
   if(!T1K.entendu || T1K.entendu.fill) return false;
   var j = pasEnregistreT1k(k);
   if(j < 0 || !poserReglageT1k(k, j, nom, valeur)) return false;
+  return true;
+}
+
+/* v206 : comparaison sans suppression et effacement ciblé confirmé. */
+function basculerMotionT1k(){
+  var m = motifT1kCur(); m.motionActive = !m.motionActive;
+  memT1k(); majT1k();
+  signal(m.motionActive ? "VARIATIONS ACTIVÉES" : "VARIATIONS SUSPENDUES · RÉGLAGES DE BASE");
+}
+function effacerVariationsT1k(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR EFFACER LES VARIATIONS"); return false; }
+  var m = motifT1kCur(), k = T1K.sel;
+  if(!m.reglages[k].some(function(r){return r !== null;})){ signal("AUCUNE VARIATION SUR CET INSTRUMENT"); return false; }
+  if(!window.confirm("Effacer toutes les variations de " + T1K_INSTR[k].nom +
+      " dans le motif " + "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1) +
+      " ? Les notes et les réglages de base sont conservés.")) return false;
+  m.reglages[k] = Array(16).fill(null);
+  T1K.motionRec = false;
+  memT1k(); majT1k(); signal("VARIATIONS EFFACÉES · " + T1K_INSTR[k].nom);
   return true;
 }
 
@@ -600,6 +621,11 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  var motion = motifT1kCur().motionActive;
+  document.getElementById("t1k-motion-active").textContent = motion ? "MOTION ON" : "MOTION OFF";
+  document.getElementById("t1k-motion-active").setAttribute("aria-pressed", String(motion));
+  document.getElementById("t1k-motion-active").classList.toggle("on", motion);
+  document.getElementById("t1k-effacer-vars").disabled = S.run;
   document.getElementById("t1k-motion-rec").classList.toggle("on", T1K.motionRec);
   document.getElementById("t1k-motion-rec").setAttribute("aria-pressed", String(T1K.motionRec));
   document.getElementById("t1k-copier").disabled = S.run;
@@ -680,7 +706,7 @@ function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
-      return {reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
+      return {motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
               instr:m.instr.map(function(I){
                 return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
                         ech:I.ech, pech:I.pech};
@@ -848,3 +874,6 @@ document.getElementById("t1k-motion-rec").addEventListener("click", function(){
   majT1k();
   signal(T1K.motionRec ? "MOTION REC ARMÉ · LANCEZ PLAY ET BOUGEZ LES POTARDS" : "MOTION REC DÉSARMÉ");
 });
+
+document.getElementById("t1k-motion-active").addEventListener("click", basculerMotionT1k);
+document.getElementById("t1k-effacer-vars").addEventListener("click", effacerVariationsT1k);

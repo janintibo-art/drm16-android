@@ -163,3 +163,12 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.memT1k();c.T1K.motionRec=true;c.chargerT1k();assert(!c.T1K.motionRec);assert.equal(c.motifT1kCur().reglages[0][2].tune,.8);
  console.log('TR-1000 v205 : gestes sur pas entendu, quantification arrière, paramètres multiples, garde-fous et mémoire OK.');
 }
+{
+ const c=setup();c.signal=()=>{};let ok=false;c.window={confirm:()=>ok};const m=c.motifT1kCur();m.pas.fill(0);m.pas[0]=1;m.reglages[0][0]={niv:0,tune:.7};m.reglages[1][2]={dec:.2};const notes=copie(m.pas),base=copie(m.instr);
+ c.basculerMotionT1k();assert(!m.motionActive);c.scheduleT1k(0,2);assert.equal(c.voix[0][3],null);assert.equal(m.reglages[0][0].niv,0);
+ c.basculerMotionT1k();c.voix=[];c.scheduleT1k(0,3);assert.equal(c.voix[0][3].niv,0);
+ assert(!c.effacerVariationsT1k());assert.equal(m.reglages[0][0].tune,.7);ok=true;c.S.run=true;assert(!c.effacerVariationsT1k());c.S.run=false;c.T1K.motionRec=true;
+ assert(c.effacerVariationsT1k());assert(!c.T1K.motionRec);assert(m.reglages[0].every(v=>v===null));assert.equal(m.reglages[1][2].dec,.2);assert.deepStrictEqual(copie(m.pas),notes);assert.deepStrictEqual(copie(m.instr),base);
+ c.basculerMotionT1k();c.memT1k();c.chargerT1k();assert(!c.motifT1kCur().motionActive);assert.equal(c.lireMotifT1k({}).motionActive,true);assert.equal(c.lireMotifT1k(c.motifT1kCur()).motionActive,false);
+ console.log('TR-1000 v206 : bypass réversible, effacement ciblé et confirmé, protection PLAY, mémoire et migration OK.');
+}
