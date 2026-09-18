@@ -1903,6 +1903,10 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 
 .t1k-pad.solo{border:2px solid #38956c;background:#a1e8c8;color:#133b29}
 #t1k-muet:disabled{opacity:.45}
+
+.t1k-nom-motif{display:flex;align-items:center;gap:8px;margin:8px 0;font:700 9px Arial;color:#434a53}
+#t1k-nom-motif{min-width:0;flex:1;padding:8px;border:1px solid #7c848e;border-radius:4px;background:#23262c;color:#e4eef7;font:700 12px Arial}
+#t1k-nom-motif:disabled{opacity:.45}
 /* ===================== MACHINE D'ARCHIVE ===================== */
 body.arcm .arcmb{display:block}
 body.arcm #unit,body.arcm .em,body.arcm .er,body.arcm .ea,body.arcm .es,body.arcm .mx,body.arcm .sx,
@@ -3512,6 +3516,9 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <div class="t1k-kn" style="width:38px" id="t1k-k-tempo"><div class="bt">><i></i></div><em>TEMPO</em></div>
   </div>
 
+  <div class="t1k-nom-motif"><label for="t1k-nom-motif">NOM DU MOTIF</label>
+    <input id="t1k-nom-motif" type="text" maxlength="24" placeholder="Ex. Intro, Break…" autocomplete="off" enterkeyhint="done" aria-label="Nom du motif courant, 24 caractères maximum">
+  </div>
   <div class="t1k-instr" id="t1k-instr"></div>
   <div class="t1k-proba-bar">
     <label for="t1k-longueur">PAS</label>
@@ -5377,6 +5384,12 @@ projets restent sur SUIVRE LAST.</p>
 nombre de tours exportés en WAV utilisent cette durée générale. Un export court
 peut donc ne pas contenir un cycle complet de tous les instruments. FILL utilise
 son rythme général, indépendamment des longueurs individuelles.</p>
+<h3>Nommer ses motifs</h3>
+<p>À l’arrêt, écrivez dans NOM DU MOTIF, puis validez avec Entrée ou touchez un autre
+contrôle. Le nom apparaît dans la liste PTN, après le numéro. Chaque emplacement
+conserve son nom, jusqu’à 24 caractères. Vider le champ enlève le nom sans changer
+la musique. Les noms sont sauvegardés dans le projet et repris par COPIER/COLLER ;
+renommez la copie pour distinguer vos variantes. Les anciens motifs restent sans nom.</p>
   </div>
   <div class="doc" id="note-dbi" data-titre="DRUMBRUTE IMPACT">
   <h3>Motifs de 1 à 64 pas</h3>
@@ -23869,7 +23882,7 @@ function instrT1k(i){
   return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5};
 }
 function motifT1k(n){
-  var m = {longueurs:Array(10).fill(0), motionActive:true, reglages:[], solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
+  var m = {nom:"", longueurs:Array(10).fill(0), motionActive:true, reglages:[], solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
   for(var k=0;k<10;k++){
     m.pas.push(0); m.acc.push(0);
     m.reglages.push(Array(16).fill(null)); m.retard.push(Array(16).fill(0)); m.cycle.push(Array(16).fill("1:1")); m.sub.push([]); m.prob.push(Array(16).fill(100));
@@ -23936,10 +23949,21 @@ function valeurPasT1k(k, nom, reglages){
   return reglages && typeof reglages[nom] === "number" ? reglages[nom] : valT1k(k, nom);
 }
 
+/* v209 : texte court, jamais interprété comme du HTML. */
+function nomMotifT1k(v){
+  return typeof v === "string" ? Array.from(v.replace(/\s+/g, " ").replace(/[\x00-\x1f\x7f]/g, "").trim()).slice(0,24).join("") : "";
+}
+function renommerMotifT1k(v){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR RENOMMER LE MOTIF"); majT1k(); return false; }
+  motifT1kCur().nom = nomMotifT1k(v);
+  memT1k(); majT1k(); return true;
+}
+
 function lireMotifT1k(o){
   var r = motifT1k(9);
   o = o && typeof o === "object" ? o : {};
   for(var z=0;z<10;z++) r.muet[z] = Array.isArray(o.muet) && o.muet[z] === true;
+  r.nom = nomMotifT1k(o.nom);
   r.motionActive = o.motionActive !== false;
   r.solo = Number.isInteger(o.solo) && o.solo >= 0 && o.solo < 10 ? o.solo : -1;
   r.last = Math.floor(borneT1k(o.last, 1, 16, 16));
@@ -24233,6 +24257,7 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-nom-motif").disabled = S.run;
   document.getElementById("t1k-effacer-vars").disabled = S.run;
   document.getElementById("t1k-copier").disabled = S.run;
   document.getElementById("t1k-coller").disabled = S.run || !T1K.copie;
@@ -24479,6 +24504,14 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  var champNom = document.getElementById("t1k-nom-motif");
+  champNom.value = motifT1kCur().nom;
+  champNom.disabled = S.run;
+  var choixMotif = document.getElementById("t1k-ptn");
+  for(var ptn=0;ptn<16;ptn++){
+    var titre = T1K.motifs[T1K.banq * 16 + ptn].nom;
+    choixMotif.options[ptn].textContent = "PTN " + (ptn + 1) + (titre ? " · " + titre : "");
+  }
   document.getElementById("t1k-longueur").value = String(motifT1kCur().longueurs[T1K.sel]);
   var motion = motifT1kCur().motionActive;
   document.getElementById("t1k-motion-active").textContent = motion ? "MOTION ON" : "MOTION OFF";
@@ -24566,7 +24599,7 @@ function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
-      return {longueurs:m.longueurs.slice(), motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
+      return {nom:m.nom, longueurs:m.longueurs.slice(), motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
               instr:m.instr.map(function(I){
                 return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
                         ech:I.ech, pech:I.pech};
@@ -24738,6 +24771,9 @@ document.getElementById("t1k-motion-active").addEventListener("click", basculerM
 document.getElementById("t1k-effacer-vars").addEventListener("click", effacerVariationsT1k);
 
 document.getElementById("t1k-longueur").addEventListener("change", function(e){ choisirLongueurT1k(+e.target.value); });
+
+document.getElementById("t1k-nom-motif").addEventListener("change", function(e){ renommerMotifT1k(e.target.value); });
+document.getElementById("t1k-nom-motif").addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); this.blur(); } });
 /* ===================== ARTURIA DRUMBRUTE IMPACT =====================
    Huit voix analogiques, et une chose qu'aucune autre machine d'ici ne fait :
    la polyrythmie. Chaque piste garde sa propre longueur, et les motifs se

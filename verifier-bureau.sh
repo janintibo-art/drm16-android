@@ -20,6 +20,14 @@ for f in bureau/preparer.sh bureau/src-tauri/Cargo.toml bureau/src-tauri/build.r
   [ -f "$f" ] && echo "  ok   $f" || { echo "  MANQUE $f"; ok=0; }
 done
 
+# L'édition du langage Rust n'est pas le numéro de version de l'application.
+if grep -qE '^edition[[:space:]]*=[[:space:]]*"2021"[[:space:]]*(#.*)?$' bureau/src-tauri/Cargo.toml; then
+  echo "  ok   édition Rust 2021"
+else
+  echo "  ERREUR : bureau/src-tauri/Cargo.toml doit garder edition = \"2021\""
+  ok=0
+fi
+
 echo "--- bureau/dist n'est-il fabriqué que par preparer.sh ? ---"
 # v136 : plus aucun workflow ne copie le HTML à la main vers bureau/dist.
 if grep -n "bureau/dist/index.html" .github/workflows/*.yml | grep -qi "copy-item\|cp "; then

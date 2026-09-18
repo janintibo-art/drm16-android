@@ -189,3 +189,14 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  for(const v of [-1,17,null,'3',3.5])assert.equal(c.longueurPisteT1k(v),0);
  console.log('TR-1000 v207 : longueurs 3/7 sur transport 4, directions, REC/MOTION, protection PLAY, mémoire et migration OK.');
 }
+{
+ const c=setup();c.signal=()=>{};const m=c.motifT1kCur(),notes=copie(m.pas);
+ assert(c.renommerMotifT1k('  Intro   été  '));assert.equal(m.nom,'Intro été');assert.deepStrictEqual(copie(m.pas),notes);
+ c.T1K.banq=7;c.T1K.cur=15;assert(c.renommerMotifT1k('Break'));assert.equal(c.T1K.motifs[0].nom,'Intro été');
+ c.S.run=true;assert(!c.renommerMotifT1k('Interdit'));assert.equal(c.motifT1kCur().nom,'Break');c.S.run=false;
+ c.memT1k();c.chargerT1k();assert.equal(c.motifT1kCur().nom,'Break');assert.equal(c.T1K.motifs[0].nom,'Intro été');
+ assert.equal(c.lireMotifT1k(c.motifT1kCur()).nom,'Break');assert.equal(c.lireMotifT1k({}).nom,'');assert.equal(c.nomMotifT1k(123),'');
+ assert.equal(Array.from(c.nomMotifT1k('🎵'.repeat(30))).length,24);assert.equal(c.nomMotifT1k('<b>Intro</b>'),'<b>Intro</b>');
+ assert(c.renommerMotifT1k(''));assert.equal(c.motifT1kCur().nom,'');assert.equal(c.T1K.motifs[0].nom,'Intro été');
+ console.log('TR-1000 v209 : noms, banques indépendantes, longueur Unicode, protection PLAY, mémoire et migration OK.');
+}

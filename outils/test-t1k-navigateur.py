@@ -384,6 +384,24 @@ async def main():
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v208-%sx%s.png'%(w,h))))
             print('OK : longueur indépendante, vrais WAV des trois directions, sauvegarde, protection PLAY et SUIVRE LAST',flush=True)
+            # v209 : champ, validation, liste PTN et mémorisation du nom.
+            await pg.locator('#t1k-nom-motif').fill('Intro été')
+            await pg.locator('#t1k-nom-motif').press('Enter')
+            assert await pg.evaluate('motifT1kCur().nom==="Intro été"')
+            assert 'Intro été' in await pg.locator('#t1k-ptn option:checked').inner_text()
+            await pg.locator('#t1k-ptn').select_option('15')
+            await pg.locator('#t1k-nom-motif').fill('Break')
+            await pg.locator('#t1k-nom-motif').press('Tab')
+            await pg.evaluate('writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.locator('#t1k-nom-motif').input_value()=='Break'
+            await pg.locator('#t1k-ptn').select_option('0')
+            assert await pg.locator('#t1k-nom-motif').input_value()=='Intro été'
+            await pg.locator('#t1k-start').click();assert await pg.locator('#t1k-nom-motif').is_disabled()
+            await pg.locator('#t1k-stop').click()
+            await pg.locator('#t1k-nom-motif').fill('');await pg.locator('#t1k-nom-motif').press('Enter')
+            assert await pg.evaluate('motifT1kCur().nom===""')
+            print('OK : noms dans le champ et la liste PTN, sauvegarde, protection PLAY et effacement du nom',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

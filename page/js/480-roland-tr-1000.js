@@ -21,7 +21,7 @@ function instrT1k(i){
   return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5};
 }
 function motifT1k(n){
-  var m = {longueurs:Array(10).fill(0), motionActive:true, reglages:[], solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
+  var m = {nom:"", longueurs:Array(10).fill(0), motionActive:true, reglages:[], solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
   for(var k=0;k<10;k++){
     m.pas.push(0); m.acc.push(0);
     m.reglages.push(Array(16).fill(null)); m.retard.push(Array(16).fill(0)); m.cycle.push(Array(16).fill("1:1")); m.sub.push([]); m.prob.push(Array(16).fill(100));
@@ -88,10 +88,21 @@ function valeurPasT1k(k, nom, reglages){
   return reglages && typeof reglages[nom] === "number" ? reglages[nom] : valT1k(k, nom);
 }
 
+/* v209 : texte court, jamais interprété comme du HTML. */
+function nomMotifT1k(v){
+  return typeof v === "string" ? Array.from(v.replace(/\s+/g, " ").replace(/[\x00-\x1f\x7f]/g, "").trim()).slice(0,24).join("") : "";
+}
+function renommerMotifT1k(v){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR RENOMMER LE MOTIF"); majT1k(); return false; }
+  motifT1kCur().nom = nomMotifT1k(v);
+  memT1k(); majT1k(); return true;
+}
+
 function lireMotifT1k(o){
   var r = motifT1k(9);
   o = o && typeof o === "object" ? o : {};
   for(var z=0;z<10;z++) r.muet[z] = Array.isArray(o.muet) && o.muet[z] === true;
+  r.nom = nomMotifT1k(o.nom);
   r.motionActive = o.motionActive !== false;
   r.solo = Number.isInteger(o.solo) && o.solo >= 0 && o.solo < 10 ? o.solo : -1;
   r.last = Math.floor(borneT1k(o.last, 1, 16, 16));
@@ -385,6 +396,7 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-nom-motif").disabled = S.run;
   document.getElementById("t1k-effacer-vars").disabled = S.run;
   document.getElementById("t1k-copier").disabled = S.run;
   document.getElementById("t1k-coller").disabled = S.run || !T1K.copie;
@@ -631,6 +643,14 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  var champNom = document.getElementById("t1k-nom-motif");
+  champNom.value = motifT1kCur().nom;
+  champNom.disabled = S.run;
+  var choixMotif = document.getElementById("t1k-ptn");
+  for(var ptn=0;ptn<16;ptn++){
+    var titre = T1K.motifs[T1K.banq * 16 + ptn].nom;
+    choixMotif.options[ptn].textContent = "PTN " + (ptn + 1) + (titre ? " · " + titre : "");
+  }
   document.getElementById("t1k-longueur").value = String(motifT1kCur().longueurs[T1K.sel]);
   var motion = motifT1kCur().motionActive;
   document.getElementById("t1k-motion-active").textContent = motion ? "MOTION ON" : "MOTION OFF";
@@ -718,7 +738,7 @@ function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
-      return {longueurs:m.longueurs.slice(), motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
+      return {nom:m.nom, longueurs:m.longueurs.slice(), motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
               instr:m.instr.map(function(I){
                 return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
                         ech:I.ech, pech:I.pech};
@@ -890,3 +910,6 @@ document.getElementById("t1k-motion-active").addEventListener("click", basculerM
 document.getElementById("t1k-effacer-vars").addEventListener("click", effacerVariationsT1k);
 
 document.getElementById("t1k-longueur").addEventListener("change", function(e){ choisirLongueurT1k(+e.target.value); });
+
+document.getElementById("t1k-nom-motif").addEventListener("change", function(e){ renommerMotifT1k(e.target.value); });
+document.getElementById("t1k-nom-motif").addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); this.blur(); } });
