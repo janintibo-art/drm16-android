@@ -96,4 +96,16 @@ pas forcément à un trajet aller-retour complet. STOP puis START repart du prem
 Une condition validée laisse ensuite agir la probabilité ; tous les sous-pas suivent
 la même décision. FILL et les frappes directes ne sont pas filtrés. Les exports WAV
 respectent les cycles : choisissez assez de mesures pour entendre les tours différés.</p>
+<h3>Retard par pas</h3>
+<p>Activez RETARD, choisissez 0, +1/16, +2/16, +4/16 ou +8/16 puis touchez les pas.
+Il s'agit de fractions d'un pas du séquenceur, pas d'une mesure. +8/16 retarde
+le coup d'un demi-pas. À 120 BPM, un pas dure 125 ms et +8/16 vaut 62,5 ms.</p>
+<p>Chaque instrument et motif conserve ses valeurs. 0 remet le coup sur la grille.
+L'édition conserve les pas actifs, accents, cycles et probabilités. Les sous-pas sont
+retardés ensemble, avec leur espacement initial : le dernier peut dépasser le pas suivant.
+Les trois directions, la sortie MIDI et le WAV utilisent le même retard. Le curseur
+indique le pas du séquenceur ; il ne suit pas chaque frappe décalée. FILL et les
+frappes directes restent immédiats. REC crée les nouveaux pas sans retard et conserve
+celui des pas existants. Les anciens projets sont chargés avec un retard nul.</p>
+<p>Cette première version permet uniquement des retards, pas des avances avant la grille.</p>
   </div>

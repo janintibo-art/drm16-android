@@ -21,10 +21,10 @@ function instrT1k(i){
   return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5};
 }
 function motifT1k(n){
-  var m = {pas:[], acc:[], sub:[], prob:[], cycle:[], direction:Array(10).fill("avant"), last:16, instr:[]};
+  var m = {pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
   for(var k=0;k<10;k++){
     m.pas.push(0); m.acc.push(0);
-    m.cycle.push(Array(16).fill("1:1")); m.sub.push([]); m.prob.push(Array(16).fill(100));
+    m.retard.push(Array(16).fill(0)); m.cycle.push(Array(16).fill("1:1")); m.sub.push([]); m.prob.push(Array(16).fill(100));
     for(var s=0;s<16;s++) m.sub[k].push(1);
     m.instr.push(instrT1k(k));
   }
@@ -34,7 +34,7 @@ function motifT1k(n){
   return m;
 }
 var T1K = {motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
-           morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, cycles:false, cycleValeur:"1:1", layer:0,
+           morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, cycles:false, cycleValeur:"1:1", decalage:false, retardValeur:0, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
            fill:false, ohGain:null, tour:-1, departs:[], entendu:null, contexteLecture:null};
@@ -47,6 +47,8 @@ function probabiliteT1k(v){
   return typeof v === "number" && isFinite(v) ? Math.round(Math.max(0, Math.min(100, v))) : 100;
 }
 /* v197 : A:B = jouer au tour A de chaque groupe de B tours du motif. */
+function retardT1k(v){ return [0,1,2,4,8].indexOf(v) >= 0 ? v : 0; }
+function texteRetardT1k(v){ return v ? "+" + v + "/16" : "0"; }
 function cycleT1k(v){ return typeof v === "string" && /^(1:1|[12]:2|[123]:3|[1234]:4)$/.test(v) ? v : "1:1"; }
 function passeCycleT1k(v, tour){
   var c = cycleT1k(v).split(":");
@@ -80,6 +82,7 @@ function lireMotifT1k(o){
       var sub = Array.isArray(o.sub) && Array.isArray(o.sub[k]) ? o.sub[k][j] : undefined;
       r.prob[k][j] = probabiliteT1k(prob);
       r.cycle[k][j] = cycleT1k(Array.isArray(o.cycle) && Array.isArray(o.cycle[k]) ? o.cycle[k][j] : undefined);
+      r.retard[k][j] = retardT1k(Array.isArray(o.retard) && Array.isArray(o.retard[k]) ? o.retard[k][j] : undefined);
       r.sub[k][j] = Math.floor(borneT1k(sub, 1, 4, 1));
     }
     r.direction[k] = directionT1k(Array.isArray(o.direction) ? o.direction[k] : undefined);
@@ -310,7 +313,7 @@ function frapperT1k(k, acc){
     var m = motifT1kCur();
     var j = pasEnregistreT1k(k);
     if(j >= 0){
-      if(!(m.pas[k] & (1 << j))){ m.prob[k][j] = 100; m.cycle[k][j] = "1:1"; }
+      if(!(m.pas[k] & (1 << j))){ m.prob[k][j] = 100; m.cycle[k][j] = "1:1"; m.retard[k][j] = 0; }
       m.pas[k] |= (1 << j);
       if(acc) m.acc[k] |= (1 << j);
       majT1k(); memT1k();
@@ -336,7 +339,8 @@ function scheduleT1k(i, t){
     if(!T1K.fill && !passeProbabiliteT1k(m.prob[k][j])) continue;
     var acc = !!(m.acc[k] & (1 << j));
     var sub = T1K.fill ? 1 : (m.sub[k][j] || 1);
-    for(var r=0;r<sub;r++) CHARGE_N++, voixT1k(t + (stepDur() * r / sub), k, acc && r === 0);
+    var duree = stepDur(), retard = T1K.fill ? 0 : duree * retardT1k(m.retard[k][j]) / 16;
+    for(var r=0;r<sub;r++) CHARGE_N++, voixT1k(t + retard + (duree * r / sub), k, acc && r === 0);
   }
   if(ctx && !ctx.startRendering){
     T1K.departs.push({i:i,t:t,absolu:absolu,positions:positions,fill:T1K.fill});
@@ -426,7 +430,10 @@ var T1K_KNOBS = [];
     var b2 = e.target.closest("button");
     if(!b2) return;
     var i2 = +b2.dataset.i, m = motifT1kCur(), k = T1K.sel;
-    if(T1K.cycles){
+    if(T1K.decalage){
+      m.retard[k][i2] = retardT1k(T1K.retardValeur);
+      signal("PAS " + (i2 + 1) + " · RETARD " + texteRetardT1k(m.retard[k][i2]) + " DE PAS" + ((m.pas[k] & (1 << i2)) ? "" : " · PAS NON ACTIVÉ"));
+    } else if(T1K.cycles){
       m.cycle[k][i2] = cycleT1k(T1K.cycleValeur);
       signal("PAS " + (i2 + 1) + " · CYCLE " + m.cycle[k][i2] + ((m.pas[k] & (1 << i2)) ? "" : " · PAS NON ACTIVÉ"));
     } else if(T1K.proba){
@@ -529,23 +536,28 @@ function majT1k(){
     t1kPas[i].classList.toggle("sub", (m.sub[T1K.sel][i] || 1) > 1);
     t1kPas[i].classList.toggle("hors", i >= m.last);
     var proba = probabiliteT1k(m.prob[T1K.sel][i]);
-    t1kPas[i].querySelector(".t1k-prob-val").textContent = T1K.cycles ? m.cycle[T1K.sel][i] : proba + "%";
+    t1kPas[i].querySelector(".t1k-prob-val").textContent = T1K.decalage ? texteRetardT1k(m.retard[T1K.sel][i]) : T1K.cycles ? m.cycle[T1K.sel][i] : proba + "%";
+    t1kPas[i].classList.toggle("retarde", m.retard[T1K.sel][i] > 0 && !!(m.pas[T1K.sel] & (1 << i)));
     t1kPas[i].classList.toggle("cyclique", m.cycle[T1K.sel][i] !== "1:1" && !!(m.pas[T1K.sel] & (1 << i)));
     t1kPas[i].classList.toggle("aleatoire", proba < 100 && !!(m.pas[T1K.sel] & (1 << i)));
-    t1kPas[i].setAttribute("aria-label", "Pas " + (i + 1) + " · " + ((m.pas[T1K.sel] & (1 << i)) ? "actif" : "inactif") + " · probabilité " + proba + "% · cycle " + m.cycle[T1K.sel][i]);
+    t1kPas[i].setAttribute("aria-label", "Pas " + (i + 1) + " · " + ((m.pas[T1K.sel] & (1 << i)) ? "actif" : "inactif") + " · probabilité " + proba + "% · cycle " + m.cycle[T1K.sel][i] + " · retard " + texteRetardT1k(m.retard[T1K.sel][i]) + " de pas");
   }
   var pads = document.querySelectorAll(".t1k-pad");
   for(i=0;i<pads.length;i++) pads[i].classList.toggle("sel", i === T1K.sel);
-  var grille = document.getElementById("t1k-pas"), change = grille.classList.contains("proba") !== (T1K.proba || T1K.cycles);
-  grille.classList.toggle("proba", T1K.proba || T1K.cycles);
+  var grille = document.getElementById("t1k-pas"), change = grille.classList.contains("proba") !== (T1K.proba || T1K.cycles || T1K.decalage);
+  grille.classList.toggle("proba", T1K.proba || T1K.cycles || T1K.decalage);
   document.getElementById("t1k-cycle").classList.toggle("on", T1K.cycles);
   document.getElementById("t1k-cycle").setAttribute("aria-pressed", String(T1K.cycles));
   document.getElementById("t1k-cycle-valeur").disabled = !T1K.cycles;
   document.getElementById("t1k-cycle-valeur").value = T1K.cycleValeur;
+  document.getElementById("t1k-decalage").classList.toggle("on", T1K.decalage);
+  document.getElementById("t1k-decalage").setAttribute("aria-pressed", String(T1K.decalage));
+  document.getElementById("t1k-retard-valeur").disabled = !T1K.decalage;
+  document.getElementById("t1k-retard-valeur").value = String(T1K.retardValeur);
   var bp = document.getElementById("t1k-proba"); bp.classList.toggle("on", T1K.proba); bp.setAttribute("aria-pressed", String(T1K.proba));
   document.getElementById("t1k-proba-valeur").disabled = !T1K.proba;
   document.getElementById("t1k-proba-valeur").value = String(T1K.probValeur);
-  document.getElementById("t1k-proba-aide").textContent = T1K.cycles ? "A:B = TOUR A SUR B · CHOISIR PUIS TOUCHER LES PAS" : T1K.proba ? "CHOISIR UN % PUIS TOUCHER LES PAS · " + T1K_INSTR[T1K.sel].nom : "PROBABILITÉ : VARIER LES COUPS À CHAQUE TOUR";
+  document.getElementById("t1k-proba-aide").textContent = T1K.decalage ? "RETARD EN FRACTION DE PAS · CHOISIR PUIS TOUCHER LES PAS" : T1K.cycles ? "A:B = TOUR A SUR B · CHOISIR PUIS TOUCHER LES PAS" : T1K.proba ? "CHOISIR UN % PUIS TOUCHER LES PAS · " + T1K_INSTR[T1K.sel].nom : "PROBABILITÉ : VARIER LES COUPS À CHAQUE TOUR";
   if(change && S.modele === "t1k") fit();
   document.getElementById("t1k-sub").classList.toggle("on", T1K.sub);
   document.getElementById("t1k-accent").classList.toggle("on", T1K.accent);
@@ -567,7 +579,7 @@ function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
-      return {last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}),
+      return {last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
               instr:m.instr.map(function(I){
                 return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
                         ech:I.ech, pech:I.pech};
@@ -579,7 +591,7 @@ function chargerT1k(){
   resetLectureT1k();
   T1K.motifs = [];
   for(var i=0;i<128;i++) T1K.motifs.push(motifT1k(i < 2 ? i : 9));
-  T1K.cur = 0; T1K.banq = 0; T1K.sel = 0; T1K.sub = false; T1K.accent = false; T1K.proba = false; T1K.probValeur = 100; T1K.cycles = false; T1K.cycleValeur = "1:1";
+  T1K.cur = 0; T1K.banq = 0; T1K.sel = 0; T1K.sub = false; T1K.accent = false; T1K.proba = false; T1K.probValeur = 100; T1K.cycles = false; T1K.cycleValeur = "1:1"; T1K.decalage = false; T1K.retardValeur = 0;
   var m = memLire("t1k");
   if(m){
     if(Array.isArray(m.motifs) && (m.motifs.length === 16 || m.motifs.length === 128)){
@@ -607,18 +619,18 @@ document.getElementById("t1k-stop").addEventListener("click", function(){
   document.getElementById("t1k-start").classList.remove("on");
 });
 document.getElementById("t1k-sub").addEventListener("click", function(){
-  T1K.sub = !T1K.sub; if(T1K.sub){ T1K.cycles = false; T1K.accent = false; T1K.proba = false; }
+  T1K.sub = !T1K.sub; if(T1K.sub){ T1K.decalage = false; T1K.cycles = false; T1K.accent = false; T1K.proba = false; }
   majT1k(); H.inter();
   signal(T1K.sub ? "LES TOUCHES RÈGLENT LES SOUS-PAS" : "LES TOUCHES POSENT LES PAS");
 });
 document.getElementById("t1k-accent").addEventListener("click", function(){
-  T1K.accent = !T1K.accent; if(T1K.accent){ T1K.cycles = false; T1K.sub = false; T1K.proba = false; }
+  T1K.accent = !T1K.accent; if(T1K.accent){ T1K.decalage = false; T1K.cycles = false; T1K.sub = false; T1K.proba = false; }
   majT1k(); H.inter();
 });
 document.getElementById("t1k-direction").addEventListener("change", function(){ choisirDirectionT1k(this.value); });
 document.getElementById("t1k-proba").addEventListener("click", function(){
   T1K.proba = !T1K.proba;
-  if(T1K.proba){ T1K.cycles = false; T1K.sub = false; T1K.accent = false; }
+  if(T1K.proba){ T1K.decalage = false; T1K.cycles = false; T1K.sub = false; T1K.accent = false; }
   majT1k(); H.inter();
 });
 (function(){
@@ -700,7 +712,15 @@ function activerT1k(){
 /* v197 : peinture des cycles sans activer ni effacer les pas. */
 document.getElementById("t1k-cycle").addEventListener("click", function(){
   T1K.cycles = !T1K.cycles;
-  if(T1K.cycles){ T1K.proba = false; T1K.sub = false; T1K.accent = false; }
+  if(T1K.cycles){ T1K.decalage = false; T1K.proba = false; T1K.sub = false; T1K.accent = false; }
   majT1k(); H.cran();
 });
 document.getElementById("t1k-cycle-valeur").addEventListener("change", function(e){ T1K.cycleValeur = cycleT1k(e.target.value); });
+
+/* v198 : retard déterministe du coup et de tous ses sous-pas. */
+document.getElementById("t1k-decalage").addEventListener("click", function(){
+  T1K.decalage = !T1K.decalage;
+  if(T1K.decalage){ T1K.cycles = false; T1K.proba = false; T1K.sub = false; T1K.accent = false; }
+  majT1k(); H.cran();
+});
+document.getElementById("t1k-retard-valeur").addEventListener("change", function(e){ T1K.retardValeur = retardT1k(+e.target.value); });

@@ -176,6 +176,32 @@ async def main():
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v197-%sx%s.png'%(w,h))))
             print('OK : cycles par pas, édition exclusive, mémoire et vrais WAV dans les trois directions',flush=True)
+            # v198 : édition et mesure de la position du signal dans les vrais WAV.
+            await pg.locator('#t1k-decalage').click()
+            await pg.locator('#t1k-retard-valeur').select_option('8')
+            await pg.locator('#t1k-pas button').nth(0).click()
+            assert await pg.evaluate("T1K.decalage&&!T1K.cycles&&!T1K.proba&&motifT1kCur().retard[0][0]===8&&motifT1kCur().retard[1][0]===0&&motifT1kCur().pas[0]===1")
+            assert '+8/16' in await pg.locator('#t1k-pas button').nth(0).inner_text()
+            await pg.evaluate('memT1k();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate('motifT1kCur().retard[0][0]===8&&!T1K.decalage')
+            positions=[]
+            for retard in [0,8]:
+                positions.append(await pg.evaluate("""async retard => {
+                  let m=motifT1kCur();m.direction[0]='avant';m.cycle[0].fill('1:1');m.retard[0][0]=retard;m.sub[0].fill(1);WAVX.mesures=1;
+                  memT1k();writeMem();let n=__exports.length;exporterWav();let limite=performance.now()+20000;
+                  while(WAVX.occupe&&performance.now()<limite)await new Promise(r=>setTimeout(r,10));
+                  if(__exports.length!==n+1)throw Error('WAV retard absent');
+                  let o=__exports[n].octets,v=new DataView(o.buffer);
+                  for(let i=0;44+4*i<o.length;i++)if(Math.abs(v.getInt16(44+4*i,true))>33)return i/44100;
+                  throw Error('WAV retard silencieux');
+                }""",retard))
+            assert abs(positions[1]-positions[0]-.0625)<.001,positions
+            await pg.locator('#t1k-decalage').click()
+            for w,h in ((393,851),(360,640),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v198-%sx%s.png'%(w,h))))
+            print('OK : retard édité, sauvegardé et mesuré à 62,5 ms dans le vrai WAV',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

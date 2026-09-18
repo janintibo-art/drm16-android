@@ -96,3 +96,13 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  for(const v of [null,{},'0:4','5:4','1:8',4])assert.equal(c.cycleT1k(v),'1:1');
  console.log('TR-1000 v197 : cycles, sous-pas, probabilité, reset, directions, mémoire et migration OK.');
 }
+{
+ const c=setup(),m=c.motifT1kCur();m.pas.fill(0);m.pas[0]=1;m.sub[0][0]=4;m.retard[0][0]=8;
+ c.scheduleT1k(0,2);assert.deepStrictEqual(copie(c.voix.map(v=>+v[0].toFixed(3))),[2.06,2.09,2.12,2.15]);
+ m.direction[0]='arriere';m.last=4;c.resetLectureT1k();c.voix=[];for(let i=0;i<4;i++)c.scheduleT1k(i,3+i*.12);assert.equal(+c.voix[0][0].toFixed(3),3.42);
+ c.memT1k();m.retard[0][0]=0;assert.equal(c.memoire.t1k.motifs[0].retard[0][0],8);c.chargerT1k();assert.equal(c.motifT1kCur().retard[0][0],8);
+ c.memoire.t1k.motifs.forEach(m=>delete m.retard);c.chargerT1k();assert(c.T1K.motifs.every(m=>m.retard.every(r=>r.every(v=>v===0))));
+ for(const v of [-1,3,16,'8',null])assert.equal(c.retardT1k(v),0);
+ c.T1K.fill=true;c.motifT1kCur().retard.forEach(r=>r.fill(8));c.voix=[];c.scheduleT1k(3,5);assert(c.voix.length);assert(c.voix.every(v=>v[0]===5));
+ console.log('TR-1000 v198 : retard, sous-pas, direction, mémoire, migration et FILL OK.');
+}
