@@ -520,26 +520,8 @@ document.getElementById("studio-fermer").addEventListener("click", function(){ f
 document.getElementById("nexus-fermer").addEventListener("click", function(){ fermerInvite("nexus"); H.cran(); });
 
 document.getElementById("menu-notices").addEventListener("click", function(){ ouvrirNotice("note-general"); H.inter(); });
-/* Le relevé était au fond de l'onglet GÉNÉRAL de la notice : personne ne l'y
-   trouve. Ici il est à portée, et un second appui relance le moteur. */
-document.getElementById("menu-audio").addEventListener("click", function(){
-  audioInit();
-  signal(releveAudio());
-  H.inter();
-  var b = this;
-  if(b.dataset.arme === "1"){
-    b.dataset.arme = "";
-    refaireAudio();
-    return;
-  }
-  b.dataset.arme = "1";
-  b.querySelector("span").textContent = "APPUYEZ ENCORE POUR RELANCER LE MOTEUR";
-  clearTimeout(b.tmr);
-  b.tmr = setTimeout(function(){
-    b.dataset.arme = "";
-    b.querySelector("span").textContent = "DÉCROCHAGES · SOURCES · RELANCER LE MOTEUR";
-  }, 4000);
-});
+/* v201 : consulter le relevé ne redémarre jamais le moteur. */
+document.getElementById("menu-audio").addEventListener("click", function(){ ouvrirEtatAudio(); H.inter(); });
 document.getElementById("enr-ondes").addEventListener("click", function(){ ondesEnr(); H.inter(); });
 document.getElementById("enr-aide").addEventListener("click", function(){
   fermerEnr(); ouvrirNotice("note-enr");

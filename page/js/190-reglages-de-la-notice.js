@@ -71,7 +71,7 @@ document.getElementById("b-satq").addEventListener("click", function(){
 majQualiteSat();
 
 document.getElementById("b-audio-etat").addEventListener("click", function(){
-  signal(releveAudio());
+  ouvrirEtatAudio();
 });
 document.getElementById("b-audio-relance").addEventListener("click", function(){
   refaireAudio();
@@ -92,3 +92,21 @@ document.getElementById("b-panique").addEventListener("click", function(){
   H.stop();
 });
 
+
+/* v201 : diagnostic stable et remise à zéro indépendante du moteur. */
+function actualiserEtatAudio(){
+  document.getElementById("audio-releve").textContent = releveAudio().split(" · ").join("\n");
+}
+function ouvrirEtatAudio(){
+  actualiserEtatAudio();
+  var d = document.getElementById("audio-diagnostic");
+  if(!d.open) d.showModal();
+}
+function resetAuditAudio(){
+  ["decroche","quand","relances","pic","picAvenir","pause","trous","tours","tDernier","tJeu"].forEach(function(k){ AUDIT[k] = 0; });
+  actualiserEtatAudio();
+}
+document.getElementById("audio-actualiser").addEventListener("click", actualiserEtatAudio);
+document.getElementById("audio-reset").addEventListener("click", resetAuditAudio);
+document.getElementById("audio-relancer").addEventListener("click", function(){ refaireAudio(); actualiserEtatAudio(); });
+document.getElementById("audio-fermer").addEventListener("click", function(){ document.getElementById("audio-diagnostic").close(); });

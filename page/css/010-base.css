@@ -503,3 +503,12 @@ body.depot::after{content:"DÉPOSEZ ICI · PROJET .DRM16 OU FICHIER SON";positio
   display:flex;align-items:center;justify-content:center;border:3px dashed #e6b84a;border-radius:14px;
   background:rgba(12,12,14,.72);color:#e6b84a;font:700 16px/1.3 "Roboto Condensed",Arial,sans-serif;
   letter-spacing:1px;text-align:center;pointer-events:none}
+
+/* v201 : relevé stable, photographiable et défilable sur téléphone. */
+#audio-diagnostic{box-sizing:border-box;width:calc(100% - 28px);max-width:480px;max-height:90vh;overflow:auto;padding:20px;border:1px solid #777;border-radius:16px;background:#181b20;color:#f2f4f8}
+#audio-diagnostic::backdrop{background:#000b}
+#audio-diagnostic h2{font:700 22px Arial;margin:0 0 16px}
+#audio-releve{white-space:pre-wrap;overflow-wrap:anywhere;font:700 15px/1.65 Arial;margin:0}
+#audio-diagnostic p{font:13px/1.5 Arial;color:#bac2cd}
+.audio-actions{display:flex;gap:9px;flex-wrap:wrap}
+.audio-actions button{min-height:44px;padding:10px;border:1px solid #687583;border-radius:7px;background:#2c3540;color:#fff;font:700 12px Arial}

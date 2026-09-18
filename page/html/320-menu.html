@@ -37,6 +37,18 @@
   <button class="pick ptab" id="menu-table"><b>TABLE DE MIXAGE</b><span>PLUSIEURS MACHINES À LA FOIS · NIVEAUX ET PANORAMIQUE</span></button>
   <button class="pick pstu" id="menu-studio"><b>STUDIO TIBO</b><span>SÉQUENCEUR · PIANO ROLL · MIXEUR · EXPORT</span></button>
   <button class="pick pnex" id="menu-nexus"><b>NEXUS BEAT LAB</b><span>PADS ET SAMPLES 808, 909, DNB</span></button>
-  <button class="pick paud" id="menu-audio"><b>ÉTAT DU SON</b><span>DÉCROCHAGES · SOURCES · RELANCER LE MOTEUR</span></button>
+  <button class="pick paud" id="menu-audio"><b>ÉTAT DU SON</b><span>RELEVÉ AUDIO · COMPTEURS · DIAGNOSTIC</span></button>
 </div>
 
+
+<dialog id="audio-diagnostic" aria-labelledby="audio-titre">
+  <h2 id="audio-titre">ÉTAT DU SON</h2>
+  <pre id="audio-releve" aria-live="polite"></pre>
+  <p>Compteurs depuis l’ouverture ou leur remise à zéro. Les recalages indiquent les reprises du séquenceur, pas toutes les coupures audibles.</p>
+  <div class="audio-actions">
+    <button id="audio-actualiser">ACTUALISER</button>
+    <button id="audio-reset">COMPTEURS À ZÉRO</button>
+    <button id="audio-relancer">RELANCER LE MOTEUR</button>
+    <button id="audio-fermer">FERMER</button>
+  </div>
+</dialog>

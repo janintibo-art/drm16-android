@@ -510,6 +510,15 @@ body.depot::after{content:"DÉPOSEZ ICI · PROJET .DRM16 OU FICHIER SON";positio
   display:flex;align-items:center;justify-content:center;border:3px dashed #e6b84a;border-radius:14px;
   background:rgba(12,12,14,.72);color:#e6b84a;font:700 16px/1.3 "Roboto Condensed",Arial,sans-serif;
   letter-spacing:1px;text-align:center;pointer-events:none}
+
+/* v201 : relevé stable, photographiable et défilable sur téléphone. */
+#audio-diagnostic{box-sizing:border-box;width:calc(100% - 28px);max-width:480px;max-height:90vh;overflow:auto;padding:20px;border:1px solid #777;border-radius:16px;background:#181b20;color:#f2f4f8}
+#audio-diagnostic::backdrop{background:#000b}
+#audio-diagnostic h2{font:700 22px Arial;margin:0 0 16px}
+#audio-releve{white-space:pre-wrap;overflow-wrap:anywhere;font:700 15px/1.65 Arial;margin:0}
+#audio-diagnostic p{font:13px/1.5 Arial;color:#bac2cd}
+.audio-actions{display:flex;gap:9px;flex-wrap:wrap}
+.audio-actions button{min-height:44px;padding:10px;border:1px solid #687583;border-radius:7px;background:#2c3540;color:#fff;font:700 12px Arial}
 /* ===================== ELECTRIBE EM-1 ===================== */
 .em{display:none;width:100%;max-width:1120px;border-radius:14px;padding:16px 16px 14px;
   background:linear-gradient(165deg,#5a5d60,#3d4043 30%,#2f3235 70%,#43464a);
@@ -4150,9 +4159,21 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <button class="pick ptab" id="menu-table"><b>TABLE DE MIXAGE</b><span>PLUSIEURS MACHINES À LA FOIS · NIVEAUX ET PANORAMIQUE</span></button>
   <button class="pick pstu" id="menu-studio"><b>STUDIO TIBO</b><span>SÉQUENCEUR · PIANO ROLL · MIXEUR · EXPORT</span></button>
   <button class="pick pnex" id="menu-nexus"><b>NEXUS BEAT LAB</b><span>PADS ET SAMPLES 808, 909, DNB</span></button>
-  <button class="pick paud" id="menu-audio"><b>ÉTAT DU SON</b><span>DÉCROCHAGES · SOURCES · RELANCER LE MOTEUR</span></button>
+  <button class="pick paud" id="menu-audio"><b>ÉTAT DU SON</b><span>RELEVÉ AUDIO · COMPTEURS · DIAGNOSTIC</span></button>
 </div>
 
+
+<dialog id="audio-diagnostic" aria-labelledby="audio-titre">
+  <h2 id="audio-titre">ÉTAT DU SON</h2>
+  <pre id="audio-releve" aria-live="polite"></pre>
+  <p>Compteurs depuis l’ouverture ou leur remise à zéro. Les recalages indiquent les reprises du séquenceur, pas toutes les coupures audibles.</p>
+  <div class="audio-actions">
+    <button id="audio-actualiser">ACTUALISER</button>
+    <button id="audio-reset">COMPTEURS À ZÉRO</button>
+    <button id="audio-relancer">RELANCER LE MOTEUR</button>
+    <button id="audio-fermer">FERMER</button>
+  </div>
+</dialog>
 <div id="note">
   <div class="note-bar"><b id="note-titre">NOTICE</b><button id="note-fermer">FERMER</button></div>
   <div id="note-nav"></div>
@@ -4414,16 +4435,16 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
      <button class="sec" id="b-latence">LATENCE</button>
      <button class="sec" id="b-satq">SATURATIONS</button></p>
   <p><b>LATENCE</b> règle le délai entre un appui et le son : <b>COURTE</b> pour jouer en direct, <b>SÛRE</b>
-  pour ne jamais entendre de coupure, <b>MOYENNE</b> entre les deux. Le moteur audio redémarre à chaque
+  pour privilégier la stabilité, <b>MOYENNE</b> entre les deux. Le moteur audio redémarre à chaque
   changement. Si le son grésille, revenez vers SÛRE.</p>
   <p><b>SATURATIONS</b> : en <b>HAUTE QUALITÉ</b>, les saturations des TR, de la TD-3, de la TR-1000 et de la
   DrumBrute calculent à quatre fois la cadence au lieu de deux — un aigu plus propre quand on pousse le son,
   pour un peu plus de calcul. Sur un appareil qui grésille déjà, restez en <b>ÉCONOMES</b>.</p>
   <p>Ce relevé est aussi dans le <b>menu</b>, tuile <b>ÉTAT DU SON</b> : plus simple à trouver qu'au fond
-  de cette page. Un second appui sur la tuile, dans les quatre secondes, relance le moteur.</p>
+  de cette page. Le relevé reste ouvert jusqu’à sa fermeture. ACTUALISER relit les compteurs ; COMPTEURS À ZÉRO commence une nouvelle mesure sans redémarrer le moteur ni modifier les morceaux. RELANCER LE MOTEUR est une action séparée.</p>
   <p>Les chiffres se lisent ainsi :</p>
   <ul>
-  <li><b>MIN DE JEU</b> — le temps réellement joué depuis l'ouverture. Tout le reste s'y rapporte.</li>
+  <li><b>MIN DE JEU</b> — le temps de jeu comptabilisé depuis l’ouverture ou la remise à zéro des compteurs. Tout le reste s'y rapporte.</li>
   <li><b>PIC … SOURCES DONT … À VENIR</b> — le maximum atteint pendant le jeu, et non la valeur de
   l'instant : ouvrir le menu arrête le séquenceur, une valeur instantanée n'y voudrait rien dire. « À
   venir » compte les sons déjà programmés mais pas encore joués.</li>
@@ -8947,7 +8968,7 @@ document.getElementById("b-satq").addEventListener("click", function(){
 majQualiteSat();
 
 document.getElementById("b-audio-etat").addEventListener("click", function(){
-  signal(releveAudio());
+  ouvrirEtatAudio();
 });
 document.getElementById("b-audio-relance").addEventListener("click", function(){
   refaireAudio();
@@ -8968,6 +8989,24 @@ document.getElementById("b-panique").addEventListener("click", function(){
   H.stop();
 });
 
+
+/* v201 : diagnostic stable et remise à zéro indépendante du moteur. */
+function actualiserEtatAudio(){
+  document.getElementById("audio-releve").textContent = releveAudio().split(" · ").join("\n");
+}
+function ouvrirEtatAudio(){
+  actualiserEtatAudio();
+  var d = document.getElementById("audio-diagnostic");
+  if(!d.open) d.showModal();
+}
+function resetAuditAudio(){
+  ["decroche","quand","relances","pic","picAvenir","pause","trous","tours","tDernier","tJeu"].forEach(function(k){ AUDIT[k] = 0; });
+  actualiserEtatAudio();
+}
+document.getElementById("audio-actualiser").addEventListener("click", actualiserEtatAudio);
+document.getElementById("audio-reset").addEventListener("click", resetAuditAudio);
+document.getElementById("audio-relancer").addEventListener("click", function(){ refaireAudio(); actualiserEtatAudio(); });
+document.getElementById("audio-fermer").addEventListener("click", function(){ document.getElementById("audio-diagnostic").close(); });
 /* ================= notices ================= */
 var noteEl = document.getElementById("note");
 var noteNav = document.getElementById("note-nav");
@@ -9557,26 +9596,8 @@ document.getElementById("studio-fermer").addEventListener("click", function(){ f
 document.getElementById("nexus-fermer").addEventListener("click", function(){ fermerInvite("nexus"); H.cran(); });
 
 document.getElementById("menu-notices").addEventListener("click", function(){ ouvrirNotice("note-general"); H.inter(); });
-/* Le relevé était au fond de l'onglet GÉNÉRAL de la notice : personne ne l'y
-   trouve. Ici il est à portée, et un second appui relance le moteur. */
-document.getElementById("menu-audio").addEventListener("click", function(){
-  audioInit();
-  signal(releveAudio());
-  H.inter();
-  var b = this;
-  if(b.dataset.arme === "1"){
-    b.dataset.arme = "";
-    refaireAudio();
-    return;
-  }
-  b.dataset.arme = "1";
-  b.querySelector("span").textContent = "APPUYEZ ENCORE POUR RELANCER LE MOTEUR";
-  clearTimeout(b.tmr);
-  b.tmr = setTimeout(function(){
-    b.dataset.arme = "";
-    b.querySelector("span").textContent = "DÉCROCHAGES · SOURCES · RELANCER LE MOTEUR";
-  }, 4000);
-});
+/* v201 : consulter le relevé ne redémarre jamais le moteur. */
+document.getElementById("menu-audio").addEventListener("click", function(){ ouvrirEtatAudio(); H.inter(); });
 document.getElementById("enr-ondes").addEventListener("click", function(){ ondesEnr(); H.inter(); });
 document.getElementById("enr-aide").addEventListener("click", function(){
   fermerEnr(); ouvrirNotice("note-enr");
