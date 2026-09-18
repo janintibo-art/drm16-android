@@ -33,7 +33,7 @@ function motifT1k(n){
                     m.pas[7] = 0x4000; m.sub[6][10] = 3; }
   return m;
 }
-var T1K = {annulation:null, copie:null, motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
+var T1K = {copieSequence:null, annulation:null, copie:null, motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
            morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, cycles:false, cycleValeur:"1:1", decalage:false, retardValeur:0, motionRec:false, params:false, paramNom:"tune", paramValeur:null, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
@@ -396,6 +396,8 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-copier-sequence").disabled = S.run;
+  document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
   document.getElementById("t1k-tourner-droite").disabled = S.run;
   document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
@@ -529,6 +531,28 @@ function tournerSequenceT1k(sens){
   T1K.motionRec = false; resetLectureT1k(); memT1k(); majT1k();
   signal(T1K_INSTR[k].nom + (sens > 0 ? " · UN PAS À DROITE" : " · UN PAS À GAUCHE"));
   return true;
+}
+
+/* v212 : presse-papiers de séquence indépendant de celui du motif. */
+function copierSequenceT1k(){
+  if(S.run) return false;
+  var m = lireMotifT1k(motifT1kCur()), k = T1K.sel;
+  T1K.copieSequence = {motif:m, instrument:k, nom:T1K_INSTR[k].nom};
+  majT1k(); signal("SÉQUENCE " + T1K.copieSequence.nom + " COPIÉE · CHOISISSEZ UN INSTRUMENT PUIS COLLER SÉQ");
+  return true;
+}
+function collerSequenceT1k(){
+  if(S.run || !T1K.copieSequence) return false;
+  var copie = T1K.copieSequence, source = lireMotifT1k(copie.motif), j = copie.instrument;
+  var m = motifT1kCur(), k = T1K.sel;
+  if(!window.confirm("Remplacer la séquence de " + T1K_INSTR[k].nom + " par celle de " + copie.nom +
+      " ? Notes, variations, longueur et direction seront remplacées. Le son de base, MUTE et SOLO sont conservés.")) return false;
+  memoriserAnnulationT1k("le collage de la séquence");
+  ["pas","acc","sub","prob","cycle","retard","reglages","direction"].forEach(function(nom){ m[nom][k] = source[nom][j]; });
+  // Figer la longueur entendue, même si LAST diffère dans le motif destination.
+  m.longueurs[k] = longueurInstrumentT1k(source, j);
+  T1K.motionRec = false; resetLectureT1k(); memT1k(); majT1k();
+  signal("SÉQUENCE COLLÉE · " + T1K_INSTR[k].nom); return true;
 }
 
 /* ---------- interface ---------- */
@@ -687,6 +711,8 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-copier-sequence").disabled = S.run;
+  document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
   document.getElementById("t1k-tourner-droite").disabled = S.run;
   document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
@@ -796,7 +822,7 @@ function memT1k(){
 function chargerT1k(){
   T1K.annulation = null;
   T1K.motionRec = false;
-  T1K.copie = null;
+  T1K.copie = null; T1K.copieSequence = null;
   resetLectureT1k();
   T1K.motifs = [];
   for(var i=0;i<128;i++) T1K.motifs.push(motifT1k(i < 2 ? i : 9));
@@ -966,3 +992,6 @@ document.getElementById("t1k-annuler").addEventListener("click", annulerModifica
 
 document.getElementById("t1k-tourner-gauche").addEventListener("click", function(){ tournerSequenceT1k(-1); });
 document.getElementById("t1k-tourner-droite").addEventListener("click", function(){ tournerSequenceT1k(1); });
+
+document.getElementById("t1k-copier-sequence").addEventListener("click", copierSequenceT1k);
+document.getElementById("t1k-coller-sequence").addEventListener("click", collerSequenceT1k);

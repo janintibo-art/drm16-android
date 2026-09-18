@@ -1911,6 +1911,8 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 #t1k-annuler:disabled{opacity:.45}
 
 #t1k-tourner-gauche:disabled,#t1k-tourner-droite:disabled{opacity:.45}
+
+#t1k-copier-sequence:disabled,#t1k-coller-sequence:disabled{opacity:.45}
 /* ===================== MACHINE D'ARCHIVE ===================== */
 body.arcm .arcmb{display:block}
 body.arcm #unit,body.arcm .em,body.arcm .er,body.arcm .ea,body.arcm .es,body.arcm .mx,body.arcm .sx,
@@ -3500,6 +3502,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="t1k-last">LAST 16</button>
     <select id="t1k-banque" aria-label="Banque de motifs TR-1000"></select>
     <select id="t1k-ptn" aria-label="Motif TR-1000 dans la banque sélectionnée"><option value="0">PTN 1</option><option value="1">PTN 2</option><option value="2">PTN 3</option><option value="3">PTN 4</option><option value="4">PTN 5</option><option value="5">PTN 6</option><option value="6">PTN 7</option><option value="7">PTN 8</option><option value="8">PTN 9</option><option value="9">PTN 10</option><option value="10">PTN 11</option><option value="11">PTN 12</option><option value="12">PTN 13</option><option value="13">PTN 14</option><option value="14">PTN 15</option><option value="15">PTN 16</option></select>
+    <button id="t1k-copier-sequence" aria-label="Copier la séquence de l’instrument sélectionné">COPIER SÉQ</button>
+    <button id="t1k-coller-sequence" aria-label="Coller la séquence sur l’instrument sélectionné">COLLER SÉQ</button>
     <button id="t1k-copier">COPIER</button>
     <button id="t1k-coller" disabled>COLLER</button>
     <button id="t1k-annuler" disabled>ANNULER</button>
@@ -5402,6 +5406,16 @@ renommez la copie pour distinguer vos variantes. Les anciens motifs restent sans
 qu’il était juste avant cette action. Revenez sur le motif concerné et arrêtez PLAY.
 Une confirmation prévient que les modifications effectuées depuis seront également
 remplacées. Annuler cette confirmation conserve tout en l’état.</p>
+<p><b>COPIER SÉQ / COLLER SÉQ :</b> à l’arrêt, copiez l’instrument sélectionné,
+puis choisissez un autre instrument, éventuellement dans un autre motif ou une autre banque,
+et collez. Une confirmation précède le remplacement. Les 16 pas, accents, sous-pas,
+probabilités, cycles, retards et variations sont copiés, ainsi que la direction.
+La longueur effective de la source devient la longueur propre de la destination,
+même si son LAST diffère. Les réglages sonores de base, MUTE, SOLO et le bouton
+VARIATIONS du motif destination sont conservés. Les variations copiées peuvent
+modifier le timbre de l’instrument destination. ANNULER restaure le motif précédent.
+Cette copie temporaire est indépendante de COPIER/COLLER le motif et disparaît
+au rechargement. MOTION REC est désarmé au collage.</p>
 <p>Un seul état précédent est conservé : un nouveau décalage, collage ou effacement confirmé
 le remplace. Cette réserve est temporaire et disparaît au rechargement de la machine
 ou du projet, notamment après un export qui recharge la machine. Le motif restauré
@@ -23920,7 +23934,7 @@ function motifT1k(n){
                     m.pas[7] = 0x4000; m.sub[6][10] = 3; }
   return m;
 }
-var T1K = {annulation:null, copie:null, motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
+var T1K = {copieSequence:null, annulation:null, copie:null, motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
            morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, cycles:false, cycleValeur:"1:1", decalage:false, retardValeur:0, motionRec:false, params:false, paramNom:"tune", paramValeur:null, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
@@ -24283,6 +24297,8 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-copier-sequence").disabled = S.run;
+  document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
   document.getElementById("t1k-tourner-droite").disabled = S.run;
   document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
@@ -24416,6 +24432,28 @@ function tournerSequenceT1k(sens){
   T1K.motionRec = false; resetLectureT1k(); memT1k(); majT1k();
   signal(T1K_INSTR[k].nom + (sens > 0 ? " · UN PAS À DROITE" : " · UN PAS À GAUCHE"));
   return true;
+}
+
+/* v212 : presse-papiers de séquence indépendant de celui du motif. */
+function copierSequenceT1k(){
+  if(S.run) return false;
+  var m = lireMotifT1k(motifT1kCur()), k = T1K.sel;
+  T1K.copieSequence = {motif:m, instrument:k, nom:T1K_INSTR[k].nom};
+  majT1k(); signal("SÉQUENCE " + T1K.copieSequence.nom + " COPIÉE · CHOISISSEZ UN INSTRUMENT PUIS COLLER SÉQ");
+  return true;
+}
+function collerSequenceT1k(){
+  if(S.run || !T1K.copieSequence) return false;
+  var copie = T1K.copieSequence, source = lireMotifT1k(copie.motif), j = copie.instrument;
+  var m = motifT1kCur(), k = T1K.sel;
+  if(!window.confirm("Remplacer la séquence de " + T1K_INSTR[k].nom + " par celle de " + copie.nom +
+      " ? Notes, variations, longueur et direction seront remplacées. Le son de base, MUTE et SOLO sont conservés.")) return false;
+  memoriserAnnulationT1k("le collage de la séquence");
+  ["pas","acc","sub","prob","cycle","retard","reglages","direction"].forEach(function(nom){ m[nom][k] = source[nom][j]; });
+  // Figer la longueur entendue, même si LAST diffère dans le motif destination.
+  m.longueurs[k] = longueurInstrumentT1k(source, j);
+  T1K.motionRec = false; resetLectureT1k(); memT1k(); majT1k();
+  signal("SÉQUENCE COLLÉE · " + T1K_INSTR[k].nom); return true;
 }
 
 /* ---------- interface ---------- */
@@ -24574,6 +24612,8 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-copier-sequence").disabled = S.run;
+  document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
   document.getElementById("t1k-tourner-droite").disabled = S.run;
   document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
@@ -24683,7 +24723,7 @@ function memT1k(){
 function chargerT1k(){
   T1K.annulation = null;
   T1K.motionRec = false;
-  T1K.copie = null;
+  T1K.copie = null; T1K.copieSequence = null;
   resetLectureT1k();
   T1K.motifs = [];
   for(var i=0;i<128;i++) T1K.motifs.push(motifT1k(i < 2 ? i : 9));
@@ -24853,6 +24893,9 @@ document.getElementById("t1k-annuler").addEventListener("click", annulerModifica
 
 document.getElementById("t1k-tourner-gauche").addEventListener("click", function(){ tournerSequenceT1k(-1); });
 document.getElementById("t1k-tourner-droite").addEventListener("click", function(){ tournerSequenceT1k(1); });
+
+document.getElementById("t1k-copier-sequence").addEventListener("click", copierSequenceT1k);
+document.getElementById("t1k-coller-sequence").addEventListener("click", collerSequenceT1k);
 /* ===================== ARTURIA DRUMBRUTE IMPACT =====================
    Huit voix analogiques, et une chose qu'aucune autre machine d'ici ne fait :
    la polyrythmie. Chaque piste garde sa propre longueur, et les motifs se

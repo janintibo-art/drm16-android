@@ -233,3 +233,17 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.memT1k();c.chargerT1k();assert.deepStrictEqual(copie(c.motifT1kCur()),bloque);
  console.log('TR-1000 v211 : rotations, métadonnées, limites 1/3/16, pistes préservées, annulation, mémoire et protection PLAY OK.');
 }
+{
+ const c=setup();c.signal=()=>{};c.majKnobsT1k=()=>{};let accepte=false;c.window={confirm:()=>accepte};
+ assert(!c.collerSequenceT1k());const m=c.motifT1kCur();m.last=7;m.longueurs[0]=0;m.pas[0]=32769;m.acc[0]=1;m.reglages[0][0]={tune:.7};m.direction[0]='pingpong';m.sub[0][15]=4;m.prob[0][15]=23;m.cycle[0][15]='2:3';m.retard[0][15]=8;
+ const source=copie(m);c.copierMotifT1k();const presseMotif=copie(c.T1K.copie);assert(c.copierSequenceT1k());m.reglages[0][0].tune=.1;m.pas[0]=0;
+ c.T1K.banq=7;c.T1K.cur=15;c.T1K.sel=2;const cible=c.motifT1kCur();cible.last=4;cible.muet[2]=true;cible.solo=1;cible.motionActive=false;const avant=copie(cible);
+ assert(!c.collerSequenceT1k());assert.deepStrictEqual(copie(cible),avant);assert.equal(c.T1K.annulation,null);
+ accepte=true;c.S.run=true;assert(!c.copierSequenceT1k());assert(!c.collerSequenceT1k());c.S.run=false;c.T1K.motionRec=true;assert(c.collerSequenceT1k());assert(!c.T1K.motionRec);
+ const attendu=copie(avant);for(const nom of ['pas','acc','sub','prob','cycle','retard','reglages','direction'])attendu[nom][2]=source[nom][0];attendu.longueurs[2]=7;
+ assert.deepStrictEqual(copie(cible),attendu);assert.deepStrictEqual(copie(c.T1K.copie),presseMotif);
+ cible.reglages[2][0].tune=.2;assert.equal(c.T1K.copieSequence.motif.reglages[0][0].tune,.7);
+ assert(c.annulerModificationT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),avant);
+ assert(c.collerSequenceT1k());c.memT1k();c.chargerT1k();assert.deepStrictEqual(copie(c.motifT1kCur()),attendu);assert.equal(c.T1K.copieSequence,null);
+ console.log('TR-1000 v212 : copie indépendante, toutes les données de séquence, autre banque/instrument, longueur effective, confirmation, annulation, mémoire et protection PLAY OK.');
+}

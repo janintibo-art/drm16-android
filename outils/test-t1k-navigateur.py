@@ -432,6 +432,22 @@ async def main():
             assert await pg.locator('#t1k-tourner-droite').is_disabled()
             await pg.locator('#t1k-stop').click()
             print('OK : rotation gauche/droite, variations, annulation et protection PLAY',flush=True)
+            # v212 : copie de séquence vers un autre instrument, confirmée et annulable.
+            await pg.evaluate("T1K.sel=0;motifT1kCur().longueurs[0]=3;motifT1kCur().pas[0]=5;majT1k()")
+            await pg.locator('#t1k-copier-sequence').click()
+            await pg.evaluate('T1K.sel=1;majT1k()')
+            avant=await pg.evaluate('JSON.stringify(motifT1kCur())')
+            pg.once('dialog',lambda d:d.dismiss());await pg.locator('#t1k-coller-sequence').click()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur())')==avant
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-coller-sequence').click()
+            assert await pg.evaluate('motifT1kCur().pas[1]===5&&motifT1kCur().longueurs[1]===3')
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-annuler').click()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur())')==avant
+            await pg.locator('#t1k-start').click()
+            assert await pg.locator('#t1k-copier-sequence').is_disabled()
+            assert await pg.locator('#t1k-coller-sequence').is_disabled()
+            await pg.locator('#t1k-stop').click()
+            print('OK : copier/coller séquence, confirmation, annulation et protection PLAY',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:
