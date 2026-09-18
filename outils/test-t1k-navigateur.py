@@ -475,6 +475,20 @@ async def main():
             assert await pg.locator('#t1k-effacer-sequence').is_disabled()
             await pg.locator('#t1k-stop').click()
             print('OK : effacement ciblé, confirmation, annulation préservée si vide et protection PLAY',flush=True)
+            # v215 : répétition des cellules et nouvelle longueur propre.
+            await pg.evaluate("T1K.sel=0;let m=motifT1kCur();m.longueurs[0]=4;m.pas[0]=257;m.reglages[0].fill(null);m.reglages[0][0]={tune:.7};majT1k()")
+            avant=await pg.evaluate('JSON.stringify(motifT1kCur())')
+            pg.once('dialog',lambda d:d.dismiss());await pg.locator('#t1k-doubler-sequence').click()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur())')==avant
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-doubler-sequence').click()
+            assert await pg.evaluate('motifT1kCur().pas[0]===273&&motifT1kCur().longueurs[0]===8&&motifT1kCur().reglages[0][4].tune===.7')
+            assert await pg.locator('#t1k-longueur').input_value()=='8'
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-annuler').click()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur())')==avant
+            await pg.locator('#t1k-start').click()
+            assert await pg.locator('#t1k-doubler-sequence').is_disabled()
+            await pg.locator('#t1k-stop').click()
+            print('OK : doublement, longueur actualisée, confirmation, annulation et protection PLAY',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

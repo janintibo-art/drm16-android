@@ -278,3 +278,21 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.motifT1kCur().reglages[2][15]={niv:.2};assert(c.effacerSequenceT1k());assert.equal(c.motifT1kCur().reglages[2][15],null);
  console.log('TR-1000 v214 : effacement complet ciblé, cellules hors longueur/sans note, confirmation, annulation, mémoire et protection PLAY OK.');
 }
+{
+ const c=setup();c.signal=()=>{};c.majKnobsT1k=()=>{};let accepte=true,confirmations=0;c.window={confirm:()=>{confirmations++;return accepte;}};
+ for(const L of [1,3,8]){
+  const m=c.motifT1kCur();m.longueurs[0]=L;m.direction[0]='arriere';m.pas[0]=0xfff5;m.acc[0]=0xaaaa;
+  for(let j=0;j<16;j++){m.sub[0][j]=j%4+1;m.prob[0][j]=j*5;m.cycle[0][j]=(j%4+1)+':4';m.retard[0][j]=[0,1,2,4,8][j%5];m.reglages[0][j]={tune:j/16};}
+  const avant=copie(m),attendu=copie(m);attendu.longueurs[0]=2*L;
+  for(const nom of ['pas','acc'])for(let j=0;j<L;j++)attendu[nom][0]=(attendu[nom][0]&~(1<<(j+L)))|(((avant[nom][0]>>j)&1)<<(j+L));
+  for(const nom of ['sub','prob','cycle','retard','reglages'])for(let j=0;j<L;j++)attendu[nom][0][j+L]=copie(avant[nom][0][j]);
+  c.T1K.motionRec=true;assert(c.doublerSequenceT1k());assert(!c.T1K.motionRec);assert.deepStrictEqual(copie(m),attendu);assert.deepStrictEqual(copie(c.memoire.t1k.motifs[0]),attendu);
+  m.reglages[0][L].tune=.9;assert.equal(m.reglages[0][0].tune,0,'copies indépendantes');
+  assert(c.annulerModificationT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),avant);
+ }
+ const m=c.motifT1kCur();m.longueurs[0]=9;let avant=copie(m),n=confirmations;assert(!c.doublerSequenceT1k());assert.equal(confirmations,n);assert.deepStrictEqual(copie(m),avant);
+ m.longueurs[0]=0;m.last=4;avant=copie(m);accepte=false;assert(!c.doublerSequenceT1k());assert.deepStrictEqual(copie(m),avant);
+ accepte=true;c.S.run=true;n=confirmations;assert(!c.doublerSequenceT1k());assert.equal(confirmations,n);c.S.run=false;assert(c.doublerSequenceT1k());assert.equal(m.last,4);assert.equal(m.longueurs[0],8);
+ const sauvegarde=copie(m);c.chargerT1k();assert.deepStrictEqual(copie(c.motifT1kCur()),sauvegarde);
+ console.log('TR-1000 v215 : doublement 1/3/8, notes et métadonnées, copies indépendantes, hors longueur préservé, LAST, annulation, mémoire et garde-fous OK.');
+}

@@ -198,7 +198,7 @@ conserve son nom, jusqu’à 24 caractères. Vider le champ enlève le nom sans 
 la musique. Les noms sont sauvegardés dans le projet et repris par COPIER/COLLER ;
 renommez la copie pour distinguer vos variantes. Les anciens motifs restent sans nom.</p>
 <h3>Annuler un collage ou un effacement</h3>
-<p>Après COLLER, EFFACER SÉQ, EFFACER VAR. ou un décalage ou une inversion de séquence, ANNULER permet de retrouver le motif entier tel
+<p>Après COLLER, DOUBLER SÉQ, EFFACER SÉQ, EFFACER VAR. ou un décalage ou une inversion de séquence, ANNULER permet de retrouver le motif entier tel
 qu’il était juste avant cette action. Revenez sur le motif concerné et arrêtez PLAY.
 Une confirmation prévient que les modifications effectuées depuis seront également
 remplacées. Annuler cette confirmation conserve tout en l’état.</p>
@@ -226,7 +226,16 @@ et variations retrouvent leurs valeurs par défaut. Le son de base, la longueur,
 la direction, MUTE, SOLO et les autres instruments restent inchangés.
 MOTION REC est désarmé. ANNULER restaure le motif précédent. Une séquence déjà
 entièrement vide ne remplace pas l’annulation disponible.</p>
-<p>Un seul état précédent est conservé : une nouvelle inversion, un décalage, un collage ou un effacement confirmé
+<p><b>DOUBLER SÉQ :</b> à l’arrêt, répète la phrase de l’instrument sélectionné :
+4 pas deviennent 8, 8 deviennent 16. La longueur actuelle doit être comprise
+entre 1 et 8 pas, qu’elle soit propre à l’instrument ou issue de LAST. Après
+confirmation, les cellules de la seconde moitié sont remplacées par les premières,
+avec notes, accents, sous-pas, probabilités, cycles, retards et variations.
+Les cellules au-delà de la nouvelle longueur sont préservées. La nouvelle longueur
+est propre à l’instrument ; LAST, les autres pistes et le sens de lecture ne
+changent pas. Les cycles restent liés aux tours du transport commun. MOTION REC
+est désarmé. ANNULER restaure le motif précédent, y compris les cellules remplacées.</p>
+<p>Un seul état précédent est conservé : un nouveau doublement, une inversion, un décalage, un collage ou un effacement confirmé
 le remplace. Cette réserve est temporaire et disparaît au rechargement de la machine
 ou du projet, notamment après un export qui recharge la machine. Le motif restauré
 est sauvegardé normalement. Il n’y a pas de commande pour refaire l’action annulée.</p>

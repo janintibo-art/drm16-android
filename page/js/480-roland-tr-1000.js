@@ -398,6 +398,7 @@ var t1kPas = [];
 function beatT1k(i){
   document.getElementById("t1k-copier-sequence").disabled = S.run;
   document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
+  document.getElementById("t1k-doubler-sequence").disabled = S.run;
   document.getElementById("t1k-effacer-sequence").disabled = S.run;
   document.getElementById("t1k-inverser-sequence").disabled = S.run;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
@@ -597,6 +598,28 @@ function effacerSequenceT1k(){
   signal("SÉQUENCE EFFACÉE · " + T1K_INSTR[k].nom); return true;
 }
 
+/* v215 : répéter la phrase dans la moitié suivante de la grille. */
+function doublerSequenceT1k(){
+  if(S.run) return false;
+  var m = motifT1kCur(), k = T1K.sel, L = longueurInstrumentT1k(m, k);
+  if(L > 8){ signal("DOUBLER : CHOISISSEZ UNE LONGUEUR DE 1 À 8 PAS"); return false; }
+  if(!window.confirm("Doubler la séquence de " + T1K_INSTR[k].nom + " de " + L + " à " + (L * 2) +
+      " pas ? Les cellules " + (L + 1) + " à " + (L * 2) + " seront remplacées par une copie des " + L +
+      " premiers pas, avec leurs accents et variations. LAST et les autres instruments restent inchangés.")) return false;
+  memoriserAnnulationT1k("le doublement de la séquence");
+  var masque = (1 << L) - 1, destination = masque << L;
+  ["pas","acc"].forEach(function(nom){
+    var avant = m[nom][k];
+    m[nom][k] = (avant & ~destination) | ((avant & masque) << L);
+  });
+  ["sub","prob","cycle","retard","reglages"].forEach(function(nom){
+    for(var j=0;j<L;j++) m[nom][k][j + L] = nom === "reglages" ? lireReglagesT1k(m[nom][k][j]) : m[nom][k][j];
+  });
+  m.longueurs[k] = L * 2;
+  T1K.motionRec = false; resetLectureT1k(); memT1k(); majT1k();
+  signal("SÉQUENCE DOUBLÉE · " + (L * 2) + " PAS"); return true;
+}
+
 /* ---------- interface ---------- */
 var T1K_KNOBS = [];
 (function construireT1k(){
@@ -755,6 +778,7 @@ function majLcdT1k(){
 function majT1k(){
   document.getElementById("t1k-copier-sequence").disabled = S.run;
   document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
+  document.getElementById("t1k-doubler-sequence").disabled = S.run;
   document.getElementById("t1k-effacer-sequence").disabled = S.run;
   document.getElementById("t1k-inverser-sequence").disabled = S.run;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
@@ -1043,3 +1067,5 @@ document.getElementById("t1k-coller-sequence").addEventListener("click", collerS
 document.getElementById("t1k-inverser-sequence").addEventListener("click", inverserSequenceT1k);
 
 document.getElementById("t1k-effacer-sequence").addEventListener("click", effacerSequenceT1k);
+
+document.getElementById("t1k-doubler-sequence").addEventListener("click", doublerSequenceT1k);

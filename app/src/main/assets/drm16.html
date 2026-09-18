@@ -1917,6 +1917,8 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 #t1k-inverser-sequence:disabled{opacity:.45}
 
 #t1k-effacer-sequence:disabled{opacity:.45}
+
+#t1k-doubler-sequence:disabled{opacity:.45}
 /* ===================== MACHINE D'ARCHIVE ===================== */
 body.arcm .arcmb{display:block}
 body.arcm #unit,body.arcm .em,body.arcm .er,body.arcm .ea,body.arcm .es,body.arcm .mx,body.arcm .sx,
@@ -3511,6 +3513,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="t1k-copier">COPIER</button>
     <button id="t1k-coller" disabled>COLLER</button>
     <button id="t1k-annuler" disabled>ANNULER</button>
+    <button id="t1k-doubler-sequence" aria-label="Doubler la longueur en répétant la séquence sélectionnée">DOUBLER SÉQ</button>
     <button id="t1k-effacer-sequence" aria-label="Effacer les 16 pas de l’instrument sélectionné">EFFACER SÉQ</button>
     <button id="t1k-inverser-sequence" aria-label="Inverser l’ordre des pas de l’instrument sélectionné">INVERSER SÉQ</button>
     <button id="t1k-tourner-gauche" aria-label="Décaler la séquence sélectionnée d’un pas à gauche">← PAS</button>
@@ -5408,7 +5411,7 @@ conserve son nom, jusqu’à 24 caractères. Vider le champ enlève le nom sans 
 la musique. Les noms sont sauvegardés dans le projet et repris par COPIER/COLLER ;
 renommez la copie pour distinguer vos variantes. Les anciens motifs restent sans nom.</p>
 <h3>Annuler un collage ou un effacement</h3>
-<p>Après COLLER, EFFACER SÉQ, EFFACER VAR. ou un décalage ou une inversion de séquence, ANNULER permet de retrouver le motif entier tel
+<p>Après COLLER, DOUBLER SÉQ, EFFACER SÉQ, EFFACER VAR. ou un décalage ou une inversion de séquence, ANNULER permet de retrouver le motif entier tel
 qu’il était juste avant cette action. Revenez sur le motif concerné et arrêtez PLAY.
 Une confirmation prévient que les modifications effectuées depuis seront également
 remplacées. Annuler cette confirmation conserve tout en l’état.</p>
@@ -5436,7 +5439,16 @@ et variations retrouvent leurs valeurs par défaut. Le son de base, la longueur,
 la direction, MUTE, SOLO et les autres instruments restent inchangés.
 MOTION REC est désarmé. ANNULER restaure le motif précédent. Une séquence déjà
 entièrement vide ne remplace pas l’annulation disponible.</p>
-<p>Un seul état précédent est conservé : une nouvelle inversion, un décalage, un collage ou un effacement confirmé
+<p><b>DOUBLER SÉQ :</b> à l’arrêt, répète la phrase de l’instrument sélectionné :
+4 pas deviennent 8, 8 deviennent 16. La longueur actuelle doit être comprise
+entre 1 et 8 pas, qu’elle soit propre à l’instrument ou issue de LAST. Après
+confirmation, les cellules de la seconde moitié sont remplacées par les premières,
+avec notes, accents, sous-pas, probabilités, cycles, retards et variations.
+Les cellules au-delà de la nouvelle longueur sont préservées. La nouvelle longueur
+est propre à l’instrument ; LAST, les autres pistes et le sens de lecture ne
+changent pas. Les cycles restent liés aux tours du transport commun. MOTION REC
+est désarmé. ANNULER restaure le motif précédent, y compris les cellules remplacées.</p>
+<p>Un seul état précédent est conservé : un nouveau doublement, une inversion, un décalage, un collage ou un effacement confirmé
 le remplace. Cette réserve est temporaire et disparaît au rechargement de la machine
 ou du projet, notamment après un export qui recharge la machine. Le motif restauré
 est sauvegardé normalement. Il n’y a pas de commande pour refaire l’action annulée.</p>
@@ -24319,6 +24331,7 @@ var t1kPas = [];
 function beatT1k(i){
   document.getElementById("t1k-copier-sequence").disabled = S.run;
   document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
+  document.getElementById("t1k-doubler-sequence").disabled = S.run;
   document.getElementById("t1k-effacer-sequence").disabled = S.run;
   document.getElementById("t1k-inverser-sequence").disabled = S.run;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
@@ -24518,6 +24531,28 @@ function effacerSequenceT1k(){
   signal("SÉQUENCE EFFACÉE · " + T1K_INSTR[k].nom); return true;
 }
 
+/* v215 : répéter la phrase dans la moitié suivante de la grille. */
+function doublerSequenceT1k(){
+  if(S.run) return false;
+  var m = motifT1kCur(), k = T1K.sel, L = longueurInstrumentT1k(m, k);
+  if(L > 8){ signal("DOUBLER : CHOISISSEZ UNE LONGUEUR DE 1 À 8 PAS"); return false; }
+  if(!window.confirm("Doubler la séquence de " + T1K_INSTR[k].nom + " de " + L + " à " + (L * 2) +
+      " pas ? Les cellules " + (L + 1) + " à " + (L * 2) + " seront remplacées par une copie des " + L +
+      " premiers pas, avec leurs accents et variations. LAST et les autres instruments restent inchangés.")) return false;
+  memoriserAnnulationT1k("le doublement de la séquence");
+  var masque = (1 << L) - 1, destination = masque << L;
+  ["pas","acc"].forEach(function(nom){
+    var avant = m[nom][k];
+    m[nom][k] = (avant & ~destination) | ((avant & masque) << L);
+  });
+  ["sub","prob","cycle","retard","reglages"].forEach(function(nom){
+    for(var j=0;j<L;j++) m[nom][k][j + L] = nom === "reglages" ? lireReglagesT1k(m[nom][k][j]) : m[nom][k][j];
+  });
+  m.longueurs[k] = L * 2;
+  T1K.motionRec = false; resetLectureT1k(); memT1k(); majT1k();
+  signal("SÉQUENCE DOUBLÉE · " + (L * 2) + " PAS"); return true;
+}
+
 /* ---------- interface ---------- */
 var T1K_KNOBS = [];
 (function construireT1k(){
@@ -24676,6 +24711,7 @@ function majLcdT1k(){
 function majT1k(){
   document.getElementById("t1k-copier-sequence").disabled = S.run;
   document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
+  document.getElementById("t1k-doubler-sequence").disabled = S.run;
   document.getElementById("t1k-effacer-sequence").disabled = S.run;
   document.getElementById("t1k-inverser-sequence").disabled = S.run;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
@@ -24964,6 +25000,8 @@ document.getElementById("t1k-coller-sequence").addEventListener("click", collerS
 document.getElementById("t1k-inverser-sequence").addEventListener("click", inverserSequenceT1k);
 
 document.getElementById("t1k-effacer-sequence").addEventListener("click", effacerSequenceT1k);
+
+document.getElementById("t1k-doubler-sequence").addEventListener("click", doublerSequenceT1k);
 /* ===================== ARTURIA DRUMBRUTE IMPACT =====================
    Huit voix analogiques, et une chose qu'aucune autre machine d'ici ne fait :
    la polyrythmie. Chaque piste garde sa propre longueur, et les motifs se
