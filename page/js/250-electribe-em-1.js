@@ -1341,3 +1341,6 @@ function choisirPageEm(v){
 }
 document.getElementById("em-page").addEventListener("change", function(){ choisirPageEm(+this.value); });
 document.getElementById("em-longueur").addEventListener("change", function(){ choisirLongueurEm(+this.value); majPagesEm(); });
+
+// Export indépendant de la page éditée et du nombre de répétitions du menu WAV.
+document.getElementById("em-export-song").addEventListener("click", function(){ exporterWav(true); });

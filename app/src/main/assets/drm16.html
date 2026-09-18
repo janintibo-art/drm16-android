@@ -667,6 +667,10 @@ body.em1 #unit{display:none}
 .em-pages select{padding:8px;min-height:36px;border:1px solid #8f9aaa;border-radius:4px;background:#202833;color:#fff;font:700 11px Arial}
 .em-pages select:disabled{opacity:.5}
 #em-position{margin-left:auto;color:#90d6fa;font-variant-numeric:tabular-nums}
+
+.em-song-export{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px;color:#d9e7f4;font:11px/1.4 Arial}
+#em-export-song{padding:10px;border:1px solid #8296ad;border-radius:4px;background:#283b50;color:#fff;font:700 10px Arial;cursor:pointer}
+#em-export-chemin{overflow-wrap:anywhere;min-width:0}
 /* ===================== ELECTRIBE ER-1 ===================== */
 body.er1 .er{display:block}
 body.er1 #unit,body.er1 .em{display:none}
@@ -2413,6 +2417,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   </div>
 
   <div class="em-bas em-noir">
+    <div class="em-song-export"><button id="em-export-song" type="button">SONG EN WAV · UN PASSAGE</button><span id="em-export-chemin"></span></div>
     <div class="em-pages">
       <label for="em-longueur">LONGUEUR</label><select id="em-longueur" aria-label="Longueur du motif EM-1"><option value="1">1 PAS</option><option value="2">2 PAS</option><option value="3">3 PAS</option><option value="4">4 PAS</option><option value="5">5 PAS</option><option value="6">6 PAS</option><option value="7">7 PAS</option><option value="8">8 PAS</option><option value="9">9 PAS</option><option value="10">10 PAS</option><option value="11">11 PAS</option><option value="12">12 PAS</option><option value="13">13 PAS</option><option value="14">14 PAS</option><option value="15">15 PAS</option><option value="16" selected>16 PAS</option><option value="17">17 PAS</option><option value="18">18 PAS</option><option value="19">19 PAS</option><option value="20">20 PAS</option><option value="21">21 PAS</option><option value="22">22 PAS</option><option value="23">23 PAS</option><option value="24">24 PAS</option><option value="25">25 PAS</option><option value="26">26 PAS</option><option value="27">27 PAS</option><option value="28">28 PAS</option><option value="29">29 PAS</option><option value="30">30 PAS</option><option value="31">31 PAS</option><option value="32">32 PAS</option><option value="33">33 PAS</option><option value="34">34 PAS</option><option value="35">35 PAS</option><option value="36">36 PAS</option><option value="37">37 PAS</option><option value="38">38 PAS</option><option value="39">39 PAS</option><option value="40">40 PAS</option><option value="41">41 PAS</option><option value="42">42 PAS</option><option value="43">43 PAS</option><option value="44">44 PAS</option><option value="45">45 PAS</option><option value="46">46 PAS</option><option value="47">47 PAS</option><option value="48">48 PAS</option><option value="49">49 PAS</option><option value="50">50 PAS</option><option value="51">51 PAS</option><option value="52">52 PAS</option><option value="53">53 PAS</option><option value="54">54 PAS</option><option value="55">55 PAS</option><option value="56">56 PAS</option><option value="57">57 PAS</option><option value="58">58 PAS</option><option value="59">59 PAS</option><option value="60">60 PAS</option><option value="61">61 PAS</option><option value="62">62 PAS</option><option value="63">63 PAS</option><option value="64">64 PAS</option></select>
       <label for="em-page">PAGE</label><select id="em-page" aria-label="Page de pas EM-1"><option value="0">1–16</option><option value="1">17–32</option><option value="2">33–48</option><option value="3">49–64</option></select>
@@ -6917,8 +6922,15 @@ masquées. STEP EDIT, les accents, REC, Motion et la copie des parties couvrent
 les 64 cellules. SHIFT + Length propose également 32, 48 et 64 pas. MOVE DATA
 fait tourner les notes dans la longueur active. Le clavier, Pattern Set et Song
 gardent leurs 16 touches de commande ; les pages concernent seulement les pas.
-L’export WAV utilise la longueur complète du motif courant ; cette extension
-n’ajoute pas l’export de la chaîne Song entière.</p>
+Le menu WAV conserve son fonctionnement habituel. Pour le morceau entier,
+utilisez SONG EN WAV, décrit ci-dessous.</p>
+<p><b>SONG EN WAV · UN PASSAGE :</b> exporte toutes les positions de la chaîne
+Song, depuis la première, une seule fois. Chaque motif conserve sa longueur
+(de 1 à 64 pas) et ses sons. Les répétitions de motifs et les silences sont
+conservés. Le tempo, MUTE, SOLO et les niveaux courants s’appliquent. Le nombre
+de répétitions du menu WAV n’intervient pas. La lecture est arrêtée et les
+commandes sont bloquées pendant le rendu ; le motif et la page d’édition sont
+rétablis ensuite. La limite habituelle de taille des WAV s’applique.</p>
 <p><b>Palette synthé :</b> sélectionnez SYNTH 1 ou SYNTH 2, puis WAVE et la
 molette VALUE. Les quatre sons SAW, SQR, TRI et SIN sont conservés. Quatre
 formes supplémentaires sont proposées : <b>P25</b> (impulsion à 25 %),
@@ -11705,6 +11717,9 @@ function choisirPageEm(v){
 }
 document.getElementById("em-page").addEventListener("change", function(){ choisirPageEm(+this.value); });
 document.getElementById("em-longueur").addEventListener("change", function(){ choisirLongueurEm(+this.value); majPagesEm(); });
+
+// Export indépendant de la page éditée et du nombre de répétitions du menu WAV.
+document.getElementById("em-export-song").addEventListener("click", function(){ exporterWav(true); });
 /* ===================== ELECTRIBE ER-1 ===================== */
 var ER_PARTS = [
   {n:"1", t:"perc"}, {n:"2", t:"perc"}, {n:"3", t:"perc"}, {n:"4", t:"perc"},
@@ -27811,23 +27826,49 @@ function wavStereo(buf){
   }
   return ab;
 }
-function exporterWav(){
+/* v219 : figer un passage de Song avant de changer de contexte audio. */
+function planSongEm(){
+  if(!Array.isArray(EM.song) || !EM.song.length) throw new Error("SONG VIDE · AJOUTEZ DES MOTIFS");
+  if(EM.song.length > 256) throw new Error("SONG TROP LONG · 256 ENTRÉES MAXIMUM");
+  var position = 0;
+  var entrees = EM.song.map(function(k){
+    if(!Number.isInteger(k) || k < 0 || k >= 16) throw new Error("MOTIF SONG INVALIDE");
+    var source = k === EM.cur ? EM.pat : EM.slots[k];
+    if(!source) throw new Error("MOTIF SONG INTROUVABLE");
+    // La conversion JSON isole aussi les tableaux de Motion et les réglages.
+    var motif = deserialiser(JSON.parse(JSON.stringify(serialiser(source))));
+    var e = {index:k, debut:position, motif:motif}; position += motif.len;
+    return e;
+  });
+  return {entrees:entrees, pas:position};
+}
+function exporterWav(songEm){
+  songEm = songEm === true && S.modele === "em1";
   if(WAVX.occupe || ENR.ondesOccupe) return;
+  if(songEm && (ENR.actif || PROJET_EN_COURS)){ signal("ARRÊTEZ L'ENREGISTREMENT OU LE PROJET AVANT LE RENDU"); return; }
+  var plan = null;
+  if(songEm){ try{ plan = planSongEm(); }catch(e){ signal(e.message); return; } }
   var p = HOST;
   if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
   if(!MACHINE || !MACHINE.schedule){ signal("AUCUNE MACHINE À RENDRE"); return; }
   if(S.run){ stop(); H.stop(); }
   audioInit();                                 /* sans contexte de départ, rien à remettre en place après */
   if(!ctx){ signal("AUDIO INDISPONIBLE"); return; }
-  writeMem();                                  /* les dernières retouches doivent être en mémoire */
-  if(refusWavTropLong((MACHINE.longueur ? MACHINE.longueur() : 16) * WAVX.mesures * stepDur() + 2.5, 44100)) return;
+  if(songEm){
+    if(ENR.lecture !== null) enrArreterLecture();
+    if(PR.lecture) prArreter();
+    memEm();
+  }
+  if(writeMem() === false){ signal("RENDU ANNULÉ · MÉMOIRE NON ENREGISTRÉE"); return; }
+  var nombrePas = plan ? plan.pas : (MACHINE.longueur ? MACHINE.longueur() : 16) * WAVX.mesures;
+  if(refusWavTropLong(nombrePas * stepDur() + 2.5, 44100)) return;
 
   WAVX.occupe = true;
   signal("RENDU EN COURS…");
   var modele = S.modele;
   var pas = MACHINE.longueur ? MACHINE.longueur() : 16;
   var duree = stepDur();
-  var total = pas * WAVX.mesures * duree + 2.5;   /* deux secondes et demie pour les queues */
+  var total = nombrePas * duree + 2.5;   /* deux secondes et demie pour les queues */
   var taux = 44100;
 
   /* on met de côté tout ce que le rendu va remplacer — y compris les quatre
@@ -27840,13 +27881,14 @@ function exporterWav(){
   try{ off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(taux * total), taux); }
   catch(e){ WAVX.occupe = false; signal("RENDU IMPOSSIBLE SUR CET APPAREIL"); return; }
 
-  ctx = off;
-  SET.bus = {};                                /* les sorties réelles gardent leurs tranches */
-  batirAudio();                                 /* tout est refait dans le contexte de rendu */
-  cache = true;                                 /* pas d'animation pendant le rendu */
+  var emAvant = songEm ? Object.assign({}, EM) : null;
+  var inerteAvant = document.body.inert, renduRemis = false;
+  function bloquerClavier(e){ e.preventDefault(); e.stopImmediatePropagation(); }
+  if(songEm){ document.body.inert = true; document.addEventListener("keydown", bloquerClavier, true); }
 
   /* quoi qu'il arrive, on rend la main : un export raté ne doit pas bloquer les suivants */
   function remettre(){
+    if(renduRemis) return; renduRemis = true;
     WAVX.occupe = false;
     ctx = ctxVrai; master = masterVrai; noiseBuf = bruitVrai; cache = cacheVrai;
     SET.bus = busVrais;
@@ -27860,10 +27902,22 @@ function exporterWav(){
     outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
     try{ allerMachine(modele); }catch(e){ signal("MACHINE À RECHARGER"); }
+    if(emAvant){
+      Object.keys(emAvant).forEach(function(k){ if(k !== "noeuds") EM[k] = emAvant[k]; });
+      document.body.inert = inerteAvant;
+      document.removeEventListener("keydown", bloquerClavier, true);
+      majTouches(); majBascules(); majMotionLeds(); majKnobsPartie(); majLcd();
+    }
   }
   try{
-    allerMachine(modele);                       /* la machine se rebâtit dans le contexte de rendu */
-    for(var m=0; m<WAVX.mesures; m++){
+    ctx = off; SET.bus = {}; batirAudio(); cache = true;
+    allerMachine(modele);
+    if(plan){
+      plan.entrees.forEach(function(e){
+        EM.cur = e.index; EM.pat = e.motif;
+        for(var s=0;s<e.motif.len;s++) MACHINE.schedule(s, 0.05 + (e.debut + s) * duree);
+      });
+    }else for(var m=0; m<WAVX.mesures; m++){
       for(var s=0; s<pas; s++){
         MACHINE.schedule(s, 0.05 + (m * pas + s) * duree);
       }
@@ -27874,12 +27928,12 @@ function exporterWav(){
     signal("RENDU INTERROMPU · " + ((e && e.message) ? e.message.slice(0, 40) : ""));
     return;
   }
-  off.startRendering().then(function(rendu){
+  Promise.resolve().then(function(){ return off.startRendering(); }).then(function(rendu){
     var crete = 0, c0 = rendu.getChannelData(0);
     for(var i=0;i<c0.length;i++){ var a = Math.abs(c0[i]); if(a > crete) crete = a; }
     var ab = wavStereo(rendu);
     remettre();
-    var nom = "drm-" + modele + "-" + WAVX.mesures + "mes-" + Date.now().toString(36) + ".wav";
+    var nom = "drm-" + modele + "-" + (plan ? "song-" + plan.entrees.length + "ent-" : WAVX.mesures + "mes-") + Date.now().toString(36) + ".wav";
     var chemin = "";
     chemin = ecrireDocument(HOST, nom, ab);
     if(chemin){
@@ -27887,6 +27941,7 @@ function exporterWav(){
              (crete > 0 ? (20 * Math.log10(crete)).toFixed(1) : "-∞") + " dB");
       var e2 = document.getElementById("wav-chemin");
       if(e2) e2.textContent = "Dernier rendu : " + chemin;
+      if(songEm) document.getElementById("em-export-chemin").textContent = "Dernier Song : " + chemin;
     } else signal("ÉCRITURE REFUSÉE");
     H.inter();
   }).catch(function(){

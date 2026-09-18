@@ -46,23 +46,49 @@ function wavStereo(buf){
   }
   return ab;
 }
-function exporterWav(){
+/* v219 : figer un passage de Song avant de changer de contexte audio. */
+function planSongEm(){
+  if(!Array.isArray(EM.song) || !EM.song.length) throw new Error("SONG VIDE · AJOUTEZ DES MOTIFS");
+  if(EM.song.length > 256) throw new Error("SONG TROP LONG · 256 ENTRÉES MAXIMUM");
+  var position = 0;
+  var entrees = EM.song.map(function(k){
+    if(!Number.isInteger(k) || k < 0 || k >= 16) throw new Error("MOTIF SONG INVALIDE");
+    var source = k === EM.cur ? EM.pat : EM.slots[k];
+    if(!source) throw new Error("MOTIF SONG INTROUVABLE");
+    // La conversion JSON isole aussi les tableaux de Motion et les réglages.
+    var motif = deserialiser(JSON.parse(JSON.stringify(serialiser(source))));
+    var e = {index:k, debut:position, motif:motif}; position += motif.len;
+    return e;
+  });
+  return {entrees:entrees, pas:position};
+}
+function exporterWav(songEm){
+  songEm = songEm === true && S.modele === "em1";
   if(WAVX.occupe || ENR.ondesOccupe) return;
+  if(songEm && (ENR.actif || PROJET_EN_COURS)){ signal("ARRÊTEZ L'ENREGISTREMENT OU LE PROJET AVANT LE RENDU"); return; }
+  var plan = null;
+  if(songEm){ try{ plan = planSongEm(); }catch(e){ signal(e.message); return; } }
   var p = HOST;
   if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
   if(!MACHINE || !MACHINE.schedule){ signal("AUCUNE MACHINE À RENDRE"); return; }
   if(S.run){ stop(); H.stop(); }
   audioInit();                                 /* sans contexte de départ, rien à remettre en place après */
   if(!ctx){ signal("AUDIO INDISPONIBLE"); return; }
-  writeMem();                                  /* les dernières retouches doivent être en mémoire */
-  if(refusWavTropLong((MACHINE.longueur ? MACHINE.longueur() : 16) * WAVX.mesures * stepDur() + 2.5, 44100)) return;
+  if(songEm){
+    if(ENR.lecture !== null) enrArreterLecture();
+    if(PR.lecture) prArreter();
+    memEm();
+  }
+  if(writeMem() === false){ signal("RENDU ANNULÉ · MÉMOIRE NON ENREGISTRÉE"); return; }
+  var nombrePas = plan ? plan.pas : (MACHINE.longueur ? MACHINE.longueur() : 16) * WAVX.mesures;
+  if(refusWavTropLong(nombrePas * stepDur() + 2.5, 44100)) return;
 
   WAVX.occupe = true;
   signal("RENDU EN COURS…");
   var modele = S.modele;
   var pas = MACHINE.longueur ? MACHINE.longueur() : 16;
   var duree = stepDur();
-  var total = pas * WAVX.mesures * duree + 2.5;   /* deux secondes et demie pour les queues */
+  var total = nombrePas * duree + 2.5;   /* deux secondes et demie pour les queues */
   var taux = 44100;
 
   /* on met de côté tout ce que le rendu va remplacer — y compris les quatre
@@ -75,13 +101,14 @@ function exporterWav(){
   try{ off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(taux * total), taux); }
   catch(e){ WAVX.occupe = false; signal("RENDU IMPOSSIBLE SUR CET APPAREIL"); return; }
 
-  ctx = off;
-  SET.bus = {};                                /* les sorties réelles gardent leurs tranches */
-  batirAudio();                                 /* tout est refait dans le contexte de rendu */
-  cache = true;                                 /* pas d'animation pendant le rendu */
+  var emAvant = songEm ? Object.assign({}, EM) : null;
+  var inerteAvant = document.body.inert, renduRemis = false;
+  function bloquerClavier(e){ e.preventDefault(); e.stopImmediatePropagation(); }
+  if(songEm){ document.body.inert = true; document.addEventListener("keydown", bloquerClavier, true); }
 
   /* quoi qu'il arrive, on rend la main : un export raté ne doit pas bloquer les suivants */
   function remettre(){
+    if(renduRemis) return; renduRemis = true;
     WAVX.occupe = false;
     ctx = ctxVrai; master = masterVrai; noiseBuf = bruitVrai; cache = cacheVrai;
     SET.bus = busVrais;
@@ -95,10 +122,22 @@ function exporterWav(){
     outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
     try{ allerMachine(modele); }catch(e){ signal("MACHINE À RECHARGER"); }
+    if(emAvant){
+      Object.keys(emAvant).forEach(function(k){ if(k !== "noeuds") EM[k] = emAvant[k]; });
+      document.body.inert = inerteAvant;
+      document.removeEventListener("keydown", bloquerClavier, true);
+      majTouches(); majBascules(); majMotionLeds(); majKnobsPartie(); majLcd();
+    }
   }
   try{
-    allerMachine(modele);                       /* la machine se rebâtit dans le contexte de rendu */
-    for(var m=0; m<WAVX.mesures; m++){
+    ctx = off; SET.bus = {}; batirAudio(); cache = true;
+    allerMachine(modele);
+    if(plan){
+      plan.entrees.forEach(function(e){
+        EM.cur = e.index; EM.pat = e.motif;
+        for(var s=0;s<e.motif.len;s++) MACHINE.schedule(s, 0.05 + (e.debut + s) * duree);
+      });
+    }else for(var m=0; m<WAVX.mesures; m++){
       for(var s=0; s<pas; s++){
         MACHINE.schedule(s, 0.05 + (m * pas + s) * duree);
       }
@@ -109,12 +148,12 @@ function exporterWav(){
     signal("RENDU INTERROMPU · " + ((e && e.message) ? e.message.slice(0, 40) : ""));
     return;
   }
-  off.startRendering().then(function(rendu){
+  Promise.resolve().then(function(){ return off.startRendering(); }).then(function(rendu){
     var crete = 0, c0 = rendu.getChannelData(0);
     for(var i=0;i<c0.length;i++){ var a = Math.abs(c0[i]); if(a > crete) crete = a; }
     var ab = wavStereo(rendu);
     remettre();
-    var nom = "drm-" + modele + "-" + WAVX.mesures + "mes-" + Date.now().toString(36) + ".wav";
+    var nom = "drm-" + modele + "-" + (plan ? "song-" + plan.entrees.length + "ent-" : WAVX.mesures + "mes-") + Date.now().toString(36) + ".wav";
     var chemin = "";
     chemin = ecrireDocument(HOST, nom, ab);
     if(chemin){
@@ -122,6 +161,7 @@ function exporterWav(){
              (crete > 0 ? (20 * Math.log10(crete)).toFixed(1) : "-∞") + " dB");
       var e2 = document.getElementById("wav-chemin");
       if(e2) e2.textContent = "Dernier rendu : " + chemin;
+      if(songEm) document.getElementById("em-export-chemin").textContent = "Dernier Song : " + chemin;
     } else signal("ÉCRITURE REFUSÉE");
     H.inter();
   }).catch(function(){

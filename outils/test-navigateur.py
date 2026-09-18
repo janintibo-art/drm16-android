@@ -1942,10 +1942,36 @@ async def em_64_pas(nav):
     finally:
         await pg.context.close()
 
+async def em_song_wav(nav):
+    print('\n32. EM-1 : export Song de longueurs différentes (v219)')
+    pg, err = await nouvelle_page(nav, pont=True)
+    try:
+        await pg.locator('.pick[data-m=em1]').click()
+        await pg.evaluate('''() => {
+          audioInit();EM.slots=Array.from({length:16},()=>motifVide());
+          [4,32,8].forEach((L,k)=>{let p=EM.slots[k];p.len=L;p.st.forEach(r=>r.fill(0));p.fx.fill(false);p.st[8][L-1]=1;p.nt[8][L-1]=60;p.onde[8]=7;});
+          EM.song=[0,1,2];EM.cur=2;EM.pat=EM.slots[2];EM.mode=2;EM.spos=1;EM.ssel=1;EM.page=0;EM.pasSel=6;EM.dDepth=0;
+          S.bpm=120;WAVX.mesures=9;memEm();majTouches();window.__emAvant=JSON.stringify({cur:EM.cur,pat:EM.pat,page:EM.page,pasSel:EM.pasSel,spos:EM.spos,ssel:EM.ssel,mode:EM.mode,song:EM.song});window.__ctxAvant=ctx;
+        }''')
+        await pg.locator('#em-export-song').click()
+        await pg.wait_for_function('!WAVX.occupe',timeout=20000)
+        r=await pg.evaluate('''() => {
+          let n=Object.keys(__F).find(n=>/^drm-em1-song-3ent-/.test(n));if(!n)return {taille:false,fin:0,retour:false};
+          let o=__F[n],v=new DataView(o.buffer,o.byteOffset,o.byteLength),fin=0;
+          for(let j=Math.floor(5.43*44100);j<Math.floor(5.48*44100);j++)fin=Math.max(fin,Math.abs(v.getInt16(44+4*j,true)));
+          return {taille:o.length===tailleWavStereo(44*stepDur()+2.5,44100),fin,retour:ctx===__ctxAvant&&!document.body.inert&&JSON.stringify({cur:EM.cur,pat:EM.pat,page:EM.page,pasSel:EM.pasSel,spos:EM.spos,ssel:EM.ssel,mode:EM.mode,song:EM.song})===__emAvant};
+        }''')
+        ok(r['taille'] and r['fin']>10,'vrai WAV de 4+32+8 pas, un passage malgré neuf répétitions dans le menu, dernière note présente')
+        ok(r['retour'],'contexte audio, motif, sélection, Song et commandes restaurés')
+        await pg.evaluate('ecrireVol(8)')
+        ok(not err,'aucune erreur de page après export et reprise du jeu : '+str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav):
             try:
                 await t(nav)
             except Exception as e:
