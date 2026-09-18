@@ -1,7 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
 const src=fs.readFileSync(path.join(__dirname,'../page/js/250-electribe-em-1.js'),'utf8');
 function f(n){let i=src.indexOf('function '+n+'(');assert(i>=0,n);return src.slice(i,src.indexOf('\n}',i)+2);}
-const c={S:{run:false},EM:{page:0,sel:0,mode:0,pos:-1,mute:[],solo:[],rec:false,shift:false,kb:false,pset:false},MOT:null,cache:false,queue:[],notes:[],H:{cran(){}},MIDI:{base:36,canal:1,canalSy:2},lcd(){},memEm(){},protege(){},majBascules(){},majKnobsPartie(){},majMotionLeds(){},ouvrirPas:()=>0,stepDur:()=>.125,attenuerVoie(){},sortiePartie(){},jouerTimbre(...x){c.notes.push(x);},voixSynth(...x){c.notes.push(x);},midiNoteA(){},motFxValeur:()=>null};
+const c={S:{run:false},EM:{page:0,sel:0,mode:0,pos:-1,mute:[],solo:[],rec:false,shift:false,kb:false,pset:false},MOT:null,cache:false,queue:[],notes:[],H:{cran(){}},MIDI:{base:36,canal:1,canalSy:2},lcd(){},memEm(){},protege(){},majBascules(){},majKnobsPartie(){},majMotionLeds(){},majEditionSongEm(){},ouvrirPas:()=>0,stepDur:()=>.125,attenuerVoie(){},sortiePartie(){},jouerTimbre(...x){c.notes.push(x);},voixSynth(...x){c.notes.push(x);},midiNoteA(){},motFxValeur:()=>null};
 vm.createContext(c);
 vm.runInContext(src.slice(src.indexOf('var ONDES ='),src.indexOf('function nomNote('))+src.slice(src.indexOf('function ligneVide('),src.indexOf('function poser(')),c);
 vm.runInContext(['serialiser','deserialiser','motionAu','enregMotion','scheduleEm','velAccent','choisirLongueurEm','choisirPageEm','majPagesEm','majTouches','beatEm','fonctionShift','ecrireVol'].map(f).join('\n'),c);

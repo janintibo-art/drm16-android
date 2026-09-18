@@ -90,6 +90,10 @@ function start(){
      (MACHINE === MACHINE_STK || (SET.on && SET.actives.stk)) && !preparerChaineStk()){
     S.run = false; return;
   }
+  if(typeof preparerSongEm === "function" &&
+     (MACHINE === MACHINE_EM || (SET.on && SET.actives.em)) && !preparerSongEm()){
+    S.run = false; return;
+  }
   S.run=true; step=0; pasSet=0; queue=[];
   if(SET.on) preparerSet();
   if(MIDI.sync && MIDI.ouvert >= 0){

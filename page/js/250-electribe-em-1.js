@@ -548,6 +548,7 @@ var beatsEls = [], keysEls = [];
 function beatEm(i){
   EM.pos = i;
   majPagesEm();
+  majEditionSongEm();
   if(EM.mode === 2){
     for(var q=0;q<16;q++){
       beatsEls[q].classList.toggle("on", q===EM.spos);
@@ -563,6 +564,7 @@ function beatEm(i){
 function arretEm(){
   EM.pos = -1;
   majPagesEm();
+  majEditionSongEm();
   var pb = document.getElementById("em-play"); if(pb) pb.classList.remove("on");
   for(var j=0;j<16;j++){ beatsEls[j].classList.remove("on"); keysEls[j].classList.remove("cur"); }
 }
@@ -705,6 +707,7 @@ function choisirPasEm(i){
 }
 function majTouches(){
   majPagesEm();
+  majEditionSongEm();
   var p = EM.pat, k = EM.sel, i;
   if(EM.pset){
     for(i=0;i<16;i++){
@@ -747,6 +750,7 @@ function majTouches(){
   }
 }
 function toucheSong(i){
+  if(S.run || WAVX.occupe) return;
   if(EM.protect){ protege(); return; }
   if(i > EM.song.length){ lcd("---","SONG",true); H.cran(); return; }
   if(i === EM.song.length) EM.song.push(EM.cur);
@@ -861,6 +865,7 @@ function fonctionShift(i){
     majTouches(); majBascules(); majKnobsPartie(); memEm();
     lcd("DEL", "DELETE PATTERN", true);
   } else if(i===12){                          /* Clear Song */
+    if(S.run || WAVX.occupe) return;
     if(!ecrit) return protege();
     EM.song = []; EM.spos = 0; EM.ssel = 0;
     if(EM.mode===2) majTouches();
@@ -1041,6 +1046,7 @@ function majKnobsPartie(){ kEmPit.maj(); kEmLvl.maj(); kEmPan.maj(); }
   function pas(d){
     var k = EM.sel, p = EM.pat;
     if(EM.param===0 && EM.mode===2 && EM.song.length){
+      if(S.run || EM.protect || WAVX.occupe) return;
       EM.song[EM.ssel] = (EM.song[EM.ssel] + d + 16)%16;
       majTouches(); memEm();
       lcd(("00"+(EM.song[EM.ssel]+1)).slice(-3), "SONG "+(EM.ssel+1));
@@ -1191,11 +1197,7 @@ document.getElementById("em-shift").addEventListener("click", function(){
 document.getElementById("em-erase").addEventListener("click", function(){
   if(EM.protect){ protege(); return; }
   if(EM.mode === 2){
-    if(EM.song.length){
-      EM.song.splice(EM.ssel,1);
-      EM.ssel = Math.max(0, Math.min(EM.ssel, EM.song.length-1));
-      majTouches(); memEm(); lcd("DEL","SONG",true); H.inter();
-    }
+    editerSongEm("supprimer");
     return;
   }
   EM.pat.st[EM.sel] = ligneEmVide();
@@ -1344,3 +1346,51 @@ document.getElementById("em-longueur").addEventListener("change", function(){ ch
 
 // Export indépendant de la page éditée et du nombre de répétitions du menu WAV.
 document.getElementById("em-export-song").addEventListener("click", function(){ exporterWav(true); });
+
+/* v220 : édition d'une occurrence de motif dans le Song. */
+function editionSongPossibleEm(){
+  return EM.mode === 2 && !S.run && !EM.protect && !WAVX.occupe &&
+    Number.isInteger(EM.ssel) && EM.ssel >= 0 && EM.ssel < EM.song.length;
+}
+function editerSongEm(action){
+  if(!editionSongPossibleEm()) return false;
+  var i = EM.ssel, chaine = EM.song.slice(), cible;
+  if(action === "gauche" || action === "droite"){
+    cible = i + (action === "gauche" ? -1 : 1);
+    if(cible < 0 || cible >= chaine.length) return false;
+    var motif = chaine[i]; chaine[i] = chaine[cible]; chaine[cible] = motif;
+    i = cible;
+  }else if(action === "dupliquer"){
+    if(chaine.length >= 16){ signal("SONG PLEIN · 16 POSITIONS"); return false; }
+    chaine.splice(i+1,0,chaine[i]); i++;
+  }else if(action === "supprimer"){
+    if(!window.confirm("Retirer la position " + (i+1) + " du Song ? Le motif lui-même reste conservé.")) return false;
+    chaine.splice(i,1); i = Math.max(0,Math.min(i,chaine.length-1));
+  }else return false;
+  EM.song = chaine; EM.ssel = i; EM.spos = 0;
+  majTouches(); memEm(); H.inter();
+  lcd(String(chaine.length), "SONG · POSITIONS", true); return true;
+}
+function majEditionSongEm(){
+  document.getElementById("em-song-edition").hidden = EM.mode !== 2;
+  var possible = editionSongPossibleEm();
+  document.getElementById("em-song-selection").textContent = EM.song.length ?
+    "POSITION " + (EM.ssel+1) + " / " + EM.song.length : "SONG VIDE · TOUCHE 1 POUR AJOUTER";
+  document.getElementById("em-song-gauche").disabled = !possible || EM.ssel === 0;
+  document.getElementById("em-song-droite").disabled = !possible || EM.ssel === EM.song.length-1;
+  document.getElementById("em-song-dupliquer").disabled = !possible || EM.song.length >= 16;
+  document.getElementById("em-song-supprimer").disabled = !possible;
+}
+["gauche","droite","dupliquer","supprimer"].forEach(function(action){
+  document.getElementById("em-song-"+action).addEventListener("click",function(){editerSongEm(action);});
+});
+
+function preparerSongEm(){
+  if(EM.mode !== 2) return true;
+  if(!EM.song.length || EM.song.some(function(k){return !Number.isInteger(k) || k<0 || k>=16 || !EM.slots[k];})){
+    signal("SONG VIDE OU INVALIDE"); return false;
+  }
+  EM.slots[EM.cur] = EM.pat;
+  EM.spos = 0; EM.cur = EM.song[0]; EM.pat = EM.slots[EM.cur];
+  majTouches(); majBascules(); majMotionLeds(); majKnobsPartie(); return true;
+}
