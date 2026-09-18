@@ -402,6 +402,23 @@ async def main():
             await pg.locator('#t1k-nom-motif').fill('');await pg.locator('#t1k-nom-motif').press('Enter')
             assert await pg.evaluate('motifT1kCur().nom===""')
             print('OK : noms dans le champ et la liste PTN, sauvegarde, protection PLAY et effacement du nom',flush=True)
+            # v210 : restauration complète après collage puis effacement.
+            await pg.evaluate("choisirMotifT1k(0,0);T1K.sel=0;motifT1kCur().nom='Source';majT1k()")
+            await pg.locator('#t1k-copier').click()
+            await pg.locator('#t1k-ptn').select_option('15')
+            avant=await pg.evaluate('JSON.stringify(motifT1kCur())')
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-coller').click()
+            assert not await pg.locator('#t1k-annuler').is_disabled()
+            pg.once('dialog',lambda d:d.dismiss());await pg.locator('#t1k-annuler').click()
+            assert await pg.evaluate('motifT1kCur().nom==="Source"')
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-annuler').click()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur())')==avant
+            assert await pg.locator('#t1k-annuler').is_disabled()
+            await pg.evaluate('motifT1kCur().reglages[0][0]={tune:.7};memT1k();majT1k()')
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-effacer-vars').click()
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-annuler').click()
+            assert await pg.evaluate('motifT1kCur().reglages[0][0].tune===.7')
+            print('OK : boutons annuler collage et effacement, confirmation refusée/acceptée, restauration complète',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

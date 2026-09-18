@@ -200,3 +200,15 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  assert(c.renommerMotifT1k(''));assert.equal(c.motifT1kCur().nom,'');assert.equal(c.T1K.motifs[0].nom,'Intro été');
  console.log('TR-1000 v209 : noms, banques indépendantes, longueur Unicode, protection PLAY, mémoire et migration OK.');
 }
+{
+ const c=setup();c.signal=()=>{};c.majKnobsT1k=()=>{};let accepte=true;c.window={confirm:()=>accepte};
+ const origine=copie(c.motifT1kCur());c.copierMotifT1k();c.T1K.banq=7;c.T1K.cur=15;
+ const cible=c.motifT1kCur();cible.nom='Avant';cible.reglages[2][3]={niv:.7};cible.longueurs[2]=3;cible.muet[0]=true;const avant=copie(cible);
+ assert(c.collerMotifT1k());assert(c.annulationDisponibleT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),origine);
+ c.motifT1kCur().nom='Après';accepte=false;assert(!c.annulerModificationT1k());assert.equal(c.motifT1kCur().nom,'Après');accepte=true;
+ c.T1K.cur=14;assert(!c.annulerModificationT1k());c.T1K.cur=15;c.S.run=true;assert(!c.annulerModificationT1k());c.S.run=false;
+ assert(c.annulerModificationT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),avant);assert.equal(c.T1K.annulation,null);assert.deepStrictEqual(copie(c.memoire.t1k.motifs[127]),avant);
+ c.T1K.sel=2;assert(c.effacerVariationsT1k());assert.equal(c.motifT1kCur().reglages[2][3],null);assert(c.annulerModificationT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),avant);
+ assert(c.effacerVariationsT1k());c.memT1k();c.chargerT1k();assert.equal(c.T1K.annulation,null);assert.equal(c.motifT1kCur().reglages[2][3],null);
+ console.log('TR-1000 v210 : annuler collage/effacement, confirmation, bonne destination, garde PLAY, restauration complète et mémoire OK.');
+}

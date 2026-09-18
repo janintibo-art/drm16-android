@@ -1907,6 +1907,8 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 .t1k-nom-motif{display:flex;align-items:center;gap:8px;margin:8px 0;font:700 9px Arial;color:#434a53}
 #t1k-nom-motif{min-width:0;flex:1;padding:8px;border:1px solid #7c848e;border-radius:4px;background:#23262c;color:#e4eef7;font:700 12px Arial}
 #t1k-nom-motif:disabled{opacity:.45}
+
+#t1k-annuler:disabled{opacity:.45}
 /* ===================== MACHINE D'ARCHIVE ===================== */
 body.arcm .arcmb{display:block}
 body.arcm #unit,body.arcm .em,body.arcm .er,body.arcm .ea,body.arcm .es,body.arcm .mx,body.arcm .sx,
@@ -3498,6 +3500,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <select id="t1k-ptn" aria-label="Motif TR-1000 dans la banque sélectionnée"><option value="0">PTN 1</option><option value="1">PTN 2</option><option value="2">PTN 3</option><option value="3">PTN 4</option><option value="4">PTN 5</option><option value="5">PTN 6</option><option value="6">PTN 7</option><option value="7">PTN 8</option><option value="8">PTN 9</option><option value="9">PTN 10</option><option value="10">PTN 11</option><option value="11">PTN 12</option><option value="12">PTN 13</option><option value="13">PTN 14</option><option value="14">PTN 15</option><option value="15">PTN 16</option></select>
     <button id="t1k-copier">COPIER</button>
     <button id="t1k-coller" disabled>COLLER</button>
+    <button id="t1k-annuler" disabled>ANNULER</button>
     <button id="t1k-ech">SAMPLE B</button>
     <button id="t1k-afx">ANALOG FX</button>
     <button id="t1k-ma">SET A</button>
@@ -5390,6 +5393,15 @@ contrôle. Le nom apparaît dans la liste PTN, après le numéro. Chaque emplace
 conserve son nom, jusqu’à 24 caractères. Vider le champ enlève le nom sans changer
 la musique. Les noms sont sauvegardés dans le projet et repris par COPIER/COLLER ;
 renommez la copie pour distinguer vos variantes. Les anciens motifs restent sans nom.</p>
+<h3>Annuler un collage ou un effacement</h3>
+<p>Après COLLER ou EFFACER VAR., ANNULER permet de retrouver le motif entier tel
+qu’il était juste avant cette action. Revenez sur le motif concerné et arrêtez PLAY.
+Une confirmation prévient que les modifications effectuées depuis seront également
+remplacées. Annuler cette confirmation conserve tout en l’état.</p>
+<p>Un seul état précédent est conservé : un nouveau collage ou effacement confirmé
+le remplace. Cette réserve est temporaire et disparaît au rechargement de la machine
+ou du projet, notamment après un export qui recharge la machine. Le motif restauré
+est sauvegardé normalement. Il n’y a pas de commande pour refaire l’action annulée.</p>
   </div>
   <div class="doc" id="note-dbi" data-titre="DRUMBRUTE IMPACT">
   <h3>Motifs de 1 à 64 pas</h3>
@@ -23894,7 +23906,7 @@ function motifT1k(n){
                     m.pas[7] = 0x4000; m.sub[6][10] = 3; }
   return m;
 }
-var T1K = {copie:null, motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
+var T1K = {annulation:null, copie:null, motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
            morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, cycles:false, cycleValeur:"1:1", decalage:false, retardValeur:0, motionRec:false, params:false, paramNom:"tune", paramValeur:null, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
@@ -24257,6 +24269,7 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
   document.getElementById("t1k-nom-motif").disabled = S.run;
   document.getElementById("t1k-effacer-vars").disabled = S.run;
   document.getElementById("t1k-copier").disabled = S.run;
@@ -24290,12 +24303,31 @@ function copierMotifT1k(){
   majT1k(); signal("MOTIF " + T1K.copie.nom + " COPIÉ · CHOISISSEZ LA DESTINATION PUIS COLLER");
   return true;
 }
+/* v210 : une seule restauration temporaire, attachée au motif remplacé. */
+function memoriserAnnulationT1k(action){
+  T1K.annulation = {index:T1K.banq * 16 + T1K.cur, action:action, motif:lireMotifT1k(motifT1kCur())};
+}
+function annulationDisponibleT1k(){
+  return !!T1K.annulation && T1K.annulation.index === T1K.banq * 16 + T1K.cur;
+}
+function annulerModificationT1k(){
+  if(S.run || !annulationDisponibleT1k()) return false;
+  var a = T1K.annulation, nom = "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1);
+  if(!window.confirm("Annuler " + a.action + " dans le motif " + nom +
+      " ? Le motif entier sera rétabli dans son état précédent, y compris ses notes et réglages. Les modifications faites depuis seront perdues.")) return false;
+  T1K.motifs[a.index] = lireMotifT1k(a.motif);
+  T1K.annulation = null; T1K.motionRec = false;
+  resetLectureT1k(); memT1k(); majT1k(); majKnobsT1k();
+  signal("MOTIF " + nom + " RÉTABLI"); return true;
+}
+
 function collerMotifT1k(){
   if(S.run || !T1K.copie){ signal(S.run ? "ARRÊTEZ PLAY POUR COLLER" : "COPIEZ D'ABORD UN MOTIF"); return false; }
   var destination = T1K.banq * 16 + T1K.cur;
   var nom = "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1);
   if(!window.confirm("Remplacer le motif " + nom + " par la copie de " + T1K.copie.nom +
       " ? Ses pas et réglages d'instruments seront remplacés.")) return false;
+  memoriserAnnulationT1k("le collage");
   T1K.motifs[destination] = lireMotifT1k(T1K.copie.motif);
   resetLectureT1k(); memT1k(); majT1k(); majKnobsT1k();
   signal("COPIE DE " + T1K.copie.nom + " COLLÉE EN " + nom);
@@ -24342,6 +24374,7 @@ function effacerVariationsT1k(){
   if(!window.confirm("Effacer toutes les variations de " + T1K_INSTR[k].nom +
       " dans le motif " + "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1) +
       " ? Les notes et les réglages de base sont conservés.")) return false;
+  memoriserAnnulationT1k("l’effacement des variations");
   m.reglages[k] = Array(16).fill(null);
   T1K.motionRec = false;
   memT1k(); majT1k(); signal("VARIATIONS EFFACÉES · " + T1K_INSTR[k].nom);
@@ -24504,6 +24537,7 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
   var champNom = document.getElementById("t1k-nom-motif");
   champNom.value = motifT1kCur().nom;
   champNom.disabled = S.run;
@@ -24608,6 +24642,7 @@ function memT1k(){
   sauverMachine("t1k");
 }
 function chargerT1k(){
+  T1K.annulation = null;
   T1K.motionRec = false;
   T1K.copie = null;
   resetLectureT1k();
@@ -24774,6 +24809,8 @@ document.getElementById("t1k-longueur").addEventListener("change", function(e){ 
 
 document.getElementById("t1k-nom-motif").addEventListener("change", function(e){ renommerMotifT1k(e.target.value); });
 document.getElementById("t1k-nom-motif").addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); this.blur(); } });
+
+document.getElementById("t1k-annuler").addEventListener("click", annulerModificationT1k);
 /* ===================== ARTURIA DRUMBRUTE IMPACT =====================
    Huit voix analogiques, et une chose qu'aucune autre machine d'ici ne fait :
    la polyrythmie. Chaque piste garde sa propre longueur, et les motifs se

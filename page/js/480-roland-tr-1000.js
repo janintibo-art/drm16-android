@@ -33,7 +33,7 @@ function motifT1k(n){
                     m.pas[7] = 0x4000; m.sub[6][10] = 3; }
   return m;
 }
-var T1K = {copie:null, motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
+var T1K = {annulation:null, copie:null, motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
            morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, cycles:false, cycleValeur:"1:1", decalage:false, retardValeur:0, motionRec:false, params:false, paramNom:"tune", paramValeur:null, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
@@ -396,6 +396,7 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
   document.getElementById("t1k-nom-motif").disabled = S.run;
   document.getElementById("t1k-effacer-vars").disabled = S.run;
   document.getElementById("t1k-copier").disabled = S.run;
@@ -429,12 +430,31 @@ function copierMotifT1k(){
   majT1k(); signal("MOTIF " + T1K.copie.nom + " COPIÉ · CHOISISSEZ LA DESTINATION PUIS COLLER");
   return true;
 }
+/* v210 : une seule restauration temporaire, attachée au motif remplacé. */
+function memoriserAnnulationT1k(action){
+  T1K.annulation = {index:T1K.banq * 16 + T1K.cur, action:action, motif:lireMotifT1k(motifT1kCur())};
+}
+function annulationDisponibleT1k(){
+  return !!T1K.annulation && T1K.annulation.index === T1K.banq * 16 + T1K.cur;
+}
+function annulerModificationT1k(){
+  if(S.run || !annulationDisponibleT1k()) return false;
+  var a = T1K.annulation, nom = "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1);
+  if(!window.confirm("Annuler " + a.action + " dans le motif " + nom +
+      " ? Le motif entier sera rétabli dans son état précédent, y compris ses notes et réglages. Les modifications faites depuis seront perdues.")) return false;
+  T1K.motifs[a.index] = lireMotifT1k(a.motif);
+  T1K.annulation = null; T1K.motionRec = false;
+  resetLectureT1k(); memT1k(); majT1k(); majKnobsT1k();
+  signal("MOTIF " + nom + " RÉTABLI"); return true;
+}
+
 function collerMotifT1k(){
   if(S.run || !T1K.copie){ signal(S.run ? "ARRÊTEZ PLAY POUR COLLER" : "COPIEZ D'ABORD UN MOTIF"); return false; }
   var destination = T1K.banq * 16 + T1K.cur;
   var nom = "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1);
   if(!window.confirm("Remplacer le motif " + nom + " par la copie de " + T1K.copie.nom +
       " ? Ses pas et réglages d'instruments seront remplacés.")) return false;
+  memoriserAnnulationT1k("le collage");
   T1K.motifs[destination] = lireMotifT1k(T1K.copie.motif);
   resetLectureT1k(); memT1k(); majT1k(); majKnobsT1k();
   signal("COPIE DE " + T1K.copie.nom + " COLLÉE EN " + nom);
@@ -481,6 +501,7 @@ function effacerVariationsT1k(){
   if(!window.confirm("Effacer toutes les variations de " + T1K_INSTR[k].nom +
       " dans le motif " + "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1) +
       " ? Les notes et les réglages de base sont conservés.")) return false;
+  memoriserAnnulationT1k("l’effacement des variations");
   m.reglages[k] = Array(16).fill(null);
   T1K.motionRec = false;
   memT1k(); majT1k(); signal("VARIATIONS EFFACÉES · " + T1K_INSTR[k].nom);
@@ -643,6 +664,7 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-annuler").disabled = S.run || !annulationDisponibleT1k();
   var champNom = document.getElementById("t1k-nom-motif");
   champNom.value = motifT1kCur().nom;
   champNom.disabled = S.run;
@@ -747,6 +769,7 @@ function memT1k(){
   sauverMachine("t1k");
 }
 function chargerT1k(){
+  T1K.annulation = null;
   T1K.motionRec = false;
   T1K.copie = null;
   resetLectureT1k();
@@ -913,3 +936,5 @@ document.getElementById("t1k-longueur").addEventListener("change", function(e){ 
 
 document.getElementById("t1k-nom-motif").addEventListener("change", function(e){ renommerMotifT1k(e.target.value); });
 document.getElementById("t1k-nom-motif").addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); this.blur(); } });
+
+document.getElementById("t1k-annuler").addEventListener("click", annulerModificationT1k);
