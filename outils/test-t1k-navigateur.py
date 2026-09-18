@@ -227,6 +227,35 @@ async def main():
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v199-%sx%s.png'%(w,h))))
             print('OK : boutons copier/coller, confirmations, destination H16, indépendance et sauvegarde',flush=True)
+            # v202 : vrai mute, persistance et silence dans le WAV.
+            await pg.evaluate("choisirMotifT1k(0,0);T1K.sel=0;let m=motifT1kCur();m.pas.fill(0);m.pas[0]=1;m.prob[0].fill(100);m.cycle[0].fill('1:1');m.retard[0].fill(0);m.direction[0]='avant';m.sub[0].fill(1);m.muet.fill(false);WAVX.mesures=1;majT1k()")
+            await pg.locator('#t1k-muet').click()
+            assert await pg.evaluate('motifT1kCur().muet[0]&&!motifT1kCur().muet[1]&&motifT1kCur().pas[0]===1')
+            assert 'OFF' in await pg.locator('.t1k-pad[data-p="0"]').inner_text()
+            await pg.evaluate('memT1k();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate('motifT1kCur().muet[0]')
+            async def pic_wav():
+                return await pg.evaluate("""async () => {
+                  WAVX.mesures=1;memT1k();writeMem();let n=__exports.length;exporterWav();let limite=performance.now()+20000;
+                  while(WAVX.occupe&&performance.now()<limite)await new Promise(r=>setTimeout(r,10));
+                  if(__exports.length!==n+1)throw Error('WAV mute absent');
+                  let o=__exports[n].octets,v=new DataView(o.buffer),pic=0;
+                  for(let i=44;i<o.length;i+=2)pic=Math.max(pic,Math.abs(v.getInt16(i,true))/32768);
+                  return pic;
+                }""")
+            assert await pic_wav()<.0001
+            await pg.locator('#t1k-start').click()
+            assert not await pg.locator('#t1k-muet').is_disabled()
+            await pg.locator('#t1k-muet').click()
+            assert await pg.evaluate('S.run&&!motifT1kCur().muet[0]')
+            await pg.locator('#t1k-stop').click()
+            assert await pic_wav()>.001
+            await pg.locator('#t1k-muet').click()
+            for w,h in ((393,851),(360,640),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v202-%sx%s.png'%(w,h))))
+            print('OK : mute conservant les pas, sauvegarde, WAV silencieux/audible et réactivation pendant PLAY',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

@@ -108,7 +108,7 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
 }
 {
  const c=setup();c.signal=()=>{};c.majKnobsT1k=()=>{};let accepte=false,questions=0;c.window={confirm:()=>{questions++;return accepte;}};
- const m=c.motifT1kCur();m.retard[0][0]=8;m.cycle[0][0]='2:4';m.direction[0]='arriere';m.prob[0][0]=25;m.instr[0].ech='b7';
+ const m=c.motifT1kCur();m.retard[0][0]=8;m.cycle[0][0]='2:4';m.direction[0]='arriere';m.prob[0][0]=25;m.instr[0].ech='b7';m.muet[3]=true;
  const attendu=copie(m);assert(c.copierMotifT1k());m.pas[0]=0;m.retard[0][0]=0;c.T1K.banq=7;c.T1K.cur=15;
  const avant=copie(c.motifT1kCur());assert(!c.collerMotifT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),avant);
  accepte=true;assert(c.collerMotifT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),attendu);
@@ -116,4 +116,14 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.S.run=true;const q=questions;assert(!c.collerMotifT1k());assert(!c.copierMotifT1k());assert.equal(questions,q);
  c.S.run=false;c.memT1k();c.chargerT1k();assert.equal(c.T1K.copie,null);assert.deepStrictEqual(copie(c.T1K.motifs[126]),attendu);assert(!c.collerMotifT1k());
  console.log('TR-1000 v199 : copie complète, annulation, indépendance, répétition, protection PLAY et sauvegarde OK.');
+}
+{
+ const c=setup();c.signal=()=>{};const m=c.motifT1kCur();m.pas.fill(0);m.pas[0]=1;m.pas[1]=1;m.sub[0][0]=4;
+ const pas=copie(m.pas);c.basculerMuetT1k();c.scheduleT1k(0,2);assert.deepStrictEqual(copie(c.voix.map(v=>v[1])),[1]);assert.deepStrictEqual(copie(m.pas),pas);
+ c.voix=[];c.frapperT1k(0,false);assert.equal(c.voix.length,1,'pad direct audible');
+ c.T1K.fill=true;c.voix=[];c.scheduleT1k(3,3);assert(!c.voix.some(v=>v[1]===0));c.T1K.fill=false;
+ c.memT1k();m.muet[0]=false;assert.equal(c.memoire.t1k.motifs[0].muet[0],true);c.chargerT1k();assert.equal(c.motifT1kCur().muet[0],true);
+ c.S.run=true;c.basculerMuetT1k();assert.equal(c.motifT1kCur().muet[0],false);c.voix=[];c.scheduleT1k(0,4);assert.equal(c.voix.filter(v=>v[1]===0).length,4);
+ c.memoire.t1k.motifs.forEach(m=>delete m.muet);c.chargerT1k();assert(c.T1K.motifs.every(m=>m.muet.every(v=>v===false)));
+ console.log('TR-1000 v202 : mute indépendant, pads directs, FILL, mémoire, migration et réactivation en lecture OK.');
 }
