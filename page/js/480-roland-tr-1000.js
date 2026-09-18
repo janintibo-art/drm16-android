@@ -21,7 +21,7 @@ function instrT1k(i){
   return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5};
 }
 function motifT1k(n){
-  var m = {muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
+  var m = {solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
   for(var k=0;k<10;k++){
     m.pas.push(0); m.acc.push(0);
     m.retard.push(Array(16).fill(0)); m.cycle.push(Array(16).fill("1:1")); m.sub.push([]); m.prob.push(Array(16).fill(100));
@@ -72,6 +72,7 @@ function lireMotifT1k(o){
   var r = motifT1k(9);
   o = o && typeof o === "object" ? o : {};
   for(var z=0;z<10;z++) r.muet[z] = Array.isArray(o.muet) && o.muet[z] === true;
+  r.solo = Number.isInteger(o.solo) && o.solo >= 0 && o.solo < 10 ? o.solo : -1;
   r.last = Math.floor(borneT1k(o.last, 1, 16, 16));
   for(var k=0;k<10;k++){
     ["pas","acc"].forEach(function(c){
@@ -335,7 +336,7 @@ function scheduleT1k(i, t){
   var pas = T1K.fill ? T1K_FILL : m.pas;
   for(var k=0;k<10;k++){
     var j = T1K.fill ? i : pasDirectionT1k(m.direction[k], absolu, m.last); positions.push(j);
-    if(m.muet[k]) continue;
+    if(m.solo >= 0 ? k !== m.solo : m.muet[k]) continue;
     if(!(pas[k] & (1 << j))) continue;
     if(!T1K.fill && !passeCycleT1k(m.cycle[k][j], T1K.tour)) continue;
     if(!T1K.fill && !passeProbabiliteT1k(m.prob[k][j])) continue;
@@ -397,9 +398,18 @@ function collerMotifT1k(){
 /* v202 : couper la séquence sans effacer les notes ni bloquer les pads directs. */
 function basculerMuetT1k(){
   var m = motifT1kCur();
+  if(m.solo >= 0){ signal("QUITTEZ SOLO POUR MODIFIER LES MUTES"); return; }
   m.muet[T1K.sel] = !m.muet[T1K.sel];
   memT1k(); majT1k();
   signal(T1K_INSTR[T1K.sel].nom + (m.muet[T1K.sel] ? " · SÉQUENCE MUETTE" : " · SÉQUENCE RÉACTIVÉE"));
+}
+
+/* v203 : SOLO masque les mutes sans les modifier. */
+function basculerSoloT1k(){
+  var m = motifT1kCur();
+  m.solo = m.solo === T1K.sel ? -1 : T1K.sel;
+  memT1k(); majT1k();
+  signal(m.solo < 0 ? "SOLO DÉSACTIVÉ · MUTES RÉTABLIS" : "SOLO · " + T1K_INSTR[m.solo].nom);
 }
 
 /* ---------- interface ---------- */
@@ -578,10 +588,15 @@ function majT1k(){
   var pads = document.querySelectorAll(".t1k-pad");
   for(i=0;i<pads.length;i++){
     pads[i].classList.toggle("sel", i === T1K.sel);
-    pads[i].classList.toggle("muet", m.muet[i]);
-    pads[i].textContent = T1K_INSTR[i].id.toUpperCase() + (m.muet[i] ? " · OFF" : "");
-    pads[i].setAttribute("aria-label", T1K_INSTR[i].nom + (m.muet[i] ? " · séquence muette" : " · séquence active"));
+    pads[i].classList.toggle("muet", m.solo >= 0 ? i !== m.solo : m.muet[i]);
+    pads[i].classList.toggle("solo", i === m.solo);
+    pads[i].textContent = T1K_INSTR[i].id.toUpperCase() + (i === m.solo ? " · SOLO" : m.solo >= 0 || m.muet[i] ? " · OFF" : "");
+    pads[i].setAttribute("aria-label", T1K_INSTR[i].nom + (i === m.solo ? " · solo" : m.solo >= 0 || m.muet[i] ? " · séquence muette" : " · séquence active"));
   }
+  document.getElementById("t1k-solo").classList.toggle("on", m.solo >= 0);
+  document.getElementById("t1k-solo").setAttribute("aria-pressed", String(m.solo >= 0));
+  document.getElementById("t1k-solo").textContent = m.solo === T1K.sel ? "QUITTER SOLO" : "SOLO " + T1K_INSTR[T1K.sel].id.toUpperCase();
+  document.getElementById("t1k-muet").disabled = m.solo >= 0;
   document.getElementById("t1k-muet").classList.toggle("on", m.muet[T1K.sel]);
   document.getElementById("t1k-muet").setAttribute("aria-pressed", String(m.muet[T1K.sel]));
   document.getElementById("t1k-muet").textContent = m.muet[T1K.sel] ? "RÉACTIVER " + T1K_INSTR[T1K.sel].id.toUpperCase() : "MUTE " + T1K_INSTR[T1K.sel].id.toUpperCase();
@@ -620,7 +635,7 @@ function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
-      return {muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
+      return {solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
               instr:m.instr.map(function(I){
                 return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
                         ech:I.ech, pech:I.pech};
@@ -771,3 +786,5 @@ document.getElementById("t1k-copier").addEventListener("click", copierMotifT1k);
 document.getElementById("t1k-coller").addEventListener("click", collerMotifT1k);
 
 document.getElementById("t1k-muet").addEventListener("click", basculerMuetT1k);
+
+document.getElementById("t1k-solo").addEventListener("click", basculerSoloT1k);

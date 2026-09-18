@@ -127,3 +127,14 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.memoire.t1k.motifs.forEach(m=>delete m.muet);c.chargerT1k();assert(c.T1K.motifs.every(m=>m.muet.every(v=>v===false)));
  console.log('TR-1000 v202 : mute indépendant, pads directs, FILL, mémoire, migration et réactivation en lecture OK.');
 }
+{
+ const c=setup();c.signal=()=>{};let m=c.motifT1kCur();m.pas.fill(1);m.muet[0]=true;c.basculerSoloT1k();
+ c.scheduleT1k(0,2);assert.deepStrictEqual(copie(c.voix.map(v=>v[1])),[0]);assert(m.muet[0]);
+ c.basculerMuetT1k();assert(m.muet[0],'mute protégé pendant solo');
+ c.T1K.sel=1;c.basculerSoloT1k();c.voix=[];c.scheduleT1k(0,3);assert.deepStrictEqual(copie(c.voix.map(v=>v[1])),[1]);
+ c.memT1k();m.solo=-1;assert.equal(c.memoire.t1k.motifs[0].solo,1);c.chargerT1k();m=c.motifT1kCur();assert.equal(m.solo,1);
+ c.S.run=true;c.basculerSoloT1k();assert.equal(m.solo,-1);assert(m.muet[0]);c.voix=[];c.scheduleT1k(0,4);assert.equal(c.voix.length,9);assert(!c.voix.some(v=>v[1]===0));
+ for(const valeur of [undefined,null,10,-2,'1',1.5]){const o=copie(m);o.solo=valeur;assert.equal(c.lireMotifT1k(o).solo,-1);}
+ m.solo=3;assert.equal(c.lireMotifT1k(m).solo,3,'copie du solo');
+ console.log('TR-1000 v203 : solo prioritaire, déplacement, restauration des mutes, mémoire et validation OK.');
+}

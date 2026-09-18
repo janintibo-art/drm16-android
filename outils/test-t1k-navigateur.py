@@ -256,6 +256,29 @@ async def main():
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v202-%sx%s.png'%(w,h))))
             print('OK : mute conservant les pas, sauvegarde, WAV silencieux/audible et réactivation pendant PLAY',flush=True)
+            # v203 : solo prioritaire au mute et restauration exacte.
+            await pg.locator('#t1k-solo').click()
+            assert await pg.evaluate('motifT1kCur().solo===0&&motifT1kCur().muet[0]')
+            assert await pg.locator('#t1k-muet').is_disabled()
+            assert 'SOLO' in await pg.locator('.t1k-pad[data-p="0"]').inner_text()
+            assert await pic_wav()>.001
+            await pg.locator('.t1k-pad[data-p="1"]').click()
+            await pg.locator('#t1k-solo').click()
+            assert await pg.evaluate('motifT1kCur().solo===1&&motifT1kCur().muet[0]')
+            assert await pic_wav()<.0001
+            await pg.evaluate('memT1k();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate('motifT1kCur().solo===1&&motifT1kCur().muet[0]')
+            await pg.locator('#t1k-start').click()
+            await pg.locator('#t1k-solo').click()
+            assert await pg.evaluate('S.run&&motifT1kCur().solo===-1&&motifT1kCur().muet[0]')
+            await pg.locator('#t1k-stop').click()
+            assert await pic_wav()<.0001
+            await pg.locator('.t1k-pad[data-p="0"]').click();await pg.locator('#t1k-solo').click()
+            for w,h in ((393,851),(360,640),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v203-%sx%s.png'%(w,h))))
+            print('OK : solo, déplacement, sauvegarde, sortie pendant PLAY et vrais WAV respectant les mutes',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

@@ -82,3 +82,6 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 .t1k-pas button.retarde{border-left:3px solid #62dbaf}
 
 .t1k-pad.muet{border:2px solid #d07b41;color:#633111;background:#dfc7b4}
+
+.t1k-pad.solo{border:2px solid #38956c;background:#a1e8c8;color:#133b29}
+#t1k-muet:disabled{opacity:.45}
