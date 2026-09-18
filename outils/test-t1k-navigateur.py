@@ -202,6 +202,31 @@ async def main():
                 await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
                 await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v198-%sx%s.png'%(w,h))))
             print('OK : retard édité, sauvegardé et mesuré à 62,5 ms dans le vrai WAV',flush=True)
+            # v199 : vrais boutons et confirmations, copie indépendante entre banques.
+            await pg.locator('#t1k-copier').click()
+            attendu=await pg.evaluate('JSON.stringify(motifT1kCur())')
+            await pg.locator('#t1k-banque').select_option('7')
+            await pg.evaluate('choisirMotifT1k(7,15)')
+            avant=await pg.evaluate('JSON.stringify(motifT1kCur())')
+            pg.once('dialog',lambda d:d.dismiss())
+            await pg.locator('#t1k-coller').click()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur())')==avant
+            pg.once('dialog',lambda d:d.accept())
+            await pg.locator('#t1k-coller').click()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur())')==attendu
+            await pg.evaluate('motifT1kCur().retard[0][0]=0;memT1k();writeMem()')
+            assert await pg.evaluate('T1K.motifs[0].retard[0][0]===8&&T1K.copie.motif.retard[0][0]===8')
+            await pg.locator('#t1k-start').click()
+            assert await pg.locator('#t1k-copier').is_disabled() and await pg.locator('#t1k-coller').is_disabled()
+            await pg.locator('#t1k-stop').click()
+            await pg.evaluate('writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+            await pg.locator('.pick[data-m=t1k]').click()
+            assert await pg.evaluate('T1K.banq===7&&T1K.cur===15&&motifT1kCur().retard[0][0]===0&&T1K.copie===null')
+            assert await pg.locator('#t1k-coller').is_disabled()
+            for w,h in ((393,851),(360,640),(880,400)):
+                await pg.set_viewport_size({'width':w,'height':h});await pg.evaluate('fit()')
+                await pg.screenshot(path=str(Path(__file__).resolve().parents[2]/('t1k-v199-%sx%s.png'%(w,h))))
+            print('OK : boutons copier/coller, confirmations, destination H16, indépendance et sauvegarde',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

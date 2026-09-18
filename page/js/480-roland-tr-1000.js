@@ -33,7 +33,7 @@ function motifT1k(n){
                     m.pas[7] = 0x4000; m.sub[6][10] = 3; }
   return m;
 }
-var T1K = {motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
+var T1K = {copie:null, motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
            morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, cycles:false, cycleValeur:"1:1", decalage:false, retardValeur:0, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
@@ -351,6 +351,8 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-copier").disabled = S.run;
+  document.getElementById("t1k-coller").disabled = S.run || !T1K.copie;
   curseurT1k();
   document.getElementById("t1k-direction").disabled = S.run;
   document.getElementById("t1k-last").disabled = S.run;
@@ -370,6 +372,25 @@ function boucleT1k(){
 }
 var MACHINE_T1K = {schedule:scheduleT1k, beat:beatT1k, arret:arretT1k, boucle:boucleT1k,
                    longueur:function(){ return motifT1kCur().last; }};
+
+/* v199 : instantané indépendant ; le collage confirme toujours sa destination. */
+function copierMotifT1k(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR COPIER UN MOTIF"); return false; }
+  T1K.copie = {nom:"ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1), motif:lireMotifT1k(motifT1kCur())};
+  majT1k(); signal("MOTIF " + T1K.copie.nom + " COPIÉ · CHOISISSEZ LA DESTINATION PUIS COLLER");
+  return true;
+}
+function collerMotifT1k(){
+  if(S.run || !T1K.copie){ signal(S.run ? "ARRÊTEZ PLAY POUR COLLER" : "COPIEZ D'ABORD UN MOTIF"); return false; }
+  var destination = T1K.banq * 16 + T1K.cur;
+  var nom = "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1);
+  if(!window.confirm("Remplacer le motif " + nom + " par la copie de " + T1K.copie.nom +
+      " ? Ses pas et réglages d'instruments seront remplacés.")) return false;
+  T1K.motifs[destination] = lireMotifT1k(T1K.copie.motif);
+  resetLectureT1k(); memT1k(); majT1k(); majKnobsT1k();
+  signal("COPIE DE " + T1K.copie.nom + " COLLÉE EN " + nom);
+  return true;
+}
 
 /* ---------- interface ---------- */
 var T1K_KNOBS = [];
@@ -522,6 +543,8 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-copier").disabled = S.run;
+  document.getElementById("t1k-coller").disabled = S.run || !T1K.copie;
   document.getElementById("t1k-direction").value = motifT1kCur().direction[T1K.sel];
   document.getElementById("t1k-direction").disabled = S.run;
   document.getElementById("t1k-last").disabled = S.run;
@@ -588,6 +611,7 @@ function memT1k(){
   sauverMachine("t1k");
 }
 function chargerT1k(){
+  T1K.copie = null;
   resetLectureT1k();
   T1K.motifs = [];
   for(var i=0;i<128;i++) T1K.motifs.push(motifT1k(i < 2 ? i : 9));
@@ -724,3 +748,6 @@ document.getElementById("t1k-decalage").addEventListener("click", function(){
   majT1k(); H.cran();
 });
 document.getElementById("t1k-retard-valeur").addEventListener("change", function(e){ T1K.retardValeur = retardT1k(+e.target.value); });
+
+document.getElementById("t1k-copier").addEventListener("click", copierMotifT1k);
+document.getElementById("t1k-coller").addEventListener("click", collerMotifT1k);

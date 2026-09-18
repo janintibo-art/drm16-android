@@ -3475,6 +3475,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="t1k-last">LAST 16</button>
     <select id="t1k-banque" aria-label="Banque de motifs TR-1000"></select>
     <button id="t1k-ptn">PTN A1</button>
+    <button id="t1k-copier">COPIER</button>
+    <button id="t1k-coller" disabled>COLLER</button>
     <button id="t1k-ech">SAMPLE B</button>
     <button id="t1k-afx">ANALOG FX</button>
     <button id="t1k-ma">SET A</button>
@@ -5256,6 +5258,17 @@ indique le pas du séquenceur ; il ne suit pas chaque frappe décalée. FILL et 
 frappes directes restent immédiats. REC crée les nouveaux pas sans retard et conserve
 celui des pas existants. Les anciens projets sont chargés avec un retard nul.</p>
 <p>Cette première version permet uniquement des retards, pas des avances avant la grille.</p>
+<h3>Copier un motif</h3>
+<p>Arrêtez PLAY et appuyez sur COPIER. Choisissez ensuite la banque et le motif de
+ destination avec BANQUE et PTN, puis appuyez sur COLLER. La confirmation indique
+ la source et la destination ; annuler conserve la destination intacte.</p>
+<p>La copie inclut les dix instruments, leurs sons sélectionnés et réglages, les pas,
+accents, sous-pas, probabilités, directions, cycles, retards et LAST. Elle est indépendante :
+modifier la source ou une copie ne modifie pas les autres. Vous pouvez coller plusieurs
+fois le même instantané. Les fichiers des sons restent partagés ; ils ne sont pas dupliqués.</p>
+<p>Les effets, le morphing et ses états A/B, le tempo et le volume général restent
+communs et ne font pas partie du motif copié. La copie temporaire est perdue lors
+du rechargement de la machine ou du projet. Le motif collé est sauvegardé normalement.</p>
   </div>
   <div class="doc" id="note-dbi" data-titre="DRUMBRUTE IMPACT">
   <h3>Motifs de 1 à 64 pas</h3>
@@ -23753,7 +23766,7 @@ function motifT1k(n){
                     m.pas[7] = 0x4000; m.sub[6][10] = 3; }
   return m;
 }
-var T1K = {motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
+var T1K = {copie:null, motifs:[], cur:0, banq:0, sel:0, pos:-1, noeuds:{}, rec:false,
            morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, cycles:false, cycleValeur:"1:1", decalage:false, retardValeur:0, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
@@ -24071,6 +24084,8 @@ function scheduleT1k(i, t){
 }
 var t1kPas = [];
 function beatT1k(i){
+  document.getElementById("t1k-copier").disabled = S.run;
+  document.getElementById("t1k-coller").disabled = S.run || !T1K.copie;
   curseurT1k();
   document.getElementById("t1k-direction").disabled = S.run;
   document.getElementById("t1k-last").disabled = S.run;
@@ -24090,6 +24105,25 @@ function boucleT1k(){
 }
 var MACHINE_T1K = {schedule:scheduleT1k, beat:beatT1k, arret:arretT1k, boucle:boucleT1k,
                    longueur:function(){ return motifT1kCur().last; }};
+
+/* v199 : instantané indépendant ; le collage confirme toujours sa destination. */
+function copierMotifT1k(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR COPIER UN MOTIF"); return false; }
+  T1K.copie = {nom:"ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1), motif:lireMotifT1k(motifT1kCur())};
+  majT1k(); signal("MOTIF " + T1K.copie.nom + " COPIÉ · CHOISISSEZ LA DESTINATION PUIS COLLER");
+  return true;
+}
+function collerMotifT1k(){
+  if(S.run || !T1K.copie){ signal(S.run ? "ARRÊTEZ PLAY POUR COLLER" : "COPIEZ D'ABORD UN MOTIF"); return false; }
+  var destination = T1K.banq * 16 + T1K.cur;
+  var nom = "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1);
+  if(!window.confirm("Remplacer le motif " + nom + " par la copie de " + T1K.copie.nom +
+      " ? Ses pas et réglages d'instruments seront remplacés.")) return false;
+  T1K.motifs[destination] = lireMotifT1k(T1K.copie.motif);
+  resetLectureT1k(); memT1k(); majT1k(); majKnobsT1k();
+  signal("COPIE DE " + T1K.copie.nom + " COLLÉE EN " + nom);
+  return true;
+}
 
 /* ---------- interface ---------- */
 var T1K_KNOBS = [];
@@ -24242,6 +24276,8 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  document.getElementById("t1k-copier").disabled = S.run;
+  document.getElementById("t1k-coller").disabled = S.run || !T1K.copie;
   document.getElementById("t1k-direction").value = motifT1kCur().direction[T1K.sel];
   document.getElementById("t1k-direction").disabled = S.run;
   document.getElementById("t1k-last").disabled = S.run;
@@ -24308,6 +24344,7 @@ function memT1k(){
   sauverMachine("t1k");
 }
 function chargerT1k(){
+  T1K.copie = null;
   resetLectureT1k();
   T1K.motifs = [];
   for(var i=0;i<128;i++) T1K.motifs.push(motifT1k(i < 2 ? i : 9));
@@ -24444,6 +24481,9 @@ document.getElementById("t1k-decalage").addEventListener("click", function(){
   majT1k(); H.cran();
 });
 document.getElementById("t1k-retard-valeur").addEventListener("change", function(e){ T1K.retardValeur = retardT1k(+e.target.value); });
+
+document.getElementById("t1k-copier").addEventListener("click", copierMotifT1k);
+document.getElementById("t1k-coller").addEventListener("click", collerMotifT1k);
 /* ===================== ARTURIA DRUMBRUTE IMPACT =====================
    Huit voix analogiques, et une chose qu'aucune autre machine d'ici ne fait :
    la polyrythmie. Chaque piste garde sa propre longueur, et les motifs se

@@ -106,3 +106,14 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.T1K.fill=true;c.motifT1kCur().retard.forEach(r=>r.fill(8));c.voix=[];c.scheduleT1k(3,5);assert(c.voix.length);assert(c.voix.every(v=>v[0]===5));
  console.log('TR-1000 v198 : retard, sous-pas, direction, mémoire, migration et FILL OK.');
 }
+{
+ const c=setup();c.signal=()=>{};c.majKnobsT1k=()=>{};let accepte=false,questions=0;c.window={confirm:()=>{questions++;return accepte;}};
+ const m=c.motifT1kCur();m.retard[0][0]=8;m.cycle[0][0]='2:4';m.direction[0]='arriere';m.prob[0][0]=25;m.instr[0].ech='b7';
+ const attendu=copie(m);assert(c.copierMotifT1k());m.pas[0]=0;m.retard[0][0]=0;c.T1K.banq=7;c.T1K.cur=15;
+ const avant=copie(c.motifT1kCur());assert(!c.collerMotifT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),avant);
+ accepte=true;assert(c.collerMotifT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),attendu);
+ c.motifT1kCur().instr[0].ech='b9';c.motifT1kCur().retard[0][0]=0;c.T1K.cur=14;assert(c.collerMotifT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),attendu);
+ c.S.run=true;const q=questions;assert(!c.collerMotifT1k());assert(!c.copierMotifT1k());assert.equal(questions,q);
+ c.S.run=false;c.memT1k();c.chargerT1k();assert.equal(c.T1K.copie,null);assert.deepStrictEqual(copie(c.T1K.motifs[126]),attendu);assert(!c.collerMotifT1k());
+ console.log('TR-1000 v199 : copie complète, annulation, indépendance, répétition, protection PLAY et sauvegarde OK.');
+}
