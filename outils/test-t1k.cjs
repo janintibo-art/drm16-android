@@ -264,3 +264,17 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  const sauvegarde=copie(m);c.chargerT1k();assert.deepStrictEqual(copie(c.motifT1kCur()),sauvegarde);
  console.log('TR-1000 v213 : inversion 3/4/16 pas, métadonnées, double inversion, annulation, LAST, mémoire et protection PLAY OK.');
 }
+{
+ const c=setup();c.signal=()=>{};c.majKnobsT1k=()=>{};let accepte=false,confirmations=0;c.window={confirm:()=>{confirmations++;return accepte;}};
+ c.T1K.banq=7;c.T1K.cur=15;c.T1K.sel=2;const m=c.motifT1kCur();m.longueurs[2]=3;m.direction[2]='pingpong';m.muet[2]=true;m.solo=2;m.motionActive=false;m.pas[2]=32769;m.acc[2]=32768;m.sub[2][15]=4;m.prob[2][15]=23;m.cycle[2][15]='2:3';m.retard[2][15]=8;m.reglages[2][15]={tune:.7};const avant=copie(m);
+ assert(!c.effacerSequenceT1k());assert.deepStrictEqual(copie(m),avant);assert.equal(c.T1K.annulation,null);
+ accepte=true;c.S.run=true;assert(!c.effacerSequenceT1k());assert.equal(confirmations,1);c.S.run=false;c.T1K.motionRec=true;assert(c.effacerSequenceT1k());assert(!c.T1K.motionRec);
+ const attendu=copie(avant),vide=c.motifT1k(9);for(const nom of ['pas','acc','sub','prob','cycle','retard','reglages'])attendu[nom][2]=copie(vide[nom][2]);
+ assert.deepStrictEqual(copie(m),attendu);assert.deepStrictEqual(copie(c.memoire.t1k.motifs[127]),attendu);
+ const annulation=c.T1K.annulation;assert(!c.effacerSequenceT1k());assert.strictEqual(c.T1K.annulation,annulation);assert.equal(confirmations,2);
+ assert(c.annulerModificationT1k());assert.deepStrictEqual(copie(c.motifT1kCur()),avant);
+ assert(c.effacerSequenceT1k());c.chargerT1k();assert.deepStrictEqual(copie(c.motifT1kCur()),attendu);
+ // Des réglages sur une cellule sans note doivent aussi être effacés.
+ c.motifT1kCur().reglages[2][15]={niv:.2};assert(c.effacerSequenceT1k());assert.equal(c.motifT1kCur().reglages[2][15],null);
+ console.log('TR-1000 v214 : effacement complet ciblé, cellules hors longueur/sans note, confirmation, annulation, mémoire et protection PLAY OK.');
+}

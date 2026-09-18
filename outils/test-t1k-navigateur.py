@@ -461,6 +461,20 @@ async def main():
             assert await pg.locator('#t1k-inverser-sequence').is_disabled()
             await pg.locator('#t1k-stop').click()
             print('OK : inversion, variations, double inversion, annulation et protection PLAY',flush=True)
+            # v214 : effacement confirmé, y compris au-delà de la longueur.
+            await pg.evaluate("T1K.sel=0;let m=motifT1kCur();m.longueurs[0]=3;m.pas[0]=32769;m.reglages[0][15]={tune:.7};majT1k()")
+            avant=await pg.evaluate('JSON.stringify(motifT1kCur())')
+            pg.once('dialog',lambda d:d.dismiss());await pg.locator('#t1k-effacer-sequence').click()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur())')==avant
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-effacer-sequence').click()
+            assert await pg.evaluate('motifT1kCur().pas[0]===0&&motifT1kCur().reglages[0].every(v=>v===null)')
+            await pg.locator('#t1k-effacer-sequence').click()
+            pg.once('dialog',lambda d:d.accept());await pg.locator('#t1k-annuler').click()
+            assert await pg.evaluate('JSON.stringify(motifT1kCur())')==avant
+            await pg.locator('#t1k-start').click()
+            assert await pg.locator('#t1k-effacer-sequence').is_disabled()
+            await pg.locator('#t1k-stop').click()
+            print('OK : effacement ciblé, confirmation, annulation préservée si vide et protection PLAY',flush=True)
             assert not erreurs,erreurs
             print('TR-1000 navigateur : tout est bon.',flush=True)
         finally:

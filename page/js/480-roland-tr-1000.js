@@ -398,6 +398,7 @@ var t1kPas = [];
 function beatT1k(i){
   document.getElementById("t1k-copier-sequence").disabled = S.run;
   document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
+  document.getElementById("t1k-effacer-sequence").disabled = S.run;
   document.getElementById("t1k-inverser-sequence").disabled = S.run;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
   document.getElementById("t1k-tourner-droite").disabled = S.run;
@@ -576,6 +577,26 @@ function inverserSequenceT1k(){
   signal("SÉQUENCE INVERSÉE · " + T1K_INSTR[k].nom); return true;
 }
 
+/* v214 : effacement confirmé des 16 cellules d'un instrument. */
+function effacerSequenceT1k(){
+  if(S.run) return false;
+  var m = motifT1kCur(), k = T1K.sel;
+  var vide = m.pas[k] === 0 && m.acc[k] === 0 &&
+    m.sub[k].every(function(v){return v === 1;}) && m.prob[k].every(function(v){return v === 100;}) &&
+    m.cycle[k].every(function(v){return v === "1:1";}) && m.retard[k].every(function(v){return v === 0;}) &&
+    m.reglages[k].every(function(v){return v === null;});
+  if(vide){ signal("SÉQUENCE DÉJÀ VIDE"); return false; }
+  if(!window.confirm("Effacer les 16 pas de " + T1K_INSTR[k].nom + " dans le motif " +
+      "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1) +
+      " ? Notes, accents, sous-pas, probabilités, cycles, retards et variations seront remis à zéro ou à leur valeur par défaut, y compris au-delà de la longueur active. Le son de base, la longueur et la direction sont conservés.")) return false;
+  memoriserAnnulationT1k("l’effacement de la séquence");
+  m.pas[k] = 0; m.acc[k] = 0;
+  m.sub[k] = Array(16).fill(1); m.prob[k] = Array(16).fill(100);
+  m.cycle[k] = Array(16).fill("1:1"); m.retard[k] = Array(16).fill(0); m.reglages[k] = Array(16).fill(null);
+  T1K.motionRec = false; resetLectureT1k(); memT1k(); majT1k();
+  signal("SÉQUENCE EFFACÉE · " + T1K_INSTR[k].nom); return true;
+}
+
 /* ---------- interface ---------- */
 var T1K_KNOBS = [];
 (function construireT1k(){
@@ -734,6 +755,7 @@ function majLcdT1k(){
 function majT1k(){
   document.getElementById("t1k-copier-sequence").disabled = S.run;
   document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
+  document.getElementById("t1k-effacer-sequence").disabled = S.run;
   document.getElementById("t1k-inverser-sequence").disabled = S.run;
   document.getElementById("t1k-tourner-gauche").disabled = S.run;
   document.getElementById("t1k-tourner-droite").disabled = S.run;
@@ -1019,3 +1041,5 @@ document.getElementById("t1k-copier-sequence").addEventListener("click", copierS
 document.getElementById("t1k-coller-sequence").addEventListener("click", collerSequenceT1k);
 
 document.getElementById("t1k-inverser-sequence").addEventListener("click", inverserSequenceT1k);
+
+document.getElementById("t1k-effacer-sequence").addEventListener("click", effacerSequenceT1k);

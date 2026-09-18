@@ -198,7 +198,7 @@ conserve son nom, jusqu’à 24 caractères. Vider le champ enlève le nom sans 
 la musique. Les noms sont sauvegardés dans le projet et repris par COPIER/COLLER ;
 renommez la copie pour distinguer vos variantes. Les anciens motifs restent sans nom.</p>
 <h3>Annuler un collage ou un effacement</h3>
-<p>Après COLLER, EFFACER VAR. ou un décalage ou une inversion de séquence, ANNULER permet de retrouver le motif entier tel
+<p>Après COLLER, EFFACER SÉQ, EFFACER VAR. ou un décalage ou une inversion de séquence, ANNULER permet de retrouver le motif entier tel
 qu’il était juste avant cette action. Revenez sur le motif concerné et arrêtez PLAY.
 Une confirmation prévient que les modifications effectuées depuis seront également
 remplacées. Annuler cette confirmation conserve tout en l’état.</p>
@@ -219,6 +219,13 @@ suivent les cellules, même sans note. Les cellules au-delà de la longueur rest
 intactes. Le sens de lecture, le son de base et les autres instruments ne changent
 pas. MOTION REC est désarmé. ANNULER restaure le motif précédent ; une seconde
 inversion remet les cellules dans leur ordre initial.</p>
+<p><b>EFFACER SÉQ :</b> à l’arrêt et après confirmation, vide les 16 cellules de
+l’instrument sélectionné, y compris celles au-delà de sa longueur active.
+Les notes et accents sont supprimés ; sous-pas, probabilités, cycles, retards
+et variations retrouvent leurs valeurs par défaut. Le son de base, la longueur,
+la direction, MUTE, SOLO et les autres instruments restent inchangés.
+MOTION REC est désarmé. ANNULER restaure le motif précédent. Une séquence déjà
+entièrement vide ne remplace pas l’annulation disponible.</p>
 <p>Un seul état précédent est conservé : une nouvelle inversion, un décalage, un collage ou un effacement confirmé
 le remplace. Cette réserve est temporaire et disparaît au rechargement de la machine
 ou du projet, notamment après un export qui recharge la machine. Le motif restauré
