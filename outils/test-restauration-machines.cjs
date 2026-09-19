@@ -140,9 +140,9 @@ for(const modele of [3000,2000]) {
   c.MPC.seq.pistes[0].evts=copie(ancien);c.MPC.seqs[1].pistes[0].evts=copie(autre);
   c.MPC.mode=1;c.MPC.evtSel=0;f.cliquer('mpc-efface');
   assert.equal(c.MPC.seq.pistes[0].evts.length,0);
-  f.cliquer('mpc-num',{n:'2'});f.cliquer('mpc-annule');
+  f.cliquer('mpc-num',{n:'2'});f.cliquer('mpc-num',{n:'ENT'});f.cliquer('mpc-annule');
   assert.deepStrictEqual(copie(c.MPC.seq.pistes[0].evts),autre,'UNDO ne remplace pas une autre séquence');
-  f.cliquer('mpc-num',{n:'1'});f.cliquer('mpc-annule');
+  f.cliquer('mpc-num',{n:'1'});f.cliquer('mpc-num',{n:'ENT'});f.cliquer('mpc-annule');
   assert.deepStrictEqual(copie(c.MPC.seq.pistes[0].evts),ancien,'UNDO retrouve la séquence éditée');
   f.cliquer('mpc-annule');assert.equal(c.MPC.seq.pistes[0].evts.length,0,'second appui rétablit la suppression');
   c.chargerMpc();assert.equal(c.MPC.annule,null,'recharger un modèle vide son historique de session');

@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **236**. Depuis la v176, le détail de chaque version est dans
+La version actuelle est la **237**. Depuis la v176, le détail de chaque version est dans
 `docs/CORRECTIONS_V*.md` (ce fichier-ci n'a pas été tenu à jour entre la v156 et la v231).
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits

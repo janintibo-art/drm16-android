@@ -6964,7 +6964,8 @@ décalage. MOTION REC est désarmé après cette opération.</p>
   niveaux font varier : la force, l'accord, le point de départ ou la décroissance.</p>
 
   <h3>Séquences</h3>
-  <p>Huit séquences, choisies par les touches <b>1 à 8</b> du pavé. <b>NAME</b> renomme la séquence,
+  <p><b>99 séquences</b>, comme sur la MPC3000. Pour en choisir une, tapez son numéro au pavé (un ou deux
+  chiffres) puis <b>ENT</b> ; l'afficheur montre la saisie en cours, <b>.</b> l'efface. <b>NAME</b> renomme la séquence,
   <b>COPY SEQ</b> la recopie ailleurs, <b>SEQ BPM</b> lui donne un tempo propre ou la laisse suivre le
   tempo général.</p>
   <p><b>COUNT IN</b> ajoute une mesure de décompte au métronome avant que l'enregistrement ne morde.
@@ -6986,7 +6987,7 @@ décalage. MOTION REC est désarmé après cette opération.</p>
   <p><b>STEP EDIT</b> passe l'afficheur en revue des événements : la molette les parcourt en les faisant
   entendre, <b>−</b> et <b>+</b> décalent celui qui est affiché d'une triple croche, <b>ERASE</b> le retire.
   <b>UNDO SEQ</b> revient en arrière à chaque fois.</p>
-  <p><b>SONG</b> enchaîne les séquences : les touches 1 à 8 ajoutent un pas, la molette règle le nombre de
+  <p><b>SONG</b> enchaîne les séquences : un numéro puis ENT ajoute un pas, la molette règle le nombre de
   tours, ERASE retire le pas affiché.</p>
 
   <p>Les touches <b>SOFT</b> règlent le nombre de mesures, le Timing Correct et le swing.
@@ -17950,12 +17951,15 @@ var MPC = {
   rec:false, over:false, plein:false, niv16:false, repet:false, apres:0,
   pos:-1, tStep:0, dernier:null, annule:null, tenu:{}, ecrase:false, param:0,
   mode:0, evtSel:0, type16:0, compte:false, attente:false, amorce:0,
-  chanson:[], chPos:0, chTour:0, presse:null, piste:0
+  chanson:[], chPos:0, chTour:0, presse:null, piste:0,
+  saisie:""                                  /* v237 : numéro tapé au pavé, validé par ENT */
 };
+/* v237 : 99 séquences, comme la MPC3000 (8 jusqu'à la v236) */
+var MPC_NB_SEQ = 99;
 var MPC_T16 = ["VELOCITY","TUNE","START","DECAY"];
 (function initMpc(){
   for(var i=0;i<64;i++) MPC.pads.push(padMpc(i));
-  for(var s=0;s<8;s++) MPC.seqs.push(seqMpc());
+  for(var s=0;s<99;s++) MPC.seqs.push(seqMpc());
   MPC.seqs.forEach(function(x,i){ x.nom = "SEQ " + (i+1); });
   MPC.seq = MPC.seqs[0];
 })();
@@ -18136,6 +18140,13 @@ function ticTexte(t){
   return m + "." + b + "." + ("00" + r).slice(-2);
 }
 function majLcdMpc(){
+  afficherLcdMpc();
+  /* v237 : un numéro en cours de saisie s'affiche sur la dernière ligne */
+  var l4s = document.getElementById("mpc-l4");
+  if(l4s && MPC.saisie) l4s.textContent = (MPC.mode === 2 ? "Ajouter Seq: " : "Aller a Seq: ") +
+                                          MPC.saisie + "_   ENT valide  . efface";
+}
+function afficherLcdMpc(){
   var l1 = document.getElementById("mpc-l1");
   if(!l1) return;
   var seq = MPC.seq, p = MPC.pads[MPC.sel];
@@ -18168,7 +18179,7 @@ function majLcdMpc(){
     l2.textContent = "Step " + (MPC.chanson.length ? (MPC.chPos + 1) : 0) + "/" + MPC.chanson.length +
                      "   Tour " + (MPC.chTour + 1);
     l3.textContent = pas ? (MPC.seqs[pas.seq].nom + "  x" + (pas.tours || 1)) : "Ajoutez des pas";
-    l4.textContent = "1-8 ajoute une sequence   ERASE retire";
+    l4.textContent = "Numero + ENT ajoute   ERASE retire";
     return;
   }
   var mesure = (MPC.pos >= 0) ? Math.floor(MPC.pos / 16) + 1 : 1;
@@ -18244,14 +18255,16 @@ function memMpc(){
 function chargerMpc(){
   MPC.pads = []; MPC.seqs = [];
   for(var i=0;i<64;i++) MPC.pads.push(padMpc(i));
-  for(var s=0;s<8;s++){ var q = seqMpc(); q.nom = "SEQ " + (s+1); MPC.seqs.push(q); }
+  for(var s=0;s<MPC_NB_SEQ;s++){ var q = seqMpc(); q.nom = "SEQ " + (s+1); MPC.seqs.push(q); }
   MPC.seqCur = 0; MPC.banque = 0; MPC.sel = 0; MPC.chanson = []; MPC.mode = 0; MPC.piste = 0;
+  MPC.saisie = "";
   MPC.chPos = 0; MPC.chTour = 0; MPC.amorce = 0; MPC.attente = false; MPC.annule = null;
   var m = memLire("mpc" + MPC.v);
   if(m){
     if(m.pads && m.pads.length === 64) MPC.pads = m.pads;
-    if(m.seqs && m.seqs.length === 8){
-      MPC.seqs = m.seqs.map(function(o, i){
+    /* v237 : 8 séquences (anciennes sauvegardes) à 99 ; le reste est complété */
+    if(m.seqs && m.seqs.length >= 1 && m.seqs.length <= MPC_NB_SEQ){
+      var lues = m.seqs.map(function(o, i){
         var q = seqMpc();
         q.mesures = o.mesures || 2;
         q.q = Number.isInteger(o.q) && o.q >= 0 && o.q < MPC_Q.length ? o.q : 3;
@@ -18270,12 +18283,44 @@ function chargerMpc(){
         }
         return q;
       });
+      for(var r=lues.length;r<MPC_NB_SEQ;r++){ var q2 = seqMpc(); q2.nom = "SEQ " + (r+1); lues.push(q2); }
+      MPC.seqs = lues;
     }
     ["banque","sel","seqCur","type16"].forEach(function(c){ if(typeof m[c] === "number") MPC[c] = m[c]; });
+    if(!Number.isInteger(MPC.seqCur) || MPC.seqCur < 0 || MPC.seqCur >= MPC_NB_SEQ) MPC.seqCur = 0;
     MPC.compte = !!m.compte;
-    MPC.chanson = (m.chanson && m.chanson.length) ? m.chanson : [];
+    MPC.chanson = (m.chanson && m.chanson.length) ? m.chanson.filter(function(p){
+      return p && Number.isInteger(p.seq) && p.seq >= 0 && p.seq < MPC_NB_SEQ;
+    }) : [];
   }
   MPC.seq = MPC.seqs[MPC.seqCur] || MPC.seqs[0];
+}
+
+/* v237 : le pavé numérique. On tape le numéro (un ou deux chiffres), puis ENT :
+   en mode principal on va à cette séquence, en mode chanson on l'ajoute au
+   song. « . » efface la saisie. */
+function toucheNumMpc(t){
+  if(t >= "0" && t <= "9"){
+    MPC.saisie = (MPC.saisie.length >= 2 ? "" : MPC.saisie) + t;
+    if(MPC.saisie === "0") MPC.saisie = "";
+    majLcdMpc();
+    return;
+  }
+  if(t === "."){ MPC.saisie = ""; majLcdMpc(); return; }
+  if(t !== "ENT") return;
+  var n = parseInt(MPC.saisie, 10);
+  MPC.saisie = "";
+  if(isNaN(n) || n < 1 || n > MPC_NB_SEQ){ signal("TAPEZ UN NUMÉRO DE 1 À 99 PUIS ENT"); majLcdMpc(); return; }
+  if(MPC.mode === 2){                         /* en mode chanson : on ajoute un pas */
+    MPC.chanson.push({seq:n - 1, tours:1});
+    MPC.chPos = MPC.chanson.length - 1;
+  } else {
+    memMpc();
+    MPC.seqCur = n - 1;
+    MPC.seq = MPC.seqs[MPC.seqCur];
+    step = 0;
+  }
+  memMpc(); majLcdMpc(); majPadsMpc();
 }
 
 /* --- construction de l'interface --- */
@@ -18380,19 +18425,7 @@ function chargerMpc(){
   num.addEventListener("click", function(e){
     var b5 = e.target.closest(".mpcb");
     if(!b5) return;
-    var t = b5.dataset.n;
-    if(t >= "1" && t <= "8"){
-      if(MPC.mode === 2){                       /* en mode chanson : on ajoute un pas */
-        MPC.chanson.push({seq:(+t) - 1, tours:1});
-        MPC.chPos = MPC.chanson.length - 1;
-      } else {
-        memMpc();
-        MPC.seqCur = (+t) - 1;
-        MPC.seq = MPC.seqs[MPC.seqCur];
-        step = 0;
-      }
-      memMpc(); majLcdMpc(); majPadsMpc();
-    }
+    toucheNumMpc(b5.dataset.n);
     H.cran();
   });
 
@@ -18453,9 +18486,9 @@ function chargerMpc(){
     }
     else if(c === "c"){
       var src = MPC.seq;
-      renommer("Copier vers quelle séquence ? (1 à 8)", "", function(v){
+      renommer("Copier vers quelle séquence ? (1 à 99)", "", function(v){
         var n2 = parseInt(v, 10) - 1;
-        if(isNaN(n2) || n2 < 0 || n2 > 7){ signal("NUMÉRO ENTRE 1 ET 8"); return; }
+        if(isNaN(n2) || n2 < 0 || n2 >= MPC_NB_SEQ){ signal("NUMÉRO ENTRE 1 ET 99"); return; }
         var d = MPC.seqs[n2];
         if(MPC.annule && MPC.annule.seq === d) MPC.annule = null;
         d.mesures = src.mesures; d.q = src.q; d.swing = src.swing; d.bpm = src.bpm;
