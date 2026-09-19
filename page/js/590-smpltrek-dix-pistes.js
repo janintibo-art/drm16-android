@@ -518,7 +518,7 @@ function majKp(){
   var v = document.getElementById("kp-val"), l = document.getElementById("kp-lab");
   if(v){ v.textContent = KP_EFFETS[KP.fx][1]; l.textContent = KP_EFFETS[KP.fx][2]; }
   [["kp-hold", KP.tenu], ["kp-motion", KP.enregistre], ["kp-rejoue", KP.rejoue],
-   ["kp-mute", KP.muet], ["kp-play", S.run], ["kp-release", KP.release]].forEach(function(x){
+   ["kp-mute", KP.muet], ["kp-play", S.run], ["kp-release", KP.release], ["kp-write", KP.ecrire]].forEach(function(x){
     var e = document.getElementById(x[0]);
     if(e) e.classList.toggle("on", !!x[1]);
   });
@@ -530,8 +530,40 @@ function majKp(){
     : (KP.rejoue ? "Le geste tourne en boucle, calé sur le tempo."
     : (KP.tenu ? "HOLD : l'effet reste où le doigt l'a laissé."
                : "Touchez le pavé : l'effet suit le doigt."));
-  majPavKp(); majTraceKp(); majTempoKp(); majTranchesKp(); majPriseKp();
+  majPavKp(); majTraceKp(); majTempoKp(); majTranchesKp(); majPriseKp(); majMemKp();
 }
+/* v247 : les huit touches de mémoire, créées une fois */
+var KP_MEM_BOUTONS = [];
+function majMemKp(){
+  KP_MEM_BOUTONS.forEach(function(b, n){
+    b.classList.toggle("plein", !!KP.mems[n]);
+    b.classList.toggle("on", n === KP.memCur && !!KP.mems[n]);
+    b.classList.toggle("arme", KP.ecrire);
+    b.setAttribute("aria-label", "Mémoire " + (n + 1) + (KP.mems[n] ? " : " + KP_EFFETS[KP.mems[n].fx][1] : " : vide"));
+  });
+  var w = document.getElementById("kp-write");
+  if(w) w.setAttribute("aria-pressed", String(KP.ecrire));
+}
+(function memoiresKp(){
+  var ligne = document.getElementById("kp-mem");
+  if(!ligne) return;
+  for(var n=0;n<8;n++) (function(n){
+    var b = document.createElement("button");
+    b.textContent = String(n + 1);
+    b.addEventListener("click", function(){
+      toucheMemoireKp(n);
+      document.getElementById("kp-prof").value = KP.prof;   /* FX DEPTH rappelé */
+      majKp(); H.cran();
+    });
+    ligne.appendChild(b);
+    KP_MEM_BOUTONS.push(b);
+  })(n);
+})();
+document.getElementById("kp-write").addEventListener("click", function(){
+  KP.ecrire = !KP.ecrire;
+  majKp(); H.inter();
+  if(KP.ecrire) signal("WRITE : TOUCHEZ 1 À 8 POUR Y RANGER L'EFFET ET SES RÉGLAGES");
+});
 function activerKp(){
   stop();
   KP.taps = [];

@@ -2268,10 +2268,36 @@ async def morceaux_wav(nav):
     finally:
         await pg.context.close()
 
+async def kp_memoires(nav):
+    print('\n39. KAOSS PAD : mémoires de programmes (v247)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        await pg.locator('.pick[data-m=kp]').click()
+        mem = lambda n: pg.locator('#kp-mem button').nth(n)
+        ok(await pg.locator('#kp-mem button').count() == 9, 'WRITE et huit touches de mémoire')
+        await mem(3).click()
+        ok(await pg.evaluate('KP.memCur === -1'), 'une mémoire vide ne change rien')
+        await pg.evaluate("KP.fx = 2; KP.prof = 0.6; KP.x = 0.3; KP.y = 0.75; KP.tenu = true; KP.release = true; appliquerKp(); majKp()")
+        await pg.locator('#kp-write').click(); await mem(2).click()
+        await pg.evaluate("KP.fx = 6; KP.prof = 0.9; KP.x = 0.8; KP.y = 0.2; KP.tenu = false; KP.release = false; appliquerKp(); majKp()")
+        await pg.locator('#kp-write').click(); await mem(5).click()
+        ok(await pg.evaluate("KP.mems[1] && KP.mems[4] && !KP.ecrire"), 'deux programmes rangés (2 et 5), WRITE retombe')
+        await mem(2).click()
+        r = await pg.evaluate("({fx:KP.fx, prof:KP.prof, x:KP.x, y:KP.y, tenu:KP.tenu, release:KP.release, dmix:KP.noeuds ? KP.noeuds.dmix.gain.value : -1, curseur:+document.getElementById('kp-prof').value})")
+        ok(r['fx'] == 2 and abs(r['prof'] - 0.6) < 1e-9 and r['tenu'] and r['release'] and abs(r['curseur'] - 0.6) < 1e-9 and r['dmix'] > 0,
+           'rappel du 2 : ÉCHO, FX DEPTH, X·Y, HOLD et FX RELEASE, effet entendu aussitôt (%s)' % r)
+        await pg.evaluate('memKp(); writeMem()'); await pg.reload(); await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=kp]').click()
+        await mem(5).click()
+        ok(await pg.evaluate("KP.fx === 6 && Math.abs(KP.x - 0.8) < 1e-9 && !KP.tenu"), 'mémoires retrouvées au redémarrage')
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires):
             try:
                 await t(nav)
             except Exception as e:

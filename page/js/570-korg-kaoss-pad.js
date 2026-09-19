@@ -34,7 +34,39 @@ var KP = {fx:0, x:0.5, y:0.5, tenu:false, touche:false,
           /* v242 : FX RELEASE. release = laisser sonner la queue de l'écho et
              de la réverbération au lever du doigt ; dernierActif = effet joué
              juste avant ; queueTmr = fin programmée de la queue */
-          release:false, dernierActif:null, queueTmr:null};
+          release:false, dernierActif:null, queueTmr:null,
+          /* v247 : huit mémoires de programmes (null = vide) ; ecrire = WRITE
+             armé, la prochaine touche range le programme ; memCur = dernière
+             mémoire rappelée ou rangée */
+          mems:[null,null,null,null,null,null,null,null], ecrire:false, memCur:-1};
+
+/* v247 : un programme, c'est l'effet et tout ce qui le règle : l'effet, FX
+   DEPTH, la position X·Y, HOLD et FX RELEASE. Les banques et les sons n'en font
+   pas partie : ils restent ce qu'on joue. */
+function programmeKp(){
+  return {fx:KP.fx, prof:KP.prof, x:KP.x, y:KP.y, tenu:!!KP.tenu, release:!!KP.release};
+}
+function lireProgrammeKp(o){
+  if(!o || typeof o !== "object") return null;
+  function borne(v, a, b, d){ return typeof v === "number" && isFinite(v) ? Math.max(a, Math.min(b, v)) : d; }
+  return {fx:Math.floor(borne(o.fx, 0, KP_EFFETS.length - 1, 0)), prof:borne(o.prof, 0, 1, 0.8),
+          x:borne(o.x, 0, 1, 0.5), y:borne(o.y, 0, 1, 0.5), tenu:o.tenu === true, release:o.release === true};
+}
+function toucheMemoireKp(n){
+  if(n < 0 || n > 7) return;
+  if(KP.ecrire){
+    KP.mems[n] = programmeKp(); KP.ecrire = false; KP.memCur = n;
+    memKp();
+    signal("PROGRAMME RANGÉ EN " + (n + 1) + " · " + KP_EFFETS[KP.fx][1]);
+    return;
+  }
+  var p = KP.mems[n];
+  if(!p){ signal("MÉMOIRE " + (n + 1) + " VIDE · WRITE PUIS " + (n + 1) + " POUR Y RANGER L'EFFET"); return; }
+  KP.fx = p.fx; KP.prof = p.prof; KP.x = p.x; KP.y = p.y; KP.tenu = p.tenu; KP.release = p.release;
+  KP.memCur = n; KP.dernierActif = null;
+  appliquerKp(); memKp();
+  signal("PROGRAMME " + (n + 1) + " · " + KP_EFFETS[KP.fx][1] + (KP.tenu ? " · HOLD" : ""));
+}
 
 /* v171 : capture du mélange après les effets et MUTE, avant le bus du set.
    Le flux vient du graphe audio : aucune entrée micro, aucun retour vers le
@@ -595,6 +627,7 @@ var MACHINE_KP = {schedule:scheduleKp, beat:beatKp, arret:arretKp,
 
 function memKp(){
   memoire.kp = {fx:KP.fx, prof:KP.prof, motion:lireGesteKp(KP.motion), sel:KP.sel, release:!!KP.release,
+                mems:KP.mems.map(function(p){ return p ? lireProgrammeKp(p) : null; }),
                 banques:KP.banques.map(function(b){
                   return {ech:b.ech, mode:b.mode, slice:!!b.slice, tranche:numeroTrancheKp(b.tranche)};
                 })};
@@ -609,8 +642,10 @@ function chargerKp(){
   if(!KP.motion.length) KP.rejoue = false;
   KP.banques.forEach(function(b){ b.mode = "loop"; b.slice = false; b.tranche = 0; });
   KP.release = false;
+  KP.mems = [null,null,null,null,null,null,null,null]; KP.ecrire = false; KP.memCur = -1;
   if(!m) return;
   KP.release = m.release === true;
+  if(Array.isArray(m.mems)) m.mems.slice(0, 8).forEach(function(p, k){ KP.mems[k] = lireProgrammeKp(p); });
   if(typeof m.fx === "number" && isFinite(m.fx)) KP.fx = Math.max(0, Math.min(KP_EFFETS.length - 1, m.fx|0));
   if(typeof m.prof === "number" && isFinite(m.prof)) KP.prof = Math.max(0, Math.min(1, m.prof));
   if(typeof m.sel === "number" && isFinite(m.sel)) KP.sel = Math.max(0, Math.min(3, m.sel|0));
