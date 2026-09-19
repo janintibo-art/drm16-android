@@ -26,10 +26,11 @@ function draw(){
   requestAnimationFrame(draw);
 }
 /* Le pas auquel rattacher une frappe : le courant si on est dans sa première
-   moitié, le suivant sinon. C'est ce que fait l'oreille. */
-function pasLePlusProche(pos, L){
+   moitié, le suivant sinon. C'est ce que fait l'oreille. La durée du pas peut
+   être donnée (v231 : SCALE de la TR) ; sinon une double croche. */
+function pasLePlusProche(pos, L, duree){
   if(pos < 0 || !ctx || !L) return -1;
-  var f = (maintenantAudio() - T_PAS) / stepDur();
+  var f = (maintenantAudio() - T_PAS) / (duree > 0 ? duree : stepDur());
   var p = pos + (f > 0.5 ? 1 : 0);
   return ((p % L) + L) % L;
 }

@@ -651,7 +651,8 @@ function motifTr(n){
 }
 var TR = {m:"tr808", def:null, pat:null, slots:[], cur:0, var2:false, sel:1,
           ecrit:true, pos:-1, noeuds:[], ohGain:null, flam:false, shuffle:0,
-          bus:null, dist:false, drive:0.45, tone:0.75, clap:false, couleur:0};
+          bus:null, dist:false, drive:0.45, tone:0.75, clap:false, couleur:0,
+          hN:0, hK:0, hIdx:0, hS:16, file:[]};   /* v231 : horloge propre à SCALE */
 
 /* ---------- séquenceur ---------- */
 function voixTr(t, k, acc){
@@ -667,7 +668,7 @@ function frapperTr(k, acc){
   if(!ctx || k < 1) return;
   voixTr(maintenantAudio() + 0.005, k, acc);
   if(S.run && TR.ecrit && TR.pat){
-    var j = pasLePlusProche(TR.pos, TR.pat.last || 16);
+    var j = pasLePlusProche(TR.pos, TR.pat.last || 16, dureePasTr());
     if(j >= 0){
       var v = TR.var2 ? "B" : "A";
       TR.pat[v][k][j] = 1;
@@ -676,34 +677,79 @@ function frapperTr(k, acc){
     }
   }
 }
+/* v231 : SCALE règle vraiment la durée d'un pas (avant, seul l'affichage
+   changeait). L'horloge commune avance toujours en doubles croches, seize tics
+   par mesure ; la TR garde son propre compteur et place dans chaque tic les pas
+   qui y tombent :
+     16 = double croche           : un pas par tic (comme avant) ;
+     32 = triple croche           : deux pas par tic ;
+     12 = croche de triolet       : trois pas pour quatre tics ;
+     24 = double croche de triolet : trois pas pour deux tics.
+   Le pas k tombe au tic 16·k/SCALE : on joue au tic n les pas tels que
+   n·SCALE <= 16·k < (n+1)·SCALE. Calcul en entiers, donc aucune dérive. */
+var TR_ECHELLES = [16, 32, 12, 24];
+function echelleTr(p){
+  /* liste écrite ici aussi : la fonction peut servir au démarrage, avant que
+     la ligne de TR_ECHELLES ait été exécutée */
+  var s = p && p.scale;
+  return (s === 16 || s === 32 || s === 12 || s === 24) ? s : 16;
+}
+function dureePasTr(){ return stepDur() * 16 / echelleTr(TR.pat); }
+function remettreHorlogeTr(){
+  TR.hN = 0; TR.hK = 0; TR.hIdx = 0; TR.hS = echelleTr(TR.pat); TR.file = [];
+}
 function scheduleTr(i, t){
   var p = TR.pat, v = TR.var2 ? "B" : "A";
-  if(i >= (p.last || 16)) return;
-  if(TR.shuffle && i % 2 === 1) t += stepDur() * TR.shuffle * 0.5;
-  var acc = !!p[v][0][i];
-  var n = ouvrirPas(), k;
-  for(k=1;k<TR.def.instr.length;k++){
-    if(!p[v][k][i]) continue;
-    voixTr(t, k, acc); n++;
-    if(TR.flam){ voixTr(t + 0.028, k, false); n++; }   /* le flam de la 909 */
+  /* nouveau départ (START, reprise MIDI) : la TR repart de son premier pas */
+  if(!cache && pasSet === 0) remettreHorlogeTr();
+  var sc = echelleTr(p), L = p.last || 16, d = stepDur();
+  /* SCALE changé pendant la lecture : la nouvelle grille part de ce tic */
+  if(sc !== TR.hS){ TR.hS = sc; TR.hN = 0; TR.hK = 0; }
+  var tic = TR.hN, fin = Math.ceil((tic + 1) * sc / 16);
+  for(; TR.hK < fin; TR.hK++){
+    if(TR.hIdx >= L) TR.hIdx = 0;
+    var j = TR.hIdx;
+    var tp = t + (TR.hK * 16 / sc - tic) * d;
+    if(TR.shuffle && j % 2 === 1) tp += d * 16 / sc * TR.shuffle * 0.5;
+    var acc = !!p[v][0][j];
+    var n = ouvrirPas(), k;
+    for(k=1;k<TR.def.instr.length;k++){
+      if(!p[v][k][j]) continue;
+      voixTr(tp, k, acc); n++;
+      if(TR.flam){ voixTr(tp + 0.028, k, false); n++; }   /* le flam de la 909 */
+    }
+    attenuerVoie("tr", n, tp);
+    if(!cache){
+      queue.push({i:j, t:tp});
+      /* file propre à la TR : son curseur reste juste quand elle est
+         secondaire dans le SET, où le rang du SET compte en tics */
+      TR.file.push({i:j, t:tp});
+      if(TR.file.length > 256) TR.file.shift();
+    }
+    TR.hIdx = (j + 1) % L;
   }
-  attenuerVoie("tr", n, t);
-  if(!cache) queue.push({i:i, t:t});
+  TR.hN++;
 }
 var trPas = [];
 function beatTr(i){
-  TR.pos = i;
-  for(var j=0;j<16;j++) trPas[j].classList.toggle("cur", j === i);
+  var now = ctx ? maintenantAudio() : 0, pos = -1;
+  while(TR.file.length && TR.file[0].t <= now + 0.001) pos = TR.file.shift().i;
+  if(pos < 0) return;
+  TR.pos = pos;
+  for(var j=0;j<16;j++) trPas[j].classList.toggle("cur", j === pos);
 }
 function arretTr(){
   TR.pos = -1;
+  remettreHorlogeTr();
   for(var j=0;j<16;j++) trPas[j].classList.remove("cur");
   var b = document.getElementById("tr8-start");
   if(b) b.classList.remove("on");
 }
 function boucleTr(){ }
+/* longueur en tics de l'horloge commune (le rendu WAV et le SET comptent en
+   tics) : un tour complet du motif, arrondi au tic supérieur */
 var MACHINE_TR = {schedule:scheduleTr, beat:beatTr, arret:arretTr, boucle:boucleTr,
-                  longueur:function(){ return TR.pat.last || 16; }};
+                  longueur:function(){ return Math.ceil((TR.pat.last || 16) * 16 / echelleTr(TR.pat)); }};
 
 /* ---------- interface, reconstruite à chaque changement de modèle ---------- */
 var TR_KNOBS = [];
@@ -896,7 +942,7 @@ function chargerTr(){
     if(m.slots && m.slots.length === 16){
       TR.slots = m.slots.map(function(o){
         var p = motifTr(9);
-        p.last = o.last || 16; p.scale = o.scale || 16;
+        p.last = o.last || 16; p.scale = echelleTr({scale:o.scale});
         if(o.son && o.son.length === TR.def.instr.length) p.son = o.son;
         ["A","B"].forEach(function(v){
           if(o[v]) o[v].forEach(function(s, k){
@@ -948,7 +994,7 @@ document.getElementById("tr8-last").addEventListener("click", function(){
   majTr(); memTr(); H.cran();
 });
 document.getElementById("tr8-scale").addEventListener("click", function(){
-  var v = [16, 32, 12, 24];
+  var v = TR_ECHELLES;
   TR.pat.scale = v[(v.indexOf(TR.pat.scale) + 1) % v.length];
   majTr(); memTr(); H.cran();
   lcdTr(String(TR.pat.scale), "SCALE", true);
@@ -1005,6 +1051,7 @@ function activerTr(modele){
                       TR.m === "rd6"   ? "rd6" : null);
   audioInit();
   chargerTr();            /* les motifs d'abord : les boutons lisent leurs valeurs à la création */
+  remettreHorlogeTr();
   construireTr();
   debrancherTout(TR.noeuds); TR.noeuds = []; TR.ohGain = null;
   TR.sel = Math.min(TR.sel, TR.def.instr.length - 1);
