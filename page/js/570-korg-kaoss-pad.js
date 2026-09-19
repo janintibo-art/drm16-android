@@ -30,7 +30,11 @@ var KP = {fx:0, x:0.5, y:0.5, tenu:false, touche:false,
                    {ech:"b6", mode:"loop", slice:false, tranche:0, on:false},
                    {ech:"b9", mode:"loop", slice:false, tranche:0, on:false}],
           sel:0, sources:[null, null, null, null], vitesse:1, taps:[], tranches:[],
-          prise:null, priseEtat:"SORTIE + EFFETS · 8 S MAX"};
+          prise:null, priseEtat:"SORTIE + EFFETS · 8 S MAX",
+          /* v242 : FX RELEASE. release = laisser sonner la queue de l'écho et
+             de la réverbération au lever du doigt ; dernierActif = effet joué
+             juste avant ; queueTmr = fin programmée de la queue */
+          release:false, dernierActif:null, queueTmr:null};
 
 /* v171 : capture du mélange après les effets et MUTE, avant le bus du set.
    Le flux vient du graphe audio : aucune entrée micro, aucun retour vers le
@@ -391,15 +395,18 @@ function noeudsKp(){
   e.connect(f); f.connect(crush); crush.connect(cw); cw.connect(hache);
   f.connect(brut); brut.connect(hache);
   hache.connect(sec); sec.connect(out);
-  hache.connect(d); d.connect(fb); fb.connect(d); d.connect(dmix); dmix.connect(out);
-  hache.connect(conv); conv.connect(vmix); vmix.connect(out);
+  /* v242 : envois vers l'écho et la réverbération. FX RELEASE ferme l'envoi et
+     laisse les retours : ce qui est déjà dans l'effet finit de sonner. */
+  var denv = eurGain(1), venv = eurGain(1);
+  hache.connect(denv); denv.connect(d); d.connect(fb); fb.connect(d); d.connect(dmix); dmix.connect(out);
+  hache.connect(venv); venv.connect(conv); conv.connect(vmix); vmix.connect(out);
   rgain.connect(rmix.gain); hache.connect(rmix); rmix.connect(rwet); rwet.connect(out);
   out.connect(busSet("kp") || master);
   ring.start(); lfo.start();
 
   KP.noeuds = {ctx:ctx, e:e, f:f, crush:crush, d:d, fb:fb, dmix:dmix,
                vmix:vmix, ring:ring, rgain:rgain, rmix:rmix, rwet:rwet, sec:sec,
-               cw:cw, brut:brut,
+               cw:cw, brut:brut, denv:denv, venv:venv,
                hache:hache, lfo:lfo, lprof:lprof, out:out};
   appliquerKp();
   return KP.noeuds;
@@ -439,23 +446,44 @@ function appliquerKp(){
   if(!n || n.ctx !== ctx) return;
   var actif2 = KP.touche || KP.tenu || KP.rejoue;
   var x = KP.x, y = KP.y, p = KP.prof * (actif2 ? 1 : 0);
+  var nom = KP_EFFETS[KP.fx][0];
+  if(KP.queueTmr){ clearTimeout(KP.queueTmr); KP.queueTmr = null; }
+  /* v242 : doigt levé avec FX RELEASE juste après un écho ou une réverbération :
+     la queue continue ; les réglages de l'effet restent tels que le doigt les a
+     laissés, seul l'envoi se ferme. */
+  var queue = !actif2 && KP.release && KP.dernierActif === nom && (nom === "delai" || nom === "verb");
 
   n.f.type = "lowpass"; n.f.frequency.value = 20000; n.f.Q.value = 0.7;
   n.crush.curve = null;
-  n.fb.gain.value = 0; n.dmix.gain.value = 0;
-  n.vmix.gain.value = 0;
+  if(!queue){
+    n.fb.gain.value = 0; n.dmix.gain.value = 0;
+    n.vmix.gain.value = 0;
+  }
   var sec = 1, anneau = 0, reduit = 1, intact = 0;
   n.lprof.gain.value = 0; n.hache.gain.value = 1;
   n.out.gain.value = KP.muet ? 0 : 1;
-  var nom = KP_EFFETS[KP.fx][0];
   /* Doigt levé : la vitesse revient à 1 en glissant, comme un plateau relâché.
      Autre effet choisi : retour rapide. */
   if(!actif2 || nom !== "pitch") vitesseKp(1, actif2 ? 0.02 : 0.15);
   if(!actif2){
     lisseKp(n.sec.gain, 1); lisseKp(n.rwet.gain, 0);
     lisseKp(n.cw.gain, 1);  lisseKp(n.brut.gain, 0);
+    if(queue){
+      lisseKp(n.denv.gain, 0); lisseKp(n.venv.gain, 0);
+      var duree = dureeQueueKp(nom, n.d.delayTime.value, n.fb.gain.value);
+      KP.queueTmr = setTimeout(function(){
+        KP.queueTmr = null;
+        if(KP.touche || KP.tenu || KP.rejoue) return;
+        KP.dernierActif = null; appliquerKp();
+      }, duree * 1000);
+    } else {
+      KP.dernierActif = null;
+      lisseKp(n.denv.gain, 1); lisseKp(n.venv.gain, 1);
+    }
     return;
   }
+  KP.dernierActif = nom;
+  lisseKp(n.denv.gain, 1); lisseKp(n.venv.gain, 1);
 
   if(nom === "filtre"){
     n.f.frequency.value = 80 * Math.pow(220, x);
@@ -507,6 +535,16 @@ function appliquerKp(){
   lisseKp(n.brut.gain, intact);
 }
 
+/* v242 : durée de la queue laissée par FX RELEASE. Écho : le temps que les
+   répétitions tombent à −60 dB (réinjection^n = 0,001), 12 s au plus.
+   Réverbération : la longueur de sa réponse (1,8 s) et une marge. */
+function dureeQueueKp(nom, temps, reinj){
+  if(nom === "verb") return 2;
+  var r = Math.max(0.01, Math.min(0.95, reinj || 0));
+  var repetitions = Math.max(1, Math.log(0.001) / Math.log(r));
+  return Math.min(12, Math.max(0.3, temps * repetitions + 0.1));
+}
+
 /* Le geste enregistré. On relève la position à chaque pas du séquenceur, ce
    qui lie la boucle au tempo : le trajet se rejoue toujours en mesure. */
 function lireGesteKp(source){
@@ -556,7 +594,7 @@ var MACHINE_KP = {schedule:scheduleKp, beat:beatKp, arret:arretKp,
                   longueur:function(){ return 16; }};
 
 function memKp(){
-  memoire.kp = {fx:KP.fx, prof:KP.prof, motion:lireGesteKp(KP.motion), sel:KP.sel,
+  memoire.kp = {fx:KP.fx, prof:KP.prof, motion:lireGesteKp(KP.motion), sel:KP.sel, release:!!KP.release,
                 banques:KP.banques.map(function(b){
                   return {ech:b.ech, mode:b.mode, slice:!!b.slice, tranche:numeroTrancheKp(b.tranche)};
                 })};
@@ -570,7 +608,9 @@ function chargerKp(){
   KP.enregistre = false;
   if(!KP.motion.length) KP.rejoue = false;
   KP.banques.forEach(function(b){ b.mode = "loop"; b.slice = false; b.tranche = 0; });
+  KP.release = false;
   if(!m) return;
+  KP.release = m.release === true;
   if(typeof m.fx === "number" && isFinite(m.fx)) KP.fx = Math.max(0, Math.min(KP_EFFETS.length - 1, m.fx|0));
   if(typeof m.prof === "number" && isFinite(m.prof)) KP.prof = Math.max(0, Math.min(1, m.prof));
   if(typeof m.sel === "number" && isFinite(m.sel)) KP.sel = Math.max(0, Math.min(3, m.sel|0));

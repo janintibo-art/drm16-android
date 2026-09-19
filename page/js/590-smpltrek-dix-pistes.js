@@ -518,7 +518,7 @@ function majKp(){
   var v = document.getElementById("kp-val"), l = document.getElementById("kp-lab");
   if(v){ v.textContent = KP_EFFETS[KP.fx][1]; l.textContent = KP_EFFETS[KP.fx][2]; }
   [["kp-hold", KP.tenu], ["kp-motion", KP.enregistre], ["kp-rejoue", KP.rejoue],
-   ["kp-mute", KP.muet], ["kp-play", S.run]].forEach(function(x){
+   ["kp-mute", KP.muet], ["kp-play", S.run], ["kp-release", KP.release]].forEach(function(x){
     var e = document.getElementById(x[0]);
     if(e) e.classList.toggle("on", !!x[1]);
   });
@@ -595,6 +595,15 @@ document.getElementById("kp-rejoue").addEventListener("click", function(){
   KP.rejoue = !KP.rejoue; KP.enregistre = false;
   if(KP.rejoue) KP.mpos = 0;          /* chaque relecture repart du début du geste */
   appliquerKp(); majKp(); H.inter();
+});
+/* v242 : FX RELEASE — au lever du doigt, l'écho et la réverbération finissent
+   de sonner au lieu d'être coupés net. */
+document.getElementById("kp-release").addEventListener("click", function(){
+  KP.release = !KP.release;
+  if(!KP.release){ KP.dernierActif = null; appliquerKp(); }
+  majKp(); memKp(); H.inter();
+  signal(KP.release ? "FX RELEASE : L'ÉCHO ET LA RÉVERBÉRATION FINISSENT DE SONNER"
+                    : "FX RELEASE COUPÉ : L'EFFET S'ARRÊTE AVEC LE DOIGT");
 });
 document.getElementById("kp-mute").addEventListener("click", function(){
   KP.muet = !KP.muet; appliquerKp(); majKp(); H.inter();
