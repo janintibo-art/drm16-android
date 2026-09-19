@@ -352,7 +352,7 @@ async def main(racine):
             print('TR secondaire : variantes, réglages et son du SET après export', flush=True)
             await page.evaluate(r"""() => {
               allerMachine('tr808');
-              TR.cur = 2; TR.pat = TR.slots[2]; TR.pat.last = 12; TR.pat.scale = 8;
+              TR.cur = 2; TR.pat = TR.slots[2]; TR.pat.last = 12; TR.pat.scale = 24;
               TR.shuffle = 0.27; TR.pat.son[1].ton = 0.28; TR.pat.son[1].dec = 0.35;
               TR.pat.A.forEach(l => l.fill(0)); TR.pat.A[1][0] = 1;
               memTr(); writeMem();
