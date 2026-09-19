@@ -44,7 +44,8 @@ function bibSons(){
   });
   return out;
 }
-function bibAffecter(id){
+/* silencieux (v253) : l'essai d'un son ne refait pas la liste, pour garder la place */
+function bibAffecter(id, silencieux){
   var m = BIB.cible.machine, k = bibIndexReel(m, BIB.cible.partie);
   if(m === "es1" || m === "es2"){
     if(S.modele !== m) activerEs(m === "es2" ? 2 : 1);
@@ -69,14 +70,33 @@ function bibAffecter(id){
     if(!affecterSonMc(k, id)) return;
   } else if(m === "kp"){
     if(!affecterSonKp(k, id)) return;
+  } else if(m === "vlc"){                      /* v253 : quatre machines de plus */
+    if(S.modele !== m) activerVlc();
+    motifVlcCur().parties[k].ech = id; memVlc();
+    try{ majVlc(); }catch(e){}
+  } else if(m === "t1k"){
+    if(S.modele !== m) activerT1k();
+    motifT1kCur().instr[k].ech = id; memT1k();
+    try{ majT1k(); majKnobsT1k(); }catch(e){}
+  } else if(m === "arcm"){
+    if(S.modele !== m) activerArcm();
+    var P = motifArcmCur().pistes[k];
+    P.ech = id; P.nom = nomBib(id).slice(0, 28); memArcm();
+    try{ majArcm(); }catch(e){}
+  } else if(m === "ko"){
+    if(S.modele !== m) activerKo();
+    KO.sons[k] = id; memKo();
+    try{ majKo(); }catch(e){}
   }
   signal(nomBib(id) + " → " + bibNomPartie(m, k));
-  majBibUI();
+  if(!silencieux) majBibUI();
   H.inter();
+  return true;
 }
 var BIB_MACHINES = [["es1","Electribe ES-1"],["es2","ES-1 mkII"],["esx","Electribe ESX-1"],
                     ["emx","Electribe EMX-1"],["er2","ER-1 mkII"],
-                    ["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["kp","Korg KAOSS PAD"],["mc","Roland MC-101"],["stk","Sonicware SmplTrek"]];
+                    ["mpc3000","Akai MPC3000"],["mpc2000","Akai MPC2000"],["kp","Korg KAOSS PAD"],["mc","Roland MC-101"],["stk","Sonicware SmplTrek"],
+                    ["vlc","Korg volca sample"],["t1k","Roland TR-1000"],["arcm","Machine d'archive"],["ko","PO-33 K.O!"]];
 function bibParties(m){
   var l = [], i;
   if(m === "es1" || m === "es2") for(i=0;i<9;i++) l.push(ES_PARTS[i].n);
@@ -86,6 +106,10 @@ function bibParties(m){
   else if(m === "stk") for(i=0;i<STK_PISTES;i++) l.push("Piste " + (i + 1));
   else if(m === "mc") l = ["Piste 2", "Piste 3", "Piste 4"];
   else if(m === "kp") l = ["Banque A", "Banque B", "Banque C", "Banque D"];
+  else if(m === "vlc") for(i=0;i<10;i++) l.push("Partie " + (i + 1));
+  else if(m === "t1k") l = T1K_INSTR.map(function(p){ return p.nom; });
+  else if(m === "arcm") for(i=0;i<16;i++) l.push("Piste " + (i + 1));
+  else if(m === "ko") for(i=0;i<16;i++) l.push("Son " + (i + 1));
   else for(i=0;i<64;i++) l.push("Pad " + MPC_BANQUES[Math.floor(i/16)] + ((i%16)+1));
   return l;
 }
@@ -189,6 +213,9 @@ function majBibUI(){
   if(!corps) return;
   var bs = document.querySelectorAll("#bib-nav button");
   for(var i=0;i<bs.length;i++) bs[i].classList.toggle("on", i === BIB.onglet);
+  /* v253 : refaire le rayon sans ramener la liste en haut */
+  var defile = corps.parentNode, haut = defile ? defile.scrollTop : 0, memeRayon = BIB.ongletAffiche === BIB.onglet;
+  BIB.ongletAffiche = BIB.onglet;
   corps.innerHTML = "";
   if(BIB.onglet === 0) bibRendreSons(corps);
   else if(BIB.onglet === 1) bibRendrePrises(corps);
@@ -196,6 +223,8 @@ function majBibUI(){
   else if(BIB.onglet === 3) bibRendreArchive(corps);
   else if(BIB.onglet === 4) bibRendreFreesound(corps);
   else if(BIB.onglet === 5) bibRendreMachines(corps);
+  if(defile && memeRayon) defile.scrollTop = haut;
+  if(typeof majBarreEssai === "function") majBarreEssai();
 }
 function ligneBib(titre, detail){
   var d = document.createElement("div");
@@ -303,7 +332,12 @@ function bibLigneSon(s){
     var g = ctx.createGain(); g.gain.value = 0.8;
     src.connect(g); g.connect(master); src.start();
   });
-  boutonBib(a, "AFFECTER", function(){ bibAffecter(s.id); });
+  boutonBib(a, "AFFECTER", function(){
+    if(typeof affecterDepuisListe === "function") affecterDepuisListe(s.id); else bibAffecter(s.id);
+  });
+  /* v253 : l'essai remplace le son pendant la lecture, sans l'arrêter */
+  if(typeof essayerSon === "function") boutonBib(a, "ESSAYER", function(){ essayerSon(s.id); });
+  if(typeof ESSAI !== "undefined" && ESSAI && ESSAI.id === s.id) l.setAttribute("aria-current", "true");
   if(s.propre) boutonBib(a, "TRAITER", function(){
     audioInit();
     var b = ES.buf[s.id];
@@ -598,6 +632,7 @@ function reechantillonner32(buf){
 }
 
 function ouvrirBib(){
+  BIB.ongletAffiche = -1;                     /* une ouverture repart du haut */
   bibLire();
   arcCharger();
   audioInit(); banqueEs(); chargerEchs();   /* la banque doit exister pour être listée */
@@ -608,6 +643,7 @@ function ouvrirBib(){
 }
 function fermerBib(){
   fsonAnnuler();
+  if(typeof annulerEssai === "function" && ESSAI) annulerEssai("ESSAI ANNULÉ · SON D'ORIGINE REMIS");
   document.getElementById("bib").classList.remove("show");
   majNoteOuverte();
   if(S.modele === "kp"){ majKp(); fit(); }     /* noms et sons modifiés dans le panneau */

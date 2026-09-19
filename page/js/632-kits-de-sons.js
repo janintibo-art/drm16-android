@@ -123,18 +123,18 @@ var KITS_MACHINES = {
     utile:function(h){ return h === motifT1kCur() || JSON.stringify(ecrireMotifT1k(h)) !== motifVideT1k(); },
     ou:function(){ return "motif " + "ABCDEFGH".charAt(T1K.banq) + (T1K.cur + 1); },
     parties:function(){ return T1K_INSTR.map(function(p){ return p.nom; }); },
-    son:function(i, o){ return o.ech || null; }}),
+    son:function(i, o){ return o.ech || null; }, bib:function(i){ return i; }}),
   vlc:kitsAvec(kitsObjets(function(h){ return h.parties; }, ["ech","par","f"]), {nom:"Korg volca sample", mem:"memVlc",
     courant:function(){ return motifVlcCur(); }, motifs:function(){ return VLC.motifs.slice(); },
     ou:function(){ return "motif " + (VLC.cur + 1); },
     parties:function(){ var l = []; for(var i=0;i<10;i++) l.push("Partie " + (i + 1)); return l; },
-    son:function(i, o){ return o.ech || null; }}),
+    son:function(i, o){ return o.ech || null; }, bib:function(i){ return i; }}),
   arcm:kitsAvec(kitsObjets(function(h){ return h.pistes; },
       ["ech","nom","niv","pan","tune","dec","debut","filt","fin","reso","ftype","drive","envoi","rev"]), {nom:"Machine d'archive", mem:"memArcm",
     courant:function(){ return motifArcmCur(); }, motifs:function(){ return ARCM.motifs.slice(); },
     ou:function(){ return "motif " + (ARCM.cur + 1); },
     parties:function(){ return motifArcmCur().pistes.map(function(p, i){ return p.nom || ("Piste " + (i + 1)); }); },
-    son:function(i, o){ return o.ech || null; }}),
+    son:function(i, o){ return o.ech || null; }, bib:function(i){ return i; }, emplacement:function(){ return true; }}),
   mpc3000:null, mpc2000:null,
   kp:kitsAvec(kitsObjets(function(){ return KP.banques; }, ["ech","mode","slice","tranche"]), {nom:"Korg KAOSS PAD", mem:"memKp",
     parties:function(){ return ["Banque A", "Banque B", "Banque C", "Banque D"]; },
@@ -154,7 +154,7 @@ var KITS_MACHINES = {
       l.forEach(function(x, i){ if(x && typeof x.ech === "string" && x.ech.length && x.ech.length <= 128) KO.sons[i] = x.ech; });
       return true;
     },
-    son:function(i, o){ return o.ech || null; }},
+    son:function(i, o){ return o.ech || null; }, bib:function(i){ return i; }},
   dmx:null, cr5:null
 };
 /* les TR partagent un moteur : même entrée, plus les réglages de timbre communs */
@@ -283,6 +283,7 @@ function kitsMachinePrete(m){
 }
 /* mêmes garde-fous que le tirage au sort des sons */
 function kitsModifiable(m){
+  if(typeof ESSAI !== "undefined" && ESSAI) annulerEssai();   /* v253 */
   if(!kitsMachinePrete(m)) return false;
   if(m === "dbi" && typeof editionDbiPermise === "function" && !editionDbiPermise()) return false;
   return true;
@@ -338,19 +339,27 @@ function kitsChangerSon(m, i, id){
   if(D.banqueSeule && String(id).charAt(0) !== "b"){ signal("CETTE PARTIE NE LIT QUE LA BANQUE INTERNE"); return false; }
   var h = D.courant ? D.courant() : null, l = D.lire(h);
   if(!l[i] || !kitsEmplacement(D, i, l[i])){ signal("CETTE PARTIE N'A PAS DE SON À CHANGER"); return false; }
+  if(!D.bib || D.bib(i) < 0){ signal("CETTE PARTIE N'A PAS DE SON À CHANGER"); return false; }
   kitsGarderAvant(m, false);
-  /* les machines déjà servies par AFFECTER gardent leur propre chemin */
-  if(D.bib){
-    BIB.cible = {machine:m, partie:D.bib(i)};
-    bibAffecter(id);
-    return true;
+  /* v253 : toutes les machines passent par AFFECTER, qui change le son sans
+     arrêter la lecture */
+  BIB.cible = {machine:m, partie:D.bib(i)};
+  return bibAffecter(id) === true;
+}
+/* v253 : depuis une partie, ouvrir le rayon SONS prêt à essayer d'autres sons
+   de la même catégorie */
+function kitsVersEssai(m, i, id){
+  var D = KITS_MACHINES[m];
+  if(!D || !D.bib || D.bib(i) < 0) return;
+  BIB.cible = {machine:m, partie:D.bib(i)};
+  var f = typeof bibFiltre === "function" ? bibFiltre() : null;
+  if(f){
+    f.q = ""; f.orig = "tout"; f.fav = false; f.n = BIB_PAGE;
+    f.cat = id && typeof bibCategorie === "function" ? bibCategorie({id:id, nom:nomBib(id)}) : "";
   }
-  l[i].ech = id;
-  if(m === "arcm") l[i].nom = nomBib(id).slice(0, 28);
-  D.ecrire(h, l);
-  kitsEnregistrer(m);
-  signal(nomBib(id) + " → " + D.parties()[i]);
-  return true;
+  BIB.onglet = 0;
+  majBibUI();
+  signal("CHOISISSEZ UN SON · ESSAYER LE MET À L'ESSAI SUR " + D.parties()[i].toUpperCase());
 }
 
 /* ---------- le rayon ---------- */
@@ -459,6 +468,7 @@ function bibRendreMachines(corps){
         H.inter();
       });
       a.appendChild(s);
+      boutonBib(a, "ESSAYER D'AUTRES SONS", function(){ kitsVersEssai(m, i, id); });
       l.appendChild(a);
     }
     corps.appendChild(l);
@@ -471,7 +481,8 @@ function kitsEmplacement(D, i, o){
   return "ech" in o;
 }
 function kitsResume(D, i, o, id){
-  if(id) return nomBib(id) + (D.banqueSeule ? " · banque" : "");
+  if(id) return nomBib(id) + (D.banqueSeule ? " · banque" : "") +
+    (typeof o.mix === "number" && o.mix <= 0.02 ? " · muet tant que MIX est à 0" : "");
   if(kitsEmplacement(D, i, o)) return "vide";
   var ks = Object.keys(o);
   if(ks.length === 1 && ks[0] === "niv") return "niveau " + Math.round(o.niv * 100) + " %";

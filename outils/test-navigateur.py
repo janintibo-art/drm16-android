@@ -2460,10 +2460,95 @@ async def bib_classement(nav):
     finally:
         await pg.context.close()
 
+async def bib_essai(nav):
+    print('\n43. Bibliothèque : essayer un son pendant la lecture (v253)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        await pg.locator('.pick[data-m=es1]').click()
+        await pg.evaluate("audioInit(); start()")
+        await pg.evaluate('ouvrirBib()')
+        ok(await pg.locator('#bib-essai').is_hidden(), 'pas de barre d’essai au départ')
+        ligne = lambda nom: pg.locator('#bib-corps .bib-ligne').filter(has=pg.locator('b', has_text=nom)).first
+        pas0 = await pg.evaluate('step')
+        await ligne('SNARE 2').locator('button', has_text='ESSAYER').click()
+        await pg.wait_for_timeout(400)
+        r = await pg.evaluate("({ech:ES.pat.son[0].ech, run:S.run, pas:step, barre:!document.getElementById('bib-essai').hidden, quoi:document.getElementById('bib-essai-quoi').textContent, ou:document.getElementById('bib-essai-ou').textContent, marque:document.querySelectorAll('#bib-corps .bib-ligne[aria-current]').length})")
+        ok(r['run'] and r['ech'] != 'b0' and r['barre'] and r['quoi'] == 'SNARE 2' and 'avant : KICK' in r['ou'] and r['marque'] == 1,
+           'ESSAYER : son posé sur la partie 1, lecture continue, barre et ligne marquées (%s)' % r)
+        ok(r['pas'] != pas0 or r['run'], 'le séquenceur avance pendant l’essai')
+        await ligne('CLAP').locator('button', has_text='ESSAYER').click()
+        await ligne('COWBELL').locator('button', has_text='ESSAYER').click()
+        r = await pg.evaluate("({nom:nomBib(ES.pat.son[0].ech), run:S.run, ou:document.getElementById('bib-essai-ou').textContent})")
+        ok(r['nom'] == 'COWBELL' and r['run'] and 'avant : KICK' in r['ou'], 'trois essais de suite, l’origine reste KICK (%s)' % r)
+        await pg.locator('#bib-essai-annuler').click()
+        r = await pg.evaluate("({ech:ES.pat.son[0].ech, run:S.run, barre:document.getElementById('bib-essai').hidden, mem:memLire('es1').slots[0].son[0].ech})")
+        ok(r == {'ech': 'b0', 'run': True, 'barre': True, 'mem': 'b0'}, 'ANNULER : KICK revient, en mémoire aussi, lecture continue (%s)' % r)
+        await ligne('TOM').locator('button', has_text='ESSAYER').click()
+        await pg.locator('#bib-essai-garder').click()
+        r = await pg.evaluate("({nom:nomBib(ES.pat.son[0].ech), mem:nomBib(memLire('es1').slots[0].son[0].ech), avant:!!kitsDe(kitsLireTout(),'es1').avant, run:S.run})")
+        ok(r == {'nom': 'TOM', 'mem': 'TOM', 'avant': True, 'run': True}, 'GARDER : TOM reste, REMETTRE du rayon MACHINES prêt (%s)' % r)
+        # AFFECTER pendant un essai sur la même partie = garder ce son
+        await ligne('RIM').locator('button', has_text='ESSAYER').click()
+        await ligne('HAT').locator('button', has_text='AFFECTER').click()
+        r = await pg.evaluate("({nom:nomBib(ES.pat.son[0].ech), essai:ESSAI})")
+        ok(r['nom'] == 'HAT' and r['essai'] is None, 'AFFECTER pendant l’essai : ce son est gardé (%s)' % r)
+        # fermer la bibliothèque annule l'essai
+        await ligne('ZAP').locator('button', has_text='ESSAYER').click()
+        await pg.evaluate('fermerBib()')
+        ok(await pg.evaluate("nomBib(ES.pat.son[0].ech)") == 'HAT', 'fermer la bibliothèque remet le son d’avant')
+        # rouvrir une machine annule d'abord
+        await pg.evaluate('ouvrirBib()')
+        await ligne('ZAP').locator('button', has_text='ESSAYER').click()
+        await pg.evaluate("rouvrirMachine('es1')")
+        ok(await pg.evaluate("nomBib(ES.pat.son[0].ech) === 'HAT' && ESSAI === null"), 'une réouverture de machine annule l’essai avant de recharger')
+        # la barre lance et arrête la lecture
+        await pg.evaluate("ouvrirBib(); BIB.onglet = 0; majBibUI()")
+        await ligne('ZAP').locator('button', has_text='ESSAYER').click()
+        await pg.locator('#bib-essai-jouer').click()
+        r1 = await pg.evaluate("({run:S.run, t:document.getElementById('bib-essai-jouer').textContent})")
+        await pg.locator('#bib-essai-jouer').click()
+        r2 = await pg.evaluate("({run:S.run, t:document.getElementById('bib-essai-jouer').textContent})")
+        ok(r1['run'] != r2['run'] and r1['t'] != r2['t'], 'la barre lance et arrête la lecture (%s / %s)' % (r1, r2))
+        await pg.locator('#bib-essai-annuler').click()
+        # MPC : un pad du programme, lecture continue
+        await pg.select_option('#bib-corps .bib-cible select >> nth=0', 'mpc3000')
+        await pg.evaluate("start()")
+        await ligne('CLAP').locator('button', has_text='ESSAYER').click()
+        r = await pg.evaluate("({m:S.modele, ech:nomBib(MPC.pads[0].ech), run:S.run})")
+        ok(r['m'] == 'mpc3000' and r['ech'] == 'CLAP', 'MPC3000 : pad A1 à l’essai (%s)' % r)
+        await pg.evaluate("start()")
+        await ligne('RIM').locator('button', has_text='ESSAYER').click()
+        ok(await pg.evaluate("S.run && nomBib(MPC.pads[0].ech) === 'RIM'"), 'MPC3000 : deuxième essai pendant la lecture')
+        await pg.locator('#bib-essai-annuler').click()
+        ok(await pg.evaluate("nomBib(MPC.pads[0].ech)") == 'KICK', 'MPC3000 : pad d’origine remis')
+        # volca et KAOSS : essai puis annulation sans arrêter
+        for m, lecture in (('vlc', "nomBib(motifVlcCur().parties[0].ech)"), ('kp', "nomBib(KP.banques[0].ech)"), ('t1k', "nomBib(motifT1kCur().instr[0].ech)"), ('ko', "nomBib(KO.sons[0])")):
+            await pg.select_option('#bib-corps .bib-cible select >> nth=0', m)
+            await ligne('CLAP').locator('button', has_text='ESSAYER').click()   # ouvre la machine
+            await pg.locator('#bib-essai-annuler').click()
+            avant = await pg.evaluate(lecture)
+            await pg.evaluate("start()")
+            await ligne('BLIP').locator('button', has_text='ESSAYER').click()
+            pendant = await pg.evaluate(lecture)
+            run = await pg.evaluate("S.run")
+            await pg.locator('#bib-essai-annuler').click()
+            apres = await pg.evaluate(lecture)
+            ok(pendant == 'BLIP' and run and apres == avant, '%s : essai pendant la lecture puis retour à %s (%s)' % (m, avant, pendant))
+        # depuis le rayon MACHINES
+        await pg.locator('#bib-nav button', has_text='MACHINES').click()
+        await pg.select_option('#kits-machine', 'es1')
+        await pg.locator('#bib-corps .kits-partie').nth(1).locator('button', has_text="ESSAYER D'AUTRES SONS").click()
+        r = await pg.evaluate("({onglet:BIB.onglet, cible:BIB.cible, cat:BIB.filtre.cat, n:document.querySelectorAll('#bib-corps .bib-ligne').length})")
+        ok(r['onglet'] == 0 and r['cible'] == {'machine': 'es1', 'partie': 1} and r['cat'] == 'caisse' and r['n'] >= 2,
+           'ESSAYER D’AUTRES SONS : rayon SONS, partie visée, sons de la même catégorie (%s)' % r)
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai):
             try:
                 await t(nav)
             except Exception as e:

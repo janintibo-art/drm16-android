@@ -23,7 +23,7 @@ function page() {
     TR: {cur: 0, slots: [0, 1].map(() => ({son: [{niv: .8, ton: .5}, {niv: .7, ton: .5}]})), tone: .5, drive: .2, dist: false,
          def: {instr: [{id: 'BD', nom: 'BASS DRUM'}, {id: 'SD', nom: 'SNARE'}]}},
     BIB: {cible: {machine: 'es1', partie: 0}}, nomBib: id => 'SON ' + id,
-    bibAffecter(id) { c.ES.pat.son[c.BIB.cible.partie].ech = id; },
+    bibAffecter(id) { c.ES.pat.son[c.BIB.cible.partie].ech = id; return true; },
     allerMachine(m) { c.S.modele = m; ouvertures.push(m); }, rouvrirMachine(m) { ouvertures.push('r:' + m); },
     memEs() {}, memTr() {}
   };

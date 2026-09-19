@@ -3,6 +3,14 @@
   <div id="bib-nav">
     <button class="on">SONS</button><button>PRISES MIDI</button><button>SAUVEGARDES</button><button>ARCHIVE</button><button>FREESOUND</button><button>MACHINES</button>
   </div>
+  <div id="bib-essai" hidden role="status" aria-live="polite">
+    <p><span class="bib-essai-t">À L'ESSAI</span> <b id="bib-essai-quoi"></b><br><span id="bib-essai-ou"></span></p>
+    <div class="bib-actions">
+      <button id="bib-essai-jouer" aria-pressed="false">▶ LECTURE</button>
+      <button id="bib-essai-garder">GARDER</button>
+      <button class="sec" id="bib-essai-annuler">ANNULER</button>
+    </div>
+  </div>
   <div class="note-corps"><div class="doc vu" id="bib-corps" style="max-width:620px"></div></div>
   <input type="file" id="bib-fichier" accept="audio/*" style="display:none">
 </div>

@@ -16,3 +16,11 @@
 #bib .bib-etoile.on{color:var(--accent)}
 #bib .bib-cat{min-height:40px;max-width:170px}
 #bib .bib-onde{width:160px;height:32px;opacity:.9}
+/* v253 : barre d'essai */
+#bib-essai{flex:none;padding:10px 16px;border-bottom:2px solid #8ce3a0;background:#131316;color:#f2f2f2}
+#bib-essai[hidden]{display:none}
+#bib-essai p{margin:0 0 8px;font-size:13px;line-height:1.35}
+#bib-essai b{font-size:15px}
+#bib-essai .bib-essai-t{color:#8ce3a0;font-weight:700;letter-spacing:.06em}
+#bib-essai button{min-height:40px}
+#bib .bib-ligne[aria-current="true"]{outline:2px solid #8ce3a0;outline-offset:-2px}

@@ -59,6 +59,8 @@ function majVoileMenu(){
   v.classList.toggle("vu", reste > 12);
 }
 function allerMachine(id){
+  /* v253 : un son à l'essai revient d'abord, sinon la mémoire rechargée le garderait */
+  if(typeof essaiAvantOuverture === "function") essaiAvantOuverture();
   if(id === "eur") activerEur();
   else if(id === "td3") activerTd3();
   else if(id === "rd6") activerTr("rd6");
