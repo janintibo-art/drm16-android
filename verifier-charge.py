@@ -77,8 +77,13 @@ for m in re.finditer(r'CHARGE_N\+\+, ', js):
         print("  compteur apres un operateur logique :", repr(avant[-40:])); faute += 1
 
 # v124 : chaque ordonnanceur attenue ouvre son pas, et chaque voix qu'il joue
-# se branche par pasVoie — sinon elle echapperait a l'attenuation
-DELEGUE = {"voixTr": ["voix808", "voix909", "voix707", "voix606"]}
+# se branche par pasVoie — sinon elle echapperait a l'attenuation.
+# v230 : jouerVoixFxKo est un routeur de timbre. Il ne cree aucun noeud audio
+# lui-meme et delegue toutes ses voix a voixKo, qui se branche bien par pasVoie.
+DELEGUE = {
+    "voixTr": ["voix808", "voix909", "voix707", "voix606"],
+    "jouerVoixFxKo": ["voixKo"],
+}
 for n in noms:
     c = corps(n)
     if 'attenuerVoie(' not in c: continue
