@@ -52,6 +52,7 @@ node outils/test-em-song.cjs
 node outils/test-em-song-edition.cjs
 node outils/test-ko.cjs
 node outils/test-tr-scale.cjs
+node outils/test-dmx-song.cjs
 node outils/test-echantillons.cjs
 node outils/test-transport.cjs
 node outils/test-restauration-machines.cjs

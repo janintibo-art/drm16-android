@@ -6847,8 +6847,17 @@ décalage. MOTION REC est désarmé après cette opération.</p>
   <p>Neuf curseurs : un par famille d'instruments, plus le métronome et le volume. Huit séquences, choisies
   aux touches 1 à 8 ou avec les flèches. <b>LENGTH</b> règle le nombre de mesures, <b>SWING</b> retarde les
   temps pairs, <b>ERASE</b> vide la séquence, <b>COPY</b> la recopie, <b>EDIT</b> revient en arrière.</p>
-  <p><b>SONG</b> et <b>STEP</b> répondent NOT ON DMX : ces fonctions existent sur l'appareil mais demandent
-  un écran que la machine n'a pas — j'ai préféré le dire plutôt que d'inventer.</p>
+  <h3>Le song</h3>
+  <p><b>SONG</b> enchaîne les séquences. Appuyez sur SONG pour passer en mode song, puis sur les touches
+  <b>1 à 8</b> : chaque séquence tapée s'ajoute à la fin du song. Les flèches <b>&lt;</b> et <b>&gt;</b>
+  choisissent un pas du song, <b>LENGTH</b> règle combien de fois il se répète (1, 2, 3, 4 ou 8),
+  <b>ERASE</b> le retire et <b>EDIT</b> annule la dernière modification. L'afficheur montre par exemple
+  <b>S2/5 SEQ3 X2</b> : pas 2 sur 5, séquence 3, jouée deux fois.</p>
+  <p><b>PLAY</b> joue le song du début, chaque séquence avec sa propre longueur, et le reprend quand il est
+  fini. On peut toujours enregistrer pendant le song : les frappes vont dans la séquence qui joue. SONG,
+  de nouveau, revient aux séquences seules. Le song est gardé en mémoire, mais la machine rouvre en mode
+  séquence, comme la MPC ; le rendu WAV joue la séquence choisie.</p>
+  <p><b>STEP</b> répond toujours NOT ON DMX : cette fonction n'est pas reproduite.</p>
   </div>
 
   <div class="doc" id="note-808" data-titre="TR-808 · 909 · 707">
@@ -27418,7 +27427,13 @@ function seqDmx(n){
 }
 var DMX = {seqs:[], cur:0, rec:false, pos:-1, tStep:0, noeuds:[], annule:null,
            niv:{bass:0.8, snare:0.8, hat:0.75, toms:0.8, cym:0.7, perc1:0.7, perc2:0.7, metro:0},
-           tenue:null, ohGain:null};
+           tenue:null, ohGain:null,
+           /* v233 : le SONG. song = liste de {seq, tours} ; chSel = pas édité,
+              chPos / chTour / chI = position de lecture (pas du song, tour, pas
+              de la séquence) ; annuleSong = le song avant la dernière édition */
+           song:[], songOn:false, chSel:0, chPos:0, chTour:0, chI:0, annuleSong:null};
+var DMX_SONG_MAX = 64;
+var DMX_TOURS = [1, 2, 3, 4, 8];
 for(var dz=0; dz<8; dz++) DMX.seqs.push(seqDmx(dz + 1));
 
 /* ---------- le goulot à huit bits ---------- */
@@ -27559,7 +27574,34 @@ function voixDmx(t, k, vel){
 function seqDmxCur(){ return DMX.seqs[DMX.cur]; }
 function ticsDmx(){ return seqDmxCur().mesures * 4 * DMX_TPQ; }
 function pasDmx(){ return seqDmxCur().mesures * 16; }
+/* v233 : en SONG, la DMX tient sa propre position (chI) au lieu du pas de
+   l'horloge commune, car les séquences enchaînées n'ont pas toutes la même
+   longueur ; elle passe au pas suivant du song quand une séquence finit. */
+function songDmxActif(){ return DMX.songOn && DMX.song.length > 0; }
+function songDmxDebut(){
+  DMX.chPos = 0; DMX.chTour = 0; DMX.chI = 0;
+  if(DMX.song.length) DMX.cur = DMX.song[0].seq;
+}
+function avancerSongDmx(){
+  DMX.chI++;
+  if(DMX.chI < pasDmx()) return;
+  DMX.chI = 0; DMX.chTour++;
+  if(DMX.chPos >= DMX.song.length) DMX.chPos = 0;
+  var p = DMX.song[DMX.chPos];
+  if(!p || DMX.chTour >= p.tours){
+    DMX.chTour = 0;
+    DMX.chPos = (DMX.chPos + 1) % DMX.song.length;   /* au bout, le song reprend */
+    DMX.cur = DMX.song[DMX.chPos].seq;
+  }
+}
 function scheduleDmx(i, t){
+  var enSong = songDmxActif();
+  if(enSong){
+    /* nouveau départ (PLAY, reprise MIDI) : le song repart du début */
+    if(!cache && pasSet === 0) songDmxDebut();
+    if(DMX.chI >= pasDmx()) DMX.chI = 0;          /* LENGTH raccourci en lecture */
+    i = DMX.chI;
+  }
   var s = seqDmxCur(), tp = DMX_TPQ / 4;
   var CHARGE_N = ouvrirPas();
   var deb = i * tp, fin = deb + tp;
@@ -27572,6 +27614,7 @@ function scheduleDmx(i, t){
   attenuerVoie("dmx", CHARGE_N, t);   /* v149 : la DMX n'avait pas d'atténuation de charge */
   if(DMX.niv.metro > 0.02 && i % 4 === 0) clicDmx(t, i === 0);
   if(!cache) queue.push({i:i, t:t});
+  if(enSong) avancerSongDmx();
 }
 function clicDmx(t, fort){
   var o = ctx.createOscillator(), g = ctx.createGain();
@@ -27692,6 +27735,7 @@ var DMX_FADERS = [["bass","BASS"],["snare","SNARE"],["hat","HI-HAT"],["toms","TO
     var b = e.target.closest(".dmxk");
     if(!b) return;
     var t = b.dataset.n;
+    if(DMX.songOn){ toucheSongDmx(t); memDmx(); majAffDmx(); H.cran(); return; }
     if(t >= "1" && t <= "8"){ memDmx(); DMX.cur = (+t) - 1; step = 0; }
     else if(t === "<") DMX.cur = (DMX.cur + 7) % 8;
     else if(t === ">") DMX.cur = (DMX.cur + 1) % 8;
@@ -27713,7 +27757,9 @@ var DMX_FADERS = [["bass","BASS"],["snare","SNARE"],["hat","HI-HAT"],["toms","TO
     var b = e.target.closest(".dmxk");
     if(!b) return;
     var c = b.dataset.c, s = seqDmxCur();
-    if(c === "r"){ DMX.rec = !DMX.rec; }
+    if(c === "g"){ basculerSongDmx(); }
+    else if(DMX.songOn && (c === "l" || c === "x" || c === "e")){ commandeSongDmx(c); }
+    else if(c === "r"){ DMX.rec = !DMX.rec; }
     else if(c === "q"){ s.q = (s.q + 1) % DMX_Q.length; affDmx("QUANT " + DMX_QNOM[s.q], true); }
     else if(c === "w"){ s.swing = +(((s.swing + 0.1) % 0.5).toFixed(2)); affDmx("SWING " + Math.round(s.swing*100), true); }
     else if(c === "l"){ s.mesures = [1,2,4,8][([1,2,4,8].indexOf(s.mesures) + 1) % 4];
@@ -27736,7 +27782,7 @@ var DMX_FADERS = [["bass","BASS"],["snare","SNARE"],["hat","HI-HAT"],["toms","TO
     }
     else if(c === "t"){ affDmx("TEMPO " + S.bpm, true); }
     else if(c === "s"){ affDmx("4/4 FIXED", true); }
-    else if(c === "g" || c === "p"){ affDmx("NOT ON DMX", true); }
+    else if(c === "p"){ affDmx("NOT ON DMX", true); }
     else if(c === "e"){
       if(!DMX.annule || DMX.annule.seq !== s){ affDmx("NOTHING", true); }
       else { var av = s.evts; s.evts = DMX.annule.evts;
@@ -27755,6 +27801,63 @@ var DMX_FADERS = [["bass","BASS"],["snare","SNARE"],["hat","HI-HAT"],["toms","TO
   document.getElementById("dmx-notice").addEventListener("click", function(){ ouvrirNotice(); });
 })();
 
+/* ---------- SONG (v233) ----------
+   SONG bascule le mode. En mode SONG :
+   - touches 1 à 8 : ajoutent la séquence à la fin du song ;
+   - < et > : choisissent le pas du song à modifier ;
+   - LENGTH : nombre de répétitions de ce pas (1, 2, 3, 4, 8) ;
+   - ERASE : retire ce pas ; EDIT : annule la dernière modification du song.
+   PLAY joue le song du début et le reprend quand il est fini. */
+function basculerSongDmx(){
+  DMX.songOn = !DMX.songOn;
+  if(DMX.songOn){
+    DMX.chSel = Math.max(0, Math.min(DMX.chSel, DMX.song.length - 1));
+    songDmxDebut();
+  }
+  affDmx(DMX.songOn ? (DMX.song.length ? "SONG MODE" : "SONG : 1-8") : "SEQ MODE", true);
+}
+function copieSongDmx(){
+  return DMX.song.map(function(p){ return {seq:p.seq, tours:p.tours}; });
+}
+function toucheSongDmx(t){
+  var n = DMX.song.length;
+  if(t >= "1" && t <= "8"){
+    if(n >= DMX_SONG_MAX){ affDmx("SONG FULL", true); return; }
+    DMX.annuleSong = copieSongDmx();
+    DMX.song.push({seq:(+t) - 1, tours:1});
+    DMX.chSel = DMX.song.length - 1;
+    if(n === 0 && !S.run) songDmxDebut();
+    affDmx("ADD SEQ" + t + " " + DMX.song.length, true);
+  }
+  else if(t === "<" && n){ DMX.chSel = (DMX.chSel + n - 1) % n; }
+  else if(t === ">" && n){ DMX.chSel = (DMX.chSel + 1) % n; }
+}
+function commandeSongDmx(c){
+  var n = DMX.song.length, p = DMX.song[DMX.chSel];
+  if(c === "e"){
+    if(!DMX.annuleSong){ affDmx("NOTHING", true); return; }
+    var av = copieSongDmx();
+    DMX.song = DMX.annuleSong; DMX.annuleSong = av;
+    DMX.chSel = Math.max(0, Math.min(DMX.chSel, DMX.song.length - 1));
+    if(DMX.chPos >= DMX.song.length){ DMX.chPos = 0; DMX.chTour = 0; }
+    affDmx("UNDO", true); return;
+  }
+  if(!n || !p){ affDmx("SONG EMPTY", true); return; }
+  DMX.annuleSong = copieSongDmx();
+  if(c === "l"){
+    p.tours = DMX_TOURS[(DMX_TOURS.indexOf(p.tours) + 1) % DMX_TOURS.length];
+    affDmx("STEP" + (DMX.chSel + 1) + " X" + p.tours, true);
+  }
+  else if(c === "x"){
+    DMX.song.splice(DMX.chSel, 1);
+    /* la lecture en cours reste sur un pas qui existe */
+    if(DMX.chPos > DMX.chSel) DMX.chPos--;
+    if(DMX.chPos >= DMX.song.length){ DMX.chPos = 0; DMX.chTour = 0; }
+    DMX.chSel = Math.max(0, Math.min(DMX.chSel, DMX.song.length - 1));
+    affDmx("STEP DELETED", true);
+  }
+}
+
 var dmxTmr = null;
 function affDmx(txt, fugace){
   var a = document.getElementById("dmx-aff");
@@ -27766,6 +27869,15 @@ function affDmx(txt, fugace){
 function majAffDmx(){
   var s = seqDmxCur();
   var mes = (DMX.pos >= 0) ? (Math.floor(DMX.pos / 16) + 1) + "." + (Math.floor((DMX.pos % 16) / 4) + 1) : "";
+  if(DMX.songOn){
+    var n = DMX.song.length, ps = DMX.song[DMX.chSel];
+    affDmx(!n ? "SONG EMPTY"
+         : S.run ? ((DMX.rec ? "REC " : "") + "S" + (DMX.chPos + 1) + "/" + n + " SEQ" + (DMX.cur + 1) + " " + mes)
+         : ("S" + (DMX.chSel + 1) + "/" + n + " SEQ" + (ps.seq + 1) + " X" + ps.tours));
+    var r0 = document.getElementById("dmx-record");
+    if(r0) r0.classList.toggle("on", DMX.rec);
+    return;
+  }
   affDmx(DMX.rec ? ("REC SEQ " + (DMX.cur + 1) + " " + mes)
        : S.run ? ("PLAY SEQ " + (DMX.cur + 1) + " " + mes)
        : ("SELECT SEQ " + (DMX.cur + 1)));
@@ -27783,6 +27895,7 @@ function majFadersDmx(){
 }
 function memDmx(){
   memoire.dmx = {cur:DMX.cur, niv:DMX.niv,
+    song:DMX.song.map(function(p){ return [p.seq, p.tours]; }),
     seqs:DMX.seqs.map(function(s){
       return {mesures:s.mesures, q:s.q, swing:s.swing, nom:s.nom,
               evts:s.evts.map(function(e){ return [e.tic, e.k]; })};
@@ -27793,6 +27906,9 @@ function chargerDmx(){
   DMX.seqs = [];
   for(var i=0;i<8;i++) DMX.seqs.push(seqDmx(i + 1));
   DMX.cur = 0; DMX.rec = false; DMX.annule = null;
+  /* comme la MPC : le song est gardé, mais la machine rouvre en mode séquence */
+  DMX.song = []; DMX.songOn = false; DMX.chSel = 0; DMX.annuleSong = null;
+  DMX.chPos = 0; DMX.chTour = 0; DMX.chI = 0;
   var m = memLire("dmx");
   if(m){
     if(m.niv) for(var c in DMX.niv) if(typeof m.niv[c] === "number") DMX.niv[c] = m.niv[c];
@@ -27807,6 +27923,14 @@ function chargerDmx(){
       });
     }
     if(typeof m.cur === "number") DMX.cur = m.cur;
+    if(Array.isArray(m.song)){
+      m.song.slice(0, DMX_SONG_MAX).forEach(function(p){
+        if(!Array.isArray(p)) return;
+        var q = p[0], r = p[1];
+        if(!Number.isInteger(q) || q < 0 || q > 7) return;   /* pas abîmé : ignoré */
+        DMX.song.push({seq:q, tours:DMX_TOURS.indexOf(r) >= 0 ? r : 1});
+      });
+    }
   }
 }
 
