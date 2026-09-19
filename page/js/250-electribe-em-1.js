@@ -415,7 +415,7 @@ var GAMMES = [
 ];
 var EM = {
   page:0, kb:false, oct:3, pasSel:-1, protect:false, clip:null, clipSon:null, pset:false, mute:[], solo:[],
-  song:[], spos:0, ssel:0,
+  song:[], spos:0, ssel:0, annulationSong:null,
   pat: motifUsine(0), slots: [], cur: 0, sel: 0, param: 0, mode: 0,
   rec:false, shift:false, delayEdit:false, motion:false,
   fxType:9, e1:0.5, e2:0.3, dTime:0.25, dDepth:0.0,
@@ -753,7 +753,7 @@ function toucheSong(i){
   if(S.run || WAVX.occupe) return;
   if(EM.protect){ protege(); return; }
   if(i > EM.song.length){ lcd("---","SONG",true); H.cran(); return; }
-  if(i === EM.song.length) EM.song.push(EM.cur);
+  if(i === EM.song.length){ memoriserSongEm("l’ajout d’une position"); EM.song.push(EM.cur); }
   EM.ssel = i;
   majTouches(); memEm(); H.cran();
   lcd(("00"+(EM.song[i]+1)).slice(-3), "SONG "+(i+1), true);
@@ -867,6 +867,7 @@ function fonctionShift(i){
   } else if(i===12){                          /* Clear Song */
     if(S.run || WAVX.occupe) return;
     if(!ecrit) return protege();
+    if(EM.song.length) memoriserSongEm("l’effacement du Song");
     EM.song = []; EM.spos = 0; EM.ssel = 0;
     if(EM.mode===2) majTouches();
     memEm();
@@ -913,6 +914,7 @@ function memEm(){
   sauverMachine("em1");
 }
 function chargerEm(){
+  EM.annulationSong = null;
   var m = memLire("em1");
   if(!m) return;
   if(m.slots && m.slots.length===16) EM.slots = m.slots.map(deserialiser);
@@ -1047,6 +1049,7 @@ function majKnobsPartie(){ kEmPit.maj(); kEmLvl.maj(); kEmPan.maj(); }
     var k = EM.sel, p = EM.pat;
     if(EM.param===0 && EM.mode===2 && EM.song.length){
       if(S.run || EM.protect || WAVX.occupe) return;
+      memoriserSongEm("le changement de motif");
       EM.song[EM.ssel] = (EM.song[EM.ssel] + d + 16)%16;
       majTouches(); memEm();
       lcd(("00"+(EM.song[EM.ssel]+1)).slice(-3), "SONG "+(EM.ssel+1));
@@ -1367,12 +1370,14 @@ function editerSongEm(action){
     if(!window.confirm("Retirer la position " + (i+1) + " du Song ? Le motif lui-même reste conservé.")) return false;
     chaine.splice(i,1); i = Math.max(0,Math.min(i,chaine.length-1));
   }else return false;
+  memoriserSongEm(action === "supprimer" ? "le retrait d’une position" : action === "dupliquer" ? "la duplication" : "le déplacement");
   EM.song = chaine; EM.ssel = i; EM.spos = 0;
   majTouches(); memEm(); H.inter();
   lcd(String(chaine.length), "SONG · POSITIONS", true); return true;
 }
 function majEditionSongEm(){
   document.getElementById("em-song-edition").hidden = EM.mode !== 2;
+  document.getElementById("em-song-annuler").disabled = !annulationSongPossibleEm();
   var possible = editionSongPossibleEm();
   document.getElementById("em-song-selection").textContent = EM.song.length ?
     "POSITION " + (EM.ssel+1) + " / " + EM.song.length : "SONG VIDE · TOUCHE 1 POUR AJOUTER";
@@ -1394,3 +1399,20 @@ function preparerSongEm(){
   EM.spos = 0; EM.cur = EM.song[0]; EM.pat = EM.slots[EM.cur];
   majTouches(); majBascules(); majMotionLeds(); majKnobsPartie(); return true;
 }
+
+/* v221 : une seule restauration temporaire de l'arrangement, sans les motifs. */
+function memoriserSongEm(action){
+  EM.annulationSong = {song:EM.song.slice(), ssel:EM.ssel, action:action};
+}
+function annulationSongPossibleEm(){
+  return EM.mode === 2 && !S.run && !EM.protect && !WAVX.occupe && !!EM.annulationSong;
+}
+function annulerSongEm(){
+  if(!annulationSongPossibleEm()) return false;
+  var a = EM.annulationSong;
+  if(!window.confirm("Annuler " + a.action + " ? L’ordre précédent du Song sera rétabli. Le contenu des motifs ne change pas.")) return false;
+  EM.song = a.song.slice(); EM.ssel = Math.max(0,Math.min(a.ssel,EM.song.length-1));
+  EM.spos = 0; EM.annulationSong = null;
+  majTouches(); memEm(); H.inter(); lcd("UNDO", "SONG RÉTABLI", true); return true;
+}
+document.getElementById("em-song-annuler").addEventListener("click", annulerSongEm);
