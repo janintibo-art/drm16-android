@@ -1396,12 +1396,18 @@ function majKo(){
       : KO.chroma ? ("C" + (KO.chromaSource + 1)) : String(KO.sel + 1),
       KO_MODE === "ptn" ? "PATTERN" : KO_MODE === "fx" ? "EFFET" : "SAMPLE");
   var e2 = document.getElementById("ko-etat");
-  if(e2) e2.textContent =
-    KO_MODE === "fx" ? "Effets 1–16 du PO-33 : choisissez un pad, puis maintenez FX pendant PLAY."
-    : KO_MODE === "ptn" ? "Touchez un motif pour y aller."
-    : KO.chroma ? "CHROMA : source " + (KO.chromaSource + 1) + " · -7 à +8 demi-tons."
-    : (KO.rec ? "WRITE actif : les pads écrivent dans le motif."
-              : "Les pads jouent. WRITE pour écrire dans le motif.");
+  if(e2){
+    var nbFx = 0;
+    if(m.fx) for(var fi=0;fi<16;fi++) if(effetSauveKo(m, fi) >= 0) nbFx++;
+    e2.textContent =
+      KO_MODE === "fx" ? (KO.rec
+        ? "RECORD actif : maintenez FX pendant PLAY pour écrire l'effet. SANS EFFET l'efface · " + nbFx + "/16 pas."
+        : "Choisissez 1–16 puis maintenez FX pendant PLAY · RECORD pour l'écrire · " + nbFx + "/16 pas.")
+      : KO_MODE === "ptn" ? "Touchez un motif pour y aller."
+      : KO.chroma ? "CHROMA : source " + (KO.chromaSource + 1) + " · -7 à +8 demi-tons."
+      : (KO.rec ? "RECORD actif : les pads écrivent dans le motif."
+                : "Les pads jouent. RECORD pour écrire dans le motif.");
+  }
   var chroma = document.getElementById("ko-chroma");
   if(chroma){
     chroma.classList.toggle("on", KO.chroma);
@@ -1489,6 +1495,8 @@ document.getElementById("ko-write").addEventListener("click", function(){
   for(var i=0;i<16;i++){
     m.pas[i] = 0; m.plocks[i] = null;
     if(m.notes && m.notes[i]) m.notes[i].fill(null);
+    if(m.fx) m.fx[i] = -1;
+    if(m.fxOrigines) m.fxOrigines[i] = -1;
   }
   memKo(); majKo(); H.inter();
 });
@@ -1531,18 +1539,25 @@ document.getElementById("ko-chroma").addEventListener("click", function(){
 })();
 /* FX au poing : le pas courant est mémorisé à l'enfoncement. Les quatre
    boucles et REDÉMARRAGE disposent ainsi d'une origine stable jusqu'au
-   relâchement, même quand le transport continue d'avancer. */
+   relâchement, même quand le transport continue d'avancer. Avec RECORD actif,
+   chaque pas traversé reçoit aussi l'effet ; le pad 16 écrit un pas neutre. */
 (function fxTenuKo(){
   var b = document.getElementById("ko-fx");
   function prendre(){
     KO.fxStep = KO.pos >= 0 ? KO.pos : KO.lockStep;
     KO.fxStep = Math.max(0, Math.min(15, KO.fxStep|0));
+    KO.fxWriteStart = KO.fxStep; KO.fxWriteDirty = false;
     KO.fxTenu = true; appliquerFxKo(); b.classList.add("on");
-    lcdKo(KO_FX[KO.fx][1], "EFFET");
+    if(KO.rec && S.run) ecrireFxKoPas(KO.fxStep);
+    lcdKo(KO_FX[KO.fx][1], KO.rec && S.run ? "FX WRITE" : "EFFET");
   }
   function lacher(){
     if(!KO.fxTenu) return;
-    KO.fxTenu = false; appliquerFxKo(); majKo();
+    var sauver = KO.fxWriteDirty;
+    KO.fxTenu = false; KO.fxWriteStart = -1;
+    appliquerFxKo();
+    if(sauver) memKo();
+    KO.fxWriteDirty = false; majKo();
   }
   b.addEventListener("pointerdown", function(e){ if(KO_MODE === "fx"){ prendre(); e.preventDefault(); } });
   b.addEventListener("pointerup", lacher);

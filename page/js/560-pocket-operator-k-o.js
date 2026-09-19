@@ -5,9 +5,9 @@
    différentes), les huit derniers sont des PERCUSSIONS (un son par touche).
 
    Sa vraie signature n'est pas là : ce sont les EFFETS AU POING. On choisit
-   l'un des seize effets puis on maintient FX pendant la lecture. La v229 suit
-   l'ordre 1–16 de la machine physique pour que les mêmes gestes donnent les
-   mêmes familles de transformations en jeu direct. */
+   l'un des seize effets puis on maintient FX pendant la lecture. La v231 suit
+   l'ordre 1–16 de la machine physique et mémorise désormais les gestes FX dans
+   chaque motif lorsque WRITE est actif. */
 
 /* Ordre officiel des touches 1–16 du PO-33. Le seizième choix ne traite pas le
    son : il sert de position neutre et préparera l'effacement des effets écrits. */
@@ -57,6 +57,28 @@ function normaliserNotesKo(a){
   }
   return r;
 }
+/* Automatisation des effets : -1 signifie qu'aucun effet n'est écrit sur le
+   pas. Les positions 0 à 14 correspondent aux pads 1 à 15 ; le pad 16 sert à
+   effacer. Une origine séparée conserve le début exact du geste, y compris
+   lorsqu'il traverse la fin du motif. */
+function normaliserEffetsKo(a){
+  var r = [];
+  for(var i=0;i<16;i++){
+    var v = a && Number(a[i]);
+    v = Number.isFinite(v) ? Math.round(v) : -1;
+    r.push(v >= 0 && v < KO_FX.length - 1 ? v : -1);
+  }
+  return r;
+}
+function normaliserOriginesFxKo(a, effets){
+  var r = [], fx = effets || normaliserEffetsKo();
+  for(var i=0;i<16;i++){
+    var v = a && Number(a[i]);
+    r.push(fx[i] >= 0 && Number.isFinite(v)
+      ? Math.max(0, Math.min(15, Math.round(v))) : -1);
+  }
+  return r;
+}
 function valeurPlockKo(o, nom, defaut){
   return o && Number.isFinite(o[nom]) ? Math.max(0, Math.min(127, o[nom])) : defaut;
 }
@@ -73,7 +95,8 @@ function tempsSwingKo(i, t){
 }
 
 function motifKo(){
-  var m = {pas:[], last:16, plocks:[], notes:[]};
+  var m = {pas:[], last:16, plocks:[], notes:[], fx:normaliserEffetsKo(),
+           fxOrigines:normaliserOriginesFxKo()};
   for(var i=0;i<16;i++) m.pas.push(0);       /* un masque de 16 bits par emplacement */
   for(var j=0;j<16;j++) m.plocks.push(null);
   for(var k=0;k<16;k++){
@@ -84,6 +107,7 @@ function motifKo(){
   return m;
 }
 var KO = {sons:[], motifs:[], cur:0, sel:0, fx:15, fxTenu:false, fxStep:0,
+          fxWriteStart:-1, fxWriteDirty:false,
           rec:false, pos:-1, lockStep:0, chroma:false, chromaSource:0, swing:0,
           noeuds:null, inverse:null, inverseCtx:null,
           chaine:[], chainePos:0, song:false};
@@ -125,10 +149,54 @@ function appliquerFxKo(){
   n.fb.gain.value = 0; n.mix.gain.value = 0;
 }
 
-function nomFxKo(){
-  if(!KO.fxTenu) return "";
-  var i = Math.max(0, Math.min(KO_FX.length - 1, KO.fx|0));
-  return KO_FX[i][0];
+function effetSauveKo(m, i){
+  if(!m || !m.fx || i < 0 || i >= 16) return -1;
+  var v = Number(m.fx[i]);
+  v = Number.isFinite(v) ? Math.round(v) : -1;
+  return v >= 0 && v < KO_FX.length - 1 ? v : -1;
+}
+function indexFxKo(i, m){
+  /* Un effet live, y compris le pad 16 neutre, prend toujours la priorité sur
+     l'automatisation du motif. Cela permet aussi d'écouter sans les effets
+     écrits avant de les effacer. */
+  if(KO.fxTenu){
+    var live = Math.max(0, Math.min(KO_FX.length - 1, KO.fx|0));
+    return live < KO_FX.length - 1 ? live : -1;
+  }
+  return effetSauveKo(m, i);
+}
+function nomFxKo(i, m){
+  var fx = indexFxKo(i, m);
+  return fx >= 0 ? KO_FX[fx][0] : "";
+}
+function origineFxKo(i, m, fx){
+  var last = Math.max(1, m && m.last ? m.last|0 : 16);
+  if(KO.fxTenu) return moduloKo(KO.fxStep, last);
+  if(fx < 0) return moduloKo(i, last);
+  var v = m && m.fxOrigines && Number(m.fxOrigines[i]);
+  if(Number.isFinite(v) && v >= 0 && effetSauveKo(m, i) === fx) return moduloKo(Math.round(v), last);
+  /* Migration de la toute première ébauche éventuelle : si aucune origine n'a
+     été enregistrée, le début de la plage contiguë sert d'ancre. */
+  var o = Math.max(0, Math.min(last - 1, i|0));
+  while(o > 0 && effetSauveKo(m, o - 1) === fx) o--;
+  return o;
+}
+function ecrireFxKoPas(i){
+  var m = motifKoCur(), last = Math.max(1, m.last|0);
+  i = Number(i);
+  if(!Number.isFinite(i)) return false;
+  i = moduloKo(Math.round(i), last);
+  if(!m.fx) m.fx = normaliserEffetsKo();
+  if(!m.fxOrigines) m.fxOrigines = normaliserOriginesFxKo(null, m.fx);
+  var fx = Math.max(0, Math.min(KO_FX.length - 1, KO.fx|0));
+  var effacer = fx === KO_FX.length - 1;
+  var origine = KO.fxWriteStart >= 0 ? KO.fxWriteStart : KO.fxStep;
+  origine = moduloKo(Number.isFinite(origine) ? Math.round(origine) : i, last);
+  var nvFx = effacer ? -1 : fx, nvOrigine = effacer ? -1 : origine;
+  var change = m.fx[i] !== nvFx || m.fxOrigines[i] !== nvOrigine;
+  m.fx[i] = nvFx; m.fxOrigines[i] = nvOrigine;
+  if(change) KO.fxWriteDirty = true;
+  return change;
 }
 function moduloKo(v, n){ return ((v % n) + n) % n; }
 
@@ -220,18 +288,19 @@ function jouerVoixFxKo(nom, t, k, pas, note, vel, duree){
    figent le pas capturé au moment où FX est enfoncé ; les stutters répètent le
    pas courant. QUANTIF. 6/8 répartit trois impulsions sur quatre doubles
    croches, et REDÉMARRAGE repart du début du motif sans déplacer le transport. */
-function planFxKo(i, t, m, nom){
+function planFxKo(i, t, m, nom, origine){
+  var last = Math.max(1, m.last|0), ancre = moduloKo(origine, last);
   var plan = {source:i, temps:[t], vitesses:[1], duree:null};
   var d = stepDur(), phase;
-  if(nom === "loop16") plan.source = moduloKo(KO.fxStep, m.last);
+  if(nom === "loop16") plan.source = ancre;
   else if(nom === "loop12"){
-    plan.source = moduloKo(KO.fxStep, m.last);
-    phase = moduloKo(i - KO.fxStep, 4);
+    plan.source = ancre;
+    phase = moduloKo(i - ancre, 4);
     if(phase === 3) plan.temps = [];
     else plan.temps = [t + phase * d / 3];
     plan.duree = d * 1.2;
   }else if(nom === "loopShort" || nom === "loopTiny"){
-    plan.source = moduloKo(KO.fxStep, m.last);
+    plan.source = ancre;
     var n = nom === "loopShort" ? 2 : 4;
     plan.temps = []; plan.vitesses = []; plan.duree = d / n * .9;
     for(var r=0;r<n;r++){ plan.temps.push(t + r*d/n); plan.vitesses.push(1-r*.08); }
@@ -240,10 +309,10 @@ function planFxKo(i, t, m, nom){
     plan.temps = []; plan.vitesses = []; plan.duree = d / q * .82;
     for(var s=0;s<q;s++){ plan.temps.push(t + s*d/q); plan.vitesses.push(1-s*.14); }
   }else if(nom === "six8"){
-    phase = moduloKo(i - KO.fxStep, 4);
+    phase = moduloKo(i - ancre, 4);
     if(phase === 3) plan.temps = [];
     else plan.temps = [t + phase*d/3];
-  }else if(nom === "retrigger") plan.source = moduloKo(i - KO.fxStep, m.last);
+  }else if(nom === "retrigger") plan.source = moduloKo(i - ancre, last);
   return plan;
 }
 
@@ -251,11 +320,12 @@ function scheduleKo(i, t){
   var CHARGE_N = ouvrirPas();
   var m = motifKoCur();
   if(i >= m.last) return;
-  var nom = nomFxKo();
+  var fx = indexFxKo(i, m), nom = fx >= 0 ? KO_FX[fx][0] : "";
+  var origine = origineFxKo(i, m, fx);
   /* Le 6/8 et la boucle 1/12 imposent leur propre grille ternaire. Les autres
      effets conservent le swing choisi par l'utilisateur. */
   if(nom !== "six8" && nom !== "loop12") t = tempsSwingKo(i, t);
-  var plan = planFxKo(i, t, m, nom);
+  var plan = planFxKo(i, t, m, nom, origine);
   var source = moduloKo(plan.source, m.last);
   for(var k=0;k<16;k++){
     if(!(m.pas[k] & (1 << source))) continue;
@@ -283,12 +353,16 @@ function scheduleKo(i, t){
 function beatKo(i){
   KO.pos = i;
   KO.lockStep = Math.max(0, Math.min(15, i|0));
+  if(KO.fxTenu && KO.rec) ecrireFxKoPas(i);
   var b = document.querySelectorAll("#ko-pads .kb");
   for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i);
   if(typeof majKoPlock === "function") majKoPlock();
 }
 function arretKo(){
-  KO.fxTenu = false;
+  if(KO.fxWriteDirty){
+    try{ memKo(); }catch(e){}
+  }
+  KO.fxTenu = false; KO.fxWriteStart = -1; KO.fxWriteDirty = false;
   if(KO.noeuds && KO.noeuds.ctx === ctx){
     try{ appliquerFxKo(); debrancherTout(KO.noeuds); }catch(e){}
   }
@@ -308,12 +382,16 @@ function memKo(){
   memoire.ko = {sons:KO.sons, cur:KO.cur, sel:KO.sel, chroma:!!KO.chroma,
                 chromaSource:Math.max(0, Math.min(7, KO.chromaSource|0)),
                 swing:normaliserSwingKo(KO.swing), chaine:KO.chaine,
-                motifs:KO.motifs.map(function(m){ return {pas:m.pas, last:m.last,
-                  plocks:normaliserVerrousKo(m.plocks), notes:normaliserNotesKo(m.notes)}; })};
+                motifs:KO.motifs.map(function(m){
+                  var fx = normaliserEffetsKo(m.fx);
+                  return {pas:m.pas, last:m.last,
+                    plocks:normaliserVerrousKo(m.plocks), notes:normaliserNotesKo(m.notes),
+                    fx:fx, fxOrigines:normaliserOriginesFxKo(m.fxOrigines, fx)};
+                })};
   sauverMachine("ko");
 }
 function chargerKo(){
-  KO.lockStep = 0;
+  KO.lockStep = 0; KO.fxWriteStart = -1; KO.fxWriteDirty = false;
   KO.chroma = false; KO.chromaSource = 0; KO.swing = 0;
   var m = memLire("ko");
   if(!m) return;
@@ -329,6 +407,8 @@ function chargerKo(){
     if(o.pas && o.pas.length === 16) KO.motifs[i].pas = o.pas.slice();
     KO.motifs[i].plocks = normaliserVerrousKo(o.plocks);
     KO.motifs[i].notes = normaliserNotesKo(o.notes);
+    KO.motifs[i].fx = normaliserEffetsKo(o.fx);
+    KO.motifs[i].fxOrigines = normaliserOriginesFxKo(o.fxOrigines, KO.motifs[i].fx);
     KO.motifs[i].last = o.last || 16;
   });
 }

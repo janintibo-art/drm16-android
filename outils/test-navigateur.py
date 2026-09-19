@@ -2066,7 +2066,7 @@ async def em_noms_motifs(nav):
         await pg.context.close()
 
 async def ko_plocks(nav):
-    print('\n36. PO-33 K.O! : 16 effets, Parameter Locks, CHROMA et SWING (v229)')
+    print('\n36. PO-33 K.O! : effets écrits, Parameter Locks, CHROMA et SWING (v231)')
     pg, err = await nouvelle_page(nav, pont=True)
     try:
         await pg.locator('.pick[data-m=ko]').click()
@@ -2089,7 +2089,23 @@ async def ko_plocks(nav):
         ok(await pg.evaluate('KO.fxTenu&&KO.fxStep===5'),'maintenir FX capture le pas courant')
         await pg.evaluate('document.getElementById("ko-fx").dispatchEvent(new PointerEvent("pointerup",{bubbles:true,pointerId:1,pointerType:"mouse"}))')
         ok(await pg.evaluate('!KO.fxTenu'),'relâcher FX coupe immédiatement l’effet')
-        await pg.evaluate('KO_MODE="son";KO.pos=-1;KO.lockStep=2;majKo()')
+        await pg.evaluate('''() => {
+          KO_MODE='fx';KO.rec=true;KO.fx=14;KO.pos=3;S.run=true;majKo();
+          document.getElementById('ko-fx').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:2,pointerType:'mouse',buttons:1}));
+        }''')
+        ok(await pg.evaluate('KO.motifs[0].fx[3]===14&&KO.motifs[0].fxOrigines[3]===3'),'WRITE inscrit l’effet au pas d’enfoncement')
+        await pg.evaluate('beatKo(4)')
+        ok(await pg.evaluate('KO.motifs[0].fx[4]===14&&KO.motifs[0].fxOrigines[4]===3'),'les pas traversés gardent la même origine FX')
+        await pg.evaluate('document.getElementById("ko-fx").dispatchEvent(new PointerEvent("pointerup",{bubbles:true,pointerId:2,pointerType:"mouse"}))')
+        ok(await pg.evaluate('!KO.fxTenu&&memoire.ko.motifs[0].fx[4]===14'),'relâcher FX sauvegarde l’automatisation du motif')
+        await pg.evaluate('''() => {
+          KO.fx=15;KO.pos=3;
+          document.getElementById('ko-fx').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:3,pointerType:'mouse',buttons:1}));
+          beatKo(4);
+          document.getElementById('ko-fx').dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:3,pointerType:'mouse'}));
+        }''')
+        ok(await pg.evaluate('KO.motifs[0].fx[3]===-1&&KO.motifs[0].fx[4]===-1'),'SANS EFFET efface les effets écrits sur la plage tenue')
+        await pg.evaluate('KO_MODE="son";KO.rec=false;S.run=false;KO.pos=-1;KO.lockStep=2;majKo()')
         await pg.locator('#ko-swing').evaluate('''e => {
           e.value='60';e.dispatchEvent(new Event('input',{bubbles:true}));
           e.dispatchEvent(new Event('change',{bubbles:true}));
@@ -2121,7 +2137,7 @@ async def ko_plocks(nav):
         await pg.locator('#ko-pads .kb').nth(1).click();await pg.locator('#ko-pads .kb').nth(1).click()
         ok(await pg.evaluate('!!(KO.motifs[0].pas[1]&(1<<4))&&KO.motifs[0].notes[1][4]===null'),'une écriture SOUND remplace proprement une ancienne hauteur CHROMA')
         pg.once('dialog',lambda d:d.accept());await pg.locator('#ko-write').click()
-        ok(await pg.evaluate('KO.motifs[0].pas.every(x=>x===0)&&KO.motifs[0].notes.every(r=>r.every(x=>x===null))'),'WRITE efface aussi les hauteurs CHROMA')
+        ok(await pg.evaluate('KO.motifs[0].pas.every(x=>x===0)&&KO.motifs[0].notes.every(r=>r.every(x=>x===null))&&KO.motifs[0].fx.every(x=>x===-1)'),'WRITE efface aussi les hauteurs CHROMA et les effets écrits')
         await pg.evaluate('KO.rec=false;majKo()')
         await pg.locator('#ko-play').click();await pg.wait_for_function('S.run')
         ok(await pg.locator('#ko-lock-apply').is_disabled(),'les verrous sont protégés pendant PLAY')
