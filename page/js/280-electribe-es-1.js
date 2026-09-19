@@ -401,7 +401,12 @@ function usagesEch(id){
   });
   ["mpc3000","mpc2000"].forEach(function(k){
     var m = S.modele === k && typeof MPC !== "undefined" ? MPC : memLire(k);
-    if(m && Array.isArray(m.pads)) m.pads.forEach(function(p){ if(p && p.ech === id) n++; });
+    /* v246 : tous les programmes de la MPC (ancienne sauvegarde : « pads ») */
+    var jeux = m && Array.isArray(m.progs) && m.progs.length ? m.progs.map(function(p){ return p && p.pads; })
+             : [m && m.pads];
+    jeux.forEach(function(pads){
+      if(Array.isArray(pads)) pads.forEach(function(p){ if(p && p.ech === id) n++; });
+    });
   });
   var v = S.modele === "vlc" && typeof VLC !== "undefined" ? VLC : memLire("vlc");
   if(v && Array.isArray(v.motifs)) v.motifs.forEach(function(m){

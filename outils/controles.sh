@@ -56,6 +56,7 @@ node outils/test-tr-scale.cjs
 node outils/test-tr-fill.cjs
 node outils/test-tr-track.cjs
 node outils/test-mpc-99.cjs
+node outils/test-mpc-programmes.cjs
 node outils/test-wav-export.cjs
 node outils/test-effets-voie.cjs
 node outils/test-volca-isolateur.cjs

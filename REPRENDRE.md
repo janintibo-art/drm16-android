@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **245**. Depuis la v176, le détail de chaque version est dans
+La version actuelle est la **246**. Depuis la v176, le détail de chaque version est dans
 `docs/CORRECTIONS_V*.md` ; la section 5 commence par **l'état du projet** et le tableau de ces versions.
 Les v156 à v175 n'ont laissé aucune note : le check-up v176 (`docs/CHECKUP_V176.md`) fait le point à leur
 sortie.
@@ -143,11 +143,11 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
   FX RELEASE v242), MC-101 (clips, scènes, samples, Looper), SmplTrek (tranches, chaîne, pistes Instrument,
   mixage), TR-1000 (probabilité, cycles, retards, directions, 128 motifs, chaîne v243), EM-1 (palette,
   64 pas, Song), PO-33 (Parameter Locks, CHROMA, Swing, 16 effets, WRITE v231), TR (SCALE v232, FILL et
-  AUTO FILL v236, TRACK v238), DMX (SONG v234), MPC (99 séquences v237), et l'export WAV d'un morceau
+  AUTO FILL v236, TRACK v238), DMX (SONG v234), MPC (99 séquences v237, 8 programmes v246), et l'export WAV d'un morceau
   enchaîné pour les TR, la DMX, la MPC et la TR-1000 (v244).
 
 **Reste à faire, par ordre d'intérêt**
-1. *Fidélité* : plusieurs programmes de pads sur la MPC ; mémoires de programmes et effets en plus sur le
+1. *Fidélité* : mémoires de programmes et effets en plus sur le
    KAOSS PAD ; échantillonnage, découpe et étirement sur la TR-1000 ; échantillonnage au micro sur le PO-33 ;
    détails ER-1/EA-1, EMX/ESX (priorité faible).
 2. *Qualité sonore* : équilibre des voix au sein de chaque machine, à l'oreille ; réverbérations ROOM, PLATE,
@@ -235,6 +235,7 @@ Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en
 | v243 | TR-1000 : chaîne de motifs |
 | v244 | Rendu WAV d'un morceau enchaîné |
 | v245 | Mise à jour de ce fichier |
+| v246 | MPC : huit programmes de pads, un par séquence |
 
 ---
 

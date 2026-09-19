@@ -23,7 +23,7 @@ function pisteMpc(i){
           mute:false, solo:false, evts:[]};
 }
 function seqMpc(){
-  var s = {mesures:2, q:3, swing:0, nom:"SEQ 1", bpm:0, pistes:[]};
+  var s = {mesures:2, q:3, swing:0, nom:"SEQ 1", bpm:0, prog:0, pistes:[]};
   for(var i=0;i<99;i++) s.pistes.push(pisteMpc(i));
   return s;                                        /* bpm 0 : suit le tempo général */
 }
@@ -40,13 +40,31 @@ var MPC = {
   pos:-1, tStep:0, dernier:null, annule:null, tenu:{}, ecrase:false, param:0,
   mode:0, evtSel:0, type16:0, compte:false, attente:false, amorce:0,
   chanson:[], chPos:0, chTour:0, presse:null, piste:0,
-  saisie:""                                  /* v237 : numéro tapé au pavé, validé par ENT */
+  saisie:"",                                 /* v237 : numéro tapé au pavé, validé par ENT */
+  /* v246 : programmes. progs = 8 jeux de 64 pads ; chaque séquence choisit le
+     sien (seq.prog). MPC.pads désigne toujours le programme de la séquence
+     courante : tout le code qui lit ou règle un pad reste inchangé. */
+  progs:[], prog:0
 };
+var MPC_NB_PROG = 8;
+function progVide(n){
+  var p = {nom:"PROGRAM " + (n + 1), pads:[]};
+  for(var i=0;i<64;i++) p.pads.push(padMpc(i));
+  return p;
+}
+function appliquerProgMpc(){
+  if(!MPC.progs.length) return;
+  var n = MPC.seq && Number.isInteger(MPC.seq.prog) ? MPC.seq.prog : 0;
+  if(n < 0 || n >= MPC.progs.length) n = 0;
+  MPC.prog = n;
+  MPC.pads = MPC.progs[n].pads;
+}
 /* v237 : 99 séquences, comme la MPC3000 (8 jusqu'à la v236) */
 var MPC_NB_SEQ = 99;
 var MPC_T16 = ["VELOCITY","TUNE","START","DECAY"];
 (function initMpc(){
-  for(var i=0;i<64;i++) MPC.pads.push(padMpc(i));
+  for(var pg=0;pg<MPC_NB_PROG;pg++) MPC.progs.push(progVide(pg));
+  MPC.pads = MPC.progs[0].pads;
   for(var s=0;s<99;s++) MPC.seqs.push(seqMpc());
   MPC.seqs.forEach(function(x,i){ x.nom = "SEQ " + (i+1); });
   MPC.seq = MPC.seqs[0];
@@ -172,7 +190,7 @@ function boucleMpc(){
     var suiv = MPC.chanson[MPC.chPos];
     if(suiv){
       MPC.seqCur = suiv.seq;
-      MPC.seq = MPC.seqs[MPC.seqCur];
+      MPC.seq = MPC.seqs[MPC.seqCur]; appliquerProgMpc();
       majLcdMpc(); majPadsMpc();
     }
   }
@@ -192,7 +210,7 @@ function planChaineMpc(){
 function reprendreChaineMpc(){
   MPC.mode = 2; MPC.chPos = 0; MPC.chTour = 0; MPC.amorce = 0; MPC.attente = false;
   var p = MPC.chanson[0];
-  if(p && MPC.seqs[p.seq]){ MPC.seqCur = p.seq; MPC.seq = MPC.seqs[p.seq]; }
+  if(p && MPC.seqs[p.seq]){ MPC.seqCur = p.seq; MPC.seq = MPC.seqs[p.seq]; appliquerProgMpc(); }
 }
 MACHINE_MPC.planChaine = planChaineMpc;
 MACHINE_MPC.reprendreChaine = reprendreChaineMpc;
@@ -323,6 +341,8 @@ function majPadsMpc(){
   document.getElementById("mpc-t16").textContent = "16 LEV : " + MPC_T16[MPC.type16];
   document.getElementById("mpc-seqbpm").textContent =
     MPC.seq.bpm ? ("SEQ BPM " + MPC.seq.bpm) : "SEQ BPM : GÉNÉRAL";
+  var bpg = document.getElementById("mpc-prog");
+  if(bpg) bpg.textContent = "PROGRAM " + (MPC.prog + 1);
   var libelles = (MPC.mode === 3) ? ["TYPE","MUTE","SOLO","CANAL"] : ["BARS","T.C.","SWING","PARAM"];
   var sfs = document.querySelectorAll("#mpc-soft .mpcb");
   for(var q=0;q<sfs.length;q++) sfs[q].textContent = libelles[q];
@@ -342,7 +362,9 @@ function memMpc(){
   memoire["mpc" + MPC.v] = {
     banque:MPC.banque, sel:MPC.sel, seqCur:MPC.seqCur,
     type16:MPC.type16, compte:MPC.compte, chanson:MPC.chanson,
-    pads:MPC.pads,
+    /* pads = programme 1, comme avant (anciennes lectures) ; progs = les 8 */
+    pads:MPC.progs[0].pads,
+    progs:MPC.progs.map(function(p){ return {nom:p.nom, pads:p.pads}; }),
     seqs:MPC.seqs.map(function(s){
       var pl = [];
       (s.pistes || []).forEach(function(p, i){
@@ -352,21 +374,32 @@ function memMpc(){
         pl.push({i:i, type:p.type, canal:p.canal, nom:p.nom, mute:p.mute, solo:p.solo,
                  evts:p.evts.map(function(e){ return [e.tic, e.n, Math.round(e.vel*100)]; })});
       });
-      return {mesures:s.mesures, q:s.q, swing:s.swing, nom:s.nom, bpm:s.bpm, pistes:pl};
+      return {mesures:s.mesures, q:s.q, swing:s.swing, nom:s.nom, bpm:s.bpm, prog:s.prog || 0, pistes:pl};
     })
   };
   sauverMachine("mpc" + MPC.v);
 }
 function chargerMpc(){
-  MPC.pads = []; MPC.seqs = [];
-  for(var i=0;i<64;i++) MPC.pads.push(padMpc(i));
+  MPC.seqs = [];
+  MPC.progs = []; MPC.prog = 0;
+  for(var pg=0;pg<MPC_NB_PROG;pg++) MPC.progs.push(progVide(pg));
+  MPC.pads = MPC.progs[0].pads;
   for(var s=0;s<MPC_NB_SEQ;s++){ var q = seqMpc(); q.nom = "SEQ " + (s+1); MPC.seqs.push(q); }
   MPC.seqCur = 0; MPC.banque = 0; MPC.sel = 0; MPC.chanson = []; MPC.mode = 0; MPC.piste = 0;
   MPC.saisie = "";
   MPC.chPos = 0; MPC.chTour = 0; MPC.amorce = 0; MPC.attente = false; MPC.annule = null;
   var m = memLire("mpc" + MPC.v);
   if(m){
-    if(m.pads && m.pads.length === 64) MPC.pads = m.pads;
+    /* v246 : les 8 programmes ; une ancienne sauvegarde n'a que « pads »,
+       qui devient le programme 1 — les autres partent du kit d'usine */
+    if(Array.isArray(m.progs)) m.progs.slice(0, MPC_NB_PROG).forEach(function(p, k){
+      if(p && Array.isArray(p.pads) && p.pads.length === 64){
+        MPC.progs[k].pads = p.pads;
+        if(typeof p.nom === "string" && p.nom) MPC.progs[k].nom = p.nom.slice(0, 16);
+      }
+    });
+    else if(m.pads && m.pads.length === 64) MPC.progs[0].pads = m.pads;
+    MPC.pads = MPC.progs[0].pads;
     /* v237 : 8 séquences (anciennes sauvegardes) à 99 ; le reste est complété */
     if(m.seqs && m.seqs.length >= 1 && m.seqs.length <= MPC_NB_SEQ){
       var lues = m.seqs.map(function(o, i){
@@ -374,6 +407,7 @@ function chargerMpc(){
         q.mesures = o.mesures || 2;
         q.q = Number.isInteger(o.q) && o.q >= 0 && o.q < MPC_Q.length ? o.q : 3;
         q.swing = o.swing || 0; q.bpm = o.bpm || 0;
+        q.prog = Number.isInteger(o.prog) && o.prog >= 0 && o.prog < MPC_NB_PROG ? o.prog : 0;
         q.nom = o.nom || ("SEQ " + (i+1));
         if(o.pistes){
           o.pistes.forEach(function(p){
@@ -398,7 +432,7 @@ function chargerMpc(){
       return p && Number.isInteger(p.seq) && p.seq >= 0 && p.seq < MPC_NB_SEQ;
     }) : [];
   }
-  MPC.seq = MPC.seqs[MPC.seqCur] || MPC.seqs[0];
+  MPC.seq = MPC.seqs[MPC.seqCur] || MPC.seqs[0]; appliquerProgMpc();
 }
 
 /* v237 : le pavé numérique. On tape le numéro (un ou deux chiffres), puis ENT :
@@ -422,7 +456,7 @@ function toucheNumMpc(t){
   } else {
     memMpc();
     MPC.seqCur = n - 1;
-    MPC.seq = MPC.seqs[MPC.seqCur];
+    MPC.seq = MPC.seqs[MPC.seqCur]; appliquerProgMpc();
     step = 0;
   }
   memMpc(); majLcdMpc(); majPadsMpc();
@@ -596,7 +630,7 @@ function toucheNumMpc(t){
         if(isNaN(n2) || n2 < 0 || n2 >= MPC_NB_SEQ){ signal("NUMÉRO ENTRE 1 ET 99"); return; }
         var d = MPC.seqs[n2];
         if(MPC.annule && MPC.annule.seq === d) MPC.annule = null;
-        d.mesures = src.mesures; d.q = src.q; d.swing = src.swing; d.bpm = src.bpm;
+        d.mesures = src.mesures; d.q = src.q; d.swing = src.swing; d.bpm = src.bpm; d.prog = src.prog || 0;
         d.pistes = src.pistes.map(function(pp){
           return {type:pp.type, canal:pp.canal, nom:pp.nom, mute:pp.mute, solo:pp.solo,
                   evts:pp.evts.map(function(e2){ return {tic:e2.tic, n:e2.n, vel:e2.vel}; })};
@@ -740,6 +774,15 @@ document.getElementById("mpc-t16").addEventListener("click", function(){
   MPC.type16 = (MPC.type16 + 1) % MPC_T16.length;
   majPadsMpc(); majLcdMpc(); H.cran();
   signal("16 LEVELS : " + MPC_T16[MPC.type16]);
+});
+/* v246 : le programme de la séquence courante, 1 à 8. Les pads, leurs sons et
+   leurs réglages suivent : régler un pad ne touche que ce programme. */
+document.getElementById("mpc-prog").addEventListener("click", function(){
+  MPC.seq.prog = ((MPC.seq.prog || 0) + 1) % MPC_NB_PROG;
+  appliquerProgMpc();
+  MPC.sel = Math.min(MPC.sel, 63);
+  memMpc(); majPadsMpc(); majLcdMpc(); majKnobsMpc(); H.cran();
+  signal(MPC.seq.nom + " JOUE LE PROGRAM " + (MPC.prog + 1));
 });
 document.getElementById("mpc-seqbpm").addEventListener("click", function(){
   MPC.seq.bpm = MPC.seq.bpm ? 0 : S.bpm;
