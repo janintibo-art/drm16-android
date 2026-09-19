@@ -10,12 +10,14 @@ function bibLire(){
     if(o && o.noms) BIB.noms = o.noms;
     if(o && o.preset) BIB.preset = o.preset;
     if(o && o.freesound) BIB.freesound = fsonCreditsValides(o.freesound);
+    /* v252 : catégories, favoris */
+    if(typeof bibMetaValides === "function") BIB.meta = bibMetaValides(o && o.meta);
   }catch(e){}
 }
 function bibEcrire(){
   if(PROJET_EN_COURS) return false;
   try{
-    localStorage.setItem(MEM + ".bib", JSON.stringify({noms:BIB.noms, preset:BIB.preset, freesound:BIB.freesound || {}}));
+    localStorage.setItem(MEM + ".bib", JSON.stringify({noms:BIB.noms, preset:BIB.preset, freesound:BIB.freesound || {}, meta:BIB.meta || {}}));
     return true;
   }catch(e){ signal("MÉMOIRE PLEINE · NOMS ET CRÉDITS NON GARDÉS"); return false; }
 }
@@ -263,48 +265,76 @@ function bibRendreSons(corps){
 
   var h = document.createElement("h3"); h.textContent = "Sons";
   corps.appendChild(h);
-  bibSons().forEach(function(s){
-    var l = ligneBib(s.nom, (s.propre ? "à vous" : "banque") +
-      (s.duree ? (" · " + s.duree.toFixed(2) + " s · " + Math.round(s.freq/1000) + " kHz") : " · non chargé"));
-    var a = document.createElement("div"); a.className = "bib-actions";
-    boutonBib(a, "ÉCOUTER", function(){
-      audioInit(); banqueEs();
-      var b = ES.buf[s.id];
-      if(!b) return;
-      var src = ctx.createBufferSource(); src.buffer = b;
-      var g = ctx.createGain(); g.gain.value = 0.8;
-      src.connect(g); g.connect(master); src.start();
+  /* v252 : recherche, filtres, tri ; seule la liste est refaite à chaque frappe */
+  if(typeof bibRendreFiltres === "function") bibRendreFiltres(corps, function(){ bibRendreListeSons(corps); });
+  bibRendreListeSons(corps);
+}
+function bibRendreListeSons(corps){
+  if(corps.querySelectorAll){
+    var vieux = corps.querySelectorAll(".bib-ligne, .bib-plus, .bib-vide");
+    for(var v=0;v<vieux.length;v++) vieux[v].parentNode.removeChild(vieux[v]);
+  }
+  var tous = bibSons();
+  var r = typeof bibClasserSons === "function" ? bibClasserSons(tous) : {l:tous, total:tous.length, tous:tous.length};
+  if(typeof bibMajCompte === "function") bibMajCompte(r);
+  if(!r.total){
+    var p0 = document.createElement("p"); p0.className = "bib-vide"; p0.style.opacity = ".7";
+    p0.textContent = "Aucun son ne correspond.";
+    corps.appendChild(p0);
+  }
+  r.l.forEach(function(s){ corps.appendChild(bibLigneSon(s)); });
+  if(r.total > r.l.length){
+    var plus = document.createElement("div"); plus.className = "bib-actions bib-plus";
+    boutonBib(plus, "AFFICHER " + Math.min(BIB_PAGE, r.total - r.l.length) + " DE PLUS (" + (r.total - r.l.length) + " RESTANTS)", function(){
+      bibFiltre().n += BIB_PAGE; bibRendreListeSons(corps);
     });
-    boutonBib(a, "AFFECTER", function(){ bibAffecter(s.id); });
-    if(s.propre) boutonBib(a, "TRAITER", function(){
-      audioInit();
-      var b = ES.buf[s.id];
-      if(!b){ signal("SON INTROUVABLE"); return; }
-      var r = traiterSon(b, BIB.preset || "punch", 0);
-      if(!r.rapport){ signal("AUCUN TRAITEMENT CHOISI"); return; }
-      ES.buf[s.id] = r.buffer; delete ES.inv[s.id];
-      var garde = sauverEch(s.id, r.buffer);
-      majBibUI();
-      signal(!garde ? "SON TRAITÉ POUR CETTE SESSION · ÉCHEC D'ÉCRITURE"
-        : (r.rapport.gain >= 0 ? "+" : "") + r.rapport.gain + " dB · CRÊTE " + r.rapport.apres.crete + " dB");
-    });
-    boutonBib(a, "RENOMMER", function(){
-      renommer("Nom du son", s.nom, function(v){
-        if(v) BIB.noms[s.id] = v; else delete BIB.noms[s.id];
-        bibEcrire(); majBibUI();
-      });
-    });
-    if(s.propre) boutonBib(a, "SUPPRIMER", function(){
-      var n = usagesEch(s.id);
-      if(n > 0 && !window.confirm("Ce son sert encore " + n + " fois. Le supprimer quand même ?")) return;
-      supprimerEch(s.id); delete BIB.noms[s.id];
-      if(BIB.freesound) delete BIB.freesound[s.id];
-      bibEcrire(); majBibUI(); H.inter();
-    });
-    l.appendChild(a);
-    if(BIB.freesound && BIB.freesound[s.id]) fsonAfficherCredits(l, BIB.freesound[s.id]);
-    corps.appendChild(l);
+    corps.appendChild(plus);
+  }
+}
+function bibLigneSon(s){
+  var l = ligneBib(s.nom, (s.propre ? "à vous" : "banque") +
+    (s.duree ? (" · " + s.duree.toFixed(2) + " s · " + Math.round(s.freq/1000) + " kHz") : " · non chargé"));
+  var a = document.createElement("div"); a.className = "bib-actions";
+  boutonBib(a, "ÉCOUTER", function(){
+    audioInit(); banqueEs();
+    var b = ES.buf[s.id];
+    if(!b) return;
+    var src = ctx.createBufferSource(); src.buffer = b;
+    var g = ctx.createGain(); g.gain.value = 0.8;
+    src.connect(g); g.connect(master); src.start();
   });
+  boutonBib(a, "AFFECTER", function(){ bibAffecter(s.id); });
+  if(s.propre) boutonBib(a, "TRAITER", function(){
+    audioInit();
+    var b = ES.buf[s.id];
+    if(!b){ signal("SON INTROUVABLE"); return; }
+    var r = traiterSon(b, BIB.preset || "punch", 0);
+    if(!r.rapport){ signal("AUCUN TRAITEMENT CHOISI"); return; }
+    ES.buf[s.id] = r.buffer; delete ES.inv[s.id];
+    var garde = sauverEch(s.id, r.buffer);
+    majBibUI();
+    signal(!garde ? "SON TRAITÉ POUR CETTE SESSION · ÉCHEC D'ÉCRITURE"
+      : (r.rapport.gain >= 0 ? "+" : "") + r.rapport.gain + " dB · CRÊTE " + r.rapport.apres.crete + " dB");
+  });
+  boutonBib(a, "RENOMMER", function(){
+    renommer("Nom du son", s.nom, function(v){
+      if(v) BIB.noms[s.id] = v; else delete BIB.noms[s.id];
+      if(BIB.meta && BIB.meta[s.id]) delete BIB.meta[s.id].a;   /* v252 : nouveau nom, catégorie redevinée */
+      bibEcrire(); majBibUI();
+    });
+  });
+  if(s.propre) boutonBib(a, "SUPPRIMER", function(){
+    var n = usagesEch(s.id);
+    if(n > 0 && !window.confirm("Ce son sert encore " + n + " fois. Le supprimer quand même ?")) return;
+    supprimerEch(s.id); delete BIB.noms[s.id];
+    if(BIB.freesound) delete BIB.freesound[s.id];
+    if(BIB.meta) delete BIB.meta[s.id];
+    bibEcrire(); majBibUI(); H.inter();
+  });
+  l.appendChild(a);
+  if(typeof bibDecorerLigne === "function") bibDecorerLigne(l, s);
+  if(BIB.freesound && BIB.freesound[s.id]) fsonAfficherCredits(l, BIB.freesound[s.id]);
+  return l;
 }
 function bibRendrePrises(corps){
   enrCharger();

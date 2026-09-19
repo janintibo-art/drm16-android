@@ -69,6 +69,7 @@ node outils/test-reprise-projet.cjs
 node outils/test-bibliotheque.cjs
 node outils/test-freesound.cjs
 node outils/test-kits.cjs
+node outils/test-classement.cjs
 node outils/test-memoire.cjs
 fin
 

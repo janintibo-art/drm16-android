@@ -4,3 +4,15 @@
 #bib .kits-choix{min-height:40px;max-width:100%}
 #bib .kits-kit b{overflow-wrap:anywhere}
 #bib #kits-avant:disabled{opacity:.4}
+/* v252 : rayon SONS — recherche, filtres, favoris, formes d'onde */
+#bib .bib-filtres{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 10px}
+#bib .bib-filtres input[type=search]{flex:1 1 100%;min-height:40px;font-size:15px;padding:0 10px}
+#bib .bib-filtres select{flex:1 1 140px;min-height:40px}
+#bib .bib-f-fav{display:flex;align-items:center;gap:6px;min-height:40px;font-size:13px}
+#bib .bib-f-fav input{width:22px;height:22px}
+#bib .bib-compte{flex:1 1 100%;margin:0;font-size:13px;opacity:.75}
+#bib .bib-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+#bib .bib-etoile{min-width:44px;min-height:40px;font-size:20px;line-height:1}
+#bib .bib-etoile.on{color:var(--accent)}
+#bib .bib-cat{min-height:40px;max-width:170px}
+#bib .bib-onde{width:160px;height:32px;opacity:.9}

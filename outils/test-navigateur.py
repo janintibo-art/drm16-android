@@ -2403,10 +2403,67 @@ async def kits_sons(nav):
     finally:
         await pg.context.close()
 
+async def bib_classement(nav):
+    print('\n42. Bibliothèque : catégories, recherche, filtres, favoris, formes d’onde (v252)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        await pg.locator('.pick[data-m=es1]').click()
+        await pg.evaluate("""() => {
+          audioInit(); banqueEs();
+          const t0 = Date.UTC(2026, 0, 1), noms = ['Kick sale', 'Snare sèche', 'Hat fermé', 'Crash long', 'Tom bas', 'Conga'];
+          for (let i = 0; i < 300; i++) {
+            const id = 'u' + (t0 + i * 1000).toString(36), b = ctx.createBuffer(1, 3200, 32000), d = b.getChannelData(0);
+            for (let k = 0; k < d.length; k++) d[k] = Math.sin(k * (0.01 + i / 3000)) * Math.exp(-k / 800);
+            ES.buf[id] = b; ES.noms[id] = i % 3 ? 'fichier' : 'mic'; BIB.noms[id] = noms[i % 6] + ' ' + i;
+          }
+          bibEcrire();
+        }""")
+        t = await pg.evaluate("(() => { const t = performance.now(); ouvrirBib(); return performance.now() - t; })()")
+        r = await pg.evaluate("({lignes:document.querySelectorAll('#bib-corps .bib-ligne').length, compte:document.getElementById('bib-compte').textContent, ondes:document.querySelectorAll('#bib-corps canvas.bib-onde').length, plus:!!document.querySelector('#bib-corps .bib-plus')})")
+        ok(r['lignes'] == 40 and r['compte'] == '324 sons' and r['ondes'] == 40 and r['plus'], '324 sons : une page de 40, formes d’onde, bouton pour la suite (%s, %d ms)' % (r, t))
+        ok(t < 3000, 'ouverture en moins de 3 s avec 324 sons (%d ms)' % t)
+        await pg.locator('#bib-chercher').click()
+        await pg.keyboard.type('snare')
+        r = await pg.evaluate("({focus:document.activeElement && document.activeElement.id, lignes:document.querySelectorAll('#bib-corps .bib-ligne').length, compte:document.getElementById('bib-compte').textContent})")
+        ok(r['focus'] == 'bib-chercher' and r['compte'] == '52 sons sur 324', 'la recherche filtre à chaque frappe sans perdre la main (%s)' % r)
+        await pg.locator('#bib-chercher').fill('')
+        await pg.select_option('#bib-f-cat', 'cymbale')
+        r = await pg.evaluate("[...document.querySelectorAll('#bib-corps .bib-ligne b')].map(b => b.textContent)")
+        ok(len(r) == 40 and all(n.startswith(('Crash', 'CRASH', 'RIDE')) for n in r), 'filtre catégorie : les cymbales seulement, banque comprise (%s)' % sorted(set(n.split(' ')[0] for n in r)))
+        ok(await pg.evaluate("document.getElementById('bib-compte').textContent") == '52 sons sur 324', 'cinquante crash et les deux cymbales de la banque')
+        await pg.select_option('#bib-f-cat', '')
+        await pg.select_option('#bib-f-orig', 'mic')
+        ok(await pg.evaluate("document.getElementById('bib-compte').textContent") == '100 sons sur 324', 'filtre origine : micro')
+        await pg.select_option('#bib-f-orig', 'tout')
+        await pg.select_option('#bib-f-tri', 'recent')
+        ok(await pg.evaluate("document.querySelector('#bib-corps .bib-ligne b').textContent") == 'Conga 299', 'tri : plus récents d’abord')
+        await pg.locator('#bib-corps .bib-plus button').click()
+        ok(await pg.locator('#bib-corps .bib-ligne').count() == 80, 'AFFICHER 40 DE PLUS')
+        ligne = pg.locator('#bib-corps .bib-ligne').nth(2)
+        nom = await ligne.locator('b').text_content()
+        await ligne.locator('.bib-etoile').click()
+        await ligne.locator('.bib-cat').select_option('voix')
+        await pg.select_option('#bib-f-tri', 'nom')
+        ok(await pg.evaluate("document.querySelector('#bib-corps .bib-ligne b').textContent") == nom, 'le favori passe en tête')
+        await pg.reload(); await pg.wait_for_function("document.body.classList.contains('pret')")
+        r = await pg.evaluate("(() => { bibLire(); const id = Object.keys(BIB.noms).find(k => BIB.noms[k] === %r); return BIB.meta[id]; })()" % nom)
+        ok(r == {'f': 1, 'c': 'voix', 'a': r.get('a')} if r else False, 'favori et catégorie choisie retrouvés au redémarrage (%s)' % r)
+        await pg.locator('.pick[data-m=es1]').click()
+        await pg.evaluate('ouvrirBib()')
+        await pg.locator('#bib-f-fav').check()
+        ok(await pg.locator('#bib-corps .bib-ligne').count() == 0, 'favoris seulement : son du test retiré au rechargement, liste vide sans erreur')
+        await pg.locator('#bib-f-fav').uncheck()
+        premier = await pg.locator('#bib-corps .bib-ligne').first.locator('b').text_content()
+        await pg.locator('#bib-corps .bib-ligne').first.locator('button', has_text='AFFECTER').click()
+        ok(await pg.evaluate("nomBib(ES.pat.son[0].ech)") == premier, 'AFFECTER pose le son de la ligne, depuis la liste classée (%s)' % premier)
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement):
             try:
                 await t(nav)
             except Exception as e:

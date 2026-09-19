@@ -147,6 +147,7 @@ js/610-formes-d-onde-par-piste.js
 js/620-la-collection-archive-org.js
 js/625-freesound.js
 js/630-bibliotheque.js
+js/631-classement-des-sons.js
 js/632-kits-de-sons.js
 js/635-projet-drm16.js
 js/640-travail-du-midi-editeur-en-rouleau.js
