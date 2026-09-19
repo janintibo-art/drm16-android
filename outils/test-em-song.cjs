@@ -18,7 +18,7 @@ async function vider(){for(let i=0;i<8;i++)await Promise.resolve();}
 (async()=>{
  let c=setup(),plan=c.planSongEm();assert.equal(plan.pas,104);assert.deepStrictEqual(copie(plan.entrees.map(e=>e.debut)),[0,4,36,40]);assert.deepStrictEqual(copie(plan.entrees.map(e=>e.motif.len)),[4,32,4,64]);
  plan.entrees[0].motif.st[0][0]=1;assert.equal(c.EM.slots[0].st[0][0],0);assert.equal(plan.entrees[2].motif.st[0][0],0);
- for(const song of [[],[16],[-1],[.5],['1'],Array(257).fill(0)]){c.EM.song=song;assert.throws(()=>c.planSongEm());}
+ for(const song of [[],[16],[-1],[.5],['1'],Array(65).fill(0),Array(257).fill(0)]){c.EM.song=song;assert.throws(()=>c.planSongEm());}
  c=setup();const avant=copie(c.EM),ctx=c.ctx,bus=c.SET.bus;c.exporterWav(true);assert(c.document.body.inert);assert(c.WAVX.occupe);await vider();
  assert.equal(c.appels.length,104);assert.deepStrictEqual(c.appels[4],[1,0,.55]);assert.deepStrictEqual(c.appels[36],[0,0,4.55]);assert.deepStrictEqual(c.appels[103],[2,63,12.925]);assert.equal(c.n,Math.ceil((104*.125+2.5)*44100));assert(!c.boucles);assert.equal(c.fichiers.length,1);assert(c.fichiers[0].n.startsWith('drm-em1-song-4ent-'));assert.deepStrictEqual(copie(c.EM),avant);assert.strictEqual(c.ctx,ctx);assert.strictEqual(c.SET.bus,bus);assert(!c.WAVX.occupe&&!c.document.body.inert);
  for(const echec of ['allocation','preparer','schedule','render','render-sync']){c=setup();const a=copie(c.EM),live=c.ctx;c.echec=echec;c.exporterWav(true);await vider();assert.deepStrictEqual(copie(c.EM),a,echec);assert.strictEqual(c.ctx,live,echec);assert(!c.WAVX.occupe&&!c.document.body.inert,echec);assert.equal(c.fichiers.length,0,echec);}

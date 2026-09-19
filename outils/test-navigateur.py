@@ -2003,6 +2003,29 @@ async def em_song_edition(nav):
     finally:
         await pg.context.close()
 
+async def em_song_64(nav):
+    print('\n35. EM-1 : Song sur 64 positions et quatre pages (v225)')
+    pg, err = await nouvelle_page(nav, pont=True)
+    try:
+        await pg.locator('.pick[data-m=em1]').click()
+        await pg.evaluate('''() => {
+          EM.song=Array(16).fill(0);EM.cur=1;EM.mode=2;EM.spos=0;EM.ssel=15;EM.songPage=0;majTouches();
+        }''')
+        await pg.locator('#em-song-page').select_option('1')
+        ok(await pg.evaluate('EM.songPage===1'),'la page 17–32 devient disponible après 16 positions')
+        await pg.locator('#em-keys button').nth(0).click()
+        ok(await pg.evaluate('EM.song.length===17&&EM.ssel===16&&EM.songPage===1&&EM.song[16]===1'),'la première touche de la page suivante ajoute la position 17')
+        await pg.evaluate('EM.song=Array(64).fill(0);EM.songPage=3;EM.ssel=63;majTouches()')
+        ok(await pg.locator('#em-song-page').input_value()=='3','la quatrième page affiche 49–64')
+        ok(await pg.locator('#em-song-dupliquer').is_disabled(),'la duplication est bloquée à 64 positions')
+        await pg.locator('#em-keys button').nth(15).click()
+        ok(await pg.evaluate('EM.song.length===64&&EM.ssel===63'),'la position 64 reste sélectionnable sans créer de 65e entrée')
+        await pg.locator('#em-song-page').select_option('2')
+        ok(await pg.evaluate('EM.songPage===2'),'retour vers une page précédente conservé')
+        ok(not err,'aucune erreur de page : '+str(err))
+    finally:
+        await pg.context.close()
+
 async def em_noms_motifs(nav):
     print('\n34. EM-1 : noms de motifs (v222)')
     pg, err = await nouvelle_page(nav, pont=True)
@@ -2045,7 +2068,7 @@ async def em_noms_motifs(nav):
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_noms_motifs):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs):
             try:
                 await t(nav)
             except Exception as e:

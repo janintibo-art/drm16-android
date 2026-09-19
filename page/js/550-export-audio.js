@@ -49,7 +49,7 @@ function wavStereo(buf){
 /* v219 : figer un passage de Song avant de changer de contexte audio. */
 function planSongEm(){
   if(!Array.isArray(EM.song) || !EM.song.length) throw new Error("SONG VIDE · AJOUTEZ DES MOTIFS");
-  if(EM.song.length > 256) throw new Error("SONG TROP LONG · 256 ENTRÉES MAXIMUM");
+  if(EM.song.length > 64) throw new Error("SONG TROP LONG · 64 POSITIONS MAXIMUM");
   var position = 0;
   var entrees = EM.song.map(function(k){
     if(!Number.isInteger(k) || k < 0 || k >= 16) throw new Error("MOTIF SONG INVALIDE");
