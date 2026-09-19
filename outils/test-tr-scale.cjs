@@ -43,7 +43,8 @@ function fixture(options = {}) {
   vm.runInContext([
     'var T_PAS = 0;',
     fonction(SOURCE, 'echelleTr'), fonction(SOURCE, 'dureePasTr'),
-    fonction(SOURCE, 'remettreHorlogeTr'), fonction(SOURCE, 'scheduleTr'),
+    fonction(SOURCE, 'remettreHorlogeTr'), fonction(SOURCE, 'motifJoueTr'),
+    fonction(SOURCE, 'debutTourTr'), fonction(SOURCE, 'scheduleTr'),
     fonction(SOURCE, 'beatTr'), fonction(SOURCE, 'arretTr'), fonction(SOURCE, 'boucleTr'),
     fonction(AFFICHAGE, 'pasLePlusProche'),
     machine[0]

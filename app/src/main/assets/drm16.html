@@ -4107,6 +4107,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <div class="tr8-kn" id="tr8-kn-drive" style="width:44px;display:none">
       <div class="bt" id="tr8-k-drive" style="width:44px;height:44px"><i></i></div><em>DRIVE</em></div>
     <button class="tr8b" id="tr8-shuffle">SHUFFLE 0%</button>
+    <button class="tr8b" id="tr8-fill">FILL 16</button>
+    <button class="tr8b" id="tr8-autofill">AUTO FILL OFF</button>
     <button class="tr8b" id="tr8-flam" style="display:none">FLAM OFF</button>
     <button class="tr8b" id="tr8-tap">TAP</button>
   </div>
@@ -6885,6 +6887,12 @@ décalage. MOTION REC est désarmé après cette opération.</p>
   mesure), <b>32</b> triples croches (deux fois plus vite), <b>12</b> croches de triolet (trois pas par
   temps), <b>24</b> doubles croches de triolet (six pas par temps). En triolet, réglez LAST STEP sur 12 :
   le motif dure alors exactement une mesure (SCALE 12) ou une demi-mesure (SCALE 24).</p>
+  <p><b>FILL</b> joue un break. Pendant la lecture, un appui fait jouer le <b>motif de fill</b> à la mesure
+  suivante, une seule fois, puis la machine revient au motif courant ; le bouton reste allumé tant que le
+  fill est attendu ou joué. À l'arrêt, FILL choisit ce motif de fill parmi les motifs <b>13 à 16</b> (16 par
+  défaut) : programmez-y vos breaks. Le fill joue sa variation A et sa propre longueur LAST STEP.</p>
+  <p><b>AUTO FILL</b> place le fill tout seul à la dernière mesure de chaque groupe de <b>2, 4, 8 ou 16</b>
+  mesures, comptées depuis START.</p>
   <p>La piste <b>AC ACCENT</b> renforce tous les coups du pas où elle est posée, et son bouton LEVEL en
   règle la force — c'est le TOTAL ACCENT de l'appareil.</p>
 
@@ -19374,7 +19382,13 @@ function motifTr(n){
 var TR = {m:"tr808", def:null, pat:null, slots:[], cur:0, var2:false, sel:1,
           ecrit:true, pos:-1, noeuds:[], ohGain:null, flam:false, shuffle:0,
           bus:null, dist:false, drive:0.45, tone:0.75, clap:false, couleur:0,
-          hN:0, hK:0, hIdx:0, hS:16, file:[]};   /* v231 : horloge propre à SCALE */
+          hN:0, hK:0, hIdx:0, hS:16, file:[],    /* v231 : horloge propre à SCALE */
+          /* v236 : FILL. fillSlot = motif joué en fill (12 à 15, soit 13 à 16),
+             autoFill = toutes les N mesures (0 = jamais), fillArme = FILL
+             demandé pour la mesure suivante, enFill = la mesure en cours est
+             le fill, tour = mesures commencées depuis START */
+          fillSlot:15, autoFill:0, fillArme:false, enFill:false, tour:0};
+var TR_AUTOFILL = [0, 2, 4, 8, 16];
 
 /* ---------- séquenceur ---------- */
 function voixTr(t, k, acc){
@@ -19419,24 +19433,44 @@ function echelleTr(p){
 function dureePasTr(){ return stepDur() * 16 / echelleTr(TR.pat); }
 function remettreHorlogeTr(){
   TR.hN = 0; TR.hK = 0; TR.hIdx = 0; TR.hS = echelleTr(TR.pat); TR.file = [];
+  TR.tour = 0; TR.enFill = false; TR.fillArme = false;
+}
+/* v236 : le motif joué pendant la mesure en cours — le motif courant, ou le
+   motif de fill (sa variation A, sa propre longueur LAST STEP ; la grille
+   SCALE reste celle du motif courant). */
+function motifJoueTr(){
+  return (TR.enFill && TR.slots && TR.slots[TR.fillSlot]) ? TR.slots[TR.fillSlot] : TR.pat;
+}
+/* début de chaque mesure du motif : fill demandé, ou fill automatique à la
+   dernière mesure de chaque groupe de N */
+function debutTourTr(){
+  TR.tour = (TR.tour || 0) + 1;
+  var n = TR.autoFill || 0;
+  TR.enFill = !!TR.fillArme || (n > 0 && TR.tour % n === 0);
+  TR.fillArme = false;
+  if(TR.enFill && !(TR.slots && TR.slots[TR.fillSlot])) TR.enFill = false;
 }
 function scheduleTr(i, t){
   var p = TR.pat, v = TR.var2 ? "B" : "A";
   /* nouveau départ (START, reprise MIDI) : la TR repart de son premier pas */
   if(!cache && pasSet === 0) remettreHorlogeTr();
-  var sc = echelleTr(p), L = p.last || 16, d = stepDur();
+  var sc = echelleTr(p), d = stepDur();
   /* SCALE changé pendant la lecture : la nouvelle grille part de ce tic */
   if(sc !== TR.hS){ TR.hS = sc; TR.hN = 0; TR.hK = 0; }
   var tic = TR.hN, fin = Math.ceil((tic + 1) * sc / 16);
   for(; TR.hK < fin; TR.hK++){
-    if(TR.hIdx >= L) TR.hIdx = 0;
+    /* fin du motif joué (ou motif raccourci en lecture) : nouvelle mesure */
+    var q = motifJoueTr();
+    if(TR.hIdx >= (q.last || 16)) TR.hIdx = 0;
+    if(TR.hIdx === 0){ debutTourTr(); q = motifJoueTr(); }
+    var vq = (q === TR.pat) ? v : "A";
     var j = TR.hIdx;
     var tp = t + (TR.hK * 16 / sc - tic) * d;
     if(TR.shuffle && j % 2 === 1) tp += d * 16 / sc * TR.shuffle * 0.5;
-    var acc = !!p[v][0][j];
+    var acc = !!q[vq][0][j];
     var n = ouvrirPas(), k;
     for(k=1;k<TR.def.instr.length;k++){
-      if(!p[v][k][j]) continue;
+      if(!q[vq][k][j]) continue;
       voixTr(tp, k, acc); n++;
       if(TR.flam){ voixTr(tp + 0.028, k, false); n++; }   /* le flam de la 909 */
     }
@@ -19445,19 +19479,22 @@ function scheduleTr(i, t){
       queue.push({i:j, t:tp});
       /* file propre à la TR : son curseur reste juste quand elle est
          secondaire dans le SET, où le rang du SET compte en tics */
-      TR.file.push({i:j, t:tp});
+      TR.file.push({i:j, t:tp, f:TR.enFill});
       if(TR.file.length > 256) TR.file.shift();
     }
-    TR.hIdx = (j + 1) % L;
+    TR.hIdx = j + 1;
   }
   TR.hN++;
 }
 var trPas = [];
 function beatTr(i){
-  var now = ctx ? maintenantAudio() : 0, pos = -1;
-  while(TR.file.length && TR.file[0].t <= now + 0.001) pos = TR.file.shift().i;
+  var now = ctx ? maintenantAudio() : 0, pos = -1, fill = false;
+  while(TR.file.length && TR.file[0].t <= now + 0.001){ var e = TR.file.shift(); pos = e.i; fill = !!e.f; }
   if(pos < 0) return;
   TR.pos = pos;
+  /* FILL éclairé tant qu'il est demandé ou qu'on l'entend */
+  var bf = document.getElementById("tr8-fill");
+  if(bf) bf.classList.toggle("on", fill || !!TR.fillArme);
   for(var j=0;j<16;j++) trPas[j].classList.toggle("cur", j === pos);
 }
 function arretTr(){
@@ -19640,12 +19677,17 @@ function majTr(){
   }
   var bsh = document.getElementById("tr8-shuffle");
   if(bsh) bsh.textContent = "SHUFFLE " + Math.round(TR.shuffle * 100) + "%";
+  var bfi = document.getElementById("tr8-fill");
+  if(bfi){ bfi.textContent = "FILL " + (TR.fillSlot + 1); if(!S.run) bfi.classList.remove("on"); }
+  var baf = document.getElementById("tr8-autofill");
+  if(baf) baf.textContent = "AUTO FILL " + (TR.autoFill ? TR.autoFill : "OFF");
   majLcdTr();
 }
 
 function memTr(){
   memoire[TR.m] = {
     cur:TR.cur, sel:TR.sel, var2:TR.var2, flam:TR.flam, shuffle:TR.shuffle,
+    fillSlot:TR.fillSlot, autoFill:TR.autoFill,
     dist:TR.dist, drive:TR.drive, tone:TR.tone, clap:TR.clap, couleur:TR.couleur,
     slots:TR.slots.map(function(p){
       return {last:p.last, scale:p.scale, son:p.son,
@@ -19659,6 +19701,7 @@ function chargerTr(){
   TR.slots = [];
   for(var z=0;z<16;z++) TR.slots.push(motifTr(z < 3 ? z : 9));
   TR.cur = 0; TR.sel = 1; TR.var2 = false; TR.flam = false; TR.shuffle = 0;
+  TR.fillSlot = 15; TR.autoFill = 0; TR.fillArme = false; TR.enFill = false;
   var m = memLire(TR.m);
   if(m){
     if(m.slots && m.slots.length === 16){
@@ -19682,6 +19725,8 @@ function chargerTr(){
     ["shuffle","drive","tone","couleur"].forEach(function(c){
       if(typeof m[c] === "number") TR[c] = m[c];
     });
+    if(Number.isInteger(m.fillSlot) && m.fillSlot >= 12 && m.fillSlot <= 15) TR.fillSlot = m.fillSlot;
+    if(m.autoFill === 2 || m.autoFill === 4 || m.autoFill === 8 || m.autoFill === 16) TR.autoFill = m.autoFill;
   }
   TR.pat = TR.slots[TR.cur];
 }
@@ -19740,6 +19785,24 @@ function appliquerCouleurRd6(){
 document.getElementById("tr8-flam").addEventListener("click", function(){
   TR.flam = !TR.flam; majTr(); memTr(); H.inter();
   signal(TR.flam ? "FLAM : CHAQUE COUP EST DOUBLÉ" : "FLAM COUPÉ");
+});
+/* v236 : FILL en lecture = fill à la mesure suivante ; à l'arrêt, choix du
+   motif de fill parmi 13 à 16. AUTO FILL : OFF, 2, 4, 8, 16 mesures. */
+document.getElementById("tr8-fill").addEventListener("click", function(){
+  if(S.run){
+    TR.fillArme = true;
+    this.classList.add("on");
+    lcdTr(String(TR.fillSlot + 1), "FILL", true);
+  } else {
+    TR.fillSlot = TR.fillSlot >= 15 ? 12 : TR.fillSlot + 1;
+    majTr(); memTr();
+    lcdTr(String(TR.fillSlot + 1), "FILL PATTERN", true);
+  }
+  H.cran();
+});
+document.getElementById("tr8-autofill").addEventListener("click", function(){
+  TR.autoFill = TR_AUTOFILL[(TR_AUTOFILL.indexOf(TR.autoFill) + 1) % TR_AUTOFILL.length];
+  majTr(); memTr(); H.cran();
 });
 document.getElementById("tr8-shuffle").addEventListener("click", function(){
   var v = [0, 0.12, 0.2, 0.3, 0.4];
