@@ -179,6 +179,23 @@ function boucleMpc(){
 }
 var MACHINE_MPC = {schedule:scheduleMpc, beat:beatMpc, arret:arretMpc, boucle:boucleMpc,
                    longueur:function(){ return pasMpc(); }};
+/* v244 : rendu WAV du morceau. planChaine() dit si la machine est en mode
+   morceau et combien de tics de l'horloge commune dure UN passage complet ;
+   reprendreChaine() rallume ce mode au début, après la réouverture de la
+   machine que fait l'export (la réouverture l'éteint toujours). */
+function planChaineMpc(){
+  if(MPC.mode !== 2 || !MPC.chanson.length) return null;
+  var total = 0;
+  MPC.chanson.forEach(function(p){ var s = MPC.seqs[p.seq]; if(s) total += s.mesures * 16 * (p.tours || 1); });
+  return total > 0 ? {tics:total} : null;
+}
+function reprendreChaineMpc(){
+  MPC.mode = 2; MPC.chPos = 0; MPC.chTour = 0; MPC.amorce = 0; MPC.attente = false;
+  var p = MPC.chanson[0];
+  if(p && MPC.seqs[p.seq]){ MPC.seqCur = p.seq; MPC.seq = MPC.seqs[p.seq]; }
+}
+MACHINE_MPC.planChaine = planChaineMpc;
+MACHINE_MPC.reprendreChaine = reprendreChaineMpc;
 
 /* position en tics, au moment précis de la frappe */
 function ticCourant(){

@@ -244,6 +244,19 @@ function arretDmx(){
 function boucleDmx(){ }
 var MACHINE_DMX = {schedule:scheduleDmx, beat:beatDmx, arret:arretDmx, boucle:boucleDmx,
                    longueur:function(){ return pasDmx(); }};
+/* v244 : rendu WAV du morceau. planChaine() dit si la machine est en mode
+   morceau et combien de tics de l'horloge commune dure UN passage complet ;
+   reprendreChaine() rallume ce mode au début, après la réouverture de la
+   machine que fait l'export (la réouverture l'éteint toujours). */
+function planChaineDmx(){
+  if(!songDmxActif()) return null;
+  var total = 0;
+  DMX.song.forEach(function(p){ var s = DMX.seqs[p.seq]; if(s) total += s.mesures * 16 * (p.tours || 1); });
+  return total > 0 ? {tics:total} : null;
+}
+function reprendreChaineDmx(){ DMX.songOn = true; songDmxDebut(); }
+MACHINE_DMX.planChaine = planChaineDmx;
+MACHINE_DMX.reprendreChaine = reprendreChaineDmx;
 function ticDmx(){
   if(DMX.pos < 0 || !ctx) return 0;
   var tp = DMX_TPQ / 4;

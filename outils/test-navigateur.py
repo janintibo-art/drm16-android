@@ -2194,10 +2194,84 @@ async def t1k_chaine(nav):
     finally:
         await pg.context.close()
 
+async def morceaux_wav(nav):
+    print('\n38. Rendu WAV du morceau : TRACK TR, SONG DMX, chanson MPC, chaîne TR-1000 (v244)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        r = await pg.evaluate("""async () => {
+          const dodo = ms => new Promise(r => setTimeout(r, ms));
+          async function rendre(prefixe){
+            Object.keys(__F).forEach(k => delete __F[k]);
+            exporterWav();
+            for (let i = 0; i < 200 && WAVX.occupe; i++) await dodo(100);
+            const n = Object.keys(__F).find(n => n.startsWith(prefixe));
+            if (!n) return null;
+            const o = __F[n], v = new DataView(o.buffer, o.byteOffset, o.byteLength), N = (o.length - 44) / 4;
+            const pic = (a, b) => { let p = 0; for (let i = Math.max(0, Math.floor(a * 44100)); i < Math.min(N, Math.floor(b * 44100)); i++) p = Math.max(p, Math.abs(v.getInt16(44 + 4 * i, true))); return p; };
+            return {nom: n, taille: o.length, pic};
+          }
+          function attaques(w, instants){
+            return instants.map(t => { const a = w.pic(0.05 + t - 0.03, 0.05 + t - 0.004), b = w.pic(0.05 + t, 0.05 + t + 0.03);
+              return b > 300 && b > 3 * a; });
+          }
+          audioInit(); S.bpm = 120; WAVX.mesures = 1;
+          const res = {};
+
+          /* TR-808 : motifs 1 (16 pas) et 2 (8 pas), chaîne 1, 2, 1 */
+          allerMachine('tr808');
+          TR.slots.forEach(p => ['A','B'].forEach(v => p[v].forEach(l => l.fill(0))));
+          TR.slots[0].A[1][0] = 1; TR.slots[1].A[1][0] = 1; TR.slots[1].last = 8;
+          TR.chaine = [{p:0,b:false},{p:1,b:false},{p:0,b:false}]; TR.trackOn = true; TR.autoFill = 0; memTr(); writeMem();
+          let w = await rendre('drm-tr808-morceau-');
+          res.tr = w && {taille: w.taille === tailleWavStereo(40 * stepDur() + 2.5, 44100), attaques: attaques(w, [0, 2, 3]),
+                         trackRallume: TR.trackOn && S.modele === 'tr808'};
+
+          /* DMX : séquence 1 (1 mesure) deux fois, puis séquence 2 (2 mesures) */
+          allerMachine('dmx');
+          DMX.seqs[0].mesures = 1; DMX.seqs[0].evts = [{tic:0,k:0,vel:1}];
+          DMX.seqs[1].mesures = 2; DMX.seqs[1].evts = [{tic:0,k:3,vel:1}];
+          DMX.song = [{seq:0,tours:2},{seq:1,tours:1}]; DMX.songOn = true; memDmx(); writeMem();
+          w = await rendre('drm-dmx-morceau-');
+          res.dmx = w && {taille: w.taille === tailleWavStereo(64 * stepDur() + 2.5, 44100), attaques: attaques(w, [0, 2, 4]),
+                          songRallume: DMX.songOn};
+
+          /* MPC3000 : séquence 1 (1 mesure) deux tours, puis séquence 2 (2 mesures) */
+          allerMachine('mpc3000'); banqueEs();
+          MPC.seqs[0].mesures = 1; MPC.seqs[0].pistes[0].evts = [{tic:0,n:0,vel:1}];
+          MPC.seqs[1].mesures = 2; MPC.seqs[1].pistes[0].evts = [{tic:0,n:0,vel:1}];
+          MPC.chanson = [{seq:0,tours:2},{seq:1,tours:1}]; MPC.mode = 2; memMpc(); writeMem();
+          w = await rendre('drm-mpc3000-morceau-');
+          res.mpc = w && {taille: w.taille === tailleWavStereo(64 * stepDur() + 2.5, 44100), attaques: attaques(w, [0, 2, 4]),
+                          chansonRallumee: MPC.mode === 2};
+
+          /* TR-1000 : A1 (8 pas), A1, A2 (16 pas) */
+          allerMachine('t1k');
+          [0,1].forEach(n => { const m = T1K.motifs[n]; m.pas = Array(10).fill(0); m.acc = Array(10).fill(0); m.pas[0] = 1; });
+          T1K.motifs[0].last = 8; T1K.motifs[1].last = 16;
+          T1K.chaine = [{b:0,p:0},{b:0,p:0},{b:0,p:1}]; T1K.chaineOn = true; memT1k(); writeMem();
+          w = await rendre('drm-t1k-morceau-');
+          res.t1k = w && {taille: w.taille === tailleWavStereo(32 * stepDur() + 2.5, 44100), attaques: attaques(w, [0, 1, 2]),
+                          chaineRallumee: T1K.chaineOn};
+
+          /* sans mode morceau : export habituel en mesures */
+          T1K.chaineOn = false;
+          w = await rendre('drm-t1k-1mes-');
+          res.habituel = !!w;
+          return res;
+        }""")
+        for m, cle in (('tr', 'trackRallume'), ('dmx', 'songRallume'), ('mpc', 'chansonRallumee'), ('t1k', 'chaineRallumee')):
+            x = r.get(m)
+            ok(bool(x) and x['taille'] and all(x['attaques']) and x[cle],
+               '%s : un passage du morceau entier, bonne durée, chaque motif à sa place, mode morceau rallumé (%s)' % (m, x))
+        ok(r['habituel'], 'hors mode morceau, l’export en mesures est inchangé')
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav):
             try:
                 await t(nav)
             except Exception as e:

@@ -97,6 +97,14 @@ function exporterWav(songEm){
   if(songEm && (ENR.actif || PROJET_EN_COURS)){ signal("ARRÊTEZ L'ENREGISTREMENT OU LE PROJET AVANT LE RENDU"); return; }
   var plan = null;
   if(songEm){ try{ plan = planSongEm(); }catch(e){ signal(e.message); return; } }
+  /* v244 : machine en mode morceau (TRACK des TR, SONG de la DMX, chanson de la
+     MPC, chaîne de la TR-1000) : on rend UN passage du morceau entier au lieu de
+     N mesures du motif courant. Relevé AVANT la réouverture de la machine,
+     qui éteint toujours ce mode. */
+  var morceau = null;
+  if(!songEm && MACHINE && MACHINE.planChaine){
+    try{ morceau = MACHINE.planChaine(); }catch(e){ morceau = null; }
+  }
   var p = HOST;
   if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
   if(!MACHINE || !MACHINE.schedule){ signal("AUCUNE MACHINE À RENDRE"); return; }
@@ -109,7 +117,7 @@ function exporterWav(songEm){
     memEm();
   }
   if(writeMem() === false){ signal("RENDU ANNULÉ · MÉMOIRE NON ENREGISTRÉE"); return; }
-  var nombrePas = plan ? plan.pas : (MACHINE.longueur ? MACHINE.longueur() : 16) * WAVX.mesures;
+  var nombrePas = plan ? plan.pas : morceau ? morceau.tics : (MACHINE.longueur ? MACHINE.longueur() : 16) * WAVX.mesures;
   if(refusWavTropLong(nombrePas * stepDur() + 2.5, 44100)) return;
 
   WAVX.occupe = true;
@@ -151,6 +159,8 @@ function exporterWav(songEm){
     outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
     try{ allerMachine(modele); }catch(e){ signal("MACHINE À RECHARGER"); }
+    /* v244 : la réouverture a éteint le mode morceau : on le rallume */
+    if(morceau){ try{ if(MACHINE.reprendreChaine) MACHINE.reprendreChaine(); }catch(e){} }
     if(emAvant){
       Object.keys(emAvant).forEach(function(k){ if(k !== "noeuds") EM[k] = emAvant[k]; });
       document.body.inert = inerteAvant;
@@ -166,6 +176,16 @@ function exporterWav(songEm){
         EM.cur = e.index; EM.pat = e.motif;
         for(var s=0;s<e.motif.len;s++) MACHINE.schedule(s, 0.05 + (e.debut + s) * duree);
       });
+    }else if(morceau){
+      /* comme l'horloge du jeu (tick) : le pas revient à 0 à la fin du motif
+         courant, dont la longueur change à chaque changement de motif */
+      MACHINE.reprendreChaine();
+      var pasM = 0;
+      for(var nM=0; nM<morceau.tics; nM++){
+        MACHINE.schedule(pasM, 0.05 + nM * duree);
+        pasM = (pasM + 1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
+        if(pasM === 0 && MACHINE.boucle) MACHINE.boucle();
+      }
     }else for(var m=0; m<WAVX.mesures; m++){
       for(var s=0; s<pas; s++){
         MACHINE.schedule(s, 0.05 + (m * pas + s) * duree);
@@ -182,7 +202,7 @@ function exporterWav(songEm){
     for(var i=0;i<c0.length;i++){ var a = Math.abs(c0[i]); if(a > crete) crete = a; }
     var ab = wavStereo(rendu);
     remettre();
-    var nom = "drm-" + modele + "-" + (plan ? "song-" + plan.entrees.length + "ent-" : WAVX.mesures + "mes-") + Date.now().toString(36) + ".wav";
+    var nom = "drm-" + modele + "-" + (plan ? "song-" + plan.entrees.length + "ent-" : morceau ? "morceau-" : WAVX.mesures + "mes-") + Date.now().toString(36) + ".wav";
     var chemin = "";
     chemin = ecrireDocument(HOST, nom, ab);
     if(chemin){

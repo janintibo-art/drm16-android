@@ -794,6 +794,29 @@ function boucleTr(){ }
    tics) : un tour complet du motif, arrondi au tic supérieur */
 var MACHINE_TR = {schedule:scheduleTr, beat:beatTr, arret:arretTr, boucle:boucleTr,
                   longueur:function(){ return Math.ceil((TR.pat.last || 16) * 16 / echelleTr(TR.pat)); }};
+/* v244 : rendu WAV du morceau. planChaine() dit si la machine est en mode
+   morceau et combien de tics de l'horloge commune dure UN passage complet ;
+   reprendreChaine() rallume ce mode au début, après la réouverture de la
+   machine que fait l'export (la réouverture l'éteint toujours). */
+function planChaineTr(){
+  if(!TR.trackOn || !TR.chaine || !TR.chaine.length) return null;
+  var total = 0, fill = TR.slots[TR.fillSlot];
+  TR.chaine.forEach(function(e, k){
+    var p = TR.slots[e.p];
+    if(!p) return;
+    /* AUTO FILL : la mesure k+1 est un fill si c'est un multiple ; sa longueur
+       est celle du motif de fill, sur la grille SCALE du motif de la chaîne */
+    var enFill = TR.autoFill && fill && ((k + 1) % TR.autoFill === 0);
+    total += ((enFill ? fill.last : p.last) || 16) * 16 / echelleTr(p);
+  });
+  return total > 0 ? {tics:Math.ceil(total - 1e-9)} : null;
+}
+function reprendreChaineTr(){
+  TR.trackOn = true; remettreHorlogeTr();
+  var b = document.getElementById("tr8-track"); if(b) b.classList.add("on");
+}
+MACHINE_TR.planChaine = planChaineTr;
+MACHINE_TR.reprendreChaine = reprendreChaineTr;
 
 /* ---------- interface, reconstruite à chaque changement de modèle ---------- */
 var TR_KNOBS = [];

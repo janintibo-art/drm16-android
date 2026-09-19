@@ -470,6 +470,19 @@ function majChaineT1k(){
 }
 var MACHINE_T1K = {schedule:scheduleT1k, beat:beatT1k, arret:arretT1k, boucle:boucleT1k,
                    longueur:function(){ return motifT1kCur().last; }};
+/* v244 : rendu WAV du morceau. planChaine() dit si la machine est en mode
+   morceau et combien de tics de l'horloge commune dure UN passage complet ;
+   reprendreChaine() rallume ce mode au début, après la réouverture de la
+   machine que fait l'export (la réouverture l'éteint toujours). */
+function planChaineT1k(){
+  if(!T1K.chaineOn || !T1K.chaine.length) return null;
+  var total = 0;
+  T1K.chaine.forEach(function(e){ var m = T1K.motifs[e.b * 16 + e.p]; if(m) total += m.last; });
+  return total > 0 ? {tics:total} : null;
+}
+function reprendreChaineT1k(){ T1K.chaineOn = true; entreeChaineT1k(0); }
+MACHINE_T1K.planChaine = planChaineT1k;
+MACHINE_T1K.reprendreChaine = reprendreChaineT1k;
 
 /* v199 : instantané indépendant ; le collage confirme toujours sa destination. */
 function copierMotifT1k(){

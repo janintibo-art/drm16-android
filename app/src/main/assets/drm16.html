@@ -4536,6 +4536,11 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   Documents. Choisissez le nombre de mesures, appuyez, et le fichier est là.</p>
   <p>Deux secondes et demie sont ajoutées à la fin pour laisser mourir les réverbérations et les cymbales.
   Le message final donne la taille et la crête atteinte.</p>
+  <p><b>Morceau entier.</b> Si la machine affichée joue un morceau enchaîné — <b>TRACK</b> allumé sur les
+  TR et la RD-6, <b>SONG</b> sur la DMX, mode <b>SONG</b> de la MPC, <b>CHAÎNE ON</b> sur la TR-1000 —
+  l'export rend <b>un passage complet du morceau</b>, chaque motif avec sa longueur et ses répétitions,
+  au lieu du nombre de mesures choisi. Le fichier porte « morceau » dans son nom. Le Song de l'EM-1 a son
+  propre bouton sur sa façade.</p>
   <p><button class="sec" id="b-wav-mes">MESURES : 2</button>
      <button class="sec" id="b-wav">EXPORTER EN WAV</button></p>
   <p id="wav-chemin" style="opacity:.6;font-size:12.5px"></p>
@@ -5632,7 +5637,8 @@ entrée, VIDER efface toute la chaîne — jamais les motifs eux-mêmes.</p>
 sa longueur LAST, puis reprend au début. Le changement de motif se fait toujours entre
 deux tours ; les cycles A:B repartent à chaque motif. FILL IN TRIG reste disponible et
 occupe la place d’un tour. Pendant PLAY, la chaîne ne se modifie pas. Elle est gardée en
-mémoire, mais la machine rouvre avec CHAÎNE OFF.</p>
+mémoire, mais la machine rouvre avec CHAÎNE OFF. Avec CHAÎNE ON, EXPORTER EN WAV (onglet
+Général) rend la chaîne entière, une fois.</p>
   </div>
   <div class="doc" id="note-dbi" data-titre="DRUMBRUTE IMPACT">
   <h3>Motifs de 1 à 64 pas</h3>
@@ -6894,7 +6900,8 @@ mémoire, mais la machine rouvre avec CHAÎNE OFF.</p>
   <p><b>PLAY</b> joue le song du début, chaque séquence avec sa propre longueur, et le reprend quand il est
   fini. On peut toujours enregistrer pendant le song : les frappes vont dans la séquence qui joue. SONG,
   de nouveau, revient aux séquences seules. Le song est gardé en mémoire, mais la machine rouvre en mode
-  séquence, comme la MPC ; le rendu WAV joue la séquence choisie.</p>
+  séquence, comme la MPC. En mode song, EXPORTER EN WAV (onglet Général) rend le song entier, une
+  fois, répétitions comprises.</p>
   <p><b>STEP</b> répond toujours NOT ON DMX : cette fonction n'est pas reproduite.</p>
   </div>
 
@@ -6934,7 +6941,8 @@ mémoire, mais la machine rouvre avec CHAÎNE OFF.</p>
   affichée à ce moment-là. <b>CLEAR</b> retire la dernière mesure. START joue la chaîne mesure après
   mesure, chaque motif avec sa propre longueur, et la reprend au bout ; FILL et AUTO FILL restent
   disponibles par-dessus. Éteignez TRACK pour revenir à l'édition des motifs. La chaîne est gardée en
-  mémoire (64 mesures au plus), mais la machine rouvre hors TRACK.</p>
+  mémoire (64 mesures au plus), mais la machine rouvre hors TRACK. Avec TRACK allumé, EXPORTER EN WAV
+  (onglet Général) rend la chaîne entière, une fois.</p>
   <p>La piste <b>AC ACCENT</b> renforce tous les coups du pas où elle est posée, et son bouton LEVEL en
   règle la force — c'est le TOTAL ACCENT de l'appareil.</p>
 
@@ -7030,7 +7038,8 @@ mémoire, mais la machine rouvre avec CHAÎNE OFF.</p>
   entendre, <b>−</b> et <b>+</b> décalent celui qui est affiché d'une triple croche, <b>ERASE</b> le retire.
   <b>UNDO SEQ</b> revient en arrière à chaque fois.</p>
   <p><b>SONG</b> enchaîne les séquences : un numéro puis ENT ajoute un pas, la molette règle le nombre de
-  tours, ERASE retire le pas affiché.</p>
+  tours, ERASE retire le pas affiché. En mode SONG, EXPORTER EN WAV (onglet Général) rend la chanson
+  entière, une fois, tours compris.</p>
 
   <p>Les touches <b>SOFT</b> règlent le nombre de mesures, le Timing Correct et le swing.
   <b>UNDO SEQ</b> revient en arrière d'un cran — et y retourne si on rappuie. <b>ERASE</b> s'allume :
@@ -18167,6 +18176,23 @@ function boucleMpc(){
 }
 var MACHINE_MPC = {schedule:scheduleMpc, beat:beatMpc, arret:arretMpc, boucle:boucleMpc,
                    longueur:function(){ return pasMpc(); }};
+/* v244 : rendu WAV du morceau. planChaine() dit si la machine est en mode
+   morceau et combien de tics de l'horloge commune dure UN passage complet ;
+   reprendreChaine() rallume ce mode au début, après la réouverture de la
+   machine que fait l'export (la réouverture l'éteint toujours). */
+function planChaineMpc(){
+  if(MPC.mode !== 2 || !MPC.chanson.length) return null;
+  var total = 0;
+  MPC.chanson.forEach(function(p){ var s = MPC.seqs[p.seq]; if(s) total += s.mesures * 16 * (p.tours || 1); });
+  return total > 0 ? {tics:total} : null;
+}
+function reprendreChaineMpc(){
+  MPC.mode = 2; MPC.chPos = 0; MPC.chTour = 0; MPC.amorce = 0; MPC.attente = false;
+  var p = MPC.chanson[0];
+  if(p && MPC.seqs[p.seq]){ MPC.seqCur = p.seq; MPC.seq = MPC.seqs[p.seq]; }
+}
+MACHINE_MPC.planChaine = planChaineMpc;
+MACHINE_MPC.reprendreChaine = reprendreChaineMpc;
 
 /* position en tics, au moment précis de la frappe */
 function ticCourant(){
@@ -19633,6 +19659,29 @@ function boucleTr(){ }
    tics) : un tour complet du motif, arrondi au tic supérieur */
 var MACHINE_TR = {schedule:scheduleTr, beat:beatTr, arret:arretTr, boucle:boucleTr,
                   longueur:function(){ return Math.ceil((TR.pat.last || 16) * 16 / echelleTr(TR.pat)); }};
+/* v244 : rendu WAV du morceau. planChaine() dit si la machine est en mode
+   morceau et combien de tics de l'horloge commune dure UN passage complet ;
+   reprendreChaine() rallume ce mode au début, après la réouverture de la
+   machine que fait l'export (la réouverture l'éteint toujours). */
+function planChaineTr(){
+  if(!TR.trackOn || !TR.chaine || !TR.chaine.length) return null;
+  var total = 0, fill = TR.slots[TR.fillSlot];
+  TR.chaine.forEach(function(e, k){
+    var p = TR.slots[e.p];
+    if(!p) return;
+    /* AUTO FILL : la mesure k+1 est un fill si c'est un multiple ; sa longueur
+       est celle du motif de fill, sur la grille SCALE du motif de la chaîne */
+    var enFill = TR.autoFill && fill && ((k + 1) % TR.autoFill === 0);
+    total += ((enFill ? fill.last : p.last) || 16) * 16 / echelleTr(p);
+  });
+  return total > 0 ? {tics:Math.ceil(total - 1e-9)} : null;
+}
+function reprendreChaineTr(){
+  TR.trackOn = true; remettreHorlogeTr();
+  var b = document.getElementById("tr8-track"); if(b) b.classList.add("on");
+}
+MACHINE_TR.planChaine = planChaineTr;
+MACHINE_TR.reprendreChaine = reprendreChaineTr;
 
 /* ---------- interface, reconstruite à chaque changement de modèle ---------- */
 var TR_KNOBS = [];
@@ -25132,6 +25181,19 @@ function majChaineT1k(){
 }
 var MACHINE_T1K = {schedule:scheduleT1k, beat:beatT1k, arret:arretT1k, boucle:boucleT1k,
                    longueur:function(){ return motifT1kCur().last; }};
+/* v244 : rendu WAV du morceau. planChaine() dit si la machine est en mode
+   morceau et combien de tics de l'horloge commune dure UN passage complet ;
+   reprendreChaine() rallume ce mode au début, après la réouverture de la
+   machine que fait l'export (la réouverture l'éteint toujours). */
+function planChaineT1k(){
+  if(!T1K.chaineOn || !T1K.chaine.length) return null;
+  var total = 0;
+  T1K.chaine.forEach(function(e){ var m = T1K.motifs[e.b * 16 + e.p]; if(m) total += m.last; });
+  return total > 0 ? {tics:total} : null;
+}
+function reprendreChaineT1k(){ T1K.chaineOn = true; entreeChaineT1k(0); }
+MACHINE_T1K.planChaine = planChaineT1k;
+MACHINE_T1K.reprendreChaine = reprendreChaineT1k;
 
 /* v199 : instantané indépendant ; le collage confirme toujours sa destination. */
 function copierMotifT1k(){
@@ -27949,6 +28011,19 @@ function arretDmx(){
 function boucleDmx(){ }
 var MACHINE_DMX = {schedule:scheduleDmx, beat:beatDmx, arret:arretDmx, boucle:boucleDmx,
                    longueur:function(){ return pasDmx(); }};
+/* v244 : rendu WAV du morceau. planChaine() dit si la machine est en mode
+   morceau et combien de tics de l'horloge commune dure UN passage complet ;
+   reprendreChaine() rallume ce mode au début, après la réouverture de la
+   machine que fait l'export (la réouverture l'éteint toujours). */
+function planChaineDmx(){
+  if(!songDmxActif()) return null;
+  var total = 0;
+  DMX.song.forEach(function(p){ var s = DMX.seqs[p.seq]; if(s) total += s.mesures * 16 * (p.tours || 1); });
+  return total > 0 ? {tics:total} : null;
+}
+function reprendreChaineDmx(){ DMX.songOn = true; songDmxDebut(); }
+MACHINE_DMX.planChaine = planChaineDmx;
+MACHINE_DMX.reprendreChaine = reprendreChaineDmx;
 function ticDmx(){
   if(DMX.pos < 0 || !ctx) return 0;
   var tp = DMX_TPQ / 4;
@@ -28670,6 +28745,14 @@ function exporterWav(songEm){
   if(songEm && (ENR.actif || PROJET_EN_COURS)){ signal("ARRÊTEZ L'ENREGISTREMENT OU LE PROJET AVANT LE RENDU"); return; }
   var plan = null;
   if(songEm){ try{ plan = planSongEm(); }catch(e){ signal(e.message); return; } }
+  /* v244 : machine en mode morceau (TRACK des TR, SONG de la DMX, chanson de la
+     MPC, chaîne de la TR-1000) : on rend UN passage du morceau entier au lieu de
+     N mesures du motif courant. Relevé AVANT la réouverture de la machine,
+     qui éteint toujours ce mode. */
+  var morceau = null;
+  if(!songEm && MACHINE && MACHINE.planChaine){
+    try{ morceau = MACHINE.planChaine(); }catch(e){ morceau = null; }
+  }
   var p = HOST;
   if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
   if(!MACHINE || !MACHINE.schedule){ signal("AUCUNE MACHINE À RENDRE"); return; }
@@ -28682,7 +28765,7 @@ function exporterWav(songEm){
     memEm();
   }
   if(writeMem() === false){ signal("RENDU ANNULÉ · MÉMOIRE NON ENREGISTRÉE"); return; }
-  var nombrePas = plan ? plan.pas : (MACHINE.longueur ? MACHINE.longueur() : 16) * WAVX.mesures;
+  var nombrePas = plan ? plan.pas : morceau ? morceau.tics : (MACHINE.longueur ? MACHINE.longueur() : 16) * WAVX.mesures;
   if(refusWavTropLong(nombrePas * stepDur() + 2.5, 44100)) return;
 
   WAVX.occupe = true;
@@ -28724,6 +28807,8 @@ function exporterWav(songEm){
     outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
     try{ allerMachine(modele); }catch(e){ signal("MACHINE À RECHARGER"); }
+    /* v244 : la réouverture a éteint le mode morceau : on le rallume */
+    if(morceau){ try{ if(MACHINE.reprendreChaine) MACHINE.reprendreChaine(); }catch(e){} }
     if(emAvant){
       Object.keys(emAvant).forEach(function(k){ if(k !== "noeuds") EM[k] = emAvant[k]; });
       document.body.inert = inerteAvant;
@@ -28739,6 +28824,16 @@ function exporterWav(songEm){
         EM.cur = e.index; EM.pat = e.motif;
         for(var s=0;s<e.motif.len;s++) MACHINE.schedule(s, 0.05 + (e.debut + s) * duree);
       });
+    }else if(morceau){
+      /* comme l'horloge du jeu (tick) : le pas revient à 0 à la fin du motif
+         courant, dont la longueur change à chaque changement de motif */
+      MACHINE.reprendreChaine();
+      var pasM = 0;
+      for(var nM=0; nM<morceau.tics; nM++){
+        MACHINE.schedule(pasM, 0.05 + nM * duree);
+        pasM = (pasM + 1) % (MACHINE.longueur ? MACHINE.longueur() : 16);
+        if(pasM === 0 && MACHINE.boucle) MACHINE.boucle();
+      }
     }else for(var m=0; m<WAVX.mesures; m++){
       for(var s=0; s<pas; s++){
         MACHINE.schedule(s, 0.05 + (m * pas + s) * duree);
@@ -28755,7 +28850,7 @@ function exporterWav(songEm){
     for(var i=0;i<c0.length;i++){ var a = Math.abs(c0[i]); if(a > crete) crete = a; }
     var ab = wavStereo(rendu);
     remettre();
-    var nom = "drm-" + modele + "-" + (plan ? "song-" + plan.entrees.length + "ent-" : WAVX.mesures + "mes-") + Date.now().toString(36) + ".wav";
+    var nom = "drm-" + modele + "-" + (plan ? "song-" + plan.entrees.length + "ent-" : morceau ? "morceau-" : WAVX.mesures + "mes-") + Date.now().toString(36) + ".wav";
     var chemin = "";
     chemin = ecrireDocument(HOST, nom, ab);
     if(chemin){
