@@ -1,18 +1,22 @@
 /* ================= bibliothèque =================
-   Trois rayons : les sons, les prises MIDI, et les sauvegardes des vraies machines.
+   Sons, prises MIDI, sauvegardes, archives et Freesound.
    Tout y est renommable. Les sauvegardes sont de vrais fichiers .syx dans Documents. */
 
 function bibLire(){
+  BIB.freesound = Object.create(null);
   try{
     var o = JSON.parse(localStorage.getItem(MEM + ".bib") || "null");
     if(o && o.noms) BIB.noms = o.noms;
     if(o && o.preset) BIB.preset = o.preset;
+    if(o && o.freesound) BIB.freesound = fsonCreditsValides(o.freesound);
   }catch(e){}
 }
 function bibEcrire(){
-  if(PROJET_EN_COURS) return;
-  try{ localStorage.setItem(MEM + ".bib", JSON.stringify({noms:BIB.noms, preset:BIB.preset})); }
-  catch(e){ signal("MÉMOIRE PLEINE · NOMS NON GARDÉS"); }
+  if(PROJET_EN_COURS) return false;
+  try{
+    localStorage.setItem(MEM + ".bib", JSON.stringify({noms:BIB.noms, preset:BIB.preset, freesound:BIB.freesound || {}}));
+    return true;
+  }catch(e){ signal("MÉMOIRE PLEINE · NOMS ET CRÉDITS NON GARDÉS"); return false; }
 }
 /* le nom donné par l'utilisateur l'emporte sur le nom d'origine */
 function nomBib(id){
@@ -177,6 +181,7 @@ function octetsTexte(n){
   return n + " o";
 }
 function majBibUI(){
+  if(BIB.onglet !== 4) fsonAnnuler();
   var corps = document.getElementById("bib-corps");
   if(!corps) return;
   var bs = document.querySelectorAll("#bib-nav button");
@@ -185,7 +190,8 @@ function majBibUI(){
   if(BIB.onglet === 0) bibRendreSons(corps);
   else if(BIB.onglet === 1) bibRendrePrises(corps);
   else if(BIB.onglet === 2) bibRendreSauvegardes(corps);
-  else bibRendreArchive(corps);
+  else if(BIB.onglet === 3) bibRendreArchive(corps);
+  else if(BIB.onglet === 4) bibRendreFreesound(corps);
 }
 function ligneBib(titre, detail){
   var d = document.createElement("div");
@@ -289,9 +295,12 @@ function bibRendreSons(corps){
     if(s.propre) boutonBib(a, "SUPPRIMER", function(){
       var n = usagesEch(s.id);
       if(n > 0 && !window.confirm("Ce son sert encore " + n + " fois. Le supprimer quand même ?")) return;
-      supprimerEch(s.id); delete BIB.noms[s.id]; bibEcrire(); majBibUI(); H.inter();
+      supprimerEch(s.id); delete BIB.noms[s.id];
+      if(BIB.freesound) delete BIB.freesound[s.id];
+      bibEcrire(); majBibUI(); H.inter();
     });
     l.appendChild(a);
+    if(BIB.freesound && BIB.freesound[s.id]) fsonAfficherCredits(l, BIB.freesound[s.id]);
     corps.appendChild(l);
   });
 }
@@ -566,6 +575,7 @@ function ouvrirBib(){
   majBibUI();
 }
 function fermerBib(){
+  fsonAnnuler();
   document.getElementById("bib").classList.remove("show");
   majNoteOuverte();
   if(S.modele === "kp"){ majKp(); fit(); }     /* noms et sons modifiés dans le panneau */

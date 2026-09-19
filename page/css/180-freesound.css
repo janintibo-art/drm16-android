@@ -1,0 +1,21 @@
+/* Freesound : navigation horizontale et commandes lisibles sur telephone. */
+#bib #bib-nav{overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+#bib #bib-nav button{flex:0 0 auto;min-height:44px;padding:10px 13px;white-space:nowrap}
+.fson{font:14px/1.5 system-ui,Arial,sans-serif;overflow-wrap:anywhere}
+.fson-reglages,.fson-credits{border:1px solid #3a3a42;border-radius:8px;padding:10px;margin:10px 0}
+.fson summary,.fson-credits summary{min-height:44px;padding:10px 0;cursor:pointer;font-weight:700;color:#8ce3a0}
+.fson label{display:block;font-size:13px;margin:10px 0 6px}
+#bib .fson input:not([type=checkbox]),#bib .fson textarea,#bib .fson-credits textarea{
+  display:block;width:100%;min-width:0;min-height:44px;padding:10px;border:1px solid #3a3a42;
+  border-radius:6px;background:#1b1b1f;color:#eceae4;font:14px/1.5 system-ui,Arial,sans-serif;
+  user-select:text;-webkit-user-select:text;touch-action:auto}
+#bib .fson textarea,#bib .fson-credits textarea{resize:vertical;margin:6px 0 10px}
+.fson-filtres{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:10px}
+#bib .fson-filtres select{display:block;width:100%;min-height:44px;margin-top:5px}
+#bib .fson button,#bib .fson-credits button{min-height:44px;max-width:100%;white-space:normal}
+#bib .fson button:disabled{opacity:.45;cursor:default}
+.fson-cocher{display:flex!important;align-items:center;gap:10px;min-height:44px}
+.fson-cocher input{width:20px;height:20px;flex:none}
+#bib .fson-statut{margin:14px 0;padding:10px 12px;border-left:3px solid #8ce3a0;background:#1b2520}
+#bib .fson .bib-ligne{margin-top:10px}
+#bib .fson .bib-ligne b{overflow-wrap:anywhere}

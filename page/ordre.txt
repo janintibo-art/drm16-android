@@ -18,6 +18,7 @@ css/140-roland-tr-1000.css
 css/150-machine-d-archive.css
 css/160-behringer-td-3.css
 css/170-eurorack.css
+css/180-freesound.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -143,6 +144,7 @@ js/595-mixage-chaine-smpltrek.js
 js/600-rendre-une-prise-midi-en-wav.js
 js/610-formes-d-onde-par-piste.js
 js/620-la-collection-archive-org.js
+js/625-freesound.js
 js/630-bibliotheque.js
 js/635-projet-drm16.js
 js/640-travail-du-midi-editeur-en-rouleau.js
