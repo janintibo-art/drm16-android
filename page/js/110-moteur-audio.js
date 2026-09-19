@@ -189,7 +189,7 @@ function batirAudio(){
    hors ligne — ces nœuds appartiennent à l'ancien et rien ne peut s'y brancher.
    On oublie donc tout avant de reconstruire. */
 function razNoeudsMachines(){
-  fxIn = null; fxOut = null; dlyIn = null; dlyNode = null; dlyFb = null; fxChaine = [];
+  fxIn = null; fxOut = null; dlyIn = null; dlyNode = null; dlyFb = null; fxChaine = []; fxRetour = null;
   outBd = null; outMix = null; panBd = null; panMix = null;
   ["EM","ER","EA","ES","MX","SX","MPC","DMX","TR","VLC","CR5","DBI","T1K","ARCM"]
     .forEach(function(nom){

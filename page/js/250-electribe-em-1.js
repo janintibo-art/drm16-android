@@ -23,16 +23,31 @@ V.cb = function(t,v){
 
 /* --- bus effet et délai --- */
 var fxIn=null, fxOut=null, dlyIn=null, dlyNode=null, dlyFb=null, fxChaine=[];
+/* v240 : ce bus d'effet et de délai est partagé par l'EM-1, l'ER-1, l'EA-1 et
+   l'ES-1 (un seul effet Electribe à la fois). Jusqu'ici sa sortie allait droit
+   au mélange général : couper la voie, baisser son fader ou toucher son
+   égaliseur laissait passer les effets et les échos. Elle passe maintenant par
+   fxRetour, branché sur la voie de table de l'Electribe affichée (FX_VOIE). */
+var fxRetour = null, FX_VOIE = "em";
+function sortieEffets(){ return busSet(FX_VOIE) || master; }
 function busEffets(){
   if(fxIn || !ctx) return;
-  fxIn = ctx.createGain(); fxOut = ctx.createGain(); fxOut.gain.value = 0.6; fxOut.connect(master);
+  fxRetour = ctx.createGain(); fxRetour.connect(sortieEffets());
+  fxIn = ctx.createGain(); fxOut = ctx.createGain(); fxOut.gain.value = 0.6; fxOut.connect(fxRetour);
   dlyIn = ctx.createGain(); dlyIn.gain.value = 0;
   dlyNode = ctx.createDelay(1.2); dlyNode.delayTime.value = 0.25;
   dlyFb = ctx.createGain(); dlyFb.gain.value = 0.35;
   dlyIn.connect(dlyNode); dlyNode.connect(dlyFb); dlyFb.connect(dlyNode);
-  dlyNode.connect(master);
+  dlyNode.connect(fxRetour);
   fxOut.connect(dlyIn);
   construireFx();
+}
+/* l'Electribe qu'on ouvre prend le bus : ses effets suivent sa voie */
+function routerEffets(id){
+  FX_VOIE = id;
+  if(!fxRetour || !ctx || fxRetour.context !== ctx) return;
+  try{ fxRetour.disconnect(); }catch(e){}
+  fxRetour.connect(sortieEffets());
 }
 function courbeBits(bits){
   var niv = Math.pow(2, bits-1), n = 2049, c = new Float32Array(n);
@@ -1317,6 +1332,7 @@ var MACHINE_EM = {schedule:scheduleEm, beat:beatEm, arret:arretEm, boucle:boucle
                   longueur:function(){ return EM.pat.len||16; }};
 function activerEm(){
   stop();
+  routerEffets("em");
   S.modele = "em1";
   MACHINE = MACHINE_EM;
   poserMachine("em1");

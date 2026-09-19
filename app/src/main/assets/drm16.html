@@ -8364,7 +8364,7 @@ function batirAudio(){
    hors ligne — ces nœuds appartiennent à l'ancien et rien ne peut s'y brancher.
    On oublie donc tout avant de reconstruire. */
 function razNoeudsMachines(){
-  fxIn = null; fxOut = null; dlyIn = null; dlyNode = null; dlyFb = null; fxChaine = [];
+  fxIn = null; fxOut = null; dlyIn = null; dlyNode = null; dlyFb = null; fxChaine = []; fxRetour = null;
   outBd = null; outMix = null; panBd = null; panMix = null;
   ["EM","ER","EA","ES","MX","SX","MPC","DMX","TR","VLC","CR5","DBI","T1K","ARCM"]
     .forEach(function(nom){
@@ -8874,7 +8874,7 @@ SET_VOIES.forEach(function(v){
    isolables (Eurorack, KAOSS PAD, archive) : pas de correction, leur niveau
    dépend du montage ou des sons chargés. La TD-3 est réglée sur son motif. */
 var CALIBRAGE_DB = {
-  ehx:-1.8, em:+3.8, er:-4.0, ea:+2.2, es:-1.4, mx:+1.4, sx:-1.6, mpc:-5.2,
+  ehx:-1.8, em:+3.0, er:-4.0, ea:+2.2, es:-1.4, mx:+1.4, sx:-1.6, mpc:-5.2,
   tr808:-2.9, tr909:-4.9, tr707:-3.7, rd6:-2.1, dmx:-2.9, dbi:-2.2, vlc:-4.9,
   cr:-1.2, t1k:-6.7, ko:-3.1, mc:-0.9, stk:-3.8, td3:+0.8
 };
@@ -10591,16 +10591,31 @@ V.cb = function(t,v){
 
 /* --- bus effet et délai --- */
 var fxIn=null, fxOut=null, dlyIn=null, dlyNode=null, dlyFb=null, fxChaine=[];
+/* v240 : ce bus d'effet et de délai est partagé par l'EM-1, l'ER-1, l'EA-1 et
+   l'ES-1 (un seul effet Electribe à la fois). Jusqu'ici sa sortie allait droit
+   au mélange général : couper la voie, baisser son fader ou toucher son
+   égaliseur laissait passer les effets et les échos. Elle passe maintenant par
+   fxRetour, branché sur la voie de table de l'Electribe affichée (FX_VOIE). */
+var fxRetour = null, FX_VOIE = "em";
+function sortieEffets(){ return busSet(FX_VOIE) || master; }
 function busEffets(){
   if(fxIn || !ctx) return;
-  fxIn = ctx.createGain(); fxOut = ctx.createGain(); fxOut.gain.value = 0.6; fxOut.connect(master);
+  fxRetour = ctx.createGain(); fxRetour.connect(sortieEffets());
+  fxIn = ctx.createGain(); fxOut = ctx.createGain(); fxOut.gain.value = 0.6; fxOut.connect(fxRetour);
   dlyIn = ctx.createGain(); dlyIn.gain.value = 0;
   dlyNode = ctx.createDelay(1.2); dlyNode.delayTime.value = 0.25;
   dlyFb = ctx.createGain(); dlyFb.gain.value = 0.35;
   dlyIn.connect(dlyNode); dlyNode.connect(dlyFb); dlyFb.connect(dlyNode);
-  dlyNode.connect(master);
+  dlyNode.connect(fxRetour);
   fxOut.connect(dlyIn);
   construireFx();
+}
+/* l'Electribe qu'on ouvre prend le bus : ses effets suivent sa voie */
+function routerEffets(id){
+  FX_VOIE = id;
+  if(!fxRetour || !ctx || fxRetour.context !== ctx) return;
+  try{ fxRetour.disconnect(); }catch(e){}
+  fxRetour.connect(sortieEffets());
 }
 function courbeBits(bits){
   var niv = Math.pow(2, bits-1), n = 2049, c = new Float32Array(n);
@@ -11885,6 +11900,7 @@ var MACHINE_EM = {schedule:scheduleEm, beat:beatEm, arret:arretEm, boucle:boucle
                   longueur:function(){ return EM.pat.len||16; }};
 function activerEm(){
   stop();
+  routerEffets("em");
   S.modele = "em1";
   MACHINE = MACHINE_EM;
   poserMachine("em1");
@@ -12766,6 +12782,7 @@ function collerEr(){
 var unitEr = document.getElementById("unit-er1");
 function activerEr(v){
   stop();
+  routerEffets("er");
   ER.v = (v===2) ? 2 : 1;
   S.modele = "er" + ER.v;
   MACHINE = MACHINE_ER;
@@ -13421,6 +13438,7 @@ function shiftEa(i){
 var unitEa = document.getElementById("unit-ea1");
 function activerEa(v){
   stop();
+  routerEffets("ea");
   EA.v = (v===2) ? 2 : 1;
   S.modele = "ea" + EA.v;
   MACHINE = MACHINE_EA;
@@ -14380,6 +14398,7 @@ function shiftEs(i){
 var unitEs = document.getElementById("unit-es1");
 function activerEs(v){
   stop();
+  routerEffets("es");
   ES.v = (v===2) ? 2 : 1;
   S.modele = "es" + ES.v;
   MACHINE=MACHINE_ES;

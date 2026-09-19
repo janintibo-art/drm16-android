@@ -946,6 +946,7 @@ function shiftEs(i){
 var unitEs = document.getElementById("unit-es1");
 function activerEs(v){
   stop();
+  routerEffets("es");
   ES.v = (v===2) ? 2 : 1;
   S.modele = "es" + ES.v;
   MACHINE=MACHINE_ES;

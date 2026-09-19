@@ -640,6 +640,7 @@ function shiftEa(i){
 var unitEa = document.getElementById("unit-ea1");
 function activerEa(v){
   stop();
+  routerEffets("ea");
   EA.v = (v===2) ? 2 : 1;
   S.modele = "ea" + EA.v;
   MACHINE = MACHINE_EA;

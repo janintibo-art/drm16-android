@@ -691,6 +691,7 @@ function collerEr(){
 var unitEr = document.getElementById("unit-er1");
 function activerEr(v){
   stop();
+  routerEffets("er");
   ER.v = (v===2) ? 2 : 1;
   S.modele = "er" + ER.v;
   MACHINE = MACHINE_ER;
