@@ -29,8 +29,10 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **244**. Depuis la v176, le détail de chaque version est dans
-`docs/CORRECTIONS_V*.md` (ce fichier-ci n'a pas été tenu à jour entre la v156 et la v231).
+La version actuelle est la **245**. Depuis la v176, le détail de chaque version est dans
+`docs/CORRECTIONS_V*.md` ; la section 5 commence par **l'état du projet** et le tableau de ces versions.
+Les v156 à v175 n'ont laissé aucune note : le check-up v176 (`docs/CHECKUP_V176.md`) fait le point à leur
+sortie.
 
 **Langue.** Tout est en français : le code, les commentaires, l'interface, la documentation. Les commits
 sont sans accents (Termux).
@@ -39,9 +41,9 @@ sont sans accents (Termux).
 
 ## 2. Ce que contient le projet
 
-**Chiffres au 155** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
-30 tuiles au menu, 21 moteurs de machine, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
-fichier HTML de 1,25 Mo.
+**Chiffres au 245** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
+29 machines dans le test navigateur, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
+152 sources dans `page/`, 27 tests Node, fichier HTML de 1,6 Mo.
 
 
 La notice est découpée en **onglets `.doc`** dans `#note-corps` ; la barre de navigation est construite
@@ -124,6 +126,117 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 ---
 
 ## 5. Ce qui reste à faire
+
+### État au 245 (19 septembre 2026)
+
+Les cinq analyses de la v122 servent de feuille de route, dans l'ordre choisi : analyse complète, version
+Windows, qualité sonore, fidélité des machines, qualité graphique.
+
+**Terminé**
+- *Analyse complète* : v123 à v135 (phase A).
+- *Version Windows* : v136 à v147 (phase W). Reste à essayer sur un vrai PC (voir `docs/parite.md`).
+- *Qualité sonore* : banc de mesure, niveaux, chaîne de sortie, anti-clic, repliement, suréchantillonnage,
+  échantillons lus vite (v148 à v155) ; export 16 bits avec dither ou 24 bits (v239) ; effets des Electribe
+  dans leur voie (v240) ; isolateur de la volca neutre au centre (v241).
+- *Fidélité*, fait depuis la v122 : volca (Active Step, Step Jump, Swing, isolateur, Song), DrumBrute (64 pas,
+  Color par pas, Step Repeat, Looper, Song), KAOSS PAD (banques, One Shot/Loop, Slice, Tap BPM, Resample,
+  FX RELEASE v242), MC-101 (clips, scènes, samples, Looper), SmplTrek (tranches, chaîne, pistes Instrument,
+  mixage), TR-1000 (probabilité, cycles, retards, directions, 128 motifs, chaîne v243), EM-1 (palette,
+  64 pas, Song), PO-33 (Parameter Locks, CHROMA, Swing, 16 effets, WRITE v231), TR (SCALE v232, FILL et
+  AUTO FILL v236, TRACK v238), DMX (SONG v234), MPC (99 séquences v237), et l'export WAV d'un morceau
+  enchaîné pour les TR, la DMX, la MPC et la TR-1000 (v244).
+
+**Reste à faire, par ordre d'intérêt**
+1. *Fidélité* : plusieurs programmes de pads sur la MPC ; mémoires de programmes et effets en plus sur le
+   KAOSS PAD ; échantillonnage, découpe et étirement sur la TR-1000 ; échantillonnage au micro sur le PO-33 ;
+   détails ER-1/EA-1, EMX/ESX (priorité faible).
+2. *Qualité sonore* : équilibre des voix au sein de chaque machine, à l'oreille ; réverbérations ROOM, PLATE,
+   SPRING, HALL ; grave en mono ; grosses caisses, charlestons et cymbales ; essayer les saturations en 4x.
+3. *Qualité graphique* (rien de commencé) : lisibilité (texte d'au moins 10,5 px) et zones tactiles de
+   40 à 44 px ; langage commun des états ; façades PO-33, MC-101, SmplTrek, KAOSS PAD ; MODULE FOCUS de
+   l'Eurorack ; menu des machines ; VU-mètres.
+4. *Essais sur matériel* : USB-MIDI sur le téléphone, ouverture de projet interrompue, lecture longue en
+   arrière-plan, clé de signature des APK ; sur PC, voir `docs/parite.md` ; Bluetooth MIDI (ci-dessous).
+
+**Échecs de tests connus, sans défaut de l'application** — relancer le run suffit :
+bloc 14 du test navigateur (« un gain existant rejoint sa cible en douceur ») quand la machine est chargée.
+Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en écrire en `file://`.
+
+### Versions v177 à v245
+
+| Version | Sujet |
+|---|---|
+| v177 | Export WAV des prises MIDI avec plusieurs machines |
+| v178 | Connexions MIDI de la version Windows |
+| v179 | Projets : sauvegardes distinctes et relues |
+| v180 | Reprise des ouvertures de projet interrompues |
+| v181 | Erreurs de stockage distinctes des fichiers absents |
+| v182 | Choix persistant du dossier de documents Android |
+| v183 | MC-101 : seize clips par piste |
+| v184 | Samples mélodiques dans la MC-101 |
+| v185 | MC-101 : premier mode Looper |
+| v186 | SmplTrek : import et huit tranches par sample |
+| v187 | SmplTrek : lancement et copie des motifs |
+| v188 | SmplTrek : chaîne automatique de motifs |
+| v189 | SmplTrek : pistes Instrument et notes par pas |
+| v190 | SmplTrek : clavier MIDI chromatique |
+| v191 | SmplTrek : édition des entrées de chaîne |
+| v192 | SmplTrek : mixage WAV de la chaîne |
+| v193 | SmplTrek : export d’une piste séparée |
+| v194 | TR-1000 : probabilité par pas |
+| v195 | TR-1000 : huit banques indépendantes |
+| v196 | TR-1000 : directions par instrument |
+| v197 | TR-1000 : cycles par pas |
+| v198 | TR-1000 : retard par pas |
+| v199 | TR-1000 : copier et coller les motifs |
+| v200 | reprise du séquenceur après un retard |
+| v201 | diagnostic audio lisible et compteurs réinitialisables |
+| v202 | TR-1000 : mute par instrument et par motif |
+| v203 | SOLO sur la TR-1000 |
+| v204 | paramètres par pas sur la TR-1000 |
+| v205 | enregistrement des gestes TR-1000 |
+| v206 | comparer et effacer les variations TR-1000 |
+| v207 | longueurs indépendantes par instrument TR-1000 |
+| v208 | sélection directe des motifs TR-1000 |
+| v209 | noms des motifs TR-1000 et correction Rust bureau |
+| v210 | annuler un collage ou un effacement TR-1000 |
+| v211 | Décalage des séquences TR-1000 |
+| v212 | Copier une séquence TR-1000 |
+| v213 | Inversion de séquence TR-1000 |
+| v214 | Effacement ciblé d'une séquence TR-1000 |
+| v215 | Doubler une séquence TR-1000 |
+| v216 | Panneau d'édition TR-1000 repliable |
+| v217 | Palette synthé EM-1 |
+| v218 | Motifs EM-1 jusqu'à 64 pas |
+| v219 | Export du Song EM-1 en WAV |
+| v220 | Réorganiser le Song EM-1 |
+| v221 | Annuler la dernière édition du Song EM-1 |
+| v222 | Noms des motifs EM-1 |
+| v223 | Liste nommée des motifs EM-1 |
+| v224 | Choisir les motifs du Song EM-1 par leur nom |
+| v225 | Song EM-1 sur 64 positions |
+| v226 | Parameter Locks du PO-33 K.O! |
+| v227 | Clavier chromatique du PO-33 K.O! |
+| v228 | Swing du PO-33 K.O! |
+| v229 | Les 16 effets du PO-33 K.O! |
+| v230 | Correctif du contrôle de charge audio |
+| v231 | Enregistrement des effets dans les motifs du PO-33 K.O! |
+| v232 | SCALE de la TR change vraiment la durée des pas |
+| v233 | Test d'export : une vraie valeur de SCALE |
+| v234 | Mode SONG de l'Oberheim DMX |
+| v235 | Tests navigateur stables au rechargement |
+| v236 | FILL et AUTO FILL des TR |
+| v237 | 99 séquences sur la MPC3000 et la MPC2000 |
+| v238 | TRACK des TR : enchaîner les motifs |
+| v239 | Export WAV : dither en 16 bits, option 24 bits |
+| v240 | Les effets des Electribe passent par leur voie de table |
+| v241 | volca sample : l'isolateur gonflait le son de +7 dB autour de 1 kHz |
+| v242 | FX RELEASE sur le KAOSS PAD |
+| v243 | TR-1000 : chaîne de motifs |
+| v244 | Rendu WAV d'un morceau enchaîné |
+| v245 | Mise à jour de ce fichier |
+
+---
 
 **Décidé, pas encore fait**
 
