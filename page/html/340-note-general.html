@@ -253,13 +253,20 @@
   <p><button class="sec" id="b-audio-etat">ÉTAT DU MOTEUR AUDIO</button>
      <button class="sec" id="b-audio-relance">RELANCER LE MOTEUR AUDIO</button>
      <button class="sec" id="b-latence">LATENCE</button>
-     <button class="sec" id="b-satq">SATURATIONS</button></p>
+     <button class="sec" id="b-satq">SATURATIONS</button>
+     <button class="sec" id="b-wav24">EXPORT WAV</button></p>
   <p><b>LATENCE</b> règle le délai entre un appui et le son : <b>COURTE</b> pour jouer en direct, <b>SÛRE</b>
   pour privilégier la stabilité, <b>MOYENNE</b> entre les deux. Le moteur audio redémarre à chaque
   changement. Si le son grésille, revenez vers SÛRE.</p>
   <p><b>SATURATIONS</b> : en <b>HAUTE QUALITÉ</b>, les saturations des TR, de la TD-3, de la TR-1000 et de la
   DrumBrute calculent à quatre fois la cadence au lieu de deux — un aigu plus propre quand on pousse le son,
   pour un peu plus de calcul. Sur un appareil qui grésille déjà, restez en <b>ÉCONOMES</b>.</p>
+  <p><b>EXPORT WAV</b> choisit le format des fichiers rendus (motif, Song de l'EM-1, prise MIDI, chaîne du
+  SmplTrek). <b>16 BITS + DITHER</b>, par défaut, est lu partout ; un léger bruit d'arrondi, inaudible,
+  remplace la troncature, pour que les fins de notes et les queues de réverbération restent douces. Un
+  silence reste un vrai silence. <b>24 BITS</b> est plus fin encore, pour retravailler le son dans un
+  logiciel ; les fichiers sont une fois et demie plus gros, et la durée maximale d'un rendu baisse
+  d'autant.</p>
   <p>Ce relevé est aussi dans le <b>menu</b>, tuile <b>ÉTAT DU SON</b> : plus simple à trouver qu'au fond
   de cette page. Le relevé reste ouvert jusqu’à sa fermeture. ACTUALISER relit les compteurs ; COMPTEURS À ZÉRO commence une nouvelle mesure sans redémarrer le moteur ni modifier les morceaux. RELANCER LE MOTEUR est une action séparée.</p>
   <p>Les chiffres se lisent ainsi :</p>

@@ -28,24 +28,53 @@ function chaineMaitresseHorsLigne(off){
   lim.connect(sat); sat.connect(garde); garde.connect(off.destination);
   return m;
 }
-function wavStereo(buf){
+/* v239 : WAV stéréo en 16 bits (défaut) ou 24 bits, au choix de l'onglet
+   Général (EXPORT WAV).
+   - 16 bits : arrondi avec un dither triangulaire (TPDF) d'un pas de
+     quantification, au lieu d'une simple troncature. Les fins de notes et les
+     queues de réverbération restent douces au lieu de se hacher en
+     escalier. Un échantillon plus faible qu'un demi-pas reste à zéro : un
+     silence numérique reste un vrai silence, sans souffle ajouté.
+   - 24 bits : 256 fois plus fin, sans dither (le bruit de quantification est
+     à −144 dBFS). Fichier 1,5 fois plus gros.
+   `bits` peut être imposé (tests) ; sinon le réglage de l'utilisateur. */
+function wavStereo(buf, bits, hasard){
+  bits = bits === 24 ? 24 : bits === 16 ? 16 : bitsExport();
+  hasard = hasard || Math.random;
   var n = buf.length, ch = Math.min(2, buf.numberOfChannels);
   var g = buf.getChannelData(0), d = (ch > 1) ? buf.getChannelData(1) : g;
-  var ab = new ArrayBuffer(44 + n * 4), v = new DataView(ab), i;
+  var oct = bits / 8, trame = 2 * oct;
+  var ab = new ArrayBuffer(44 + n * trame), v = new DataView(ab), i;
   function txt(o, s){ for(var q=0;q<s.length;q++) v.setUint8(o + q, s.charCodeAt(q)); }
   var sr = buf.sampleRate;
-  txt(0, "RIFF"); v.setUint32(4, 36 + n * 4, true); txt(8, "WAVEfmt ");
+  txt(0, "RIFF"); v.setUint32(4, 36 + n * trame, true); txt(8, "WAVEfmt ");
   v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 2, true);
-  v.setUint32(24, sr, true); v.setUint32(28, sr * 4, true);
-  v.setUint16(32, 4, true); v.setUint16(34, 16, true);
-  txt(36, "data"); v.setUint32(40, n * 4, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * trame, true);
+  v.setUint16(32, trame, true); v.setUint16(34, bits, true);
+  txt(36, "data"); v.setUint32(40, n * trame, true);
+  if(bits === 24){
+    var ecrire24 = function(o, x){
+      var q = Math.round(Math.max(-1, Math.min(1, x)) * 8388607);
+      v.setUint8(o, q & 255); v.setUint8(o + 1, (q >> 8) & 255); v.setUint8(o + 2, (q >> 16) & 255);
+    };
+    for(i=0;i<n;i++){ ecrire24(44 + i * 6, g[i]); ecrire24(47 + i * 6, d[i]); }
+    return ab;
+  }
+  var demiPas = 0.5 / 32767;
+  function q16(x){
+    if(!(Math.abs(x) >= demiPas)) return 0;          /* silence (ou NaN) : zéro exact */
+    var s = Math.max(-1, Math.min(1, x)) * 32767 + (hasard() - hasard());
+    return Math.max(-32768, Math.min(32767, Math.round(s)));
+  }
   for(i=0;i<n;i++){
-    var a = Math.max(-1, Math.min(1, g[i])), b = Math.max(-1, Math.min(1, d[i]));
-    v.setInt16(44 + i * 4, a < 0 ? a * 0x8000 : a * 0x7FFF, true);
-    v.setInt16(46 + i * 4, b < 0 ? b * 0x8000 : b * 0x7FFF, true);
+    v.setInt16(44 + i * 4, q16(g[i]), true);
+    v.setInt16(46 + i * 4, q16(d[i]), true);
   }
   return ab;
 }
+/* placées après wavStereo : certains tests chargent le fichier à partir d'elle */
+function bitsExport(){ return (typeof memoire !== "undefined" && memoire && memoire.wav24) ? 24 : 16; }
+function octetsTrameExport(bits){ return (bits || bitsExport()) === 24 ? 6 : 4; }
 /* v219 : figer un passage de Song avant de changer de contexte audio. */
 function planSongEm(){
   if(!Array.isArray(EM.song) || !EM.song.length) throw new Error("SONG VIDE · AJOUTEZ DES MOTIFS");

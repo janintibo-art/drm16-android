@@ -19,10 +19,12 @@ function b64VersOctets(b64){
    d'être calculé, au lieu d'être calculé pour rien puis refusé. */
 var MAX_EXPORT_AUDIO = 64 * 1024 * 1024;
 var MORCEAU_ECRITURE = 3 * 262144;
-function tailleWavStereo(secondes, taux){ return 44 + Math.ceil(secondes * taux) * 4; }
+/* v239 : la taille dépend du format choisi (16 bits : 4 octets par instant
+   stéréo, 24 bits : 6) — le plafond de durée baisse donc d'un tiers en 24 bits. */
+function tailleWavStereo(secondes, taux){ return 44 + Math.ceil(secondes * taux) * octetsTrameExport(); }
 function refusWavTropLong(secondes, taux){
   if(tailleWavStereo(secondes, taux) <= MAX_EXPORT_AUDIO) return false;
-  var maxS = Math.floor((MAX_EXPORT_AUDIO - 44) / 4 / taux);
+  var maxS = Math.floor((MAX_EXPORT_AUDIO - 44) / octetsTrameExport() / taux);
   function mn(s){ s = Math.ceil(s); return Math.floor(s / 60) + " MIN " + ("0" + (s % 60)).slice(-2); }
   signal("TROP LONG : " + mn(secondes) + " · " + mn(maxS) + " AU PLUS");
   return true;

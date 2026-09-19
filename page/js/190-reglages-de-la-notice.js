@@ -69,6 +69,20 @@ document.getElementById("b-satq").addEventListener("click", function(){
   H.inter();
 });
 majQualiteSat();
+/* v239 : format des WAV rendus (motif, song EM-1, prise MIDI, chaîne SmplTrek). */
+function majBitsWav(){
+  var b = document.getElementById("b-wav24");
+  if(b) b.textContent = "EXPORT WAV : " + (memoire.wav24 ? "24 BITS" : "16 BITS + DITHER");
+}
+document.getElementById("b-wav24").addEventListener("click", function(){
+  memoire.wav24 = !memoire.wav24;
+  writeMem();
+  majBitsWav();
+  signal(memoire.wav24 ? "EXPORT EN 24 BITS · PLUS FIN, FICHIERS 1,5 FOIS PLUS GROS"
+                       : "EXPORT EN 16 BITS AVEC DITHER · LE PLUS COMPATIBLE");
+  H.inter();
+});
+majBitsWav();
 
 document.getElementById("b-audio-etat").addEventListener("click", function(){
   ouvrirEtatAudio();

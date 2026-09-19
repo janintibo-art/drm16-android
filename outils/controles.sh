@@ -55,6 +55,7 @@ node outils/test-tr-scale.cjs
 node outils/test-tr-fill.cjs
 node outils/test-tr-track.cjs
 node outils/test-mpc-99.cjs
+node outils/test-wav-export.cjs
 node outils/test-dmx-song.cjs
 node outils/test-echantillons.cjs
 node outils/test-transport.cjs
