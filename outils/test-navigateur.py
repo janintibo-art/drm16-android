@@ -82,12 +82,20 @@ async def servir_page(ctx, csp=None):
     await ctx.route(re.compile(r'^http://tauri\.localhost/'), page)
     return "http://tauri.localhost/drm16.html"
 
-async def nouvelle_page(nav, pont=False, largeur=393, hauteur=851):
-    pg = await nav.new_page(viewport={"width": largeur, "height": hauteur})
+async def nouvelle_page(nav, pont=False, largeur=393, hauteur=851, http=False):
+    """http=True : page servie sur une vraie origine http (servir_page), pour
+    tout test qui recharge la page et relit le stockage local (v235)."""
+    if http:
+        ctx = await nav.new_context(viewport={"width": largeur, "height": hauteur})
+        adresse = await servir_page(ctx)
+        pg = await ctx.new_page()
+    else:
+        adresse = PAGE
+        pg = await nav.new_page(viewport={"width": largeur, "height": hauteur})
     erreurs = []
     pg.on("pageerror", lambda e: erreurs.append(str(e)))
     if pont: await pg.add_init_script(PONT)
-    await pg.goto(PAGE)
+    await pg.goto(adresse)
     await pg.wait_for_timeout(2000)
     return pg, erreurs
 
@@ -584,10 +592,11 @@ async def vitesse(nav):
 async def reglages(nav):
     print("\n9. Latence réglable et machine retrouvée au redémarrage (v144)")
     ctx = await nav.new_context(viewport={"width": 393, "height": 851})
+    adresse = await servir_page(ctx)          # v235 : origine http, stockage stable au rechargement
     pg = await ctx.new_page()
     err = []
     pg.on("pageerror", lambda e: err.append(str(e)))
-    await pg.goto(PAGE); await pg.wait_for_timeout(1500)
+    await pg.goto(adresse); await pg.wait_for_timeout(1500)
     r = await pg.evaluate("""() => { audioInit(); var avant = latenceChoisie(), bouton = document.getElementById('b-latence').textContent;
       document.getElementById('b-latence').click();
       return {avant: avant, bouton: bouton, apres: latenceChoisie(), texte: document.getElementById('b-latence').textContent, ctx: !!ctx}; }""")
@@ -1907,7 +1916,7 @@ async def stk_edition_chaine(nav):
 
 async def em_64_pas(nav):
     print('\n31. EM-1 : 64 pas, pages et export complet (v218)')
-    pg, err = await nouvelle_page(nav, pont=True)
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
     try:
         await pg.locator('.pick[data-m=em1]').click()
         await pg.evaluate('EM.pat=motifVide();EM.pat.st.forEach(r=>r.fill(0));EM.sel=0;EM.page=0;majTouches()')
@@ -1970,7 +1979,7 @@ async def em_song_wav(nav):
 
 async def em_song_edition(nav):
     print('\n33. EM-1 : édition des positions Song (v220)')
-    pg, err = await nouvelle_page(nav, pont=True)
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
     try:
         await pg.locator('.pick[data-m=em1]').click()
         await pg.evaluate('EM.song=[0,0,2,7];EM.slots[0].len=64;memEm()')
@@ -2028,7 +2037,7 @@ async def em_song_64(nav):
 
 async def em_noms_motifs(nav):
     print('\n34. EM-1 : noms de motifs (v222)')
-    pg, err = await nouvelle_page(nav, pont=True)
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
     try:
         await pg.locator('.pick[data-m=em1]').click()
         await pg.locator('#em-nom-motif').fill('Intro été')
