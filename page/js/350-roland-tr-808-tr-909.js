@@ -657,7 +657,12 @@ var TR = {m:"tr808", def:null, pat:null, slots:[], cur:0, var2:false, sel:1,
              autoFill = toutes les N mesures (0 = jamais), fillArme = FILL
              demandé pour la mesure suivante, enFill = la mesure en cours est
              le fill, tour = mesures commencées depuis START */
-          fillSlot:15, autoFill:0, fillArme:false, enFill:false, tour:0};
+          fillSlot:15, autoFill:0, fillArme:false, enFill:false, tour:0,
+          /* v238 : TRACK. chaine = [{p:motif, b:variation B ?}] joués l'un
+             après l'autre ; trackOn = mode TRACK ; trPos = mesure de la chaîne
+             en cours (-1 avant la première) */
+          chaine:[], trackOn:false, trPos:-1};
+var TR_CHAINE_MAX = 64;
 var TR_AUTOFILL = [0, 2, 4, 8, 16];
 
 /* ---------- séquenceur ---------- */
@@ -703,7 +708,7 @@ function echelleTr(p){
 function dureePasTr(){ return stepDur() * 16 / echelleTr(TR.pat); }
 function remettreHorlogeTr(){
   TR.hN = 0; TR.hK = 0; TR.hIdx = 0; TR.hS = echelleTr(TR.pat); TR.file = [];
-  TR.tour = 0; TR.enFill = false; TR.fillArme = false;
+  TR.tour = 0; TR.enFill = false; TR.fillArme = false; TR.trPos = -1;
 }
 /* v236 : le motif joué pendant la mesure en cours — le motif courant, ou le
    motif de fill (sa variation A, sa propre longueur LAST STEP ; la grille
@@ -714,6 +719,16 @@ function motifJoueTr(){
 /* début de chaque mesure du motif : fill demandé, ou fill automatique à la
    dernière mesure de chaque groupe de N */
 function debutTourTr(){
+  /* v238 : en TRACK, chaque mesure passe au motif suivant de la chaîne ; au
+     bout, la chaîne reprend. Le fill éventuel se joue par-dessus. */
+  if(TR.trackOn && TR.chaine && TR.chaine.length){
+    TR.trPos = ((TR.trPos == null ? -1 : TR.trPos) + 1) % TR.chaine.length;
+    var e = TR.chaine[TR.trPos];
+    if(TR.slots && TR.slots[e.p]){
+      TR.cur = e.p; TR.pat = TR.slots[e.p]; TR.var2 = !!e.b;
+      if(!cache){ try{ majTr(); }catch(x){} }
+    }
+  }
   TR.tour = (TR.tour || 0) + 1;
   var n = TR.autoFill || 0;
   TR.enFill = !!TR.fillArme || (n > 0 && TR.tour % n === 0);
@@ -733,7 +748,7 @@ function scheduleTr(i, t){
     var q = motifJoueTr();
     if(TR.hIdx >= (q.last || 16)) TR.hIdx = 0;
     if(TR.hIdx === 0){ debutTourTr(); q = motifJoueTr(); }
-    var vq = (q === TR.pat) ? v : "A";
+    var vq = (q === TR.pat) ? (TR.var2 ? "B" : "A") : "A";
     var j = TR.hIdx;
     var tp = t + (TR.hK * 16 / sc - tic) * d;
     if(TR.shuffle && j % 2 === 1) tp += d * 16 / sc * TR.shuffle * 0.5;
@@ -843,6 +858,7 @@ function construireTr(){
     var b2 = e.target.closest("button");
     if(!b2) return;
     var i2 = +b2.dataset.i;
+    if(TR.trackOn){ ajouterChaineTr(i2); return; }
     if(!TR.ecrit){
       memTr();
       TR.cur = i2;
@@ -889,12 +905,28 @@ function lcdTr(v, l, fugace){
   if(fugace) trTmr = setTimeout(majLcdTr, 1400);
 }
 function majLcdTr(){
+  if(TR.trackOn){
+    var n = TR.chaine.length;
+    lcdTr(("0" + (TR.cur + 1)).slice(-2),
+          !n ? "TRACK VIDE" : (S.run && TR.trPos >= 0) ? ("TRACK " + (TR.trPos + 1) + "/" + n)
+                                                      : ("TRACK " + n + " MES."));
+    return;
+  }
   lcdTr(("0" + (TR.cur + 1)).slice(-2), "PATTERN " + (TR.var2 ? "B" : "A"));
+}
+/* v238 : TRACK. Les touches de pas ajoutent le motif (avec la variation
+   affichée) au bout de la chaîne ; CLEAR retire le dernier. */
+function ajouterChaineTr(i){
+  if(TR.chaine.length >= TR_CHAINE_MAX){ lcdTr(String(TR.chaine.length), "TRACK PLEIN", true); return; }
+  TR.chaine.push({p:i, b:!!TR.var2});
+  memTr(); majTr(); H.cran();
+  lcdTr(("0" + (i + 1)).slice(-2), "AJOUT " + (TR.var2 ? "B" : "A") + " · " + TR.chaine.length + " MES.", true);
 }
 function majTr(){
   var p = TR.pat, v = TR.var2 ? "B" : "A", i;
   for(i=0;i<16;i++){
-    trPas[i].classList.toggle("act", TR.ecrit ? !!p[v][TR.sel][i] : (i === TR.cur));
+    /* en TRACK, les touches choisissent des motifs : elles montrent le motif joué */
+    trPas[i].classList.toggle("act", (TR.ecrit && !TR.trackOn) ? !!p[v][TR.sel][i] : (i === TR.cur));
     trPas[i].classList.toggle("hors", i >= (p.last || 16));
   }
   var bs = document.querySelectorAll("#tr8-sel .tr8b");
@@ -949,6 +981,8 @@ function majTr(){
   if(bsh) bsh.textContent = "SHUFFLE " + Math.round(TR.shuffle * 100) + "%";
   var bfi = document.getElementById("tr8-fill");
   if(bfi){ bfi.textContent = "FILL " + (TR.fillSlot + 1); if(!S.run) bfi.classList.remove("on"); }
+  var btk = document.getElementById("tr8-track");
+  if(btk) btk.classList.toggle("on", !!TR.trackOn);
   var baf = document.getElementById("tr8-autofill");
   if(baf) baf.textContent = "AUTO FILL " + (TR.autoFill ? TR.autoFill : "OFF");
   majLcdTr();
@@ -958,6 +992,7 @@ function memTr(){
   memoire[TR.m] = {
     cur:TR.cur, sel:TR.sel, var2:TR.var2, flam:TR.flam, shuffle:TR.shuffle,
     fillSlot:TR.fillSlot, autoFill:TR.autoFill,
+    chaine:TR.chaine.map(function(e){ return [e.p, e.b ? 1 : 0]; }),
     dist:TR.dist, drive:TR.drive, tone:TR.tone, clap:TR.clap, couleur:TR.couleur,
     slots:TR.slots.map(function(p){
       return {last:p.last, scale:p.scale, son:p.son,
@@ -972,6 +1007,8 @@ function chargerTr(){
   for(var z=0;z<16;z++) TR.slots.push(motifTr(z < 3 ? z : 9));
   TR.cur = 0; TR.sel = 1; TR.var2 = false; TR.flam = false; TR.shuffle = 0;
   TR.fillSlot = 15; TR.autoFill = 0; TR.fillArme = false; TR.enFill = false;
+  /* comme la MPC et la DMX : la chaîne est gardée, la machine rouvre hors TRACK */
+  TR.chaine = []; TR.trackOn = false; TR.trPos = -1;
   var m = memLire(TR.m);
   if(m){
     if(m.slots && m.slots.length === 16){
@@ -997,6 +1034,10 @@ function chargerTr(){
     });
     if(Number.isInteger(m.fillSlot) && m.fillSlot >= 12 && m.fillSlot <= 15) TR.fillSlot = m.fillSlot;
     if(m.autoFill === 2 || m.autoFill === 4 || m.autoFill === 8 || m.autoFill === 16) TR.autoFill = m.autoFill;
+    if(Array.isArray(m.chaine)) m.chaine.slice(0, TR_CHAINE_MAX).forEach(function(e){
+      if(Array.isArray(e) && Number.isInteger(e[0]) && e[0] >= 0 && e[0] < 16)
+        TR.chaine.push({p:e[0], b:e[1] === 1});
+    });
   }
   TR.pat = TR.slots[TR.cur];
 }
@@ -1020,6 +1061,14 @@ document.getElementById("tr8-mode").addEventListener("click", function(){
                   : "LECTURE : LES TOUCHES CHOISISSENT LE MOTIF");
 });
 document.getElementById("tr8-clear").addEventListener("click", function(){
+  if(TR.trackOn){
+    if(!TR.chaine.length){ lcdTr("--", "TRACK VIDE", true); return; }
+    TR.chaine.pop();
+    if(TR.trPos >= TR.chaine.length) TR.trPos = -1;
+    memTr(); majTr(); H.inter();
+    lcdTr(String(TR.chaine.length), "TRACK : DERNIER RETIRÉ", true);
+    return;
+  }
   var v = TR.var2 ? "B" : "A";
   TR.pat[v][TR.sel] = ligneVide();
   majTr(); memTr(); H.inter();
@@ -1069,6 +1118,14 @@ document.getElementById("tr8-fill").addEventListener("click", function(){
     lcdTr(String(TR.fillSlot + 1), "FILL PATTERN", true);
   }
   H.cran();
+});
+document.getElementById("tr8-track").addEventListener("click", function(){
+  TR.trackOn = !TR.trackOn;
+  TR.trPos = -1;
+  this.classList.toggle("on", TR.trackOn);
+  majTr(); H.inter();
+  signal(TR.trackOn ? "TRACK : LES TOUCHES AJOUTENT DES MESURES, CLEAR RETIRE LA DERNIÈRE"
+                    : "TRACK COUPÉ : RETOUR AUX MOTIFS");
 });
 document.getElementById("tr8-autofill").addEventListener("click", function(){
   TR.autoFill = TR_AUTOFILL[(TR_AUTOFILL.indexOf(TR.autoFill) + 1) % TR_AUTOFILL.length];
