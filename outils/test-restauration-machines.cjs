@@ -67,7 +67,10 @@ for(const id of ['ko','stk']) {
   const etat=c[id.toUpperCase()];
   assert.equal(etat.cur,2);assert.equal(etat.sel,3);
   assert.deepStrictEqual(copie(etat.motifs).map(m=>id==='stk'||id==='ko'?{pas:m.pas,last:m.last}:m),sauvegarde.motifs);
-  if(id==='ko') assert(etat.motifs.every(m=>m.plocks.length===16&&m.plocks.every(v=>v===null)&&m.notes.length===16&&m.notes.every(r=>r.length===16&&r.every(v=>v===null))),'anciens motifs : aucun verrou ni note ajouté');
+  if(id==='ko'){
+    assert.strictEqual(etat.swing,0,'anciens projets KO : swing droit à 50 %');
+    assert(etat.motifs.every(m=>m.plocks.length===16&&m.plocks.every(v=>v===null)&&m.notes.length===16&&m.notes.every(r=>r.length===16&&r.every(v=>v===null))),'anciens motifs : aucun verrou ni note ajouté');
+  }
   if(id==='stk') assert(etat.motifs.every(m=>m.tranches.every(t=>t.length===16&&t.every(n=>n===-1))),'anciens motifs : son entier');
   assert.deepStrictEqual(copie(etat.chaine),sauvegarde.chaine);
   assert.deepStrictEqual(copie(etat[id==='stk'?'pistes':'sons']).map(p=>{

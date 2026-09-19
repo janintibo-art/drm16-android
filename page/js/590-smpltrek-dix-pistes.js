@@ -1287,6 +1287,14 @@ function actifChromaKo(m, k){
   for(var i=0;i<16;i++) if((m.pas[source] & (1 << i)) && row[i] === note) return true;
   return false;
 }
+function majKoSwing(){
+  var curseur = document.getElementById("ko-swing"), valeur = document.getElementById("ko-swing-val");
+  if(!curseur || !valeur) return;
+  var v = normaliserSwingKo(KO.swing), texte = pourcentageSwingKo(v) + "%";
+  curseur.value = String(Math.round(v * 100));
+  curseur.setAttribute("aria-valuetext", texte);
+  valeur.textContent = texte;
+}
 
 function textePlockKo(nom, valeur, actif){
   if(!actif) return "AUCUN";
@@ -1399,6 +1407,7 @@ function majKo(){
     chroma.classList.toggle("on", KO.chroma);
     chroma.disabled = KO_MODE !== "son" || S.run;
   }
+  majKoSwing();
   majKoPlock();
 }
 function padKo(k){
@@ -1434,7 +1443,14 @@ function padKo(k){
        de pas courant. */
     var m = motifKoCur();
     var pos = S.run ? pasLePlusProche(KO.pos, m.last) : KO.lockStep;
-    if(pos >= 0){ KO.lockStep = pos; m.pas[k] ^= (1 << pos); }
+    if(pos >= 0){
+      KO.lockStep = pos;
+      if(!m.notes) m.notes = normaliserNotesKo();
+      m.pas[k] ^= (1 << pos);
+      /* Une écriture SOUND normale remplace une éventuelle hauteur CHROMA
+         restée sur ce même emplacement et ce même pas. */
+      if(m.notes[k]) m.notes[k][pos] = null;
+    }
     memKo();
   }else if(S.run) KO.lockStep = pasLePlusProche(KO.pos, motifKoCur().last);
   voixKo(maintenantAudio() + 0.005, k, 1);
@@ -1469,12 +1485,28 @@ document.getElementById("ko-write").addEventListener("click", function(){
      il demande confirmation. */
   if(!window.confirm("Effacer le motif " + (KO.cur + 1) + " ?")) return;
   var m = motifKoCur();
-  for(var i=0;i<16;i++){ m.pas[i] = 0; m.plocks[i] = null; }
+  for(var i=0;i<16;i++){
+    m.pas[i] = 0; m.plocks[i] = null;
+    if(m.notes && m.notes[i]) m.notes[i].fill(null);
+  }
   memKo(); majKo(); H.inter();
 });
 document.getElementById("ko-bpm-b").addEventListener("click", function(){
   lcdKo(Math.round(S.bpm), "TEMPO"); H.cran();
 });
+(function commandeSwingKo(){
+  var curseur = document.getElementById("ko-swing"), valeur = document.getElementById("ko-swing-val");
+  if(!curseur || !valeur) return;
+  function lireSwingKo(sauver){
+    KO.swing = normaliserSwingKo(Number(curseur.value) / 100);
+    var texte = pourcentageSwingKo(KO.swing) + "%";
+    valeur.textContent = texte; curseur.setAttribute("aria-valuetext", texte);
+    lcdKo(texte, "SWING");
+    if(sauver){ memKo(); H.cran(); }
+  }
+  curseur.addEventListener("input", function(){ lireSwingKo(false); });
+  curseur.addEventListener("change", function(){ lireSwingKo(true); });
+})();
 document.getElementById("ko-chroma").addEventListener("click", function(){
   if(KO_MODE !== "son" || S.run) return;
   if(!KO.chroma && KO.sel < 8) KO.chromaSource = KO.sel;

@@ -2066,13 +2066,20 @@ async def em_noms_motifs(nav):
         await pg.context.close()
 
 async def ko_plocks(nav):
-    print('\n36. PO-33 K.O! : Parameter Locks et clavier CHROMA (v227)')
+    print('\n36. PO-33 K.O! : Parameter Locks, CHROMA et SWING (v228)')
     pg, err = await nouvelle_page(nav, pont=True)
     try:
         await pg.locator('.pick[data-m=ko]').click()
         await pg.evaluate('''() => {
-          KO_MODE='son';KO.cur=0;KO.sel=0;KO.lockStep=2;KO.motifs[0]=motifKo();majKo();
+          KO_MODE='son';KO.cur=0;KO.sel=0;KO.lockStep=2;KO.swing=0;KO.motifs[0]=motifKo();majKo();
         }''')
+        await pg.locator('#ko-swing').evaluate('''e => {
+          e.value='60';e.dispatchEvent(new Event('input',{bubbles:true}));
+          e.dispatchEvent(new Event('change',{bubbles:true}));
+        }''')
+        ok(await pg.evaluate('Math.abs(KO.swing-.6)<1e-9&&Math.abs(memoire.ko.swing-.6)<1e-9'),'SWING est réglé et sauvegardé')
+        ok(await pg.locator('#ko-swing-val').inner_text()=='65%','SWING affiche le rapport musical 50-75 %')
+        ok(await pg.evaluate('tempsSwingKo(0,1)===1&&Math.abs(tempsSwingKo(1,1)-(1+stepDur()*.3))<1e-9'),'SWING retarde seulement le second pas de chaque paire')
         await pg.locator('#ko-lock-param').select_option('pitch')
         await pg.locator('#ko-lock-value').fill('80')
         await pg.locator('#ko-lock-apply').click()
@@ -2090,10 +2097,18 @@ async def ko_plocks(nav):
         ok(await pg.evaluate('KO.chroma&&!!(KO.motifs[0].pas[1]&(1<<4))&&KO.motifs[0].notes[1][4]===2'),'CHROMA mémorise la hauteur du pas')
         await pg.locator('#ko-pads .kb').nth(9).click()
         ok(await pg.evaluate('!(KO.motifs[0].pas[1]&(1<<4))&&KO.motifs[0].notes[1][4]===null'),'retoucher la même hauteur efface le pas')
+        await pg.locator('#ko-pads .kb').nth(9).click()
         await pg.evaluate('KO.rec=false;majKo()')
         await pg.locator('#ko-chroma').click()
+        await pg.evaluate('KO.rec=true;KO.lockStep=4;majKo()')
+        await pg.locator('#ko-pads .kb').nth(1).click();await pg.locator('#ko-pads .kb').nth(1).click()
+        ok(await pg.evaluate('!!(KO.motifs[0].pas[1]&(1<<4))&&KO.motifs[0].notes[1][4]===null'),'une écriture SOUND remplace proprement une ancienne hauteur CHROMA')
+        pg.once('dialog',lambda d:d.accept());await pg.locator('#ko-write').click()
+        ok(await pg.evaluate('KO.motifs[0].pas.every(x=>x===0)&&KO.motifs[0].notes.every(r=>r.every(x=>x===null))'),'WRITE efface aussi les hauteurs CHROMA')
+        await pg.evaluate('KO.rec=false;majKo()')
         await pg.locator('#ko-play').click();await pg.wait_for_function('S.run')
         ok(await pg.locator('#ko-lock-apply').is_disabled(),'les verrous sont protégés pendant PLAY')
+        ok(not await pg.locator('#ko-swing').is_disabled(),'SWING reste réglable pendant PLAY')
         await pg.locator('#ko-play').click()
         ok(not err,'aucune erreur de page : '+str(err))
     finally:

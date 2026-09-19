@@ -55,6 +55,17 @@ function normaliserNotesKo(a){
 function valeurPlockKo(o, nom, defaut){
   return o && Number.isFinite(o[nom]) ? Math.max(0, Math.min(127, o[nom])) : defaut;
 }
+/* Le swing est mémorisé de 0 à 1. À l'écran, cela correspond à 50 %
+   (croches droites) jusqu'à 75 % (le second pas de chaque paire est retardé
+   d'une demi-durée de pas). */
+function normaliserSwingKo(v){
+  v = Number(v);
+  return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0;
+}
+function pourcentageSwingKo(v){ return Math.round(50 + normaliserSwingKo(v) * 25); }
+function tempsSwingKo(i, t){
+  return (i & 1) ? t + stepDur() * 0.5 * normaliserSwingKo(KO.swing) : t;
+}
 
 function motifKo(){
   var m = {pas:[], last:16, plocks:[], notes:[]};
@@ -68,7 +79,7 @@ function motifKo(){
   return m;
 }
 var KO = {sons:[], motifs:[], cur:0, sel:0, fx:0, fxTenu:false,
-          rec:false, pos:-1, lockStep:0, chroma:false, chromaSource:0,
+          rec:false, pos:-1, lockStep:0, chroma:false, chromaSource:0, swing:0,
           noeuds:null, chaine:[], chainePos:0, song:false};
 for(var kz=0; kz<16; kz++) KO.sons.push("b" + (kz % 24));
 for(var kz2=0; kz2<16; kz2++) KO.motifs.push(motifKo());
@@ -173,6 +184,8 @@ function scheduleKo(i, t){
   var CHARGE_N = ouvrirPas();
   var m = motifKoCur();
   if(i >= m.last) return;
+  /* Le temps décalé sert à la fois aux voix et au témoin de lecture. */
+  t = tempsSwingKo(i, t);
   var nom = KO.fxTenu ? KO_FX[KO.fx][0] : "";
   for(var k=0;k<16;k++){
     if(!(m.pas[k] & (1 << i))) continue;
@@ -213,14 +226,15 @@ var MACHINE_KO = {schedule:scheduleKo, beat:beatKo, arret:arretKo, boucle:boucle
 
 function memKo(){
   memoire.ko = {sons:KO.sons, cur:KO.cur, sel:KO.sel, chroma:!!KO.chroma,
-                chromaSource:Math.max(0, Math.min(7, KO.chromaSource|0)), chaine:KO.chaine,
+                chromaSource:Math.max(0, Math.min(7, KO.chromaSource|0)),
+                swing:normaliserSwingKo(KO.swing), chaine:KO.chaine,
                 motifs:KO.motifs.map(function(m){ return {pas:m.pas, last:m.last,
                   plocks:normaliserVerrousKo(m.plocks), notes:normaliserNotesKo(m.notes)}; })};
   sauverMachine("ko");
 }
 function chargerKo(){
   KO.lockStep = 0;
-  KO.chroma = false; KO.chromaSource = 0;
+  KO.chroma = false; KO.chromaSource = 0; KO.swing = 0;
   var m = memLire("ko");
   if(!m) return;
   if(m.sons && m.sons.length === 16) KO.sons = m.sons.slice();
@@ -228,6 +242,7 @@ function chargerKo(){
   if(typeof m.sel === "number") KO.sel = Math.max(0, Math.min(15, m.sel));
   if(typeof m.chroma === "boolean") KO.chroma = m.chroma;
   if(typeof m.chromaSource === "number") KO.chromaSource = Math.max(0, Math.min(7, m.chromaSource|0));
+  if(typeof m.swing === "number") KO.swing = normaliserSwingKo(m.swing);
   if(m.chaine) KO.chaine = m.chaine.filter(function(x){ return x >= 0 && x < 16; });
   if(m.motifs) m.motifs.forEach(function(o, i){
     if(i >= 16 || !o) return;

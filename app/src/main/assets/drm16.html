@@ -1558,6 +1558,11 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 .ko-pads .kb.cur{background:#f2f2f2;color:#141414}
 .ko-pads .kb em{display:block;margin-top:5px;font:400 7px/1.1 "Roboto Condensed",Arial;
   font-style:normal;letter-spacing:.4px;opacity:.7;overflow:hidden;white-space:nowrap}
+.ko-swing{display:flex;align-items:center;gap:8px;margin:0 0 11px;padding:8px 10px;
+  border:1px solid #4b4b4b;border-radius:7px;background:#202020;color:#ff9b4a;
+  font:800 9px/1 "Roboto Condensed",Arial;letter-spacing:1px}
+.ko-swing input{min-width:0;flex:1;accent-color:#ff6a00}
+.ko-swing output{min-width:34px;text-align:right;color:#eee;font:700 9px Arial;letter-spacing:0}
 .ko-lock{margin:0 0 11px;padding:9px 10px;border:1px solid #4b4b4b;border-radius:7px;background:#202020}
 .ko-lock-titre,.ko-lock-ligne{display:flex;align-items:center;gap:6px}
 .ko-lock-titre{justify-content:space-between;margin-bottom:7px;color:#ff9b4a;font:800 9px/1 "Roboto Condensed",Arial;letter-spacing:1px}
@@ -4001,6 +4006,12 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="ko-pads" id="ko-pads"></div>
 
+  <div class="ko-swing">
+    <label for="ko-swing">SWING</label>
+    <input id="ko-swing" type="range" min="0" max="100" step="1" value="0" aria-label="Swing du PO-33" aria-valuetext="50%">
+    <output id="ko-swing-val" for="ko-swing">50%</output>
+  </div>
+
   <div class="ko-lock" id="ko-lock">
     <div class="ko-lock-titre"><b>PARAMETER LOCK</b><span id="ko-lock-status">PAS 1 · AUCUN</span></div>
     <div class="ko-lock-ligne">
@@ -5219,6 +5230,12 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   </ul>
   <p><b>WRITE</b> efface le motif courant, après confirmation. C'est le seul geste destructeur de la
   machine.</p>
+
+  <h3>Swing</h3>
+  <p>Le curseur <b>SWING</b> va de <b>50 %</b>, rythme droit, à <b>75 %</b>, groove très marqué. Il retarde
+  les pas 2, 4, 6… sans déplacer les autres, et peut être réglé pendant PLAY pour entendre immédiatement
+  le résultat. La valeur est sauvegardée avec le PO-33 ; les anciens projets restent à 50 %. Sur la machine
+  physique, le même réglage se fait en maintenant BPM et en tournant le potentiomètre A.</p>
 
   <h3>Les effets au poing</h3>
   <p>C'est la signature du K.O!, et ce qui le rend vivant. On choisit un effet dans le mode FX, puis on
@@ -28287,6 +28304,17 @@ function normaliserNotesKo(a){
 function valeurPlockKo(o, nom, defaut){
   return o && Number.isFinite(o[nom]) ? Math.max(0, Math.min(127, o[nom])) : defaut;
 }
+/* Le swing est mémorisé de 0 à 1. À l'écran, cela correspond à 50 %
+   (croches droites) jusqu'à 75 % (le second pas de chaque paire est retardé
+   d'une demi-durée de pas). */
+function normaliserSwingKo(v){
+  v = Number(v);
+  return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0;
+}
+function pourcentageSwingKo(v){ return Math.round(50 + normaliserSwingKo(v) * 25); }
+function tempsSwingKo(i, t){
+  return (i & 1) ? t + stepDur() * 0.5 * normaliserSwingKo(KO.swing) : t;
+}
 
 function motifKo(){
   var m = {pas:[], last:16, plocks:[], notes:[]};
@@ -28300,7 +28328,7 @@ function motifKo(){
   return m;
 }
 var KO = {sons:[], motifs:[], cur:0, sel:0, fx:0, fxTenu:false,
-          rec:false, pos:-1, lockStep:0, chroma:false, chromaSource:0,
+          rec:false, pos:-1, lockStep:0, chroma:false, chromaSource:0, swing:0,
           noeuds:null, chaine:[], chainePos:0, song:false};
 for(var kz=0; kz<16; kz++) KO.sons.push("b" + (kz % 24));
 for(var kz2=0; kz2<16; kz2++) KO.motifs.push(motifKo());
@@ -28405,6 +28433,8 @@ function scheduleKo(i, t){
   var CHARGE_N = ouvrirPas();
   var m = motifKoCur();
   if(i >= m.last) return;
+  /* Le temps décalé sert à la fois aux voix et au témoin de lecture. */
+  t = tempsSwingKo(i, t);
   var nom = KO.fxTenu ? KO_FX[KO.fx][0] : "";
   for(var k=0;k<16;k++){
     if(!(m.pas[k] & (1 << i))) continue;
@@ -28445,14 +28475,15 @@ var MACHINE_KO = {schedule:scheduleKo, beat:beatKo, arret:arretKo, boucle:boucle
 
 function memKo(){
   memoire.ko = {sons:KO.sons, cur:KO.cur, sel:KO.sel, chroma:!!KO.chroma,
-                chromaSource:Math.max(0, Math.min(7, KO.chromaSource|0)), chaine:KO.chaine,
+                chromaSource:Math.max(0, Math.min(7, KO.chromaSource|0)),
+                swing:normaliserSwingKo(KO.swing), chaine:KO.chaine,
                 motifs:KO.motifs.map(function(m){ return {pas:m.pas, last:m.last,
                   plocks:normaliserVerrousKo(m.plocks), notes:normaliserNotesKo(m.notes)}; })};
   sauverMachine("ko");
 }
 function chargerKo(){
   KO.lockStep = 0;
-  KO.chroma = false; KO.chromaSource = 0;
+  KO.chroma = false; KO.chromaSource = 0; KO.swing = 0;
   var m = memLire("ko");
   if(!m) return;
   if(m.sons && m.sons.length === 16) KO.sons = m.sons.slice();
@@ -28460,6 +28491,7 @@ function chargerKo(){
   if(typeof m.sel === "number") KO.sel = Math.max(0, Math.min(15, m.sel));
   if(typeof m.chroma === "boolean") KO.chroma = m.chroma;
   if(typeof m.chromaSource === "number") KO.chromaSource = Math.max(0, Math.min(7, m.chromaSource|0));
+  if(typeof m.swing === "number") KO.swing = normaliserSwingKo(m.swing);
   if(m.chaine) KO.chaine = m.chaine.filter(function(x){ return x >= 0 && x < 16; });
   if(m.motifs) m.motifs.forEach(function(o, i){
     if(i >= 16 || !o) return;
@@ -30859,6 +30891,14 @@ function actifChromaKo(m, k){
   for(var i=0;i<16;i++) if((m.pas[source] & (1 << i)) && row[i] === note) return true;
   return false;
 }
+function majKoSwing(){
+  var curseur = document.getElementById("ko-swing"), valeur = document.getElementById("ko-swing-val");
+  if(!curseur || !valeur) return;
+  var v = normaliserSwingKo(KO.swing), texte = pourcentageSwingKo(v) + "%";
+  curseur.value = String(Math.round(v * 100));
+  curseur.setAttribute("aria-valuetext", texte);
+  valeur.textContent = texte;
+}
 
 function textePlockKo(nom, valeur, actif){
   if(!actif) return "AUCUN";
@@ -30971,6 +31011,7 @@ function majKo(){
     chroma.classList.toggle("on", KO.chroma);
     chroma.disabled = KO_MODE !== "son" || S.run;
   }
+  majKoSwing();
   majKoPlock();
 }
 function padKo(k){
@@ -31006,7 +31047,14 @@ function padKo(k){
        de pas courant. */
     var m = motifKoCur();
     var pos = S.run ? pasLePlusProche(KO.pos, m.last) : KO.lockStep;
-    if(pos >= 0){ KO.lockStep = pos; m.pas[k] ^= (1 << pos); }
+    if(pos >= 0){
+      KO.lockStep = pos;
+      if(!m.notes) m.notes = normaliserNotesKo();
+      m.pas[k] ^= (1 << pos);
+      /* Une écriture SOUND normale remplace une éventuelle hauteur CHROMA
+         restée sur ce même emplacement et ce même pas. */
+      if(m.notes[k]) m.notes[k][pos] = null;
+    }
     memKo();
   }else if(S.run) KO.lockStep = pasLePlusProche(KO.pos, motifKoCur().last);
   voixKo(maintenantAudio() + 0.005, k, 1);
@@ -31041,12 +31089,28 @@ document.getElementById("ko-write").addEventListener("click", function(){
      il demande confirmation. */
   if(!window.confirm("Effacer le motif " + (KO.cur + 1) + " ?")) return;
   var m = motifKoCur();
-  for(var i=0;i<16;i++){ m.pas[i] = 0; m.plocks[i] = null; }
+  for(var i=0;i<16;i++){
+    m.pas[i] = 0; m.plocks[i] = null;
+    if(m.notes && m.notes[i]) m.notes[i].fill(null);
+  }
   memKo(); majKo(); H.inter();
 });
 document.getElementById("ko-bpm-b").addEventListener("click", function(){
   lcdKo(Math.round(S.bpm), "TEMPO"); H.cran();
 });
+(function commandeSwingKo(){
+  var curseur = document.getElementById("ko-swing"), valeur = document.getElementById("ko-swing-val");
+  if(!curseur || !valeur) return;
+  function lireSwingKo(sauver){
+    KO.swing = normaliserSwingKo(Number(curseur.value) / 100);
+    var texte = pourcentageSwingKo(KO.swing) + "%";
+    valeur.textContent = texte; curseur.setAttribute("aria-valuetext", texte);
+    lcdKo(texte, "SWING");
+    if(sauver){ memKo(); H.cran(); }
+  }
+  curseur.addEventListener("input", function(){ lireSwingKo(false); });
+  curseur.addEventListener("change", function(){ lireSwingKo(true); });
+})();
 document.getElementById("ko-chroma").addEventListener("click", function(){
   if(KO_MODE !== "son" || S.run) return;
   if(!KO.chroma && KO.sel < 8) KO.chromaSource = KO.sel;

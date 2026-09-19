@@ -345,6 +345,11 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 .ko-pads .kb.cur{background:#f2f2f2;color:#141414}
 .ko-pads .kb em{display:block;margin-top:5px;font:400 7px/1.1 "Roboto Condensed",Arial;
   font-style:normal;letter-spacing:.4px;opacity:.7;overflow:hidden;white-space:nowrap}
+.ko-swing{display:flex;align-items:center;gap:8px;margin:0 0 11px;padding:8px 10px;
+  border:1px solid #4b4b4b;border-radius:7px;background:#202020;color:#ff9b4a;
+  font:800 9px/1 "Roboto Condensed",Arial;letter-spacing:1px}
+.ko-swing input{min-width:0;flex:1;accent-color:#ff6a00}
+.ko-swing output{min-width:34px;text-align:right;color:#eee;font:700 9px Arial;letter-spacing:0}
 .ko-lock{margin:0 0 11px;padding:9px 10px;border:1px solid #4b4b4b;border-radius:7px;background:#202020}
 .ko-lock-titre,.ko-lock-ligne{display:flex;align-items:center;gap:6px}
 .ko-lock-titre{justify-content:space-between;margin-bottom:7px;color:#ff9b4a;font:800 9px/1 "Roboto Condensed",Arial;letter-spacing:1px}
