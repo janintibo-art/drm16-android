@@ -57,6 +57,7 @@ node outils/test-tr-track.cjs
 node outils/test-mpc-99.cjs
 node outils/test-wav-export.cjs
 node outils/test-effets-voie.cjs
+node outils/test-volca-isolateur.cjs
 node outils/test-dmx-song.cjs
 node outils/test-echantillons.cjs
 node outils/test-transport.cjs

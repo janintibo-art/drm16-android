@@ -27003,8 +27003,13 @@ function sortieGeneraleVlc(){
      contrairement à deux simples étagères qui laisseraient le médium intact. */
   var lo1 = ctx.createBiquadFilter(), lo2 = ctx.createBiquadFilter();
   var hi1 = ctx.createBiquadFilter(), hi2 = ctx.createBiquadFilter();
-  [lo1,lo2].forEach(function(f){ f.type = "lowpass"; f.frequency.value = 1000; f.Q.value = 0.7071; });
-  [hi1,hi2].forEach(function(f){ f.type = "highpass"; f.frequency.value = 1000; f.Q.value = 0.7071; });
+  /* v241 : le Q des passe-bas et passe-haut de l'API est en DÉCIBELS (voir v150).
+     Q = 0,7071 y valait 1,085 en linéaire : deux cellules trop pointues, et la
+     somme des deux bandes montait de +7,4 dB à 1 kHz, isolateur au centre. Le Q
+     de Butterworth (0,7071 linéaire) s'écrit −3,01 dB. */
+  var qButterworth = 20 * Math.log10(Math.SQRT1_2);
+  [lo1,lo2].forEach(function(f){ f.type = "lowpass"; f.frequency.value = 1000; f.Q.value = qButterworth; });
+  [hi1,hi2].forEach(function(f){ f.type = "highpass"; f.frequency.value = 1000; f.Q.value = qButterworth; });
   var gl = ctx.createGain(), gh = ctx.createGain();
   e.connect(lo1); lo1.connect(lo2); lo2.connect(gl); gl.connect(o);
   e.connect(hi1); hi1.connect(hi2); hi2.connect(gh); gh.connect(o);
