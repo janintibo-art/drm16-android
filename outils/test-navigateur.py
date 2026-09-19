@@ -2608,10 +2608,53 @@ async def bib_editeur(nav):
     finally:
         await pg.context.close()
 
+async def bib_figer(nav):
+    print('\n45. Bibliothèque : figer une machine en échantillons, rééchantillonner (v255)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        await pg.locator('.pick[data-m=tr808]').click()
+        await pg.evaluate("audioInit(); TR.pat.son[1].dec = 0.9; memTr(); writeMem(); ouvrirBib()")
+        vrai = await pg.evaluate("(window.__ctx = ctx, true)")
+        await pg.locator('#bib-corps button', has_text='FIGER LA MACHINE AFFICHÉE').click()
+        await pg.wait_for_function("!WAVX.occupe", timeout=60000)
+        r = await pg.evaluate("""() => {
+          const ids = Object.keys(ES.buf).filter(k => ES.noms[k] === 'fige');
+          const v = ids.map(k => ({nom:BIB.noms[k], d:+ES.buf[k].duration.toFixed(2), sr:ES.buf[k].sampleRate, c:ES.buf[k].numberOfChannels,
+            crete:ES.buf[k].getChannelData(0).reduce((m, x) => Math.max(m, Math.abs(x)), 0), cat:bibCategorie({id:k, nom:BIB.noms[k]}), ecrit:!!HOST.echCharger(k)}));
+          return {v, ctx:ctx === window.__ctx, modele:S.modele, inert:document.body.inert, filtre:BIB.filtre.q,
+                  lignes:document.querySelectorAll('#bib-corps .bib-ligne').length};
+        }""")
+        v = r['v']
+        noms = sorted(x['nom'] for x in v)
+        ok(len(v) >= 10 and all(x['nom'].startswith('TR-808 ') for x in v) and all(x['ecrit'] for x in v),
+           'TR-808 figée : %d voix, chacune un son écrit (%s)' % (len(v), noms))
+        ok(all(x['d'] > 0.02 and x['sr'] == 44100 for x in v), 'durées coupées à la fin du son (%s)' % {x['nom'][7:]: x['d'] for x in v})
+        cy = [x['d'] for x in v if x['nom'] == 'TR-808 CYMBAL']
+        ok(cy and cy[0] > 1.1, 'la cymbale garde sa queue, coupée à −60 dB sous sa crête (%s s)' % cy)
+        ok(abs(max(x['crete'] for x in v) - 10 ** (-1 / 20)) < 0.01, 'kit normalisé d’un bloc : crête la plus forte à −1 dB')
+        bd = [x for x in v if 'BASS' in x['nom']]
+        ok(bd and bd[0]['cat'] == 'kick', 'la grosse caisse figée est rangée en KICK (%s)' % bd)
+        ok(r['ctx'] and r['modele'] == 'tr808' and not r['inert'], 'contexte audio et machine rendus, page utilisable')
+        ok(r['filtre'] == 'TR-808' and r['lignes'] == len(v), 'le rayon SONS montre les sons figés (%d)' % r['lignes'])
+        joue = await pg.evaluate("""async () => { start(); await new Promise(r => setTimeout(r, 600)); const ok = S.run && step > 0; stop(); return ok; }""")
+        ok(joue, 'la machine rejoue normalement après le rendu')
+        # rééchantillonner l'ES-1 : deux mesures, boucle exacte
+        await pg.evaluate("fermerBib(); allerMachine('es1'); S.bpm = 120; WAVX.mesures = 2; ouvrirBib()")
+        await pg.locator('#bib-corps button', has_text='RÉÉCHANTILLONNER').click()
+        await pg.wait_for_function("!WAVX.occupe && Object.keys(ES.buf).some(k => ES.noms[k] === 'reech')", timeout=60000)
+        r = await pg.evaluate("""() => { const k = Object.keys(ES.buf).find(k => ES.noms[k] === 'reech'), b = ES.buf[k];
+          return {nom:BIB.noms[k], d:b.duration, cat:bibCategorie({id:k, nom:BIB.noms[k]}), orig:bibOrigine(k), attendu:32 * stepDur(), crete:b.getChannelData(0).reduce((m, x) => Math.max(m, Math.abs(x)), 0)}; }""")
+        ok(r['nom'] == 'ES-1 2 MES 120 BPM', 'nom du son rééchantillonné (%s)' % r['nom'])
+        ok(abs(r['d'] - r['attendu']) < 0.001 and r['cat'] == 'boucle' and r['orig'] == 'reech' and r['crete'] > 0.01,
+           'boucle de deux mesures exactement, rangée en BOUCLE, origine RÉÉCHANTILLONNÉS (%s)' % r)
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai, bib_editeur):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai, bib_editeur, bib_figer):
             try:
                 await t(nav)
             except Exception as e:

@@ -91,7 +91,8 @@ function planSongEm(){
   });
   return {entrees:entrees, pas:position};
 }
-function exporterWav(songEm){
+/* versBib (v255) : le rendu va dans la bibliothèque, en boucle, au lieu d'un fichier */
+function exporterWav(songEm, versBib){
   songEm = songEm === true && S.modele === "em1";
   if(WAVX.occupe || ENR.ondesOccupe) return;
   if(songEm && (ENR.actif || PROJET_EN_COURS)){ signal("ARRÊTEZ L'ENREGISTREMENT OU LE PROJET AVANT LE RENDU"); return; }
@@ -106,7 +107,7 @@ function exporterWav(songEm){
     try{ morceau = MACHINE.planChaine(); }catch(e){ morceau = null; }
   }
   var p = HOST;
-  if(!p || !p.fichierSauver){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
+  if(!p || !(versBib ? p.echSauver : p.fichierSauver)){ signal("ÉCRITURE IMPOSSIBLE ICI"); return; }
   if(!MACHINE || !MACHINE.schedule){ signal("AUCUNE MACHINE À RENDRE"); return; }
   if(S.run){ stop(); H.stop(); }
   audioInit();                                 /* sans contexte de départ, rien à remettre en place après */
@@ -198,6 +199,16 @@ function exporterWav(songEm){
     return;
   }
   Promise.resolve().then(function(){ return off.startRendering(); }).then(function(rendu){
+    if(versBib){
+      var canaux = [];
+      for(var q=0;q<rendu.numberOfChannels;q++) canaux.push(new Float32Array(rendu.getChannelData(q)));
+      remettre();
+      var court = typeof nomCourtMachine === "function" ? nomCourtMachine(modele) : modele.toUpperCase();
+      reechVersBibliotheque(canaux, rendu.sampleRate, 0.05, nombrePas * duree,
+        court + " " + (plan ? "SONG" : morceau ? "MORCEAU" : WAVX.mesures + " MES") + " " + Math.round(S.bpm) + " BPM");
+      H.inter();
+      return;
+    }
     var crete = 0, c0 = rendu.getChannelData(0);
     for(var i=0;i<c0.length;i++){ var a = Math.abs(c0[i]); if(a > crete) crete = a; }
     var ab = wavStereo(rendu);

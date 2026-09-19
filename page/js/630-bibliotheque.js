@@ -292,6 +292,11 @@ function bibRendreSons(corps){
   boutonBib(acts, "ÉGALISER LE KIT", function(){ bibEgaliser(); });
   boutonBib(acts, "OPTIMISER LA MÉMOIRE", function(){ bibOptimiser(); });
   boutonBib(acts, "EXPORTER POUR LA CARTE ES-1", function(){ bibExportEs1(); });
+  /* v255 : fabriquer des sons avec la machine affichée */
+  if(typeof peutFiger === "function" && peutFiger(S.modele))
+    boutonBib(acts, "FIGER LA MACHINE AFFICHÉE", function(){ figerMachine(S.modele); });
+  if(typeof reechantillonnerMachine === "function")
+    boutonBib(acts, "RÉÉCHANTILLONNER (" + WAVX.mesures + " MES.)", function(){ reechantillonnerMachine(); });
   entete.appendChild(acts);
   corps.appendChild(entete);
 

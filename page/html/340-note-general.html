@@ -111,6 +111,18 @@
   <p>Chaque geste s'annule (douze pas). L'original ne change pas tant qu'on ne choisit pas <b>REMPLACER
   L'ORIGINAL</b>, qui prévient si le son sert ailleurs ; <b>ENREGISTRER COMME NOUVEAU SON</b> en fait une copie,
   rangée dans l'origine « ÉDITÉS ». Un son de la banque interne ne se remplace pas.</p>
+  <p><b>Fabriquer des sons avec les machines.</b> <b>FIGER LA MACHINE AFFICHÉE</b> (rayon SONS, ou FIGER EN
+  ÉCHANTILLONS dans le rayon MACHINES) rend chaque voix d'une machine de synthèse, seule, avec ses réglages
+  du moment, et en fait un son de la bibliothèque : « TR-808 BASS DRUM », « TR-808 SNARE »… Seize machines :
+  DRM16, DRM32, EM-1, ER-1 et mkII, EA-1 et mkII, EMX-1 (Drums), TR-808, TR-909, TR-707, RD-6, DMX,
+  DrumBrute, CR-5000, TR-1000. Les accents sont écartés. Chaque son s'arrête à −60 dB sous sa propre crête,
+  et le kit est normalisé d'un bloc (la voix la plus forte à −1 dB) : l'équilibre reste celui de la
+  machine. Votre 808 réglée passe ainsi sur les pads d'une MPC, d'une volca ou du KAOSS PAD.</p>
+  <p><b>RÉÉCHANTILLONNER</b> (rayon SONS, ou <b>VERS LA BIBLIOTHÈQUE</b> à côté d'EXPORTER EN WAV) rend la
+  machine affichée comme l'export WAV — les mesures choisies, ou un passage de son morceau enchaîné — et
+  range le résultat dans la bibliothèque, en <b>boucle</b> : la durée est exactement musicale, et la queue
+  (réverbérations, cymbales) est repliée sur le début, pour que la boucle reboucle sans coupure. Trente
+  secondes au plus. Les sons fabriqués se retrouvent sous les origines FIGÉS et RÉÉCHANTILLONNÉS.</p>
   <p><b>Retrouver un son.</b> Chaque son a une <b>catégorie</b> — kick, caisse, clap, charley, cymbale, tom,
   percu, basse, mélodique, voix, boucle, FX. Elle est devinée d'abord par le nom (« Oberheim BD1 », « Crash
   ride »), sinon en écoutant le son : grave ou aigu, bruité ou tonal, court ou tenu. Une catégorie devinée
@@ -253,7 +265,8 @@
   <p>Le mode morceau s'éteint quand on choisit la machine dans le menu, pas quand on ouvre
   l'enregistreur, la bibliothèque ou les pads, qu'on tire les sons au sort ou qu'on rend une prise.</p>
   <p><button class="sec" id="b-wav-mes">MESURES : 2</button>
-     <button class="sec" id="b-wav">EXPORTER EN WAV</button></p>
+     <button class="sec" id="b-wav">EXPORTER EN WAV</button>
+     <button class="sec" id="b-wav-bib">VERS LA BIBLIOTHÈQUE</button></p>
   <p id="wav-chemin" style="opacity:.6;font-size:12.5px"></p>
 
   <h3>Transfert d'un motif vers une vraie Korg</h3>

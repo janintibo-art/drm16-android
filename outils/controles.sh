@@ -71,6 +71,7 @@ node outils/test-freesound.cjs
 node outils/test-kits.cjs
 node outils/test-classement.cjs
 node outils/test-editeur.cjs
+node outils/test-figer.cjs
 node outils/test-memoire.cjs
 fin
 

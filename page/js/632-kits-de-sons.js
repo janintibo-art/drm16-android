@@ -400,6 +400,8 @@ function bibRendreMachines(corps){
     renommer("Nom du kit", "KIT " + (d.kits.length + 1), function(v){ if(kitsRanger(m, v || "", -1)) majBibUI(); });
   });
   var bAvant = boutonBib(acts, "REMETTRE LES SONS D'AVANT", function(){ if(kitsRemettre(m)) majBibUI(); });
+  if(typeof peutFiger === "function" && peutFiger(m))
+    boutonBib(acts, "FIGER EN ÉCHANTILLONS", function(){ figerMachine(m); });       /* v255 */
   bAvant.id = "kits-avant";
   bAvant.disabled = !d.avant;
   if(D.courant){
