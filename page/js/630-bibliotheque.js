@@ -214,16 +214,19 @@ function majBibUI(){
   var bs = document.querySelectorAll("#bib-nav button");
   for(var i=0;i<bs.length;i++) bs[i].classList.toggle("on", i === BIB.onglet);
   /* v253 : refaire le rayon sans ramener la liste en haut */
-  var defile = corps.parentNode, haut = defile ? defile.scrollTop : 0, memeRayon = BIB.ongletAffiche === BIB.onglet;
-  BIB.ongletAffiche = BIB.onglet;
+  /* v254 : passer de la liste à l'éditeur (ou l'inverse) change de vue : on repart du haut */
+  var vue = BIB.onglet + (typeof ED !== "undefined" && ED ? ":ed" : "");
+  var defile = corps.parentNode, haut = defile ? defile.scrollTop : 0, memeRayon = BIB.ongletAffiche === vue;
+  BIB.ongletAffiche = vue;
   corps.innerHTML = "";
-  if(BIB.onglet === 0) bibRendreSons(corps);
+  if(BIB.onglet === 0 && typeof ED !== "undefined" && ED) bibRendreEditeur(corps);   /* v254 */
+  else if(BIB.onglet === 0) bibRendreSons(corps);
   else if(BIB.onglet === 1) bibRendrePrises(corps);
   else if(BIB.onglet === 2) bibRendreSauvegardes(corps);
   else if(BIB.onglet === 3) bibRendreArchive(corps);
   else if(BIB.onglet === 4) bibRendreFreesound(corps);
   else if(BIB.onglet === 5) bibRendreMachines(corps);
-  if(defile && memeRayon) defile.scrollTop = haut;
+  if(defile) defile.scrollTop = memeRayon ? haut : 0;
   if(typeof majBarreEssai === "function") majBarreEssai();
 }
 function ligneBib(titre, detail){
@@ -337,6 +340,7 @@ function bibLigneSon(s){
   });
   /* v253 : l'essai remplace le son pendant la lecture, sans l'arrêter */
   if(typeof essayerSon === "function") boutonBib(a, "ESSAYER", function(){ essayerSon(s.id); });
+  if(typeof edOuvrir === "function") boutonBib(a, "ÉDITER", function(){ edOuvrir(s.id); });   /* v254 */
   if(typeof ESSAI !== "undefined" && ESSAI && ESSAI.id === s.id) l.setAttribute("aria-current", "true");
   if(s.propre) boutonBib(a, "TRAITER", function(){
     audioInit();
@@ -344,8 +348,10 @@ function bibLigneSon(s){
     if(!b){ signal("SON INTROUVABLE"); return; }
     var r = traiterSon(b, BIB.preset || "punch", 0);
     if(!r.rapport){ signal("AUCUN TRAITEMENT CHOISI"); return; }
-    ES.buf[s.id] = r.buffer; delete ES.inv[s.id];
-    var garde = sauverEch(s.id, r.buffer);
+    /* v254 : même chemin que l'éditeur — les tranches du KAOSS sont oubliées aussi */
+    var garde;
+    if(typeof edPoserTampon === "function") garde = edPoserTampon(s.id, r.buffer);
+    else { ES.buf[s.id] = r.buffer; delete ES.inv[s.id]; garde = sauverEch(s.id, r.buffer); }
     majBibUI();
     signal(!garde ? "SON TRAITÉ POUR CETTE SESSION · ÉCHEC D'ÉCRITURE"
       : (r.rapport.gain >= 0 ? "+" : "") + r.rapport.gain + " dB · CRÊTE " + r.rapport.apres.crete + " dB");
@@ -643,6 +649,7 @@ function ouvrirBib(){
 }
 function fermerBib(){
   fsonAnnuler();
+  if(typeof edArreterEcoute === "function") edArreterEcoute();
   if(typeof annulerEssai === "function" && ESSAI) annulerEssai("ESSAI ANNULÉ · SON D'ORIGINE REMIS");
   document.getElementById("bib").classList.remove("show");
   majNoteOuverte();

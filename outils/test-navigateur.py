@@ -2545,10 +2545,73 @@ async def bib_essai(nav):
     finally:
         await pg.context.close()
 
+async def bib_editeur(nav):
+    print('\n44. Bibliothèque : éditeur de son (v254)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        confirmer = {'v': True}
+        pg.on('dialog', lambda d: asyncio.ensure_future(d.accept() if confirmer['v'] else d.dismiss()))
+        await pg.locator('.pick[data-m=es1]').click()
+        await pg.evaluate('ouvrirBib()')
+        ligne = lambda nom: pg.locator('#bib-corps .bib-ligne').filter(has=pg.locator('b', has_text=nom)).first
+        await ligne('SNARE 2').locator('button', has_text='ÉDITER').click()
+        r = await pg.evaluate("({titre:document.getElementById('ed-titre').textContent, n:ED.ch[0].length, a:ED.a, b:ED.b, liste:document.querySelectorAll('#bib-corps .bib-ligne').length, remp:document.getElementById('ed-remplacer').disabled})")
+        ok(r['titre'] == 'Éditer : SNARE 2' and r['a'] == 0 and r['b'] == r['n'] and r['liste'] == 0 and r['remp'],
+           'ÉDITER ouvre l’éditeur à la place de la liste, tout sélectionné, banque non remplaçable (%s)' % r)
+        boite = await pg.locator('#ed-onde').bounding_box()
+        await pg.mouse.move(boite['x'] + boite['width'] * 0.1, boite['y'] + 60); await pg.mouse.down()
+        await pg.mouse.move(boite['x'] + boite['width'] * 0.25, boite['y'] + 60, steps=4); await pg.mouse.up()
+        await pg.mouse.move(boite['x'] + boite['width'] * 0.9, boite['y'] + 60); await pg.mouse.down()
+        await pg.mouse.move(boite['x'] + boite['width'] * 0.6, boite['y'] + 60, steps=4); await pg.mouse.up()
+        r = await pg.evaluate("({a:ED.a / ED.ch[0].length, b:ED.b / ED.ch[0].length})")
+        ok(abs(r['a'] - 0.25) < 0.02 and abs(r['b'] - 0.6) < 0.02, 'au doigt : la borne la plus proche suit (%s)' % r)
+        n0 = await pg.evaluate('ED.ch[0].length')
+        await pg.locator('#ed-rogner').click()
+        n1 = await pg.evaluate('ED.ch[0].length')
+        ok(abs(n1 / n0 - 0.35) < 0.03, 'ROGNER garde la sélection (%d → %d)' % (n0, n1))
+        await pg.locator('#ed-plus1').click()
+        await pg.locator('#ed-normaliser').click()
+        r = await pg.evaluate("({n:ED.ch[0].length, crete:Math.max(...ED.ch[0].map(Math.abs)), pile:ED.pile.length, ann:document.getElementById('ed-annuler').textContent})")
+        ok(abs(r['n'] - round(n1 / 2 ** (1 / 12))) <= 1 and abs(r['crete'] - 10 ** (-0.3 / 20)) < 1e-3 and r['ann'] == 'ANNULER (3)',
+           '+1 demi-ton, NORMALISER, trois pas à annuler (%s)' % r)
+        await pg.locator('#ed-annuler').click(); await pg.locator('#ed-annuler').click()
+        ok(await pg.evaluate('ED.ch[0].length') == n1, 'ANNULER revient pas à pas')
+        await pg.locator('#ed-copie').click()
+        r = await pg.evaluate("({id:ED.id, nom:ED.nom, orig:bibOrigine(ED.id), buf:!!ES.buf[ED.id], n:ES.buf[ED.id].length, ecrit:!!HOST.echCharger(ED.id)})")
+        ok(r['nom'] == 'SNARE 2 (ÉDITÉ)' and r['orig'] == 'edition' and r['buf'] and r['n'] == n1 and r['ecrit'], 'ENREGISTRER COMME NOUVEAU SON : copie gardée, origine ÉDITÉS (%s)' % r)
+        copie = r['id']
+        await pg.locator('#ed-inverser').click()
+        await pg.evaluate("BIB.cible = {machine:'es1', partie:0}; bibAffecter(ED.id, true)")
+        await pg.locator('#ed-remplacer').click()
+        r = await pg.evaluate("({n:ES.buf[%r].getChannelData(0)[0] === ED.ch[0][0], mod:ED.modifie, es:ES.pat.son[0].ech === %r})" % (copie, copie))
+        ok(r == {'n': True, 'mod': False, 'es': True}, 'REMPLACER L’ORIGINAL : la partie qui s’en sert entend la version éditée (%s)' % r)
+        await pg.locator('#ed-inverser').click()
+        confirmer['v'] = False
+        await pg.locator('#ed-fermer').click()
+        ok(await pg.evaluate('!!ED'), 'fermer avec des changements : on demande, et le refus garde l’éditeur')
+        confirmer['v'] = True
+        await pg.locator('#ed-fermer').click()
+        r = await pg.evaluate("({ed:ED, lignes:document.querySelectorAll('#bib-corps .bib-ligne').length})")
+        ok(r['ed'] is None and r['lignes'] > 0, 'FERMER L’ÉDITEUR rend la liste')
+        # découpe d'une boucle sur les attaques
+        await pg.evaluate("""() => {
+          const sr = 32000, b = ctx.createBuffer(1, sr, sr), d = b.getChannelData(0);
+          for (const t0 of [0, .25, .5, .75]) for (let i = 0; i < 3000; i++) d[Math.round(t0 * sr) + i] = Math.sin(i / 5) * Math.exp(-i / 600);
+          ES.buf.uBoucleTest = b; BIB.noms.uBoucleTest = 'BOUCLE TEST'; majBibUI();
+        }""")
+        await ligne('BOUCLE TEST').locator('button', has_text='ÉDITER').click()
+        await pg.locator('#ed-attaques').click()
+        r = await pg.evaluate("Object.keys(BIB.noms).filter(k => /^BOUCLE TEST T\\d$/.test(BIB.noms[k])).map(k => BIB.noms[k] + ':' + (ES.buf[k].length / 32000).toFixed(2)).sort()")
+        ok(r == ['BOUCLE TEST T1:0.25', 'BOUCLE TEST T2:0.25', 'BOUCLE TEST T3:0.25', 'BOUCLE TEST T4:0.25'], 'SUR LES ATTAQUES : quatre coups, quatre sons (%s)' % r)
+        await pg.locator('#ed-fermer').click()
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai, bib_editeur):
             try:
                 await t(nav)
             except Exception as e:

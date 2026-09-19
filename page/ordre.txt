@@ -150,6 +150,7 @@ js/630-bibliotheque.js
 js/631-classement-des-sons.js
 js/632-kits-de-sons.js
 js/633-essai-des-sons.js
+js/634-editeur-de-son.js
 js/635-projet-drm16.js
 js/640-travail-du-midi-editeur-en-rouleau.js
 js/650-transfert-exclusif-vers-une-vraie-korg.js

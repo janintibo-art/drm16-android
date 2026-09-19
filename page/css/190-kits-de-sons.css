@@ -24,3 +24,19 @@
 #bib-essai .bib-essai-t{color:#8ce3a0;font-weight:700;letter-spacing:.06em}
 #bib-essai button{min-height:40px}
 #bib .bib-ligne[aria-current="true"]{outline:2px solid #8ce3a0;outline-offset:-2px}
+/* v254 : éditeur de son */
+#bib .ed canvas{display:block;width:100%;height:140px;background:#0d0d10;border-radius:8px;touch-action:none;cursor:ew-resize}
+#bib .ed-info{font-size:13px;opacity:.8;margin:8px 0}
+#bib .ed-curseur{display:flex;align-items:center;gap:10px;min-height:40px;font-size:13px}
+#bib .ed-curseur span{flex:0 0 48px;font-weight:700}
+#bib .ed-curseur input{flex:1;min-height:36px}
+#bib .ed .bib-actions button:disabled{opacity:.4}
+#bib .ed select{min-height:40px}
+/* v254 : éditeur de son */
+#bib .ed canvas{display:block;width:100%;height:140px;background:#0d0d10;border-radius:8px;touch-action:none;cursor:ew-resize}
+#bib .ed-info{font-size:13px;opacity:.8;margin:8px 0}
+#bib .ed-curseur{display:flex;align-items:center;gap:10px;min-height:40px;font-size:13px}
+#bib .ed-curseur span{flex:0 0 48px;font-weight:700}
+#bib .ed-curseur input{flex:1;min-height:36px}
+#bib .ed .bib-actions button:disabled{opacity:.4}
+#bib .ed select{min-height:40px}

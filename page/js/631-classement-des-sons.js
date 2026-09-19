@@ -13,7 +13,7 @@ var BIB_CATEGORIES = [["kick","KICK"],["caisse","CAISSE"],["clap","CLAP"],["char
   ["cymbale","CYMBALE"],["tom","TOM"],["percu","PERCU"],["basse","BASSE"],["melodique","MÉLODIQUE"],
   ["voix","VOIX"],["boucle","BOUCLE"],["fx","FX"],["autre","AUTRE"]];
 var BIB_ORIGINES = [["tout","ORIGINES"],["banque","BANQUE"],["vous","TOUS LES VÔTRES"],["mic","MICRO"],
-  ["fichier","FICHIERS"],["archive","ARCHIVE"],["freesound","FREESOUND"],["kaoss","KAOSS"]];
+  ["fichier","FICHIERS"],["archive","ARCHIVE"],["freesound","FREESOUND"],["kaoss","KAOSS"],["edition","ÉDITÉS"]];
 var BIB_TRIS = [["nom","TRI : NOM"],["recent","TRI : PLUS RÉCENTS"],["duree","TRI : DURÉE"],["cat","TRI : CATÉGORIE"]];
 var BIB_PAGE = 40;
 var BIB_ONDES = typeof WeakMap === "function" ? new WeakMap() : null;
@@ -125,6 +125,7 @@ function bibOrigine(id){
   if(/^ufs\d+$/.test(id) || n === "freesound") return "freesound";
   if(n === "archive") return "archive";
   if(n === "kaoss") return "kaoss";
+  if(n === "edition") return "edition";
   if(n === "fichier") return "fichier";
   return "mic";
 }
