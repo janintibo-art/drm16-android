@@ -6,15 +6,19 @@ vm.createContext(c);
 vm.runInContext(src.slice(src.indexOf('var KO_FX ='),src.indexOf('function noeudsKo(')),c);
 assert.equal(c.KO_PLOCKS.length,4);
 const m=c.motifKo();assert.equal(m.pas.length,16);assert.equal(m.plocks.length,16);assert(m.plocks.every(x=>x===null));
+assert.equal(m.notes.length,16);assert(m.notes.every(row=>row.length===16&&row.every(x=>x===null)));
 assert.deepStrictEqual(JSON.parse(JSON.stringify(c.normaliserPlockKo({pitch:999,start:-4,tone:33,autre:12}))),{pitch:127,start:0,tone:33});
 assert.deepStrictEqual(JSON.parse(JSON.stringify(c.normaliserVerrousKo([{length:12},null,{tone:500}]))),[{length:12},null,{tone:127},null,null,null,null,null,null,null,null,null,null,null,null,null]);
+const bornes=Array.from({length:16},()=>Array(16).fill(null));bornes[0][0]=24;bornes[0][1]=-24;bornes[0][2]=4;
+assert.deepStrictEqual(JSON.parse(JSON.stringify(c.normaliserNotesKo([[30,-30,3.6]]))),bornes);
 assert.equal(c.valeurPlockKo({pitch:80},'pitch',64),80);assert.equal(c.valeurPlockKo(null,'pitch',64),64);
 
-c.KO.motifs[0].pas[0]=1;c.KO.motifs[0].plocks[0]={pitch:80,tone:90};c.KO.fxTenu=false;c.motifKoCur=()=>c.KO.motifs[c.KO.cur];
-c.voixKo=(t,k,v,p)=>c.notes.push({t,k,v,p});vm.runInContext(f('scheduleKo'),c);
-c.scheduleKo(0,2);assert.equal(c.notes.length,1);assert.equal(c.notes[0].p,0);assert.equal(c.queue[0].i,0);
-c.notes=[];c.KO.fxTenu=true;c.KO.fx=8;c.scheduleKo(0,2);assert.equal(c.notes.length,4);assert(c.notes.every(x=>x.p===0));
+c.KO.motifs[0].pas[0]=1;c.KO.motifs[0].notes[0][0]=5;c.KO.motifs[0].plocks[0]={pitch:80,tone:90};c.KO.fxTenu=false;c.motifKoCur=()=>c.KO.motifs[c.KO.cur];
+c.voixKo=(t,k,v,p,n)=>c.notes.push({t,k,v,p,n});vm.runInContext(f('scheduleKo'),c);
+c.scheduleKo(0,2);assert.equal(c.notes.length,1);assert.equal(c.notes[0].p,0);assert.equal(c.notes[0].n,5);assert.equal(c.queue[0].i,0);
+c.notes=[];c.KO.fxTenu=true;c.KO.fx=8;c.scheduleKo(0,2);assert.equal(c.notes.length,4);assert(c.notes.every(x=>x.p===0&&x.n===5));
 
 c.memoire={};c.sauverMachine=()=>{};vm.runInContext(f('memKo'),c);c.memKo();assert.deepStrictEqual(JSON.parse(JSON.stringify(c.memoire.ko.motifs[0].plocks[0])),{pitch:80,tone:90});
-c.memLire=()=>({motifs:[{pas:Array(16).fill(0),plocks:[{start:17},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}]});vm.runInContext(f('chargerKo'),c);c.chargerKo();assert.equal(c.KO.motifs[0].plocks[0].start,17);assert.equal(c.KO.motifs[0].plocks[1],null);
-console.log('PO-33 v226 : Parameter Locks pitch/start/length/tone, migration, sauvegarde, pas courant et ROULEMENT OK.');
+c.memLire=()=>({motifs:[{pas:Array(16).fill(0),plocks:[{start:17},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}]});vm.runInContext(f('chargerKo'),c);c.chargerKo();assert.equal(c.KO.motifs[0].plocks[0].start,17);assert.equal(c.KO.motifs[0].plocks[1],null);assert(c.KO.motifs[0].notes.every(row=>row.every(x=>x===null)));
+c.memLire=()=>({chroma:true,chromaSource:6,motifs:[{notes:[[2],null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}]});c.chargerKo();assert.equal(c.KO.chroma,true);assert.equal(c.KO.chromaSource,6);assert.equal(c.KO.motifs[0].notes[0][0],2);
+console.log('PO-33 v227 : clavier CHROMA, notes par pas, sauvegarde/migration, Parameter Locks et ROULEMENT OK.');

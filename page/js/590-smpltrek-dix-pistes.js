@@ -1279,6 +1279,14 @@ document.getElementById("stk-clear").addEventListener("click", function(){
 
 /* ---------- la façade du K.O! ---------- */
 var KO_MODE = "son";        /* ce que règlent les pads : son, motif, tempo */
+function noteChromaKo(k){ return (k|0) - 7; }
+function actifChromaKo(m, k){
+  var source = Math.max(0, Math.min(7, KO.chromaSource|0));
+  var row = m.notes && m.notes[source], note = noteChromaKo(k);
+  if(!row) return false;
+  for(var i=0;i<16;i++) if((m.pas[source] & (1 << i)) && row[i] === note) return true;
+  return false;
+}
 
 function textePlockKo(nom, valeur, actif){
   if(!actif) return "AUCUN";
@@ -1356,12 +1364,13 @@ function majKo(){
   var m = motifKoCur(), bs = d.childNodes;
   for(var k=0;k<16;k++){
     var b = bs[k];
-    var ecrit = KO_MODE === "son" ? !!m.pas[k] : false;
+    var ecrit = KO_MODE === "son" ? (KO.chroma ? actifChromaKo(m, k) : !!m.pas[k]) : false;
+    b.classList.toggle("mel", KO.chroma || k < 8);
     b.classList.toggle("on", KO_MODE === "ptn" ? (k === KO.cur)
                             : (KO_MODE === "fx" ? (k < KO_FX.length && k === KO.fx) : ecrit));
-    b.classList.toggle("sel", KO_MODE === "son" && k === KO.sel);
+    b.classList.toggle("sel", KO_MODE === "son" && (KO.chroma ? k === 7 : k === KO.sel));
     b.querySelector("em").textContent =
-      KO_MODE === "son" ? nomEch(KO.sons[k]) :
+      KO_MODE === "son" ? (KO.chroma ? (noteChromaKo(k) > 0 ? "+" : "") + noteChromaKo(k) + " ST" : nomEch(KO.sons[k])) :
       KO_MODE === "ptn" ? ("motif " + (k + 1)) :
       KO_MODE === "fx"  ? (k < KO_FX.length ? KO_FX[k][1] : "") : "";
   }
@@ -1376,21 +1385,49 @@ function majKo(){
   if(p) p.classList.toggle("on", S.run);
   lcdKo(KO_MODE === "ptn" ? ("P" + (KO.cur + 1))
       : KO_MODE === "fx" ? KO_FX[KO.fx][1]
-      : String(KO.sel + 1),
+      : KO.chroma ? ("C" + (KO.chromaSource + 1)) : String(KO.sel + 1),
       KO_MODE === "ptn" ? "PATTERN" : KO_MODE === "fx" ? "EFFET" : "SAMPLE");
   var e2 = document.getElementById("ko-etat");
   if(e2) e2.textContent =
     KO_MODE === "fx" ? "Choisissez un effet, puis maintenez FX pendant que ça joue."
     : KO_MODE === "ptn" ? "Touchez un motif pour y aller."
+    : KO.chroma ? "CHROMA : source " + (KO.chromaSource + 1) + " · -7 à +8 demi-tons."
     : (KO.rec ? "WRITE actif : les pads écrivent dans le motif."
               : "Les pads jouent. WRITE pour écrire dans le motif.");
+  var chroma = document.getElementById("ko-chroma");
+  if(chroma){
+    chroma.classList.toggle("on", KO.chroma);
+    chroma.disabled = KO_MODE !== "son" || S.run;
+  }
   majKoPlock();
 }
 function padKo(k){
   audioInit();
   if(KO_MODE === "ptn"){ KO.cur = k; majKo(); memKo(); H.inter(); return; }
   if(KO_MODE === "fx"){ KO.fx = Math.min(k, KO_FX.length - 1); majKo(); memKo(); H.cran(); return; }
+  if(KO.chroma){
+    var source = Math.max(0, Math.min(7, KO.chromaSource|0)), note = noteChromaKo(k);
+    if(KO.rec){
+      var cm = motifKoCur();
+      var cpos = S.run ? pasLePlusProche(KO.pos, cm.last) : KO.lockStep;
+      if(cpos >= 0){
+        KO.lockStep = cpos;
+        if(!cm.notes) cm.notes = normaliserNotesKo();
+        if(!cm.notes[source]) cm.notes[source] = normaliserNotesKo()[source];
+        var actif = !!(cm.pas[source] & (1 << cpos));
+        if(actif && cm.notes[source][cpos] === note){
+          cm.pas[source] &= ~(1 << cpos); cm.notes[source][cpos] = null;
+        }else{
+          cm.pas[source] |= (1 << cpos); cm.notes[source][cpos] = note;
+        }
+      }
+      memKo();
+    }else if(S.run) KO.lockStep = pasLePlusProche(KO.pos, motifKoCur().last);
+    voixKo(maintenantAudio() + 0.005, source, 1, -1, note);
+    majKo(); H.inter(); return;
+  }
   KO.sel = k;
+  if(k < 8) KO.chromaSource = k;
   if(KO.rec){
     /* Écriture au vol : on pose la frappe sur le pas le plus proche, comme sur
        les autres machines. À l'arrêt, le pas choisi dans PARAMETER LOCK sert
@@ -1437,6 +1474,13 @@ document.getElementById("ko-write").addEventListener("click", function(){
 });
 document.getElementById("ko-bpm-b").addEventListener("click", function(){
   lcdKo(Math.round(S.bpm), "TEMPO"); H.cran();
+});
+document.getElementById("ko-chroma").addEventListener("click", function(){
+  if(KO_MODE !== "son" || S.run) return;
+  if(!KO.chroma && KO.sel < 8) KO.chromaSource = KO.sel;
+  KO.chroma = !KO.chroma;
+  if(!KO.chroma) KO.sel = KO.chromaSource;
+  memKo(); majKo(); H.cran();
 });
 (function commandesPlockKo(){
   var param = document.getElementById("ko-lock-param"), pas = document.getElementById("ko-lock-step");

@@ -1,7 +1,7 @@
 /* ================= Pocket Operator K.O! =================
    Un échantillonneur de poche : seize emplacements, un séquenceur de seize
    pas, seize motifs qu'on enchaîne. Deux moitiés qui ne se jouent pas pareil —
-   les huit premiers emplacements sont MÉLODIQUES (le même son à des hauteurs
+   les huit premiers emplacements sont MÉLODIQUES (un son joué à des hauteurs
    différentes), les huit derniers sont des PERCUSSIONS (un son par touche).
 
    Sa vraie signature n'est pas là : ce sont les EFFETS AU POING. On maintient
@@ -40,18 +40,36 @@ function normaliserVerrousKo(a){
   for(var i=0;i<16;i++) r.push(normaliserPlockKo(a && a[i]));
   return r;
 }
+function normaliserNotesKo(a){
+  var r = [];
+  for(var k=0;k<16;k++){
+    var row = [], src = a && a[k];
+    for(var i=0;i<16;i++){
+      var v = src && Number(src[i]);
+      row.push(Number.isFinite(v) ? Math.max(-24, Math.min(24, Math.round(v))) : null);
+    }
+    r.push(row);
+  }
+  return r;
+}
 function valeurPlockKo(o, nom, defaut){
   return o && Number.isFinite(o[nom]) ? Math.max(0, Math.min(127, o[nom])) : defaut;
 }
 
 function motifKo(){
-  var m = {pas:[], last:16, plocks:[]};
+  var m = {pas:[], last:16, plocks:[], notes:[]};
   for(var i=0;i<16;i++) m.pas.push(0);       /* un masque de 16 bits par emplacement */
   for(var j=0;j<16;j++) m.plocks.push(null);
+  for(var k=0;k<16;k++){
+    var row = [];
+    for(var n=0;n<16;n++) row.push(null);
+    m.notes.push(row);
+  }
   return m;
 }
 var KO = {sons:[], motifs:[], cur:0, sel:0, fx:0, fxTenu:false,
-          rec:false, pos:-1, lockStep:0, noeuds:null, chaine:[], chainePos:0, song:false};
+          rec:false, pos:-1, lockStep:0, chroma:false, chromaSource:0,
+          noeuds:null, chaine:[], chainePos:0, song:false};
 for(var kz=0; kz<16; kz++) KO.sons.push("b" + (kz % 24));
 for(var kz2=0; kz2<16; kz2++) KO.motifs.push(motifKo());
 
@@ -117,11 +135,15 @@ function voixKo(t, k, vel){
   var buf = ES.buf[KO.sons[k]];
   if(!buf) return;
   var pas = arguments.length > 3 ? arguments[3] : -1;
+  var note = arguments.length > 4 && Number.isFinite(arguments[4])
+    ? Math.max(-24, Math.min(24, Math.round(arguments[4]))) : null;
   var verrou = pas >= 0 ? normaliserPlockKo(motifKoCur().plocks && motifKoCur().plocks[pas]) : null;
   var src = ctx.createBufferSource();
-  /* Les huit premiers emplacements montent la gamme : c'est le même son, joué
-     plus ou moins vite. Les huit derniers gardent leur hauteur. */
-  var vitesse = (k < 8) ? Math.pow(2, KO_NOTES[k] / 12) : 1;
+  /* En mode normal, les huit emplacements mélodiques gardent leur gamme
+     prédéfinie. Une note fournie par le mode CHROMA remplace cette base et
+     permet de jouer le même échantillon sur seize demi-tons voisins. */
+  var base = note === null ? ((k < 8) ? KO_NOTES[k] : 0) : note;
+  var vitesse = Math.pow(2, base / 12);
   if(verrou) vitesse *= Math.pow(2, (valeurPlockKo(verrou, "pitch", 64) - 64) / 12);
   vitesse = Math.max(0.03125, Math.min(16, vitesse));
   src.playbackRate.value = vitesse;
@@ -157,9 +179,10 @@ function scheduleKo(i, t){
     /* HACHOIR : une frappe sur deux est avalée. ROULEMENT : chaque frappe en
        vaut quatre, serrées. Deux effets d'ordonnancement, pas de traitement. */
     if(nom === "gate" && (i % 2)) continue;
+    var note = m.notes && m.notes[k] ? m.notes[k][i] : null;
     if(nom === "roll"){
-      for(var r=0;r<4;r++) CHARGE_N++, voixKo(t + r * stepDur() / 4, k, 1 - r * 0.15, i);
-    } else CHARGE_N++, voixKo(t, k, 1, i);
+      for(var r=0;r<4;r++) CHARGE_N++, voixKo(t + r * stepDur() / 4, k, 1 - r * 0.15, i, note);
+    } else CHARGE_N++, voixKo(t, k, 1, i, note);
   }
   if(!cache) queue.push({i:i, t:t});
   attenuerVoie("ko", CHARGE_N, t);
@@ -189,22 +212,28 @@ var MACHINE_KO = {schedule:scheduleKo, beat:beatKo, arret:arretKo, boucle:boucle
                   longueur:function(){ return motifKoCur().last; }};
 
 function memKo(){
-  memoire.ko = {sons:KO.sons, cur:KO.cur, sel:KO.sel, chaine:KO.chaine,
-                motifs:KO.motifs.map(function(m){ return {pas:m.pas, last:m.last, plocks:normaliserVerrousKo(m.plocks)}; })};
+  memoire.ko = {sons:KO.sons, cur:KO.cur, sel:KO.sel, chroma:!!KO.chroma,
+                chromaSource:Math.max(0, Math.min(7, KO.chromaSource|0)), chaine:KO.chaine,
+                motifs:KO.motifs.map(function(m){ return {pas:m.pas, last:m.last,
+                  plocks:normaliserVerrousKo(m.plocks), notes:normaliserNotesKo(m.notes)}; })};
   sauverMachine("ko");
 }
 function chargerKo(){
   KO.lockStep = 0;
+  KO.chroma = false; KO.chromaSource = 0;
   var m = memLire("ko");
   if(!m) return;
   if(m.sons && m.sons.length === 16) KO.sons = m.sons.slice();
   if(typeof m.cur === "number") KO.cur = Math.max(0, Math.min(15, m.cur));
   if(typeof m.sel === "number") KO.sel = Math.max(0, Math.min(15, m.sel));
+  if(typeof m.chroma === "boolean") KO.chroma = m.chroma;
+  if(typeof m.chromaSource === "number") KO.chromaSource = Math.max(0, Math.min(7, m.chromaSource|0));
   if(m.chaine) KO.chaine = m.chaine.filter(function(x){ return x >= 0 && x < 16; });
   if(m.motifs) m.motifs.forEach(function(o, i){
     if(i >= 16 || !o) return;
     if(o.pas && o.pas.length === 16) KO.motifs[i].pas = o.pas.slice();
-    if(o.plocks && o.plocks.length === 16) KO.motifs[i].plocks = normaliserVerrousKo(o.plocks);
+    KO.motifs[i].plocks = normaliserVerrousKo(o.plocks);
+    KO.motifs[i].notes = normaliserNotesKo(o.notes);
     KO.motifs[i].last = o.last || 16;
   });
 }

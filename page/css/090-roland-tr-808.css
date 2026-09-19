@@ -332,6 +332,7 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 .ko-cmd button,.ko-bas button{flex:1;margin:0;padding:11px 4px;border:0;border-radius:7px;
   background:#2a2a2a;color:#d8d8d8;font:800 9.5px/1 "Roboto Condensed",Arial;letter-spacing:1px}
 .ko-cmd button.on,.ko-bas button.on{background:#ff6a00;color:#141414}
+.ko-cmd button:disabled{opacity:.45;cursor:default}
 #ko-rec.on{background:#d81f1f;color:#fff}
 /* Quatre rangées de quatre : les huit premières mélodiques, les huit suivantes
    percussives, comme sur la machine. */

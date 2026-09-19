@@ -223,7 +223,12 @@ function routageMidi(m){
 
   if(m === "ko")
     return {base:16, defaut:function(){ return KO.sel; },
-            jouer:function(k, vel){ voixKo(maintenantAudio() + 0.005, k, vel); }};
+            jouer:function(k, vel){
+              if(KO.chroma){
+                var source = Math.max(0, Math.min(7, KO.chromaSource|0));
+                voixKo(maintenantAudio() + 0.005, source, vel, -1, k - 7);
+              }else voixKo(maintenantAudio() + 0.005, k, vel);
+            }};
 
   if(m === "arcm")
     return {base:motifArcmCur().pistes.length, defaut:function(){ return ARCM.sel; },

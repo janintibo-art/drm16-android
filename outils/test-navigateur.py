@@ -2066,7 +2066,7 @@ async def em_noms_motifs(nav):
         await pg.context.close()
 
 async def ko_plocks(nav):
-    print('\n36. PO-33 K.O! : Parameter Locks (v226)')
+    print('\n36. PO-33 K.O! : Parameter Locks et clavier CHROMA (v227)')
     pg, err = await nouvelle_page(nav, pont=True)
     try:
         await pg.locator('.pick[data-m=ko]').click()
@@ -2083,6 +2083,15 @@ async def ko_plocks(nav):
         ok(await pg.evaluate('KO.motifs[0].plocks[2].pitch===80&&KO.motifs[0].plocks[2].start===20'),'plusieurs verrous cohabitent sur le même pas')
         await pg.locator('#ko-lock-param').select_option('pitch');await pg.locator('#ko-lock-clear').click()
         ok(await pg.evaluate('!Object.prototype.hasOwnProperty.call(KO.motifs[0].plocks[2],"pitch")&&KO.motifs[0].plocks[2].start===20'),'EFFACER retire seulement le paramètre choisi')
+        await pg.evaluate('''() => { KO.sel=1;KO.chromaSource=1;KO.lockStep=4;KO.rec=false;majKo(); }''')
+        await pg.locator('#ko-chroma').click()
+        await pg.evaluate('KO.rec=true;majKo()')
+        await pg.locator('#ko-pads .kb').nth(9).click()
+        ok(await pg.evaluate('KO.chroma&&!!(KO.motifs[0].pas[1]&(1<<4))&&KO.motifs[0].notes[1][4]===2'),'CHROMA mémorise la hauteur du pas')
+        await pg.locator('#ko-pads .kb').nth(9).click()
+        ok(await pg.evaluate('!(KO.motifs[0].pas[1]&(1<<4))&&KO.motifs[0].notes[1][4]===null'),'retoucher la même hauteur efface le pas')
+        await pg.evaluate('KO.rec=false;majKo()')
+        await pg.locator('#ko-chroma').click()
         await pg.locator('#ko-play').click();await pg.wait_for_function('S.run')
         ok(await pg.locator('#ko-lock-apply').is_disabled(),'les verrous sont protégés pendant PLAY')
         await pg.locator('#ko-play').click()
