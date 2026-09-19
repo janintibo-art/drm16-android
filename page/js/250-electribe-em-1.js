@@ -1053,10 +1053,7 @@ function majKnobsPartie(){ kEmPit.maj(); kEmLvl.maj(); kEmPan.maj(); }
   function pas(d){
     var k = EM.sel, p = EM.pat;
     if(EM.param===0 && EM.mode===2 && EM.song.length){
-      if(S.run || EM.protect || WAVX.occupe) return;
-      memoriserSongEm("le changement de motif");
-      EM.song[EM.ssel] = (EM.song[EM.ssel] + d + 16)%16;
-      majTouches(); memEm();
+      if(!remplacerMotifSongEm((EM.song[EM.ssel] + d + 16)%16)) return;
       lcd(("00"+(EM.song[EM.ssel]+1)).slice(-3), "SONG "+(EM.ssel+1));
       H.cran(); return;
     }
@@ -1385,6 +1382,13 @@ function majEditionSongEm(){
   document.getElementById("em-song-edition").hidden = EM.mode !== 2;
   document.getElementById("em-song-annuler").disabled = !annulationSongPossibleEm();
   var possible = editionSongPossibleEm();
+  var liste = document.getElementById("em-song-motif");
+  for(var k=0;k<16;k++){
+    var texte = libelleMotifEm(k);
+    if(liste.options[k].textContent !== texte) liste.options[k].textContent = texte;
+  }
+  liste.value = EM.song.length ? String(EM.song[EM.ssel]) : "";
+  liste.disabled = !possible;
   document.getElementById("em-song-selection").textContent = EM.song.length ?
     "POSITION " + (EM.ssel+1) + " / " + EM.song.length + " · " + libelleMotifEm(EM.song[EM.ssel]) : "SONG VIDE · TOUCHE 1 POUR AJOUTER";
   document.getElementById("em-song-gauche").disabled = !possible || EM.ssel === 0;
@@ -1468,3 +1472,16 @@ document.getElementById("em-motif-liste").addEventListener("change",function(){
   choisirMotifListeEm(+this.value); majNomMotifEm();
 });
 document.getElementById("em-motif-liste").addEventListener("keydown",function(e){ e.stopPropagation(); });
+
+/* v224 : affecter un motif à la seule position Song sélectionnée. */
+function remplacerMotifSongEm(k){
+  if(!editionSongPossibleEm() || !Number.isInteger(k) || k < 0 || k >= 16 || !EM.slots[k]) return false;
+  if(EM.song[EM.ssel] === k) return true;
+  memoriserSongEm("le changement de motif");
+  EM.song[EM.ssel] = k; EM.spos = 0;
+  majTouches(); memEm(); return true;
+}
+document.getElementById("em-song-motif").addEventListener("change",function(){
+  remplacerMotifSongEm(+this.value); majEditionSongEm();
+});
+document.getElementById("em-song-motif").addEventListener("keydown",function(e){ e.stopPropagation(); });

@@ -165,3 +165,7 @@ body.em1 #unit{display:none}
 .em-choix-motif{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:#d9e7f4;font:700 10px Arial}
 #em-motif-liste{min-width:0;flex:1;max-width:100%;padding:9px;background:#202833;color:#fff;border:1px solid #8296ad;border-radius:4px;font:12px Arial}
 #em-motif-liste:disabled{opacity:.5}
+
+.em-song-choix{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:8px 0}
+#em-song-motif{flex:1;min-width:120px;max-width:100%;padding:9px;background:#202833;color:#fff;border:1px solid #8296ad;border-radius:4px;font:12px Arial}
+#em-song-motif:disabled{opacity:.5}

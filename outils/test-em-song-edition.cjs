@@ -26,3 +26,11 @@ c.EM.song=[0,2,7];c.EM.ssel=0;assert(c.editerSongEm('droite'));const intermediai
 c.EM.slots[2].nom='nouveau son';c.EM.ssel=1;assert(c.editerSongEm('supprimer'));assert(c.annulerSongEm());assert.equal(c.EM.slots[2].nom,'nouveau son');
 c.memoriserSongEm('test');c.memLire=()=>null;vm.runInContext(f('chargerEm'),c);c.chargerEm();assert.equal(c.EM.annulationSong,null);
 console.log('EM-1 v221 : annulation confirmée, vide, état précédent unique, protections, motifs préservés et mémoire temporaire OK.');
+
+vm.runInContext(f('remplacerMotifSongEm'),c);c.EM.song=[0,0,2];c.EM.ssel=1;c.EM.mode=2;c.EM.protect=false;c.S.run=false;c.WAVX.occupe=false;const courant=c.EM.pat,numero=c.EM.cur;
+assert(c.remplacerMotifSongEm(15));assert.deepStrictEqual(copie(c.EM.song),[0,15,2]);assert.strictEqual(c.EM.pat,courant);assert.equal(c.EM.cur,numero);const annulation=c.EM.annulationSong;assert(c.remplacerMotifSongEm(15));assert.strictEqual(c.EM.annulationSong,annulation);
+assert(c.annulerSongEm());assert.deepStrictEqual(copie(c.EM.song),[0,0,2]);
+for(const k of [-1,16,1.5,'2'])assert(!c.remplacerMotifSongEm(k));
+for(const objet of [c.S,c.EM,c.WAVX]){let cle=objet===c.S?'run':objet===c.EM?'protect':'occupe';objet[cle]=true;assert(!c.remplacerMotifSongEm(7));objet[cle]=false;}
+c.EM.song=[];assert(!c.remplacerMotifSongEm(7));
+console.log('EM-1 v224 : affectation ciblée, motif courant préservé, annulation, sélection identique et protections OK.');

@@ -686,6 +686,10 @@ body.em1 #unit{display:none}
 .em-choix-motif{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:#d9e7f4;font:700 10px Arial}
 #em-motif-liste{min-width:0;flex:1;max-width:100%;padding:9px;background:#202833;color:#fff;border:1px solid #8296ad;border-radius:4px;font:12px Arial}
 #em-motif-liste:disabled{opacity:.5}
+
+.em-song-choix{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:8px 0}
+#em-song-motif{flex:1;min-width:120px;max-width:100%;padding:9px;background:#202833;color:#fff;border:1px solid #8296ad;border-radius:4px;font:12px Arial}
+#em-song-motif:disabled{opacity:.5}
 /* ===================== ELECTRIBE ER-1 ===================== */
 body.er1 .er{display:block}
 body.er1 #unit,body.er1 .em{display:none}
@@ -2436,6 +2440,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <div class="em-nom-motif"><label id="em-nom-label" for="em-nom-motif">NOM DU MOTIF COURANT</label><input id="em-nom-motif" type="text" maxlength="48" placeholder="Intro, Couplet, Break…" autocomplete="off" enterkeyhint="done" aria-label="Nom du motif courant, 24 caractères maximum"></div>
     <div id="em-song-edition" hidden>
       <span id="em-song-selection">SONG VIDE</span>
+      <div class="em-song-choix"><label for="em-song-motif">MOTIF DE CETTE POSITION</label><select id="em-song-motif" aria-label="Motif de la position Song sélectionnée"><option value="0">MOTIF 1</option><option value="1">MOTIF 2</option><option value="2">MOTIF 3</option><option value="3">MOTIF 4</option><option value="4">MOTIF 5</option><option value="5">MOTIF 6</option><option value="6">MOTIF 7</option><option value="7">MOTIF 8</option><option value="8">MOTIF 9</option><option value="9">MOTIF 10</option><option value="10">MOTIF 11</option><option value="11">MOTIF 12</option><option value="12">MOTIF 13</option><option value="13">MOTIF 14</option><option value="14">MOTIF 15</option><option value="15">MOTIF 16</option></select></div>
       <div class="em-song-actions"><button id="em-song-gauche" aria-label="Déplacer la position Song vers le début">← POSITION</button><button id="em-song-droite" aria-label="Déplacer la position Song vers la fin">POSITION →</button><button id="em-song-dupliquer">DUPLIQUER</button><button id="em-song-supprimer">RETIRER</button><button id="em-song-annuler" disabled>ANNULER SONG</button></div>
     </div>
     <div class="em-song-export"><button id="em-export-song" type="button">SONG EN WAV · UN PASSAGE</button><span id="em-export-chemin"></span></div>
@@ -6966,6 +6971,12 @@ après confirmation ; le motif reste intact. ERASE en mode SONG utilise la même
 confirmation. Les commandes sont bloquées pendant PLAY, un rendu ou la protection.
 Une nouvelle lecture repart de la première position. Retirer la dernière laisse
 un Song vide : touchez alors la première touche pour ajouter le motif courant.</p>
+<p><b>Motif de cette position :</b> en mode Song, sélectionnez une position,
+puis choisissez son motif dans la liste des 16 numéros et noms. Seule cette
+référence du Song change : les autres positions et le motif actuellement ouvert
+restent inchangés. ANNULER SONG permet de rétablir la référence précédente.
+Choisir à nouveau le même motif conserve l’annulation disponible. La liste est
+bloquée si le Song est vide, pendant PLAY, un rendu ou la protection.</p>
 <p><b>ANNULER SONG :</b> rétablit, après confirmation, l’ordre précédent des
 positions après un déplacement, une duplication, un retrait, un ajout, un
 changement de motif par la molette ou SHIFT + Clear Song. Les notes et sons des
@@ -11482,10 +11493,7 @@ function majKnobsPartie(){ kEmPit.maj(); kEmLvl.maj(); kEmPan.maj(); }
   function pas(d){
     var k = EM.sel, p = EM.pat;
     if(EM.param===0 && EM.mode===2 && EM.song.length){
-      if(S.run || EM.protect || WAVX.occupe) return;
-      memoriserSongEm("le changement de motif");
-      EM.song[EM.ssel] = (EM.song[EM.ssel] + d + 16)%16;
-      majTouches(); memEm();
+      if(!remplacerMotifSongEm((EM.song[EM.ssel] + d + 16)%16)) return;
       lcd(("00"+(EM.song[EM.ssel]+1)).slice(-3), "SONG "+(EM.ssel+1));
       H.cran(); return;
     }
@@ -11814,6 +11822,13 @@ function majEditionSongEm(){
   document.getElementById("em-song-edition").hidden = EM.mode !== 2;
   document.getElementById("em-song-annuler").disabled = !annulationSongPossibleEm();
   var possible = editionSongPossibleEm();
+  var liste = document.getElementById("em-song-motif");
+  for(var k=0;k<16;k++){
+    var texte = libelleMotifEm(k);
+    if(liste.options[k].textContent !== texte) liste.options[k].textContent = texte;
+  }
+  liste.value = EM.song.length ? String(EM.song[EM.ssel]) : "";
+  liste.disabled = !possible;
   document.getElementById("em-song-selection").textContent = EM.song.length ?
     "POSITION " + (EM.ssel+1) + " / " + EM.song.length + " · " + libelleMotifEm(EM.song[EM.ssel]) : "SONG VIDE · TOUCHE 1 POUR AJOUTER";
   document.getElementById("em-song-gauche").disabled = !possible || EM.ssel === 0;
@@ -11897,6 +11912,19 @@ document.getElementById("em-motif-liste").addEventListener("change",function(){
   choisirMotifListeEm(+this.value); majNomMotifEm();
 });
 document.getElementById("em-motif-liste").addEventListener("keydown",function(e){ e.stopPropagation(); });
+
+/* v224 : affecter un motif à la seule position Song sélectionnée. */
+function remplacerMotifSongEm(k){
+  if(!editionSongPossibleEm() || !Number.isInteger(k) || k < 0 || k >= 16 || !EM.slots[k]) return false;
+  if(EM.song[EM.ssel] === k) return true;
+  memoriserSongEm("le changement de motif");
+  EM.song[EM.ssel] = k; EM.spos = 0;
+  majTouches(); memEm(); return true;
+}
+document.getElementById("em-song-motif").addEventListener("change",function(){
+  remplacerMotifSongEm(+this.value); majEditionSongEm();
+});
+document.getElementById("em-song-motif").addEventListener("keydown",function(e){ e.stopPropagation(); });
 /* ===================== ELECTRIBE ER-1 ===================== */
 var ER_PARTS = [
   {n:"1", t:"perc"}, {n:"2", t:"perc"}, {n:"3", t:"perc"}, {n:"4", t:"perc"},
