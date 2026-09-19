@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **247**. Depuis la v176, le détail de chaque version est dans
+La version actuelle est la **250**. Depuis la v176, le détail de chaque version est dans
 `docs/CORRECTIONS_V*.md` ; la section 5 commence par **l'état du projet** et le tableau de ces versions.
 Les v156 à v175 n'ont laissé aucune note : le check-up v176 (`docs/CHECKUP_V176.md`) fait le point à leur
 sortie.
@@ -161,7 +161,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
 bloc 14 du test navigateur (« un gain existant rejoint sa cible en douceur ») quand la machine est chargée.
 Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en écrire en `file://`.
 
-### Versions v177 à v245
+### Versions v177 à v250
 
 | Version | Sujet |
 |---|---|
@@ -236,6 +236,9 @@ Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en
 | v245 | Mise à jour de ce fichier |
 | v246 | MPC : huit programmes de pads, un par séquence |
 | v247 | KAOSS PAD : huit mémoires de programmes |
+| v248 | Freesound dans la bibliothèque |
+| v249 | Livraison v248 corrigée (dossier racine de l'archive) |
+| v250 | Grand check-up : mode morceau gardé aux réouvertures, mémoire allégée, compilation v249 réparée (`docs/CHECKUP_V250.md`) |
 
 ---
 

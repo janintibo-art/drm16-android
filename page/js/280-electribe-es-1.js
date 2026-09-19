@@ -402,7 +402,9 @@ function usagesEch(id){
   ["mpc3000","mpc2000"].forEach(function(k){
     var m = S.modele === k && typeof MPC !== "undefined" ? MPC : memLire(k);
     /* v246 : tous les programmes de la MPC (ancienne sauvegarde : « pads ») */
-    var jeux = m && Array.isArray(m.progs) && m.progs.length ? m.progs.map(function(p){ return p && p.pads; })
+    /* v250 : en mémoire, le programme 1 est dans « pads », un programme d'usine n'a pas de pads */
+    var jeux = m && Array.isArray(m.progs) && m.progs.length
+             ? m.progs.map(function(p, i){ return p && (p.pads || (i === 0 ? m.pads : null)); })
              : [m && m.pads];
     jeux.forEach(function(pads){
       if(Array.isArray(pads)) pads.forEach(function(p){ if(p && p.ech === id) n++; });

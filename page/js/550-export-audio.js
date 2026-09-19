@@ -160,7 +160,7 @@ function exporterWav(songEm){
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
     try{ allerMachine(modele); }catch(e){ signal("MACHINE À RECHARGER"); }
     /* v244 : la réouverture a éteint le mode morceau : on le rallume */
-    if(morceau){ try{ if(MACHINE.reprendreChaine) MACHINE.reprendreChaine(); }catch(e){} }
+    if(morceau) rallumerMorceaux([MACHINE]);
     if(emAvant){
       Object.keys(emAvant).forEach(function(k){ if(k !== "noeuds") EM[k] = emAvant[k]; });
       document.body.inert = inerteAvant;

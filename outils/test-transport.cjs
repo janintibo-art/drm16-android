@@ -249,6 +249,7 @@ async function verifierBusRendu() {
       affiche:{nom:'prise',duree:1000,evts:[[0,144,36,100],[500,145,36,100]]},decoupe:'canal'},
     entreeNote(){},passeEnr:()=>true,pistesDe:()=>[{c:0,n:-1,cle:'0'},{c:1,n:-1,cle:'1'}]});
   c.allerMachine=m=>{c.S.modele=m;};
+  c.morceauxActifs=()=>[];c.rallumerMorceaux=()=>{};   /* v250 : voir le bloc 40 du test navigateur */
   c.stop=()=>{c.S.run=false;c.queue=[];};
   vm.runInContext(lire('page/js/150-le-set-plusieurs-machines-a-la-fois.js'),c);
   vm.runInContext(fonction('page/js/110-moteur-audio.js','razNoeudsMachines')+'\n'+

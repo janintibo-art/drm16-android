@@ -24,6 +24,7 @@ function ondesEnr(){
   var sortiesVraies = {outBd:outBd, outMix:outMix, panBd:panBd, panMix:panMix};
   var busVrais = SET.bus;
   var resultat = {};
+  var morceaux = morceauxActifs();              /* v250 : voir rouvrirMachine */
 
   function remettre(){
     ENR.ondesOccupe = false;
@@ -33,6 +34,7 @@ function ondesEnr(){
     outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
     try{ allerMachine(modele); }catch(e){}
+    rallumerMorceaux(morceaux);
   }
 
   /* Une piste à la fois, en chaîne : deux contextes hors ligne en parallèle se

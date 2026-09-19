@@ -71,7 +71,7 @@ function sonsHasard(){
      mémoire écrase ce qu'on vient de tirer et rien ne change. */
   memMachineCourante();
   writeMem();
-  allerMachine(m);                             /* la façade se remet à jour d'un bloc */
+  rouvrirMachine(m);                           /* la façade se remet à jour d'un bloc */
   signal(n2 + " RÉGLAGES TIRÉS AU SORT · LE MOTIF EST INTACT");
   H.inter();
 }

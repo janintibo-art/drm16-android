@@ -38,6 +38,8 @@ function exporterPriseWav(i){
   if(PR.lecture) prArreter();
   stop();
   if(writeMem() === false){ signal("RENDU ANNULÉ · MÉMOIRE NON ENREGISTRÉE"); return; }
+  /* v250 : chaque machine rendue est rouverte, ce qui éteint son mode morceau */
+  var morceaux = morceauxActifs();
 
   var ctxVrai = ctx, masterVrai = master, bruitVrai = noiseBuf, cacheVrai = cache;
   var metalVrai = metalBuf, sourcesVraies = SOURCES, collecteVraie = COLLECTE;
@@ -74,6 +76,7 @@ function exporterPriseWav(i){
           allerMachine(v[2]);
       });
       allerMachine(modele);
+      rallumerMorceaux(morceaux);
     }finally{
       WAVX.occupe = false;
       document.body.inert = inerteAvant;

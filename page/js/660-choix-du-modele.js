@@ -88,6 +88,35 @@ function allerMachine(id){
   else if(id === "esx") activerSx();
   else appliquerModele(id);
 }
+/* v250 : ouvrir une machine recharge sa mémoire, ce qui éteint son mode
+   morceau (TRACK des TR, SONG de la DMX, chanson de la MPC, chaîne de la
+   TR-1000) — c'est voulu quand on CHOISIT une machine. Mais bien des
+   réouvertures ne sont pas un choix : ouvrir l'enregistreur, la
+   bibliothèque ou les pads, fermer la vue à plusieurs machines, tirer les
+   sons au sort, relancer le moteur audio, rendre une prise ou dessiner ses
+   formes d'onde. Celles-là passent par rouvrirMachine, ou relèvent les modes
+   avant et les rallument après, pour toutes les machines touchées. */
+function morceauxActifs(){
+  return [MACHINE_TR, MACHINE_DMX, MACHINE_MPC, MACHINE_T1K].filter(function(d){
+    try{ return !!(d && d.planChaine && d.reprendreChaine && d.planChaine()); }catch(e){ return false; }
+  });
+}
+function rallumerMorceaux(liste){
+  if(!liste || !liste.length) return;
+  liste.forEach(function(d){ try{ d.reprendreChaine(); }catch(e){} });
+  /* la façade affichée montre le mode rallumé */
+  var m = S.modele;
+  try{
+    if(m === "dmx") majAffDmx();
+    else if(m === "mpc3000" || m === "mpc2000") majLcdMpc();
+    else if(m === "t1k"){ majChaineT1k(); majT1k(); }
+  }catch(e){}
+}
+function rouvrirMachine(id){
+  var garde = morceauxActifs();
+  allerMachine(id);
+  rallumerMorceaux(garde);
+}
 var picks = document.querySelectorAll(".pick");
 for(var q=0;q<picks.length;q++){
   picks[q].addEventListener("click", function(){

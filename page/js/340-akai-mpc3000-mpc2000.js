@@ -362,9 +362,16 @@ function memMpc(){
   memoire["mpc" + MPC.v] = {
     banque:MPC.banque, sel:MPC.sel, seqCur:MPC.seqCur,
     type16:MPC.type16, compte:MPC.compte, chanson:MPC.chanson,
-    /* pads = programme 1, comme avant (anciennes lectures) ; progs = les 8 */
+    /* pads = programme 1, comme avant (anciennes lectures) ; progs = les 8.
+       v250 : le programme 1 n'est plus recopié dans progs (il est dans pads),
+       et un programme resté au kit d'usine ne garde que son nom — huit copies
+       complètes pesaient 73 ko par MPC au lieu de 14. */
     pads:MPC.progs[0].pads,
-    progs:MPC.progs.map(function(p){ return {nom:p.nom, pads:p.pads}; }),
+    progs:MPC.progs.map(function(p, k){
+      var o = {nom:p.nom};
+      if(k > 0 && JSON.stringify(p.pads) !== JSON.stringify(progVide(k).pads)) o.pads = p.pads;
+      return o;
+    }),
     seqs:MPC.seqs.map(function(s){
       var pl = [];
       (s.pistes || []).forEach(function(p, i){
@@ -392,11 +399,12 @@ function chargerMpc(){
   if(m){
     /* v246 : les 8 programmes ; une ancienne sauvegarde n'a que « pads »,
        qui devient le programme 1 — les autres partent du kit d'usine */
+    /* v250 : programme sans pads = kit d'usine ; programme 1 sans pads = « pads » */
     if(Array.isArray(m.progs)) m.progs.slice(0, MPC_NB_PROG).forEach(function(p, k){
-      if(p && Array.isArray(p.pads) && p.pads.length === 64){
-        MPC.progs[k].pads = p.pads;
-        if(typeof p.nom === "string" && p.nom) MPC.progs[k].nom = p.nom.slice(0, 16);
-      }
+      if(!p) return;
+      var pads = Array.isArray(p.pads) ? p.pads : k === 0 ? m.pads : null;
+      if(Array.isArray(pads) && pads.length === 64) MPC.progs[k].pads = pads;
+      if(typeof p.nom === "string" && p.nom) MPC.progs[k].nom = p.nom.slice(0, 16);
     });
     else if(m.pads && m.pads.length === 64) MPC.progs[0].pads = m.pads;
     MPC.pads = MPC.progs[0].pads;

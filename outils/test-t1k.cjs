@@ -32,7 +32,7 @@ function setup(m){
  c.T1K.motifs[2].prob[3][4]=0;assert.equal(c.memoire.t1k.motifs[2].prob[3][4],25,'snapshot sans alias');
  const d=setup(saved);d.chargerT1k();assert.equal(d.T1K.motifs[2].prob[3][4],25);
  d.T1K.motifs[2].prob[3][4]=75;assert.equal(saved.motifs[2].prob[3][4],25,'chargement sans alias');
- const old=copie(saved);old.motifs.forEach(m=>delete m.prob);d.memoire.t1k=old;d.chargerT1k();assert(d.T1K.motifs.every(m=>m.prob.every(r=>r.every(v=>v===100))),'migration à 100%');
+ const old=copie(saved);old.motifs.forEach(m=>m&&delete m.prob);d.memoire.t1k=old;d.chargerT1k();assert(d.T1K.motifs.every(m=>m.prob.every(r=>r.every(v=>v===100))),'migration à 100%');
  old.motifs[0].prob=[[0,25,-5,200,null,'50',NaN,50.4]];d.chargerT1k();
  assert.deepStrictEqual(copie(d.T1K.motifs[0].prob[0].slice(0,8)),[0,25,0,100,100,100,100,50]);
  assert.equal(d.T1K.motifs[0].prob[1][0],100);assert.equal(d.T1K.motifs[1].prob[0][0],100);
@@ -92,7 +92,7 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.resetLectureT1k();c.voix=[];c.scheduleT1k(0,20);assert.equal(c.voix.length,0,'reset au premier tour');
  for(const sens of ['arriere','pingpong']){c.resetLectureT1k();m.direction[0]=sens;c.voix=[];for(let i=0;i<32;i++)c.scheduleT1k(i%4,30+i*.12);assert(c.voix.length>0,sens);}
  c.memT1k();m.cycle[0][0]='1:1';assert.equal(c.memoire.t1k.motifs[0].cycle[0][0],'2:4');c.chargerT1k();assert.equal(c.motifT1kCur().cycle[0][0],'2:4');
- const ancien=copie(c.memoire.t1k);ancien.motifs.forEach(m=>delete m.cycle);c.memoire.t1k=ancien;c.chargerT1k();assert(c.T1K.motifs.every(m=>m.cycle.every(r=>r.every(v=>v==='1:1'))));
+ const ancien=copie(c.memoire.t1k);ancien.motifs.forEach(m=>m&&delete m.cycle);c.memoire.t1k=ancien;c.chargerT1k();assert(c.T1K.motifs.every(m=>m.cycle.every(r=>r.every(v=>v==='1:1'))));
  for(const v of [null,{},'0:4','5:4','1:8',4])assert.equal(c.cycleT1k(v),'1:1');
  console.log('TR-1000 v197 : cycles, sous-pas, probabilité, reset, directions, mémoire et migration OK.');
 }
@@ -101,7 +101,7 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.scheduleT1k(0,2);assert.deepStrictEqual(copie(c.voix.map(v=>+v[0].toFixed(3))),[2.06,2.09,2.12,2.15]);
  m.direction[0]='arriere';m.last=4;c.resetLectureT1k();c.voix=[];for(let i=0;i<4;i++)c.scheduleT1k(i,3+i*.12);assert.equal(+c.voix[0][0].toFixed(3),3.42);
  c.memT1k();m.retard[0][0]=0;assert.equal(c.memoire.t1k.motifs[0].retard[0][0],8);c.chargerT1k();assert.equal(c.motifT1kCur().retard[0][0],8);
- c.memoire.t1k.motifs.forEach(m=>delete m.retard);c.chargerT1k();assert(c.T1K.motifs.every(m=>m.retard.every(r=>r.every(v=>v===0))));
+ c.memoire.t1k.motifs.forEach(m=>m&&delete m.retard);c.chargerT1k();assert(c.T1K.motifs.every(m=>m.retard.every(r=>r.every(v=>v===0))));
  for(const v of [-1,3,16,'8',null])assert.equal(c.retardT1k(v),0);
  c.T1K.fill=true;c.motifT1kCur().retard.forEach(r=>r.fill(8));c.voix=[];c.scheduleT1k(3,5);assert(c.voix.length);assert(c.voix.every(v=>v[0]===5));
  console.log('TR-1000 v198 : retard, sous-pas, direction, mémoire, migration et FILL OK.');
@@ -124,7 +124,7 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.T1K.fill=true;c.voix=[];c.scheduleT1k(3,3);assert(!c.voix.some(v=>v[1]===0));c.T1K.fill=false;
  c.memT1k();m.muet[0]=false;assert.equal(c.memoire.t1k.motifs[0].muet[0],true);c.chargerT1k();assert.equal(c.motifT1kCur().muet[0],true);
  c.S.run=true;c.basculerMuetT1k();assert.equal(c.motifT1kCur().muet[0],false);c.voix=[];c.scheduleT1k(0,4);assert.equal(c.voix.filter(v=>v[1]===0).length,4);
- c.memoire.t1k.motifs.forEach(m=>delete m.muet);c.chargerT1k();assert(c.T1K.motifs.every(m=>m.muet.every(v=>v===false)));
+ c.memoire.t1k.motifs.forEach(m=>m&&delete m.muet);c.chargerT1k();assert(c.T1K.motifs.every(m=>m.muet.every(v=>v===false)));
  console.log('TR-1000 v202 : mute indépendant, pads directs, FILL, mémoire, migration et réactivation en lecture OK.');
 }
 {
@@ -148,7 +148,7 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  c.chargerT1k();assert.equal(c.motifT1kCur().reglages[0][0].niv,0);const copieMotif=c.lireMotifT1k(c.motifT1kCur());copieMotif.reglages[0][0].tune=0;assert.equal(c.motifT1kCur().reglages[0][0].tune,.75);
  assert(!c.poserReglageT1k(10,0,'niv',.5));assert(!c.poserReglageT1k(0,0,'inconnu',.5));assert(!c.poserReglageT1k(0,0,'niv',NaN));
  assert.deepStrictEqual(copie(c.lireReglagesT1k({tune:2,dec:-1,niv:'1',mix:null})),{tune:1,dec:0});
- c.memoire.t1k.motifs.forEach(m=>delete m.reglages);c.chargerT1k();assert(c.T1K.motifs.every(m=>m.reglages.every(r=>r.every(v=>v===null))));
+ c.memoire.t1k.motifs.forEach(m=>m&&delete m.reglages);c.chargerT1k();assert(c.T1K.motifs.every(m=>m.reglages.every(r=>r.every(v=>v===null))));
  console.log('TR-1000 v204 : paramètres source, sous-pas, priorité morph, effacement ciblé, mémoire et migration OK.');
 }
 {
@@ -295,4 +295,23 @@ console.log('TR-1000 v196 : directions, pas source, curseur audio, REC, reset et
  accepte=true;c.S.run=true;n=confirmations;assert(!c.doublerSequenceT1k());assert.equal(confirmations,n);c.S.run=false;assert(c.doublerSequenceT1k());assert.equal(m.last,4);assert.equal(m.longueurs[0],8);
  const sauvegarde=copie(m);c.chargerT1k();assert.deepStrictEqual(copie(c.motifT1kCur()),sauvegarde);
  console.log('TR-1000 v215 : doublement 1/3/8, notes et métadonnées, copies indépendantes, hors longueur préservé, LAST, annulation, mémoire et garde-fous OK.');
+}
+{
+ // v250 : motifs vides écrits null, relus identiques ; ancienne sauvegarde complète relue telle quelle.
+ const c=setup();c.chargerT1k();c.memT1k();
+ const m1=copie(c.memoire.t1k);
+ assert.equal(m1.motifs.length,128);
+ const pleins=m1.motifs.map((m,k)=>m?k:-1).filter(k=>k>=0);
+ assert.deepStrictEqual(pleins,[0,1],'seuls les deux motifs d’usine sont écrits en entier');
+ const avant=copie(c.T1K.motifs);c.memoire.t1k=m1;c.chargerT1k();
+ assert.deepStrictEqual(copie(c.T1K.motifs),avant,'aller-retour exact, motifs vides compris');
+ const mv=c.T1K.motifs[77];mv.pas[3]=5;mv.nom='PONT';c.memT1k();
+ assert.equal(c.memoire.t1k.motifs[77].nom,'PONT','un motif touché est écrit');
+ mv.pas[3]=0;mv.nom=c.lireMotifT1k(null).nom;c.memT1k();
+ assert.equal(c.memoire.t1k.motifs[77],null,'revenu au vide : de nouveau null');
+ const complet=copie(c.memoire.t1k);complet.motifs=c.T1K.motifs.map(x=>copie(c.ecrireMotifT1k(x)));complet.motifs[90].pas[1]=3;
+ assert(JSON.stringify(c.memoire.t1k).length*20<JSON.stringify(complet).length,'au moins vingt fois plus léger');
+ c.memoire.t1k=complet;c.chargerT1k();assert.equal(c.T1K.motifs[90].pas[1],3,'sauvegarde v247 complète relue');
+ c.memT1k();const reste=c.memoire.t1k.motifs.map((m,k)=>m?k:-1).filter(k=>k>=0);assert.equal(reste.join(),'0,1,90','et réécrite allégée : '+reste.slice(0,12));
+ console.log('TR-1000 v250 : motifs vides écrits null, aller-retour exact, anciennes sauvegardes complètes relues OK.');
 }

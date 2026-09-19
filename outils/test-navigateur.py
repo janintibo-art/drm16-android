@@ -2294,10 +2294,56 @@ async def kp_memoires(nav):
     finally:
         await pg.context.close()
 
+async def morceaux_reouvertures(nav):
+    print('\n40. Mode morceau gardé aux réouvertures techniques (v250)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        r = await pg.evaluate("""async () => {
+          audioInit(); const out = {};
+          const armer = () => {
+            allerMachine('tr808'); TR.chaine = [{p:0,b:false},{p:1,b:false}]; TR.trackOn = true; memTr();
+            allerMachine('dmx'); DMX.seqs[0].mesures = 1; DMX.song = [{seq:0,tours:1}]; DMX.songOn = true; memDmx();
+            allerMachine('t1k'); T1K.chaine = [{b:0,p:0},{b:0,p:1}]; T1K.chaineOn = true; memT1k();
+            allerMachine('mpc3000'); MPC.chanson = [{seq:0,tours:1}]; MPC.mode = 2; memMpc(); writeMem();
+          };
+          const etat = () => [TR.trackOn, DMX.songOn, T1K.chaineOn, MPC.mode === 2].map(Number).join('');
+          const cas = {
+            enregistreur: () => document.getElementById('menu-enr').click(),
+            bibliotheque: () => document.getElementById('menu-bib').click(),
+            pads: () => document.getElementById('menu-pr').click(),
+            hasard: () => sonsHasard(),
+            relance: () => refaireAudio(),
+          };
+          for (const [nom, f] of Object.entries(cas)) {
+            armer(); f(); out[nom] = etat() + ' ' + S.modele;
+            try { fermerEnr(); fermerPr(); fermerBib(); } catch (e) {}
+          }
+          armer();
+          ENR.prises = [{nom:'x', duree:500, machine:'dmx', evts:[[0,0x99,36,100],[200,0x89,36,0]]}];
+          ENR.canaux[9] = 'dmx';
+          await exporterPriseWav(0);
+          out.prise = etat() + ' ' + S.modele;
+          out.lcd = document.getElementById('mpc-l1') ? document.getElementById('mpc-l1').textContent : '';
+          /* choisir la machine dans le menu reste un vrai choix : le mode s'éteint */
+          armer(); document.querySelector('.pick[data-m=mpc3000]').click();
+          out.menu = etat();
+          armer(); allerMachine('t1k'); T1K.chaineOn = true; majChaineT1k(); memT1k(); writeMem();
+          sonsHasard();
+          out.t1k = T1K.chaineOn + ' ' + document.getElementById('t1k-chaine-on').textContent;
+          return out;
+        }""")
+        for k in ('enregistreur', 'bibliotheque', 'pads', 'hasard', 'relance', 'prise'):
+            ok(r[k] == '1111 mpc3000', '%s : TRACK, SONG, CHAÎNE et chanson MPC restent allumés (%s)' % (k, r[k]))
+        ok(r['menu'] == '1110', 'choisir la MPC dans le menu éteint toujours sa chanson (%s)' % r['menu'])
+        ok(r['t1k'] == 'true CHAÎNE ON', 'la façade affichée montre le mode rallumé (%s)' % r['t1k'])
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures):
             try:
                 await t(nav)
             except Exception as e:

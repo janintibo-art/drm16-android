@@ -422,6 +422,8 @@ bc.document.querySelectorAll=()=>[];bc.arcCharger=()=>{};bc.majNoteOuverte=()=>{
 bc.fermerAutresPanneaux=id=>{bc.lastPanel=id;};
 const esSource=fs.readFileSync(path.join(__dirname,'../page/js/280-electribe-es-1.js'),'utf8');
 vm.runInContext(esSource.slice(esSource.indexOf('function nomEch('),esSource.indexOf('function inverse(')),bc);
+/* v250 : la bibliothèque appelle Freesound (625), assemblé avant elle dans la page */
+vm.runInContext(fs.readFileSync(path.join(__dirname,'../page/js/625-freesound.js'),'utf8'),bc);
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../page/js/630-bibliotheque.js'),'utf8'),bc);
 const custom=fixture();bc.ES.buf.uLocal=custom;bc.ES.noms.uLocal='fichier';bc.BIB.noms.uLocal='Ma boucle';
 bc.bibEcrire();bc.KP.sel=2;bc.KP.banques[2].mode='one';bc.KP.banques[2].slice=true;bc.KP.banques[2].tranche=4;

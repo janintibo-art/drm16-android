@@ -256,7 +256,7 @@ function ouvrirEnsemble(){
 function fermerEnsemble(){
   if(!ENS.actif) return;
   remettreVueAPlat();
-  try{ allerMachine(ENS.retour || "16"); }catch(e){}
+  try{ rouvrirMachine(ENS.retour || "16"); }catch(e){}
   ouvrirTable();
 }
 document.getElementById("ens-sortir").addEventListener("click", function(){ fermerEnsemble(); H.cran(); });
@@ -532,7 +532,7 @@ document.getElementById("bib-fermer").addEventListener("click", function(){ ferm
 document.getElementById("menu-bib").addEventListener("click", function(){
   document.body.classList.remove("menu-ouvert");
   menu.classList.add("hide");
-  allerMachine(memoire.modele || "es1");
+  rouvrirMachine(memoire.modele || "es1");
   ouvrirBib();
   H.inter();
 });
@@ -573,7 +573,7 @@ function importerSonFichier(f){
 document.getElementById("menu-pr").addEventListener("click", function(){
   document.body.classList.remove("menu-ouvert");
   menu.classList.add("hide");
-  allerMachine(memoire.modele || "em1");
+  rouvrirMachine(memoire.modele || "em1");
   ouvrirPr();
   H.inter();
 });
@@ -641,7 +641,7 @@ document.getElementById("enr-rec").addEventListener("click", function(){
     document.body.classList.remove("menu-ouvert");
     menu.classList.add("hide");
     var m = memoire.modele || "em1";
-    allerMachine(m);
+    rouvrirMachine(m);
     sel.value = m;
     enrCharger();
     ouvrirEnr();

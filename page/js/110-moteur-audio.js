@@ -99,7 +99,7 @@ function refaireAudio(){
   try{ EUR.bus = null; EUR.sources = null; EUR.noeuds = []; }catch(e){}
   audioInit();
   if(!ctx){ signal("AUDIO INDISPONIBLE"); return; }
-  try{ allerMachine(m); }catch(e){}
+  try{ rouvrirMachine(m); }catch(e){}
   AUDIT.relances++;
   signal("MOTEUR AUDIO RELANCÉ");
   if(reprendre) start();

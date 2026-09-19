@@ -4562,8 +4562,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <h3>Exporter le motif en WAV</h3>
   <p>Le motif de la machine affichée est rendu <b>hors ligne, plus vite que le temps réel</b>, avec toute
-  sa chaîne d'effets et le limiteur de sortie, puis écrit en WAV stéréo seize bits dans le dossier
-  Documents. Choisissez le nombre de mesures, appuyez, et le fichier est là.</p>
+  sa chaîne d'effets et le limiteur de sortie, puis écrit en WAV stéréo — seize ou vingt-quatre bits selon le réglage EXPORT WAV
+  plus bas — dans le dossier Documents. Choisissez le nombre de mesures, appuyez, et le fichier est là.</p>
   <p>Deux secondes et demie sont ajoutées à la fin pour laisser mourir les réverbérations et les cymbales.
   Le message final donne la taille et la crête atteinte.</p>
   <p><b>Morceau entier.</b> Si la machine affichée joue un morceau enchaîné — <b>TRACK</b> allumé sur les
@@ -4571,6 +4571,8 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   l'export rend <b>un passage complet du morceau</b>, chaque motif avec sa longueur et ses répétitions,
   au lieu du nombre de mesures choisi. Le fichier porte « morceau » dans son nom. Le Song de l'EM-1 a son
   propre bouton sur sa façade.</p>
+  <p>Le mode morceau s'éteint quand on choisit la machine dans le menu, pas quand on ouvre
+  l'enregistreur, la bibliothèque ou les pads, qu'on tire les sons au sort ou qu'on rend une prise.</p>
   <p><button class="sec" id="b-wav-mes">MESURES : 2</button>
      <button class="sec" id="b-wav">EXPORTER EN WAV</button></p>
   <p id="wav-chemin" style="opacity:.6;font-size:12.5px"></p>
@@ -5210,7 +5212,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p><b>CHAÎNE EN WAV · UN PASSAGE</b> exporte toutes les entrées, une fois et
   dans leur ordre, y compris les répétitions. Il n'est pas nécessaire d'activer
   CHAÎNE. L'export arrête PLAY et ne le relance pas ensuite.</p>
-  <p>Le fichier est un <b>WAV stéréo, 44,1 kHz, 16 bits</b>. Il contient les
+  <p>Le fichier est un <b>WAV stéréo, 44,1 kHz</b>, en 16 ou 24 bits selon le réglage EXPORT WAV de l'onglet Général. Il contient les
   pistes audibles du SmplTrek avec leurs notes, tranches, réglages et MUTE/SOLO,
   ainsi que les réglages de sa voie dans la table et le volume général.
   Les autres machines du SET ne sont pas incluses. Le tempo courant est fixé
@@ -8354,7 +8356,7 @@ function refaireAudio(){
   try{ EUR.bus = null; EUR.sources = null; EUR.noeuds = []; }catch(e){}
   audioInit();
   if(!ctx){ signal("AUDIO INDISPONIBLE"); return; }
-  try{ allerMachine(m); }catch(e){}
+  try{ rouvrirMachine(m); }catch(e){}
   AUDIT.relances++;
   signal("MOTEUR AUDIO RELANCÉ");
   if(reprendre) start();
@@ -9838,7 +9840,7 @@ function ouvrirEnsemble(){
 function fermerEnsemble(){
   if(!ENS.actif) return;
   remettreVueAPlat();
-  try{ allerMachine(ENS.retour || "16"); }catch(e){}
+  try{ rouvrirMachine(ENS.retour || "16"); }catch(e){}
   ouvrirTable();
 }
 document.getElementById("ens-sortir").addEventListener("click", function(){ fermerEnsemble(); H.cran(); });
@@ -10114,7 +10116,7 @@ document.getElementById("bib-fermer").addEventListener("click", function(){ ferm
 document.getElementById("menu-bib").addEventListener("click", function(){
   document.body.classList.remove("menu-ouvert");
   menu.classList.add("hide");
-  allerMachine(memoire.modele || "es1");
+  rouvrirMachine(memoire.modele || "es1");
   ouvrirBib();
   H.inter();
 });
@@ -10155,7 +10157,7 @@ function importerSonFichier(f){
 document.getElementById("menu-pr").addEventListener("click", function(){
   document.body.classList.remove("menu-ouvert");
   menu.classList.add("hide");
-  allerMachine(memoire.modele || "em1");
+  rouvrirMachine(memoire.modele || "em1");
   ouvrirPr();
   H.inter();
 });
@@ -10223,7 +10225,7 @@ document.getElementById("enr-rec").addEventListener("click", function(){
     document.body.classList.remove("menu-ouvert");
     menu.classList.add("hide");
     var m = memoire.modele || "em1";
-    allerMachine(m);
+    rouvrirMachine(m);
     sel.value = m;
     enrCharger();
     ouvrirEnr();
@@ -13934,7 +13936,9 @@ function usagesEch(id){
   ["mpc3000","mpc2000"].forEach(function(k){
     var m = S.modele === k && typeof MPC !== "undefined" ? MPC : memLire(k);
     /* v246 : tous les programmes de la MPC (ancienne sauvegarde : « pads ») */
-    var jeux = m && Array.isArray(m.progs) && m.progs.length ? m.progs.map(function(p){ return p && p.pads; })
+    /* v250 : en mémoire, le programme 1 est dans « pads », un programme d'usine n'a pas de pads */
+    var jeux = m && Array.isArray(m.progs) && m.progs.length
+             ? m.progs.map(function(p, i){ return p && (p.pads || (i === 0 ? m.pads : null)); })
              : [m && m.pads];
     jeux.forEach(function(pads){
       if(Array.isArray(pads)) pads.forEach(function(p){ if(p && p.ech === id) n++; });
@@ -18407,9 +18411,16 @@ function memMpc(){
   memoire["mpc" + MPC.v] = {
     banque:MPC.banque, sel:MPC.sel, seqCur:MPC.seqCur,
     type16:MPC.type16, compte:MPC.compte, chanson:MPC.chanson,
-    /* pads = programme 1, comme avant (anciennes lectures) ; progs = les 8 */
+    /* pads = programme 1, comme avant (anciennes lectures) ; progs = les 8.
+       v250 : le programme 1 n'est plus recopié dans progs (il est dans pads),
+       et un programme resté au kit d'usine ne garde que son nom — huit copies
+       complètes pesaient 73 ko par MPC au lieu de 14. */
     pads:MPC.progs[0].pads,
-    progs:MPC.progs.map(function(p){ return {nom:p.nom, pads:p.pads}; }),
+    progs:MPC.progs.map(function(p, k){
+      var o = {nom:p.nom};
+      if(k > 0 && JSON.stringify(p.pads) !== JSON.stringify(progVide(k).pads)) o.pads = p.pads;
+      return o;
+    }),
     seqs:MPC.seqs.map(function(s){
       var pl = [];
       (s.pistes || []).forEach(function(p, i){
@@ -18437,11 +18448,12 @@ function chargerMpc(){
   if(m){
     /* v246 : les 8 programmes ; une ancienne sauvegarde n'a que « pads »,
        qui devient le programme 1 — les autres partent du kit d'usine */
+    /* v250 : programme sans pads = kit d'usine ; programme 1 sans pads = « pads » */
     if(Array.isArray(m.progs)) m.progs.slice(0, MPC_NB_PROG).forEach(function(p, k){
-      if(p && Array.isArray(p.pads) && p.pads.length === 64){
-        MPC.progs[k].pads = p.pads;
-        if(typeof p.nom === "string" && p.nom) MPC.progs[k].nom = p.nom.slice(0, 16);
-      }
+      if(!p) return;
+      var pads = Array.isArray(p.pads) ? p.pads : k === 0 ? m.pads : null;
+      if(Array.isArray(pads) && pads.length === 64) MPC.progs[k].pads = pads;
+      if(typeof p.nom === "string" && p.nom) MPC.progs[k].nom = p.nom.slice(0, 16);
     });
     else if(m.pads && m.pads.length === 64) MPC.progs[0].pads = m.pads;
     MPC.pads = MPC.progs[0].pads;
@@ -24904,6 +24916,18 @@ function renommerMotifT1k(v){
   memT1k(); majT1k(); return true;
 }
 
+/* v250 : forme écrite en mémoire d'un motif, et celle d'un motif vide */
+var MOTIF_VIDE_T1K = null;
+function motifVideT1k(){
+  if(MOTIF_VIDE_T1K === null) MOTIF_VIDE_T1K = JSON.stringify(ecrireMotifT1k(lireMotifT1k(null)));
+  return MOTIF_VIDE_T1K;
+}
+function ecrireMotifT1k(m){
+  return {nom:m.nom, longueurs:m.longueurs.slice(), motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
+    instr:m.instr.map(function(I){
+      return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix, ech:I.ech, pech:I.pech};
+    })};
+}
 function lireMotifT1k(o){
   var r = motifT1k(9);
   o = o && typeof o === "object" ? o : {};
@@ -25737,12 +25761,11 @@ function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     chaine:T1K.chaine.map(function(e){ return [e.b, e.p]; }),
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
+    /* v250 : un motif vide s'écrit null (relu vide par lireMotifT1k) : les
+       128 motifs complets pesaient 540 ko, réécrits à chaque retouche */
     motifs:T1K.motifs.map(function(m){
-      return {nom:m.nom, longueurs:m.longueurs.slice(), motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
-              instr:m.instr.map(function(I){
-                return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
-                        ech:I.ech, pech:I.pech};
-              })};
+      var o = ecrireMotifT1k(m);
+      return JSON.stringify(o) === motifVideT1k() ? null : o;
     })};
   sauverMachine("t1k");
 }
@@ -28732,7 +28755,7 @@ function sonsHasard(){
      mémoire écrase ce qu'on vient de tirer et rien ne change. */
   memMachineCourante();
   writeMem();
-  allerMachine(m);                             /* la façade se remet à jour d'un bloc */
+  rouvrirMachine(m);                           /* la façade se remet à jour d'un bloc */
   signal(n2 + " RÉGLAGES TIRÉS AU SORT · LE MOTIF EST INTACT");
   H.inter();
 }
@@ -28899,7 +28922,7 @@ function exporterWav(songEm){
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
     try{ allerMachine(modele); }catch(e){ signal("MACHINE À RECHARGER"); }
     /* v244 : la réouverture a éteint le mode morceau : on le rallume */
-    if(morceau){ try{ if(MACHINE.reprendreChaine) MACHINE.reprendreChaine(); }catch(e){} }
+    if(morceau) rallumerMorceaux([MACHINE]);
     if(emAvant){
       Object.keys(emAvant).forEach(function(k){ if(k !== "noeuds") EM[k] = emAvant[k]; });
       document.body.inert = inerteAvant;
@@ -32312,6 +32335,8 @@ function exporterPriseWav(i){
   if(PR.lecture) prArreter();
   stop();
   if(writeMem() === false){ signal("RENDU ANNULÉ · MÉMOIRE NON ENREGISTRÉE"); return; }
+  /* v250 : chaque machine rendue est rouverte, ce qui éteint son mode morceau */
+  var morceaux = morceauxActifs();
 
   var ctxVrai = ctx, masterVrai = master, bruitVrai = noiseBuf, cacheVrai = cache;
   var metalVrai = metalBuf, sourcesVraies = SOURCES, collecteVraie = COLLECTE;
@@ -32348,6 +32373,7 @@ function exporterPriseWav(i){
           allerMachine(v[2]);
       });
       allerMachine(modele);
+      rallumerMorceaux(morceaux);
     }finally{
       WAVX.occupe = false;
       document.body.inert = inerteAvant;
@@ -32485,6 +32511,7 @@ function ondesEnr(){
   var sortiesVraies = {outBd:outBd, outMix:outMix, panBd:panBd, panMix:panMix};
   var busVrais = SET.bus;
   var resultat = {};
+  var morceaux = morceauxActifs();              /* v250 : voir rouvrirMachine */
 
   function remettre(){
     ENR.ondesOccupe = false;
@@ -32494,6 +32521,7 @@ function ondesEnr(){
     outBd = sortiesVraies.outBd; outMix = sortiesVraies.outMix;
     panBd = sortiesVraies.panBd; panMix = sortiesVraies.panMix;
     try{ allerMachine(modele); }catch(e){}
+    rallumerMorceaux(morceaux);
   }
 
   /* Une piste à la fois, en chaîne : deux contextes hors ligne en parallèle se
@@ -34753,6 +34781,35 @@ function allerMachine(id){
   else if(id === "emx") activerMx();
   else if(id === "esx") activerSx();
   else appliquerModele(id);
+}
+/* v250 : ouvrir une machine recharge sa mémoire, ce qui éteint son mode
+   morceau (TRACK des TR, SONG de la DMX, chanson de la MPC, chaîne de la
+   TR-1000) — c'est voulu quand on CHOISIT une machine. Mais bien des
+   réouvertures ne sont pas un choix : ouvrir l'enregistreur, la
+   bibliothèque ou les pads, fermer la vue à plusieurs machines, tirer les
+   sons au sort, relancer le moteur audio, rendre une prise ou dessiner ses
+   formes d'onde. Celles-là passent par rouvrirMachine, ou relèvent les modes
+   avant et les rallument après, pour toutes les machines touchées. */
+function morceauxActifs(){
+  return [MACHINE_TR, MACHINE_DMX, MACHINE_MPC, MACHINE_T1K].filter(function(d){
+    try{ return !!(d && d.planChaine && d.reprendreChaine && d.planChaine()); }catch(e){ return false; }
+  });
+}
+function rallumerMorceaux(liste){
+  if(!liste || !liste.length) return;
+  liste.forEach(function(d){ try{ d.reprendreChaine(); }catch(e){} });
+  /* la façade affichée montre le mode rallumé */
+  var m = S.modele;
+  try{
+    if(m === "dmx") majAffDmx();
+    else if(m === "mpc3000" || m === "mpc2000") majLcdMpc();
+    else if(m === "t1k"){ majChaineT1k(); majT1k(); }
+  }catch(e){}
+}
+function rouvrirMachine(id){
+  var garde = morceauxActifs();
+  allerMachine(id);
+  rallumerMorceaux(garde);
 }
 var picks = document.querySelectorAll(".pick");
 for(var q=0;q<picks.length;q++){

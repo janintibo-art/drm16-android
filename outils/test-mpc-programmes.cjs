@@ -89,9 +89,25 @@ const ES_SRC = lire('page/js/280-electribe-es-1.js');
   c.appliquerProgMpc(); c.memMpc();
   const m = c.stocke.mpc3000;
   assert.equal(m.progs.length, 8);
-  assert.deepStrictEqual(m.pads, m.progs[0].pads, 'pads = programme 1 pour les anciennes lectures');
+  assert.equal(JSON.stringify(m.pads), JSON.stringify(c.MPC.progs[0].pads), 'pads = programme 1 pour les anciennes lectures');
+  /* v250 : programme 1 pas recopié, programmes d'usine réduits à leur nom */
+  assert.equal(m.progs[0].pads, undefined, 'programme 1 : seulement dans pads');
+  assert.equal(m.progs.map(p => +!!p.pads).join(''), '00000010', 'seul le programme modifié garde ses pads');
+  assert.equal(m.progs[3].nom, 'PROGRAM 4');
+  const vieux = JSON.stringify(Object.assign({}, m, {progs: c.MPC.progs.map(p => ({nom: p.nom, pads: p.pads}))}));
+  assert(JSON.stringify(m).length * 3 < vieux.length, 'sauvegarde au moins trois fois plus légère : ' +
+         JSON.stringify(m).length + ' contre ' + vieux.length);
+  c.MPC.progs[2].nom = 'LIVE'; c.memMpc();
   c.chargerMpc();
   assert.equal(c.MPC.prog, 6); assert.equal(c.MPC.pads[9].ech, 'u-sept');
+  assert.equal(c.MPC.progs[2].nom, 'LIVE', 'nom gardé sans pads');
+  assert.equal(c.MPC.progs[2].pads.length, 64, 'programme d’usine reconstruit');
+  assert.notEqual(c.MPC.progs[2].pads, c.MPC.progs[3].pads, 'programmes d’usine indépendants');
+  /* sauvegarde de la v247 (huit programmes complets) : relue telle quelle */
+  const v247 = JSON.parse(vieux); v247.progs[1].pads[0].ech = 'u-deux';
+  c.stocke.mpc3000 = v247; c.chargerMpc();
+  assert.equal(c.MPC.progs[1].pads[0].ech, 'u-deux'); assert.equal(c.MPC.progs[6].pads[9].ech, 'u-sept');
+  c.stocke.mpc3000 = JSON.parse(JSON.stringify(m));
   /* ancienne sauvegarde : pads seul → programme 1 ; données abîmées ignorées */
   const ancien = JSON.parse(JSON.stringify(m)); delete ancien.progs;
   ancien.pads[0].ech = 'u-ancien'; ancien.seqs[0].prog = 42;
@@ -121,5 +137,9 @@ const ES_SRC = lire('page/js/280-electribe-es-1.js');
   const c2 = vm.createContext({S: {modele: 'es1'}, memLire: k => k === 'mpc3000' ? {pads: [{ech: 'u-x'}, {ech: 'u-x'}]} : null});
   vm.runInContext('var n = 0, id = "u-x";' + usages + '; resultat = n;', c2);
   assert.equal(c2.resultat, 2, 'ancienne sauvegarde sans programmes : pads comptés');
+  const c3 = vm.createContext({S: {modele: 'es1'}, memLire: k => k === 'mpc3000'
+    ? {pads: [{ech: 'u-x'}], progs: [{nom: 'PROGRAM 1'}, {nom: 'PROGRAM 2'}, {nom: 'P3', pads: [{ech: 'u-x'}]}]} : null});
+  vm.runInContext('var n = 0, id = "u-x";' + usages + '; resultat = n;', c3);
+  assert.equal(c3.resultat, 2, 'v250 : programme 1 lu dans pads, programmes d’usine sans pads');
 }
 console.log('test-mpc-programmes : 8 programmes, un par séquence, pavé, chanson, rendu, mémoire, copie, bibliothèque : OK');

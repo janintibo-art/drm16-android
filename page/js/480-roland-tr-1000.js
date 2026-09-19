@@ -102,6 +102,18 @@ function renommerMotifT1k(v){
   memT1k(); majT1k(); return true;
 }
 
+/* v250 : forme écrite en mémoire d'un motif, et celle d'un motif vide */
+var MOTIF_VIDE_T1K = null;
+function motifVideT1k(){
+  if(MOTIF_VIDE_T1K === null) MOTIF_VIDE_T1K = JSON.stringify(ecrireMotifT1k(lireMotifT1k(null)));
+  return MOTIF_VIDE_T1K;
+}
+function ecrireMotifT1k(m){
+  return {nom:m.nom, longueurs:m.longueurs.slice(), motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
+    instr:m.instr.map(function(I){
+      return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix, ech:I.ech, pech:I.pech};
+    })};
+}
 function lireMotifT1k(o){
   var r = motifT1k(9);
   o = o && typeof o === "object" ? o : {};
@@ -935,12 +947,11 @@ function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
     chaine:T1K.chaine.map(function(e){ return [e.b, e.p]; }),
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
+    /* v250 : un motif vide s'écrit null (relu vide par lireMotifT1k) : les
+       128 motifs complets pesaient 540 ko, réécrits à chaque retouche */
     motifs:T1K.motifs.map(function(m){
-      return {nom:m.nom, longueurs:m.longueurs.slice(), motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
-              instr:m.instr.map(function(I){
-                return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix,
-                        ech:I.ech, pech:I.pech};
-              })};
+      var o = ecrireMotifT1k(m);
+      return JSON.stringify(o) === motifVideT1k() ? null : o;
     })};
   sauverMachine("t1k");
 }
