@@ -1,7 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
 const src=fs.readFileSync(path.join(__dirname,'../page/js/250-electribe-em-1.js'),'utf8');
 function f(n){let i=src.indexOf('function '+n+'(');assert(i>=0,n);return src.slice(i,src.indexOf('\n}',i)+2);}
-const c={S:{run:false},EM:{page:0,sel:0,mode:0,pos:-1,mute:[],solo:[],rec:false,shift:false,kb:false,pset:false},MOT:null,cache:false,queue:[],notes:[],H:{cran(){}},MIDI:{base:36,canal:1,canalSy:2},lcd(){},memEm(){},protege(){},majBascules(){},majKnobsPartie(){},majMotionLeds(){},majEditionSongEm(){},ouvrirPas:()=>0,stepDur:()=>.125,attenuerVoie(){},sortiePartie(){},jouerTimbre(...x){c.notes.push(x);},voixSynth(...x){c.notes.push(x);},midiNoteA(){},motFxValeur:()=>null};
+const c={S:{run:false},EM:{page:0,sel:0,mode:0,pos:-1,mute:[],solo:[],rec:false,shift:false,kb:false,pset:false},MOT:null,cache:false,queue:[],notes:[],H:{cran(){}},MIDI:{base:36,canal:1,canalSy:2},lcd(){},memEm(){},protege(){},majBascules(){},majKnobsPartie(){},majMotionLeds(){},majEditionSongEm(){},majNomMotifEm(){},ouvrirPas:()=>0,stepDur:()=>.125,attenuerVoie(){},sortiePartie(){},jouerTimbre(...x){c.notes.push(x);},voixSynth(...x){c.notes.push(x);},midiNoteA(){},motFxValeur:()=>null};
 vm.createContext(c);
 vm.runInContext(src.slice(src.indexOf('var ONDES ='),src.indexOf('function nomNote('))+src.slice(src.indexOf('function ligneVide('),src.indexOf('function poser(')),c);
 vm.runInContext(['serialiser','deserialiser','motionAu','enregMotion','scheduleEm','velAccent','choisirLongueurEm','choisirPageEm','majPagesEm','majTouches','beatEm','fonctionShift','ecrireVol'].map(f).join('\n'),c);
@@ -28,3 +28,12 @@ c.S.run=false;c.EM.pat.len=32;c.EM.pat.st[0][31]=1;c.EM.pat.st[0][63]=1;c.foncti
 const r=c.deserialiser(JSON.parse(JSON.stringify(c.serialiser(c.EM.pat))));assert.deepStrictEqual(copie(r),copie(c.EM.pat));
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../page/js/040-mouvement-des-effets.js'),'utf8'),c);let m={mode:1,p:'e1',v:null};c.motFxEcrire(m,'e1',.4,true,63,64);assert.equal(m.v.length,64);m={mode:1,p:'e1',v:null};c.motFxEcrire(m,'e1',.4,true,15);assert.equal(m.v.length,16);
 console.log('EM-1 v218 : migration, 64 cellules, pages, lecture inter-pages, REC, Motion, longueur protégée, notes masquées, rotation et mémoire OK.');
+
+c.WAVX={occupe:false};c.majLcd=()=>{};vm.runInContext(f('renommerMotifEm'),c);
+c.EM.protect=false;c.S.run=false;const notes=JSON.stringify(c.EM.pat.st);
+assert(c.renommerMotifEm('  Intro   été  '));assert.equal(c.EM.pat.nom,'Intro été');assert.equal(JSON.stringify(c.EM.pat.st),notes);
+let nomme=c.deserialiser(JSON.parse(JSON.stringify(c.serialiser(c.EM.pat))));assert.equal(nomme.nom,'Intro été');assert.equal(c.deserialiser({}).nom,'');
+assert.equal(Array.from(c.nomMotifEm('🎵'.repeat(30))).length,24);assert.equal(c.nomMotifEm(123),'');assert.equal(c.nomMotifEm('<b>Intro</b>'),'<b>Intro</b>');
+for(const objet of [c.S,c.EM,c.WAVX]){let cle=objet===c.S?'run':objet===c.EM?'protect':'occupe';objet[cle]=true;assert(!c.renommerMotifEm('refus'));objet[cle]=false;assert.equal(c.EM.pat.nom,'Intro été');}
+assert(c.renommerMotifEm(''));assert.equal(c.EM.pat.nom,'');
+console.log('EM-1 v222 : noms, normalisation, Unicode, mémoire, anciens motifs, notes conservées et protections OK.');

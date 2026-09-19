@@ -368,8 +368,11 @@ function nomNote(n){
 function ligneVide(){ return [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]; }
 function ligneEmVide(){ return Array(64).fill(0); }
 function longueurEm(v){ return Number.isInteger(v) && v >= 1 && v <= 64 ? v : 16; }
+function nomMotifEm(v){
+  return typeof v === "string" ? Array.from(v.replace(/\s+/g," ").trim()).slice(0,24).join("") : "";
+}
 function motifVide(){
-  var p = {sw:0, len:16, rollN:4, gamme:0, mot:[], tim:[], st:[], nt:[], lvl:[], pan:[], pit:[], amp:[], roll:[], fx:[], onde:[]};
+  var p = {nom:"", sw:0, len:16, rollN:4, gamme:0, mot:[], tim:[], st:[], nt:[], lvl:[], pan:[], pit:[], amp:[], roll:[], fx:[], onde:[]};
   var TIM_DEF = [0,4,8,10,13,15,17,19,0,0,0,0];
   for(var k=0;k<12;k++){
     p.st.push(ligneEmVide());
@@ -580,7 +583,7 @@ function lcd(val,lab,fugace){
 var PARAMS = ["PATTERN","TEMPO","WAVE","NOTE NO.","STEP REC."];
 function majLcd(){
   var k = EM.sel, p = EM.pat;
-  if(EM.param===0) lcd(("00"+(EM.cur+1)).slice(-3), "PATTERN");
+  if(EM.param===0) lcd(("00"+(EM.cur+1)).slice(-3), nomMotifEm(p.nom) || "PATTERN");
   else if(EM.param===1) lcd(String(S.bpm), "TEMPO");
   else if(EM.param===2) lcd(EM_PARTS[k].synth ? ONDES[indiceOndeEm(p.onde[k])] : (TIMBRES[p.tim[k]]||TIMBRES[0]).n, "WAVE");
   else if(EM.param===3){
@@ -874,6 +877,7 @@ function fonctionShift(i){
     lcd("CLR", "CLEAR SONG", true);
   } else if(i===15){                          /* Protect */
     EM.protect = !EM.protect;
+    majTouches();
     lcd(EM.protect?"ON":"OFF", "PROTECT", true);
   } else {
     lcd("---", "À VENIR", true);
@@ -884,7 +888,7 @@ function protege(){ lcd("PRT","PROTECT",true); H.cran(); }
 
 /* --- mémoire de l'EM-1 --- */
 function serialiser(p){
-  return {sw:p.sw, len:p.len, rollN:p.rollN, gamme:p.gamme,
+  return {nom:nomMotifEm(p.nom), sw:p.sw, len:p.len, rollN:p.rollN, gamme:p.gamme,
           st:p.st.map(function(l){ return l.join(""); }),
           nt:p.nt.map(function(l){ return l.join(","); }),
           lvl:p.lvl, pan:p.pan, pit:p.pit,
@@ -893,6 +897,7 @@ function serialiser(p){
 function deserialiser(o){
   var p = motifVide();
   if(!o) return p;
+  p.nom = nomMotifEm(o.nom);
   p.sw = o.sw||0;
   p.len = longueurEm(o.len); p.rollN = o.rollN||4; p.gamme = o.gamme||0;
   if(Array.isArray(o.st)) o.st.slice(0,12).forEach(function(s,k){ if(typeof s === "string") for(var i=0;i<64;i++) p.st[k][i] = s.charAt(i)==="1"?1:0; });
@@ -1326,6 +1331,7 @@ function activerEm(){
 
 /* v218 : pages d'édition indépendantes du transport commun. */
 function majPagesEm(){
+  majNomMotifEm();
   EM.page = Math.max(0,Math.min(Math.ceil(EM.pat.len/16)-1,EM.page||0));
   var select = document.getElementById("em-page");
   select.value = String(EM.page);
@@ -1380,7 +1386,7 @@ function majEditionSongEm(){
   document.getElementById("em-song-annuler").disabled = !annulationSongPossibleEm();
   var possible = editionSongPossibleEm();
   document.getElementById("em-song-selection").textContent = EM.song.length ?
-    "POSITION " + (EM.ssel+1) + " / " + EM.song.length : "SONG VIDE · TOUCHE 1 POUR AJOUTER";
+    "POSITION " + (EM.ssel+1) + " / " + EM.song.length + " · " + libelleMotifEm(EM.song[EM.ssel]) : "SONG VIDE · TOUCHE 1 POUR AJOUTER";
   document.getElementById("em-song-gauche").disabled = !possible || EM.ssel === 0;
   document.getElementById("em-song-droite").disabled = !possible || EM.ssel === EM.song.length-1;
   document.getElementById("em-song-dupliquer").disabled = !possible || EM.song.length >= 16;
@@ -1416,3 +1422,30 @@ function annulerSongEm(){
   majTouches(); memEm(); H.inter(); lcd("UNDO", "SONG RÉTABLI", true); return true;
 }
 document.getElementById("em-song-annuler").addEventListener("click", annulerSongEm);
+
+/* v222 : nommer le motif courant, indépendamment de la position Song sélectionnée. */
+function libelleMotifEm(k){
+  var p = k === EM.cur ? EM.pat : EM.slots[k];
+  var nom = p ? nomMotifEm(p.nom) : "";
+  return "MOTIF " + (k+1) + (nom ? " · " + nom : "");
+}
+function renommerMotifEm(valeur){
+  if(S.run || EM.protect || WAVX.occupe) return false;
+  EM.pat.nom = nomMotifEm(valeur);
+  memEm(); majTouches(); majLcd(); return true;
+}
+function majNomMotifEm(){
+  var champ = document.getElementById("em-nom-motif");
+  if(document.activeElement !== champ || +champ.dataset.motif !== EM.cur) champ.value = nomMotifEm(EM.pat.nom);
+  champ.dataset.motif = String(EM.cur);
+  champ.disabled = S.run || EM.protect || WAVX.occupe;
+  document.getElementById("em-nom-label").textContent = "NOM DU MOTIF COURANT " + (EM.cur+1);
+}
+document.getElementById("em-nom-motif").addEventListener("change", function(){
+  if(+this.dataset.motif === EM.cur) renommerMotifEm(this.value);
+  this.value = nomMotifEm(EM.pat.nom);
+});
+document.getElementById("em-nom-motif").addEventListener("keydown", function(e){
+  e.stopPropagation();
+  if(e.key === "Enter"){ e.preventDefault(); this.blur(); }
+});

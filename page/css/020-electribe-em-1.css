@@ -156,3 +156,8 @@ body.em1 #unit{display:none}
 .em-song-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}
 .em-song-actions button{padding:10px;background:#283b50;color:#fff;border:1px solid #8296ad;border-radius:4px;font:700 10px Arial}
 .em-song-actions button:disabled{opacity:.4}
+
+.em-nom-motif{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;color:#d9e7f4;font:700 10px Arial}
+#em-nom-motif{flex:1;min-width:120px;max-width:100%;box-sizing:border-box;padding:9px;background:#202833;color:#fff;border:1px solid #8296ad;border-radius:4px;font:12px Arial}
+#em-nom-motif:disabled{opacity:.5}
+#em-song-selection{overflow-wrap:anywhere}

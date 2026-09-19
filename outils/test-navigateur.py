@@ -2003,10 +2003,35 @@ async def em_song_edition(nav):
     finally:
         await pg.context.close()
 
+async def em_noms_motifs(nav):
+    print('\n34. EM-1 : noms de motifs (v222)')
+    pg, err = await nouvelle_page(nav, pont=True)
+    try:
+        await pg.locator('.pick[data-m=em1]').click()
+        await pg.locator('#em-nom-motif').fill('Intro été')
+        await pg.locator('#em-nom-motif').press('Enter')
+        ok(await pg.evaluate('EM.pat.nom==="Intro été"'),'Entrée valide le nom du motif courant')
+        await pg.evaluate('memEm();writeMem()');await pg.reload();await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=em1]').click()
+        ok(await pg.locator('#em-nom-motif').input_value()=='Intro été','nom restauré après rechargement')
+        await pg.evaluate("EM.song=[EM.cur,1];EM.slots[1].nom='Break';EM.mode=2;EM.ssel=1;majTouches()")
+        ok('Break' in await pg.locator('#em-song-selection').inner_text(),'nom du motif de la position Song sélectionnée')
+        ok(await pg.locator('#em-nom-motif').input_value()=='Intro été','le champ reste lié au motif courant')
+        await pg.evaluate('EM.mode=0;majTouches()')
+        await pg.locator('#em-play').click()
+        await pg.wait_for_function('document.getElementById("em-nom-motif").disabled')
+        ok(await pg.locator('#em-nom-motif').is_disabled(),'renommage verrouillé pendant PLAY')
+        await pg.locator('#em-stop').click()
+        await pg.locator('#em-nom-motif').fill('');await pg.locator('#em-nom-motif').press('Enter')
+        ok(await pg.evaluate('EM.pat.nom===""'),'effacement du nom')
+        ok(not err,'aucune erreur de page : '+str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_noms_motifs):
             try:
                 await t(nav)
             except Exception as e:
