@@ -2066,13 +2066,30 @@ async def em_noms_motifs(nav):
         await pg.context.close()
 
 async def ko_plocks(nav):
-    print('\n36. PO-33 K.O! : Parameter Locks, CHROMA et SWING (v228)')
+    print('\n36. PO-33 K.O! : 16 effets, Parameter Locks, CHROMA et SWING (v229)')
     pg, err = await nouvelle_page(nav, pont=True)
     try:
         await pg.locator('.pick[data-m=ko]').click()
         await pg.evaluate('''() => {
           KO_MODE='son';KO.cur=0;KO.sel=0;KO.lockStep=2;KO.swing=0;KO.motifs[0]=motifKo();majKo();
         }''')
+        ok(await pg.evaluate('KO_FX.length===16&&KO_FX[0][0]==="loop16"&&KO_FX[14][0]==="reverse"&&KO_FX[15][0]===""'),'les 16 positions FX suivent l’ordre du PO-33')
+        ok(await pg.evaluate('''() => {
+          audioInit();var b=ctx.createBuffer(1,4,44100),d=b.getChannelData(0);d.set([1,2,3,4]);
+          var r=tamponInverseKo(b),x=Array.from(r.getChannelData(0));
+          return x.join(',')==='4,3,2,1'&&tamponInverseKo(b)===r;
+        }'''),'REVERSE retourne le tampon une seule fois puis utilise le cache')
+        await pg.evaluate('KO_MODE="fx";KO.fx=15;majKo()')
+        ok(await pg.locator('#ko-pads .kb').nth(0).locator('em').inner_text()=='BOUCLE 1/16','le pad 1 affiche BOUCLE 1/16')
+        ok(await pg.locator('#ko-pads .kb').nth(15).locator('em').inner_text()=='SANS EFFET','le pad 16 affiche SANS EFFET')
+        await pg.evaluate('''() => {
+          KO.pos=5;KO.fx=0;
+          document.getElementById('ko-fx').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:1,pointerType:'mouse',buttons:1}));
+        }''')
+        ok(await pg.evaluate('KO.fxTenu&&KO.fxStep===5'),'maintenir FX capture le pas courant')
+        await pg.evaluate('document.getElementById("ko-fx").dispatchEvent(new PointerEvent("pointerup",{bubbles:true,pointerId:1,pointerType:"mouse"}))')
+        ok(await pg.evaluate('!KO.fxTenu'),'relâcher FX coupe immédiatement l’effet')
+        await pg.evaluate('KO_MODE="son";KO.pos=-1;KO.lockStep=2;majKo()')
         await pg.locator('#ko-swing').evaluate('''e => {
           e.value='60';e.dispatchEvent(new Event('input',{bubbles:true}));
           e.dispatchEvent(new Event('change',{bubbles:true}));

@@ -1397,7 +1397,7 @@ function majKo(){
       KO_MODE === "ptn" ? "PATTERN" : KO_MODE === "fx" ? "EFFET" : "SAMPLE");
   var e2 = document.getElementById("ko-etat");
   if(e2) e2.textContent =
-    KO_MODE === "fx" ? "Choisissez un effet, puis maintenez FX pendant que ça joue."
+    KO_MODE === "fx" ? "Effets 1–16 du PO-33 : choisissez un pad, puis maintenez FX pendant PLAY."
     : KO_MODE === "ptn" ? "Touchez un motif pour y aller."
     : KO.chroma ? "CHROMA : source " + (KO.chromaSource + 1) + " · -7 à +8 demi-tons."
     : (KO.rec ? "WRITE actif : les pads écrivent dans le motif."
@@ -1460,6 +1460,7 @@ function padKo(k){
 function activerKo(){
   stop();
   audioInit(); banqueEs(); chargerEchs();
+  KO.fxTenu = false; KO.fxStep = 0;
   chargerKo();
   poserMachine("ko");
   actif = document.getElementById("unit-ko");
@@ -1528,13 +1529,22 @@ document.getElementById("ko-chroma").addEventListener("click", function(){
   ecrire.addEventListener("click", ecrirePlockKo);
   effacer.addEventListener("click", effacerPlockKo);
 })();
-/* FX au poing : l'effet vit tant que le doigt est sur le bouton. C'est un
-   geste, pas un réglage — le relâcher doit le couper net. */
+/* FX au poing : le pas courant est mémorisé à l'enfoncement. Les quatre
+   boucles et REDÉMARRAGE disposent ainsi d'une origine stable jusqu'au
+   relâchement, même quand le transport continue d'avancer. */
 (function fxTenuKo(){
   var b = document.getElementById("ko-fx");
-  function prendre(){ KO.fxTenu = true; appliquerFxKo(); b.classList.add("on"); }
-  function lacher(){ if(!KO.fxTenu) return; KO.fxTenu = false; appliquerFxKo(); majKo(); }
-  b.addEventListener("pointerdown", function(){ if(KO_MODE === "fx") prendre(); });
+  function prendre(){
+    KO.fxStep = KO.pos >= 0 ? KO.pos : KO.lockStep;
+    KO.fxStep = Math.max(0, Math.min(15, KO.fxStep|0));
+    KO.fxTenu = true; appliquerFxKo(); b.classList.add("on");
+    lcdKo(KO_FX[KO.fx][1], "EFFET");
+  }
+  function lacher(){
+    if(!KO.fxTenu) return;
+    KO.fxTenu = false; appliquerFxKo(); majKo();
+  }
+  b.addEventListener("pointerdown", function(e){ if(KO_MODE === "fx"){ prendre(); e.preventDefault(); } });
   b.addEventListener("pointerup", lacher);
   b.addEventListener("pointercancel", lacher);
   b.addEventListener("pointerleave", lacher);
