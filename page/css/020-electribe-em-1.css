@@ -161,3 +161,7 @@ body.em1 #unit{display:none}
 #em-nom-motif{flex:1;min-width:120px;max-width:100%;box-sizing:border-box;padding:9px;background:#202833;color:#fff;border:1px solid #8296ad;border-radius:4px;font:12px Arial}
 #em-nom-motif:disabled{opacity:.5}
 #em-song-selection{overflow-wrap:anywhere}
+
+.em-choix-motif{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:#d9e7f4;font:700 10px Arial}
+#em-motif-liste{min-width:0;flex:1;max-width:100%;padding:9px;background:#202833;color:#fff;border:1px solid #8296ad;border-radius:4px;font:12px Arial}
+#em-motif-liste:disabled{opacity:.5}

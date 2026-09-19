@@ -37,3 +37,7 @@ assert.equal(Array.from(c.nomMotifEm('🎵'.repeat(30))).length,24);assert.equal
 for(const objet of [c.S,c.EM,c.WAVX]){let cle=objet===c.S?'run':objet===c.EM?'protect':'occupe';objet[cle]=true;assert(!c.renommerMotifEm('refus'));objet[cle]=false;assert.equal(c.EM.pat.nom,'Intro été');}
 assert(c.renommerMotifEm(''));assert.equal(c.EM.pat.nom,'');
 console.log('EM-1 v222 : noms, normalisation, Unicode, mémoire, anciens motifs, notes conservées et protections OK.');
+vm.runInContext(f('allerMotifEm')+'\n'+f('choisirMotifListeEm'),c);c.H.inter=()=>{};c.EM.cur=0;c.EM.slots=Array.from({length:16},()=>c.motifVide());const quitte=c.EM.pat;c.EM.page=3;c.EM.pasSel=63;c.EM.song=[0,2];c.memEm=()=>{c.dernierMotifSauve=c.EM.cur;};
+assert(c.choisirMotifListeEm(15));assert.strictEqual(c.EM.slots[0],quitte);assert.equal(c.EM.cur,15);assert.equal(c.EM.page,0);assert.equal(c.EM.pasSel,-1);assert.equal(c.dernierMotifSauve,15);assert.deepStrictEqual(copie(c.EM.song),[0,2]);
+for(const v of [-1,16,1.5,'1'])assert(!c.choisirMotifListeEm(v));c.S.run=true;assert(!c.choisirMotifListeEm(0));c.S.run=false;c.WAVX.occupe=true;assert(!c.choisirMotifListeEm(0));c.WAVX.occupe=false;c.EM.protect=true;assert(c.choisirMotifListeEm(0));assert.strictEqual(c.EM.pat,quitte);
+console.log('EM-1 v223 : sélection directe, conservation des modifications, page, sauvegarde, Song intact et protection PLAY OK.');

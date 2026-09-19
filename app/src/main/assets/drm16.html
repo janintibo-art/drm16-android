@@ -682,6 +682,10 @@ body.em1 #unit{display:none}
 #em-nom-motif{flex:1;min-width:120px;max-width:100%;box-sizing:border-box;padding:9px;background:#202833;color:#fff;border:1px solid #8296ad;border-radius:4px;font:12px Arial}
 #em-nom-motif:disabled{opacity:.5}
 #em-song-selection{overflow-wrap:anywhere}
+
+.em-choix-motif{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:#d9e7f4;font:700 10px Arial}
+#em-motif-liste{min-width:0;flex:1;max-width:100%;padding:9px;background:#202833;color:#fff;border:1px solid #8296ad;border-radius:4px;font:12px Arial}
+#em-motif-liste:disabled{opacity:.5}
 /* ===================== ELECTRIBE ER-1 ===================== */
 body.er1 .er{display:block}
 body.er1 #unit,body.er1 .em{display:none}
@@ -2428,6 +2432,7 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   </div>
 
   <div class="em-bas em-noir">
+    <div class="em-choix-motif"><label for="em-motif-liste">CHOISIR LE MOTIF</label><select id="em-motif-liste" aria-label="Choisir un motif EM-1 par son numéro et son nom"><option value="0">MOTIF 1</option><option value="1">MOTIF 2</option><option value="2">MOTIF 3</option><option value="3">MOTIF 4</option><option value="4">MOTIF 5</option><option value="5">MOTIF 6</option><option value="6">MOTIF 7</option><option value="7">MOTIF 8</option><option value="8">MOTIF 9</option><option value="9">MOTIF 10</option><option value="10">MOTIF 11</option><option value="11">MOTIF 12</option><option value="12">MOTIF 13</option><option value="13">MOTIF 14</option><option value="14">MOTIF 15</option><option value="15">MOTIF 16</option></select></div>
     <div class="em-nom-motif"><label id="em-nom-label" for="em-nom-motif">NOM DU MOTIF COURANT</label><input id="em-nom-motif" type="text" maxlength="48" placeholder="Intro, Couplet, Break…" autocomplete="off" enterkeyhint="done" aria-label="Nom du motif courant, 24 caractères maximum"></div>
     <div id="em-song-edition" hidden>
       <span id="em-song-selection">SONG VIDE</span>
@@ -6940,6 +6945,12 @@ fait tourner les notes dans la longueur active. Le clavier, Pattern Set et Song
 gardent leurs 16 touches de commande ; les pages concernent seulement les pas.
 Le menu WAV conserve son fonctionnement habituel. Pour le morceau entier,
 utilisez SONG EN WAV, décrit ci-dessous.</p>
+<p><b>Choisir le motif :</b> la liste affiche les 16 numéros et leurs noms.
+À l’arrêt, choisissez directement celui à éditer. La sélection est sauvegardée,
+les modifications du motif quitté sont conservées et la page s’adapte à la
+longueur du nouveau motif. La liste est disponible en protection en écriture,
+mais bloquée pendant PLAY et un rendu. En mode Song, elle change le motif
+courant sans remplacer la référence de la position Song sélectionnée.</p>
 <p><b>Nom du motif :</b> le champ NOM DU MOTIF COURANT permet de saisir
 jusqu’à 24 caractères. Validez avec Entrée ou en quittant le champ. Le numéro
 indiqué précise le motif renommé ; en mode Song, la position sélectionnée peut
@@ -11853,6 +11864,12 @@ function renommerMotifEm(valeur){
   memEm(); majTouches(); majLcd(); return true;
 }
 function majNomMotifEm(){
+  var liste = document.getElementById("em-motif-liste");
+  for(var k=0;k<16;k++){
+    var texte = libelleMotifEm(k);
+    if(liste.options[k].textContent !== texte) liste.options[k].textContent = texte;
+  }
+  liste.value = String(EM.cur); liste.disabled = S.run || WAVX.occupe;
   var champ = document.getElementById("em-nom-motif");
   if(document.activeElement !== champ || +champ.dataset.motif !== EM.cur) champ.value = nomMotifEm(EM.pat.nom);
   champ.dataset.motif = String(EM.cur);
@@ -11867,6 +11884,19 @@ document.getElementById("em-nom-motif").addEventListener("keydown", function(e){
   e.stopPropagation();
   if(e.key === "Enter"){ e.preventDefault(); this.blur(); }
 });
+
+/* v223 : choisir directement un motif par son numéro et son nom. */
+function choisirMotifListeEm(k){
+  if(S.run || WAVX.occupe || !Number.isInteger(k) || k < 0 || k >= 16) return false;
+  if(k === EM.cur) return true;
+  EM.slots[EM.cur] = EM.pat;
+  EM.pasSel = -1;
+  allerMotifEm(k); memEm(); return true;
+}
+document.getElementById("em-motif-liste").addEventListener("change",function(){
+  choisirMotifListeEm(+this.value); majNomMotifEm();
+});
+document.getElementById("em-motif-liste").addEventListener("keydown",function(e){ e.stopPropagation(); });
 /* ===================== ELECTRIBE ER-1 ===================== */
 var ER_PARTS = [
   {n:"1", t:"perc"}, {n:"2", t:"perc"}, {n:"3", t:"perc"}, {n:"4", t:"perc"},

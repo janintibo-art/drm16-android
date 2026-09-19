@@ -1435,6 +1435,12 @@ function renommerMotifEm(valeur){
   memEm(); majTouches(); majLcd(); return true;
 }
 function majNomMotifEm(){
+  var liste = document.getElementById("em-motif-liste");
+  for(var k=0;k<16;k++){
+    var texte = libelleMotifEm(k);
+    if(liste.options[k].textContent !== texte) liste.options[k].textContent = texte;
+  }
+  liste.value = String(EM.cur); liste.disabled = S.run || WAVX.occupe;
   var champ = document.getElementById("em-nom-motif");
   if(document.activeElement !== champ || +champ.dataset.motif !== EM.cur) champ.value = nomMotifEm(EM.pat.nom);
   champ.dataset.motif = String(EM.cur);
@@ -1449,3 +1455,16 @@ document.getElementById("em-nom-motif").addEventListener("keydown", function(e){
   e.stopPropagation();
   if(e.key === "Enter"){ e.preventDefault(); this.blur(); }
 });
+
+/* v223 : choisir directement un motif par son numéro et son nom. */
+function choisirMotifListeEm(k){
+  if(S.run || WAVX.occupe || !Number.isInteger(k) || k < 0 || k >= 16) return false;
+  if(k === EM.cur) return true;
+  EM.slots[EM.cur] = EM.pat;
+  EM.pasSel = -1;
+  allerMotifEm(k); memEm(); return true;
+}
+document.getElementById("em-motif-liste").addEventListener("change",function(){
+  choisirMotifListeEm(+this.value); majNomMotifEm();
+});
+document.getElementById("em-motif-liste").addEventListener("keydown",function(e){ e.stopPropagation(); });
