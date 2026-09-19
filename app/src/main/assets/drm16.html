@@ -1557,6 +1557,19 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 .ko-pads .kb.cur{background:#f2f2f2;color:#141414}
 .ko-pads .kb em{display:block;margin-top:5px;font:400 7px/1.1 "Roboto Condensed",Arial;
   font-style:normal;letter-spacing:.4px;opacity:.7;overflow:hidden;white-space:nowrap}
+.ko-lock{margin:0 0 11px;padding:9px 10px;border:1px solid #4b4b4b;border-radius:7px;background:#202020}
+.ko-lock-titre,.ko-lock-ligne{display:flex;align-items:center;gap:6px}
+.ko-lock-titre{justify-content:space-between;margin-bottom:7px;color:#ff9b4a;font:800 9px/1 "Roboto Condensed",Arial;letter-spacing:1px}
+#ko-lock-status{color:#bdbdbd;font-weight:400;letter-spacing:.3px}
+.ko-lock-ligne{margin-top:6px;color:#aaa;font:700 8px/1 "Roboto Condensed",Arial;letter-spacing:.5px}
+.ko-lock select{min-width:0;padding:6px 4px;border:1px solid #555;border-radius:4px;background:#303030;color:#eee;font:700 9px Arial}
+#ko-lock-param{flex:1}
+#ko-lock-step{width:58px}
+.ko-lock-valeur input{min-width:0;flex:1;accent-color:#ff6a00}
+.ko-lock-valeur output{min-width:43px;text-align:right;color:#eee;font:700 9px Arial}
+.ko-lock button{padding:7px 6px;border:0;border-radius:4px;background:#3b3b3b;color:#eee;font:800 8px/1 "Roboto Condensed",Arial}
+.ko-lock button:first-of-type{background:#ff6a00;color:#171717}
+.ko-lock button:disabled,.ko-lock select:disabled,.ko-lock input:disabled{opacity:.45}
 .ko-pied{font:400 10.5px/1.5 "Roboto Condensed",Arial;color:#7a7a7a;text-align:center}
 
 #mc-boucle-info{grid-column:span 2;min-width:0;font:700 9px/1.4 Arial;color:#b5b5bd}
@@ -3986,6 +3999,22 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="ko-pads" id="ko-pads"></div>
 
+  <div class="ko-lock" id="ko-lock">
+    <div class="ko-lock-titre"><b>PARAMETER LOCK</b><span id="ko-lock-status">PAS 1 · AUCUN</span></div>
+    <div class="ko-lock-ligne">
+      <label for="ko-lock-param">PARAMÈTRE</label>
+      <select id="ko-lock-param" aria-label="Paramètre verrouillé"><option value="pitch">PITCH</option><option value="start">START</option><option value="length">LENGTH</option><option value="tone">TONE</option></select>
+      <label for="ko-lock-step">PAS</label>
+      <select id="ko-lock-step" aria-label="Pas du Parameter Lock"><option value="0">1</option><option value="1">2</option><option value="2">3</option><option value="3">4</option><option value="4">5</option><option value="5">6</option><option value="6">7</option><option value="7">8</option><option value="8">9</option><option value="9">10</option><option value="10">11</option><option value="11">12</option><option value="12">13</option><option value="13">14</option><option value="14">15</option><option value="15">16</option></select>
+    </div>
+    <div class="ko-lock-ligne ko-lock-valeur">
+      <input id="ko-lock-value" type="range" min="0" max="127" value="64" aria-label="Valeur du Parameter Lock">
+      <output id="ko-lock-value-label" for="ko-lock-value">0 st</output>
+      <button id="ko-lock-apply" type="button">ÉCRIRE</button>
+      <button id="ko-lock-clear" type="button">EFFACER</button>
+    </div>
+  </div>
+
   <div class="ko-bas">
     <button id="ko-fx">FX</button>
     <button id="ko-play">PLAY</button>
@@ -3995,7 +4024,6 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <span id="ko-etat">Touchez un pad pour l'entendre · WRITE pour écrire dans le motif</span>
   </div>
 </div>
-
 <div class="dmxb" id="unit-dmx">
  <div class="dmx-in">
 
@@ -5205,11 +5233,19 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
   <p>HACHOIR et ROULEMENT n'agissent pas sur le son mais sur le <b>rythme</b> : ils changent ce qui est
   joué, pas comment ça sonne. C'est pourquoi on les entend même sur un son très sec.</p>
 
+  <h3>Parameter Locks</h3>
+  <p>Le panneau <b>PARAMETER LOCK</b> mémorise une variation pour chaque pas du motif. Choisissez le pas,
+  puis un paramètre et sa valeur avant d'appuyer sur <b>ÉCRIRE</b>. <b>PITCH</b> transpose le son,
+  <b>START</b> déplace son début, <b>LENGTH</b> raccourcit sa durée et <b>TONE</b> ferme le filtre.
+  La variation s'applique à toutes les frappes de ce pas, y compris pendant un ROULEMENT. <b>EFFACER</b>
+  retire seulement le paramètre choisi. Les anciens motifs restent compatibles et commencent sans verrou.
+  L'édition des verrous se fait à l'arrêt ; la lecture et les autres modes les verrouillent pour éviter une
+  modification involontaire.</p>
+
   <h3>En MIDI</h3>
   <p>Les seize emplacements répondent à seize notes d'affilée à partir de la note de base réglée dans la
   notice générale. La machine reçoit donc aussi bien un clavier qu'une grille de pads.</p>
   </div>
-
   <div class="doc" id="note-arcm" data-titre="MACHINE D'ARCHIVE">
   <h3>Travailler le son</h3>
   <p>Chaque piste a ses réglages, indépendants des quinze autres. Les six premiers existaient déjà :
@@ -6971,7 +7007,7 @@ pendant la lecture, un rendu ou la protection en écriture.</p>
 <p><b>Réorganiser le Song :</b> en mode SONG et à l’arrêt, touchez une
 position sur les seize touches, puis utilisez ← POSITION ou POSITION → pour
 la déplacer. DUPLIQUER insère la même référence juste après la sélection
-(dans la limite de 16 positions). RETIRER supprime uniquement cette position,
+(dans la limite de 64 positions). RETIRER supprime uniquement cette position,
 après confirmation ; le motif reste intact. ERASE en mode SONG utilise la même
 confirmation. Les commandes sont bloquées pendant PLAY, un rendu ou la protection.
 Une nouvelle lecture repart de la première position. Retirer la dernière laisse
@@ -7062,7 +7098,6 @@ avec le motif et suit la copie de son.</p>
   mouvement, <b>9</b> vider la partie, <b>10</b> échanger avec la copie, <b>11</b> dupliquer le motif,
   <b>12</b> effacer le motif, <b>16</b> protection en écriture.</p>
   </div>
-
   <div class="doc" id="note-er" data-titre="ER-1">
   <h3>Prise en main</h3>
   <p><b>1.</b> <b>▶ ❙❙</b> lance. <b>2.</b> Touchez un bouton de partie : elle sonne et devient la partie
@@ -28205,14 +28240,41 @@ var KO_FX = [
   ["stop", "COUPURE"],        ["roll","ROULEMENT"]
 ];
 var KO_NOTES = [0, 2, 4, 5, 7, 9, 11, 12];   /* la gamme des huit touches mélodiques */
+/* Parameter Locks : une variation par pas, comme sur le PO-33. Les valeurs
+   sont MIDI 0–127 ; l'absence de valeur signifie « réglage par défaut ». */
+var KO_PLOCKS = [
+  ["pitch",  "PITCH",  64],
+  ["start",  "START",   0],
+  ["length", "LENGTH",127],
+  ["tone",   "TONE",  127]
+];
+
+function normaliserPlockKo(o){
+  if(!o || typeof o !== "object") return null;
+  var r = {};
+  KO_PLOCKS.forEach(function(x){
+    var v = Number(o[x[0]]);
+    if(Number.isFinite(v)) r[x[0]] = Math.max(0, Math.min(127, Math.round(v)));
+  });
+  return Object.keys(r).length ? r : null;
+}
+function normaliserVerrousKo(a){
+  var r = [];
+  for(var i=0;i<16;i++) r.push(normaliserPlockKo(a && a[i]));
+  return r;
+}
+function valeurPlockKo(o, nom, defaut){
+  return o && Number.isFinite(o[nom]) ? Math.max(0, Math.min(127, o[nom])) : defaut;
+}
 
 function motifKo(){
-  var m = {pas:[], last:16};
+  var m = {pas:[], last:16, plocks:[]};
   for(var i=0;i<16;i++) m.pas.push(0);       /* un masque de 16 bits par emplacement */
+  for(var j=0;j<16;j++) m.plocks.push(null);
   return m;
 }
 var KO = {sons:[], motifs:[], cur:0, sel:0, fx:0, fxTenu:false,
-          rec:false, pos:-1, noeuds:null, chaine:[], chainePos:0, song:false};
+          rec:false, pos:-1, lockStep:0, noeuds:null, chaine:[], chainePos:0, song:false};
 for(var kz=0; kz<16; kz++) KO.sons.push("b" + (kz % 24));
 for(var kz2=0; kz2<16; kz2++) KO.motifs.push(motifKo());
 
@@ -28277,20 +28339,35 @@ function voixKo(t, k, vel){
   var n = noeudsKo();
   var buf = ES.buf[KO.sons[k]];
   if(!buf) return;
+  var pas = arguments.length > 3 ? arguments[3] : -1;
+  var verrou = pas >= 0 ? normaliserPlockKo(motifKoCur().plocks && motifKoCur().plocks[pas]) : null;
   var src = ctx.createBufferSource();
   /* Les huit premiers emplacements montent la gamme : c'est le même son, joué
      plus ou moins vite. Les huit derniers gardent leur hauteur. */
-  src.playbackRate.value = (k < 8) ? Math.pow(2, KO_NOTES[k] / 12) : 1;
-  poserTampon(src, buf, src.playbackRate.value);
+  var vitesse = (k < 8) ? Math.pow(2, KO_NOTES[k] / 12) : 1;
+  if(verrou) vitesse *= Math.pow(2, (valeurPlockKo(verrou, "pitch", 64) - 64) / 12);
+  vitesse = Math.max(0.03125, Math.min(16, vitesse));
+  src.playbackRate.value = vitesse;
+  poserTampon(src, buf, vitesse);
   var g = ctx.createGain();
   var pic = 0.8 * (vel === undefined ? 1 : vel);
   g.gain.setValueAtTime(0.0001, t);
   g.gain.linearRampToValueAtTime(pic, t + 0.002);
-  var d = Math.min(buf.duration / src.playbackRate.value, 1.6);
+  var debut = verrou ? valeurPlockKo(verrou, "start", 0) / 127 * buf.duration * 0.95 : 0;
+  var portion = verrou ? 0.05 + valeurPlockKo(verrou, "length", 127) / 127 * 0.95 : 1;
+  var d = Math.min(Math.max(0.01, (buf.duration - debut) / vitesse), 1.6) * portion;
+  d = Math.max(0.012, d);
   g.gain.setValueAtTime(pic, t + Math.max(0.01, d - 0.03));
   g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-  src.connect(g); g.connect(pasVoie(n.e));
-  src.start(t); src.stop(t + d + 0.05);
+  var filtre = null;
+  if(verrou && Number.isFinite(verrou.tone)){
+    filtre = ctx.createBiquadFilter(); filtre.type = "lowpass";
+    filtre.frequency.value = 180 * Math.pow(100, valeurPlockKo(verrou, "tone", 127) / 127);
+    filtre.Q.value = 0.7;
+    src.connect(filtre); filtre.connect(g);
+  }else src.connect(g);
+  g.connect(pasVoie(n.e));
+  src.start(t, Math.min(debut, Math.max(0, buf.duration - 0.01))); src.stop(t + d + 0.05);
 }
 
 function scheduleKo(i, t){
@@ -28304,8 +28381,8 @@ function scheduleKo(i, t){
        vaut quatre, serrées. Deux effets d'ordonnancement, pas de traitement. */
     if(nom === "gate" && (i % 2)) continue;
     if(nom === "roll"){
-      for(var r=0;r<4;r++) CHARGE_N++, voixKo(t + r * stepDur() / 4, k, 1 - r * 0.15);
-    } else CHARGE_N++, voixKo(t, k, 1);
+      for(var r=0;r<4;r++) CHARGE_N++, voixKo(t + r * stepDur() / 4, k, 1 - r * 0.15, i);
+    } else CHARGE_N++, voixKo(t, k, 1, i);
   }
   if(!cache) queue.push({i:i, t:t});
   attenuerVoie("ko", CHARGE_N, t);
@@ -28313,14 +28390,16 @@ function scheduleKo(i, t){
 
 function beatKo(i){
   KO.pos = i;
+  KO.lockStep = Math.max(0, Math.min(15, i|0));
   var b = document.querySelectorAll("#ko-pads .kb");
   for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i);
+  if(typeof majKoPlock === "function") majKoPlock();
 }
 function arretKo(){
   if(KO.noeuds && KO.noeuds.ctx === ctx){
     try{ debrancherTout(KO.noeuds); }catch(e){}
   }
-  KO.noeuds = null;
+  KO.noeuds = null; KO.pos = -1; KO.lockStep = 0;
 }
 function boucleKo(){
   if(KO.song && KO.chaine.length){
@@ -28334,10 +28413,11 @@ var MACHINE_KO = {schedule:scheduleKo, beat:beatKo, arret:arretKo, boucle:boucle
 
 function memKo(){
   memoire.ko = {sons:KO.sons, cur:KO.cur, sel:KO.sel, chaine:KO.chaine,
-                motifs:KO.motifs.map(function(m){ return {pas:m.pas, last:m.last}; })};
+                motifs:KO.motifs.map(function(m){ return {pas:m.pas, last:m.last, plocks:normaliserVerrousKo(m.plocks)}; })};
   sauverMachine("ko");
 }
 function chargerKo(){
+  KO.lockStep = 0;
   var m = memLire("ko");
   if(!m) return;
   if(m.sons && m.sons.length === 16) KO.sons = m.sons.slice();
@@ -28347,10 +28427,10 @@ function chargerKo(){
   if(m.motifs) m.motifs.forEach(function(o, i){
     if(i >= 16 || !o) return;
     if(o.pas && o.pas.length === 16) KO.motifs[i].pas = o.pas.slice();
+    if(o.plocks && o.plocks.length === 16) KO.motifs[i].plocks = normaliserVerrousKo(o.plocks);
     KO.motifs[i].last = o.last || 16;
   });
 }
-
 /* ================= Korg KAOSS PAD =================
    Une machine qu'on ne règle pas : on la touche. Un carré, deux axes, et
    l'effet suit le doigt. Aucun potard ne fait ce que fait ce pavé — parce
@@ -30734,6 +30814,59 @@ document.getElementById("stk-clear").addEventListener("click", function(){
 /* ---------- la façade du K.O! ---------- */
 var KO_MODE = "son";        /* ce que règlent les pads : son, motif, tempo */
 
+function textePlockKo(nom, valeur, actif){
+  if(!actif) return "AUCUN";
+  var v = Math.max(0, Math.min(127, Number(valeur) || 0));
+  if(nom === "pitch"){
+    var demi = (v - 64) / 12, signe = demi > 0 ? "+" : "";
+    return signe + demi.toFixed(1) + " st";
+  }
+  if(nom === "start") return Math.round(v * 100 / 127) + "%";
+  if(nom === "length") return Math.round((5 + v * 95 / 127)) + "%";
+  return Math.round(v * 100 / 127) + "%";
+}
+function plockKoCourant(){
+  var m = motifKoCur(), p = Math.max(0, Math.min(15, KO.lockStep|0));
+  if(!m.plocks) m.plocks = normaliserVerrousKo();
+  return m.plocks[p] || null;
+}
+function majKoPlock(){
+  var param = document.getElementById("ko-lock-param"), pas = document.getElementById("ko-lock-step");
+  var valeur = document.getElementById("ko-lock-value"), texte = document.getElementById("ko-lock-value-label");
+  var etat = document.getElementById("ko-lock-status");
+  if(!param || !pas || !valeur || !texte || !etat) return;
+  var m = motifKoCur(), step = Math.max(0, Math.min(15, KO.lockStep|0)), verrou = m.plocks && m.plocks[step];
+  var nom = param.value, meta = KO_PLOCKS.filter(function(x){ return x[0] === nom; })[0] || KO_PLOCKS[0];
+  var actif = !!(verrou && Number.isFinite(verrou[nom]));
+  var v = actif ? verrou[nom] : meta[2];
+  pas.value = String(step); valeur.value = String(v); texte.textContent = textePlockKo(nom, v, actif);
+  etat.textContent = "PAS " + (step + 1) + " · " + (actif ? meta[1] + " " + textePlockKo(nom, v, true) : "AUCUN");
+  var bloque = KO_MODE !== "son" || S.run;
+  param.disabled = bloque; pas.disabled = bloque; valeur.disabled = bloque;
+  document.getElementById("ko-lock-apply").disabled = bloque;
+  document.getElementById("ko-lock-clear").disabled = bloque || !actif;
+}
+function ecrirePlockKo(){
+  if(KO_MODE !== "son" || S.run) return false;
+  var param = document.getElementById("ko-lock-param"), valeur = document.getElementById("ko-lock-value");
+  if(!param || !valeur) return false;
+  var m = motifKoCur(), step = Math.max(0, Math.min(15, KO.lockStep|0));
+  var nom = param.value, ok = KO_PLOCKS.some(function(x){ return x[0] === nom; });
+  if(!ok) return false;
+  if(!m.plocks) m.plocks = normaliserVerrousKo();
+  var verrou = normaliserPlockKo(m.plocks[step]) || {};
+  verrou[nom] = Math.max(0, Math.min(127, Math.round(+valeur.value)));
+  m.plocks[step] = verrou; memKo(); majKo(); H.inter(); return true;
+}
+function effacerPlockKo(){
+  if(KO_MODE !== "son" || S.run) return false;
+  var param = document.getElementById("ko-lock-param"), m = motifKoCur(), step = Math.max(0, Math.min(15, KO.lockStep|0));
+  if(!param || !m.plocks || !m.plocks[step]) return false;
+  delete m.plocks[step][param.value];
+  m.plocks[step] = normaliserPlockKo(m.plocks[step]);
+  memKo(); majKo(); H.inter(); return true;
+}
+
 function lcdKo(val, lab){
   var a = document.getElementById("ko-val"), b = document.getElementById("ko-lab");
   if(a) a.textContent = val;
@@ -30785,6 +30918,7 @@ function majKo(){
     : KO_MODE === "ptn" ? "Touchez un motif pour y aller."
     : (KO.rec ? "WRITE actif : les pads écrivent dans le motif."
               : "Les pads jouent. WRITE pour écrire dans le motif.");
+  majKoPlock();
 }
 function padKo(k){
   audioInit();
@@ -30793,12 +30927,13 @@ function padKo(k){
   KO.sel = k;
   if(KO.rec){
     /* Écriture au vol : on pose la frappe sur le pas le plus proche, comme sur
-       les autres machines. À l'arrêt, on bascule le pas courant. */
+       les autres machines. À l'arrêt, le pas choisi dans PARAMETER LOCK sert
+       de pas courant. */
     var m = motifKoCur();
-    var pos = S.run ? pasLePlusProche(KO.pos, m.last) : KO.pos;
-    if(pos >= 0) m.pas[k] ^= (1 << pos);
+    var pos = S.run ? pasLePlusProche(KO.pos, m.last) : KO.lockStep;
+    if(pos >= 0){ KO.lockStep = pos; m.pas[k] ^= (1 << pos); }
     memKo();
-  }
+  }else if(S.run) KO.lockStep = pasLePlusProche(KO.pos, motifKoCur().last);
   voixKo(maintenantAudio() + 0.005, k, 1);
   majKo();
   H.inter();
@@ -30831,12 +30966,26 @@ document.getElementById("ko-write").addEventListener("click", function(){
      il demande confirmation. */
   if(!window.confirm("Effacer le motif " + (KO.cur + 1) + " ?")) return;
   var m = motifKoCur();
-  for(var i=0;i<16;i++) m.pas[i] = 0;
+  for(var i=0;i<16;i++){ m.pas[i] = 0; m.plocks[i] = null; }
   memKo(); majKo(); H.inter();
 });
 document.getElementById("ko-bpm-b").addEventListener("click", function(){
   lcdKo(Math.round(S.bpm), "TEMPO"); H.cran();
 });
+(function commandesPlockKo(){
+  var param = document.getElementById("ko-lock-param"), pas = document.getElementById("ko-lock-step");
+  var valeur = document.getElementById("ko-lock-value"), ecrire = document.getElementById("ko-lock-apply");
+  var effacer = document.getElementById("ko-lock-clear");
+  if(!param || !pas || !valeur || !ecrire || !effacer) return;
+  param.addEventListener("change", majKoPlock);
+  pas.addEventListener("change", function(){ KO.lockStep = Math.max(0, Math.min(15, +this.value|0)); majKoPlock(); });
+  valeur.addEventListener("input", function(){
+    var nom = param.value, actif = !!(plockKoCourant() && Number.isFinite(plockKoCourant()[nom]));
+    document.getElementById("ko-lock-value-label").textContent = textePlockKo(nom, +this.value, actif);
+  });
+  ecrire.addEventListener("click", ecrirePlockKo);
+  effacer.addEventListener("click", effacerPlockKo);
+})();
 /* FX au poing : l'effet vit tant que le doigt est sur le bouton. C'est un
    geste, pas un réglage — le relâcher doit le couper net. */
 (function fxTenuKo(){

@@ -344,6 +344,19 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
 .ko-pads .kb.cur{background:#f2f2f2;color:#141414}
 .ko-pads .kb em{display:block;margin-top:5px;font:400 7px/1.1 "Roboto Condensed",Arial;
   font-style:normal;letter-spacing:.4px;opacity:.7;overflow:hidden;white-space:nowrap}
+.ko-lock{margin:0 0 11px;padding:9px 10px;border:1px solid #4b4b4b;border-radius:7px;background:#202020}
+.ko-lock-titre,.ko-lock-ligne{display:flex;align-items:center;gap:6px}
+.ko-lock-titre{justify-content:space-between;margin-bottom:7px;color:#ff9b4a;font:800 9px/1 "Roboto Condensed",Arial;letter-spacing:1px}
+#ko-lock-status{color:#bdbdbd;font-weight:400;letter-spacing:.3px}
+.ko-lock-ligne{margin-top:6px;color:#aaa;font:700 8px/1 "Roboto Condensed",Arial;letter-spacing:.5px}
+.ko-lock select{min-width:0;padding:6px 4px;border:1px solid #555;border-radius:4px;background:#303030;color:#eee;font:700 9px Arial}
+#ko-lock-param{flex:1}
+#ko-lock-step{width:58px}
+.ko-lock-valeur input{min-width:0;flex:1;accent-color:#ff6a00}
+.ko-lock-valeur output{min-width:43px;text-align:right;color:#eee;font:700 9px Arial}
+.ko-lock button{padding:7px 6px;border:0;border-radius:4px;background:#3b3b3b;color:#eee;font:800 8px/1 "Roboto Condensed",Arial}
+.ko-lock button:first-of-type{background:#ff6a00;color:#171717}
+.ko-lock button:disabled,.ko-lock select:disabled,.ko-lock input:disabled{opacity:.45}
 .ko-pied{font:400 10.5px/1.5 "Roboto Condensed",Arial;color:#7a7a7a;text-align:center}
 
 #mc-boucle-info{grid-column:span 2;min-width:0;font:700 9px/1.4 Arial;color:#b5b5bd}

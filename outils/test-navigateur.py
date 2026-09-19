@@ -2065,10 +2065,35 @@ async def em_noms_motifs(nav):
     finally:
         await pg.context.close()
 
+async def ko_plocks(nav):
+    print('\n36. PO-33 K.O! : Parameter Locks (v226)')
+    pg, err = await nouvelle_page(nav, pont=True)
+    try:
+        await pg.locator('.pick[data-m=ko]').click()
+        await pg.evaluate('''() => {
+          KO_MODE='son';KO.cur=0;KO.sel=0;KO.lockStep=2;KO.motifs[0]=motifKo();majKo();
+        }''')
+        await pg.locator('#ko-lock-param').select_option('pitch')
+        await pg.locator('#ko-lock-value').fill('80')
+        await pg.locator('#ko-lock-apply').click()
+        ok(await pg.evaluate('KO.motifs[0].plocks[2].pitch===80'),'PITCH est mémorisé sur le pas choisi')
+        await pg.locator('#ko-lock-param').select_option('start')
+        await pg.locator('#ko-lock-value').fill('20')
+        await pg.locator('#ko-lock-apply').click()
+        ok(await pg.evaluate('KO.motifs[0].plocks[2].pitch===80&&KO.motifs[0].plocks[2].start===20'),'plusieurs verrous cohabitent sur le même pas')
+        await pg.locator('#ko-lock-param').select_option('pitch');await pg.locator('#ko-lock-clear').click()
+        ok(await pg.evaluate('!Object.prototype.hasOwnProperty.call(KO.motifs[0].plocks[2],"pitch")&&KO.motifs[0].plocks[2].start===20'),'EFFACER retire seulement le paramètre choisi')
+        await pg.locator('#ko-play').click();await pg.wait_for_function('S.run')
+        ok(await pg.locator('#ko-lock-apply').is_disabled(),'les verrous sont protégés pendant PLAY')
+        await pg.locator('#ko-play').click()
+        ok(not err,'aucune erreur de page : '+str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks):
             try:
                 await t(nav)
             except Exception as e:

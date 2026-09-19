@@ -50,6 +50,7 @@ node outils/test-em-ondes.cjs
 node outils/test-em-64.cjs
 node outils/test-em-song.cjs
 node outils/test-em-song-edition.cjs
+node outils/test-ko.cjs
 node outils/test-echantillons.cjs
 node outils/test-transport.cjs
 node outils/test-restauration-machines.cjs

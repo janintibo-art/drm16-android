@@ -1280,6 +1280,59 @@ document.getElementById("stk-clear").addEventListener("click", function(){
 /* ---------- la façade du K.O! ---------- */
 var KO_MODE = "son";        /* ce que règlent les pads : son, motif, tempo */
 
+function textePlockKo(nom, valeur, actif){
+  if(!actif) return "AUCUN";
+  var v = Math.max(0, Math.min(127, Number(valeur) || 0));
+  if(nom === "pitch"){
+    var demi = (v - 64) / 12, signe = demi > 0 ? "+" : "";
+    return signe + demi.toFixed(1) + " st";
+  }
+  if(nom === "start") return Math.round(v * 100 / 127) + "%";
+  if(nom === "length") return Math.round((5 + v * 95 / 127)) + "%";
+  return Math.round(v * 100 / 127) + "%";
+}
+function plockKoCourant(){
+  var m = motifKoCur(), p = Math.max(0, Math.min(15, KO.lockStep|0));
+  if(!m.plocks) m.plocks = normaliserVerrousKo();
+  return m.plocks[p] || null;
+}
+function majKoPlock(){
+  var param = document.getElementById("ko-lock-param"), pas = document.getElementById("ko-lock-step");
+  var valeur = document.getElementById("ko-lock-value"), texte = document.getElementById("ko-lock-value-label");
+  var etat = document.getElementById("ko-lock-status");
+  if(!param || !pas || !valeur || !texte || !etat) return;
+  var m = motifKoCur(), step = Math.max(0, Math.min(15, KO.lockStep|0)), verrou = m.plocks && m.plocks[step];
+  var nom = param.value, meta = KO_PLOCKS.filter(function(x){ return x[0] === nom; })[0] || KO_PLOCKS[0];
+  var actif = !!(verrou && Number.isFinite(verrou[nom]));
+  var v = actif ? verrou[nom] : meta[2];
+  pas.value = String(step); valeur.value = String(v); texte.textContent = textePlockKo(nom, v, actif);
+  etat.textContent = "PAS " + (step + 1) + " · " + (actif ? meta[1] + " " + textePlockKo(nom, v, true) : "AUCUN");
+  var bloque = KO_MODE !== "son" || S.run;
+  param.disabled = bloque; pas.disabled = bloque; valeur.disabled = bloque;
+  document.getElementById("ko-lock-apply").disabled = bloque;
+  document.getElementById("ko-lock-clear").disabled = bloque || !actif;
+}
+function ecrirePlockKo(){
+  if(KO_MODE !== "son" || S.run) return false;
+  var param = document.getElementById("ko-lock-param"), valeur = document.getElementById("ko-lock-value");
+  if(!param || !valeur) return false;
+  var m = motifKoCur(), step = Math.max(0, Math.min(15, KO.lockStep|0));
+  var nom = param.value, ok = KO_PLOCKS.some(function(x){ return x[0] === nom; });
+  if(!ok) return false;
+  if(!m.plocks) m.plocks = normaliserVerrousKo();
+  var verrou = normaliserPlockKo(m.plocks[step]) || {};
+  verrou[nom] = Math.max(0, Math.min(127, Math.round(+valeur.value)));
+  m.plocks[step] = verrou; memKo(); majKo(); H.inter(); return true;
+}
+function effacerPlockKo(){
+  if(KO_MODE !== "son" || S.run) return false;
+  var param = document.getElementById("ko-lock-param"), m = motifKoCur(), step = Math.max(0, Math.min(15, KO.lockStep|0));
+  if(!param || !m.plocks || !m.plocks[step]) return false;
+  delete m.plocks[step][param.value];
+  m.plocks[step] = normaliserPlockKo(m.plocks[step]);
+  memKo(); majKo(); H.inter(); return true;
+}
+
 function lcdKo(val, lab){
   var a = document.getElementById("ko-val"), b = document.getElementById("ko-lab");
   if(a) a.textContent = val;
@@ -1331,6 +1384,7 @@ function majKo(){
     : KO_MODE === "ptn" ? "Touchez un motif pour y aller."
     : (KO.rec ? "WRITE actif : les pads écrivent dans le motif."
               : "Les pads jouent. WRITE pour écrire dans le motif.");
+  majKoPlock();
 }
 function padKo(k){
   audioInit();
@@ -1339,12 +1393,13 @@ function padKo(k){
   KO.sel = k;
   if(KO.rec){
     /* Écriture au vol : on pose la frappe sur le pas le plus proche, comme sur
-       les autres machines. À l'arrêt, on bascule le pas courant. */
+       les autres machines. À l'arrêt, le pas choisi dans PARAMETER LOCK sert
+       de pas courant. */
     var m = motifKoCur();
-    var pos = S.run ? pasLePlusProche(KO.pos, m.last) : KO.pos;
-    if(pos >= 0) m.pas[k] ^= (1 << pos);
+    var pos = S.run ? pasLePlusProche(KO.pos, m.last) : KO.lockStep;
+    if(pos >= 0){ KO.lockStep = pos; m.pas[k] ^= (1 << pos); }
     memKo();
-  }
+  }else if(S.run) KO.lockStep = pasLePlusProche(KO.pos, motifKoCur().last);
   voixKo(maintenantAudio() + 0.005, k, 1);
   majKo();
   H.inter();
@@ -1377,12 +1432,26 @@ document.getElementById("ko-write").addEventListener("click", function(){
      il demande confirmation. */
   if(!window.confirm("Effacer le motif " + (KO.cur + 1) + " ?")) return;
   var m = motifKoCur();
-  for(var i=0;i<16;i++) m.pas[i] = 0;
+  for(var i=0;i<16;i++){ m.pas[i] = 0; m.plocks[i] = null; }
   memKo(); majKo(); H.inter();
 });
 document.getElementById("ko-bpm-b").addEventListener("click", function(){
   lcdKo(Math.round(S.bpm), "TEMPO"); H.cran();
 });
+(function commandesPlockKo(){
+  var param = document.getElementById("ko-lock-param"), pas = document.getElementById("ko-lock-step");
+  var valeur = document.getElementById("ko-lock-value"), ecrire = document.getElementById("ko-lock-apply");
+  var effacer = document.getElementById("ko-lock-clear");
+  if(!param || !pas || !valeur || !ecrire || !effacer) return;
+  param.addEventListener("change", majKoPlock);
+  pas.addEventListener("change", function(){ KO.lockStep = Math.max(0, Math.min(15, +this.value|0)); majKoPlock(); });
+  valeur.addEventListener("input", function(){
+    var nom = param.value, actif = !!(plockKoCourant() && Number.isFinite(plockKoCourant()[nom]));
+    document.getElementById("ko-lock-value-label").textContent = textePlockKo(nom, +this.value, actif);
+  });
+  ecrire.addEventListener("click", ecrirePlockKo);
+  effacer.addEventListener("click", effacerPlockKo);
+})();
 /* FX au poing : l'effet vit tant que le doigt est sur le bouton. C'est un
    geste, pas un réglage — le relâcher doit le couper net. */
 (function fxTenuKo(){

@@ -66,7 +66,8 @@ for(const id of ['ko','stk']) {
   assert(c.actions.includes('save:'+id),'le dernier modèle ouvert est mémorisé');
   const etat=c[id.toUpperCase()];
   assert.equal(etat.cur,2);assert.equal(etat.sel,3);
-  assert.deepStrictEqual(copie(etat.motifs).map(m=>id==='stk'?{pas:m.pas,last:m.last}:m),sauvegarde.motifs);
+  assert.deepStrictEqual(copie(etat.motifs).map(m=>id==='stk'||id==='ko'?{pas:m.pas,last:m.last}:m),sauvegarde.motifs);
+  if(id==='ko') assert(etat.motifs.every(m=>m.plocks.length===16&&m.plocks.every(v=>v===null)),'anciens motifs : aucun verrou ajouté');
   if(id==='stk') assert(etat.motifs.every(m=>m.tranches.every(t=>t.length===16&&t.every(n=>n===-1))),'anciens motifs : son entier');
   assert.deepStrictEqual(copie(etat.chaine),sauvegarde.chaine);
   assert.deepStrictEqual(copie(etat[id==='stk'?'pistes':'sons']).map(p=>{

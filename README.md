@@ -44,7 +44,7 @@ Séquenceur à pas, une autre famille de machine que les deux précédentes.
 - **10 parties jouables** : huit percussions (grosse caisse, caisse claire, clap, tom, charley fermé,
   charley ouvert, crash, cowbell) et deux parties de synthé à deux oscillateurs, plus **deux pistes
   d'accent**, une pour les percussions, une pour le synthé.
-- **16 pas**, seize motifs en mémoire, WRITE pour enregistrer, ERASE pour vider une partie,
+- **64 pas**, seize motifs en mémoire, WRITE pour enregistrer, ERASE pour vider une partie,
   SHIFT + touche 3 pour le swing.
 - **Par partie** : niveau, panoramique, hauteur, enveloppe courte, roulement de quatre coups, envoi d'effet.
 - **Filtre de synthé** : coupure, résonance, intensité d'enveloppe, saturation.
@@ -54,7 +54,7 @@ Séquenceur à pas, une autre famille de machine que les deux précédentes.
 - **KEYBOARD** transforme les seize touches en clavier pour la partie de synthé choisie, dans l'une des six
   gammes (chromatique, majeure, mineure, dorienne, pentatonique, blues), avec changement d'octave par ◀ et ▶.
   Toucher un pas le sélectionne pour lui donner sa hauteur.
-- **SHIFT** donne accès aux fonctions imprimées sous les touches : longueur du motif (1 à 16 pas), gamme,
+- **SHIFT** donne accès aux fonctions imprimées sous les touches : longueur du motif (1 à 64 pas), gamme,
   swing, type de roulement, décalage, copie et échange de partie, copie de son, effacement de partie,
   duplication et effacement de motif, protection en écriture.
 - **REC** arme l'enregistrement au vol : pendant la lecture, toucher une partie écrit un pas.
@@ -62,9 +62,9 @@ Séquenceur à pas, une autre famille de machine que les deux précédentes.
 
 - **MOTION SEQ** enregistre le mouvement d'un bouton sur les seize pas d'une partie, en Smooth (glissé)
   ou Trig Hold (tenu) : niveau, panoramique, hauteur, temps d'enveloppe et les quatre boutons du filtre.
-- **SONG** enchaîne les motifs : seize positions, éditables aux touches et à la molette.
+- **SONG** enchaîne les motifs : jusqu'à 64 positions sur quatre pages, éditables aux touches et à la molette.
 
-Restent de côté le mode STEP EDIT et le bend range.
+Le bend range reste de côté.
 
 ## Electribe ER-1
 

@@ -21,6 +21,22 @@
 
   <div class="ko-pads" id="ko-pads"></div>
 
+  <div class="ko-lock" id="ko-lock">
+    <div class="ko-lock-titre"><b>PARAMETER LOCK</b><span id="ko-lock-status">PAS 1 · AUCUN</span></div>
+    <div class="ko-lock-ligne">
+      <label for="ko-lock-param">PARAMÈTRE</label>
+      <select id="ko-lock-param" aria-label="Paramètre verrouillé"><option value="pitch">PITCH</option><option value="start">START</option><option value="length">LENGTH</option><option value="tone">TONE</option></select>
+      <label for="ko-lock-step">PAS</label>
+      <select id="ko-lock-step" aria-label="Pas du Parameter Lock"><option value="0">1</option><option value="1">2</option><option value="2">3</option><option value="3">4</option><option value="4">5</option><option value="5">6</option><option value="6">7</option><option value="7">8</option><option value="8">9</option><option value="9">10</option><option value="10">11</option><option value="11">12</option><option value="12">13</option><option value="13">14</option><option value="14">15</option><option value="15">16</option></select>
+    </div>
+    <div class="ko-lock-ligne ko-lock-valeur">
+      <input id="ko-lock-value" type="range" min="0" max="127" value="64" aria-label="Valeur du Parameter Lock">
+      <output id="ko-lock-value-label" for="ko-lock-value">0 st</output>
+      <button id="ko-lock-apply" type="button">ÉCRIRE</button>
+      <button id="ko-lock-clear" type="button">EFFACER</button>
+    </div>
+  </div>
+
   <div class="ko-bas">
     <button id="ko-fx">FX</button>
     <button id="ko-play">PLAY</button>
@@ -30,4 +46,3 @@
     <span id="ko-etat">Touchez un pad pour l'entendre · WRITE pour écrire dans le motif</span>
   </div>
 </div>
-
