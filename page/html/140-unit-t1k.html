@@ -66,6 +66,17 @@
     <button id="t1k-effacer-sequence" aria-label="Effacer les 16 pas de l’instrument sélectionné">EFFACER SÉQ</button>
     </div>
   </details>
+  <details class="t1k-edition" id="t1k-chaine">
+    <summary>CHAÎNE DE MOTIFS · <span id="t1k-chaine-resume">VIDE</span></summary>
+    <p>À l’arrêt · Choisissez banque et motif, puis AJOUTER. CHAÎNE ON : START joue la chaîne, un tour de chaque motif, puis la reprend.</p>
+    <div class="t1k-edition-actions">
+    <button id="t1k-chaine-on" aria-pressed="false">CHAÎNE OFF</button>
+    <button id="t1k-chaine-ajouter" aria-label="Ajouter le motif courant à la fin de la chaîne">AJOUTER LE MOTIF</button>
+    <button id="t1k-chaine-retirer" aria-label="Retirer le dernier motif de la chaîne">RETIRER LE DERNIER</button>
+    <button id="t1k-chaine-vider" aria-label="Vider toute la chaîne">VIDER</button>
+    </div>
+    <p><output id="t1k-chaine-liste" aria-live="polite">Aucun motif dans la chaîne.</output></p>
+  </details>
   <div class="t1k-proba-bar">
     <label for="t1k-longueur">PAS</label>
     <select id="t1k-longueur" aria-label="Longueur du cycle de l’instrument sélectionné"><option value="0">SUIVRE LAST</option><option value="1">1 PAS</option><option value="2">2 PAS</option><option value="3">3 PAS</option><option value="4">4 PAS</option><option value="5">5 PAS</option><option value="6">6 PAS</option><option value="7">7 PAS</option><option value="8">8 PAS</option><option value="9">9 PAS</option><option value="10">10 PAS</option><option value="11">11 PAS</option><option value="12">12 PAS</option><option value="13">13 PAS</option><option value="14">14 PAS</option><option value="15">15 PAS</option><option value="16">16 PAS</option></select>

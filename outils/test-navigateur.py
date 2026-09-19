@@ -2156,10 +2156,48 @@ async def ko_plocks(nav):
     finally:
         await pg.context.close()
 
+async def t1k_chaine(nav):
+    print('\n37. TR-1000 : chaîne de motifs (v243)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        await pg.locator('.pick[data-m=t1k]').click()
+        await pg.evaluate("""() => {
+          audioInit(); S.bpm = 240;
+          T1K.motifs[0].last = 8; T1K.motifs[1].last = 16;
+          ['pas','acc'].forEach(c => { T1K.motifs[0][c] = Array(10).fill(0); T1K.motifs[1][c] = Array(10).fill(0); });
+          T1K.motifs[0].pas[0] = 0x0001; T1K.motifs[1].pas[1] = 0x0001;
+          window.__journal = []; const v = voixT1k;
+          window.voixT1k = function(t, k){ __journal.push([k, t, T1K.banq * 16 + T1K.cur]); return v.apply(this, arguments); };
+        }""")
+        await pg.locator('#t1k-chaine summary').click()
+        for ptn in ['0', '0', '1']:
+            await pg.select_option('#t1k-ptn', ptn)
+            await pg.locator('#t1k-chaine-ajouter').click()
+        await pg.select_option('#t1k-ptn', '1')
+        await pg.locator('#t1k-chaine-on').click()
+        ok(await pg.evaluate('T1K.cur === 0 && document.getElementById("t1k-chaine-liste").textContent === "1. A1 → 2. A1 → 3. A2"'),
+           'la chaîne liste A1, A1, A2 et CHAÎNE ON revient sur son premier motif')
+        await pg.locator('#t1k-start').click()
+        await pg.wait_for_timeout(3300)
+        ok(await pg.evaluate('document.getElementById("t1k-chaine-ajouter").disabled'), 'chaîne protégée pendant PLAY')
+        await pg.locator('#t1k-stop').click()
+        r = await pg.evaluate("""() => { const j = __journal, t0 = j.length ? j[0][1] : 0;
+          return j.slice(0, 6).map(x => [x[0], Math.round((x[1] - t0) * 1000)]); }""")
+        attendu = [[0, 0], [0, 500], [1, 1000], [0, 2000], [0, 2500], [1, 3000]]
+        ok(len(r) == 6 and all(x[0] == y[0] and abs(x[1] - y[1]) <= 30 for x, y in zip(r, attendu)),
+           'lecture : A1 (8 pas), A1, A2 (16 pas), puis la chaîne reprend (%s)' % r)
+        await pg.reload(); await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=t1k]').click()
+        ok(await pg.evaluate('JSON.stringify(T1K.chaine) === JSON.stringify([{b:0,p:0},{b:0,p:0},{b:0,p:1}]) && !T1K.chaineOn'),
+           'chaîne retrouvée au redémarrage, CHAÎNE éteinte')
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine):
             try:
                 await t(nav)
             except Exception as e:

@@ -37,7 +37,11 @@ var T1K = {copieSequence:null, annulation:null, copie:null, motifs:[], cur:0, ba
            morph:0, mA:null, mB:null, sub:false, accent:false, proba:false, probValeur:100, cycles:false, cycleValeur:"1:1", decalage:false, retardValeur:0, motionRec:false, params:false, paramNom:"tune", paramValeur:null, layer:0,
            afx:{on:false, filt:0.8, drive:0.25},
            mfx:{rev:0.25, revT:0.4, dly:0.2, dlyT:0.35, fb:0.3},
-           fill:false, ohGain:null, tour:-1, departs:[], entendu:null, contexteLecture:null};
+           fill:false, ohGain:null, tour:-1, departs:[], entendu:null, contexteLecture:null,
+           /* v243 : chaîne de motifs. chaine = [{b:banque, p:motif}] ; chaineOn =
+              START joue la chaîne ; chPos = entrée en cours */
+           chaine:[], chaineOn:false, chPos:0};
+var T1K_CHAINE_MAX = 64;
 for(var t1z=0; t1z<128; t1z++) T1K.motifs.push(motifT1k(t1z < 2 ? t1z : 9));
 function motifT1kCur(){ return T1K.motifs[T1K.banq * 16 + T1K.cur]; }
 function instrT1kSel(){ return motifT1kCur().instr[T1K.sel]; }
@@ -368,6 +372,8 @@ function frapperT1k(k, acc){
 /* ---------- séquenceur, avec sous-pas ---------- */
 var T1K_FILL = [0x8888, 0x2222, 0x0F00, 0x00F0, 0, 0x1010, 0xAAAA, 0x0100, 0x0001, 0];
 function scheduleT1k(i, t){
+  /* v243 : nouveau départ (START, reprise MIDI) avec la chaîne : premier motif */
+  if(T1K.chaineOn && T1K.chaine.length && !cache && pasSet === 0 && i === 0) entreeChaineT1k(0);
   var m = motifT1kCur();
   if(i < 0 || i >= m.last) return;
   if(T1K.contexteLecture !== ctx){ resetLectureT1k(); T1K.contexteLecture = ctx; }
@@ -425,7 +431,42 @@ function arretT1k(){
   majT1k();
 }
 function boucleT1k(){
-  if(T1K.fill){ T1K.fill = false; majT1k(); }
+  if(T1K.fill){ T1K.fill = false; if(!cache) majT1k(); }
+  /* v243 : fin d'un tour de motif : la chaîne passe au suivant. On change de
+     motif ici seulement, entre deux tours — jamais au milieu d'un tour, ce que
+     la TR-1000 interdit pendant PLAY. */
+  if(T1K.chaineOn && T1K.chaine.length) entreeChaineT1k((T1K.chPos + 1) % T1K.chaine.length);
+}
+function entreeChaineT1k(n){
+  var e = T1K.chaine[n];
+  if(!e) return;
+  T1K.chPos = n;
+  T1K.banq = e.b; T1K.cur = e.p;
+  T1K.tour = -1;                 /* les cycles A:B repartent au premier tour du motif */
+  if(!cache){ try{ majT1k(); majKnobsT1k(); }catch(x){} }
+}
+function nomEntreeT1k(e){
+  var titre = T1K.motifs[e.b * 16 + e.p] ? T1K.motifs[e.b * 16 + e.p].nom : "";
+  return "ABCDEFGH"[e.b] + (e.p + 1) + (titre ? " (" + titre + ")" : "");
+}
+function majChaineT1k(){
+  var n = T1K.chaine.length;
+  var on = document.getElementById("t1k-chaine-on");
+  if(!on) return;
+  on.textContent = T1K.chaineOn ? "CHAÎNE ON" : "CHAÎNE OFF";
+  on.classList.toggle("on", T1K.chaineOn);
+  on.setAttribute("aria-pressed", String(T1K.chaineOn));
+  ["t1k-chaine-on", "t1k-chaine-ajouter", "t1k-chaine-retirer", "t1k-chaine-vider"].forEach(function(id){
+    document.getElementById(id).disabled = S.run;
+  });
+  document.getElementById("t1k-chaine-retirer").disabled = S.run || !n;
+  document.getElementById("t1k-chaine-vider").disabled = S.run || !n;
+  document.getElementById("t1k-chaine-ajouter").disabled = S.run || n >= T1K_CHAINE_MAX;
+  document.getElementById("t1k-chaine-resume").textContent =
+    !n ? "VIDE" : (n + " MOTIF" + (n > 1 ? "S" : "") + (T1K.chaineOn ? (S.run ? " · " + (T1K.chPos + 1) + "/" + n : " · ON") : ""));
+  /* texte construit en textContent : les noms de motifs viennent de l'utilisateur */
+  document.getElementById("t1k-chaine-liste").textContent = !n ? "Aucun motif dans la chaîne."
+    : T1K.chaine.map(function(e, k){ return (k + 1) + ". " + nomEntreeT1k(e); }).join(" → ");
 }
 var MACHINE_T1K = {schedule:scheduleT1k, beat:beatT1k, arret:arretT1k, boucle:boucleT1k,
                    longueur:function(){ return motifT1kCur().last; }};
@@ -869,6 +910,7 @@ function majT1k(){
   document.getElementById("t1k-ptn").value = String(T1K.cur);
   document.getElementById("t1k-ma").classList.toggle("on", !!T1K.mA);
   document.getElementById("t1k-mb").classList.toggle("on", !!T1K.mB);
+  majChaineT1k();
   majLcdT1k();
 }
 function copieInstrT1k(){
@@ -878,6 +920,7 @@ function copieInstrT1k(){
 }
 function memT1k(){
   memoire.t1k = {banques:8, cur:T1K.cur, banq:T1K.banq, sel:T1K.sel, morph:T1K.morph,
+    chaine:T1K.chaine.map(function(e){ return [e.b, e.p]; }),
     mA:T1K.mA, mB:T1K.mB, afx:T1K.afx, mfx:T1K.mfx,
     motifs:T1K.motifs.map(function(m){
       return {nom:m.nom, longueurs:m.longueurs.slice(), motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
@@ -895,6 +938,7 @@ function chargerT1k(){
   resetLectureT1k();
   T1K.motifs = [];
   for(var i=0;i<128;i++) T1K.motifs.push(motifT1k(i < 2 ? i : 9));
+  T1K.chaine = []; T1K.chaineOn = false; T1K.chPos = 0;     /* rouvre hors chaîne, comme la MPC */
   T1K.cur = 0; T1K.banq = 0; T1K.sel = 0; T1K.sub = false; T1K.accent = false; T1K.proba = false; T1K.probValeur = 100; T1K.cycles = false; T1K.cycleValeur = "1:1"; T1K.decalage = false; T1K.retardValeur = 0; T1K.params = false; T1K.paramNom = "tune"; T1K.paramValeur = null;
   var m = memLire("t1k");
   if(m){
@@ -906,6 +950,10 @@ function chargerT1k(){
     T1K.banq = Math.floor(borneT1k(m.banq, 0, 7, 0));
     T1K.sel = Math.floor(borneT1k(m.sel, 0, 9, 0));
     T1K.morph = borneT1k(m.morph, 0, 1, 0);
+    if(Array.isArray(m.chaine)) m.chaine.slice(0, T1K_CHAINE_MAX).forEach(function(e){
+      if(Array.isArray(e) && Number.isInteger(e[0]) && e[0] >= 0 && e[0] < 8 && Number.isInteger(e[1]) && e[1] >= 0 && e[1] < 16)
+        T1K.chaine.push({b:e[0], p:e[1]});
+    });
     if(m.mA) T1K.mA = m.mA;
     if(m.mB) T1K.mB = m.mB;
     if(m.afx) for(var a in T1K.afx) if(m.afx[a] !== undefined) T1K.afx[a] = m.afx[a];
@@ -952,6 +1000,35 @@ document.getElementById("t1k-fill").addEventListener("click", function(){
   audioInit();
   T1K.fill = true; majT1k(); H.inter();
   if(!S.run){ step = 0; start(); H.start(); document.getElementById("t1k-start").classList.add("on"); }
+});
+/* v243 : chaîne de motifs — éditée à l'arrêt seulement, comme les motifs */
+document.getElementById("t1k-chaine-on").addEventListener("click", function(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER LA CHAÎNE"); return; }
+  if(!T1K.chaineOn && !T1K.chaine.length){ signal("CHAÎNE VIDE · AJOUTEZ D'ABORD DES MOTIFS"); return; }
+  T1K.chaineOn = !T1K.chaineOn; T1K.chPos = 0;
+  if(T1K.chaineOn) entreeChaineT1k(0);
+  majT1k(); H.inter();
+  signal(T1K.chaineOn ? "CHAÎNE ON · START JOUE LA CHAÎNE" : "CHAÎNE OFF · START JOUE LE MOTIF CHOISI");
+});
+document.getElementById("t1k-chaine-ajouter").addEventListener("click", function(){
+  if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER LA CHAÎNE"); return; }
+  if(T1K.chaine.length >= T1K_CHAINE_MAX){ signal("CHAÎNE PLEINE · 64 MOTIFS"); return; }
+  T1K.chaine.push({b:T1K.banq, p:T1K.cur});
+  memT1k(); majT1k(); H.cran();
+  signal("AJOUTÉ : " + nomEntreeT1k(T1K.chaine[T1K.chaine.length - 1]) + " · " + T1K.chaine.length + " DANS LA CHAÎNE");
+});
+document.getElementById("t1k-chaine-retirer").addEventListener("click", function(){
+  if(S.run || !T1K.chaine.length) return;
+  T1K.chaine.pop();
+  if(!T1K.chaine.length) T1K.chaineOn = false;
+  T1K.chPos = 0;
+  memT1k(); majT1k(); H.cran();
+});
+document.getElementById("t1k-chaine-vider").addEventListener("click", function(){
+  if(S.run || !T1K.chaine.length) return;
+  if(!window.confirm("Vider la chaîne de " + T1K.chaine.length + " motif(s) ? Les motifs eux-mêmes ne sont pas touchés.")) return;
+  T1K.chaine = []; T1K.chaineOn = false; T1K.chPos = 0;
+  memT1k(); majT1k(); H.inter();
 });
 document.getElementById("t1k-last").addEventListener("click", function(){
   if(S.run){ signal("ARRÊTEZ PLAY POUR CHANGER LA LONGUEUR"); return; }
