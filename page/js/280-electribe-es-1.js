@@ -423,6 +423,8 @@ function usagesEch(id){
     if(p.ech === id) n++;
     if(Array.isArray(p.boucles)) p.boucles.forEach(function(b){ if(b === id) n++; });
   });
+  /* v251 : les kits rangés dans la bibliothèque comptent aussi */
+  if(typeof kitsUsagesEch === "function") try{ n += kitsUsagesEch(id); }catch(e){}
   return n;
 }
 function supprimerEch(id){

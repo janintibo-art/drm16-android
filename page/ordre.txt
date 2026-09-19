@@ -19,6 +19,7 @@ css/150-machine-d-archive.css
 css/160-behringer-td-3.css
 css/170-eurorack.css
 css/180-freesound.css
+css/190-kits-de-sons.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -146,6 +147,7 @@ js/610-formes-d-onde-par-piste.js
 js/620-la-collection-archive-org.js
 js/625-freesound.js
 js/630-bibliotheque.js
+js/632-kits-de-sons.js
 js/635-projet-drm16.js
 js/640-travail-du-midi-editeur-en-rouleau.js
 js/650-transfert-exclusif-vers-une-vraie-korg.js

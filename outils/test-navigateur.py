@@ -2340,10 +2340,73 @@ async def morceaux_reouvertures(nav):
     finally:
         await pg.context.close()
 
+async def kits_sons(nav):
+    print('\n41. Bibliothèque : sons des machines et kits (v251)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        reponses = []
+        async def dialogue(d):
+            await d.accept(reponses.pop(0) if reponses and d.type == 'prompt' else '')
+        pg.on('dialog', lambda d: asyncio.ensure_future(dialogue(d)))
+        await pg.locator('.pick[data-m=es1]').click()
+        await pg.evaluate('ouvrirBib()')
+        await pg.locator('#bib-nav button', has_text='MACHINES').click()
+        ok(await pg.locator('#bib-corps .kits-partie').count() == 10, 'ES-1 : dix parties affichées, avec leur son')
+        ok(await pg.locator('#kits-avant').is_disabled(), 'rien à remettre au départ')
+        reponses.append('ORIGINE')
+        await pg.locator('#bib-corps button', has_text='RANGER CE KIT').click()
+        await pg.wait_for_function("document.querySelectorAll('#bib-corps .kits-kit').length === 1")
+        await pg.locator('#bib-corps .kits-choix').nth(0).select_option('b5')
+        r = await pg.evaluate("({ech:ES.pat.son[0].ech, avant:!document.getElementById('kits-avant').disabled, texte:document.querySelector('#bib-corps .kits-partie span').textContent, ouvert:document.getElementById('bib').classList.contains('show')})")
+        ok(r['ech'] == 'b5' and r['avant'] and r['ouvert'], 'CHANGER : son posé, REMETTRE disponible, bibliothèque ouverte (%s)' % r)
+        await pg.locator('#kits-avant').click()
+        ok(await pg.evaluate("ES.pat.son[0].ech") == 'b0', 'REMETTRE LES SONS D’AVANT')
+        await pg.locator('#kits-avant').click()
+        ok(await pg.evaluate("ES.pat.son[0].ech") == 'b5', 'second appui : retour au nouveau son, pour comparer')
+        await pg.evaluate("ES.slots[4].son[0].ech = 'b7'; memEs()")
+        await pg.locator('#kits-tous').check()
+        await pg.locator('#bib-corps .kits-kit button', has_text='RAPPELER').click()
+        r = await pg.evaluate("ES.slots.map(p => p.son[0].ech)")
+        ok(all(e == 'b0' for e in r), 'kit rappelé dans les seize motifs (%s)' % r[:6])
+        await pg.locator('#kits-avant').click()
+        ok(await pg.evaluate("[ES.slots[0].son[0].ech, ES.slots[4].son[0].ech]") == ['b5', 'b7'], 'retour arrière dans chaque motif')
+        await pg.reload(); await pg.wait_for_function("document.body.classList.contains('pret')")
+        await pg.locator('.pick[data-m=es1]').click()
+        r = await pg.evaluate("({kits:kitsDe(kitsLireTout(), 'es1').kits.map(k => k.nom), ech:ES.slots[4].son[0].ech, cle:!!localStorage.getItem('drm.reglages.kits')})")
+        ok(r['kits'] == ['ORIGINE'] and r['ech'] == 'b7' and r['cle'], 'kits et sons retrouvés au redémarrage, clé exportée avec les projets (%s)' % r)
+        # MPC : le kit suit le programme
+        await pg.evaluate('ouvrirBib(); BIB.onglet = 5; majBibUI()')
+        await pg.select_option('#kits-machine', 'mpc3000')
+        ok(await pg.evaluate("S.modele") == 'mpc3000' and await pg.locator('#bib-corps .kits-partie').count() == 64, 'MPC3000 : les 64 pads du programme')
+        reponses.append('BOOM')
+        await pg.locator('#bib-corps button', has_text='RANGER CE KIT').click()
+        await pg.wait_for_function("document.querySelectorAll('#bib-corps .kits-kit').length === 1")
+        await pg.evaluate("MPC.pads[0].ech = 'b9'; MPC.pads[0].tune = 0.9; memMpc()")
+        await pg.locator('#bib-corps .kits-kit button', has_text='RAPPELER').click()
+        ok(await pg.evaluate("[MPC.pads[0].ech, MPC.pads[0].tune]") == ['b0', 0], 'MPC : kit rappelé dans le programme')
+        # TR-1000 : « tous les motifs » laisse les motifs vides vides
+        await pg.select_option('#kits-machine', 't1k')
+        reponses.append('T')
+        await pg.locator('#bib-corps button', has_text='RANGER CE KIT').click()
+        await pg.wait_for_function("document.querySelectorAll('#bib-corps .kits-kit').length === 1")
+        await pg.locator('#kits-tous').check()
+        await pg.evaluate("T1K.motifs[0].instr[0].tune = 0.9; memT1k()")
+        await pg.locator('#bib-corps .kits-kit button', has_text='RAPPELER').click()
+        r = await pg.evaluate("({tune:T1K.motifs[0].instr[0].tune, pleins:memoire.t1k.motifs.filter(Boolean).length})")
+        ok(r['tune'] == 0.5 and r['pleins'] <= 2, 'TR-1000 partout : motifs utilisés seulement, les vides restent vides (%s)' % r)
+        # toutes les machines s'affichent sans erreur
+        for m in ['es2','esx','emx','em1','er1','er2','ea1','ea2','tr808','tr909','tr707','rd6','dbi','vlc','arcm','mpc2000','dmx','cr5','ko','kp','mc','stk']:
+            await pg.select_option('#kits-machine', m)
+        ok(await pg.evaluate("S.modele") == 'stk' and await pg.locator('#bib-corps .kits-partie').count() == 10, 'les 25 machines ont leur répertoire')
+        ok(await pg.evaluate("usagesEch('b0') >= 0"), 'compteur d’usages intact')
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons):
             try:
                 await t(nav)
             except Exception as e:

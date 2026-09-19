@@ -1,0 +1,6 @@
+/* v251 : rayon MACHINES de la bibliothèque */
+#bib .kits-tous{display:flex;align-items:center;gap:6px;min-height:40px;font-size:13px}
+#bib .kits-tous input{width:22px;height:22px}
+#bib .kits-choix{min-height:40px;max-width:100%}
+#bib .kits-kit b{overflow-wrap:anywhere}
+#bib #kits-avant:disabled{opacity:.4}

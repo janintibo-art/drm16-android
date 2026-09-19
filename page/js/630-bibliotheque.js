@@ -1,5 +1,6 @@
 /* ================= bibliothèque =================
-   Sons, prises MIDI, sauvegardes, archives et Freesound.
+   Sons, prises MIDI, sauvegardes, archives, Freesound, et (v251) les sons
+   de chaque machine avec leurs kits : voir 632-kits-de-sons.js.
    Tout y est renommable. Les sauvegardes sont de vrais fichiers .syx dans Documents. */
 
 function bibLire(){
@@ -192,6 +193,7 @@ function majBibUI(){
   else if(BIB.onglet === 2) bibRendreSauvegardes(corps);
   else if(BIB.onglet === 3) bibRendreArchive(corps);
   else if(BIB.onglet === 4) bibRendreFreesound(corps);
+  else if(BIB.onglet === 5) bibRendreMachines(corps);
 }
 function ligneBib(titre, detail){
   var d = document.createElement("div");
