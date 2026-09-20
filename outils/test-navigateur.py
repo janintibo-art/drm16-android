@@ -2776,10 +2776,96 @@ async def bib_packs(nav):
     finally:
         await pg.context.close()
 
+async def bib_corbeille(nav):
+    print('\n48. Bibliothèque : corbeille, place occupée, sons sans emploi, doublons (v258)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        pg.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
+        await pg.locator('.pick[data-m=es1]').click()
+        ids = await pg.evaluate("""() => {
+          audioInit(); banqueEs();
+          const faire = (nom, f) => { const b = ctx.createBuffer(1, 4000, ctx.sampleRate), d = b.getChannelData(0);
+            for (let i = 0; i < d.length; i++) d[i] = f(i); const id = 'u' + Date.now().toString(36) + nom.length + Math.round(Math.random()*1e6);
+            ES.buf[id] = b; ES.noms[id] = 'fichier'; BIB.noms[id] = nom; sauverEch(id, b); return id; };
+          const utilise = faire('SERT ENCORE', i => Math.sin(i / 30));
+          const seul = faire('SANS EMPLOI', i => Math.sin(i / 11) * Math.exp(-i / 900));
+          const d1 = faire('DOUBLON UN', i => Math.cos(i / 17));
+          const d2 = faire('DOUBLON DEUX', i => Math.cos(i / 17));
+          ES.pat.son[0].ech = utilise; ES.pat.son[1].ech = d1; memEs();
+          return {utilise, seul, d1, d2};
+        }""")
+        await pg.evaluate("ouvrirBib(); bibFiltre().q = 'SANS EMPLOI'; majBibUI()")
+        # ---- mettre à la corbeille, depuis le rayon SONS ----
+        await pg.locator('#bib-corps .bib-ligne button', has_text='METTRE À LA CORBEILLE').click()
+        r = await pg.evaluate("({corbeille:Object.keys(BIB.corbeille || {}), lignes:document.querySelectorAll('#bib-corps .bib-ligne').length})")
+        ok(r['corbeille'] == [ids['seul']] and r['lignes'] == 0,
+           'METTRE À LA CORBEILLE : le son disparaît de la liste, marqué dans BIB.corbeille (%s)' % r)
+        # ---- le rayon SAUVEGARDES · Nettoyage montre place occupée, doublons, corbeille ----
+        await pg.evaluate("bibFiltre().q = ''; BIB.onglet = 2; majBibUI()")
+        r = await pg.evaluate("document.getElementById('bib-corps').textContent")
+        ok('Place occupée' in r and ('Mo' in r or 'ko' in r or ' o' in r), 'PLACE OCCUPÉE affichée dans le rayon SAUVEGARDES (%r)' % r[:200])
+        ok('DOUBLON UN' in r and 'DOUBLON DEUX' in r, 'les deux sons identiques sont signalés comme doublon (%r)' % r[:400])
+        ok('sans emploi' in r.lower() or 'SANS EMPLOI' in r, 'un compte des sons sans emploi est affiché')
+        # ---- restaurer ----
+        ligne_corbeille = pg.locator('#bib-corps .bib-ligne').filter(has=pg.locator('b', has_text='SANS EMPLOI'))
+        ok(await ligne_corbeille.count() == 1, 'le son mis à la corbeille apparaît dans la section Corbeille')
+        await ligne_corbeille.locator('button', has_text='RESTAURER').click()
+        r = await pg.evaluate("Object.keys(BIB.corbeille || {})")
+        ok(r == [], 'RESTAURER retire le son de la corbeille (%s)' % r)
+        await pg.evaluate("BIB.onglet = 0; bibFiltre().q = 'SANS EMPLOI'; majBibUI()")
+        ok(await pg.locator('#bib-corps .bib-ligne').count() == 1, 'le son restauré revient dans le rayon SONS')
+        # ---- sons sans emploi : filtre et vue depuis Nettoyage ----
+        await pg.evaluate("bibFiltre().q = ''; BIB.onglet = 2; majBibUI()")
+        await pg.locator('#bib-corps button', has_text='VOIR LES SONS SANS EMPLOI').click()
+        r = await pg.evaluate("({onglet:BIB.onglet, sansemploi:bibFiltre().sansemploi, noms:[...document.querySelectorAll('#bib-corps .bib-ligne b')].map(b => b.textContent)})")
+        ok(r['onglet'] == 0 and r['sansemploi'] and 'SANS EMPLOI' in r['noms'] and 'SERT ENCORE' not in r['noms'] and 'DOUBLON UN' not in r['noms'],
+           'VOIR LES SONS SANS EMPLOI : bascule sur SONS, ne montre que ceux qui ne servent nulle part (%s)' % r)
+        await pg.locator('#bib-f-sansemploi').uncheck()
+        # ---- doublons : garder celui qui sert (usage 1), l'autre à la corbeille ----
+        await pg.evaluate("bibFiltre().q = ''; BIB.onglet = 2; majBibUI()")
+        ligne_doublon = pg.locator('#bib-corps .bib-ligne').filter(has_text='gardé')
+        await ligne_doublon.locator('button', has_text='À LA CORBEILLE').click()
+        r = await pg.evaluate("(ids) => ({d1:!!(BIB.corbeille && BIB.corbeille[ids.d1]), d2:!!(BIB.corbeille && BIB.corbeille[ids.d2])})", ids)
+        ok(r['d1'] == False and r['d2'] == True, 'DOUBLONS : celui qui ne sert pas (DOUBLON DEUX) est mis à la corbeille, l’autre gardé (%s)' % r)
+        # ---- supprimer pour de bon ----
+        await pg.evaluate("BIB.onglet = 2; majBibUI()")
+        ligne_efface = pg.locator('#bib-corps .bib-ligne').filter(has=pg.locator('b', has_text=re.compile('DOUBLON')))
+        await ligne_efface.locator('button', has_text='SUPPRIMER DÉFINITIVEMENT').click()
+        r = await pg.evaluate("(ids) => ({d1:!!ES.buf[ids.d1], d2:!!ES.buf[ids.d2], f1:!!HOST.echCharger(ids.d1), f2:!!HOST.echCharger(ids.d2)})", ids)
+        ok(r['d1'] and r['f1'] and not r['d2'] and not r['f2'], 'SUPPRIMER DÉFINITIVEMENT efface le doublon écarté, garde celui qui sert (%s)' % r)
+        # ---- vider la corbeille ----
+        await pg.evaluate("(id) => { bibMettreCorbeille(id); majBibUI(); }", ids['seul'])
+        await pg.evaluate("BIB.onglet = 2; majBibUI()")
+        await pg.locator('#bib-corps button', has_text='VIDER LA CORBEILLE').click()
+        r = await pg.evaluate("Object.keys(BIB.corbeille || {}).length")
+        ok(r == 0, 'VIDER LA CORBEILLE efface tout ce qui restait (%d)' % r)
+        # ---- purge silencieuse après trente jours ----
+        r = await pg.evaluate("""() => {
+          const b = ctx.createBuffer(1, 100, ctx.sampleRate), id = 'u' + Date.now().toString(36) + 'vieux';
+          ES.buf[id] = b; ES.noms[id] = 'fichier'; sauverEch(id, b);
+          bibMettreCorbeille(id); BIB.corbeille[id] = Date.now() - 31 * 86400000; bibEcrire();
+          bibPurgerCorbeille();
+          return {buf:!!ES.buf[id], fichier:!!HOST.echCharger(id)};
+        }""")
+        ok(not r['buf'] and not r['fichier'], 'un son de plus de trente jours en corbeille est effacé sans confirmation (%s)' % r)
+        # ---- toute la liste filtrée à la corbeille ----
+        r = await pg.evaluate("""() => {
+          const a = 'u' + Date.now().toString(36) + 'a1', b2 = 'u' + Date.now().toString(36) + 'b1';
+          [a, b2].forEach(id => { ES.buf[id] = ctx.createBuffer(1, 50, ctx.sampleRate); ES.noms[id] = 'fichier'; BIB.noms[id] = 'LOT ' + id; sauverEch(id, ES.buf[id]); });
+          BIB.onglet = 0; bibFiltre().q = 'LOT'; majBibUI();
+          return [a, b2];
+        }""")
+        await pg.locator('#bib-liste-corbeille').click()
+        rr = await pg.evaluate("(ids) => ids.every(id => BIB.corbeille && BIB.corbeille[id])", r)
+        ok(rr, 'METTRE LA LISTE À LA CORBEILLE : tous les sons filtrés y passent d’un coup')
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai, bib_editeur, bib_figer, bib_roles, bib_packs):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai, bib_editeur, bib_figer, bib_roles, bib_packs, bib_corbeille):
             try:
                 await t(nav)
             except Exception as e:

@@ -144,10 +144,12 @@ function nomEch(id){
   if(id.charAt(0)==="b") return ES_BANQUE[+id.slice(1)] || "---";
   return (ES.noms[id] === "fichier" ? "FICHIER " : "MIC ") + id.slice(-3).toUpperCase();
 }
+/* v258 : un son à la corbeille ne se propose plus (listes, cycles, exports,
+   crédits, tirage au hasard), mais reste chargé et jouable où il sert déjà */
 function listeEch(){
   var l = [];
   for(var i=0;i<ES_BANQUE.length;i++) l.push("b"+i);
-  for(var k in ES.buf) if(k.charAt(0)!=="b") l.push(k);
+  for(var k in ES.buf) if(k.charAt(0)!=="b" && !(typeof bibEnCorbeille === "function" && bibEnCorbeille(k))) l.push(k);
   return l;
 }
 function inverse(id){

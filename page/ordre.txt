@@ -155,6 +155,7 @@ js/635-projet-drm16.js
 js/636-figer-et-reechantillonner.js
 js/637-kits-par-role.js
 js/638-packs-et-credits.js
+js/639-corbeille-et-nettoyage.js
 js/640-travail-du-midi-editeur-en-rouleau.js
 js/650-transfert-exclusif-vers-une-vraie-korg.js
 js/660-choix-du-modele.js

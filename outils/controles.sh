@@ -73,6 +73,7 @@ node outils/test-classement.cjs
 node outils/test-editeur.cjs
 node outils/test-figer.cjs
 node outils/test-roles.cjs
+node outils/test-corbeille.cjs
 node outils/test-memoire.cjs
 fin
 

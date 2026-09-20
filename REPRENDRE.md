@@ -145,7 +145,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
   64 pas, Song), PO-33 (Parameter Locks, CHROMA, Swing, 16 effets, WRITE v231), TR (SCALE v232, FILL et
   AUTO FILL v236, TRACK v238), DMX (SONG v234), MPC (99 séquences v237, 8 programmes v246), et l'export WAV d'un morceau
   enchaîné pour les TR, la DMX, la MPC et la TR-1000 (v244).
-- *Bibliothèque* : Freesound (v248), sons de chaque machine et kits de sons avec retour arrière (v251), classement des sons (v252), essai d'un son pendant la lecture (v253), éditeur de son (v254), machines figées et rééchantillonnage (v255), kits par rôle (v256), packs et crédits (v257).
+- *Bibliothèque* : Freesound (v248), sons de chaque machine et kits de sons avec retour arrière (v251), classement des sons (v252), essai d'un son pendant la lecture (v253), éditeur de son (v254), machines figées et rééchantillonnage (v255), kits par rôle (v256), packs et crédits (v257), corbeille, place occupée, sons sans emploi et doublons (v258).
 
 **Reste à faire, par ordre d'intérêt**
 1. *Fidélité* : effets en plus sur le KAOSS PAD ; échantillonnage, découpe et étirement sur la TR-1000 ; échantillonnage au micro sur le PO-33 ;
@@ -162,7 +162,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
 bloc 14 du test navigateur (« un gain existant rejoint sa cible en douceur ») quand la machine est chargée.
 Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en écrire en `file://`.
 
-### Versions v177 à v257
+### Versions v177 à v258
 
 | Version | Sujet |
 |---|---|
@@ -247,6 +247,7 @@ Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en
 | v255 | Bibliothèque : figer une machine en échantillons, rééchantillonner |
 | v256 | Bibliothèque : kits par rôle, kit au hasard, copie de kit |
 | v257 | Bibliothèque : packs et kits en fichiers, import en lot, crédits |
+| v258 | Bibliothèque : corbeille, place occupée, sons sans emploi, doublons |
 
 ---
 

@@ -12,12 +12,15 @@ function bibLire(){
     if(o && o.freesound) BIB.freesound = fsonCreditsValides(o.freesound);
     /* v252 : catégories, favoris */
     if(typeof bibMetaValides === "function") BIB.meta = bibMetaValides(o && o.meta);
+    /* v258 : corbeille */
+    if(typeof bibCorbeilleValide === "function") BIB.corbeille = bibCorbeilleValide(o && o.corbeille);
   }catch(e){}
 }
 function bibEcrire(){
   if(PROJET_EN_COURS) return false;
   try{
-    localStorage.setItem(MEM + ".bib", JSON.stringify({noms:BIB.noms, preset:BIB.preset, freesound:BIB.freesound || {}, meta:BIB.meta || {}}));
+    localStorage.setItem(MEM + ".bib", JSON.stringify({noms:BIB.noms, preset:BIB.preset, freesound:BIB.freesound || {},
+      meta:BIB.meta || {}, corbeille:BIB.corbeille || {}}));
     return true;
   }catch(e){ signal("MÉMOIRE PLEINE · NOMS ET CRÉDITS NON GARDÉS"); return false; }
 }
@@ -368,13 +371,12 @@ function bibLigneSon(s){
       bibEcrire(); majBibUI();
     });
   });
-  if(s.propre) boutonBib(a, "SUPPRIMER", function(){
-    var n = usagesEch(s.id);
-    if(n > 0 && !window.confirm("Ce son sert encore " + n + " fois. Le supprimer quand même ?")) return;
-    supprimerEch(s.id); delete BIB.noms[s.id];
-    if(BIB.freesound) delete BIB.freesound[s.id];
-    if(BIB.meta) delete BIB.meta[s.id];
-    bibEcrire(); majBibUI(); H.inter();
+  /* v258 : SUPPRIMER met à la corbeille, réversible depuis SAUVEGARDES ·
+     Nettoyage ; VIDER LA CORBEILLE ou trente jours l'effacent pour de bon */
+  if(s.propre) boutonBib(a, "METTRE À LA CORBEILLE", function(){
+    if(!bibMettreCorbeille(s.id)) return;
+    majBibUI(); H.inter();
+    signal(s.nom + " → CORBEILLE · RESTAURABLE DEPUIS SAUVEGARDES");
   });
   l.appendChild(a);
   if(typeof bibDecorerLigne === "function") bibDecorerLigne(l, s);
@@ -417,6 +419,7 @@ function bibRendrePrises(corps){
 function bibRendreSauvegardes(corps){
   projetRendre(corps);   /* v145 : les projets .drm16 d'abord */
   if(typeof packRendre === "function") packRendre(corps);   /* v257 : packs et kits */
+  if(typeof nettoyageRendre === "function") nettoyageRendre(corps);   /* v258 : corbeille, sans emploi, doublons */
   var hm = document.createElement("h3"); hm.textContent = "Machines Korg branchées";
   corps.appendChild(hm);
   var p1 = document.createElement("p");
@@ -646,6 +649,7 @@ function reechantillonner32(buf){
 function ouvrirBib(){
   BIB.ongletAffiche = -1;                     /* une ouverture repart du haut */
   bibLire();
+  if(typeof bibPurgerCorbeille === "function") bibPurgerCorbeille();   /* v258 : sons trop vieux effacés en silence */
   arcCharger();
   audioInit(); banqueEs(); chargerEchs();   /* la banque doit exister pour être listée */
   fermerAutresPanneaux("bib");

@@ -158,7 +158,7 @@ function bibChoisirCategorie(id, c){
 
 /* ---------- filtrer, trier, paginer ---------- */
 function bibFiltre(){
-  if(!BIB.filtre) BIB.filtre = {q:"", cat:"", orig:"tout", tri:"nom", fav:false, n:BIB_PAGE};
+  if(!BIB.filtre) BIB.filtre = {q:"", cat:"", orig:"tout", tri:"nom", fav:false, sansemploi:false, n:BIB_PAGE};
   return BIB.filtre;
 }
 function bibSansAccents(t){ return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
@@ -169,6 +169,8 @@ function bibClasserSons(liste){
   if(BIB.metaChange){ BIB.metaChange = false; bibEcrire(); }
   var l = liste.filter(function(s){
     if(f.fav && !s.fav) return false;
+    /* v258 : sans emploi, dans aucun motif, programme, kit rangé ni prise */
+    if(f.sansemploi && !(typeof bibSansEmploi === "function" && bibSansEmploi(s.id))) return false;
     if(f.cat && s.cat !== f.cat) return false;
     if(f.orig === "banque" && s.orig !== "banque") return false;
     if(f.orig === "vous" && s.orig === "banque") return false;
@@ -216,6 +218,12 @@ function bibRendreFiltres(corps, refaire){
   cb.addEventListener("change", function(){ f.fav = this.checked; f.n = BIB_PAGE; refaire(); });
   lab.appendChild(cb); lab.appendChild(document.createTextNode(" ★ favoris seulement"));
   z.appendChild(lab);
+  /* v258 : ne montrer que les sons qui ne servent nulle part */
+  var lab2 = document.createElement("label"); lab2.className = "bib-f-fav";
+  var cb2 = document.createElement("input"); cb2.type = "checkbox"; cb2.id = "bib-f-sansemploi"; cb2.checked = f.sansemploi;
+  cb2.addEventListener("change", function(){ f.sansemploi = this.checked; f.n = BIB_PAGE; refaire(); });
+  lab2.appendChild(cb2); lab2.appendChild(document.createTextNode(" sans emploi seulement"));
+  z.appendChild(lab2);
   var compte = document.createElement("p"); compte.id = "bib-compte"; compte.className = "bib-compte";
   z.appendChild(compte);
   /* v256 : toute la liste filtrée, posée par rôle sur la machine choisie dans « Affecter à » */
@@ -234,6 +242,19 @@ function bibRendreFiltres(corps, refaire){
     ep.textContent = "EXPORTER LA LISTE EN PACK";
     ep.addEventListener("click", function(){ exporterPackListe(); });
     z.appendChild(ep);
+  }
+  /* v258 : toute la liste filtrée à la corbeille, un raccourci vers le nettoyage */
+  if(typeof bibMettreListeCorbeille === "function"){
+    var mc = document.createElement("button"); mc.className = "sec"; mc.id = "bib-liste-corbeille";
+    mc.textContent = "METTRE LA LISTE À LA CORBEILLE";
+    mc.addEventListener("click", function(){ bibMettreListeCorbeille(); });
+    z.appendChild(mc);
+  }
+  if(typeof nettoyageRendre === "function"){
+    var nt = document.createElement("button"); nt.className = "sec"; nt.id = "bib-nettoyage";
+    nt.textContent = "NETTOYAGE (CORBEILLE, DOUBLONS…)";
+    nt.addEventListener("click", function(){ BIB.onglet = 2; majBibUI(); });
+    z.appendChild(nt);
   }
   corps.appendChild(z);
 }
