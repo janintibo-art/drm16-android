@@ -1,0 +1,36 @@
+/* v267 — Repères de lecture des variations. Aucun élément ne prend les gestes. */
+.av-info{position:relative;min-width:0;margin:7px 0;padding:6px 9px;border:1px solid #48505a;
+  border-radius:5px;background:linear-gradient(#242830,#12151b);color:#e3e8ef;
+  box-shadow:inset 0 1px 0 #ffffff12;font:600 12px/1.35 Arial,sans-serif;pointer-events:none}
+.av-ligne{display:grid;grid-template-columns:minmax(120px,1fr) minmax(160px,1.35fr) minmax(76px,.55fr);
+  align-items:center;gap:10px;min-height:24px;--av-couleur:#b9c9dc}
+.av-ligne+.av-ligne{border-top:1px solid #ffffff17;margin-top:3px;padding-top:3px}
+.av-titre{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e6edf6}
+.av-detail{display:block;color:#abb8c8;font:500 10px/1.3 Arial,sans-serif;letter-spacing:.2px}
+.av-ligne svg{width:100%;height:26px;display:block;overflow:hidden;color:var(--av-couleur)}
+.av-fond{stroke:#ffffff0b;stroke-width:1}
+.av-courbe{stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
+.av-curseur{stroke:#f6fbff;stroke-width:1;fill:none}
+.av-valeur{font:700 12px/1.3 monospace;text-align:right;white-space:pre-line;color:var(--av-couleur)}
+.av-legende{font:500 10px/1.3 Arial,sans-serif;color:#a8b4c4;margin-top:3px}
+.av-ligne[data-etat="rec"],.av-repere[data-etat="rec"]{--av-couleur:#f29aa8}
+.av-ligne[data-etat="arme"],.av-repere[data-etat="arme"]{--av-couleur:#ecc78c}
+.av-ligne[data-etat="lecture"],.av-repere[data-etat="lecture"]{--av-couleur:#a6d9c5}
+.av-ligne[data-etat="off"],.av-ligne[data-etat="muet"],.av-ligne[data-etat="fill"],
+.av-repere[data-etat="off"],.av-repere[data-etat="muet"],.av-repere[data-etat="fill"]{--av-couleur:#7f8b9b}
+.av-repere{--av-couleur:#b9c9dc;position:absolute;inset:-3px;display:block;pointer-events:none!important;
+  color:var(--av-couleur);z-index:3}
+.av-repere[hidden],.av-repere:not([data-valeur]) .av-point,.av-repere:not([data-valeur]) .av-arc{display:none!important}
+.av-repere svg{width:100%;height:100%;display:block;overflow:visible;pointer-events:none!important}
+.av-piste{stroke:currentColor;opacity:.48;stroke-width:2;fill:none;stroke-dasharray:3 3}
+.av-arc{stroke:currentColor;stroke-width:3;stroke-linecap:round;fill:none}
+.av-point{transform:rotate(var(--av-angle,0deg));transform-origin:50px 50px}
+.av-point circle{fill:#f1f8ff;stroke:#202a35;stroke-width:1.5}
+.av-fader{inset:0}
+.av-fader::before{content:"";position:absolute;top:0;bottom:0;left:2px;border-left:1px dashed currentColor;opacity:.65}
+.av-fader .av-trait{position:absolute;left:-2px;right:-2px;height:3px;background:currentColor;border:1px solid #14232d}
+.av-fader:not([data-valeur]) .av-trait{display:none}
+.av-description{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0;pointer-events:none!important}
+/* Les coordonnées des repères restent locales : le zoom natif agrandit aussi les bagues. */
+@media(prefers-reduced-motion:reduce){.av-repere *,.av-ligne *{transition:none!important;animation:none!important}}

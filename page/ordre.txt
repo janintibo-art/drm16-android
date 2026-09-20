@@ -27,6 +27,7 @@ css/230-menu-machines.css
 css/240-outils-studio.css
 css/250-retours-musicaux.css
 css/260-gestes-et-mouvements.css
+css/270-automations-machines.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -173,6 +174,7 @@ js/665-clavier-et-souris.js
 js/670-menu-machines.js
 js/680-retours-musicaux.js
 js/690-gestes-et-mouvements.js
+js/700-automations-machines.js
 html/609-demarrage.html
 js/005-demarrage-projet.js
 html/610-fin.html
