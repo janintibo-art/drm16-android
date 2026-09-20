@@ -1,0 +1,112 @@
+/* v263 — catalogue de machines. Aucune règle ne sort de #menu. */
+#menu.menu-studio{
+  --catalogue-texte:#f0ede5;--catalogue-secondaire:#b9bab8;--catalogue-trait:#414346;
+  display:block;padding:0 max(12px,env(safe-area-inset-right)) max(32px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));
+  color:var(--catalogue-texte);background:#111214;scroll-padding-top:270px;
+  touch-action:manipulation;overscroll-behavior:contain;
+}
+#menu.menu-studio.hide{display:none}
+#menu.menu-studio [hidden]{display:none!important}
+#menu .catalogue-entete{
+  position:sticky;top:0;z-index:2;width:100%;max-width:1320px;margin:0 auto 16px;
+  padding:calc(12px + env(safe-area-inset-top)) 0 12px;
+  display:grid;grid-template-columns:minmax(0,1fr);gap:10px;
+  background:#111214;border-bottom:1px solid var(--catalogue-trait);
+}
+#menu .catalogue-marque{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+#menu .catalogue-marque small{font:700 11px/1.4 Arial,sans-serif;letter-spacing:2px;color:#d6bc80;display:block}
+#menu .catalogue-marque h1{font:800 22px/1.2 Arial,sans-serif;color:var(--catalogue-texte);letter-spacing:-.5px;margin:3px 0 0;text-align:left}
+#menu .catalogue-total{font:700 12px/1.4 Arial,sans-serif;color:var(--catalogue-secondaire);text-align:right;max-width:74px;flex:none;white-space:pre-line}
+#menu .catalogue-onglets{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:0}
+#menu .catalogue-onglets button,#menu .catalogue-filtres button,#menu .catalogue-vide button{
+  min-height:44px;min-width:44px;padding:10px 12px;border:1px solid var(--catalogue-trait);border-radius:7px;
+  color:#c6c7c6;background:linear-gradient(#2a2c2f,#1b1d20);box-shadow:inset 0 1px #ffffff0c;
+  font:700 12px/1.2 Arial,sans-serif;letter-spacing:.3px;cursor:pointer;touch-action:manipulation;
+}
+#menu .catalogue-onglets button[aria-pressed="true"]{background:#d8c799;border-color:#e5d5ac;color:#1c1b17;box-shadow:inset 0 1px #ffffff66}
+#menu .catalogue-recherche{position:relative;display:flex;min-width:0;align-items:center}
+#menu .catalogue-recherche label{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#menu .catalogue-recherche input{
+  width:100%;min-width:0;height:46px;padding:10px 52px 10px 14px;border:1px solid #4a4d50;border-radius:7px;
+  background:#090b0d;box-shadow:inset 0 2px 4px #0007;color:var(--catalogue-texte);font:400 16px/1.4 Arial,sans-serif;
+  -webkit-user-select:text;user-select:text;touch-action:manipulation;
+}
+#menu .catalogue-recherche input::placeholder{color:#a3a6aa;opacity:1}
+#menu .catalogue-recherche input::-webkit-search-cancel-button{-webkit-appearance:none}
+#menu .catalogue-effacer{position:absolute;right:1px;top:1px;width:44px;height:44px;padding:0;border:0;border-radius:6px;
+  background:transparent;color:#e7e7e4;font:400 25px/1 Arial,sans-serif;cursor:pointer;touch-action:manipulation}
+#menu .catalogue-effacer:disabled{opacity:.35;cursor:default}
+#menu .catalogue-filtres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;min-width:0}
+#menu .catalogue-filtres button{padding:8px 5px;font-size:11px;letter-spacing:0}
+#menu .catalogue-filtres button[aria-pressed="true"]{color:#f4e5bf;border-color:#bca46e;background:#39352b;box-shadow:inset 0 -2px #bca46e}
+#menu .catalogue-corps{max-width:1320px;margin:0 auto}
+#menu .catalogue-resultat{min-height:20px;margin:0 0 12px;font:400 12px/1.5 Arial,sans-serif;color:var(--catalogue-secondaire)}
+#menu .catalogue-grille{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:stretch}
+#menu.menu-studio .pick{
+  --carte-accent:#b7a06c;position:relative;display:grid;grid-template-columns:minmax(0,1fr) 100px;grid-template-rows:auto 1fr;
+  align-items:start;gap:8px 12px;width:100%;max-width:none;min-height:140px;margin:0;padding:15px 13px 13px 17px;
+  border:1px solid #3b3d40;border-left:4px solid var(--carte-accent);border-radius:9px;
+  background:linear-gradient(145deg,#292b2e,#1b1d20 70%);color:var(--catalogue-texte);text-align:left;
+  box-shadow:inset 0 1px #ffffff12,0 3px 6px #0004;cursor:pointer;touch-action:pan-y;
+  transition:transform .07s,border-color .07s;
+}
+#menu.menu-studio .pick::after{content:none}
+#menu.menu-studio .pick span{margin:0;font:inherit;letter-spacing:normal;color:inherit;text-shadow:none}
+#menu.menu-studio .pick b{margin:7px 0 0;font:800 22px/1.12 Arial,sans-serif;letter-spacing:-.45px;color:#f1eee7;text-shadow:none;overflow-wrap:anywhere}
+#menu.menu-studio .pick .catalogue-identite{min-width:0;grid-column:1;grid-row:1}
+#menu.menu-studio .pick .catalogue-constructeur{font:700 10.5px/1.4 Arial,sans-serif;letter-spacing:1.5px;color:#c6c7c5}
+#menu.menu-studio .pick .catalogue-description{grid-column:1/-1;grid-row:2;align-self:end;font:400 12px/1.5 Arial,sans-serif;letter-spacing:.25px;color:#bfc1c3}
+#menu.menu-studio .pick .catalogue-apercu{grid-column:2;grid-row:1;align-self:center;display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:0}
+#menu.menu-studio .pick .catalogue-categorie{font:700 10.5px/1 Arial,sans-serif;letter-spacing:.6px;color:#d5d1c6}
+#menu .catalogue-mini{display:block;width:100px;height:54px;overflow:visible;pointer-events:none}
+#menu .catalogue-mini .coque{fill:#151719;stroke:#8a8b86;stroke-width:1}
+#menu .catalogue-mini .accent{fill:var(--carte-accent)}
+#menu .catalogue-mini .ligne{fill:none;stroke:#c1c1b6;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+#menu .catalogue-mini .ecran{fill:#aab59c}
+#menu .catalogue-mini .touche{fill:#a8a8a1}
+#menu .catalogue-mini .sombre{fill:#323637}
+#menu.menu-studio .pick .catalogue-actuelle{display:inline-block;margin-top:7px;padding:3px 5px;border-radius:3px;
+  background:#383b35;color:#dfebce;font:700 10.5px/1.25 Arial,sans-serif;letter-spacing:.7px}
+#menu.menu-studio .pick[aria-current="true"]{border-color:#c6b482;box-shadow:inset 0 0 0 1px #c6b48224,0 3px 6px #0004}
+#menu.menu-studio .pick:active,#menu .catalogue-onglets button:active,#menu .catalogue-filtres button:active{transform:translateY(1px)}
+#menu.menu-studio :is(button,input):focus-visible{outline:2px solid #f1dca0;outline-offset:2px}
+#menu .catalogue-vide{padding:28px 16px;border:1px dashed #5a5d60;border-radius:9px;text-align:center;background:#1a1c1e}
+#menu .catalogue-vide p{font:400 14px/1.5 Arial,sans-serif;color:#c5c5c1;margin:0 0 16px}
+#menu .catalogue-vide strong{display:block;font-size:18px;color:#f1eee7;margin-bottom:7px}
+@media (hover:hover){#menu.menu-studio .pick:hover{border-color:#9c9b93;background:linear-gradient(145deg,#303236,#222427)}}
+@media (min-width:620px){
+  #menu .catalogue-entete{grid-template-columns:minmax(0,1fr) minmax(240px,.8fr)}
+  #menu .catalogue-filtres{grid-column:1/-1;grid-template-columns:repeat(6,minmax(0,1fr))}
+  #menu .catalogue-recherche{grid-column:1/-1}
+  #menu .catalogue-grille{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #menu.menu-studio{scroll-padding-top:220px}
+}
+@media (min-width:1100px){
+  #menu .catalogue-grille{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #menu .catalogue-recherche{grid-column:1}
+  #menu .catalogue-filtres{grid-column:2;grid-row:2}
+  #menu .catalogue-entete{grid-template-columns:minmax(290px,.8fr) minmax(550px,1.3fr)}
+  #menu.menu-studio{scroll-padding-top:150px}
+}
+@media (max-width:379px){
+  #menu.menu-studio .pick{grid-template-columns:minmax(0,1fr) 80px;gap:8px}
+  #menu .catalogue-mini{width:80px;height:48px}
+  #menu .catalogue-marque h1{font-size:20px}
+}
+@media (max-height:500px) and (min-width:620px){
+  #menu .catalogue-entete{grid-template-columns:minmax(220px,.7fr) minmax(0,1.5fr);gap:7px;padding-top:max(6px,env(safe-area-inset-top));padding-bottom:8px}
+  #menu .catalogue-marque small,#menu .catalogue-total{display:none}
+  #menu .catalogue-marque h1{font-size:20px;margin:0}
+  #menu .catalogue-recherche{grid-column:1;grid-row:2}
+  #menu .catalogue-filtres{grid-column:2;grid-row:2}
+  #menu.menu-studio{scroll-padding-top:130px}
+}
+/* Clavier logiciel ouvert / petit portrait : garder la recherche accessible. */
+@media (max-height:520px) and (max-width:619px){
+  #menu .catalogue-marque{display:none}
+  #menu .catalogue-entete{gap:7px;padding-top:max(6px,env(safe-area-inset-top));padding-bottom:8px}
+  #menu .catalogue-filtres{display:flex;overflow-x:auto;touch-action:pan-x;overscroll-behavior-x:contain}
+  #menu .catalogue-filtres button{flex:0 0 87px}
+  #menu.menu-studio{scroll-padding-top:190px}
+}
+@media (prefers-reduced-motion:reduce){#menu.menu-studio *,#menu.menu-studio .pick{transition:none!important}}

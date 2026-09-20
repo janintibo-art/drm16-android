@@ -23,6 +23,7 @@ css/190-kits-de-sons.css
 css/200-confort-mobile.css
 css/210-facades-matieres.css
 css/220-eurorack-focus.css
+css/230-menu-machines.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -166,6 +167,7 @@ js/640-travail-du-midi-editeur-en-rouleau.js
 js/650-transfert-exclusif-vers-une-vraie-korg.js
 js/660-choix-du-modele.js
 js/665-clavier-et-souris.js
+js/670-menu-machines.js
 html/609-demarrage.html
 js/005-demarrage-projet.js
 html/610-fin.html

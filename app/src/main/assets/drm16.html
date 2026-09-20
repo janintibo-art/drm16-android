@@ -2843,6 +2843,118 @@ body.ensemble #unit-kp.ui-confort{height:auto;min-height:500px}
   #eur-focus .ef-pied{grid-column:1;grid-row:4;padding:8px 12px}
   #eur-focus .ef-zone{grid-column:2;grid-row:2/5;padding:10px 12px;border-left:1px solid #394656}
 }
+/* v263 — catalogue de machines. Aucune règle ne sort de #menu. */
+#menu.menu-studio{
+  --catalogue-texte:#f0ede5;--catalogue-secondaire:#b9bab8;--catalogue-trait:#414346;
+  display:block;padding:0 max(12px,env(safe-area-inset-right)) max(32px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));
+  color:var(--catalogue-texte);background:#111214;scroll-padding-top:270px;
+  touch-action:manipulation;overscroll-behavior:contain;
+}
+#menu.menu-studio.hide{display:none}
+#menu.menu-studio [hidden]{display:none!important}
+#menu .catalogue-entete{
+  position:sticky;top:0;z-index:2;width:100%;max-width:1320px;margin:0 auto 16px;
+  padding:calc(12px + env(safe-area-inset-top)) 0 12px;
+  display:grid;grid-template-columns:minmax(0,1fr);gap:10px;
+  background:#111214;border-bottom:1px solid var(--catalogue-trait);
+}
+#menu .catalogue-marque{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+#menu .catalogue-marque small{font:700 11px/1.4 Arial,sans-serif;letter-spacing:2px;color:#d6bc80;display:block}
+#menu .catalogue-marque h1{font:800 22px/1.2 Arial,sans-serif;color:var(--catalogue-texte);letter-spacing:-.5px;margin:3px 0 0;text-align:left}
+#menu .catalogue-total{font:700 12px/1.4 Arial,sans-serif;color:var(--catalogue-secondaire);text-align:right;max-width:74px;flex:none;white-space:pre-line}
+#menu .catalogue-onglets{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:0}
+#menu .catalogue-onglets button,#menu .catalogue-filtres button,#menu .catalogue-vide button{
+  min-height:44px;min-width:44px;padding:10px 12px;border:1px solid var(--catalogue-trait);border-radius:7px;
+  color:#c6c7c6;background:linear-gradient(#2a2c2f,#1b1d20);box-shadow:inset 0 1px #ffffff0c;
+  font:700 12px/1.2 Arial,sans-serif;letter-spacing:.3px;cursor:pointer;touch-action:manipulation;
+}
+#menu .catalogue-onglets button[aria-pressed="true"]{background:#d8c799;border-color:#e5d5ac;color:#1c1b17;box-shadow:inset 0 1px #ffffff66}
+#menu .catalogue-recherche{position:relative;display:flex;min-width:0;align-items:center}
+#menu .catalogue-recherche label{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#menu .catalogue-recherche input{
+  width:100%;min-width:0;height:46px;padding:10px 52px 10px 14px;border:1px solid #4a4d50;border-radius:7px;
+  background:#090b0d;box-shadow:inset 0 2px 4px #0007;color:var(--catalogue-texte);font:400 16px/1.4 Arial,sans-serif;
+  -webkit-user-select:text;user-select:text;touch-action:manipulation;
+}
+#menu .catalogue-recherche input::placeholder{color:#a3a6aa;opacity:1}
+#menu .catalogue-recherche input::-webkit-search-cancel-button{-webkit-appearance:none}
+#menu .catalogue-effacer{position:absolute;right:1px;top:1px;width:44px;height:44px;padding:0;border:0;border-radius:6px;
+  background:transparent;color:#e7e7e4;font:400 25px/1 Arial,sans-serif;cursor:pointer;touch-action:manipulation}
+#menu .catalogue-effacer:disabled{opacity:.35;cursor:default}
+#menu .catalogue-filtres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;min-width:0}
+#menu .catalogue-filtres button{padding:8px 5px;font-size:11px;letter-spacing:0}
+#menu .catalogue-filtres button[aria-pressed="true"]{color:#f4e5bf;border-color:#bca46e;background:#39352b;box-shadow:inset 0 -2px #bca46e}
+#menu .catalogue-corps{max-width:1320px;margin:0 auto}
+#menu .catalogue-resultat{min-height:20px;margin:0 0 12px;font:400 12px/1.5 Arial,sans-serif;color:var(--catalogue-secondaire)}
+#menu .catalogue-grille{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:stretch}
+#menu.menu-studio .pick{
+  --carte-accent:#b7a06c;position:relative;display:grid;grid-template-columns:minmax(0,1fr) 100px;grid-template-rows:auto 1fr;
+  align-items:start;gap:8px 12px;width:100%;max-width:none;min-height:140px;margin:0;padding:15px 13px 13px 17px;
+  border:1px solid #3b3d40;border-left:4px solid var(--carte-accent);border-radius:9px;
+  background:linear-gradient(145deg,#292b2e,#1b1d20 70%);color:var(--catalogue-texte);text-align:left;
+  box-shadow:inset 0 1px #ffffff12,0 3px 6px #0004;cursor:pointer;touch-action:pan-y;
+  transition:transform .07s,border-color .07s;
+}
+#menu.menu-studio .pick::after{content:none}
+#menu.menu-studio .pick span{margin:0;font:inherit;letter-spacing:normal;color:inherit;text-shadow:none}
+#menu.menu-studio .pick b{margin:7px 0 0;font:800 22px/1.12 Arial,sans-serif;letter-spacing:-.45px;color:#f1eee7;text-shadow:none;overflow-wrap:anywhere}
+#menu.menu-studio .pick .catalogue-identite{min-width:0;grid-column:1;grid-row:1}
+#menu.menu-studio .pick .catalogue-constructeur{font:700 10.5px/1.4 Arial,sans-serif;letter-spacing:1.5px;color:#c6c7c5}
+#menu.menu-studio .pick .catalogue-description{grid-column:1/-1;grid-row:2;align-self:end;font:400 12px/1.5 Arial,sans-serif;letter-spacing:.25px;color:#bfc1c3}
+#menu.menu-studio .pick .catalogue-apercu{grid-column:2;grid-row:1;align-self:center;display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:0}
+#menu.menu-studio .pick .catalogue-categorie{font:700 10.5px/1 Arial,sans-serif;letter-spacing:.6px;color:#d5d1c6}
+#menu .catalogue-mini{display:block;width:100px;height:54px;overflow:visible;pointer-events:none}
+#menu .catalogue-mini .coque{fill:#151719;stroke:#8a8b86;stroke-width:1}
+#menu .catalogue-mini .accent{fill:var(--carte-accent)}
+#menu .catalogue-mini .ligne{fill:none;stroke:#c1c1b6;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+#menu .catalogue-mini .ecran{fill:#aab59c}
+#menu .catalogue-mini .touche{fill:#a8a8a1}
+#menu .catalogue-mini .sombre{fill:#323637}
+#menu.menu-studio .pick .catalogue-actuelle{display:inline-block;margin-top:7px;padding:3px 5px;border-radius:3px;
+  background:#383b35;color:#dfebce;font:700 10.5px/1.25 Arial,sans-serif;letter-spacing:.7px}
+#menu.menu-studio .pick[aria-current="true"]{border-color:#c6b482;box-shadow:inset 0 0 0 1px #c6b48224,0 3px 6px #0004}
+#menu.menu-studio .pick:active,#menu .catalogue-onglets button:active,#menu .catalogue-filtres button:active{transform:translateY(1px)}
+#menu.menu-studio :is(button,input):focus-visible{outline:2px solid #f1dca0;outline-offset:2px}
+#menu .catalogue-vide{padding:28px 16px;border:1px dashed #5a5d60;border-radius:9px;text-align:center;background:#1a1c1e}
+#menu .catalogue-vide p{font:400 14px/1.5 Arial,sans-serif;color:#c5c5c1;margin:0 0 16px}
+#menu .catalogue-vide strong{display:block;font-size:18px;color:#f1eee7;margin-bottom:7px}
+@media (hover:hover){#menu.menu-studio .pick:hover{border-color:#9c9b93;background:linear-gradient(145deg,#303236,#222427)}}
+@media (min-width:620px){
+  #menu .catalogue-entete{grid-template-columns:minmax(0,1fr) minmax(240px,.8fr)}
+  #menu .catalogue-filtres{grid-column:1/-1;grid-template-columns:repeat(6,minmax(0,1fr))}
+  #menu .catalogue-recherche{grid-column:1/-1}
+  #menu .catalogue-grille{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #menu.menu-studio{scroll-padding-top:220px}
+}
+@media (min-width:1100px){
+  #menu .catalogue-grille{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #menu .catalogue-recherche{grid-column:1}
+  #menu .catalogue-filtres{grid-column:2;grid-row:2}
+  #menu .catalogue-entete{grid-template-columns:minmax(290px,.8fr) minmax(550px,1.3fr)}
+  #menu.menu-studio{scroll-padding-top:150px}
+}
+@media (max-width:379px){
+  #menu.menu-studio .pick{grid-template-columns:minmax(0,1fr) 80px;gap:8px}
+  #menu .catalogue-mini{width:80px;height:48px}
+  #menu .catalogue-marque h1{font-size:20px}
+}
+@media (max-height:500px) and (min-width:620px){
+  #menu .catalogue-entete{grid-template-columns:minmax(220px,.7fr) minmax(0,1.5fr);gap:7px;padding-top:max(6px,env(safe-area-inset-top));padding-bottom:8px}
+  #menu .catalogue-marque small,#menu .catalogue-total{display:none}
+  #menu .catalogue-marque h1{font-size:20px;margin:0}
+  #menu .catalogue-recherche{grid-column:1;grid-row:2}
+  #menu .catalogue-filtres{grid-column:2;grid-row:2}
+  #menu.menu-studio{scroll-padding-top:130px}
+}
+/* Clavier logiciel ouvert / petit portrait : garder la recherche accessible. */
+@media (max-height:520px) and (max-width:619px){
+  #menu .catalogue-marque{display:none}
+  #menu .catalogue-entete{gap:7px;padding-top:max(6px,env(safe-area-inset-top));padding-bottom:8px}
+  #menu .catalogue-filtres{display:flex;overflow-x:auto;touch-action:pan-x;overscroll-behavior-x:contain}
+  #menu .catalogue-filtres button{flex:0 0 87px}
+  #menu.menu-studio{scroll-padding-top:190px}
+}
+@media (prefers-reduced-motion:reduce){#menu.menu-studio *,#menu.menu-studio .pick{transition:none!important}}
 </style>
 </head>
 <body>
@@ -38883,6 +38995,261 @@ document.addEventListener("load", function(e){
   if(!f || f.tagName !== "IFRAME") return;
   try{ f.contentDocument.addEventListener("click", lienExterne, true); }catch(err){}
 }, true);
+/* ================= catalogue des machines — v263 =================
+   Présentation seulement. Les boutons sont DEPLACES, jamais clonés : leurs
+   écouteurs d'origine restent l'unique aiguillage vers les machines/outils.
+   Recherche et filtres vivent dans cette fermeture, sans stockage ni audio.
+   Pas de capture de façade, pas d'image distante, pas de boucle d'animation. */
+(function(){
+  var racine = document.getElementById("menu");
+  if(!racine || racine.classList.contains("menu-studio")) return;
+  var machines = Array.prototype.slice.call(racine.querySelectorAll(".pick[data-m]"));
+  var outils = Array.prototype.slice.call(racine.querySelectorAll(".pick:not([data-m])"));
+  if(!machines.length) return;
+  var donnees = {
+    "16":["ELECTRO-HARMONIX",["DRUM"],"drm","#e87c4b"],
+    "32":["ELECTRO-HARMONIX",["DRUM"],"drm","#65baaa"],
+    em1:["KORG",["GROOVEBOX"],"sequenceur","#8daac3"],
+    er1:["KORG",["DRUM"],"sequenceur","#b68397"],
+    ea1:["KORG",["SYNTH"],"sequenceur","#b8a281"],
+    es1:["KORG",["SAMPLER"],"sequenceur","#80ae95"],
+    ea2:["KORG",["SYNTH"],"sequenceur","#b8a281"],
+    er2:["KORG",["DRUM"],"sequenceur","#b68397"],
+    es2:["KORG",["SAMPLER"],"sequenceur","#80ae95"],
+    emx:["KORG",["GROOVEBOX","SYNTH"],"sequenceur","#71a3c7"],
+    esx:["KORG",["SAMPLER","GROOVEBOX"],"sequenceur","#c07980"],
+    arcm:["COLLECTION DRM16",["DRUM"],"pads","#afa58b"],
+    t1k:["ROLAND",["DRUM","SAMPLER"],"sequenceur","#d49657"],
+    dbi:["ARTURIA",["DRUM"],"sequenceur","#d1a170"],
+    cr5:["ROLAND",["DRUM"],"drm","#d49657"],
+    vlc:["KORG",["SAMPLER"],"sequenceur","#98b9b1"],
+    dmx:["OBERHEIM",["DRUM"],"pads","#a2b9c9"],
+    eur:["MODULAIRE",["SYNTH"],"rack","#b6b4a7"],
+    td3:["BEHRINGER",["SYNTH"],"clavier","#bbab7d"],
+    rd6:["BEHRINGER",["DRUM"],"sequenceur","#bbab7d"],
+    tr808:["ROLAND",["DRUM"],"sequenceur","#d49657"],
+    tr909:["ROLAND",["DRUM"],"sequenceur","#d49657"],
+    tr707:["ROLAND",["DRUM"],"sequenceur","#d49657"],
+    mpc3000:["AKAI",["SAMPLER"],"pads","#c1807b"],
+    mpc2000:["AKAI",["SAMPLER"],"pads","#c1807b"],
+    kp:["KORG",["FX"],"kaoss","#c38088"],
+    mc:["ROLAND",["GROOVEBOX"],"sequenceur","#d49657"],
+    stk:["SONICWARE",["SAMPLER","GROOVEBOX"],"pads","#98b6ba"],
+    ko:["TEENAGE ENGINEERING",["SAMPLER"],"poche","#b5b17b"]
+  };
+  var services = {
+    "menu-bib":["SONS & PROJETS","bibliotheque"],
+    "menu-pr":["ÉDITION MIDI","clavier"],
+    "menu-enr":["PRISES MIDI","enregistreur"],
+    "menu-notices":["DOCUMENTATION","notice"],
+    "menu-syro":["TRANSFERT SYRO","transfert"],
+    "menu-table":["MIXAGE","mixeur"],
+    "menu-studio":["SÉQUENCEUR","sequenceur"],
+    "menu-nexus":["PADS & SAMPLES","pads"],
+    "menu-audio":["DIAGNOSTIC","signal"]
+  };
+  function el(n, classe, texte){
+    var e = document.createElement(n);
+    if(classe) e.className = classe;
+    if(texte !== undefined) e.textContent = texte;
+    return e;
+  }
+  function bouton(id, texte){
+    var e = el("button", "", texte); e.type = "button"; e.id = id; return e;
+  }
+  function normaliser(t){
+    t = String(t || "").toLowerCase();
+    if(t.normalize) t = t.normalize("NFD");
+    return t.replace(/[\u0300-\u036f]/g, "").replace(/œ/g, "oe").replace(/[^a-z0-9]+/g, "");
+  }
+  /* Silhouettes vectorielles volontairement simples : elles indiquent une
+     famille de façade, sans promettre une photographie du matériel. */
+  function vignette(type){
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 120 66"); svg.setAttribute("class", "catalogue-mini");
+    svg.setAttribute("aria-hidden", "true"); svg.setAttribute("focusable", "false");
+    function forme(n, a, c){
+      var f = document.createElementNS(svg.namespaceURI, n);
+      Object.keys(a).forEach(function(k){ f.setAttribute(k, a[k]); });
+      f.setAttribute("class", c); svg.appendChild(f); return f;
+    }
+    function rect(x,y,w,h,c,r){ return forme("rect",{x:x,y:y,width:w,height:h,rx:r||1},c); }
+    function rond(x,y,r,c){ return forme("circle",{cx:x,cy:y,r:r},c); }
+    function chemin(d,c){ return forme("path",{d:d},c||"ligne"); }
+    if(type === "poche"){
+      rect(37,2,46,62,"coque",3); rect(42,7,35,14,"ecran",2);
+      for(var py=0;py<4;py++) for(var px=0;px<4;px++) rond(44+px*10,29+py*9,3,py===3?"accent":"touche");
+      return svg;
+    }
+    rect(3,6,114,54,"coque",4); rect(7,9,106,3,"accent",1);
+    if(type === "kaoss"){
+      rect(46,17,46,36,"accent",2); rect(49,20,40,30,"sombre",1);
+      chemin("M49 35H89 M69 20V50"); rond(75,30,3,"touche");
+      rond(20,24,6,"touche"); rond(20,45,5,"touche");
+    } else if(type === "pads"){
+      rect(13,18,32,12,"ecran",1);
+      for(var p=0;p<3;p++) rond(18+p*10,43,3,"touche");
+      for(var y=0;y<4;y++) for(var x=0;x<4;x++) rect(57+x*12,17+y*9,8,6,y===3?"accent":"touche",1);
+    } else if(type === "rack"){
+      for(var mod=0;mod<5;mod++){
+        rect(9+mod*21,16,18,38,"touche",1); rond(18+mod*21,24,4,"sombre");
+        rond(14+mod*21,43,2,"sombre"); rond(23+mod*21,43,2,"sombre");
+      }
+      chemin("M14 43Q42 19 56 43 M56 43Q70 62 98 43");
+    } else if(type === "clavier"){
+      rect(12,18,25,10,"ecran",1); for(var k=0;k<4;k++) rond(53+k*15,23,4,"touche");
+      for(var cle=0;cle<12;cle++) rect(12+cle*8,36,7,17,"touche",1);
+      for(var noire=0;noire<11;noire++) if(noire%7!==2&&noire%7!==6) rect(17+noire*8,36,4,9,"sombre",1);
+    } else if(type === "drm"){
+      rect(12,18,46,32,"accent",2);
+      for(var dy=0;dy<3;dy++) for(var dx=0;dx<5;dx++) rect(16+dx*8,23+dy*8,5,4,"touche",1);
+      rond(78,28,9,"touche"); rond(101,28,7,"touche"); rond(89,48,5,"touche");
+    } else if(type === "bibliotheque"){
+      chemin("M29 46V23H51L57 29H91V46Z"); chemin("M65 27V41 M65 30L77 27V38");
+      rond(61,43,4,"accent"); rond(73,40,4,"accent");
+    } else if(type === "notice"){
+      chemin("M23 19Q42 15 60 22Q78 15 97 19V48Q78 44 60 51Q42 44 23 48Z M60 22V51 M32 27H49 M32 33H49 M70 27H87 M70 33H87");
+    } else if(type === "mixeur"){
+      for(var ch=0;ch<5;ch++){
+        chemin("M22 18V51".replace(/22/g,String(22+ch*19)));
+        rect(17+ch*19,24+(ch%3)*7,10,7,"accent",1);
+      }
+    } else if(type === "enregistreur"){
+      rond(40,32,10,"accent"); rect(65,22,20,20,"touche",2);
+    } else if(type === "transfert"){
+      chemin("M26 25H85L76 17 M85 25L76 33 M94 43H35L44 35 M35 43L44 51");
+    } else if(type === "signal"){
+      chemin("M12 35H30L36 23L46 46L55 18L65 43L72 29L80 35H107");
+    } else {
+      rect(12,17,28,12,"ecran",1);
+      for(var n=0;n<5;n++) rond(51+n*12,23,3,"touche");
+      for(var z=0;z<4;z++) rond(18+z*27,39,4,"touche");
+      for(var pas=0;pas<12;pas++) rect(11+pas*8,50,6,5,pas<4?"accent":"touche",1);
+    }
+    return svg;
+  }
+  function habiller(b, data, outil){
+    var titre = b.querySelector("b"), description = b.querySelector("span");
+    if(!titre || !description) return;
+    var identite = el("span", "catalogue-identite");
+    identite.appendChild(el("span", "catalogue-constructeur", data[0]));
+    identite.appendChild(titre);
+    if(!outil){
+      var marque = data[0];
+      if(titre.textContent.toUpperCase().indexOf(marque + " ") === 0)
+        titre.textContent = titre.textContent.slice(marque.length + 1);
+    }
+    description.classList.add("catalogue-description");
+    /* L'ancien libellé disait quatorze modules, même après les ajouts. */
+    if(b.dataset.m === "eur" && typeof EUR_CAT === "object")
+      description.textContent = Object.keys(EUR_CAT).length + " MODULES · CÂBLAGE LIBRE · MODE FOCUS";
+    var apercu = el("span", "catalogue-apercu");
+    apercu.appendChild(el("span", "catalogue-categorie", outil ? "OUTIL" : data[1][0]));
+    apercu.appendChild(vignette(data[2]));
+    b.appendChild(identite); b.appendChild(apercu); b.appendChild(description);
+    b.style.setProperty("--carte-accent", data[3]);
+    b.type = "button";
+    b.dataset.catalogueCategories = data[1].join(" ");
+    b.dataset.catalogueRecherche = normaliser(data[0] + " " + titre.textContent + " " + data[1].join(" ") + " " + description.textContent);
+    if(!outil){
+      var actuelle = el("span", "catalogue-actuelle", "ACTUELLE");
+      actuelle.hidden = true; identite.appendChild(actuelle);
+    }
+  }
+  var entete = el("header", "catalogue-entete");
+  var marque = el("div", "catalogue-marque"), nom = el("div");
+  nom.appendChild(el("small", "", "DRM16 · STUDIO DE MACHINES"));
+  var titre = racine.querySelector("h1") || el("h1", "", "CHOISIR UNE MACHINE");
+  titre.id = "catalogue-titre"; titre.textContent = "Choisir une machine"; nom.appendChild(titre); marque.appendChild(nom);
+  marque.appendChild(el("span", "catalogue-total", machines.length + " machines\n" + outils.length + " outils"));
+  entete.appendChild(marque);
+  var onglets = el("nav", "catalogue-onglets"); onglets.setAttribute("aria-label", "Afficher les machines ou les outils");
+  var bm = bouton("catalogue-machines", "MACHINES · " + machines.length);
+  var bo = bouton("catalogue-outils", "OUTILS · " + outils.length);
+  onglets.appendChild(bm); onglets.appendChild(bo); entete.appendChild(onglets);
+  var recherche = el("div", "catalogue-recherche");
+  var etiquette = el("label", "", "Rechercher une machine par nom ou constructeur"); etiquette.htmlFor = "catalogue-recherche";
+  var saisie = el("input"); saisie.id = "catalogue-recherche"; saisie.type = "search"; saisie.maxLength = 100;
+  saisie.autocomplete = "off"; saisie.spellcheck = false; saisie.setAttribute("autocapitalize", "none");
+  var effacer = bouton("catalogue-effacer", "×"); effacer.className = "catalogue-effacer";
+  effacer.setAttribute("aria-label", "Effacer la recherche");
+  recherche.appendChild(etiquette); recherche.appendChild(saisie); recherche.appendChild(effacer); entete.appendChild(recherche);
+  var filtres = el("nav", "catalogue-filtres"); filtres.setAttribute("aria-label", "Familles de machines");
+  var familles = ["TOUT", "DRUM", "SAMPLER", "SYNTH", "GROOVEBOX", "FX"];
+  familles.forEach(function(f){
+    var b = bouton("catalogue-filtre-" + f.toLowerCase(), f); b.dataset.famille = f;
+    b.addEventListener("click", function(){ etat.famille = f; rafraichir(true); }); filtres.appendChild(b);
+  });
+  entete.appendChild(filtres);
+  var corps = el("section", "catalogue-corps"); corps.setAttribute("aria-labelledby", "catalogue-titre");
+  var resultat = el("p", "catalogue-resultat"); resultat.id = "catalogue-resultat";
+  resultat.setAttribute("role", "status"); resultat.setAttribute("aria-live", "polite"); resultat.setAttribute("aria-atomic", "true");
+  saisie.setAttribute("aria-describedby", resultat.id);
+  corps.appendChild(resultat);
+  var grille = el("div", "catalogue-grille"); grille.id = "catalogue-grille";
+  bm.setAttribute("aria-controls", grille.id); bo.setAttribute("aria-controls", grille.id);
+  machines.forEach(function(b){ habiller(b, donnees[b.dataset.m] || ["DRM16",["AUTRE"],"sequenceur","#b7a06c"], false); grille.appendChild(b); });
+  outils.forEach(function(b){ var d = services[b.id] || ["OUTIL DRM16","sequenceur"];
+    habiller(b,[d[0],["OUTIL"],d[1],"#a6adac"],true); grille.appendChild(b); });
+  corps.appendChild(grille);
+  var vide = el("div", "catalogue-vide"), aucun = el("p");
+  aucun.appendChild(el("strong", "", "Aucun résultat"));
+  aucun.appendChild(document.createTextNode("Essayez un autre nom ou retirez les filtres.")); vide.appendChild(aucun);
+  var retablir = bouton("catalogue-retablir", "TOUT AFFICHER"); vide.appendChild(retablir); corps.appendChild(vide);
+  racine.insertBefore(entete, racine.firstChild); racine.appendChild(corps); racine.classList.add("menu-studio");
+  var etat = {vue:"machines", famille:"TOUT", machines:"", outils:""};
+  function selection(){
+    var courante = typeof S === "object" ? String(S.modele) : "";
+    machines.forEach(function(b){
+      var active = b.dataset.m === courante;
+      if(active) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
+      var badge = b.querySelector(".catalogue-actuelle"); if(badge) badge.hidden = !active;
+    });
+  }
+  function rafraichir(remonter){
+    var instruments = etat.vue === "machines", compte = 0;
+    var mots = etat[etat.vue].trim().split(/\s+/).map(normaliser).filter(Boolean);
+    machines.concat(outils).forEach(function(b){
+      var bonGroupe = instruments === !!b.dataset.m;
+      var categorie = !instruments || etat.famille === "TOUT" || b.dataset.catalogueCategories.split(" ").indexOf(etat.famille) >= 0;
+      var correspond = mots.every(function(m){ return b.dataset.catalogueRecherche.indexOf(m) >= 0; });
+      b.hidden = !(bonGroupe && categorie && correspond); if(!b.hidden) compte++;
+    });
+    bm.setAttribute("aria-pressed", String(instruments)); bo.setAttribute("aria-pressed", String(!instruments));
+    filtres.hidden = !instruments;
+    Array.prototype.forEach.call(filtres.children,function(b){ b.setAttribute("aria-pressed", String(b.dataset.famille === etat.famille)); });
+    titre.textContent = instruments ? "Choisir une machine" : "Les outils du studio";
+    etiquette.textContent = instruments ? "Rechercher une machine par nom ou constructeur" : "Rechercher un outil";
+    saisie.placeholder = instruments ? "Nom, constructeur, famille…" : "Bibliothèque, MIDI, mixage…";
+    effacer.disabled = !saisie.value;
+    var total = instruments ? machines.length : outils.length;
+    resultat.textContent = compte + " / " + total + (instruments ? " machines" : " outils") +
+      (instruments && etat.famille !== "TOUT" ? " · " + etat.famille : "") +
+      (mots.length ? " · recherche active" : "");
+    vide.hidden = compte > 0;
+    if(remonter) racine.scrollTop = 0;
+    if(typeof majVoileMenu === "function") majVoileMenu();
+  }
+  function vue(v){ etat.vue = v; saisie.value = etat[v]; rafraichir(true); }
+  bm.addEventListener("click", function(){ vue("machines"); });
+  bo.addEventListener("click", function(){ vue("outils"); });
+  saisie.addEventListener("input", function(){ etat[etat.vue] = saisie.value; rafraichir(true); });
+  effacer.addEventListener("click", function(){ saisie.value = etat[etat.vue] = ""; rafraichir(true); saisie.focus(); });
+  retablir.addEventListener("click", function(){
+    saisie.value = etat[etat.vue] = ""; if(etat.vue === "machines") etat.famille = "TOUT";
+    rafraichir(true); (etat.vue === "machines" ? bm : bo).focus();
+  });
+  /* Un tap sur une carte replie le clavier logiciel, sans réactiver la machine
+     ici : son écouteur d'origine traite le clic exactement une fois. */
+  racine.addEventListener("click", function(e){
+    var cible = e.target && e.target.closest && e.target.closest(".pick");
+    if(cible && document.activeElement === saisie) saisie.blur();
+  }, true);
+  new MutationObserver(function(){
+    if(!racine.classList.contains("hide")){ selection(); rafraichir(false); }
+  }).observe(racine, {attributes:true, attributeFilter:["class"]});
+  selection(); rafraichir(false);
+})();
 </script>
 <script>
 "use strict";
