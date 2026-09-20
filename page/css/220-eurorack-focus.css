@@ -1,0 +1,123 @@
+/* v262 — Module Focus Eurorack. Panneau à l'échelle de l'écran, jamais de
+   transformation de la façade ni de flou coûteux sur le rack qui continue à jouer. */
+#eur-focus{display:none;position:fixed;inset:0;z-index:24;padding:12px;
+  padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom));
+  padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));
+  background:rgba(4,6,9,.82);color:#e6ebf0;font:14px/1.4 system-ui,Arial,sans-serif;
+  touch-action:pan-y;overscroll-behavior:contain}
+#eur-focus.show{display:flex;align-items:center;justify-content:center}
+#eur-focus .ef-panneau{width:100%;max-width:760px;max-height:100%;min-height:0;display:flex;flex-direction:column;
+  border:1px solid #505a66;border-radius:12px;overflow:hidden;background:#151a20;
+  box-shadow:0 12px 34px #0008,inset 0 1px 0 #ffffff18}
+#eur-focus .ef-tete{display:flex;align-items:center;gap:12px;flex:none;padding:12px 16px;
+  background:linear-gradient(180deg,#2b333e,#1d242d);border-bottom:1px solid #3b4653}
+#eur-focus .ef-identite{flex:1;min-width:0}
+#eur-focus .ef-sur{display:block;font-size:10.5px;font-weight:800;letter-spacing:1.8px;color:#9bc7e6}
+#eur-focus h2{font-size:20px;line-height:1.2;margin:4px 0 3px;overflow-wrap:anywhere;color:#f1f5f8}
+#eur-focus .ef-detail{font-size:11px;color:#bac6d2}
+#eur-focus button,#eur-focus select{min-width:44px;min-height:44px;border:1px solid #5b6b7d;
+  border-radius:7px;padding:8px 12px;margin:0;color:#e9eef4;background:linear-gradient(180deg,#3a4553,#28323d);
+  box-shadow:inset 0 1px 0 #ffffff1a,0 2px 1px #080c11;font:700 12px/1.25 system-ui,Arial,sans-serif;
+  letter-spacing:.25px;touch-action:manipulation}
+#eur-focus button:active:not(:disabled){background:#46596c;box-shadow:inset 0 2px 3px #0006}
+#eur-focus button:disabled{opacity:.45;box-shadow:none}
+#eur-focus select{width:100%;box-shadow:inset 0 1px 3px #0007;background:#101720;min-width:0;
+  color:#e6edf3;text-overflow:ellipsis}
+#eur-focus option{color:#e6edf3;background:#101720}
+#eur-focus button:focus-visible,#eur-focus select:focus-visible,#eur-focus .ef-kn:focus-visible{
+  outline:3px solid #96d7ff;outline-offset:2px}
+#eur-focus .ef-nav{flex:none;display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:8px;padding:10px 16px 8px}
+#eur-focus .ef-nav button{font-size:21px;padding:7px}
+#eur-focus .ef-navigation{display:flex;flex-direction:column;gap:4px;min-width:0}
+#eur-focus .ef-navigation span{font-size:10.5px;letter-spacing:.5px;color:#bac6d2}
+#eur-focus .ef-nav>button{align-self:end}
+#eur-focus .ef-lcd{flex:none;margin:0 16px 10px;padding:9px 12px;border:1px solid #374e62;border-radius:6px;
+  background:#080f16;box-shadow:inset 0 2px 5px #000b;display:flex;align-items:center;gap:10px;min-height:48px}
+#eur-focus #ef-lab{flex:1;min-width:0;font-size:11px;font-weight:700;color:#9cc5de;overflow-wrap:anywhere}
+#eur-focus #ef-val{color:#c5ebff;font:700 20px/1.1 "Courier New",monospace;white-space:nowrap}
+#eur-focus .ef-zone{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:6px 16px 16px;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#718299 #151a20}
+#eur-focus .ef-zone::-webkit-scrollbar{display:block;width:6px;height:6px}
+#eur-focus .ef-zone::-webkit-scrollbar-thumb{background:#718299;border-radius:3px}
+#eur-focus .ef-module{position:relative;max-width:560px;margin:0 auto;padding:18px 14px 14px;border-radius:5px;
+  background:repeating-linear-gradient(90deg,#ffffff06 0 1px,#00000002 1px 3px),linear-gradient(150deg,#e6e9ed,#bdc5cd);
+  color:#202a35;box-shadow:inset 0 1px 0 #fff,0 3px 8px #0009;border:1px solid #9ba6b2}
+#eur-focus .ef-module.ef-sombre{background:repeating-linear-gradient(90deg,#ffffff04 0 1px,transparent 1px 3px),
+  linear-gradient(150deg,#353e49,#20272f);color:#e7edf3;border-color:#596572;box-shadow:inset 0 1px 0 #ffffff28,0 3px 8px #0009}
+#eur-focus .ef-module::before,#eur-focus .ef-module::after{content:"";position:absolute;top:6px;width:7px;height:7px;
+  border-radius:50%;background:linear-gradient(135deg,#495767 42%,#d0d7df 45% 55%,#495767 58%);
+  box-shadow:0 1px 2px #0009;pointer-events:none}
+#eur-focus .ef-module::before{left:7px}#eur-focus .ef-module::after{right:7px}
+#eur-focus .ef-module-titre{font-size:15px;font-weight:800;text-align:center;letter-spacing:1.2px;margin:0 0 6px}
+#eur-focus .ef-description{text-align:center;font-size:11px;line-height:1.45;margin:0 0 15px;color:#354555}
+#eur-focus .ef-sombre .ef-description{color:#bfccd9}
+#eur-focus .ef-knobs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 8px;margin-bottom:12px}
+#eur-focus .ef-kn{min-width:0;min-height:100px;text-align:center;touch-action:none;cursor:ns-resize;
+  border-radius:7px;padding:6px 3px;background:#ffffff14;outline-offset:1px}
+#eur-focus .ef-kn.ef-reglage{background:#fff6;box-shadow:inset 0 0 0 2px #1c6b9a}
+#eur-focus .ef-sombre .ef-kn.ef-reglage{background:#53687e66;box-shadow:inset 0 0 0 2px #96d7ff}
+#eur-focus .ef-dial{width:52px;height:52px;position:relative;margin:0 auto 8px;border-radius:50%;
+  background:radial-gradient(circle at 34% 27%,#fbfbf7,#d5d4ce 46%,#828a91 78%,#c5ccd1);
+  box-shadow:0 3px 5px #0006,inset 0 1px 2px #fff,0 0 0 3px #334e6833}
+#eur-focus .ef-sombre .ef-dial{background:radial-gradient(circle at 34% 27%,#5c6978,#303b49 48%,#111821 82%);
+  box-shadow:0 3px 5px #0009,inset 0 1px 2px #ffffff38,0 0 0 3px #a1cdec33}
+#eur-focus .ef-dial i{position:absolute;left:50%;top:4px;margin-left:-2px;width:4px;height:20px;
+  border-radius:2px;background:#233b50;transform-origin:50% 22px;pointer-events:none}
+#eur-focus .ef-sombre .ef-dial i{background:#d8eaff}
+#eur-focus .ef-kn>span{display:block;font-size:11px;font-weight:800;letter-spacing:.2px;overflow-wrap:anywhere}
+#eur-focus .ef-kn output{display:block;margin:4px auto 0;font:700 12px/1.3 "Courier New",monospace;color:#174460}
+#eur-focus .ef-sombre .ef-kn output{color:#b9e2ff}
+#eur-focus .ef-jacks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-top:12px;border-top:1px solid #66778677}
+#eur-focus button.ef-jack{min-height:86px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 3px;background:#b5c0cc;color:#233444;border-color:#687b8d;box-shadow:inset 0 1px 0 #ffffff77}
+#eur-focus .ef-sombre button.ef-jack{background:#202b37;color:#e3edf5;border-color:#607082;box-shadow:inset 0 1px 0 #ffffff12}
+#eur-focus .ef-jack i{flex:none;display:block;width:25px;height:25px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#65717f,#111a22 60%,#090f15);box-shadow:inset 0 0 0 3px #879cb0,0 2px 2px #0006}
+#eur-focus .ef-jack.ef-sortie i{box-shadow:inset 0 0 0 3px #bd861f,0 2px 2px #0006}
+#eur-focus .ef-jack.ef-connecte i{background:radial-gradient(circle,#97d2f1 0 25%,#275777 35% 60%,#101b25 68%)}
+#eur-focus .ef-jack.ef-attente{outline:3px solid #d89b30;outline-offset:1px}
+#eur-focus .ef-jack span{font-size:11px;overflow-wrap:anywhere;max-width:100%}
+#eur-focus .ef-jack small{font-size:10.5px;font-weight:600;line-height:1.3;letter-spacing:0;max-width:100%;overflow-wrap:anywhere}
+#eur-focus .ef-infos{padding:12px 0 2px;font-size:12px;line-height:1.5;color:#c4d0dd}
+#eur-focus #ef-patch{margin:0 0 10px;color:#ffd08a}
+#eur-focus .ef-aide{margin:0;color:#b5c2d0;font-size:11px;line-height:1.5}
+#eur-focus #ef-annuler{margin:0 0 10px}
+#eur-focus [hidden]{display:none!important}
+#eur-focus .ef-pied{display:flex;justify-content:space-between;align-items:center;gap:10px;flex:none;padding:10px 16px;
+  background:#1b232d;border-top:1px solid #394656}
+#eur-focus .ef-pied span{font-size:11px;color:#bdccd9}
+#eur-focus #ef-transport.ef-joue{background:#94d8b2;color:#102b1d;border-color:#b9efd2}
+#unit-eur #eur-focus-ouvrir{min-height:44px;font-size:11px;color:#d2edff;border:1px solid #6487a3}
+#unit-eur #eur-focus-ouvrir:disabled{opacity:.4}
+#unit-eur .eur-mod>b{cursor:zoom-in;touch-action:manipulation}
+@media(max-height:500px){
+  #eur-focus{padding:6px;padding-left:max(6px,env(safe-area-inset-left));padding-right:max(6px,env(safe-area-inset-right));padding-top:max(6px,env(safe-area-inset-top));padding-bottom:max(6px,env(safe-area-inset-bottom))}
+  #eur-focus .ef-tete{padding:7px 12px}#eur-focus h2{font-size:16px;margin:2px 0}
+  #eur-focus .ef-sur{font-size:10.5px;letter-spacing:1px}
+  #eur-focus .ef-nav{padding:6px 12px;gap:6px}
+  #eur-focus .ef-navigation span{display:none}
+  #eur-focus .ef-lcd{margin:0 12px 6px;min-height:40px;padding:6px 10px}
+  #eur-focus .ef-pied{padding:6px 12px}
+  #eur-focus .ef-zone{padding:4px 12px 12px}
+}
+@media(max-width:380px){
+  #eur-focus{padding:8px;padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right));padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom))}
+  #eur-focus .ef-tete{padding:10px;gap:6px}
+  #eur-focus h2{font-size:18px}
+  #eur-focus .ef-nav{padding-left:10px;padding-right:10px}
+  #eur-focus .ef-lcd{margin-left:10px;margin-right:10px}
+  #eur-focus .ef-zone{padding-left:10px;padding-right:10px}
+  #eur-focus .ef-module{padding-left:8px;padding-right:8px}
+  #eur-focus .ef-knobs{gap:10px 5px}
+}
+/* Téléphone tenu en paysage : navigation à gauche, module à droite. On ne
+   consomme pas la moitié de la hauteur avec trois bandeaux superposés. */
+@media (max-height:500px) and (min-width:600px){
+  #eur-focus .ef-panneau{height:100%;display:grid;grid-template-columns:230px minmax(0,1fr);
+    grid-template-rows:auto auto minmax(0,1fr) auto}
+  #eur-focus .ef-tete{grid-column:1/3;grid-row:1}
+  #eur-focus .ef-nav{grid-column:1;grid-row:2}
+  #eur-focus .ef-lcd{grid-column:1;grid-row:3;align-self:start}
+  #eur-focus .ef-pied{grid-column:1;grid-row:4;padding:8px 12px}
+  #eur-focus .ef-zone{grid-column:2;grid-row:2/5;padding:10px 12px;border-left:1px solid #394656}
+}

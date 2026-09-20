@@ -25,7 +25,7 @@ function estCommande(t){
      toucher déplacerait la façade au lieu de tourner le potard. */
   return !!t.closest("button,input,.knob,.bt,.em-dial,.toggle,.jack,.slot,.fsw,td,.mx-ruban,u,.pick," +
                      ".kn,.mx-kn,.sx-kn,.mpc-kn,.arcm-kn,.t1k-kn,.dbi-kn,.tr8-kn,.td3-kn,.cr-kn,.vlc-kn,.stk-kn,.mc-kn," +
-                     ".eur-kn,.eur-bkn");
+                     ".eur-kn,.eur-bkn,.eur-mod>b");
 }
 (function pincement(){
   var pts = {}, glisse = null, dernierTap = 0, tapX = 0, tapY = 0;
@@ -35,6 +35,8 @@ function estCommande(t){
     return [pts[ids[0]], pts[ids[1]]];
   }
   document.addEventListener("pointerdown", function(e){
+    /* v262 : le panneau Focus possède ses propres gestes, hors du zoom du rack. */
+    if(e.target.closest && e.target.closest("#eur-focus")) return;
     pts[e.pointerId] = {x:e.clientX, y:e.clientY};
     /* un doigt sur le fond, façade agrandie : on déplace */
     if(Object.keys(pts).length === 1 && ZOOM.z > 1.02 && !estCommande(e.target)){

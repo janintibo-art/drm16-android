@@ -2720,6 +2720,129 @@ body.ensemble #unit-kp.ui-confort{height:auto;min-height:500px}
   :is(#unit-ko,#unit-mc,#unit-stk,#unit-kp) button:not(:disabled):active,
   :is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort button:not(:disabled):active{transform:none}
 }
+/* v262 — Module Focus Eurorack. Panneau à l'échelle de l'écran, jamais de
+   transformation de la façade ni de flou coûteux sur le rack qui continue à jouer. */
+#eur-focus{display:none;position:fixed;inset:0;z-index:24;padding:12px;
+  padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom));
+  padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));
+  background:rgba(4,6,9,.82);color:#e6ebf0;font:14px/1.4 system-ui,Arial,sans-serif;
+  touch-action:pan-y;overscroll-behavior:contain}
+#eur-focus.show{display:flex;align-items:center;justify-content:center}
+#eur-focus .ef-panneau{width:100%;max-width:760px;max-height:100%;min-height:0;display:flex;flex-direction:column;
+  border:1px solid #505a66;border-radius:12px;overflow:hidden;background:#151a20;
+  box-shadow:0 12px 34px #0008,inset 0 1px 0 #ffffff18}
+#eur-focus .ef-tete{display:flex;align-items:center;gap:12px;flex:none;padding:12px 16px;
+  background:linear-gradient(180deg,#2b333e,#1d242d);border-bottom:1px solid #3b4653}
+#eur-focus .ef-identite{flex:1;min-width:0}
+#eur-focus .ef-sur{display:block;font-size:10.5px;font-weight:800;letter-spacing:1.8px;color:#9bc7e6}
+#eur-focus h2{font-size:20px;line-height:1.2;margin:4px 0 3px;overflow-wrap:anywhere;color:#f1f5f8}
+#eur-focus .ef-detail{font-size:11px;color:#bac6d2}
+#eur-focus button,#eur-focus select{min-width:44px;min-height:44px;border:1px solid #5b6b7d;
+  border-radius:7px;padding:8px 12px;margin:0;color:#e9eef4;background:linear-gradient(180deg,#3a4553,#28323d);
+  box-shadow:inset 0 1px 0 #ffffff1a,0 2px 1px #080c11;font:700 12px/1.25 system-ui,Arial,sans-serif;
+  letter-spacing:.25px;touch-action:manipulation}
+#eur-focus button:active:not(:disabled){background:#46596c;box-shadow:inset 0 2px 3px #0006}
+#eur-focus button:disabled{opacity:.45;box-shadow:none}
+#eur-focus select{width:100%;box-shadow:inset 0 1px 3px #0007;background:#101720;min-width:0;
+  color:#e6edf3;text-overflow:ellipsis}
+#eur-focus option{color:#e6edf3;background:#101720}
+#eur-focus button:focus-visible,#eur-focus select:focus-visible,#eur-focus .ef-kn:focus-visible{
+  outline:3px solid #96d7ff;outline-offset:2px}
+#eur-focus .ef-nav{flex:none;display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:8px;padding:10px 16px 8px}
+#eur-focus .ef-nav button{font-size:21px;padding:7px}
+#eur-focus .ef-navigation{display:flex;flex-direction:column;gap:4px;min-width:0}
+#eur-focus .ef-navigation span{font-size:10.5px;letter-spacing:.5px;color:#bac6d2}
+#eur-focus .ef-nav>button{align-self:end}
+#eur-focus .ef-lcd{flex:none;margin:0 16px 10px;padding:9px 12px;border:1px solid #374e62;border-radius:6px;
+  background:#080f16;box-shadow:inset 0 2px 5px #000b;display:flex;align-items:center;gap:10px;min-height:48px}
+#eur-focus #ef-lab{flex:1;min-width:0;font-size:11px;font-weight:700;color:#9cc5de;overflow-wrap:anywhere}
+#eur-focus #ef-val{color:#c5ebff;font:700 20px/1.1 "Courier New",monospace;white-space:nowrap}
+#eur-focus .ef-zone{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:6px 16px 16px;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#718299 #151a20}
+#eur-focus .ef-zone::-webkit-scrollbar{display:block;width:6px;height:6px}
+#eur-focus .ef-zone::-webkit-scrollbar-thumb{background:#718299;border-radius:3px}
+#eur-focus .ef-module{position:relative;max-width:560px;margin:0 auto;padding:18px 14px 14px;border-radius:5px;
+  background:repeating-linear-gradient(90deg,#ffffff06 0 1px,#00000002 1px 3px),linear-gradient(150deg,#e6e9ed,#bdc5cd);
+  color:#202a35;box-shadow:inset 0 1px 0 #fff,0 3px 8px #0009;border:1px solid #9ba6b2}
+#eur-focus .ef-module.ef-sombre{background:repeating-linear-gradient(90deg,#ffffff04 0 1px,transparent 1px 3px),
+  linear-gradient(150deg,#353e49,#20272f);color:#e7edf3;border-color:#596572;box-shadow:inset 0 1px 0 #ffffff28,0 3px 8px #0009}
+#eur-focus .ef-module::before,#eur-focus .ef-module::after{content:"";position:absolute;top:6px;width:7px;height:7px;
+  border-radius:50%;background:linear-gradient(135deg,#495767 42%,#d0d7df 45% 55%,#495767 58%);
+  box-shadow:0 1px 2px #0009;pointer-events:none}
+#eur-focus .ef-module::before{left:7px}#eur-focus .ef-module::after{right:7px}
+#eur-focus .ef-module-titre{font-size:15px;font-weight:800;text-align:center;letter-spacing:1.2px;margin:0 0 6px}
+#eur-focus .ef-description{text-align:center;font-size:11px;line-height:1.45;margin:0 0 15px;color:#354555}
+#eur-focus .ef-sombre .ef-description{color:#bfccd9}
+#eur-focus .ef-knobs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 8px;margin-bottom:12px}
+#eur-focus .ef-kn{min-width:0;min-height:100px;text-align:center;touch-action:none;cursor:ns-resize;
+  border-radius:7px;padding:6px 3px;background:#ffffff14;outline-offset:1px}
+#eur-focus .ef-kn.ef-reglage{background:#fff6;box-shadow:inset 0 0 0 2px #1c6b9a}
+#eur-focus .ef-sombre .ef-kn.ef-reglage{background:#53687e66;box-shadow:inset 0 0 0 2px #96d7ff}
+#eur-focus .ef-dial{width:52px;height:52px;position:relative;margin:0 auto 8px;border-radius:50%;
+  background:radial-gradient(circle at 34% 27%,#fbfbf7,#d5d4ce 46%,#828a91 78%,#c5ccd1);
+  box-shadow:0 3px 5px #0006,inset 0 1px 2px #fff,0 0 0 3px #334e6833}
+#eur-focus .ef-sombre .ef-dial{background:radial-gradient(circle at 34% 27%,#5c6978,#303b49 48%,#111821 82%);
+  box-shadow:0 3px 5px #0009,inset 0 1px 2px #ffffff38,0 0 0 3px #a1cdec33}
+#eur-focus .ef-dial i{position:absolute;left:50%;top:4px;margin-left:-2px;width:4px;height:20px;
+  border-radius:2px;background:#233b50;transform-origin:50% 22px;pointer-events:none}
+#eur-focus .ef-sombre .ef-dial i{background:#d8eaff}
+#eur-focus .ef-kn>span{display:block;font-size:11px;font-weight:800;letter-spacing:.2px;overflow-wrap:anywhere}
+#eur-focus .ef-kn output{display:block;margin:4px auto 0;font:700 12px/1.3 "Courier New",monospace;color:#174460}
+#eur-focus .ef-sombre .ef-kn output{color:#b9e2ff}
+#eur-focus .ef-jacks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-top:12px;border-top:1px solid #66778677}
+#eur-focus button.ef-jack{min-height:86px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 3px;background:#b5c0cc;color:#233444;border-color:#687b8d;box-shadow:inset 0 1px 0 #ffffff77}
+#eur-focus .ef-sombre button.ef-jack{background:#202b37;color:#e3edf5;border-color:#607082;box-shadow:inset 0 1px 0 #ffffff12}
+#eur-focus .ef-jack i{flex:none;display:block;width:25px;height:25px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#65717f,#111a22 60%,#090f15);box-shadow:inset 0 0 0 3px #879cb0,0 2px 2px #0006}
+#eur-focus .ef-jack.ef-sortie i{box-shadow:inset 0 0 0 3px #bd861f,0 2px 2px #0006}
+#eur-focus .ef-jack.ef-connecte i{background:radial-gradient(circle,#97d2f1 0 25%,#275777 35% 60%,#101b25 68%)}
+#eur-focus .ef-jack.ef-attente{outline:3px solid #d89b30;outline-offset:1px}
+#eur-focus .ef-jack span{font-size:11px;overflow-wrap:anywhere;max-width:100%}
+#eur-focus .ef-jack small{font-size:10.5px;font-weight:600;line-height:1.3;letter-spacing:0;max-width:100%;overflow-wrap:anywhere}
+#eur-focus .ef-infos{padding:12px 0 2px;font-size:12px;line-height:1.5;color:#c4d0dd}
+#eur-focus #ef-patch{margin:0 0 10px;color:#ffd08a}
+#eur-focus .ef-aide{margin:0;color:#b5c2d0;font-size:11px;line-height:1.5}
+#eur-focus #ef-annuler{margin:0 0 10px}
+#eur-focus [hidden]{display:none!important}
+#eur-focus .ef-pied{display:flex;justify-content:space-between;align-items:center;gap:10px;flex:none;padding:10px 16px;
+  background:#1b232d;border-top:1px solid #394656}
+#eur-focus .ef-pied span{font-size:11px;color:#bdccd9}
+#eur-focus #ef-transport.ef-joue{background:#94d8b2;color:#102b1d;border-color:#b9efd2}
+#unit-eur #eur-focus-ouvrir{min-height:44px;font-size:11px;color:#d2edff;border:1px solid #6487a3}
+#unit-eur #eur-focus-ouvrir:disabled{opacity:.4}
+#unit-eur .eur-mod>b{cursor:zoom-in;touch-action:manipulation}
+@media(max-height:500px){
+  #eur-focus{padding:6px;padding-left:max(6px,env(safe-area-inset-left));padding-right:max(6px,env(safe-area-inset-right));padding-top:max(6px,env(safe-area-inset-top));padding-bottom:max(6px,env(safe-area-inset-bottom))}
+  #eur-focus .ef-tete{padding:7px 12px}#eur-focus h2{font-size:16px;margin:2px 0}
+  #eur-focus .ef-sur{font-size:10.5px;letter-spacing:1px}
+  #eur-focus .ef-nav{padding:6px 12px;gap:6px}
+  #eur-focus .ef-navigation span{display:none}
+  #eur-focus .ef-lcd{margin:0 12px 6px;min-height:40px;padding:6px 10px}
+  #eur-focus .ef-pied{padding:6px 12px}
+  #eur-focus .ef-zone{padding:4px 12px 12px}
+}
+@media(max-width:380px){
+  #eur-focus{padding:8px;padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right));padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom))}
+  #eur-focus .ef-tete{padding:10px;gap:6px}
+  #eur-focus h2{font-size:18px}
+  #eur-focus .ef-nav{padding-left:10px;padding-right:10px}
+  #eur-focus .ef-lcd{margin-left:10px;margin-right:10px}
+  #eur-focus .ef-zone{padding-left:10px;padding-right:10px}
+  #eur-focus .ef-module{padding-left:8px;padding-right:8px}
+  #eur-focus .ef-knobs{gap:10px 5px}
+}
+/* Téléphone tenu en paysage : navigation à gauche, module à droite. On ne
+   consomme pas la moitié de la hauteur avec trois bandeaux superposés. */
+@media (max-height:500px) and (min-width:600px){
+  #eur-focus .ef-panneau{height:100%;display:grid;grid-template-columns:230px minmax(0,1fr);
+    grid-template-rows:auto auto minmax(0,1fr) auto}
+  #eur-focus .ef-tete{grid-column:1/3;grid-row:1}
+  #eur-focus .ef-nav{grid-column:1;grid-row:2}
+  #eur-focus .ef-lcd{grid-column:1;grid-row:3;align-self:start}
+  #eur-focus .ef-pied{grid-column:1;grid-row:4;padding:8px 12px}
+  #eur-focus .ef-zone{grid-column:2;grid-row:2/5;padding:10px 12px;border-left:1px solid #394656}
+}
 </style>
 </head>
 <body>
@@ -10972,7 +11095,7 @@ function estCommande(t){
      toucher déplacerait la façade au lieu de tourner le potard. */
   return !!t.closest("button,input,.knob,.bt,.em-dial,.toggle,.jack,.slot,.fsw,td,.mx-ruban,u,.pick," +
                      ".kn,.mx-kn,.sx-kn,.mpc-kn,.arcm-kn,.t1k-kn,.dbi-kn,.tr8-kn,.td3-kn,.cr-kn,.vlc-kn,.stk-kn,.mc-kn," +
-                     ".eur-kn,.eur-bkn");
+                     ".eur-kn,.eur-bkn,.eur-mod>b");
 }
 (function pincement(){
   var pts = {}, glisse = null, dernierTap = 0, tapX = 0, tapY = 0;
@@ -10982,6 +11105,8 @@ function estCommande(t){
     return [pts[ids[0]], pts[ids[1]]];
   }
   document.addEventListener("pointerdown", function(e){
+    /* v262 : le panneau Focus possède ses propres gestes, hors du zoom du rack. */
+    if(e.target.closest && e.target.closest("#eur-focus")) return;
     pts[e.pointerId] = {x:e.clientX, y:e.clientY};
     /* un doigt sur le fond, façade agrandie : on déplace */
     if(Object.keys(pts).length === 1 && ZOOM.z > 1.02 && !estCommande(e.target)){
@@ -24371,6 +24496,317 @@ function activerEur(){
   save(); fit();
   setTimeout(function(){ fit(); eurCables(); }, 150);
 }
+
+/* ================= Module Focus Eurorack — v262 =================
+   Vue de commande uniquement : aucun clone de module audio, aucun eurBatir
+   à l'ouverture/fermeture. Les paramètres restent dans les objets EUR.mods ;
+   les jacks délèguent au câblage existant. Pas de boucle d'animation au repos. */
+var EUR_FOCUS = (function(){
+  var piste = document.getElementById("eur-piste"), rack = document.getElementById("eur-rack");
+  var mod = null, controles = [], caches = [], retour = null, dernier = null;
+  var root = document.createElement("div");
+  root.id = "eur-focus";
+  root.setAttribute("role", "dialog");
+  root.setAttribute("aria-modal", "true");
+  root.setAttribute("aria-labelledby", "ef-titre");
+  root.innerHTML = '<section class="ef-panneau">' +
+    '<header class="ef-tete"><div class="ef-identite"><span class="ef-sur">EURORACK / MODULE FOCUS</span>' +
+    '<h2 id="ef-titre"></h2><div id="ef-detail" class="ef-detail"></div></div>' +
+    '<button type="button" id="eur-focus-fermer" aria-label="Fermer le Focus et revenir au rack">RETOUR<br>AU RACK</button></header>' +
+    '<nav class="ef-nav" aria-label="Parcourir les modules">' +
+    '<button type="button" id="ef-precedent" aria-label="Module précédent">‹</button>' +
+    '<label class="ef-navigation"><span>MODULE DU RACK</span><select id="ef-choix"></select></label>' +
+    '<button type="button" id="ef-suivant" aria-label="Module suivant">›</button></nav>' +
+    '<div class="ef-lcd"><span id="ef-lab">TOUCHEZ UN RÉGLAGE</span><output id="ef-val">—</output></div>' +
+    '<div class="ef-zone"><div class="ef-module"><div class="ef-module-titre"></div><p class="ef-description"></p>' +
+    '<div class="ef-knobs"></div><div class="ef-jacks"></div></div>' +
+    '<div class="ef-infos"><p id="ef-patch" role="status" aria-live="polite"></p>' +
+    '<button type="button" id="ef-annuler" hidden>ANNULER LA LIAISON</button>' +
+    '<p class="ef-aide">Glissez un potard verticalement. Écartez le doigt sur le côté pour affiner. ' +
+    'Les valeurs en % indiquent la course du réglage, pas des Hz ou des secondes.<br>' +
+    'Câblage : touchez une sortie, changez de module, puis touchez une entrée. ' +
+    'Sans sortie en attente, toucher une entrée reliée retire son câble.</p></div></div>' +
+    '<footer class="ef-pied"><span>Le patch continue de jouer.</span>' +
+    '<button type="button" id="ef-transport">▶ JOUER</button></footer></section>';
+  document.body.appendChild(root);
+  function q(s){ return root.querySelector(s); }
+  var zone=q(".ef-zone"), face=q(".ef-module"), choix=q("#ef-choix");
+  var entree = document.createElement("button");
+  entree.id = "eur-focus-ouvrir"; entree.type = "button"; entree.textContent = "FOCUS";
+  entree.title = "Agrandir le module sélectionné ; double-tap possible sur son titre";
+  entree.setAttribute("aria-haspopup", "dialog"); entree.setAttribute("aria-controls", root.id);
+  document.querySelector("#unit-eur .eur-ligne").appendChild(entree);
+  PANNEAUX.push(root.id);
+
+  function valide(){ return !!mod && S.modele === "eur" && EUR.mods.indexOf(mod) >= 0; }
+  function valeur(k,v){
+    if(k[2] === 0 && k[3] === 1) return String(Math.round(v*1000)/10).replace(".",",") + " %";
+    return String(Math.round(v*1000)/1000).replace(".",",");
+  }
+  function selectionner(){
+    EUR.sel = EUR.mods.indexOf(mod);
+    piste.querySelectorAll(".eur-mod").forEach(function(e){
+      e.classList.toggle("choisi", +e.dataset.i === EUR.sel);
+    });
+  }
+  function proteger(){
+    caches = [];
+    Array.prototype.forEach.call(document.body.children, function(e){
+      if(e === root || /^(SCRIPT|STYLE|LINK)$/.test(e.tagName)) return;
+      caches.push({e:e, inert:e.getAttribute("inert"), aria:e.getAttribute("aria-hidden")});
+      e.setAttribute("inert", ""); e.setAttribute("aria-hidden", "true");
+    });
+  }
+  function liberer(){
+    caches.forEach(function(c){
+      if(c.inert === null) c.e.removeAttribute("inert"); else c.e.setAttribute("inert",c.inert);
+      if(c.aria === null) c.e.removeAttribute("aria-hidden"); else c.e.setAttribute("aria-hidden",c.aria);
+    });
+    caches = [];
+  }
+  function lacher(){ controles.forEach(function(c){ c.fin(); }); }
+  function fermer(rendreFocus){
+    if(!mod) return;
+    lacher(); mod = null; controles = []; dernier = null;
+    root.classList.remove("show");
+    liberer(); majNoteOuverte();
+    /* Les petits potards ont leur propre cache de valeur : le resynchroniser
+       sans redessiner le rack, sans changer scrollLeft et sans toucher au son. */
+    EUR_KNOBS.forEach(function(k){ k.maj(); });
+    if(rendreFocus !== false && S.modele === "eur" && !panneauVisible() && !document.body.classList.contains("menu-ouvert")){
+      var e = retour && retour.isConnected && retour !== document.body ? retour : entree;
+      e.focus({preventScroll:true});
+    }
+    retour = null;
+  }
+  function ouvrir(id){
+    var m = eurMod(+id);
+    if(!m || S.modele !== "eur" || document.body.classList.contains("menu-ouvert")) return false;
+    var premier = !mod;
+    if(premier){
+      retour = document.activeElement;
+      fermerAutresPanneaux(root.id);
+    }
+    lacher(); mod = m;
+    selectionner(); dessiner();
+    if(premier){
+      root.classList.add("show"); majNoteOuverte();
+      /* Déplacer le focus avant de masquer sémantiquement son ancien parent. */
+      q("#eur-focus-fermer").focus({preventScroll:true}); proteger();
+    }
+    return true;
+  }
+  function majListe(){
+    var ancien = mod ? String(mod.id) : "";
+    choix.textContent = "";
+    EUR.mods.forEach(function(m,i){
+      var o = document.createElement("option"); o.value = m.id;
+      o.textContent = (i+1) + " · " + EUR_CAT[m.type].nom + " · R" + (m.r === 1 ? 2 : 1);
+      choix.appendChild(o);
+    });
+    choix.value = ancien;
+    var i = EUR.mods.indexOf(mod);
+    q("#ef-precedent").disabled = i <= 0;
+    q("#ef-suivant").disabled = i < 0 || i >= EUR.mods.length-1;
+    if(mod) q("#ef-detail").textContent = "MODULE " + (i+1) + " / " + EUR.mods.length + " · RANGÉE " + (mod.r === 1 ? 2 : 1);
+  }
+  function lire(c,affiche){
+    var v = c.m.p[c.k[0]], k = c.k, t = valeur(k,v);
+    c.el.setAttribute("aria-valuenow", String(v)); c.el.setAttribute("aria-valuetext",t);
+    c.el.querySelector("output").textContent = t;
+    c.el.querySelector("i").style.transform = "rotate("+(-140+280*(v-k[2])/(k[3]-k[2]))+"deg)";
+    if(affiche){ q("#ef-lab").textContent = EUR_CAT[c.m.type].nom + " · " + k[1]; q("#ef-val").textContent=t; }
+  }
+  function regler(c,v){
+    if(!valide() || c.m !== mod){ fermer(false); return; }
+    v = Math.max(c.k[2], Math.min(c.k[3],v));
+    if(!Number.isFinite(v)) return;
+    enLissant(function(){ c.m.p[c.k[0]]=v; if(c.m.maj) c.m.maj(); });
+    lire(c,true);
+    var original = document.getElementById("eur-k-"+c.m.id+"-"+c.k[0]);
+    if(original){
+      var pin = original.querySelector("i");
+      if(pin) pin.style.transform="rotate("+(-140+280*(v-c.k[2])/(c.k[3]-c.k[2]))+"deg)";
+    }
+    memEur();
+  }
+  function boutonRotatif(m,k){
+    var e=document.createElement("div"); e.className="ef-kn";
+    e.dataset.param=k[0]; e.tabIndex=0;
+    e.setAttribute("role","slider"); e.setAttribute("aria-orientation","vertical");
+    e.setAttribute("aria-label",EUR_CAT[m.type].nom+" "+k[1]);
+    e.setAttribute("aria-valuemin",String(k[2])); e.setAttribute("aria-valuemax",String(k[3]));
+    e.innerHTML='<div class="ef-dial" aria-hidden="true"><i></i></div><span></span><output aria-hidden="true"></output>';
+    e.querySelector("span").textContent=k[1];
+    q(".ef-knobs").appendChild(e);
+    var c={el:e,m:m,k:k,drag:null,fin:function(){
+      var d=c.drag; c.drag=null; e.classList.remove("ef-reglage");
+      if(d && e.hasPointerCapture(d.id)) e.releasePointerCapture(d.id);
+    }};
+    e.addEventListener("pointerdown",function(ev){
+      if(!ev.isPrimary || ev.button !== 0 || !valide()) return;
+      c.drag={id:ev.pointerId,x:ev.clientX,y:ev.clientY};
+      e.setPointerCapture(ev.pointerId); e.classList.add("ef-reglage");
+      e.focus({preventScroll:true}); lire(c,true); ev.preventDefault();
+    });
+    e.addEventListener("pointermove",function(ev){
+      var d=c.drag;
+      if(!d || d.id!==ev.pointerId) return;
+      var delta=d.y-ev.clientY; d.y=ev.clientY;
+      var finesse=1+Math.min(9,Math.abs(ev.clientX-d.x)/26);
+      if(ev.shiftKey) finesse=10;
+      if(delta) regler(c,c.m.p[k[0]]+delta*(k[3]-k[2])/(190*finesse));
+      ev.preventDefault();
+    });
+    ["pointerup","pointercancel","lostpointercapture"].forEach(function(type){
+      e.addEventListener(type,function(ev){ if(c.drag && c.drag.id===ev.pointerId) c.fin(); });
+    });
+    e.addEventListener("wheel",function(ev){
+      ev.preventDefault();
+      var d=ev.deltaY*(ev.deltaMode===1?33:ev.deltaMode===2?100:1);
+      if(d) regler(c,c.m.p[k[0]]-d/100*(k[3]-k[2])/(ev.shiftKey?400:40));
+    },{passive:false});
+    e.addEventListener("keydown",function(ev){
+      var v=c.m.p[k[0]], pas=(k[3]-k[2])/(ev.shiftKey?1000:100);
+      if(ev.key==="ArrowUp" || ev.key==="ArrowRight") v+=pas;
+      else if(ev.key==="ArrowDown" || ev.key==="ArrowLeft") v-=pas;
+      else if(ev.key==="Home") v=k[2];
+      else if(ev.key==="End") v=k[3];
+      else return;
+      ev.preventDefault(); regler(c,v);
+    });
+    e.addEventListener("focus",function(){ lire(c,true); });
+    controles.push(c); lire(c,false);
+  }
+  function priseOriginale(m,j){
+    return piste.querySelector('.eur-j[data-m="'+m+'"][data-j="'+j+'"]');
+  }
+  function majJacks(){
+    if(!valide()) return;
+    q(".ef-jacks").querySelectorAll("button").forEach(function(e){
+      var nom=e.dataset.j, sortie=e.dataset.s==="1";
+      var n=EUR.cables.filter(function(c){ var p=sortie?c.de:c.vers; return p[0]===mod.id && p[1]===nom; }).length;
+      var attend=!!EUR.attente && EUR.attente.m===mod.id && EUR.attente.j===nom && sortie;
+      e.classList.toggle("ef-connecte",n>0); e.classList.toggle("ef-attente",attend);
+      e.setAttribute("aria-pressed",String(attend));
+      var info=(sortie?"SORTIE":"ENTRÉE") + (attend?" · CHOISIE":n?" · "+n+" LIEN"+(n>1?"S":""):" · LIBRE");
+      e.querySelector("small").textContent=info;
+      e.setAttribute("aria-label",e.querySelector("span").textContent+" · "+info);
+    });
+    q("#ef-annuler").hidden=!EUR.attente;
+    if(EUR.attente){
+      var source=eurMod(EUR.attente.m);
+      q("#ef-patch").textContent="SORTIE "+EUR.attente.j.toUpperCase()+" · "+(source?EUR_CAT[source.type].nom:"MODULE")+
+        " choisie. Touchez une entrée ; le sélecteur ci-dessus permet de changer de module.";
+    } else q("#ef-patch").textContent=EUR.cables.length+" câble"+(EUR.cables.length>1?"s":"")+" dans le rack. Les prises bleutées sont reliées.";
+  }
+  function majTransport(){
+    q("#ef-transport").textContent=S.run?"■ ARRÊTER":"▶ JOUER";
+    q("#ef-transport").classList.toggle("ef-joue",S.run);
+    q("#ef-transport").setAttribute("aria-pressed",String(S.run));
+    q(".ef-pied span").textContent=S.run?"LECTURE EN COURS":"TRANSPORT ARRÊTÉ";
+  }
+  function dessiner(){
+    controles=[]; q(".ef-knobs").textContent=""; q(".ef-jacks").textContent="";
+    var d=EUR_CAT[mod.type]; face.classList.toggle("ef-sombre",!!d.sombre);
+    q("#ef-titre").textContent=d.nom; q(".ef-module-titre").textContent=d.nom;
+    q(".ef-description").textContent=d.res || "";
+    q("#ef-lab").textContent="TOUCHEZ UN RÉGLAGE"; q("#ef-val").textContent="—";
+    d.kns.forEach(function(k){ boutonRotatif(mod,k); });
+    d.jacks.forEach(function(j){
+      var e=document.createElement("button"); e.type="button";
+      e.className="ef-jack"+(j[2]?" ef-sortie":"");e.dataset.j=j[0];e.dataset.s=j[2];
+      e.innerHTML='<i aria-hidden="true"></i><span></span><small></small>';
+      e.querySelector("span").textContent=j[1];
+      e.addEventListener("click",function(){
+        if(!valide()){ fermer(false); return; }
+        var prise=priseOriginale(mod.id,j[0]);
+        /* HTMLElement.click() reste possible sur le rack inert : aucun nouvel
+           algorithme de câblage, ni copie de EUR.cables, dans cette vue. */
+        if(prise) prise.click();
+        majJacks();
+      });
+      q(".ef-jacks").appendChild(e);
+    });
+    majListe(); majJacks(); majTransport(); zone.scrollTop=0;
+  }
+  function rafraichir(){
+    entree.disabled=EUR.mods.length===0;
+    piste.querySelectorAll(".eur-mod>b").forEach(function(e){
+      e.title="Double-tap pour agrandir ce module";e.tabIndex=0;
+      e.setAttribute("role","button");e.setAttribute("aria-haspopup","dialog");
+      e.setAttribute("aria-label",e.textContent+" : double-tap ou Entrée pour le Focus");
+    });
+    if(!mod) return;
+    if(!valide()){ fermer(false); return; }
+    selectionner(); majListe(); majJacks(); majTransport();
+    controles.forEach(function(c){ lire(c,false); });
+  }
+  function parcourir(sens){
+    if(!valide()){ fermer(false); return; }
+    var m=EUR.mods[EUR.mods.indexOf(mod)+sens];
+    if(m) ouvrir(m.id);
+  }
+  entree.addEventListener("click",function(){
+    var m=EUR.mods[EUR.sel] || EUR.mods[0];
+    if(m) ouvrir(m.id);
+  });
+  q("#eur-focus-fermer").addEventListener("click",function(){ fermer(); });
+  q("#ef-precedent").addEventListener("click",function(){ parcourir(-1); });
+  q("#ef-suivant").addEventListener("click",function(){ parcourir(1); });
+  choix.addEventListener("change",function(){ ouvrir(+choix.value); });
+  q("#ef-annuler").addEventListener("click",function(){
+    EUR.attente=null;
+    piste.querySelectorAll(".eur-j.attente").forEach(function(e){ e.classList.remove("attente"); });
+    majLcdEur(); majJacks();
+  });
+  q("#ef-transport").addEventListener("click",function(){ document.getElementById("eur-play").click();majTransport(); });
+  /* Les deux clics peuvent viser DEUX éléments DOM différents : le premier
+     sélectionne et redessine déjà le rack. On retient donc l'identité du module,
+     pas celle du titre. Les potards et les jacks gardent leurs propres gestes. */
+  piste.addEventListener("click",function(e){
+    if(e.target.closest(".eur-kn,.eur-j")) return;
+    var bloc=e.target.closest(".eur-mod");
+    if(!bloc) return;
+    var m=EUR.mods[+bloc.dataset.i], maintenant=Date.now();
+    if(m && dernier && dernier.m===m && maintenant-dernier.t<360){
+      e.preventDefault(); e.stopImmediatePropagation(); dernier=null; ouvrir(m.id);
+    } else dernier=m?{m:m,t:maintenant}:null;
+  },true);
+  piste.addEventListener("keydown",function(e){
+    if(e.key!=="Enter" && e.key!==" ") return;
+    if(!e.target.matches(".eur-mod>b")) return;
+    var m=EUR.mods[+e.target.parentElement.dataset.i];
+    if(m){ e.preventDefault(); e.stopPropagation(); ouvrir(m.id); }
+  });
+  root.addEventListener("keydown",function(e){
+    /* Ne pas lancer le transport derrière un bouton pressé avec Espace. */
+    e.stopPropagation();
+    if(e.key==="Escape"){e.preventDefault();fermer();return;}
+    if(e.key!=="Tab") return;
+    var fs=Array.prototype.filter.call(root.querySelectorAll('button,select,[tabindex="0"]'),function(x){
+      return !x.disabled && !x.hidden && x.getClientRects().length>0;
+    });
+    if(!fs.length) return;
+    var i=fs.indexOf(document.activeElement);
+    if(e.shiftKey && i<=0){e.preventDefault();fs[fs.length-1].focus();}
+    else if(!e.shiftKey && (i===fs.length-1 || i<0)){e.preventDefault();fs[0].focus();}
+  });
+  root.addEventListener("click",function(e){ if(e.target===root) fermer(); });
+  new MutationObserver(rafraichir).observe(piste,{childList:true});
+  new MutationObserver(function(){ if(mod) majTransport(); }).observe(document.getElementById("eur-play"),{attributes:true,attributeFilter:["class"]});
+  /* Menu, autre panneau, remplacement du projet/rack : aucune vue obsolète ne
+     doit continuer à écrire dans un module qui n'existe plus. */
+  new MutationObserver(function(){
+    if(mod && (!root.classList.contains("show") || !valide() || document.body.classList.contains("menu-ouvert"))) fermer(false);
+  }).observe(document.body,{attributes:true,attributeFilter:["class"]});
+  new MutationObserver(function(){ if(mod && !root.classList.contains("show")) fermer(false); })
+    .observe(root,{attributes:true,attributeFilter:["class"]});
+  document.addEventListener("visibilitychange",function(){ if(document.hidden) lacher(); });
+  window.addEventListener("blur",lacher);
+  rafraichir();
+  return {ouvrir:ouvrir,fermer:fermer,actif:function(){return mod?mod.id:null;}};
+})();
 
 /* ===================== BEHRINGER TD-3 =====================
    La 303 remise en circuit. Tout son caractère tient à trois choses : un

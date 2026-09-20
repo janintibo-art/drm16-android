@@ -22,6 +22,7 @@ css/180-freesound.css
 css/190-kits-de-sons.css
 css/200-confort-mobile.css
 css/210-facades-matieres.css
+css/220-eurorack-focus.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -129,6 +130,7 @@ js/420-melange-et-aiguillage.js
 js/430-traitements.js
 js/440-percussions.js
 js/450-montages-tout-faits.js
+js/455-eurorack-focus.js
 js/460-behringer-td-3.js
 js/470-machine-d-archive.js
 js/480-roland-tr-1000.js
