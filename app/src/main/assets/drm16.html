@@ -2354,6 +2354,153 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 /* v256 : kits par rôle */
 #bib .kits-copier{min-height:40px;max-width:100%}
 #bib #bib-poser-liste{flex:1 1 100%;min-height:40px}
+/* v260 — phase graphique G1 : lisibilité et cibles tactiles.
+   Portée limitée aux quatre façades récentes ; aucun changement audio.
+   La classe est portée par le châssis ACTIF, jamais par le body. */
+.ui-confort{
+  --ui-texte:#d4d4dc;
+  --ui-secondaire:#b5b5c0;
+  max-height:calc(var(--ui-hauteur, 100vh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  min-width:0;min-height:0;overflow-x:hidden;overflow-y:auto;
+  overscroll-behavior:contain;touch-action:pan-y;
+  padding-top:12px;padding-bottom:18px;
+  scroll-padding:12px;scrollbar-width:thin;scrollbar-color:#63636b transparent;
+}
+.ui-confort::-webkit-scrollbar,.ui-confort .kp-reglages::-webkit-scrollbar{display:block;width:4px}
+.ui-confort::-webkit-scrollbar-thumb,.ui-confort .kp-reglages::-webkit-scrollbar-thumb{background:#63636b;border-radius:4px}
+/* Réserver une vraie bande aux boutons fixes MENU/NOTICE : ils ne recouvrent
+   plus la marque ni les commandes de ces quatre machines. */
+body.ui-mobile{padding-top:60px;padding-bottom:6px}
+body.ui-mobile #retour,body.ui-mobile #aide{
+  min-height:44px;min-width:80px;top:max(6px,env(safe-area-inset-top, 0px));
+  padding:10px 14px;font-size:11px;line-height:1.2;touch-action:manipulation;
+}
+body.ui-mobile #retour{right:98px}
+body.ui-mobile #aide{right:8px}
+/* Des cibles réelles, pas des pseudo-éléments qui chevauchent la touche voisine. */
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort button,:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort select{
+  min-height:44px;min-width:44px;font-size:11px;line-height:1.3;
+  letter-spacing:.25px;white-space:normal;overflow-wrap:anywhere;
+  touch-action:manipulation;
+}
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort input[type="range"]{min-height:44px;min-width:44px;touch-action:pan-y}
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort button em{font-size:11px;line-height:1.3;opacity:1;letter-spacing:0;text-overflow:ellipsis}
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort button:focus-visible,:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort select:focus-visible,:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort input:focus-visible{
+  outline:2px solid #fff;outline-offset:2px;
+}
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort button:not(:disabled):active{transform:translateY(1px);filter:brightness(1.15)}
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort button:disabled{cursor:default}
+/* Les états colorés (.on/.sel/.cur) gardent leurs couleurs et leur logique. */
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort button:not(.on):not(.cur):not(:disabled){color:#ededed}
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort select{color:var(--ui-texte)}
+#unit-ko.ui-confort #ko-lock-apply{color:#171717}
+/* Information fonctionnelle : au moins 11 px, même après fit() (échelle 1). */
+#unit-ko.ui-confort label,#unit-ko.ui-confort output,:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort select,
+#unit-ko.ui-confort .ko-lock-titre,#unit-ko.ui-confort .ko-lock-ligne,
+#unit-ko.ui-confort .ko-lcd u,
+#unit-mc.ui-confort output,#unit-mc.ui-confort .mc-lcd u,
+#unit-mc.ui-confort .mc-scatline span,#unit-mc.ui-confort #mc-boucle-info,
+#unit-stk.ui-confort output,#unit-stk.ui-confort .stk-prises span,
+#unit-kp.ui-confort label,#unit-kp.ui-confort output,
+#unit-kp.ui-confort #kp-son-nom,#unit-kp.ui-confort #kp-prise-etat,
+#unit-kp.ui-confort #kp-tranche-etat,#unit-kp.ui-confort #kp-tempo,
+#unit-kp.ui-confort .kp-lcd b,#unit-kp.ui-confort .kp-lcd u{
+  font-size:11px;line-height:1.4;letter-spacing:.15px;
+}
+#unit-mc.ui-confort .mc-gb,#unit-stk.ui-confort .stk-prises span,
+#unit-mc.ui-confort .mc-scatline span,#unit-mc.ui-confort #mc-copie-etat,
+#unit-stk.ui-confort #stk-chaine-etat,#unit-stk.ui-confort #stk-export-chemin,
+#unit-ko.ui-confort .ko-lock-ligne{color:var(--ui-secondaire)}
+#unit-mc.ui-confort .mc-lcd u{color:#9eb69e}
+#unit-kp.ui-confort .kp-lcd u,#unit-kp.ui-confort .kp-prof-l label{color:#abc9b8}
+#unit-ko.ui-confort .ko-pied,#unit-mc.ui-confort .mc-pied,
+#unit-stk.ui-confort .stk-pied,#unit-kp.ui-confort .kp-pied{
+  font-size:12px;line-height:1.5;color:var(--ui-secondaire);
+}
+/* Les potards gardent leur diamètre visuel ; la poignée inclut leur libellé. */
+#unit-mc.ui-confort .mc-kn,#unit-stk.ui-confort .stk-kn{
+  min-width:44px;min-height:64px;padding:3px 0;touch-action:none;
+}
+#unit-mc.ui-confort .mc-kn em,#unit-stk.ui-confort .stk-kn em{
+  font-size:11px;line-height:1.35;letter-spacing:0;color:var(--ui-texte);
+}
+#unit-mc.ui-confort .mc-trks,#unit-mc.ui-confort .mc-clips,
+#unit-mc.ui-confort .mc-scenes{grid-template-columns:repeat(4,minmax(0,1fr))}
+#unit-mc.ui-confort .mc-pads,#unit-stk.ui-confort .stk-pads{
+  grid-template-columns:repeat(auto-fit,minmax(44px,1fr));gap:6px;
+}
+#unit-mc.ui-confort .mc-pads button,#unit-stk.ui-confort .stk-pads button{font-size:14px}
+#unit-mc.ui-confort .mc-cmd{gap:6px}
+#unit-mc.ui-confort .mc-cmd button{flex:1 1 70px;min-width:44px}
+#unit-mc.ui-confort .mc-scatline span{width:92px}
+/* PO-33 : six boutons ne tiennent pas sur une ligne de téléphone à 44 px.
+   Trois colonnes évitent à la fois les collisions et le texte comprimé. */
+#unit-ko.ui-confort .ko-cmd{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#unit-ko.ui-confort .ko-pads{grid-template-columns:repeat(4,minmax(0,1fr))}
+#unit-ko.ui-confort .ko-pads button{min-height:60px;font-size:14px}
+#unit-ko.ui-confort .ko-lock-titre{flex-wrap:wrap;row-gap:5px}
+#unit-ko.ui-confort .ko-lock-valeur{flex-wrap:wrap}
+#unit-ko.ui-confort .ko-lock-valeur input{flex:1 1 110px}
+#unit-ko.ui-confort .ko-lock button{padding:8px}
+#unit-ko.ui-confort .ko-lock select{font-size:11px;min-height:44px}
+#unit-ko.ui-confort .ko-swing output,#unit-ko.ui-confort .ko-lock-valeur output{font-size:12px}
+/* SmplTrek : l'écran n'est plus réduit à 60 % de 340 px sur le téléphone. */
+#unit-stk.ui-confort .stk-mid{flex-direction:column;align-items:stretch}
+#unit-stk.ui-confort #stk-ecran{width:340px;max-width:100%;align-self:center}
+#unit-stk.ui-confort .stk-kns{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+#unit-stk.ui-confort .stk-haut{gap:8px;flex-wrap:wrap}
+#unit-stk.ui-confort .stk-marque{letter-spacing:1px}
+#unit-stk.ui-confort .stk-trks{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:8px}
+#unit-stk.ui-confort .stk-trks .st b{font-size:12px}
+#unit-stk.ui-confort #stk-tranches{grid-template-columns:repeat(4,minmax(0,1fr))}
+#unit-stk.ui-confort #stk-chaine-liste button{min-width:44px;min-height:44px}
+/* KAOSS : les réglages défilent séparément ; le pavé demeure disponible. */
+body.kp #unit-kp.ui-confort{
+  height:calc(var(--ui-hauteur, 100vh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  min-height:0;overflow:hidden;
+}
+#unit-kp.ui-confort .kp-haut{gap:8px;flex-wrap:wrap;margin-bottom:8px}
+#unit-kp.ui-confort .kp-sous{font-size:11px;letter-spacing:.2px;color:#abc9b8}
+#unit-kp.ui-confort .kp-reglages{
+  flex:1 1 auto;min-height:80px;overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:thin;
+  padding:2px 4px 8px 0;scroll-padding:8px;
+}
+#unit-kp.ui-confort .kp-reglages>div{flex-shrink:0}
+#unit-kp.ui-confort .kp-pav{flex:0 0 clamp(180px,34vh,320px);min-height:180px;touch-action:none}
+#unit-kp.ui-confort .kp-mem-l{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#unit-kp.ui-confort .kp-mem-l button:first-child{grid-column:1/-1}
+#unit-kp.ui-confort .kp-ligne button{font-size:11px;min-height:44px}
+#unit-kp.ui-confort #kp-fx-choix{font-size:12px;min-height:44px}
+#unit-kp.ui-confort .kp-prof-l{grid-template-columns:1fr 2fr}
+#unit-kp.ui-confort .kp-prof-l .kp-lcd{grid-column:1/-1}
+#unit-kp.ui-confort .kp-pied{flex-shrink:0;margin-top:6px}
+/* Quatre ou huit pas par rangée, jamais cinq ou six : garder le repère musical. */
+@media (max-width:479px){
+  #unit-mc.ui-confort .mc-pads,#unit-stk.ui-confort .stk-pads{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (min-width:480px){
+  #unit-mc.ui-confort .mc-pads,#unit-stk.ui-confort .stk-pads{grid-template-columns:repeat(8,minmax(0,1fr))}
+}
+/* Paysage : réglages à gauche, pavé à droite. */
+@media (min-width:640px) and (orientation:landscape){
+  body.kp #unit-kp.ui-confort{
+    display:grid;grid-template-columns:minmax(280px,1fr) minmax(220px,1.15fr);
+    grid-template-rows:auto minmax(0,1fr) auto;column-gap:14px;row-gap:6px;
+  }
+  #unit-kp.ui-confort .kp-haut{grid-column:1/-1;grid-row:1;margin-bottom:0}
+  #unit-kp.ui-confort .kp-reglages{grid-column:1;grid-row:2;margin:0;min-height:0}
+  #unit-kp.ui-confort .kp-pav{grid-column:2;grid-row:2;min-height:0;height:100%}
+  #unit-kp.ui-confort .kp-pied{grid-column:1/-1;grid-row:3;margin:0}
+}
+
+/* v260 : le KP ne masquait pas la façade DRM par défaut. Le test de
+   débordement du document ne voyait pas les deux machines côte à côte. */
+body.kp #scene > [id^="unit"]:not(#unit-kp){display:none}
+/* Les présentations plein écran / ensemble restent prioritaires. */
+body.ensemble.ui-mobile{padding:6px}
+body.ensemble .ui-confort{max-height:none;overflow:visible}
+body.ensemble #unit-kp.ui-confort{height:auto;min-height:500px}
 </style>
 </head>
 <body>
@@ -3985,6 +4132,22 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
 
   <div class="mc-trks" id="mc-trks"></div>
 
+  <div class="mc-kns">
+    <div class="mc-kn" id="mc-k-cut"><div class="bt"><i></i></div><em>C1 · FILTRE</em></div>
+    <div class="mc-kn" id="mc-k-dec"><div class="bt"><i></i></div><em>C2 · DÉCLIN</em></div>
+    <div class="mc-kn" id="mc-k-niv"><div class="bt"><i></i></div><em>C3 · NIVEAU</em></div>
+    <div class="mc-kn" id="mc-k-note"><div class="bt"><i></i></div><em>C4 · NOTE</em></div>
+  </div>
+
+  <div class="mc-cmd">
+    <button id="mc-play">▶ PLAY</button>
+    <button id="mc-clip">CLIP 1</button>
+    <button id="mc-onde">ONDE</button>
+    <button id="mc-clear">EFFACER</button>
+  </div>
+  <div class="mc-pads" id="mc-pads"></div>
+
+
   <div class="mc-clips" id="mc-clips" role="group" aria-label="Clips de la piste choisie"></div>
   <div class="mc-scenes" id="mc-scenes" role="group" aria-label="Scènes : combinaisons de clips sur les quatre pistes"></div>
   <div class="mc-scenes-memoire">
@@ -4013,21 +4176,6 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="mc-looper" aria-pressed="false">LOOPER : NON</button>
     <span id="mc-boucle-info">Boucle : une mesure · vitesse liée au tempo</span>
   </div>
-  <div class="mc-kns">
-    <div class="mc-kn" id="mc-k-cut"><div class="bt"><i></i></div><em>C1 · FILTRE</em></div>
-    <div class="mc-kn" id="mc-k-dec"><div class="bt"><i></i></div><em>C2 · DÉCLIN</em></div>
-    <div class="mc-kn" id="mc-k-niv"><div class="bt"><i></i></div><em>C3 · NIVEAU</em></div>
-    <div class="mc-kn" id="mc-k-note"><div class="bt"><i></i></div><em>C4 · NOTE</em></div>
-  </div>
-
-  <div class="mc-pads" id="mc-pads"></div>
-
-  <div class="mc-cmd">
-    <button id="mc-play">▶ PLAY</button>
-    <button id="mc-clip">CLIP 1</button>
-    <button id="mc-onde">ONDE</button>
-    <button id="mc-clear">EFFACER</button>
-  </div>
   <div class="mc-pied"><span id="mc-etat">Les pads écrivent les pas de la piste choisie.</span></div>
 </div>
 <div class="stkb" id="unit-stk">
@@ -4055,6 +4203,9 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="stk-solo">SOLO</button>
     <button id="stk-clear">EFFACER</button>
   </div>
+
+  <div class="stk-trks" id="stk-trks"></div>
+  <div class="stk-pads" id="stk-pads"></div>
 
   <div class="stk-cmd">
     <button id="stk-import">CHOISIR SON</button>
@@ -4101,8 +4252,6 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="stk-export-chaine">CHAÎNE EN WAV · UN PASSAGE</button>
   </div>
   <output id="stk-export-chemin" aria-live="polite"></output>
-  <div class="stk-pads" id="stk-pads"></div>
-  <div class="stk-trks" id="stk-trks"></div>
   <div class="stk-pied"><span id="stk-etat">Choisissez une piste, puis écrivez ses pas.</span></div>
 </div>
 
@@ -4129,6 +4278,12 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     <button id="ko-sampling" aria-pressed="false">SAMPLING</button>
   </div>
 
+  <div class="ko-bas">
+    <button id="ko-fx">FX</button>
+    <button id="ko-play">PLAY</button>
+    <button id="ko-write">WRITE</button>
+  </div>
+
   <div class="ko-pads" id="ko-pads"></div>
 
   <div class="ko-swing">
@@ -4153,11 +4308,6 @@ body.eur .t1kb,body.eur .arcmb,body.eur .td3b{display:none}
     </div>
   </div>
 
-  <div class="ko-bas">
-    <button id="ko-fx">FX</button>
-    <button id="ko-play">PLAY</button>
-    <button id="ko-write">WRITE</button>
-  </div>
   <div class="ko-pied">
     <span id="ko-etat">Touchez un pad pour l'entendre · RECORD pour écrire dans le motif</span>
   </div>
@@ -10534,6 +10684,27 @@ function fit(){
   u.style.flex = "";
   u.style.width = "100%";
   u.style.maxWidth = large;
+  /* v260 : ces façades se recomposent au lieu de rétrécir leurs commandes.
+     Le défilement reste interne : les panneaux, le menu et les autres machines
+     gardent leur mise en page. Ne pas remettre scrollTop à zéro ici : fit()
+     est aussi rappelé après un changement de son ou de tranche. */
+  var recentes = {"unit-ko":520, "unit-mc":680, "unit-stk":680, "unit-kp":1120};
+  var confort = !!recentes[u.id] && (window.innerWidth <= 960 || window.innerHeight <= 540);
+  document.querySelectorAll(".ui-confort").forEach(function(el){
+    if(el !== u){ el.classList.remove("ui-confort"); el.style.removeProperty("--ui-hauteur"); }
+  });
+  document.body.classList.toggle("ui-mobile", confort);
+  u.classList.toggle("ui-confort", confort);
+  if(confort){
+    u.style.maxWidth = recentes[u.id] + "px";
+    u.style.flex = "0 1 auto";
+    u.style.setProperty("--ui-hauteur", Math.max(160, window.innerHeight - 66) + "px");
+    if(!u.offsetHeight) return;
+    ZOOM.base = 1;
+    appliquerZoom();
+    return;
+  }
+  u.style.removeProperty("--ui-hauteur");
   var aw = window.innerWidth - 4, ah = window.innerHeight - 4;
   if(!u.offsetHeight) return;
   var s = Math.min(1, ah/u.offsetHeight);

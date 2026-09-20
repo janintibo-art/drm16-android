@@ -5,6 +5,27 @@ function fit(){
   u.style.flex = "";
   u.style.width = "100%";
   u.style.maxWidth = large;
+  /* v260 : ces façades se recomposent au lieu de rétrécir leurs commandes.
+     Le défilement reste interne : les panneaux, le menu et les autres machines
+     gardent leur mise en page. Ne pas remettre scrollTop à zéro ici : fit()
+     est aussi rappelé après un changement de son ou de tranche. */
+  var recentes = {"unit-ko":520, "unit-mc":680, "unit-stk":680, "unit-kp":1120};
+  var confort = !!recentes[u.id] && (window.innerWidth <= 960 || window.innerHeight <= 540);
+  document.querySelectorAll(".ui-confort").forEach(function(el){
+    if(el !== u){ el.classList.remove("ui-confort"); el.style.removeProperty("--ui-hauteur"); }
+  });
+  document.body.classList.toggle("ui-mobile", confort);
+  u.classList.toggle("ui-confort", confort);
+  if(confort){
+    u.style.maxWidth = recentes[u.id] + "px";
+    u.style.flex = "0 1 auto";
+    u.style.setProperty("--ui-hauteur", Math.max(160, window.innerHeight - 66) + "px");
+    if(!u.offsetHeight) return;
+    ZOOM.base = 1;
+    appliquerZoom();
+    return;
+  }
+  u.style.removeProperty("--ui-hauteur");
   var aw = window.innerWidth - 4, ah = window.innerHeight - 4;
   if(!u.offsetHeight) return;
   var s = Math.min(1, ah/u.offsetHeight);
