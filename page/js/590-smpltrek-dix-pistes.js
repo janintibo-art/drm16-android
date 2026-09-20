@@ -298,6 +298,12 @@ function voixStk(t, i, acc, tranche, note, velocite){
     src.start(t, bornes.debut / buf.sampleRate, portion * Math.max(0.05, P.dec));
     src.stop(t + duree);
   }
+  /* v269 : témoin graphique après la programmation réelle. Le dessin ne
+     reçoit aucun nœud, et reste totalement exclu des rendus hors ligne. */
+  if(!ctx.startRendering && typeof ONDE_STK === "object" && ONDE_STK){
+    try{ ONDE_STK.programmer(ctx, i, P.ech, buf, t, bornes.debut / buf.sampleRate,
+      src.playbackRate.value, duree, partie, hauteur); }catch(e){}
+  }
 }
 
 function scheduleStk(i, t){
@@ -337,6 +343,10 @@ function beatStk(i){
   for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i && (typeof STK_MODE === "undefined" || STK_MODE !== "ptn"));
 }
 function arretStk(){
+  /* v269 : oublier les curseurs dont les sources vont être débranchées. */
+  if((!ctx || !ctx.startRendering) && typeof ONDE_STK === "object" && ONDE_STK){
+    try{ ONDE_STK.effacer(); }catch(e){}
+  }
   var entendu = validerDepartStk(); viderAttenteStk(); viderLectureChaineStk();
   if(entendu) memStk();
   if(STK.noeuds && STK.noeuds.ctx === ctx){
@@ -996,6 +1006,10 @@ var STK_MODE = "pas";       /* ce qu'écrivent les seize pads : pas ou motif */
    n'y a rien à rendre. C'est ce qui rend cet écran gratuit, là où celui de
    l'enregistreur demandait un rendu par piste. */
 function dessinerStk(){
+  /* v269 : afficheur responsive ; l'ancien dessin reste le repli sans module. */
+  if(typeof ONDE_STK === "object" && ONDE_STK){
+    try{ ONDE_STK.reveiller(); return; }catch(e){}
+  }
   var cv = document.getElementById("stk-ecran");
   if(!cv) return;
   var g = cv.getContext("2d"), L = cv.width, H = cv.height;

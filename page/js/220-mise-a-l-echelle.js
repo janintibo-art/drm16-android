@@ -9,8 +9,9 @@ function fit(){
      Le défilement reste interne : les panneaux, le menu et les autres machines
      gardent leur mise en page. Ne pas remettre scrollTop à zéro ici : fit()
      est aussi rappelé après un changement de son ou de tranche. */
-  var recentes = {"unit-ko":520, "unit-mc":680, "unit-stk":680, "unit-kp":1120};
-  var confort = !!recentes[u.id] && (window.innerWidth <= 960 || window.innerHeight <= 540);
+  /* v269 : SmplTrek conserve ses textes et son défilement aussi sur tablette. */
+  var recentes = {"unit-ko":520, "unit-mc":680, "unit-stk":(window.innerWidth >= 760 && window.innerHeight <= 540 ? 1040 : 680), "unit-kp":1120};
+  var confort = !!recentes[u.id] && (u.id === "unit-stk" || window.innerWidth <= 960 || window.innerHeight <= 540);
   document.querySelectorAll(".ui-confort").forEach(function(el){
     if(el !== u){ el.classList.remove("ui-confort"); el.style.removeProperty("--ui-hauteur"); }
   });
