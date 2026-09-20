@@ -1,0 +1,219 @@
+/* v261 — G2 : matières et commandes physiques des quatre façades récentes.
+   Décoration CSS locale, sans image, police, minuteur ni changement audio.
+   Ne pas changer les dimensions/hitboxes, l'ordre HTML ou la fonction fit().
+   Les classes d'état sont celles des moteurs existants : aucune fausse LED. */
+
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp){
+  --face-accent:#ed9650;
+  --face-encre:#f2ede2;
+  --face-creux:inset 0 2px 5px #000b,inset 0 -1px 0 #ffffff21;
+  position:relative;
+  box-shadow:0 9px 18px #0007,inset 0 1px 0 #ffffff24,inset 0 -3px 0 #0007;
+}
+/* Les petits détails restent derrière le doigt et n'interceptent aucun geste. */
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp)::before{
+  content:"";position:absolute;top:7px;right:6px;width:6px;height:6px;
+  border-radius:50%;pointer-events:none;
+  background:linear-gradient(135deg,transparent 42%,#0b0c0c 43% 57%,transparent 58%),
+    radial-gradient(circle at 35% 30%,#d0d2c0,#424841 64%,#121512 70%);
+  box-shadow:0 1px 1px #000a;
+}
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp) button{
+  position:relative;
+  /* Image superposée à la COULEUR d'état existante, pas un fond qui l'efface. */
+  background-image:linear-gradient(180deg,#ffffff12,transparent 46%,#00000020);
+  box-shadow:inset 0 1px 0 #ffffff22,inset 0 -2px 0 #0008,0 2px 3px #0004;
+  transition:transform 60ms linear;
+}
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp) button:not(:disabled):active{
+  transform:translateY(1px);
+  box-shadow:inset 0 2px 4px #0007,inset 0 -1px 0 #ffffff14;
+}
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp) :is(button,select,input):focus-visible{
+  outline:2px solid #fff;outline-offset:2px;
+}
+:is(#unit-ko,#unit-mc,#unit-stk,#unit-kp) button:disabled{
+  cursor:default;box-shadow:inset 0 1px 2px #0008;
+}
+/* .sel existe aussi sur les sélecteurs de la DRM d'origine (display:flex).
+   Une touche choisie ne doit pas changer de disposition ou perdre son numéro. */
+#unit-ko .ko-pads .kb,
+#unit-mc :is(.mc-trks .mt,.mc-clips button,.mc-scenes button),
+#unit-stk .stk-trks .st{display:block}
+#unit-mc .mc-trks .mt b{display:block}
+
+/* PO-33 : circuit imprimé sombre, pistes cuivrées et sérigraphie ivoire. */
+#unit-ko{
+  --face-accent:#ff9a40;--ui-secondaire:#c1c8b9;
+  background-color:#15221b;border-color:#4c5949;
+  background-image:
+    linear-gradient(90deg,transparent 7px,#a58d4c36 7px 8px,transparent 8px),
+    linear-gradient(270deg,transparent 7px,#a58d4c36 7px 8px,transparent 8px),
+    repeating-linear-gradient(0deg,transparent 0 31px,#82966a0b 31px 32px),
+    repeating-linear-gradient(90deg,transparent 0 31px,#82966a0b 31px 32px),
+    linear-gradient(145deg,#25392b,#0e1914 70%);
+}
+#unit-ko .ko-haut{position:relative}
+#unit-ko .ko-haut::after{
+  content:"";position:absolute;right:0;top:0;width:46px;height:16px;
+  pointer-events:none;border-radius:8px;
+  background:radial-gradient(circle,#070c08 1px,transparent 1.5px) 0 0/5px 5px;
+  box-shadow:inset 0 1px 2px #0007;
+}
+#unit-ko .ko-poignee{border-color:#8d987c;background:#080e0a;box-shadow:inset 0 2px 3px #0009}
+#unit-ko .ko-marque{color:#ced0b9;letter-spacing:.8px}
+#unit-ko .ko-nom{color:#f1eedb;text-shadow:0 2px 0 #0009}
+#unit-ko .ko-lcd{
+  border-color:#4a5640;background-color:#bdc6a1;
+  background-image:linear-gradient(170deg,#ffffff24,transparent 45%,#606c3315);
+  box-shadow:var(--face-creux),0 1px 0 #a8b49755;
+}
+#unit-ko .ko-lcd :is(b,i,u){color:#202b1a;text-shadow:0 1px 0 #e7edc44d}
+#unit-ko .ko-pads{background:repeating-linear-gradient(90deg,transparent 0 24%,#a18c4938 24% 24.35%,transparent 24.35% 25%)}
+#unit-ko .ko-pads .kb{border-radius:12px;box-shadow:inset 0 1px 0 #b5bdb83b,inset 0 -3px 0 #0009,0 2px 3px #0006}
+#unit-ko .ko-pads .kb:not(.on):not(.cur){background-color:#303a32}
+#unit-ko .ko-pads .kb.mel:not(.on):not(.cur){background-color:#3a443b}
+#unit-ko .ko-pads .kb.sel{box-shadow:inset 0 0 0 2px var(--face-accent),inset 0 -4px 0 #0007,0 2px 3px #0006}
+#unit-ko :is(.ko-swing,.ko-lock){background:#111b16;border-color:#506046;box-shadow:inset 0 1px 4px #0007}
+#unit-ko .ko-lock select{background-color:#263329;border-color:#69745e}
+#unit-ko .ko-lock-titre{color:#ffd09a}
+
+/* MC-101 : métal anthracite et repère fixe, distinct, pour chacune des pistes. */
+#unit-mc{
+  --face-accent:#58dcb2;
+  border-color:#4b5055;background-color:#1a1e22;
+  background-image:repeating-linear-gradient(0deg,#ffffff06 0 1px,transparent 1px 3px),
+    linear-gradient(145deg,#343b42,#16191e 65%,#20252a);
+}
+#unit-mc .mc-haut{box-shadow:0 1px 0 #0008,0 2px 0 #ffffff14}
+#unit-mc .mc-marque,#unit-mc .mc-nom{text-shadow:0 2px 1px #000a}
+#unit-mc .mc-lcd{
+  border-color:#3e5147;background-color:#07110d;
+  background-image:linear-gradient(160deg,#55997a14,transparent 55%);
+  box-shadow:var(--face-creux),0 1px 0 #bce4c528;
+}
+#unit-mc .mc-lcd b{color:#a6f2ba;text-shadow:0 0 4px #65d38644}
+#unit-mc #mc-scat{box-shadow:inset 0 0 0 1px #58dcb26b,inset 0 1px 0 #ffffff22,inset 0 -2px 0 #0008,0 2px 3px #0004}
+#unit-mc #mc-scat.on{box-shadow:inset 0 0 0 1px #baffdf,inset 0 -2px 0 #006946,0 0 7px #58dcb240}
+#unit-mc #mc-trks .mt{--face-piste:#eb8099;background-color:#22282e;
+  background-image:linear-gradient(var(--face-piste),var(--face-piste)),linear-gradient(180deg,#ffffff10,transparent);
+  background-position:0 0,0 0;background-size:100% 3px,100% 100%;background-repeat:no-repeat;
+}
+#unit-mc #mc-trks .mt:nth-child(2){--face-piste:#e6c875}
+#unit-mc #mc-trks .mt:nth-child(3){--face-piste:#84bdf0}
+#unit-mc #mc-trks .mt:nth-child(4){--face-piste:#80d8b2}
+#unit-mc #mc-trks .mt.sel{
+  background-color:#343e47;
+  box-shadow:inset 0 0 0 2px var(--face-piste),inset 0 -3px 0 #0007,0 2px 3px #0004;
+}
+#unit-mc .mc-kn .bt{border-color:#697571;box-shadow:0 0 0 2px #081610,0 0 0 3px #58dcb26b,0 3px 5px #0008}
+#unit-mc .mc-kn .bt i{background:#a6f5d4}
+#unit-mc .mc-pads .mb:not(.on):not(.cur){background-color:#30363e}
+#unit-mc .mc-clips button.sel{box-shadow:inset 0 0 0 1px #bdf2d5,inset 0 -2px 0 #0005}
+#unit-mc .mc-scenes button.sel{box-shadow:inset 0 0 0 1px #58dcb2,inset 0 -2px 0 #0007}
+/* La v260 éclaircissait aussi le texte des clips sélectionnés/attentes.
+   Garder une encre sombre sur le fond clair de sélection. */
+#unit-mc.ui-confort .mc-clips button.sel:not(.attente){color:#092419}
+#unit-mc :is(#mc-clips,#mc-scenes) button.attente{
+  color:#ffe1a4;background-color:#42351d;
+  background-image:linear-gradient(90deg,#efbc5e 50%,transparent 50%);
+  background-size:8px 2px;background-position:bottom;background-repeat:repeat-x;
+  box-shadow:inset 0 0 0 1px #efbc5e;
+}
+
+/* SmplTrek : plastique moulé, écran encastré et touches caoutchouc. */
+#unit-stk{
+  --face-accent:#e8df70;
+  border-color:#555750;background-color:#282a28;
+  background-image:radial-gradient(#ffffff09 .65px,transparent .85px),
+    linear-gradient(155deg,#40423e,#222522 65%,#343630);
+  background-size:4px 4px,100% 100%;
+  box-shadow:0 9px 18px #0007,inset 0 1px 0 #ffffff35,inset 2px 0 0 #ffffff10,inset 0 -4px 0 #0c110cb3;
+}
+#unit-stk .stk-marque{color:#d5d7c9}
+#unit-stk .stk-nom{color:#f5f1db;text-shadow:0 2px 1px #0009}
+#unit-stk .stk-prises span{color:#c4c8bb}
+#unit-stk #stk-ecran{border-color:#565b43;box-shadow:0 0 0 2px #0c100c,0 2px 0 #a9ad8733}
+#unit-stk .stk-kn .bt{border-color:#787b69;box-shadow:0 0 0 2px #141811,0 0 0 3px #c7c48742,0 3px 5px #0008}
+#unit-stk .stk-kn .bt i{background:#fff3a3}
+#unit-stk .stk-trks .st:not(.sel){background-color:#303630}
+#unit-stk .stk-trks .st.sel{background-color:#434b40;box-shadow:inset 0 0 0 2px #ede7bc,inset 0 -3px 0 #0006}
+#unit-stk .stk-trks .st i{width:4px}
+#unit-stk .stk-pads .sb{border-radius:9px;box-shadow:inset 0 1px 0 #ffffff35,inset 0 -3px 0 #0008,0 2px 3px #0005}
+#unit-stk .stk-pads .sb:not(.on):not(.cur){background-color:#42463e}
+/* Séparation sans ajouter de hauteur au panneau, ni déplacer les commandes. */
+#unit-stk :is(.stk-midi-commandes,.stk-motifs-commandes,.stk-export-commandes){box-shadow:0 -1px 0 #ffffff20}
+
+/* Bague moletée : l'indicateur i existant continue de suivre la vraie valeur. */
+#unit-mc .mc-kn .bt,#unit-stk .stk-kn .bt{
+  background-color:#191d1a;
+  background-image:radial-gradient(circle at 36% 28%,#70746b,#323930 55%,transparent 59%),
+    repeating-conic-gradient(#62675b 0 3deg,#20251e 3deg 12deg);
+}
+#unit-mc .mc-kn .bt::after,#unit-stk .stk-kn .bt::after{
+  content:"";position:absolute;inset:5px;border:1px solid #a0a48d3d;border-radius:50%;pointer-events:none;
+}
+
+/* KAOSS : caisson vert-noir, rebord rouge et surface satinée, sans réduire
+   l'intérieur du pavé : les coordonnées X/Y gardent leur géométrie exacte. */
+#unit-kp{
+  --face-accent:#ef6678;
+  border-color:#46594f;background-color:#182b22;
+  background-image:repeating-linear-gradient(0deg,#ffffff04 0 1px,transparent 1px 3px),
+    linear-gradient(140deg,#2d4538,#14261d 60%,#21362a);
+}
+#unit-kp :is(.kp-marque,.kp-nom){text-shadow:0 2px 1px #0009}
+#unit-kp .kp-pav{
+  border-color:#bc394d;border-radius:8px;background-color:#c9cbd1;
+  background-image:linear-gradient(#22273524 1px,transparent 1px),
+    linear-gradient(90deg,#22273524 1px,transparent 1px),
+    linear-gradient(145deg,#ffffff34,transparent 48%,#3840581f);
+  background-size:12.5% 12.5%,12.5% 12.5%,100% 100%;
+  box-shadow:inset 0 3px 9px #0007,0 0 0 1px #0e1511,0 2px 0 #89978866;
+}
+#unit-kp .kp-pav i{
+  pointer-events:none;
+  background:radial-gradient(circle at 38% 30%,#fff1df 0 8%,#ffc1bb 15%,#ef4e69 45%,#b51943 80%);
+  box-shadow:0 0 0 2px #fff1e8c7,0 0 12px #ef526980;
+}
+#unit-kp .kp-pav u,#unit-kp .kp-pav u span{pointer-events:none}
+#unit-kp .kp-pav u span{background:#344b89;opacity:.75}
+#unit-kp :is(.kp-lcd,#kp-tempo){border-color:#61705a;background-color:#0b1711;box-shadow:var(--face-creux)}
+#unit-kp #kp-fx-choix{border-color:#61705a;box-shadow:inset 0 1px 3px #0008}
+#unit-kp .kp-lcd b{color:#b2e8bb}
+
+/* Vocabulaire d'état limité aux commandes dont la signification est connue.
+   PLAY vert ; enregistrement rouge ; attente / armement de mémoire ambre.
+   Les autres modes conservent les couleurs d'origine de leur machine. */
+#unit-ko #ko-play.on,#unit-mc #mc-play.on,#unit-stk #stk-play.on,#unit-kp #kp-play.on{
+  background-color:#75dba5;color:#0c2819;
+  box-shadow:inset 0 0 0 1px #bdeccf,inset 0 -2px 0 #286541,0 2px 3px #0004;
+}
+#unit-ko #ko-rec.on,#unit-ko #ko-sampling.on,#unit-kp #kp-resample.on,#unit-kp #kp-motion.on{
+  background-color:#b71e3d;color:#fff6f6;
+  box-shadow:inset 0 0 0 1px #ff9da8,inset 0 -2px 0 #60102b;
+}
+#unit-kp #kp-mem button.arme,#unit-kp #kp-write.on{color:#251503;background-color:#e8b55e}
+#unit-kp #kp-mem button.plein{box-shadow:inset 0 -3px 0 #7fd3a5,inset 0 1px 0 #ffffff22,0 2px 3px #0004}
+#unit-stk #stk-pads .sb.attente:not(.cur){
+  background-color:#42351d;color:#ffe1a4;
+  background-image:linear-gradient(90deg,#efbc5e 50%,transparent 50%);
+  background-size:8px 2px;background-position:bottom;background-repeat:repeat-x;
+  box-shadow:inset 0 0 0 1px #efbc5e;
+}
+/* Le pas courant reste identifiable même s'il est programmé ET sélectionné. */
+#unit-ko .ko-pads .kb.cur,#unit-mc .mc-pads .mb.cur,#unit-stk .stk-pads .sb.cur{
+  background-color:#f2f1e8;color:#18201a;
+  box-shadow:inset 0 0 0 2px #fff,inset 0 -2px 0 #a9b3a5,0 0 5px #ffffff50;
+}
+#unit-mc #mc-trks .mt.muet,#unit-stk .stk-trks .st.muet{opacity:.62}
+#unit-mc #mc-trks .mt.muet::after,#unit-stk .stk-trks .st.muet::after{
+  content:"";position:absolute;left:5px;right:5px;bottom:3px;height:2px;
+  pointer-events:none;background:repeating-linear-gradient(90deg,#f89aa6 0 4px,transparent 4px 7px);
+}
+/* Aucun effet autonome ; seul le bref enfoncement suit une action de l'utilisateur. */
+@media (prefers-reduced-motion:reduce){
+  :is(#unit-ko,#unit-mc,#unit-stk,#unit-kp) button{transition:none}
+  :is(#unit-ko,#unit-mc,#unit-stk,#unit-kp) button:not(:disabled):active,
+  :is(#unit-ko,#unit-mc,#unit-stk,#unit-kp).ui-confort button:not(:disabled):active{transform:none}
+}

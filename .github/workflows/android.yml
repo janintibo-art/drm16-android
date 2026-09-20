@@ -48,6 +48,7 @@ jobs:
           python outils/test-navigateur.py
           python outils/test-export-midi.py
           python outils/test-graphique.py
+          python outils/test-facades.py
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble
