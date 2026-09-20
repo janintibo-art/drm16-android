@@ -52,6 +52,7 @@ jobs:
           python outils/test-eurorack-focus.py
           python outils/test-menu-machines.py
           python outils/test-outils-studio.py
+          python outils/test-retours-musicaux.py
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble

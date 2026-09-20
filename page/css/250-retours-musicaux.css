@@ -1,0 +1,71 @@
+/* v265 — Mesures numériques et retours musicaux. Aucun changement de géométrie
+   des pads, des gestes, du rack ou des faders. Pas d'image ni de police ajoutée. */
+#rm-compact{
+  display:none;position:fixed;left:max(8px,env(safe-area-inset-left,0px));
+  top:max(6px,env(safe-area-inset-top,0px));width:calc(100vw - 202px);max-width:230px;
+  height:44px;padding:3px 6px;z-index:14;pointer-events:none;
+  border:1px solid #45534c;border-radius:6px;background:linear-gradient(#101b17,#090f0d);
+  box-shadow:inset 0 1px 3px #000a;color:#c4d5cc;
+}
+body.ui-mobile #rm-compact{display:block}
+body:is(.menu-ouvert,.note-ouverte,.plein,.ensemble) #rm-compact{display:none}
+#rm-compact canvas{display:block;width:100%;height:21px}
+.rm-mini-bas,.rm-legende,.rm-signaux{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0}
+.rm-mini-bas{height:14px;font:700 10.5px/1.2 Arial,sans-serif;letter-spacing:0}
+.rm-transport,.rm-midi,.rm-limiteur{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.rm-lampe{display:inline-block;flex:none;width:6px;height:6px;border-radius:50%;background:#8bb8a1;opacity:.22}
+.rm-transport[data-etat="play"]{color:#b7ecd0}
+.rm-transport[data-etat="rec"]{color:#ffb7c1}
+.rm-transport[data-etat="rec"] .rm-lampe{background:#ff6e85;opacity:1!important}
+.rm-transport[data-etat="attente"]{color:#f1cb84}
+.rm-transport[data-etat="attente"] .rm-lampe{background:#f1cb84;opacity:1!important}
+.rm-midi{color:#a1aca8}
+.rm-midi[data-on="1"]{color:#a6e3ff}
+.rm-midi[data-on="1"] .rm-lampe{background:#9bdeff;opacity:1}
+#rm-compact.rm-limite{border-color:#ddb25f}
+#rm-console{
+  flex:none;display:grid;grid-template-columns:minmax(0,1fr) 78px;align-items:center;gap:12px;
+  padding:8px 14px;border-bottom:1px solid #465365;background:linear-gradient(90deg,#101c19,#121b21);
+  color:#d2dfd9;min-width:0;
+}
+#rm-console .rm-master{min-width:0;max-width:720px}
+#rm-console .rm-legende{font:700 11px/1.25 Arial,sans-serif;letter-spacing:.25px}
+#rm-console .rm-legende b{font:inherit;white-space:nowrap;color:#d2dfd9}
+#rm-console .rm-legende output{font:700 11px/1.25 ui-monospace,monospace;white-space:nowrap;color:#f0f3e9}
+#rm-console canvas{display:block;width:100%;height:24px;margin:3px 0}
+#rm-console .rm-signaux{justify-content:flex-start;gap:14px;font:700 11px/1.2 Arial,sans-serif}
+#rm-console .rm-limiteur{margin-left:auto;color:#9aa99f}
+#rm-console.rm-limite .rm-limiteur{color:#ffd58c}
+#rm-console.rm-limite .rm-limiteur .rm-lampe{opacity:1;background:#edbb60}
+#table #rm-reset{min-height:44px;min-width:44px;width:78px;margin:0;padding:6px;border:1px solid #5e7168;
+  border-radius:6px;background:linear-gradient(#2b3b33,#1c2822);color:#dce9de;
+  font:700 11px/1.25 Arial,sans-serif;letter-spacing:0;white-space:nowrap;touch-action:manipulation}
+#table #rm-reset:active{background:#344e40}
+#table #rm-reset:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#table .voie.rm-equipee .mes{display:none}
+#table .voie.rm-equipee .bas{height:148px;gap:8px}
+#table .rm-canal{flex:0 0 54px;width:54px;height:144px;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none}
+#table .rm-canal canvas{display:block;width:54px;height:112px;border:1px solid #4c5f54;border-radius:3px;background:#0a120e}
+#table .rm-canal .rm-clip{height:12px;font:700 11px/1 Arial,sans-serif;letter-spacing:.5px;color:#89978e}
+#table .rm-canal output{height:14px;font:700 11px/1.2 ui-monospace,monospace;white-space:nowrap;color:#d3dfd8}
+#table .rm-canal.rm-surcharge .rm-clip{color:#ffb4ae}
+#table .rm-canal.rm-surcharge canvas{border-color:#e48076}
+#table .rm-canal.rm-indisponible{opacity:.5}
+/* Une impulsion du pas courant, pas une fausse mesure du son. Les classes cur
+   sont déjà posées par les séquenceurs à l'instant d'affichage du pas. */
+:is(#ko-pads .kb,#mc-pads .mb,#stk-pads .sb){position:relative}
+body:not(.note-ouverte):not(.menu-ouvert) :is(#ko-pads .kb.cur,#mc-pads .mb.cur,#stk-pads .sb.cur)::after{
+  content:"";position:absolute;inset:1px;border:2px solid #fff;border-radius:inherit;
+  pointer-events:none;opacity:0;animation:rm-pas 180ms ease-out 1;
+}
+@keyframes rm-pas{from{opacity:.8}to{opacity:0}}
+@media(max-width:380px){
+  #rm-console{gap:8px;padding:8px;grid-template-columns:minmax(0,1fr) 60px}
+  #table #rm-reset{width:60px;padding:6px 3px}
+  #rm-console .rm-signaux{gap:8px}
+  #rm-console .rm-legende{letter-spacing:0}
+  #rm-console .rm-legende output{font-size:10.5px}
+}
+@media(prefers-reduced-motion:reduce){
+  :is(#ko-pads .kb.cur,#mc-pads .mb.cur,#stk-pads .sb.cur)::after{animation:none!important}
+}

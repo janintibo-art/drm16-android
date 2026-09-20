@@ -25,6 +25,7 @@ css/210-facades-matieres.css
 css/220-eurorack-focus.css
 css/230-menu-machines.css
 css/240-outils-studio.css
+css/250-retours-musicaux.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -169,6 +170,7 @@ js/650-transfert-exclusif-vers-une-vraie-korg.js
 js/660-choix-du-modele.js
 js/665-clavier-et-souris.js
 js/670-menu-machines.js
+js/680-retours-musicaux.js
 html/609-demarrage.html
 js/005-demarrage-projet.js
 html/610-fin.html

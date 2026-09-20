@@ -168,6 +168,13 @@ function batirAudio(){
   for(var j=0;j<cg.length;j++){ var y = j*2/(cg.length-1) - 1; cg[j] = Math.max(-0.98, Math.min(0.98, y)); }
   garde.curve = cg; garde.oversample = "none";
   comp.connect(lim); lim.connect(sat); sat.connect(garde); garde.connect(ctx.destination);
+  /* v265 : références de lecture seulement. Les analyseurs, branchés en
+     parallèle par 680-retours-musicaux.js, ne traversent jamais la sortie.
+     Aucun nœud de mesure n'est créé pendant un export hors ligne. */
+  if(!ctx.startRendering){
+    ctx.__drmMesure = {sortie:garde, limiteur:lim};
+    if(typeof reveillerRetoursMusicaux === "function") reveillerRetoursMusicaux();
+  }
   outBd = ctx.createGain(); outMix = ctx.createGain();
   if(ctx.createStereoPanner){
     panBd = ctx.createStereoPanner(); panMix = ctx.createStereoPanner();
