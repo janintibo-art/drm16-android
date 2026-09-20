@@ -2651,10 +2651,56 @@ async def bib_figer(nav):
     finally:
         await pg.context.close()
 
+async def bib_roles(nav):
+    print('\n46. Bibliothèque : kits par rôle, kit au hasard, copie de kit (v256)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        await pg.locator('.pick[data-m=tr808]').click()
+        await pg.evaluate("audioInit(); ouvrirBib()")
+        await pg.evaluate("figerMachine('tr808')")
+        await pg.wait_for_function("!WAVX.occupe && Object.keys(ES.buf).some(k => ES.noms[k] === 'fige')", timeout=60000)
+        await pg.evaluate("BIB.onglet = 0; bibFiltre().q = 'TR-808'; majBibUI()")
+        await pg.select_option('#bib-corps .bib-cible select >> nth=0', 'mpc3000')
+        await pg.evaluate("allerMachine('mpc3000'); BIB.cible = {machine:'mpc3000', partie:0}; majBibUI(); audioInit(); start()")
+        await pg.locator('#bib-poser-liste').click()
+        r = await pg.evaluate("({pads:[0,1,2,3,4,6,8].map(k => nomBib(MPC.pads[k].ech)), run:S.run, pads64:MPC.pads.length})")
+        p = r['pads']
+        ok(p[0] == 'TR-808 BASS DRUM' and p[2] == 'TR-808 SNARE' and p[4] == 'TR-808 CLOSED HAT' and p[5] == 'TR-808 OPEN HAT',
+           'MPC3000 : KICK ← BASS DRUM, SNARE ← SNARE, HAT ← CLOSED HAT, OPEN HAT ← OPEN HAT (%s)' % p)
+        ok(r['run'], 'la lecture continue pendant qu’on pose le kit')
+        ok(p[6] == 'TR-808 LOW TOM' or p[6].startswith('TR-808'), 'les toms trouvent un tom (%s)' % p[6])
+        await pg.locator('#bib-nav button', has_text='MACHINES').click()
+        await pg.locator('#kits-avant').click()
+        ok(await pg.evaluate("[0,2,4].map(k => nomBib(MPC.pads[k].ech))") == ['KICK', 'SNARE', 'HAT'], 'REMETTRE LES SONS D’AVANT : le kit d’origine revient')
+        # kit au hasard sur la volca : chaque partie garde son rôle
+        await pg.select_option('#kits-machine', 'vlc')
+        avant = await pg.evaluate("rolesParties('vlc').map(p => p.role)")
+        await pg.locator('#kits-hasard').click()
+        r = await pg.evaluate("rolesParties('vlc').map(p => p.role + ':' + nomBib(p.id))")
+        roles = [x.split(':')[0] for x in r]
+        change = await pg.evaluate("kitsDe(kitsLireTout(), 'vlc').avant ? kitsDe(kitsLireTout(), 'vlc').avant.parties.filter((q, i) => q.ech !== motifVlcCur().parties[i].ech).length : 0")
+        voisins = await pg.evaluate("ROLES_VOISINS")
+        ok(all(a == b or b in voisins.get(a, []) for a, b in zip(avant, roles)) and change >= 5,
+           'KIT AU HASARD : %d parties tirées, chacune dans son rôle ou un rôle voisin (%s)' % (change, r))
+        # favoris seulement : un seul favori, il va partout où son rôle le permet
+        await pg.evaluate("Object.keys(BIB.meta || {}).forEach(k => delete BIB.meta[k].f); bibBasculerFavori('b1'); majBibUI()")
+        await pg.locator('#kits-hasard-fav').check()
+        await pg.locator('#kits-hasard').click()
+        r = await pg.evaluate("rolesParties('vlc').filter(p => p.role === 'caisse').map(p => nomBib(p.id))")
+        ok(r and all(n == 'SNARE' for n in r), 'au hasard parmi les favoris : les caisses reçoivent le seul favori, SNARE (%s)' % r)
+        # copier le kit de la volca vers le KAOSS PAD
+        await pg.select_option('#kits-copier', 'kp')
+        r = await pg.evaluate("({m:S.modele, kp:KP.banques.map(b => nomBib(b.ech))})")
+        vl = await pg.evaluate("(() => { allerMachine('vlc'); const n = rolesParties('vlc').map(p => nomBib(p.id)); allerMachine('kp'); return n; })()")
+        ok(r['m'] == 'kp' and all(n in vl for n in r['kp']), 'COPIER CE KIT VERS le KAOSS PAD : ses quatre banques prennent des sons de la volca (%s)' % r)
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai, bib_editeur, bib_figer):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai, bib_editeur, bib_figer, bib_roles):
             try:
                 await t(nav)
             except Exception as e:

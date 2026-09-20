@@ -182,7 +182,7 @@ function bibClasserSons(liste){
   l.sort(cles[f.tri] || parNom);
   /* favoris d'abord, sauf filtre favoris déjà posé */
   if(!f.fav) l.sort(function(a, b){ return (b.fav ? 1 : 0) - (a.fav ? 1 : 0); });
-  return {l:l.slice(0, f.n), total:l.length, tous:liste.length};
+  return {l:l.slice(0, f.n), total:l.length, tous:liste.length, complet:l};
 }
 function bibRangCategorie(c){
   for(var i=0;i<BIB_CATEGORIES.length;i++) if(BIB_CATEGORIES[i][0] === c) return i;
@@ -216,6 +216,16 @@ function bibRendreFiltres(corps, refaire){
   z.appendChild(lab);
   var compte = document.createElement("p"); compte.id = "bib-compte"; compte.className = "bib-compte";
   z.appendChild(compte);
+  /* v256 : toute la liste filtrée, posée par rôle sur la machine choisie dans « Affecter à » */
+  if(typeof poserListeSurMachine === "function"){
+    var poser = document.createElement("button"); poser.className = "sec"; poser.id = "bib-poser-liste";
+    poser.textContent = "POSER LA LISTE SUR LA MACHINE CHOISIE, PAR RÔLE";
+    poser.addEventListener("click", function(){
+      var m = BIB.cible.machine, ids = bibClasserSons(bibSons()).complet.map(function(s){ return s.id; });
+      if(poserListeSurMachine(m, ids)) majBibUI();
+    });
+    z.appendChild(poser);
+  }
   corps.appendChild(z);
 }
 function bibMajCompte(r){

@@ -40,3 +40,6 @@
 #bib .ed-curseur input{flex:1;min-height:36px}
 #bib .ed .bib-actions button:disabled{opacity:.4}
 #bib .ed select{min-height:40px}
+/* v256 : kits par rôle */
+#bib .kits-copier{min-height:40px;max-width:100%}
+#bib #bib-poser-liste{flex:1 1 100%;min-height:40px}

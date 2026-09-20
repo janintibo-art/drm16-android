@@ -402,6 +402,30 @@ function bibRendreMachines(corps){
   var bAvant = boutonBib(acts, "REMETTRE LES SONS D'AVANT", function(){ if(kitsRemettre(m)) majBibUI(); });
   if(typeof peutFiger === "function" && peutFiger(m))
     boutonBib(acts, "FIGER EN ÉCHANTILLONS", function(){ figerMachine(m); });       /* v255 */
+  /* v256 : kit au hasard, par rôle ; copie vers une autre machine */
+  if(typeof kitAuHasard === "function" && D.bib){
+    boutonBib(acts, "KIT AU HASARD", function(){
+      var fav = document.getElementById("kits-hasard-fav");
+      if(kitAuHasard(m, !!(fav && fav.checked))) majBibUI();
+    }).id = "kits-hasard";
+    var lf = document.createElement("label"); lf.className = "kits-tous";
+    var cf = document.createElement("input"); cf.type = "checkbox"; cf.id = "kits-hasard-fav"; cf.checked = !!KITS.hasardFav;
+    cf.addEventListener("change", function(){ KITS.hasardFav = this.checked; });
+    lf.appendChild(cf); lf.appendChild(document.createTextNode(" au hasard parmi les favoris"));
+    acts.appendChild(lf);
+    var sv = document.createElement("select"); sv.id = "kits-copier"; sv.className = "kits-copier";
+    var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "COPIER CE KIT VERS…"; sv.appendChild(o0);
+    machinesAEchantillons().forEach(function(x){
+      if(x === m) return;
+      var o = document.createElement("option"); o.value = x; o.textContent = KITS_MACHINES[x].nom; sv.appendChild(o);
+    });
+    sv.addEventListener("change", function(){
+      if(!this.value) return;
+      var v = this.value;
+      if(copierKitVers(m, v)){ KITS.machine = v; majBibUI(); }
+    });
+    acts.appendChild(sv);
+  }
   bAvant.id = "kits-avant";
   bAvant.disabled = !d.avant;
   if(D.courant){
