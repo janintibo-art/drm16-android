@@ -1,0 +1,57 @@
+/* v266 — Kaoss : geste lisible ; volca sample : repères de MOTION.
+   Décoration seulement : les cibles, aiguilles et événements restent d'origine. */
+#kp-pav.gm-equipe{isolation:isolate}
+#kp-pav.gm-equipe #kp-trace{display:none}
+#gm-kp-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+#kp-pav.gm-equipe #kp-point{z-index:2;pointer-events:none}
+#kp-pav.gm-equipe[data-gm-etat="hold"] #kp-point{border-color:#f2c577;background:#98753d55}
+#kp-pav.gm-equipe[data-gm-etat="lecture"] #kp-point{border-color:#a4e6c9;background:#48857155}
+#kp-pav.gm-equipe[data-gm-etat="rec"] #kp-point{border-color:#ff98a8;background:#a3364c55}
+.gm-kp-haut,.gm-kp-bas{
+  position:absolute;left:9px;right:9px;z-index:3;display:flex;align-items:center;
+  justify-content:space-between;gap:8px;pointer-events:none;
+  font:700 11.5px/1.3 Arial,sans-serif;letter-spacing:.35px;font-variant-numeric:tabular-nums;
+}
+.gm-kp-haut{top:8px;color:#c4ccda}
+.gm-kp-bas{bottom:8px;color:#d2dae7}
+.gm-kp-haut>span,.gm-kp-bas>span{padding:3px 6px;border:1px solid #49505b66;border-radius:3px;background:#101722e6;white-space:nowrap}
+#gm-kp-mode{color:#d7dee8}
+#kp-pav[data-gm-etat="rec"] #gm-kp-mode{color:#ffb3bf;border-color:#914454}
+#kp-pav[data-gm-etat="lecture"] #gm-kp-mode{color:#b9edd7;border-color:#537a6a}
+#kp-pav:is([data-gm-etat="hold"],[data-gm-etat="arme"],[data-gm-etat="pret"]) #gm-kp-mode{color:#f0cc8b;border-color:#8a713f}
+#gm-kp-source{font-size:10.5px;color:#adb7c8}
+#gm-kp-description,.gm-description{
+  position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;
+  overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;pointer-events:none;
+}
+/* La valeur de base reste l'aiguille orange. L'arc vert est une deuxième lecture,
+   indépendante, d'une valeur programmée dans le pas affiché (0 à 127). */
+#unit-vlc .gm-anneau{position:absolute;inset:0;display:block;pointer-events:none;z-index:2;color:#2e5f53}
+#unit-vlc .gm-anneau[hidden]{display:none}
+#unit-vlc .gm-anneau svg{display:block;width:100%;height:100%;overflow:visible}
+#unit-vlc .gm-piste{fill:none;stroke:#243a32;stroke-opacity:.3;stroke-width:5}
+#unit-vlc .gm-arc{fill:none;stroke:currentColor;stroke-width:5;stroke-linecap:round}
+#unit-vlc .gm-marqueur{transform-origin:50px 50px;transform:rotate(var(--gm-angle,0deg))}
+#unit-vlc .gm-marqueur circle{fill:currentColor;stroke:#112d25;stroke-width:2}
+#unit-vlc .gm-anneau[data-etat="lecture"]{color:#82e3b4}
+#unit-vlc .gm-anneau[data-etat="rec"]{color:#f0909b}
+#unit-vlc .gm-anneau:is([data-etat="arme"],[data-etat="geste"]){color:#ebc782}
+#unit-vlc .gm-anneau:is([data-etat="stop"],[data-etat="vide"],[data-etat="muet"]){color:#626a66}
+#unit-vlc .gm-anneau:not([data-valeur]) .gm-arc,#unit-vlc .gm-anneau:not([data-valeur]) .gm-marqueur{display:none}
+#unit-vlc .gm-anneau:not([data-valeur]) .gm-piste{stroke-opacity:.85;stroke-dasharray:5 5;stroke-width:6}
+#gm-vlc-info{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:5px 10px;
+  min-height:40px;margin:0 0 8px;padding:5px 9px;border:1px solid #858c85;border-radius:4px;
+  background:linear-gradient(#202923,#111813);box-shadow:inset 0 1px 3px #0008;
+  color:#d6e5da;font:700 11.5px/1.3 Arial,sans-serif;letter-spacing:0;font-variant-numeric:tabular-nums;
+}
+#gm-vlc-info .gm-vlc-partie{font-size:10.5px;color:#a5bcac}
+#gm-vlc-detail{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+#gm-vlc-etat{font-size:10.5px;white-space:nowrap;color:#ced7d1}
+#gm-vlc-info[data-etat="lecture"] #gm-vlc-etat{color:#a5e6bf}
+#gm-vlc-info[data-etat="rec"] #gm-vlc-etat{color:#ffb7c3}
+#gm-vlc-info[data-etat="arme"] #gm-vlc-etat{color:#f1ce8a}
+#gm-vlc-info .gm-vlc-legende{grid-column:1/-1;font-size:10.5px;font-weight:400;text-align:center;color:#c0ccbf}
+@media (prefers-reduced-motion:reduce){
+  #kp-pav.gm-equipe #kp-point,#unit-vlc .gm-anneau *{transition:none!important;animation:none!important}
+}
