@@ -55,6 +55,7 @@ jobs:
           python outils/test-retours-musicaux.py
           python outils/test-gestes-musicaux.py
           python outils/test-automations-machines.py
+          python outils/test-ecrans-performance.py
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble

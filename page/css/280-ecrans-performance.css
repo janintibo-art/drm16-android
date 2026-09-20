@@ -1,0 +1,121 @@
+/* v268 — Écrans de jeu PO-33 et MC-101.
+   Les cases représentent le motif/clip AVANT les effets, jamais une mesure audio.
+   Aucun bouton ajouté, aucune surcouche tactile, aucune animation permanente. */
+#unit-ko .ko-lcd.ep-lcd{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;
+  gap:5px 8px;padding:10px;min-width:0;
+}
+#unit-ko .ep-lcd>#ko-lab{grid-column:1;grid-row:1;line-height:1.3}
+#unit-ko .ep-lcd>#ko-bpm{grid-column:2;grid-row:1;line-height:1.3}
+#unit-ko .ep-lcd>#ko-val{
+  grid-column:1/-1;grid-row:2;min-width:0;font-size:22px;line-height:1.15;
+  overflow-wrap:anywhere;white-space:normal;
+}
+#unit-ko .ko-tete.ep-tete{align-items:flex-start}
+#unit-ko .ep-tete>.ko-nom{padding-top:10px}
+/* SCATTER reste une vraie touche native de 44 px, à droite du titre d'écran.
+   Le panneau sous ce titre utilise toute la largeur, même sur petit portrait. */
+#unit-mc .mc-tete.ep-tete{position:relative;display:block}
+#unit-mc .mc-lcd.ep-lcd{
+  display:grid;grid-template-columns:minmax(0,1fr);align-items:start;
+  gap:5px;padding:10px;min-width:0;
+}
+#unit-mc .ep-lcd>#mc-lab,#unit-mc .ep-lcd>#mc-val{margin-right:108px}
+#unit-mc .ep-lcd>#mc-lab{line-height:1.3}
+#unit-mc .ep-lcd>#mc-val{
+  min-height:26px;font-size:20px;line-height:1.25;white-space:normal;
+  overflow-wrap:anywhere;overflow:visible;
+}
+#unit-mc .ep-tete>#mc-scat{
+  position:absolute;right:12px;top:12px;width:96px;min-width:96px;
+  min-height:44px;padding:8px 6px;font-size:11px;letter-spacing:.4px;
+}
+#unit-mc .ep-tete[data-ep-zone="active"]>#mc-scat{outline:2px solid #d4ffe7;outline-offset:2px}
+.ep-ecran{
+  --ep-encre:#d0edd0;--ep-discret:#a8c2aa;--ep-vide:#223628;--ep-note:#93d5a0;
+  --ep-repere:#f2fff2;--ep-fx:#e8b67c;--ep-trait:#42614a;
+  grid-column:1/-1;min-width:0;width:100%;box-sizing:border-box;
+  border-top:1px solid var(--ep-trait);padding-top:8px;margin-top:3px;
+  color:var(--ep-encre);font:600 11px/1.4 "Roboto Condensed",Arial,sans-serif;
+  letter-spacing:.15px;pointer-events:none;user-select:none;
+}
+#unit-ko .ep-ecran{
+  --ep-encre:#222d20;--ep-discret:#364430;--ep-vide:#a3b095;--ep-note:#394c31;
+  --ep-repere:#182615;--ep-fx:#38462f;--ep-trait:#718064;
+}
+.ep-ecran *{box-sizing:border-box;pointer-events:none}
+.ep-bandeau,.ep-contexte{display:flex;justify-content:space-between;align-items:center;gap:5px;flex-wrap:wrap}
+.ep-badge{display:inline-flex;align-items:center;gap:4px;min-height:20px;padding:1px 5px;border:1px solid var(--ep-trait);border-radius:2px}
+.ep-transport{font-weight:800}
+.ep-transport::before{content:"";display:inline-block;flex:none;width:6px;height:6px;background:currentColor}
+.ep-ecran[data-ep-transport="play"] .ep-transport::before{width:0;height:0;background:none;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid currentColor}
+.ep-ecran[data-ep-transport="rec"] .ep-transport,
+.ep-ecran[data-ep-transport="arme"] .ep-transport,
+.ep-ecran[data-ep-transport="micro"] .ep-transport{background:#813028;color:#fff1eb;border-color:#ac5945}
+.ep-ecran[data-ep-transport="rec"] .ep-transport::before,
+.ep-ecran[data-ep-transport="arme"] .ep-transport::before,
+.ep-ecran[data-ep-transport="micro"] .ep-transport::before{border-radius:50%}
+.ep-ecran[data-ep-transport="arme"] .ep-transport::before{background:transparent;border:1px solid currentColor}
+.ep-contexte{margin-top:7px;font-weight:800;font-variant-numeric:tabular-nums}
+.ep-source{margin:3px 0 6px;color:var(--ep-discret);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:16px}
+.ep-regle{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));color:var(--ep-discret);font-size:11px;font-variant-numeric:tabular-nums}
+.ep-pas{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:3px;padding:3px 0 1px}
+.ep-case{position:relative;display:block;height:22px;min-width:0;border:1px solid var(--ep-trait);border-radius:1px;background:var(--ep-vide)}
+.ep-case:nth-child(4n+1){border-left-color:var(--ep-encre)}
+.ep-case.ep-note{background:var(--ep-note)}
+.ep-case.ep-inactif{opacity:.28;border-style:dotted}
+.ep-case.ep-courant{outline:2px solid var(--ep-repere);outline-offset:1px;z-index:1}
+.ep-case.ep-courant::after{content:"";position:absolute;top:2px;left:50%;width:2px;height:5px;margin-left:-1px;background:var(--ep-repere)}
+/* Ligne basse : point = FX mémorisé ; trait vertical = Parameter Lock. */
+.ep-marques{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:3px;height:7px}
+.ep-marque{position:relative;min-width:0}
+.ep-marque.ep-fx-memo::before{content:"";position:absolute;left:1px;top:1px;width:4px;height:4px;border-radius:50%;background:var(--ep-fx)}
+.ep-marque.ep-lock::after{content:"";position:absolute;right:1px;top:0;width:2px;height:6px;background:var(--ep-encre)}
+.ep-marque.ep-zone{border-bottom:3px solid var(--ep-fx)}
+.ep-marque.ep-zone-active{border-bottom-color:var(--ep-repere)}
+.ep-info,.ep-suite{overflow-wrap:anywhere;min-width:0}
+.ep-info{margin-top:5px;min-height:16px;font-weight:800}
+.ep-suite{min-height:16px;color:var(--ep-discret)}
+#unit-mc .ep-ecran[data-ep-zone="active"] .ep-info{color:#ffe0b5}
+#unit-mc .ep-ecran[data-ep-zone="muet"] .ep-info{color:#ffc9ba}
+#unit-mc .ep-ecran[data-ep-zone="looper"] .ep-marques{opacity:.35}
+/* Pas de néon ni de clignotement : un état immédiat reste lisible avec
+   prefers-reduced-motion et ne coûte rien entre deux changements musicaux. */
+@media(max-width:359px){
+  #unit-ko .ko-tete.ep-tete{gap:7px}
+  #unit-ko .ep-tete>.ko-nom{font-size:22px}
+  #unit-ko .ko-lcd.ep-lcd{padding:8px}
+  .ep-pas,.ep-marques{gap:2px}
+}
+/* Réserver la place aux pads : en paysage large, l'écran est à gauche et
+   le jeu à droite. Les réglages secondaires restent dans le défilement natif. */
+@media(min-width:760px) and (orientation:landscape) and (max-height:540px){
+  #unit-ko.ui-confort,#unit-mc.ui-confort{
+    display:grid;grid-template-columns:minmax(230px,.8fr) minmax(405px,1.2fr);
+    gap:7px 14px;align-content:start;max-width:1100px!important;
+  }
+  #unit-ko.ui-confort>*,#unit-mc.ui-confort>*{grid-column:1/-1;margin-bottom:0}
+  #unit-ko.ui-confort>.ko-haut,#unit-mc.ui-confort>.mc-haut{grid-column:1/-1;grid-row:1}
+  #unit-ko.ui-confort>.ko-tete,#unit-mc.ui-confort>.mc-tete{grid-column:1;grid-row:2/5;align-self:start}
+  #unit-ko.ui-confort>.ko-cmd{grid-column:2;grid-row:2;grid-template-columns:repeat(6,minmax(0,1fr))}
+  #unit-ko.ui-confort>.ko-bas{grid-column:2;grid-row:3}
+  #unit-ko.ui-confort>.ko-pads{grid-column:2;grid-row:4;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+  #unit-mc.ui-confort>.mc-trks{grid-column:2;grid-row:2}
+  #unit-mc.ui-confort>.mc-cmd{grid-column:2;grid-row:3}
+  #unit-mc.ui-confort>.mc-pads{grid-column:2;grid-row:4;grid-template-columns:repeat(8,minmax(0,1fr))}
+  #unit-mc.ui-confort>.mc-scatline{grid-column:1;grid-row:5}
+  #unit-mc.ui-confort>.mc-kns{grid-column:2;grid-row:5}
+  #unit-mc.ui-confort .mc-trks .mt{padding:4px 3px}
+}
+/* Sur un paysage étroit, conserver la façade verticale mais rendre le
+   complément d'écran compact. Les modes, le transport, les pas et FX restent. */
+@media(max-height:540px) and (max-width:759px) and (orientation:landscape){
+  .ep-ecran{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 9px}
+  .ep-bandeau{grid-column:1;grid-row:1}
+  .ep-contexte{grid-column:2;grid-row:1;margin:0}
+  .ep-source,.ep-regle{display:none}
+  .ep-pas{grid-column:1/-1;grid-row:2}
+  .ep-marques{grid-column:1/-1;grid-row:3}
+  .ep-info{grid-column:1;grid-row:4;margin:0}
+  .ep-suite{grid-column:2;grid-row:4}
+}

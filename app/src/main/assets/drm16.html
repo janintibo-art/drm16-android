@@ -3384,6 +3384,127 @@ body:not(.note-ouverte):not(.menu-ouvert) :is(#ko-pads .kb.cur,#mc-pads .mb.cur,
   clip:rect(0,0,0,0);white-space:nowrap;border:0;pointer-events:none!important}
 /* Les coordonnées des repères restent locales : le zoom natif agrandit aussi les bagues. */
 @media(prefers-reduced-motion:reduce){.av-repere *,.av-ligne *{transition:none!important;animation:none!important}}
+/* v268 — Écrans de jeu PO-33 et MC-101.
+   Les cases représentent le motif/clip AVANT les effets, jamais une mesure audio.
+   Aucun bouton ajouté, aucune surcouche tactile, aucune animation permanente. */
+#unit-ko .ko-lcd.ep-lcd{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;
+  gap:5px 8px;padding:10px;min-width:0;
+}
+#unit-ko .ep-lcd>#ko-lab{grid-column:1;grid-row:1;line-height:1.3}
+#unit-ko .ep-lcd>#ko-bpm{grid-column:2;grid-row:1;line-height:1.3}
+#unit-ko .ep-lcd>#ko-val{
+  grid-column:1/-1;grid-row:2;min-width:0;font-size:22px;line-height:1.15;
+  overflow-wrap:anywhere;white-space:normal;
+}
+#unit-ko .ko-tete.ep-tete{align-items:flex-start}
+#unit-ko .ep-tete>.ko-nom{padding-top:10px}
+/* SCATTER reste une vraie touche native de 44 px, à droite du titre d'écran.
+   Le panneau sous ce titre utilise toute la largeur, même sur petit portrait. */
+#unit-mc .mc-tete.ep-tete{position:relative;display:block}
+#unit-mc .mc-lcd.ep-lcd{
+  display:grid;grid-template-columns:minmax(0,1fr);align-items:start;
+  gap:5px;padding:10px;min-width:0;
+}
+#unit-mc .ep-lcd>#mc-lab,#unit-mc .ep-lcd>#mc-val{margin-right:108px}
+#unit-mc .ep-lcd>#mc-lab{line-height:1.3}
+#unit-mc .ep-lcd>#mc-val{
+  min-height:26px;font-size:20px;line-height:1.25;white-space:normal;
+  overflow-wrap:anywhere;overflow:visible;
+}
+#unit-mc .ep-tete>#mc-scat{
+  position:absolute;right:12px;top:12px;width:96px;min-width:96px;
+  min-height:44px;padding:8px 6px;font-size:11px;letter-spacing:.4px;
+}
+#unit-mc .ep-tete[data-ep-zone="active"]>#mc-scat{outline:2px solid #d4ffe7;outline-offset:2px}
+.ep-ecran{
+  --ep-encre:#d0edd0;--ep-discret:#a8c2aa;--ep-vide:#223628;--ep-note:#93d5a0;
+  --ep-repere:#f2fff2;--ep-fx:#e8b67c;--ep-trait:#42614a;
+  grid-column:1/-1;min-width:0;width:100%;box-sizing:border-box;
+  border-top:1px solid var(--ep-trait);padding-top:8px;margin-top:3px;
+  color:var(--ep-encre);font:600 11px/1.4 "Roboto Condensed",Arial,sans-serif;
+  letter-spacing:.15px;pointer-events:none;user-select:none;
+}
+#unit-ko .ep-ecran{
+  --ep-encre:#222d20;--ep-discret:#364430;--ep-vide:#a3b095;--ep-note:#394c31;
+  --ep-repere:#182615;--ep-fx:#38462f;--ep-trait:#718064;
+}
+.ep-ecran *{box-sizing:border-box;pointer-events:none}
+.ep-bandeau,.ep-contexte{display:flex;justify-content:space-between;align-items:center;gap:5px;flex-wrap:wrap}
+.ep-badge{display:inline-flex;align-items:center;gap:4px;min-height:20px;padding:1px 5px;border:1px solid var(--ep-trait);border-radius:2px}
+.ep-transport{font-weight:800}
+.ep-transport::before{content:"";display:inline-block;flex:none;width:6px;height:6px;background:currentColor}
+.ep-ecran[data-ep-transport="play"] .ep-transport::before{width:0;height:0;background:none;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid currentColor}
+.ep-ecran[data-ep-transport="rec"] .ep-transport,
+.ep-ecran[data-ep-transport="arme"] .ep-transport,
+.ep-ecran[data-ep-transport="micro"] .ep-transport{background:#813028;color:#fff1eb;border-color:#ac5945}
+.ep-ecran[data-ep-transport="rec"] .ep-transport::before,
+.ep-ecran[data-ep-transport="arme"] .ep-transport::before,
+.ep-ecran[data-ep-transport="micro"] .ep-transport::before{border-radius:50%}
+.ep-ecran[data-ep-transport="arme"] .ep-transport::before{background:transparent;border:1px solid currentColor}
+.ep-contexte{margin-top:7px;font-weight:800;font-variant-numeric:tabular-nums}
+.ep-source{margin:3px 0 6px;color:var(--ep-discret);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:16px}
+.ep-regle{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));color:var(--ep-discret);font-size:11px;font-variant-numeric:tabular-nums}
+.ep-pas{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:3px;padding:3px 0 1px}
+.ep-case{position:relative;display:block;height:22px;min-width:0;border:1px solid var(--ep-trait);border-radius:1px;background:var(--ep-vide)}
+.ep-case:nth-child(4n+1){border-left-color:var(--ep-encre)}
+.ep-case.ep-note{background:var(--ep-note)}
+.ep-case.ep-inactif{opacity:.28;border-style:dotted}
+.ep-case.ep-courant{outline:2px solid var(--ep-repere);outline-offset:1px;z-index:1}
+.ep-case.ep-courant::after{content:"";position:absolute;top:2px;left:50%;width:2px;height:5px;margin-left:-1px;background:var(--ep-repere)}
+/* Ligne basse : point = FX mémorisé ; trait vertical = Parameter Lock. */
+.ep-marques{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:3px;height:7px}
+.ep-marque{position:relative;min-width:0}
+.ep-marque.ep-fx-memo::before{content:"";position:absolute;left:1px;top:1px;width:4px;height:4px;border-radius:50%;background:var(--ep-fx)}
+.ep-marque.ep-lock::after{content:"";position:absolute;right:1px;top:0;width:2px;height:6px;background:var(--ep-encre)}
+.ep-marque.ep-zone{border-bottom:3px solid var(--ep-fx)}
+.ep-marque.ep-zone-active{border-bottom-color:var(--ep-repere)}
+.ep-info,.ep-suite{overflow-wrap:anywhere;min-width:0}
+.ep-info{margin-top:5px;min-height:16px;font-weight:800}
+.ep-suite{min-height:16px;color:var(--ep-discret)}
+#unit-mc .ep-ecran[data-ep-zone="active"] .ep-info{color:#ffe0b5}
+#unit-mc .ep-ecran[data-ep-zone="muet"] .ep-info{color:#ffc9ba}
+#unit-mc .ep-ecran[data-ep-zone="looper"] .ep-marques{opacity:.35}
+/* Pas de néon ni de clignotement : un état immédiat reste lisible avec
+   prefers-reduced-motion et ne coûte rien entre deux changements musicaux. */
+@media(max-width:359px){
+  #unit-ko .ko-tete.ep-tete{gap:7px}
+  #unit-ko .ep-tete>.ko-nom{font-size:22px}
+  #unit-ko .ko-lcd.ep-lcd{padding:8px}
+  .ep-pas,.ep-marques{gap:2px}
+}
+/* Réserver la place aux pads : en paysage large, l'écran est à gauche et
+   le jeu à droite. Les réglages secondaires restent dans le défilement natif. */
+@media(min-width:760px) and (orientation:landscape) and (max-height:540px){
+  #unit-ko.ui-confort,#unit-mc.ui-confort{
+    display:grid;grid-template-columns:minmax(230px,.8fr) minmax(405px,1.2fr);
+    gap:7px 14px;align-content:start;max-width:1100px!important;
+  }
+  #unit-ko.ui-confort>*,#unit-mc.ui-confort>*{grid-column:1/-1;margin-bottom:0}
+  #unit-ko.ui-confort>.ko-haut,#unit-mc.ui-confort>.mc-haut{grid-column:1/-1;grid-row:1}
+  #unit-ko.ui-confort>.ko-tete,#unit-mc.ui-confort>.mc-tete{grid-column:1;grid-row:2/5;align-self:start}
+  #unit-ko.ui-confort>.ko-cmd{grid-column:2;grid-row:2;grid-template-columns:repeat(6,minmax(0,1fr))}
+  #unit-ko.ui-confort>.ko-bas{grid-column:2;grid-row:3}
+  #unit-ko.ui-confort>.ko-pads{grid-column:2;grid-row:4;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+  #unit-mc.ui-confort>.mc-trks{grid-column:2;grid-row:2}
+  #unit-mc.ui-confort>.mc-cmd{grid-column:2;grid-row:3}
+  #unit-mc.ui-confort>.mc-pads{grid-column:2;grid-row:4;grid-template-columns:repeat(8,minmax(0,1fr))}
+  #unit-mc.ui-confort>.mc-scatline{grid-column:1;grid-row:5}
+  #unit-mc.ui-confort>.mc-kns{grid-column:2;grid-row:5}
+  #unit-mc.ui-confort .mc-trks .mt{padding:4px 3px}
+}
+/* Sur un paysage étroit, conserver la façade verticale mais rendre le
+   complément d'écran compact. Les modes, le transport, les pas et FX restent. */
+@media(max-height:540px) and (max-width:759px) and (orientation:landscape){
+  .ep-ecran{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 9px}
+  .ep-bandeau{grid-column:1;grid-row:1}
+  .ep-contexte{grid-column:2;grid-row:1;margin:0}
+  .ep-source,.ep-regle{display:none}
+  .ep-pas{grid-column:1/-1;grid-row:2}
+  .ep-marques{grid-column:1/-1;grid-row:3}
+  .ep-info{grid-column:1;grid-row:4;margin:0}
+  .ep-suite{grid-column:2;grid-row:4}
+}
 </style>
 </head>
 <body>
@@ -40525,6 +40646,170 @@ var AUTOMATIONS_VISUELLES=(function(){
   return {reveiller:reveiller,inspecter:function(){return {version:267,frames:frames,anime:raf!==null,reduit:reduire.matches,
     visible:!!(actuelle && !masque() && enVue(actuelle.racine)),resume:dernierResume?Object.assign({},dernierResume):null,
     reperes:familles.reduce(function(n,f){return n+f.reperes.length+f.fxReperes.length;},0)};}};
+})();
+/* v268 — Afficheurs de performance en lecture seule.
+   Pas de schedule(), voix, RNG, AudioNode, mémoire ou normalisation musicale.
+   Le SCATTER montre sa zone d'action : il n'effectue PAS un second tirage au sort.
+   Les barres restent l'aperçu du clip/motif avant les effets. */
+var ECRANS_PERFORMANCE=(function(){
+  "use strict";
+  var raf=null,frames=0,horsPage=false,contexte=null,actuel=null,resume=null;
+  var panneaux=["menu","note","bib","enr","pr","table","syro","studio","nexus","audio-diagnostic"]
+    .map(function(id){return document.getElementById(id);}).filter(Boolean);
+  function el(id){return document.getElementById(id);}
+  function texte(e,t){t=String(t);if(e.textContent!==t)e.textContent=t;}
+  function attribut(e,k,v){v=String(v);if(e.getAttribute(k)!==v)e.setAttribute(k,v);}
+  function entier(n,min,max){return Number.isInteger(n) && n>=min && n<=max;}
+  function fini(n){return typeof n==="number" && Number.isFinite(n);}
+  function deux(n){return String(n).padStart(2,"0");}
+  function creer(tag,classe,parent,t){var e=document.createElement(tag);e.className=classe;if(t!==undefined)e.textContent=t;if(parent)parent.appendChild(e);return e;}
+  function monter(modele){
+    var racine=el("unit-"+modele),lcd=racine.querySelector("."+modele+"-lcd"),tete=lcd.parentNode;
+    lcd.classList.add("ep-lcd");tete.classList.add("ep-tete");
+    var bloc=creer("div","ep-ecran",lcd);bloc.id="ep-ecran-"+modele;
+    bloc.setAttribute("role","group");bloc.setAttribute("aria-live","off");
+    var bandeau=creer("div","ep-bandeau",bloc),mode=creer("span","ep-badge ep-mode",bandeau),transport=creer("span","ep-badge ep-transport",bandeau);
+    var infos=creer("div","ep-contexte",bloc),selection=creer("span","ep-selection",infos),position=creer("span","ep-position",infos);
+    var source=creer("div","ep-source",bloc),regle=creer("div","ep-regle",bloc);
+    regle.setAttribute("aria-hidden","true");[1,5,9,13].forEach(function(n){creer("span","",regle,String(n));});
+    var pas=creer("div","ep-pas",bloc),marques=creer("div","ep-marques",bloc),cases=[],traits=[];
+    pas.setAttribute("aria-hidden","true");marques.setAttribute("aria-hidden","true");
+    for(var i=0;i<16;i++){cases.push(creer("span","ep-case",pas));traits.push(creer("span","ep-marque",marques));}
+    var info=creer("div","ep-info",bloc),suite=creer("div","ep-suite",bloc);
+    return {modele:modele,racine:racine,lcd:lcd,tete:tete,bloc:bloc,mode:mode,transport:transport,
+      selection:selection,position:position,source:source,pas:pas,marques:marques,cases:cases,traits:traits,info:info,suite:suite};
+  }
+  var ecrans={ko:monter("ko"),mc:monter("mc")};
+  function masque(){
+    return horsPage || document.hidden || document.body.inert || document.body.classList.contains("ensemble") ||
+      document.body.classList.contains("menu-ouvert") || document.body.classList.contains("chargement-projet") ||
+      (typeof PROJET_EN_COURS!=="undefined" && !!PROJET_EN_COURS) || (ctx && !!ctx.startRendering) ||
+      panneaux.some(function(e){return !e.hidden && !e.classList.contains("hide") && getComputedStyle(e).display!=="none";});
+  }
+  function enVue(e){
+    if(!e || !e.racine.offsetWidth)return false;
+    var r=e.lcd.getBoundingClientRect(),u=e.racine.getBoundingClientRect();
+    return r.width>0 && r.height>0 && r.bottom>Math.max(0,u.top) && r.top<Math.min(innerHeight,u.bottom) && r.right>0 && r.left<innerWidth;
+  }
+  function lecture(modele){
+    var machine=modele==="ko"?MACHINE_KO:MACHINE_MC;
+    return !!(S.run && ctx && ctx.state==="running" && !ctx.startRendering &&
+      (MACHINE===machine || (typeof SET!=="undefined" && SET.on && SET.actives[modele])));
+  }
+  function suivreContexte(){
+    if(contexte===ctx)return;
+    if(contexte && contexte.removeEventListener)contexte.removeEventListener("statechange",reveiller);
+    contexte=ctx;
+    if(contexte && contexte.addEventListener && !contexte.startRendering)contexte.addEventListener("statechange",reveiller);
+  }
+  function transport(e,joue,rec,micro){
+    var code=micro?"micro":rec?(joue?"rec":"arme"):joue?"play":S.run && ctx && ctx.state!=="running"?"pause":"stop";
+    var noms={micro:"MIC REC",rec:"REC",arme:"REC ARMÉ",play:"PLAY",pause:"AUDIO PAUSE",stop:"STOP"};
+    attribut(e.bloc,"data-ep-transport",code);texte(e.transport,noms[code]);return code;
+  }
+  function grille(e,notes,fx,locks,zone,pas,last){
+    for(var i=0;i<16;i++){
+      e.cases[i].classList.toggle("ep-note",i<last && !!notes[i]);
+      e.cases[i].classList.toggle("ep-inactif",i>=last);
+      e.cases[i].classList.toggle("ep-courant",i===pas);
+      e.traits[i].classList.toggle("ep-fx-memo",i<last && !!fx[i]);
+      e.traits[i].classList.toggle("ep-lock",i<last && !!locks[i]);
+      e.traits[i].classList.toggle("ep-zone",!!zone[i]);
+      e.traits[i].classList.toggle("ep-zone-active",!!zone[i] && i===pas);
+    }
+    texte(e.position,"PAS "+(pas>=0?deux(pas+1):"—")+"/"+deux(last));
+  }
+  function nomSon(id){
+    /* nomBib ne fait qu'une lecture de BIB.noms/ES.noms. Aucun chargement ici. */
+    return id?(typeof nomBib==="function"?nomBib(id):String(id)):"EMPLACEMENT VIDE";
+  }
+  function peindreKo(e){
+    var joue=lecture("ko"),m=KO.motifs[KO.cur] || {},last=entier(m.last,1,16)?m.last:16;
+    var pas=joue && entier(KO.pos,0,last-1)?KO.pos:-1;
+    var sel=KO.chroma?KO.chromaSource:KO.sel;
+    var notes=[],fx=[],locks=[],masques=m.pas || [],verrous=m.plocks || [],effets=m.fx || [];
+    for(var i=0;i<16;i++){
+      notes[i]=KO_MODE==="ptn"?masques.some(function(v){return !!(v & (1<<i));}):!!(masques[sel] & (1<<i));
+      fx[i]=entier(effets[i],0,KO_FX.length-2);
+      var v=verrous[i];locks[i]=!!v && KO_PLOCKS.some(function(p){return fini(v[p[0]]);});
+    }
+    var mode=KO_MODE==="ptn"?"PATTERN":KO_MODE==="fx"?"FX":KO.chroma?"CHROMA":"SOUND";
+    var prise=typeof KO_ECH!=="undefined" && !!KO_ECH.prise;
+    var etat=transport(e,joue,!!KO.rec,prise);
+    texte(e.mode,mode);texte(e.selection,"P"+deux(KO.cur+1)+" · SON "+deux(sel+1));
+    var source=(KO_MODE==="ptn"?"TOUS LES SONS":sel<8?"MÉLODIE":"PERCUSSION")+" · "+nomSon(KO.sons[sel]);
+    texte(e.source,source);attribut(e.source,"title",source);
+    grille(e,notes,fx,locks,[],pas,last);
+    var nbFx=fx.slice(0,last).filter(Boolean).length,nbLocks=locks.slice(0,last).filter(Boolean).length;
+    var live=!!KO.fxTenu,fxIndex=live?(entier(KO.fx,0,KO_FX.length-2)?KO.fx:-1):pas>=0 && fx[pas]?effets[pas]:-1;
+    var fxTexte=live?(joue?"FX LIVE · ":"FX ARMÉ · ")+(fxIndex>=0?KO_FX[fxIndex][1]:"NEUTRE"):
+      fxIndex>=0?"FX MÉM. · "+KO_FX[fxIndex][1]:"FX MÉM. "+nbFx+"/"+last+" · LOCKS "+nbLocks+"/"+last;
+    texte(e.info,fxTexte);
+    var chaine=KO.song && KO.chaine.length?"CHAÎNE "+(KO.chainePos+1)+"/"+KO.chaine.length+" · ":"";
+    texte(e.suite,chaine+"■ notes · ● FX · | locks");
+    attribut(e.bloc,"aria-label","Aperçu du motif avant les effets. "+mode+". "+e.selection.textContent+". "+e.position.textContent+". "+fxTexte);
+    return {modele:"ko",mode:mode,transport:etat,pas:pas,last:last,selection:sel,motif:KO.cur,
+      notes:notes,fx:fx,locks:locks,fxIndex:fxIndex,fxLive:live,chaine:chaine};
+  }
+  function peindreMc(e){
+    var joue=lecture("mc"),P=MC.pistes[MC.sel],clip=P.clips[P.clip] || [];
+    var pas=joue && entier(MC.pos,0,15)?MC.pos:-1;
+    var prof=fini(MC.scatProf)?Math.max(0,Math.min(1,MC.scatProf)):0;
+    var seuil=Math.round((1-prof)*16),zone=[],notes=[];
+    for(var i=0;i<16;i++){
+      notes[i]=!P.looper && entier(clip[i],0,127);
+      zone[i]=!!(MC.scatOn && !P.looper && !P.muet && i>=seuil);
+    }
+    var z=P.looper?"looper":P.muet?"muet":!MC.scatOn?"off":seuil===16?"vide":pas<0?"arme":zone[pas]?"active":"hors-zone";
+    var etat=transport(e,joue,false,false),type=P.looper?"LOOPER":P.type==="drum"?"RYTHME":P.ech?"SAMPLE":"SYNTHÉ";
+    texte(e.mode,type);texte(e.selection,"PISTE "+deux(MC.sel+1)+" · CLIP "+deux(P.clip+1));
+    var source=P.looper?(P.boucles[P.clip]?nomSon(P.boucles[P.clip]):"BOUCLE VIDE"):
+      P.type==="drum"?"GC · CC · CH · CL":P.ech?nomSon(P.ech):String(P.onde || "SYNTHÉ").toUpperCase();
+    texte(e.source,source);attribut(e.source,"title",source);
+    grille(e,notes,[],[],zone,pas,16);
+    var messages={looper:"LOOPER · SCATTER IGNORÉ",muet:"MUTE · SCATTER INACTIF",off:"SCATTER OFF",
+      vide:"SCATTER · ZONE VIDE",arme:"SCATTER ARMÉ",active:"SCATTER · ZONE ACTIVE","hors-zone":"SCATTER · HORS ZONE"};
+    texte(e.info,messages[z]+(!P.looper?" · PROF. "+Math.round(prof*100)+"%":""));
+    attribut(e.bloc,"data-ep-zone",z);attribut(e.tete,"data-ep-zone",z);
+    var futur=MC.depart && MC.depart.clips?MC.depart.clips[MC.sel]:MC.attente[MC.sel];
+    var attente=entier(futur,0,MC_CLIPS-1) && futur!==P.clip;
+    texte(e.suite,attente?(MC.depart?"DÉPART IMMINENT":"EN ATTENTE")+" → CLIP "+deux(futur+1):
+      P.looper?"UNE MESURE · PAS DE CLIP DE NOTES":"■ notes · trait : zone SCATTER");
+    attribut(e.bloc,"aria-label","Aperçu du clip avant SCATTER. "+e.selection.textContent+". "+e.position.textContent+". "+e.info.textContent+". "+e.suite.textContent);
+    return {modele:"mc",mode:type,transport:etat,pas:pas,last:16,selection:MC.sel,clip:P.clip,
+      notes:notes,zone:zone,etatZone:z,profondeur:prof,seuil:seuil,attente:attente?futur:null};
+  }
+  function arreter(){if(raf!==null)cancelAnimationFrame(raf);raf=null;}
+  function tour(){
+    raf=null;if(!actuel || masque() || !enVue(actuel))return;
+    frames++;resume=actuel.modele==="ko"?peindreKo(actuel):peindreMc(actuel);
+  }
+  function reveiller(){
+    suivreContexte();actuel=ecrans[S.modele] || null;
+    if(!actuel || masque() || !enVue(actuel)){arreter();return;}
+    if(raf===null)raf=requestAnimationFrame(tour);
+  }
+  var observer=new MutationObserver(reveiller);
+  /* Seulement le DOM natif : nos propres libellés ne peuvent relancer le dessin. */
+  ["ko-val","ko-lab","ko-bpm","mc-val","mc-lab","mc-lancement-etat","mc-source","mc-boucle-info"].forEach(function(id){
+    var n=el(id);if(n)observer.observe(n,{childList:true,characterData:true,subtree:true});
+  });
+  ["ko-rec","ko-sampling","mc-scat"].forEach(function(id){observer.observe(el(id),{attributes:true,attributeFilter:["class","aria-pressed"]});});
+  [MACHINE_KO,MACHINE_MC].forEach(function(machine){
+    var natif=machine.beat;
+    machine.beat=function(){var r=natif.apply(this,arguments);reveiller();return r;};
+  });
+  observer.observe(document.body,{attributes:true,attributeFilter:["class","inert"]});
+  panneaux.forEach(function(n){observer.observe(n,{attributes:true,attributeFilter:["class","hidden"]});});
+  ["click","pointerdown","pointerup","pointercancel","input","change","keyup"].forEach(function(n){document.addEventListener(n,reveiller,{passive:true});});
+  document.addEventListener("scroll",reveiller,{passive:true,capture:true});
+  document.addEventListener("visibilitychange",function(){arreter();reveiller();});
+  window.addEventListener("resize",reveiller,{passive:true});
+  window.addEventListener("pagehide",function(){horsPage=true;arreter();});
+  window.addEventListener("pageshow",function(){horsPage=false;reveiller();});
+  reveiller();
+  return {reveiller:reveiller,inspecter:function(){return {version:268,frames:frames,enAttente:raf!==null,
+    visible:!!(actuel && !masque() && enVue(actuel)),resume:resume?JSON.parse(JSON.stringify(resume)):null};}};
 })();
 </script>
 <script>
