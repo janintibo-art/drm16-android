@@ -113,7 +113,22 @@ for(const completion of ['ok','fail']) {
   delete c.saved.kp;assert.equal(c.usagesEch('u1'),4);
   assert.equal(c.usagesEch('inconnu'),0);
 }
-console.log('Échantillons : chargements dédupliqués, contexte périmé, erreurs récupérables, tampon traité conservé, rafraîchissement sans lecture, suppression sans résurrection et usages Kaoss OK.');
+
+// v259 : la TR-1000 (couche B de chaque instrument, tous motifs) et le PO-33
+// K.O! (seize emplacements, hors motifs) comptent aussi, actifs ou sauvegardés.
+{
+  const {c}=setup();
+  c.KP={banques:[],tranches:[]}; // neutralise le Kaoss pour isoler t1k/ko
+  c.saved.t1k={motifs:[{instr:[{ech:'u1'},{ech:'b0'}]},null,{instr:[{ech:'u1'}]}]};
+  c.saved.ko={sons:['u1','b3','u1']};
+  assert.equal(c.usagesEch('u1'),4); // Deux motifs TR-1000 + deux emplacements PO-33, sauvegardés.
+  c.S.modele='t1k';c.T1K={motifs:[{instr:[{ech:'u1'},{ech:'u1'}]}]};
+  assert.equal(c.usagesEch('u1'),4); // Le vif remplace le sauvegardé pour t1k (2), ko reste mémorisé (2).
+  c.S.modele='ko';c.KO={sons:['u1','u1','u1','b0']};
+  assert.equal(c.usagesEch('u1'),5); // TR-1000 sauvegardé (2) + PO-33 vif (3).
+  delete c.saved.t1k;delete c.saved.ko;assert.equal(c.usagesEch('u1'),3); // seul le PO-33 vif compte.
+}
+console.log('Échantillons : chargements dédupliqués, contexte périmé, erreurs récupérables, tampon traité conservé, rafraîchissement sans lecture, suppression sans résurrection et usages Kaoss/TR-1000/PO-33 OK.');
 
 // Les vrais points d'entrée import/micro doivent conserver un avertissement
 // d'écriture en dernière position ; le tampon reste utilisable pour la session.

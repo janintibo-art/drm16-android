@@ -77,6 +77,30 @@
     </div>
     <p><output id="t1k-chaine-liste" aria-live="polite">Aucun motif dans la chaîne.</output></p>
   </details>
+  <details class="t1k-edition" id="t1k-sample">
+    <summary>ÉCHANTILLON · COUCHE B · <span id="t1k-sample-resume">BASS DRUM</span></summary>
+    <p>Pour l’instrument choisi, dans ce motif. A/B dose l’échantillon contre la voix analogique.</p>
+    <canvas id="t1k-sample-onde" class="t1k-sample-onde" width="300" height="44" aria-hidden="true"></canvas>
+    <div class="t1k-sample-reglages">
+      <label for="t1k-sample-deb">DÉBUT</label>
+      <input type="range" id="t1k-sample-deb" min="0" max="1000" step="1" value="0" aria-label="Début de la portion jouée, en millièmes du son">
+      <label for="t1k-sample-fin">FIN</label>
+      <input type="range" id="t1k-sample-fin" min="0" max="1000" step="1" value="1000" aria-label="Fin de la portion jouée, en millièmes du son">
+      <label for="t1k-sample-etir">ÉTIRER</label>
+      <select id="t1k-sample-etir" aria-label="Étirer la portion sur un nombre de pas, au tempo, sans changer sa hauteur">
+        <option value="0">NON</option><option value="1">SUR 1 PAS</option><option value="2">SUR 2 PAS</option><option value="4">SUR 4 PAS</option>
+        <option value="8">SUR 8 PAS</option><option value="16">SUR 16 PAS</option><option value="32">SUR 32 PAS</option>
+      </select>
+    </div>
+    <div class="t1k-edition-actions">
+      <button id="t1k-sampling" aria-pressed="false">● SAMPLING</button>
+      <button id="t1k-sample-biblio">BIBLIO</button>
+      <button id="t1k-sample-ecouter">ÉCOUTER</button>
+      <button id="t1k-sample-rev" aria-pressed="false">À L’ENVERS</button>
+      <button id="t1k-sample-decouper">DÉCOUPER SUR LES INSTRUMENTS</button>
+    </div>
+    <p><output id="t1k-sample-info" aria-live="polite"></output></p>
+  </details>
   <div class="t1k-proba-bar">
     <label for="t1k-longueur">PAS</label>
     <select id="t1k-longueur" aria-label="Longueur du cycle de l’instrument sélectionné"><option value="0">SUIVRE LAST</option><option value="1">1 PAS</option><option value="2">2 PAS</option><option value="3">3 PAS</option><option value="4">4 PAS</option><option value="5">5 PAS</option><option value="6">6 PAS</option><option value="7">7 PAS</option><option value="8">8 PAS</option><option value="9">9 PAS</option><option value="10">10 PAS</option><option value="11">11 PAS</option><option value="12">12 PAS</option><option value="13">13 PAS</option><option value="14">14 PAS</option><option value="15">15 PAS</option><option value="16">16 PAS</option></select>

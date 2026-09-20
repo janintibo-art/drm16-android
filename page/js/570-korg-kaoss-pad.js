@@ -16,8 +16,29 @@ var KP_EFFETS = [
   ["ring",    "MODULATION EN ANNEAU", "X la fréquence, Y le mélange"],
   ["crush",   "RÉDUCTION",            "X la résolution, Y le mélange"],
   ["verb",    "RÉVERBÉRATION",        "X la taille, Y le mélange"],
-  ["pitch",   "VITESSE",              "X la vitesse, Y le glissement"]
+  ["pitch",   "VITESSE",              "X la vitesse, Y le glissement"],
+  /* v259 : sept effets de plus, repris des familles du KAOSS PAD (KP3) :
+     ajoutés à la fin, pour que les mémoires et projets gardent leurs numéros */
+  ["bande",   "PASSE-BANDE",          "X la fréquence, Y la sélectivité"],
+  ["flanger", "FLANGER",              "X la vitesse, Y la réinjection"],
+  ["phaser",  "PHASER",               "X la vitesse, Y la profondeur"],
+  ["dist",    "DISTORSION",           "X la saturation, Y le timbre"],
+  ["isol",    "ISOLATEUR",            "X la bande (grave, médium, aigu), Y son niveau"],
+  ["pan",     "PANORAMIQUE AUTO",     "X la vitesse, Y la profondeur"],
+  ["boucle",  "LOOPER",               "X la longueur (1/16 à 1 mesure), Y le mélange"]
 ];
+/* LOOPER : longueurs en pas de séquenceur (doubles croches), calées au tempo */
+var KP_BOUCLES = [1, 2, 4, 8, 16];
+function longueurBoucleKp(x){
+  return KP_BOUCLES[Math.max(0, Math.min(KP_BOUCLES.length - 1, Math.floor(x * KP_BOUCLES.length)))];
+}
+/* DISTORSION : tangente hyperbolique, normalisée à ±1, un gain qui compense la
+   montée de niveau des signaux faibles */
+function courbeDistKp(k){
+  var q = 1025, c = new Float32Array(q), t = Math.tanh(k);
+  for(var i=0;i<q;i++){ var v = i * 2 / (q - 1) - 1; c[i] = Math.tanh(k * v) / t; }
+  return c;
+}
 
 /* Quatre banques d'échantillons, comme sur la machine : ce sont ELLES qui
    font le son. Le pavé ne fait que le traiter. Sans cela on ouvre la machine
@@ -426,20 +447,72 @@ function noeudsKp(){
 
   e.connect(f); f.connect(crush); crush.connect(cw); cw.connect(hache);
   f.connect(brut); brut.connect(hache);
-  hache.connect(sec); sec.connect(out);
+  /* v259 : en série après le hachoir, deux étages neutres au repos — la
+     DISTORSION (courbe vide : le son passe tel quel) et l'ISOLATEUR (trois
+     plateaux à 0 dB) ; puis « post », d'où partent le son sec et tous les
+     envois. */
+  var dist = ctx.createWaveShaper(); dist.oversample = "none";
+  var dton = ctx.createBiquadFilter(); dton.type = "lowpass"; dton.frequency.value = 20000; dton.Q.value = 0.5;
+  var dcomp = eurGain(1);
+  var iso = [["lowshelf", 300], ["peaking", 1200], ["highshelf", 3500]].map(function(b){
+    var q = ctx.createBiquadFilter(); q.type = b[0]; q.frequency.value = b[1]; q.gain.value = 0;
+    if(b[0] === "peaking") q.Q.value = 0.7;
+    return q;
+  });
+  var post = eurGain(1);
+  /* DISTORSION et ISOLATEUR restent hors du chemin par un vrai bypass (gain),
+     pas seulement des réglages neutres : un filtre biquad à 0 dB traite quand
+     même chaque échantillon et n'est pas rigoureusement transparent bit à
+     bit, ce qui aurait faussé en aval le calcul exact de la RÉDUCTION. */
+  var distSec = eurGain(1), distWet = eurGain(0);
+  hache.connect(distSec); distSec.connect(post);
+  hache.connect(dist); dist.connect(dton); dton.connect(dcomp);
+  dcomp.connect(iso[0]); iso[0].connect(iso[1]); iso[1].connect(iso[2]); iso[2].connect(distWet); distWet.connect(post);
+  post.connect(sec); sec.connect(out);
   /* v242 : envois vers l'écho et la réverbération. FX RELEASE ferme l'envoi et
      laisse les retours : ce qui est déjà dans l'effet finit de sonner. */
   var denv = eurGain(1), venv = eurGain(1);
-  hache.connect(denv); denv.connect(d); d.connect(fb); fb.connect(d); d.connect(dmix); dmix.connect(out);
-  hache.connect(venv); venv.connect(conv); conv.connect(vmix); vmix.connect(out);
-  rgain.connect(rmix.gain); hache.connect(rmix); rmix.connect(rwet); rwet.connect(out);
+  post.connect(denv); denv.connect(d); d.connect(fb); fb.connect(d); d.connect(dmix); dmix.connect(out);
+  post.connect(venv); venv.connect(conv); conv.connect(vmix); vmix.connect(out);
+  rgain.connect(rmix.gain); post.connect(rmix); rmix.connect(rwet); rwet.connect(out);
+  /* v259 : une seconde LFO (sinus) pour le flanger, le phaser et le
+     panoramique ; chaque effet a son chemin mouillé, fermé au repos. */
+  var lfo2 = ctx.createOscillator(); lfo2.type = "sine"; lfo2.frequency.value = 0.5;
+  /* FLANGER : retard court modulé, réinjecté */
+  var fdel = ctx.createDelay(0.05); fdel.delayTime.value = 0.004;
+  var flfo = eurGain(0), ffb = eurGain(0), fwet = eurGain(0);
+  lfo2.connect(flfo); flfo.connect(fdel.delayTime);
+  post.connect(fdel); fdel.connect(ffb); ffb.connect(fdel); fdel.connect(fwet); fwet.connect(out);
+  /* PHASER : quatre passe-tout dont la fréquence suit la LFO, mêlés au sec */
+  var phBases = [300, 750, 1600, 3200], phLfo = [], ph = [];
+  phBases.forEach(function(fr, k){
+    var a = ctx.createBiquadFilter(); a.type = "allpass"; a.frequency.value = fr; a.Q.value = 0.5;
+    var g = eurGain(0); lfo2.connect(g); g.connect(a.frequency);
+    if(k) ph[k - 1].connect(a); else post.connect(a);
+    ph.push(a); phLfo.push(g);
+  });
+  var phwet = eurGain(0); ph[3].connect(phwet); phwet.connect(out);
+  /* PANORAMIQUE AUTO : deux gains en opposition, réunis en stéréo */
+  var pl = eurGain(1), pr = eurGain(1), plfo = eurGain(0), prlfo = eurGain(0);
+  var fus = ctx.createChannelMerger(2), pwet = eurGain(0);
+  post.connect(pl); post.connect(pr);
+  lfo2.connect(plfo); plfo.connect(pl.gain); lfo2.connect(prlfo); prlfo.connect(pr.gain);
+  pl.connect(fus, 0, 0); pr.connect(fus, 0, 1); fus.connect(pwet); pwet.connect(out);
+  /* LOOPER : une ligne à retard qu'on remplit une fois, puis qu'on referme sur
+     elle-même (réinjection 1) : la tranche capturée tourne tant qu'on tient */
+  var ldel = ctx.createDelay(8), lin = eurGain(0), lfb = eurGain(0), lwet = eurGain(0);
+  post.connect(lin); lin.connect(ldel); ldel.connect(lfb); lfb.connect(ldel); ldel.connect(lwet); lwet.connect(out);
   out.connect(busSet("kp") || master);
-  ring.start(); lfo.start();
+  ring.start(); lfo.start(); lfo2.start();
 
   KP.noeuds = {ctx:ctx, e:e, f:f, crush:crush, d:d, fb:fb, dmix:dmix,
                vmix:vmix, ring:ring, rgain:rgain, rmix:rmix, rwet:rwet, sec:sec,
                cw:cw, brut:brut, denv:denv, venv:venv,
-               hache:hache, lfo:lfo, lprof:lprof, out:out};
+               hache:hache, lfo:lfo, lprof:lprof, out:out,
+               dist:dist, dton:dton, dcomp:dcomp, iso:iso, distSec:distSec, distWet:distWet, post:post, lfo2:lfo2,
+               fdel:fdel, flfo:flfo, ffb:ffb, fwet:fwet, ph:ph, phLfo:phLfo, phBases:phBases, phwet:phwet,
+               pl:pl, pr:pr, plfo:plfo, prlfo:prlfo, pwet:pwet, ldel:ldel, lin:lin, lfb:lfb, lwet:lwet};
+  KP.boucleLong = 0;
   appliquerKp();
   return KP.noeuds;
 }
@@ -494,6 +567,25 @@ function appliquerKp(){
   var sec = 1, anneau = 0, reduit = 1, intact = 0;
   n.lprof.gain.value = 0; n.hache.gain.value = 1;
   n.out.gain.value = KP.muet ? 0 : 1;
+  /* v259 : les sept nouveaux effets, remis à neutre */
+  var boucleActive = actif2 && nom === "boucle";
+  if(n.dist){
+    if(!(actif2 && nom === "dist")){
+      n.dist.curve = null; n.dist.oversample = "none"; n.distK = 0;
+      n.dton.frequency.value = 20000; n.dcomp.gain.value = 1;
+    }
+    n.iso.forEach(function(q){ q.gain.value = 0; });
+    /* hors DISTORSION et ISOLATEUR, l'un et l'autre restent hors du chemin,
+       vrai bypass au lieu d'un simple réglage neutre (voir noeudsKp) */
+    if(!(actif2 && (nom === "dist" || nom === "isol"))){
+      n.distSec.gain.value = 1; n.distWet.gain.value = 0;
+    }
+    n.flfo.gain.value = 0; n.ffb.gain.value = 0;
+    n.phLfo.forEach(function(g){ g.gain.value = 0; });
+    n.plfo.gain.value = 0; n.prlfo.gain.value = 0; n.pl.gain.value = 1; n.pr.gain.value = 1;
+    lisseKp(n.fwet.gain, 0); lisseKp(n.phwet.gain, 0); lisseKp(n.pwet.gain, 0);
+    if(!boucleActive) arreterBoucleKp(n);
+  }
   /* Doigt levé : la vitesse revient à 1 en glissant, comme un plateau relâché.
      Autre effet choisi : retour rapide. */
   if(!actif2 || nom !== "pitch") vitesseKp(1, actif2 ? 0.02 : 0.15);
@@ -560,11 +652,92 @@ function appliquerKp(){
        dosée par FX DEPTH. Y : glissement, de presque instantané (en bas) à
        une demi-seconde (en haut), pour les effets de disque freiné. */
     vitesseKp(Math.pow(2, (x * 2 - 1) * KP.prof), 0.004 + y * 0.16);
+  } else if(nom === "bande"){
+    n.f.type = "bandpass";
+    n.f.frequency.value = 60 * Math.pow(250, x);
+    n.f.Q.value = 0.7 + y * 18 * p;
+  } else if(nom === "flanger"){
+    /* X : 0,05 à 5 Hz ; le retard balaie 1 à 6 ms. Y : la réinjection, qui
+       creuse les dents du peigne. Moitié sec, moitié retardé : l'effet le plus
+       marqué. */
+    n.lfo2.frequency.value = 0.05 * Math.pow(100, x);
+    n.fdel.delayTime.value = 0.0035; n.flfo.gain.value = 0.0025 * p;
+    n.ffb.gain.value = y * 0.85 * p;
+    /* la réinjection fait résonner le peigne : le mouillé baisse d'autant */
+    lisseKp(n.fwet.gain, 0.5 * p * (1 - 0.45 * y)); sec = 1 - 0.5 * p;
+  } else if(nom === "phaser"){
+    /* X : 0,05 à 8 Hz. Y : jusqu'où les quatre passe-tout balaient. */
+    n.lfo2.frequency.value = 0.05 * Math.pow(160, x);
+    n.phLfo.forEach(function(g, k){ g.gain.value = n.phBases[k] * 0.7 * y * p; });
+    lisseKp(n.phwet.gain, 0.5 * p); sec = 1 - 0.5 * p;
+  } else if(nom === "dist"){
+    /* X : de la chaleur à la saturation franche. Y : du sombre au brillant.
+       Le gain de sortie tient la crête vers celle du son sec. */
+    n.distSec.gain.value = 0; n.distWet.gain.value = 1;
+    var k = Math.round((1 + x * 40 * p) * 2) / 2;
+    if(n.distK !== k){ n.dist.curve = courbeDistKp(k); n.distK = k; }
+    n.dist.oversample = "2x";
+    n.dcomp.gain.value = 0.5 + 0.5 / (1 + k * 0.1);
+    n.dton.frequency.value = 800 * Math.pow(22, y);
+  } else if(nom === "isol"){
+    /* X choisit la bande (grave à gauche, médium au centre, aigu à droite,
+       en fondu de l'une à l'autre). Y : en bas elle disparaît (−40 dB), aux
+       quatre cinquièmes elle est intacte, en haut elle monte de 6 dB. */
+    n.distSec.gain.value = 0; n.distWet.gain.value = 1;
+    var db = (y < 0.8 ? -40 * (0.8 - y) / 0.8 : 6 * (y - 0.8) / 0.2) * p;
+    var poids = [Math.max(0, 1 - x * 2), 1 - Math.abs(x * 2 - 1), Math.max(0, x * 2 - 1)];
+    n.iso.forEach(function(q, b){ q.gain.value = db * poids[b]; });
+  } else if(nom === "pan"){
+    /* X : 0,25 à 12 Hz. Y : de rien au va-et-vient complet d'un côté à l'autre */
+    var dp = y * p;
+    n.lfo2.frequency.value = 0.25 * Math.pow(48, x);
+    n.pl.gain.value = 1 - dp / 2; n.pr.gain.value = 1 - dp / 2;
+    n.plfo.gain.value = dp / 2; n.prlfo.gain.value = -dp / 2;
+    lisseKp(n.pwet.gain, 1); sec = 0;
+  } else if(nom === "boucle"){
+    boucleKp(n, x, y * p);
+    sec = -1;                                   /* le son sec est dosé par boucleKp */
   }
-  lisseKp(n.sec.gain, sec);
+  if(sec >= 0) lisseKp(n.sec.gain, sec);
   lisseKp(n.rwet.gain, anneau);
   lisseKp(n.cw.gain, reduit);
   lisseKp(n.brut.gain, intact);
+}
+
+/* v259 : LOOPER. Au toucher, la ligne à retard se remplit pendant une
+   longueur (1/16 à 1 mesure, au tempo) ; puis l'entrée se ferme et la ligne se
+   referme sur elle-même : ce qu'on vient de jouer tourne en boucle. Pendant la
+   capture on entend le son tel quel. Changer de longueur en glissant le doigt
+   recapture ; le lever arrête la boucle. */
+function boucleKp(n, x, melange){
+  var L = longueurBoucleKp(x), t = ctx.currentTime;
+  if(KP.boucleLong !== L){
+    var dur = Math.min(7.9, L * stepDur());
+    KP.boucleLong = L; KP.boucleFin = t + dur;
+    /* dans une boucle de nœuds, le navigateur ajoute un bloc de rendu (128
+       échantillons) au retard : sans ce retrait, la boucle dériverait de 3 ms
+       par tour contre le tempo (mesuré sous Chromium) */
+    var q = 128 / ctx.sampleRate;
+    n.ldel.delayTime.cancelScheduledValues(t); n.ldel.delayTime.setValueAtTime(Math.max(q, dur - q), t);
+    n.lin.gain.cancelScheduledValues(t); n.lin.gain.setValueAtTime(1, t); n.lin.gain.setValueAtTime(0, t + dur);
+    n.lfb.gain.cancelScheduledValues(t); n.lfb.gain.setValueAtTime(0, t); n.lfb.gain.setValueAtTime(1, t + dur);
+  }
+  var depart = Math.max(t, KP.boucleFin || t);
+  [[n.sec.gain, 1 - melange], [n.lwet.gain, melange]].forEach(function(c){
+    var pa = c[0];
+    if(pa.cancelAndHoldAtTime) pa.cancelAndHoldAtTime(t); else pa.cancelScheduledValues(t);
+    if(depart > t){                            /* capture en cours : le son sec reste entier */
+      pa.setTargetAtTime(c[0] === n.sec.gain ? 1 : 0, t, 0.012);
+      pa.setTargetAtTime(c[1], depart, 0.012);
+    } else pa.setTargetAtTime(c[1], t, 0.012);
+  });
+}
+function arreterBoucleKp(n){
+  if(!KP.boucleLong) return;
+  var t = ctx.currentTime;
+  KP.boucleLong = 0; KP.boucleFin = 0;
+  [n.lin.gain, n.lfb.gain].forEach(function(pa){ pa.cancelScheduledValues(t); pa.setValueAtTime(0, t); });
+  lisseKp(n.lwet.gain, 0);
 }
 
 /* v242 : durée de la queue laissée par FX RELEASE. Écho : le temps que les

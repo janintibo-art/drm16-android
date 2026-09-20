@@ -517,6 +517,8 @@ function majKp(){
   document.getElementById("kp-son-nom").textContent = nomEch(son) + etatSon;
   var v = document.getElementById("kp-val"), l = document.getElementById("kp-lab");
   if(v){ v.textContent = KP_EFFETS[KP.fx][1]; l.textContent = KP_EFFETS[KP.fx][2]; }
+  var fxs = document.getElementById("kp-fx-choix");
+  if(fxs) fxs.value = String(KP.fx);
   [["kp-hold", KP.tenu], ["kp-motion", KP.enregistre], ["kp-rejoue", KP.rejoue],
    ["kp-mute", KP.muet], ["kp-play", S.run], ["kp-release", KP.release], ["kp-write", KP.ecrire]].forEach(function(x){
     var e = document.getElementById(x[0]);
@@ -699,6 +701,18 @@ document.getElementById("kp-fx").addEventListener("click", function(){
   KP.fx = (KP.fx + 1) % KP_EFFETS.length;
   appliquerKp(); majKp(); memKp(); H.cran();
 });
+/* v259 : quinze effets — une liste pour aller droit à celui qu'on veut */
+(function(){
+  var sel = document.getElementById("kp-fx-choix");
+  if(!sel) return;
+  KP_EFFETS.forEach(function(e, i){
+    var o = document.createElement("option"); o.value = i; o.textContent = (i + 1) + " · " + e[1]; sel.appendChild(o);
+  });
+  sel.addEventListener("change", function(){
+    KP.fx = Math.max(0, Math.min(KP_EFFETS.length - 1, +this.value | 0));
+    appliquerKp(); majKp(); memKp(); H.cran();
+  });
+})();
 document.getElementById("kp-effacer").addEventListener("click", function(){
   KP.motion = []; KP.rejoue = false; KP.enregistre = false; KP.mpos = 0;
   appliquerKp(); memKp(); majKp(); H.inter();
@@ -1454,6 +1468,15 @@ function majKo(){
     chroma.classList.toggle("on", KO.chroma);
     chroma.disabled = KO_MODE !== "son" || S.run;
   }
+  var sp = document.getElementById("ko-sampling");
+  if(sp){
+    var prise = typeof KO_ECH !== "undefined" && !!KO_ECH.prise;
+    sp.classList.toggle("on", prise);
+    sp.setAttribute("aria-pressed", String(prise));
+    sp.textContent = prise ? "■ ARRÊTER" : "SAMPLING";
+    /* toujours cliquable pendant la prise, pour pouvoir l'arrêter */
+    sp.disabled = !prise && (KO_MODE !== "son" || KO.chroma || S.run);
+  }
   majKoSwing();
   majKoPlock();
 }
@@ -1564,6 +1587,7 @@ document.getElementById("ko-chroma").addEventListener("click", function(){
   if(!KO.chroma) KO.sel = KO.chromaSource;
   memKo(); majKo(); H.cran();
 });
+document.getElementById("ko-sampling").addEventListener("click", function(){ samplingKo(); H.inter(); });
 (function commandesPlockKo(){
   var param = document.getElementById("ko-lock-param"), pas = document.getElementById("ko-lock-step");
   var valeur = document.getElementById("ko-lock-value"), ecrire = document.getElementById("ko-lock-apply");

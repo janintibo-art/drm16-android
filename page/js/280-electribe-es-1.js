@@ -390,7 +390,9 @@ function chargerEchs(){
     }catch(e){ finir(null); }
   });
 }
-/* Un son peut servir dans les motifs Electribe/Volca, les MPC et le Kaoss. */
+/* Un son peut servir dans les motifs Electribe/Volca, les MPC, le Kaoss, la
+   TR-1000 (couche B de chaque instrument) et le PO-33 K.O! (un son par
+   emplacement, hors motifs). */
 function usagesEch(id){
   var n = 0;
   function compter(slots){
@@ -432,6 +434,13 @@ function usagesEch(id){
     if(p.ech === id) n++;
     if(Array.isArray(p.boucles)) p.boucles.forEach(function(b){ if(b === id) n++; });
   });
+  /* v259 : TR-1000 (couche B, tous les motifs) et PO-33 K.O! (seize emplacements) */
+  var t1 = S.modele === "t1k" && typeof T1K !== "undefined" && T1K ? T1K : memLire("t1k");
+  if(t1 && Array.isArray(t1.motifs)) t1.motifs.forEach(function(m){
+    if(m && Array.isArray(m.instr)) m.instr.forEach(function(ins){ if(ins && ins.ech === id) n++; });
+  });
+  var kom = S.modele === "ko" && typeof KO !== "undefined" && KO ? KO : memLire("ko");
+  if(kom && Array.isArray(kom.sons)) kom.sons.forEach(function(so){ if(so === id) n++; });
   /* v251 : les kits rangés dans la bibliothèque comptent aussi */
   if(typeof kitsUsagesEch === "function") try{ n += kitsUsagesEch(id); }catch(e){}
   return n;

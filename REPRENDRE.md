@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **257**. Depuis la v176, le détail de chaque version est dans
+La version actuelle est la **259**. Depuis la v176, le détail de chaque version est dans
 `docs/CORRECTIONS_V*.md` ; la section 5 commence par **l'état du projet** et le tableau de ces versions.
 Les v156 à v175 n'ont laissé aucune note : le check-up v176 (`docs/CHECKUP_V176.md`) fait le point à leur
 sortie.
@@ -148,8 +148,11 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
 - *Bibliothèque* : Freesound (v248), sons de chaque machine et kits de sons avec retour arrière (v251), classement des sons (v252), essai d'un son pendant la lecture (v253), éditeur de son (v254), machines figées et rééchantillonnage (v255), kits par rôle (v256), packs et crédits (v257), corbeille, place occupée, sons sans emploi et doublons (v258).
 
 **Reste à faire, par ordre d'intérêt**
-1. *Fidélité* : effets en plus sur le KAOSS PAD ; échantillonnage, découpe et étirement sur la TR-1000 ; échantillonnage au micro sur le PO-33 ;
-   détails ER-1/EA-1, EMX/ESX (priorité faible).
+1. *Fidélité* — terminé en v259 : sept effets de plus sur le KAOSS PAD (v259), échantillonnage/découpe/étirement de
+   la couche B sur la TR-1000 (v259), échantillonnage au micro sur le PO-33 K.O! (v259). Le point ER-1/EA-1,
+   EMX/ESX a été passé en revue (v259) : les fonctions correspondent déjà aux vraies machines, et les deux seules
+   simplifications restantes (AUDIO IN simulé en bruit filtré, PCM sans import sur EMX-1/ER-1 mkII) sont
+   volontaires, fidèles au matériel réel et déjà expliquées dans les notices — rien à corriger.
 2. *Qualité sonore* : équilibre des voix au sein de chaque machine, à l'oreille ; réverbérations ROOM, PLATE,
    SPRING, HALL ; grave en mono ; grosses caisses, charlestons et cymbales ; essayer les saturations en 4x.
 3. *Qualité graphique* (rien de commencé) : lisibilité (texte d'au moins 10,5 px) et zones tactiles de
@@ -162,7 +165,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
 bloc 14 du test navigateur (« un gain existant rejoint sa cible en douceur ») quand la machine est chargée.
 Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en écrire en `file://`.
 
-### Versions v177 à v258
+### Versions v177 à v259
 
 | Version | Sujet |
 |---|---|
@@ -248,6 +251,7 @@ Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en
 | v256 | Bibliothèque : kits par rôle, kit au hasard, copie de kit |
 | v257 | Bibliothèque : packs et kits en fichiers, import en lot, crédits |
 | v258 | Bibliothèque : corbeille, place occupée, sons sans emploi, doublons |
+| v259 | Fidélité : effets KAOSS PAD, échantillonnage/découpe/étirement TR-1000, échantillonnage micro PO-33 |
 
 ---
 

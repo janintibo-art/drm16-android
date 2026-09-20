@@ -12,7 +12,7 @@ function element(tag='div') {
   return el;
 }
 function param(value=0) { return {value,cancelAndHoldAtTime(){},cancelScheduledValues(){},
-  setTargetAtTime(v){this.value=v;}}; }
+  setTargetAtTime(v){this.value=v;},setValueAtTime(v){this.value=v;}}; }
 class Node {
   constructor(context) { this.context=context; this.connections=[]; this.disconnected=0; this.stops=0;
     for(const k of ['gain','playbackRate','frequency','Q','delayTime']) this[k]=param(); }
@@ -33,6 +33,7 @@ class Context {
   createWaveShaper() { return this.node(); }
   createDelay() { return this.node(); }
   createConvolver() { return this.node(); }
+  createChannelMerger() { return this.node(); }
   createOscillator() { return this.node(); }
   createBuffer(ch,n,sr) {
     assert(n>0&&Number.isInteger(n));
@@ -393,7 +394,7 @@ lc.SOURCES=[unrelated,future];lc.ctx.trackSource=n=>lc.SOURCES.push({n,t:1});
 lc.S.modele='kp';lc.ES.buf.b0=fixture();
 const initialFit=lc.fitCalls;tracked.click('kp-slice');assert.equal(lc.fitCalls,initialFit+1);
 for(let j=0;j<100;j++) lc.frapperTrancheKp(0,j%8);
-assert(!lc.S.run);assert.equal(lc.SOURCES.length,5); // deux autres voix, deux oscillateurs FX, une banque
+assert(!lc.S.run);assert.equal(lc.SOURCES.length,6); // deux autres voix, trois oscillateurs FX (v259), une banque
 assert(lc.SOURCES.includes(unrelated)&&lc.SOURCES.includes(future));
 assert.equal(lc.SOURCES.filter(s=>s.n.buffer).length,1);
 lc.majKp();assert.equal(lc.fitCalls,initialFit+1); // pas de recalage sur chaque frappe

@@ -110,3 +110,9 @@ body.t1k .akai,body.t1k .rtr,body.t1k .dmxb,body.t1k .korgv,body.t1k .crb,body.t
 .t1k-edition p{margin:9px 10px;font:12px/1.4 Arial;color:#313e4b}
 .t1k-edition-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;padding:0 10px 12px}
 .t1k-edition-actions button{min-height:44px;font-size:10px;white-space:normal}
+/* v259 : échantillon de la couche B */
+.t1k-sample-onde{display:block;width:calc(100% - 20px);height:44px;margin:0 10px 8px;background:#e3e7ec;border-radius:4px}
+.t1k-sample-reglages{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;padding:0 10px 12px;font:700 10px/1.2 Arial}
+.t1k-sample-reglages input{width:100%;min-height:32px;margin:0}
+.t1k-sample-reglages select{min-height:40px}
+#t1k-sample-rev.on,#t1k-sampling.on{background:#e0542e;color:#fff}

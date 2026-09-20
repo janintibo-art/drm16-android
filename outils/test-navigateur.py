@@ -2862,10 +2862,184 @@ async def bib_corbeille(nav):
     finally:
         await pg.context.close()
 
+async def kaoss_effets(nav):
+    print('\n49. Kaoss : sept effets de plus, dont le LOOPER calé au tempo (v259)')
+    pg, err = await nouvelle_page(nav)
+    try:
+        rendu = """async ([fx, x, y, source, touche]) => {
+          audioInit(); var vrai = [ctx, master];
+          var off = new OfflineAudioContext(2, 88200, 44100); ctx = off; master = off.destination; KP.noeuds = null;
+          S.bpm = 120;
+          KP.fx = KP_EFFETS.findIndex(e => e[0] === fx); KP.x = x; KP.y = y; KP.prof = 1;
+          KP.touche = touche; KP.tenu = false; KP.rejoue = false; KP.muet = false; KP.vitesse = 1;
+          var n = noeudsKp();
+          var o = off.createOscillator(), gg = off.createGain(); gg.gain.value = 0.5;
+          if (source === 'chirp') { o.frequency.setValueAtTime(200, 0); o.frequency.linearRampToValueAtTime(2000, 2); }
+          else o.frequency.value = source;
+          o.connect(gg); gg.connect(n.e); o.start();
+          appliquerKp();
+          var b = await off.startRendering(); ctx = vrai[0]; master = vrai[1];
+          KP.noeuds = null; KP.sources = [null, null, null, null]; KP.touche = false;
+          var L = b.getChannelData(0), R = b.getChannelData(1), s = L.subarray(44100, 88200);
+          function amp(f) { var re = 0, im = 0; for (var i = 0; i < s.length; i++) { var a = 2 * Math.PI * f * i / 44100;
+            re += s[i] * Math.cos(a); im += s[i] * Math.sin(a); } return 2 * Math.hypot(re, im) / s.length; }
+          var crete = 0, fini = true, dLR = 0, rep = 0;
+          for (var i = 0; i < L.length; i++) { if (!isFinite(L[i]) || !isFinite(R[i])) fini = false;
+            crete = Math.max(crete, Math.abs(L[i]), Math.abs(R[i])); dLR = Math.max(dLR, Math.abs(L[i] - R[i])); }
+          /* LOOPER à X = 0,5 : un temps, 0,5 s à 120 BPM ; 1,0-1,5 s doit valoir 1,5-2,0 s */
+          for (var i = 44100; i < 66150; i++) rep = Math.max(rep, Math.abs(L[i] - L[i + 22050]));
+          var f0 = typeof source === 'number' ? source : 1000;
+          return {f: amp(f0), h3: amp(f0 * 3), crete, fini, dLR, rep};
+        }"""
+        ok(await pg.evaluate("KP_EFFETS.length") == 15 and await pg.evaluate("KP_EFFETS.slice(0, 8).map(e => e[0]).join()") == 'filtre,haut,delai,grain,ring,crush,verb,pitch',
+           'quinze effets ; les huit premiers gardent leur numéro (mémoires et projets)')
+        sec = await pg.evaluate(rendu, ['boucle', 0.5, 0.5, 1000, False])
+        ok(abs(sec['f'] - 0.4) < 0.01 and sec['dLR'] < 0.001, 'doigt levé : les nouveaux étages laissent passer le son intact (%.3f)' % sec['f'])
+        for fx in ('dist', 'isol', 'pan', 'flanger', 'phaser', 'bande'):
+            r = await pg.evaluate(rendu, [fx, 0.3, 0.3, 1000, False])
+            ok(abs(r['f'] - 0.4) < 0.01, '%s au repos : son intact (%.3f)' % (fx, r['f']))
+        r0 = await pg.evaluate(rendu, ['bande', 0, 0.5, 1000, True])
+        r1 = await pg.evaluate(rendu, ['bande', 0.51, 0.5, 1000, True])
+        ok(r0['f'] < 0.02 and r1['f'] > 0.2, 'PASSE-BANDE : 1 kHz coupé loin de la bande, gardé dessus (%.3f, %.3f)' % (r0['f'], r1['f']))
+        r = await pg.evaluate(rendu, ['flanger', 0.5, 0.8, 1000, True])
+        ok(r['fini'] and r['crete'] < 0.7 and r['rep'] > 0.1, 'FLANGER : le son bouge, la crête reste tenue (%.3f)' % r['crete'])
+        r = await pg.evaluate(rendu, ['phaser', 0.5, 1, 1000, True])
+        ok(r['fini'] and r['rep'] > 0.1 and r['crete'] <= 0.45, 'PHASER : le son bouge, sans dépasser le sec (%.3f)' % r['crete'])
+        r0 = await pg.evaluate(rendu, ['dist', 0, 1, 1000, True])
+        r1 = await pg.evaluate(rendu, ['dist', 1, 1, 1000, True])
+        ok(r0['h3'] < 0.02 and r1['h3'] > 0.1 and r1['crete'] < 0.7, 'DISTORSION : harmoniques qui montent avec X, crête tenue (%.3f, %.3f)' % (r1['h3'], r1['crete']))
+        r0 = await pg.evaluate(rendu, ['isol', 0, 0, 100, True])
+        r1 = await pg.evaluate(rendu, ['isol', 0, 0, 5000, True])
+        r2 = await pg.evaluate(rendu, ['isol', 0, 0.8, 100, True])
+        ok(r0['f'] < 0.02 and abs(r1['f'] - 0.4) < 0.02 and abs(r2['f'] - 0.4) < 0.02,
+           'ISOLATEUR : le grave disparaît en bas, l’aigu reste, le grave revient aux quatre cinquièmes (%.3f, %.3f, %.3f)' % (r0['f'], r1['f'], r2['f']))
+        r = await pg.evaluate(rendu, ['pan', 0.5, 1, 1000, True])
+        ok(r['dLR'] > 0.3 and r['crete'] <= 0.41, 'PANORAMIQUE AUTO : gauche et droite diffèrent, sans dépasser le sec (%.3f)' % r['dLR'])
+        r = await pg.evaluate(rendu, ['boucle', 0.5, 1, 'chirp', True])
+        rl = await pg.evaluate(rendu, ['boucle', 0.5, 1, 'chirp', False])
+        ok(r['rep'] < 0.001 and rl['rep'] > 0.5, 'LOOPER : un temps capturé se répète exactement, calé au tempo, sans dérive (%.4f)' % r['rep'])
+        # la liste des effets sur la façade
+        await pg.locator('.pick[data-m=kp]').click()
+        await pg.select_option('#kp-fx-choix', str(await pg.evaluate("KP_EFFETS.findIndex(e => e[0] === 'boucle')")))
+        r = await pg.evaluate("({fx:KP_EFFETS[KP.fx][0], lcd:document.getElementById('kp-val').textContent, n:document.querySelectorAll('#kp-fx-choix option').length})")
+        ok(r == {'fx': 'boucle', 'lcd': 'LOOPER', 'n': 15}, 'la liste choisit l’effet, l’afficheur suit (%s)' % r)
+        await pg.locator('#kp-fx').click()
+        ok(await pg.evaluate("document.getElementById('kp-fx-choix').value") == '0', 'EFFET revient au premier après le dernier, la liste suit')
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
+async def t1k_echantillons(nav):
+    print('\n50. TR-1000 : échantillonnage, découpe et étirement de la couche B (v259)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        pg.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
+        await pg.locator('.pick[data-m=t1k]').click()
+        await pg.evaluate("""() => {
+          audioInit(); banqueEs(); S.bpm = 120;
+          const b = ctx.createBuffer(1, 32000, 32000), d = b.getChannelData(0);
+          for (let i = 0; i < d.length; i++) d[i] = 0.5 * Math.sin(2 * Math.PI * 220 * i / 32000);
+          ES.buf.uessai259 = b; ES.noms.uessai259 = 'fichier'; BIB.noms.uessai259 = 'ESSAI T1K';
+          T1K.sel = 0; const I = instrT1kSel(); I.ech = 'uessai259'; I.mix = 1; I.pech = 0.5; majT1k();
+          window.__src = []; const orig = ctx.createBufferSource.bind(ctx);
+          ctx.createBufferSource = function(){ const s = orig(), st = s.start.bind(s);
+            s.start = function(t, o){ if (s.buffer) __src.push({dur:s.buffer.duration, off:o || 0}); return st(t, o); }; return s; };
+          window.__jouer = () => { __src = []; voixT1k(maintenantAudio() + 0.05, 0, false); return __src[__src.length - 1] || null; };
+        }""")
+        await pg.locator('#t1k-sample summary').click()
+        ok(await pg.locator('#t1k-sample-deb').is_visible(), 'le panneau ÉCHANTILLON s’ouvre sous le motif')
+        await pg.evaluate("""() => { const e = document.getElementById('t1k-sample-deb'), f = document.getElementById('t1k-sample-fin');
+          e.value = '250'; e.dispatchEvent(new Event('input')); f.value = '750'; f.dispatchEvent(new Event('input')); }""")
+        r = await pg.evaluate("({I:{deb:instrT1kSel().deb, fin:instrT1kSel().fin}, j:__jouer(), info:document.getElementById('t1k-sample-info').textContent})")
+        ok(abs(r['I']['deb'] - 0.25) < 1e-6 and abs(r['I']['fin'] - 0.75) < 1e-6 and abs(r['j']['off'] - 0.25) < 1e-3 and abs(r['j']['dur'] - 1) < 1e-3,
+           'DÉBUT et FIN : la voix part au quart du son, sans le recopier (%s)' % r['j'])
+        ok('0.50 s sur 1.00 s' in r['info'], 'l’afficheur donne la portion (%s)' % r['info'])
+        await pg.locator('#t1k-sample-rev').click()
+        r = await pg.evaluate("__jouer()")
+        ok(abs(r['dur'] - 0.5) < 1e-3 and r['off'] == 0, 'À L’ENVERS : la portion seule, retournée (%s)' % r)
+        await pg.select_option('#t1k-sample-etir', '8')
+        r = await pg.evaluate("__jouer()")
+        ok(abs(r['dur'] - 1.0) < 0.002, 'ÉTIRER SUR 8 PAS à 120 BPM : une seconde (%s)' % r)
+        await pg.evaluate("S.bpm = 100")
+        r = await pg.evaluate("__jouer()")
+        ok(abs(r['dur'] - 1.2) < 0.002, 'le tempo change, la portion suit : 1,2 s à 100 BPM (%s)' % r)
+        r = await pg.evaluate("""() => { const o = lireMotifT1k(JSON.parse(JSON.stringify(ecrireMotifT1k(motifT1kCur())))).instr[0];
+          return {deb:o.deb, fin:o.fin, rev:o.rev, etir:o.etir}; }""")
+        ok(r == {'deb': 0.25, 'fin': 0.75, 'rev': True, 'etir': 8}, 'découpe, sens et étirement gardés avec le motif (%s)' % r)
+        # découper sur les instruments
+        await pg.evaluate("""() => { S.bpm = 120;
+          const b = ctx.createBuffer(1, 32000, 32000), d = b.getChannelData(0);
+          for (const t0 of [0, 0.25, 0.5, 0.75]) for (let i = 0; i < 3000; i++) d[Math.round(t0 * 32000) + i] = Math.sin(i / 3) * Math.exp(-i / 500);
+          ES.buf.ubreak259 = b; ES.noms.ubreak259 = 'fichier'; BIB.noms.ubreak259 = 'BREAK';
+          T1K.sel = 2; const I = instrT1kSel(); I.ech = 'ubreak259'; I.deb = 0; I.fin = 1; I.rev = false; I.etir = 0; majT1k(); }""")
+        await pg.locator('#t1k-sample-decouper').click()
+        r = await pg.evaluate("""() => motifT1kCur().instr.slice(2, 7).map(I => ({nom:nomBib(I.ech), mix:I.mix, ecrit:!!HOST.echCharger(I.ech),
+          d:ES.buf[I.ech] ? +ES.buf[I.ech].duration.toFixed(2) : 0}))""")
+        ok([x['nom'] for x in r[:4]] == ['BREAK T1', 'BREAK T2', 'BREAK T3', 'BREAK T4'] and all(x['mix'] == 1 and x['ecrit'] and 0.2 <= x['d'] <= 0.26 for x in r[:4]) and r[4]['nom'] != 'BREAK T5',
+           'DÉCOUPER : quatre coups, quatre tranches posées de LOW TOM à HAND CLAP, écrites (%s)' % r)
+        ok(await pg.evaluate("!!ES.buf.ubreak259 && BIB.noms.ubreak259 === 'BREAK'"), 'l’original reste dans la bibliothèque')
+        # échantillonner au micro (un oscillateur tient lieu de micro)
+        await pg.evaluate("""() => { T1K.sel = 7; majT1k();
+          navigator.mediaDevices.getUserMedia = () => { const d = ctx.createMediaStreamDestination(), o = ctx.createOscillator();
+            o.frequency.value = 330; o.connect(d); o.start(); return Promise.resolve(d.stream); }; }""")
+        await pg.locator('#t1k-sampling').click()
+        await pg.wait_for_function("T1K_ECH.prise !== null && document.getElementById('t1k-sampling').textContent.indexOf('ARRÊTER') >= 0", timeout=5000)
+        await pg.wait_for_timeout(700)
+        await pg.locator('#t1k-sampling').click()
+        await pg.wait_for_function("BIB.noms[motifT1kCur().instr[7].ech] === 'TR-1000 OPEN HH'", timeout=10000)
+        r = await pg.evaluate("(() => { const I = motifT1kCur().instr[7]; return {mix:I.mix, orig:bibOrigine(I.ech), ecrit:!!HOST.echCharger(I.ech), d:ES.buf[I.ech].duration}; })()")
+        ok(r['mix'] == 1 and r['orig'] == 'mic' and r['ecrit'] and r['d'] > 0.3, 'SAMPLING : la prise va sur OPEN HH, couche B, écrite dans la bibliothèque (%s)' % r)
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
+async def po33_echantillons(nav):
+    print('\n51. PO-33 K.O! : échantillonnage au micro (v259)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        pg.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
+        await pg.locator('.pick[data-m=ko]').click()
+        await pg.evaluate("() => { audioInit(); banqueEs(); KO_MODE = 'son'; KO.chroma = false; KO.sel = 3; majKo(); }")
+        ok(await pg.evaluate("document.getElementById('ko-sampling').disabled === false"),
+           'SAMPLING actif en mode SOUND, hors CHROMA')
+        await pg.evaluate("() => { KO_MODE = 'ptn'; majKo(); }")
+        ok(await pg.evaluate("document.getElementById('ko-sampling').disabled === true"),
+           'SAMPLING désactivé hors mode SOUND')
+        await pg.evaluate("() => { KO_MODE = 'son'; KO.chroma = true; majKo(); }")
+        ok(await pg.evaluate("document.getElementById('ko-sampling').disabled === true"),
+           'SAMPLING désactivé en CHROMA (un seul son mémorisé par emplacement)')
+        await pg.evaluate("() => { KO.chroma = false; majKo(); }")
+        avant = await pg.evaluate("KO.sons[3]")
+        # échantillonner au micro (un oscillateur tient lieu de micro)
+        await pg.evaluate("""() => {
+          navigator.mediaDevices.getUserMedia = () => { const d = ctx.createMediaStreamDestination(), o = ctx.createOscillator();
+            o.frequency.value = 440; o.connect(d); o.start(); return Promise.resolve(d.stream); };
+        }""")
+        await pg.locator('#ko-sampling').click()
+        await pg.wait_for_function(
+            "KO_ECH.prise !== null && document.getElementById('ko-sampling').textContent.indexOf('ARRÊTER') >= 0",
+            timeout=5000)
+        # la destination reste celle du départ même si l'on change d'emplacement ou de mode pendant la prise
+        await pg.evaluate("() => { KO.sel = 5; KO_MODE = 'fx'; majKo(); }")
+        ok(await pg.evaluate("document.getElementById('ko-sampling').disabled === false"),
+           'SAMPLING reste cliquable pendant la prise, même hors mode SOUND')
+        await pg.wait_for_timeout(700)
+        await pg.locator('#ko-sampling').click()
+        await pg.wait_for_function("KO.sons[3] !== undefined && BIB.noms[KO.sons[3]] === 'K.O! 4'", timeout=10000)
+        r = await pg.evaluate("""(() => { const id = KO.sons[3];
+          return {id, sel5:KO.sons[5], orig:bibOrigine(id), ecrit:!!HOST.echCharger(id), d:ES.buf[id].duration}; })()""")
+        ok(r['id'] != avant and r['sel5'] != r['id'] and r['orig'] == 'mic' and r['ecrit'] and r['d'] > 0.3,
+           "SAMPLING : la prise remplace l'emplacement 4 (figé au départ), écrite dans la bibliothèque (%s)" % r)
+        ok(await pg.evaluate("KO_ECH.prise === null && document.getElementById('ko-sampling').textContent === 'SAMPLING'"),
+           'le bouton redevient disponible après la prise')
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai, bib_editeur, bib_figer, bib_roles, bib_packs, bib_corbeille):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai, bib_editeur, bib_figer, bib_roles, bib_packs, bib_corbeille, kaoss_effets, t1k_echantillons, po33_echantillons):
             try:
                 await t(nav)
             except Exception as e:

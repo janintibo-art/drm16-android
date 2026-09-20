@@ -130,6 +130,7 @@ js/450-montages-tout-faits.js
 js/460-behringer-td-3.js
 js/470-machine-d-archive.js
 js/480-roland-tr-1000.js
+js/485-tr-1000-echantillons.js
 js/490-arturia-drumbrute-impact.js
 js/500-roland-cr-5000.js
 js/510-korg-volca-sample.js
@@ -138,6 +139,7 @@ js/530-traitement-du-son.js
 js/540-hasard-sur-les-sons.js
 js/550-export-audio.js
 js/560-pocket-operator-k-o.js
+js/565-po-33-echantillons.js
 js/570-korg-kaoss-pad.js
 js/580-roland-mc-101.js
 js/590-smpltrek-dix-pistes.js

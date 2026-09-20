@@ -117,7 +117,7 @@ var KITS_MACHINES = {
     ou:function(){ return "motif " + (indiceMotifDbi() + 1); },
     parties:function(){ return DBI_VOIX.map(function(v){ return v.nom; }); },
     son:function(){ return null; }}),
-  t1k:kitsAvec(kitsObjets(function(h){ return h.instr; }, ["tune","dec","c1","c2","niv","mix","ech","pech"]), {nom:"Roland TR-1000", mem:"memT1k",
+  t1k:kitsAvec(kitsObjets(function(h){ return h.instr; }, ["tune","dec","c1","c2","niv","mix","ech","pech","deb","fin","rev","etir"]), {nom:"Roland TR-1000", mem:"memT1k",
     courant:function(){ return motifT1kCur(); }, motifs:function(){ return T1K.motifs.slice(); },
     /* un motif vide reste vide : sinon les 128 motifs repartiraient en mémoire */
     utile:function(h){ return h === motifT1kCur() || JSON.stringify(ecrireMotifT1k(h)) !== motifVideT1k(); },

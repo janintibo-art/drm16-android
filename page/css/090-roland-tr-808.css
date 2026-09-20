@@ -164,6 +164,10 @@ body.kp .kpb{display:flex;flex-direction:column;min-height:82vh}
 #kp-tempo{display:flex;align-items:center;justify-content:center;min-width:0;
   background:#0a1410;border:1px solid #24483a;border-radius:4px;color:#7ee8a8;
   font:800 9px/1.3 "Roboto Condensed",Arial;text-align:center}
+/* v259 : la liste des quinze effets, sur toute la largeur */
+.kp-fx-l{grid-template-columns:1fr}
+#kp-fx-choix{min-width:0;min-height:40px;margin:0;padding:6px 8px;border:1px solid #24483a;border-radius:6px;
+  background:#0a1410;color:#7ee8a8;font:800 11px/1.2 "Roboto Condensed",Arial}
 .kp-prof-l{grid-template-columns:auto 1fr 1.4fr;align-items:center}
 .kp-prof-l label{font:800 8px/1.2 "Roboto Condensed",Arial;letter-spacing:1.2px;color:#6a8a78}
 .kp-prof-l input{width:100%;margin:0}
@@ -338,7 +342,7 @@ body.ko #unit,body.ko .akai,body.ko .arcmb,body.ko .crb,body.ko .dbib,body.ko .d
   background:#2a2a2a;color:#d8d8d8;font:800 9.5px/1 "Roboto Condensed",Arial;letter-spacing:1px}
 .ko-cmd button.on,.ko-bas button.on{background:#ff6a00;color:#141414}
 .ko-cmd button:disabled{opacity:.45;cursor:default}
-#ko-rec.on{background:#d81f1f;color:#fff}
+#ko-rec.on,#ko-sampling.on{background:#d81f1f;color:#fff}
 /* Quatre rangées de quatre : les huit premières mélodiques, les huit suivantes
    percussives, comme sur la machine. */
 .ko-pads{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:11px}

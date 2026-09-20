@@ -18,7 +18,10 @@ var T1K_INSTR = [
 ];
 var T1K_MIDI = [36, 38, 41, 48, 37, 39, 42, 46, 49, 51];
 function instrT1k(i){
-  return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5};
+  /* v259 : deb/fin = la portion jouée de l'échantillon (découpe), rev = à
+     l'envers, etir = étirée sur ce nombre de pas au tempo (0 = non) */
+  return {tune:0.5, dec:0.5, c1:0.5, c2:0.4, niv:0.8, mix:0, ech:"b" + (i % 24), pech:0.5,
+          deb:0, fin:1, rev:false, etir:0};
 }
 function motifT1k(n){
   var m = {nom:"", longueurs:Array(10).fill(0), motionActive:true, reglages:[], solo:-1, muet:Array(10).fill(false), pas:[], acc:[], sub:[], prob:[], cycle:[], retard:[], direction:Array(10).fill("avant"), last:16, instr:[]};
@@ -45,6 +48,10 @@ var T1K_CHAINE_MAX = 64;
 for(var t1z=0; t1z<128; t1z++) T1K.motifs.push(motifT1k(t1z < 2 ? t1z : 9));
 function motifT1kCur(){ return T1K.motifs[T1K.banq * 16 + T1K.cur]; }
 function instrT1kSel(){ return motifT1kCur().instr[T1K.sel]; }
+
+/* v259 : étirement de la couche B, en pas de séquenceur (0 = non) */
+var T1K_ETIR = [0, 1, 2, 4, 8, 16, 32];
+function etirT1k(v){ return T1K_ETIR.indexOf(v) >= 0 ? v : 0; }
 
 /* v194 : une décision par pas ; tous ses sous-pas suivent cette décision. */
 function probabiliteT1k(v){
@@ -111,7 +118,8 @@ function motifVideT1k(){
 function ecrireMotifT1k(m){
   return {nom:m.nom, longueurs:m.longueurs.slice(), motionActive:m.motionActive, reglages:m.reglages.map(function(p){return p.map(lireReglagesT1k);}), solo:m.solo, muet:m.muet.slice(), last:m.last, direction:m.direction.slice(), pas:m.pas.slice(), acc:m.acc.slice(), sub:m.sub.map(function(p){return p.slice();}), prob:m.prob.map(function(p){return p.slice();}), cycle:m.cycle.map(function(p){return p.slice();}), retard:m.retard.map(function(p){return p.slice();}),
     instr:m.instr.map(function(I){
-      return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix, ech:I.ech, pech:I.pech};
+      return {tune:I.tune, dec:I.dec, c1:I.c1, c2:I.c2, niv:I.niv, mix:I.mix, ech:I.ech, pech:I.pech,
+              deb:I.deb, fin:I.fin, rev:I.rev, etir:I.etir};
     })};
 }
 function lireMotifT1k(o){
@@ -142,6 +150,12 @@ function lireMotifT1k(o){
     if(I && typeof I === "object"){
       ["tune","dec","c1","c2","niv","mix","pech"].forEach(function(n){ r.instr[k][n] = borneT1k(I[n], 0, 1, r.instr[k][n]); });
       if(typeof I.ech === "string" && I.ech.length && I.ech.length <= 128) r.instr[k].ech = I.ech;
+      /* v259 : découpe, sens et étirement ; une portion trop courte revient au son entier */
+      var deb = borneT1k(I.deb, 0, 1, 0), fin = borneT1k(I.fin, 0, 1, 1);
+      if(fin - deb < 0.005){ deb = 0; fin = 1; }
+      r.instr[k].deb = deb; r.instr[k].fin = fin;
+      r.instr[k].rev = I.rev === true;
+      r.instr[k].etir = etirT1k(I.etir);
     }
   }
   return r;
@@ -346,21 +360,30 @@ function voixT1k(t, k, acc, reglages){
   /* ---- couche B : l'échantillon ---- */
   if(mixAB > 0.02){
     banqueEs();
-    var buf = ES.buf[motifT1kCur().instr[k].ech];
+    /* v259 : la portion choisie, à l'envers ou étirée au tempo */
+    var IB = motifT1kCur().instr[k];
+    var part = typeof partieEchT1k === "function" ? partieEchT1k(IB)
+             : (ES.buf[IB.ech] ? {buf:ES.buf[IB.ech], debut:0, duree:ES.buf[IB.ech].duration} : null);
+    var buf = part && part.buf;
     if(buf){
       var src = ctx.createBufferSource();
       src.playbackRate.value = Math.pow(2, (valeurPasT1k(k, "pech", reglages) - 0.5) * 2);
       poserTampon(src, buf, src.playbackRate.value);
       var gB = ctx.createGain();
       var nb2 = niv * mixAB;
-      var db = Math.max(0.03, buf.duration / src.playbackRate.value * (0.2 + dec * 0.8));
+      /* étirée, la portion garde toute sa longueur : c'est ce qui la cale sur les pas */
+      var longueurB = part.duree / src.playbackRate.value;
+      var db = Math.max(0.03, IB.etir ? longueurB : longueurB * (0.2 + dec * 0.8));
       gB.gain.setValueAtTime(0.0001, t);
       gB.gain.linearRampToValueAtTime(nb2 * 1.1, t + 0.002);
-      gB.gain.exponentialRampToValueAtTime(0.0001, t + db);
+      if(IB.etir){                               /* v259 : tenue, puis court fondu de fin */
+        gB.gain.setValueAtTime(nb2 * 1.1, Math.max(t + 0.003, t + db - 0.008));
+        gB.gain.linearRampToValueAtTime(0.0001, t + db);
+      } else gB.gain.exponentialRampToValueAtTime(0.0001, t + db);
       src.connect(gB);
       gB.connect(pasVoie(T1K.noeuds.mix));
       gB.connect(pasVoie(T1K.noeuds.revIn)); gB.connect(pasVoie(T1K.noeuds.dlyIn));
-      src.start(t); src.stop(t + db + 0.05);
+      src.start(t, part.debut); src.stop(t + db + 0.05);
     }
   }
   midiNoteA(T1K_MIDI[k], t, acc ? 1 : 0.7, MIDI.canal, 0.12);
@@ -842,6 +865,7 @@ function majLcdT1k(){
     " · " + (I.mix < 0.02 ? "ANALOG" : I.mix > 0.98 ? "SAMPLE" : "A+B"));
 }
 function majT1k(){
+  if(typeof majSampleT1k === "function") majSampleT1k();          /* v259 */
   document.getElementById("t1k-edition-instrument").textContent = T1K_INSTR[T1K.sel].nom;
   document.getElementById("t1k-copier-sequence").disabled = S.run;
   document.getElementById("t1k-coller-sequence").disabled = S.run || !T1K.copieSequence;
