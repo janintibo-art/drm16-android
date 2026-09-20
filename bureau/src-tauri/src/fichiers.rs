@@ -63,7 +63,7 @@ fn plafond_document(nom: &str) -> u64 {
     let n = nom.to_ascii_lowercase();
     if n.ends_with(".wav") {
         MAX_EXPORT_AUDIO
-    } else if n.ends_with(".drm16") {
+    } else if n.ends_with(".drm16") || n.ends_with(".drmpack") {
         MAX_PROJET
     } else {
         MAX_DOCUMENT
@@ -71,7 +71,9 @@ fn plafond_document(nom: &str) -> u64 {
 }
 
 fn plafond_lecture(nom: &str) -> u64 {
-    if nom.to_ascii_lowercase().ends_with(".drm16") { MAX_PROJET } else { MAX_DOCUMENT }
+    // v257 : un pack .drmpack emporte des sons comme un projet : même plafond, écrit et relu
+    let n = nom.to_ascii_lowercase();
+    if n.ends_with(".drm16") || n.ends_with(".drmpack") { MAX_PROJET } else { MAX_DOCUMENT }
 }
 
 fn nom_technique(n: &str) -> bool {

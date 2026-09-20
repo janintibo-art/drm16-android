@@ -47,7 +47,7 @@ window.DRM16 = {
   echCharger:function(n){ return __E[n] || ''; },
   echListe:function(){ return Object.keys(__E).sort().join('\n'); },
   echSupprimer:function(n){ delete __E[n]; __garder(); },
-  fichierOuvrir:function(n){ var j='j'+Math.random(); __J[j]={n:n,p:[],t:0,max:/\.wav$/i.test(n)?64*1048576:/\.drm16$/i.test(n)?16*1048576:8*1048576}; return j; },
+  fichierOuvrir:function(n){ var j='j'+Math.random(); __J[j]={n:n,p:[],t:0,max:/\.wav$/i.test(n)?64*1048576:/\.(drm16|drmpack)$/i.test(n)?16*1048576:8*1048576}; return j; },
   fichierAjouter:function(j,b){ var e=__J[j]; if(!e||b.length>1100000) return false; var o=__dec(b);
     if(e.t+o.length>e.max){ delete __J[j]; return false; } e.p.push(o); e.t+=o.length; return true; },
   fichierFermer:function(j,v){ var e=__J[j]; delete __J[j]; if(!e||!v) return ''; var o=new Uint8Array(e.t),k=0;
@@ -2697,10 +2697,89 @@ async def bib_roles(nav):
     finally:
         await pg.context.close()
 
+async def bib_packs(nav):
+    print('\n47. Bibliothèque : packs et kits en fichiers, import en lot, crédits (v257)')
+    pg, err = await nouvelle_page(nav, pont=True, http=True)
+    try:
+        pg.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
+        await pg.locator('.pick[data-m=es1]').click()
+        ids = await pg.evaluate("""() => {
+          audioInit(); banqueEs();
+          const faire = (nom, f, fav) => { const b = ctx.createBuffer(1, 8000, ctx.sampleRate), d = b.getChannelData(0);
+            for (let i = 0; i < d.length; i++) d[i] = f(i); const id = 'u' + Date.now().toString(36) + nom.length + Math.round(Math.random()*1e6);
+            ES.buf[id] = b; ES.noms[id] = 'fichier'; BIB.noms[id] = nom; sauverEch(id, b); if (fav) bibBasculerFavori(id); return id; };
+          const a = faire('PACK KICK', i => Math.sin(i / 40) * Math.exp(-i / 2000), true);
+          const b = faire('PACK SNARE', i => Math.sin(i * 1.7) * Math.exp(-i / 900));
+          const c = faire('PACK VOIX', i => Math.sin(i / 7) * 0.3);
+          bibChoisirCategorie(c, 'voix'); bibMeta(b).cr = 'enregistré par Tibo'; bibEcrire();
+          return [a, b, c];
+        }""")
+        await pg.evaluate("ouvrirBib(); bibFiltre().q = 'PACK'; majBibUI()")
+        await pg.locator('#bib-exporter-pack').click()
+        r = await pg.evaluate("Object.keys(__F).filter(n => n.endsWith('.drmpack'))")
+        ok(len(r) == 1 and r[0].startswith('pack-pack-'), 'EXPORTER LA LISTE EN PACK : un fichier .drmpack dans Documents (%s)' % r)
+        pack = r[0]
+        contenu = await pg.evaluate("(n) => { const o = JSON.parse(new TextDecoder().decode(__F[n])); return {format:o.format, n:o.sons.length, noms:o.sons.map(s => s.nom).sort(), cats:o.sons.map(s => s.cat).sort(), fav:o.sons.filter(s => s.fav).length, cr:o.sons.filter(s => s.credit).length}; }", pack)
+        ok(contenu['format'] == 'drm16-pack' and contenu['n'] == 3 and contenu['fav'] == 1 and contenu['cr'] == 1 and 'voix' in contenu['cats'],
+           'le pack emporte les trois sons, catégories, favori et crédit (%s)' % contenu)
+        # oublier les sons, puis rouvrir le pack
+        await pg.evaluate("(ids) => { ids.forEach(id => { supprimerEch(id); delete BIB.noms[id]; delete BIB.meta[id]; }); bibEcrire(); }", ids)
+        await pg.evaluate("BIB.onglet = 2; majBibUI()")
+        await pg.locator('#bib-corps .bib-ligne').filter(has=pg.locator('b', has_text=pack)).locator('button', has_text='IMPORTER').click()
+        await pg.wait_for_function("Object.keys(ES.noms).filter(k => ES.noms[k] === 'pack').length === 3", timeout=20000)
+        r = await pg.evaluate("""() => { const l = Object.keys(ES.noms).filter(k => ES.noms[k] === 'pack');
+          return {noms:l.map(k => BIB.noms[k]).sort(), voix:l.filter(k => bibCategorie({id:k, nom:BIB.noms[k]}) === 'voix').length,
+                  fav:l.filter(bibFavori).length, cr:l.map(k => creditSon(k)).filter(Boolean), orig:bibOrigine(l[0]), ecrits:l.every(k => !!HOST.echCharger(k))}; }""")
+        ok(r['noms'] == ['PACK KICK', 'PACK SNARE', 'PACK VOIX'] and r['voix'] == 1 and r['fav'] == 1 and r['cr'] == ['enregistré par Tibo'] and r['orig'] == 'pack' and r['ecrits'],
+           'IMPORTER : les trois sons reviennent, catégorie, favori, crédit, origine PACKS, écrits (%s)' % r)
+        await pg.evaluate("(n) => packOuvrirDocument(n)", pack)
+        await pg.wait_for_timeout(800)
+        r = await pg.evaluate("Object.keys(ES.noms).filter(k => ES.noms[k] === 'pack').length")
+        ok(r == 3, 'rouvrir le même pack ne copie rien deux fois (%d sons)' % r)
+        # un kit, exporté puis importé : ses parties retrouvent leurs sons
+        await pg.evaluate("""() => { const id = Object.keys(ES.noms).find(k => ES.noms[k] === 'pack' && BIB.noms[k] === 'PACK KICK');
+          ES.pat.son[0].ech = id; memEs(); kitsRanger('es1', 'MON KIT', -1); }""")
+        await pg.evaluate("BIB.onglet = 5; majBibUI()")
+        await pg.locator('#bib-corps .kits-kit').first.locator('button', has_text='EXPORTER').click()
+        r = await pg.evaluate("Object.keys(__F).filter(n => n.startsWith('kit-es-1-mon-kit-'))")
+        ok(len(r) == 1, 'EXPORTER un kit : kit-es-1-mon-kit-….drmpack (%s)' % r)
+        kit = r[0]
+        await pg.evaluate("""() => { const t = kitsLireTout(); kitsDe(t, 'es1').kits = []; kitsEcrireTout(t);
+          Object.keys(ES.noms).filter(k => ES.noms[k] === 'pack').forEach(k => { supprimerEch(k); delete BIB.noms[k]; }); bibEcrire(); }""")
+        await pg.evaluate("(n) => packOuvrirDocument(n)", kit)
+        await pg.wait_for_function("kitsDe(kitsLireTout(), 'es1').kits.length === 1", timeout=20000)
+        r = await pg.evaluate("""() => { const k = kitsDe(kitsLireTout(), 'es1').kits[0]; return {nom:k.nom, son:nomBib(k.parties[0].ech), autre:k.parties[1].ech}; }""")
+        ok(r == {'nom': 'MON KIT (IMPORTÉ)', 'son': 'PACK KICK', 'autre': 'b1'}, 'le kit importé retrouve son son, les sons de la banque restent la banque (%s)' % r)
+        ok(await pg.evaluate("kitsRappeler('es1', 0, false) && nomBib(ES.pat.son[0].ech) === 'PACK KICK'"), 'le kit importé se rappelle')
+        # crédits
+        await pg.evaluate("""() => { ES.buf.ufs77 = ES.buf.b1; ES.noms.ufs77 = 'freesound'; BIB.noms.ufs77 = 'Snare sèche';
+          BIB.freesound.ufs77 = {id:77, nom:'Snare seche', auteur:'Quelqu’un', licence:'CC0', url:'https://freesound.org/s/77/', conversion:'x'}; }""")
+        await pg.evaluate("BIB.onglet = 2; majBibUI()")
+        await pg.locator('#pack-credits').click()
+        r = await pg.evaluate("(() => { const n = Object.keys(__F).find(n => n.startsWith('credits-sons-drm16-')); return n ? new TextDecoder().decode(__F[n]) : ''; })()")
+        ok('Snare sèche' in r and 'Quelqu’un · CC0 · https://freesound.org/s/77/' in r and 'PACK KICK' not in r, 'CRÉDITS DES SONS : Freesound, dans un fichier texte ; un son sans origine extérieure n’y est pas (%r)' % r[:300])
+        # plusieurs fichiers d'un coup
+        wav = lambda f: bytes(b'RIFF') + (36 + 8000).to_bytes(4, 'little') + b'WAVEfmt ' + (16).to_bytes(4, 'little') + (1).to_bytes(2, 'little') + (1).to_bytes(2, 'little') + (8000).to_bytes(4, 'little') + (16000).to_bytes(4, 'little') + (2).to_bytes(2, 'little') + (16).to_bytes(2, 'little') + b'data' + (8000).to_bytes(4, 'little') + bytes(((int(8000 * f(i)) & 0xffff).to_bytes(2, 'little') for i in range(4000)) if False else b''.join(((int(8000 * f(i)) & 0xffff).to_bytes(2, 'little')) for i in range(4000)))
+        import math
+        fichiers = [{'name': 'lot-%d.wav' % k, 'mimeType': 'audio/wav', 'buffer': wav(lambda i, k=k: math.sin(i / (5 + k)) * math.exp(-i / 800))} for k in range(3)]
+        await pg.evaluate("BIB.onglet = 0; bibFiltre().q = ''; majBibUI()")
+        ok(await pg.evaluate("document.getElementById('bib-fichier').multiple"), 'le choix de fichiers accepte plusieurs sons')
+        await pg.locator('#bib-fichier').set_input_files(fichiers)
+        await pg.wait_for_function("Object.values(BIB.noms).filter(n => /^lot-\\d$/.test(n)).length === 3", timeout=20000)
+        r = await pg.evaluate("Object.keys(BIB.noms).filter(k => /^lot-\\d$/.test(BIB.noms[k]))")
+        ok(len(set(r)) == 3, 'trois fichiers choisis d’un coup : trois sons, trois identifiants (%s)' % r)
+        # un son stéréo s'écrit en mono mélangé, plus en canal gauche seul
+        r = await pg.evaluate("""() => { const b = ctx.createBuffer(2, 100, 8000); b.getChannelData(0).fill(0.5); b.getChannelData(1).fill(-0.1);
+          const v = new DataView(wavDe(b)); return v.getInt16(44, true) / 0x7fff; }""")
+        ok(abs(r - 0.2) < 0.001, 'wavDe mélange les deux canaux (%.3f)' % r)
+        ok(not err, 'aucune erreur de page : ' + str(err))
+    finally:
+        await pg.context.close()
+
 async def main():
     async with async_playwright() as p:
         nav = await p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
-        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai, bib_editeur, bib_figer, bib_roles):
+        for t in (chargement_et_machines, attenuation, kaoss, kaoss_resample, fichiers, midi, html_exterieur, hote, bureau, reglages, projet, projet_sauvegarde, projet_reprise, projet_stockage_illisible, confort, liens, chaine, lissage, vitesse, mc_clips, mc_lancements, mc_scenes, mc_samples, mc_looper, stk_tranches, stk_motifs, stk_chaine, stk_instrument, stk_midi, stk_edition_chaine, em_64_pas, em_song_wav, em_song_edition, em_song_64, em_noms_motifs, ko_plocks, t1k_chaine, morceaux_wav, kp_memoires, morceaux_reouvertures, kits_sons, bib_classement, bib_essai, bib_editeur, bib_figer, bib_roles, bib_packs):
             try:
                 await t(nav)
             except Exception as e:

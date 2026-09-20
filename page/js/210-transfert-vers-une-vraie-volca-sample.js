@@ -543,32 +543,37 @@ document.getElementById("menu-bib").addEventListener("click", function(){
   }
 })();
 document.getElementById("bib-fichier").addEventListener("change", function(){
-  var f = this.files && this.files[0];
+  /* v257 : plusieurs fichiers d'un coup, importés l'un après l'autre */
+  var l = Array.prototype.slice.call(this.files || []);
   this.value = "";
-  if(f) importerSonFichier(f);
+  if(typeof importerSonsFichiers === "function") importerSonsFichiers(l);
+  else if(l[0]) importerSonFichier(l[0]);
 });
 /* Un fichier son choisi ou déposé (v146 : aussi par glisser-déposer) */
+/* rend une promesse : vrai si le son est gardé (v257, pour l'import en lot) */
 function importerSonFichier(f){
-  if(f.size > 40*1024*1024){ signal("FICHIER TROP GROS · 40 Mo AU PLUS"); return; }
+  if(f.size > 40*1024*1024){ signal("FICHIER TROP GROS · 40 Mo AU PLUS"); return Promise.resolve(false); }
   audioInit(); banqueEs();
-  f.arrayBuffer().then(function(ab){
+  return f.arrayBuffer().then(function(ab){
     return new Promise(function(res,rej){
       var decode = ctx.decodeAudioData(ab,res,rej);
       if(decode && decode.catch) decode.catch(rej);
     });
   }).then(function(buf){
-    if(PROJET_EN_COURS) return;
+    if(PROJET_EN_COURS) return false;
     var court = reduireEch(buf, 32000, 8);
     var r = traiterSon(court, BIB.preset || "punch", 0);
     court = r.buffer;
-    var id = "u" + Date.now().toString(36);
+    var id = "u" + Date.now().toString(36), k = 1;
+    while(ES.buf[id]) id = "u" + Date.now().toString(36) + "f" + (k++);   /* v257 : deux imports dans la même milliseconde */
     ES.buf[id] = court; ES.noms[id] = "fichier";
     BIB.noms[id] = f.name.replace(/\.[^.]+$/, "").slice(0, 28);
     bibEcrire();
     var garde = sauverEch(id, court); majBibUI();
     signal(garde ? "IMPORTÉ : " + BIB.noms[id]
                  : "IMPORTÉ POUR CETTE SESSION · ÉCHEC D'ÉCRITURE");
-  }).catch(function(){ signal("FICHIER ILLISIBLE"); });
+    return true;
+  }).catch(function(){ signal("FICHIER ILLISIBLE · " + String(f.name || "").slice(0, 30)); return false; });
 }
 document.getElementById("menu-pr").addEventListener("click", function(){
   document.body.classList.remove("menu-ouvert");

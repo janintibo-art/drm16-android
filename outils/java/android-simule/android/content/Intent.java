@@ -8,4 +8,6 @@ public class Intent {
  public Intent putExtra(String k, boolean v){return this;} public Intent putExtra(String k, String v){return this;}
  public Intent addCategory(String c){return this;} public Intent setType(String t){return this;}
  public boolean getBooleanExtra(String k, boolean d){return d;}
+ public android.net.Uri getData(){return null;}
+ public ClipData getClipData(){return null;}
 }

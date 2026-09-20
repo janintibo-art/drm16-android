@@ -455,6 +455,7 @@ function bibRendreMachines(corps){
       if(!window.confirm("Remplacer « " + kit.nom + " » par les sons actuels ?")) return;
       if(kitsRanger(m, kit.nom, n)) majBibUI();
     });
+    if(typeof exporterKit === "function") boutonBib(a, "EXPORTER", function(){ exporterKit(m, n); });   /* v257 */
     boutonBib(a, "RENOMMER", function(){
       renommer("Nom du kit", kit.nom, function(v){
         if(!v) return;

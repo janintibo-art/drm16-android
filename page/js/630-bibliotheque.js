@@ -288,7 +288,7 @@ function bibRendreSons(corps){
   entete.appendChild(pp);
   var acts = document.createElement("div"); acts.className = "bib-actions";
   boutonBib(acts, "ENREGISTRER AU MICRO", function(){ bibMicro(); });
-  boutonBib(acts, "IMPORTER UN FICHIER", function(){ document.getElementById("bib-fichier").click(); });
+  boutonBib(acts, "IMPORTER DES FICHIERS", function(){ document.getElementById("bib-fichier").click(); });
   boutonBib(acts, "ÉGALISER LE KIT", function(){ bibEgaliser(); });
   boutonBib(acts, "OPTIMISER LA MÉMOIRE", function(){ bibOptimiser(); });
   boutonBib(acts, "EXPORTER POUR LA CARTE ES-1", function(){ bibExportEs1(); });
@@ -416,6 +416,7 @@ function bibRendrePrises(corps){
 }
 function bibRendreSauvegardes(corps){
   projetRendre(corps);   /* v145 : les projets .drm16 d'abord */
+  if(typeof packRendre === "function") packRendre(corps);   /* v257 : packs et kits */
   var hm = document.createElement("h3"); hm.textContent = "Machines Korg branchées";
   corps.appendChild(hm);
   var p1 = document.createElement("p");

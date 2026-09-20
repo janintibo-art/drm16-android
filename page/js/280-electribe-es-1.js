@@ -313,8 +313,15 @@ function reduireEch(buf, srCible, maxSec){
   if(crete>0.02){ var gg=0.92/crete; for(var j=0;j<n;j++) d[j]*=gg; }
   return out;
 }
+/* v257 : un son stéréo (boucle rééchantillonnée…) est mélangé en mono ;
+   avant, seul le canal gauche était écrit, et le droit perdu au redémarrage */
 function wavDe(buf){
   var n=buf.length, sr=buf.sampleRate, d=buf.getChannelData(0);
+  if(buf.numberOfChannels > 1){
+    var dr = buf.getChannelData(1), m = new Float32Array(n);
+    for(var q=0;q<n;q++) m[q] = (d[q] + dr[q]) / 2;
+    d = m;
+  }
   var ab=new ArrayBuffer(44+n*2), v=new DataView(ab), i;
   function txt(o,s){ for(var q=0;q<s.length;q++) v.setUint8(o+q, s.charCodeAt(q)); }
   txt(0,"RIFF"); v.setUint32(4,36+n*2,true); txt(8,"WAVEfmt ");

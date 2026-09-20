@@ -170,7 +170,7 @@ async function verifierEcritureImportEtMicro(){
     }
     if(persisted==='decode-failure'){
       assert.equal(c.writes.length,0);assert.equal(Object.keys(c.ES.buf).length,0);assert.equal(c.refreshes,0);
-      assert.equal(c.signals.at(-1),kind==='import'?'FICHIER ILLISIBLE':'DÉCODAGE IMPOSSIBLE');
+      assert.equal(c.signals.at(-1),kind==='import'?'FICHIER ILLISIBLE · Ma prise.wav':'DÉCODAGE IMPOSSIBLE');   /* v257 : le nom du fichier, utile en lot */
       continue;
     }
     assert.equal(c.writes.length,1);const write=c.writes[0];

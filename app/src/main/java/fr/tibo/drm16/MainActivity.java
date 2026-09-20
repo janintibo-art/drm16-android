@@ -3,6 +3,7 @@ package fr.tibo.drm16;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -317,7 +318,9 @@ public class MainActivity extends Activity implements Midi.Ecoute {
                 File f = Fichiers.lisible(new File(dossierDoc(), p));
                 if (f == null) return "";
                 /* un .wav n'est jamais relu par l'application : il garde le plafond des documents */
-                long max = p.toLowerCase(java.util.Locale.ROOT).endsWith(".drm16") ? MAX_PROJET_BYTES : MAX_DOCUMENT_BYTES;
+                String pl = p.toLowerCase(java.util.Locale.ROOT);
+                /* v257 : un pack .drmpack emporte des sons comme un projet : meme plafond */
+                long max = pl.endsWith(".drm16") || pl.endsWith(".drmpack") ? MAX_PROJET_BYTES : MAX_DOCUMENT_BYTES;
                 byte[] o = lireFichierComplet(f, max);
                 return Base64.encodeToString(o, Base64.NO_WRAP);
             } catch (Exception e) { return null; }
@@ -428,7 +431,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
     private long plafondDocument(String nom) {
         String n = nom.toLowerCase(java.util.Locale.ROOT);
         if (n.endsWith(".wav")) return MAX_EXPORT_AUDIO_BYTES;
-        if (n.endsWith(".drm16")) return MAX_PROJET_BYTES;
+        if (n.endsWith(".drm16") || n.endsWith(".drmpack")) return MAX_PROJET_BYTES;
         return MAX_DOCUMENT_BYTES;
     }
 
@@ -673,12 +676,29 @@ public class MainActivity extends Activity implements Midi.Ecoute {
     protected void onActivityResult(int req, int res, Intent data) {
         if (req == REQ_FICHIER) {
             if (retourFichier != null) {
-                retourFichier.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(res, data));
+                retourFichier.onReceiveValue(fichiersChoisis(res, data));
                 retourFichier = null;
             }
             return;
         }
         super.onActivityResult(req, res, data);
+    }
+
+    /* v257 : un choix de plusieurs fichiers arrive dans le ClipData, que
+       parseResult ignore (il ne lit que getData) ; sans cela, la page ne
+       recevait qu'un fichier, ou aucun. */
+    private static Uri[] fichiersChoisis(int res, Intent data) {
+        if (res != Activity.RESULT_OK || data == null) return null;
+        ClipData clip = data.getClipData();
+        if (clip != null && clip.getItemCount() > 0) {
+            ArrayList<Uri> l = new ArrayList<>();
+            for (int i = 0; i < clip.getItemCount(); i++) {
+                Uri u = clip.getItemAt(i).getUri();
+                if (u != null) l.add(u);
+            }
+            if (!l.isEmpty()) return l.toArray(new Uri[0]);
+        }
+        return WebChromeClient.FileChooserParams.parseResult(res, data);
     }
 
     @Override

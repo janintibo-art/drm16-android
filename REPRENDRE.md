@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **256**. Depuis la v176, le détail de chaque version est dans
+La version actuelle est la **257**. Depuis la v176, le détail de chaque version est dans
 `docs/CORRECTIONS_V*.md` ; la section 5 commence par **l'état du projet** et le tableau de ces versions.
 Les v156 à v175 n'ont laissé aucune note : le check-up v176 (`docs/CHECKUP_V176.md`) fait le point à leur
 sortie.
@@ -145,7 +145,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
   64 pas, Song), PO-33 (Parameter Locks, CHROMA, Swing, 16 effets, WRITE v231), TR (SCALE v232, FILL et
   AUTO FILL v236, TRACK v238), DMX (SONG v234), MPC (99 séquences v237, 8 programmes v246), et l'export WAV d'un morceau
   enchaîné pour les TR, la DMX, la MPC et la TR-1000 (v244).
-- *Bibliothèque* : Freesound (v248), sons de chaque machine et kits de sons avec retour arrière (v251), classement des sons (v252), essai d'un son pendant la lecture (v253), éditeur de son (v254), machines figées et rééchantillonnage (v255), kits par rôle (v256).
+- *Bibliothèque* : Freesound (v248), sons de chaque machine et kits de sons avec retour arrière (v251), classement des sons (v252), essai d'un son pendant la lecture (v253), éditeur de son (v254), machines figées et rééchantillonnage (v255), kits par rôle (v256), packs et crédits (v257).
 
 **Reste à faire, par ordre d'intérêt**
 1. *Fidélité* : effets en plus sur le KAOSS PAD ; échantillonnage, découpe et étirement sur la TR-1000 ; échantillonnage au micro sur le PO-33 ;
@@ -162,7 +162,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
 bloc 14 du test navigateur (« un gain existant rejoint sa cible en douceur ») quand la machine est chargée.
 Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en écrire en `file://`.
 
-### Versions v177 à v256
+### Versions v177 à v257
 
 | Version | Sujet |
 |---|---|
@@ -246,6 +246,7 @@ Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en
 | v254 | Bibliothèque : éditeur de son |
 | v255 | Bibliothèque : figer une machine en échantillons, rééchantillonner |
 | v256 | Bibliothèque : kits par rôle, kit au hasard, copie de kit |
+| v257 | Bibliothèque : packs et kits en fichiers, import en lot, crédits |
 
 ---
 

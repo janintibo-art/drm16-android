@@ -14,7 +14,7 @@ var BIB_CATEGORIES = [["kick","KICK"],["caisse","CAISSE"],["clap","CLAP"],["char
   ["voix","VOIX"],["boucle","BOUCLE"],["fx","FX"],["autre","AUTRE"]];
 var BIB_ORIGINES = [["tout","ORIGINES"],["banque","BANQUE"],["vous","TOUS LES VÔTRES"],["mic","MICRO"],
   ["fichier","FICHIERS"],["archive","ARCHIVE"],["freesound","FREESOUND"],["kaoss","KAOSS"],["edition","ÉDITÉS"],
-  ["fige","FIGÉS"],["reech","RÉÉCHANTILLONNÉS"]];
+  ["fige","FIGÉS"],["reech","RÉÉCHANTILLONNÉS"],["pack","PACKS"]];
 var BIB_TRIS = [["nom","TRI : NOM"],["recent","TRI : PLUS RÉCENTS"],["duree","TRI : DURÉE"],["cat","TRI : CATÉGORIE"]];
 var BIB_PAGE = 40;
 var BIB_ONDES = typeof WeakMap === "function" ? new WeakMap() : null;
@@ -101,6 +101,7 @@ function bibMetaValides(o){
     if(bibCategorieConnue(m.c)) x.c = m.c;
     if(bibCategorieConnue(m.a)) x.a = m.a;
     if(m.f === 1 || m.f === true) x.f = 1;
+    if(typeof m.cr === "string" && m.cr) x.cr = m.cr.slice(0, 400);          /* v257 : crédit reçu avec un pack */
     if(Object.keys(x).length) r[id] = x;
   });
   return r;
@@ -129,6 +130,7 @@ function bibOrigine(id){
   if(n === "edition") return "edition";
   if(n === "fige") return "fige";
   if(n === "reech") return "reech";
+  if(n === "pack") return "pack";
   if(n === "fichier") return "fichier";
   return "mic";
 }
@@ -225,6 +227,13 @@ function bibRendreFiltres(corps, refaire){
       if(poserListeSurMachine(m, ids)) majBibUI();
     });
     z.appendChild(poser);
+  }
+  /* v257 : la liste filtrée en un fichier */
+  if(typeof exporterPackListe === "function"){
+    var ep = document.createElement("button"); ep.className = "sec"; ep.id = "bib-exporter-pack";
+    ep.textContent = "EXPORTER LA LISTE EN PACK";
+    ep.addEventListener("click", function(){ exporterPackListe(); });
+    z.appendChild(ep);
   }
   corps.appendChild(z);
 }
