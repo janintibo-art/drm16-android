@@ -1,0 +1,265 @@
+/* v264 — outils : châssis commun, lisibilité et espace de travail.
+   Seulement les panneaux annexes. Aucun sélecteur de façade, aucune animation
+   continue, aucun changement de canvas, d'événement, de donnée ou de moteur.
+   L'accent vient de la machine active ; REC / PLAY / COUPE gardent leur sens. */
+:is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus,#audio-diagnostic){
+  --outil-texte:#eceef2;--outil-discret:#b7bec9;--outil-bord:#3b414a;
+  --outil-accent:var(--accent,#ee4d1e);
+  color:var(--outil-texte);
+  background:linear-gradient(155deg,#1c2026 0,#111419 230px,#101216 100%);
+  color-scheme:dark;
+}
+:is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus){
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
+  overflow:hidden;min-width:0;
+}
+:is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus)>.note-bar{
+  position:relative;z-index:3;flex:none;min-height:68px;gap:8px;
+  padding:9px 14px;border-top:2px solid var(--outil-accent);border-bottom:1px solid #444b55;
+  background:repeating-linear-gradient(0deg,#ffffff03 0 1px,transparent 1px 3px),linear-gradient(#2c323a,#1b2027);
+  box-shadow:0 3px 12px #0005,inset 0 1px #ffffff13;
+}
+:is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus)>.note-bar>b{
+  color:#f2f3f5;font-size:14px;line-height:1.35;letter-spacing:.9px;
+  white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;
+}
+:is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus)>.note-bar>b::before{
+  display:block;font:700 10.5px/1.3 system-ui,Arial,sans-serif;letter-spacing:1.1px;
+  color:var(--outil-discret);margin-bottom:3px;
+}
+#bib>.note-bar>b::before{content:"SONS · KITS · PROJETS"}
+#enr>.note-bar>b::before{content:"CAPTURE · PRISES"}
+#pr>.note-bar>b::before{content:"ÉDITION · SÉQUENCES"}
+#note>.note-bar>b::before{content:"DOCUMENTATION"}
+#syro>.note-bar>b::before{content:"TRANSFERT SYRO"}
+#table>.note-bar>b::before{content:"CONSOLE · SET LIVE"}
+#studio>.note-bar>b::before{content:"APPLICATION INVITÉE"}
+#nexus>.note-bar>b::before{content:"APPLICATION INVITÉE"}
+/* Commandes matérielles, secondaires neutres : tout n'est plus orange. */
+:is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus,#audio-diagnostic) button{
+  min-width:44px;min-height:44px;max-width:100%;margin:0;
+  padding:10px 12px;border:1px solid #515965;border-radius:7px;
+  background:linear-gradient(#363d47,#262d36);color:#f0f2f5;
+  font:750 12px/1.35 "Roboto Condensed",Arial,sans-serif;letter-spacing:.35px;
+  white-space:normal;overflow-wrap:anywhere;touch-action:manipulation;
+  box-shadow:inset 0 1px #ffffff12,0 2px 3px #0004;
+}
+:is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus)>.note-bar>button{
+  flex:none;min-height:44px;padding:9px 10px;font-size:11px;
+  background:linear-gradient(#353d48,#252d37);color:#f0f2f5;border:1px solid #697584;
+}
+:is(#bib,#enr,#pr,#note) button.sec{
+  min-height:44px;padding:9px 12px;margin:0;border:1px solid #515965;
+  background:linear-gradient(#343b45,#252c35);color:#eceef2;font-size:12px;
+}
+:is(#bib,#enr,#pr,#note,#syro,#table,#audio-diagnostic) button.on{
+  border-color:var(--outil-accent);background:#343c46;color:#fff;
+  box-shadow:inset 0 -3px var(--outil-accent),inset 0 1px #ffffff24;
+}
+:is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus,#audio-diagnostic) button:disabled{
+  opacity:.45;box-shadow:none;cursor:default;
+}
+:is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus,#audio-diagnostic) button:not(:disabled):active{
+  box-shadow:inset 0 2px 5px #0008;filter:brightness(1.12);
+}
+:is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus,#audio-diagnostic) :is(button,select,input,textarea,summary,a):focus-visible{
+  outline:2px solid #fff;outline-offset:2px;
+}
+:is(#bib,#enr,#pr,#note,#syro,#table) :is(select,input:not([type=checkbox]):not([type=range]):not([type=file]),textarea){
+  min-width:0;min-height:44px;max-width:100%;padding:10px 11px;
+  border:1px solid #505965;border-radius:7px;background:#10151c;color:#eef0f3;
+  box-shadow:inset 0 2px 4px #0006;font-size:14px;line-height:1.4;
+  user-select:text;-webkit-user-select:text;
+}
+:is(#bib,#enr,#pr,#note,#syro,#table) input[type=range]{
+  min-width:44px;min-height:44px;accent-color:var(--outil-accent);
+}
+#bib :is(.fson-cocher,.kits-tous,.bib-f-fav){min-height:44px;color:var(--outil-discret)}
+#bib input[type=checkbox]{accent-color:var(--outil-accent)}
+:is(#bib,#note,#enr) h3{
+  color:#e5e9ef;font-size:12px;letter-spacing:1.5px;
+  margin:22px 0 12px;padding-left:10px;border-left:3px solid var(--outil-accent);
+}
+:is(#bib,#note,#enr,#syro) p{overflow-wrap:anywhere}
+/* Scrollbars visibles : signaler qu'il reste des commandes hors de l'écran. */
+:is(#bib-nav,#note-nav,#pr-barre,#pr-outils,#pr-pied,#pr-zone,#enr-corps,.enr-tete,.enr-bas,.table-tete,#table-voies,.note-corps,.syro-corps,#audio-diagnostic){
+  scrollbar-width:thin;scrollbar-color:#687483 #14191f;overscroll-behavior:contain;
+}
+:is(#bib-nav,#note-nav,#pr-barre,#pr-outils,#pr-pied,#pr-zone,#enr-corps,.enr-tete,.enr-bas,.table-tete,#table-voies,.note-corps,.syro-corps,#audio-diagnostic)::-webkit-scrollbar{
+  display:block;width:6px;height:6px;
+}
+:is(#bib-nav,#note-nav,#pr-barre,#pr-outils,#pr-pied,#pr-zone,#enr-corps,.enr-tete,.enr-bas,.table-tete,#table-voies,.note-corps,.syro-corps,#audio-diagnostic)::-webkit-scrollbar-thumb{
+  background:#687483;border-radius:4px;
+}
+/* Onglets en rail : leurs gestionnaires et l'onglet courant sont inchangés. */
+:is(#bib #bib-nav,#note #note-nav){
+  padding:9px 12px;gap:8px;background:#181d24;border-bottom:1px solid #3b424c;
+  overflow-x:auto;touch-action:pan-x;scroll-padding-inline:12px;
+}
+:is(#bib #bib-nav,#note #note-nav) button{
+  flex:0 0 auto;min-height:44px;min-width:72px;border:1px solid #515965;
+  border-radius:6px;padding:10px 14px;background:#252d37;color:#c8cfd8;
+  font-size:11px;letter-spacing:.7px;white-space:nowrap;
+}
+:is(#bib #bib-nav,#note #note-nav) button.on{
+  color:#fff;background:#343e4a;border-color:var(--outil-accent);
+  box-shadow:inset 0 -3px var(--outil-accent);
+}
+:is(#bib,#note) .note-corps{padding:18px 16px 36px;scroll-padding:18px;line-height:1.65}
+#bib #bib-corps{max-width:820px!important}
+#note .note-corps .doc{max-width:780px}
+/* Bibliothèque, prises et notices : mêmes cartes / mêmes espacements. */
+:is(#bib .bib-ligne,#enr .enr-prise,#note .enc,#note .fsom,#syro .syro-etat,#bib .fson-reglages,#bib .fson-credits){
+  border:1px solid #424b57;border-radius:10px;padding:14px;margin-bottom:12px;
+  background:linear-gradient(145deg,#252c35,#1c222a);
+  box-shadow:inset 0 1px #ffffff0c,0 4px 8px #0003;
+}
+:is(#bib .bib-ligne,#enr .enr-prise)>b{color:#f3f4f6;font-size:15px;line-height:1.4;overflow-wrap:anywhere}
+:is(#bib .bib-ligne,#enr .enr-prise)>span{color:#bac4d1;opacity:1;line-height:1.5}
+:is(#bib .bib-actions,#enr .enr-actions){gap:8px;margin-top:12px}
+:is(#bib .bib-actions,#enr .enr-actions)>button{min-height:44px;flex:0 1 auto}
+#bib .bib-filtres{padding:12px;border:1px solid #3d4652;border-radius:10px;background:#151b23;gap:10px}
+#bib .bib-filtres input[type=search]{min-height:44px;margin:0;font-size:14px}
+#bib .bib-compte{padding-top:7px;border-top:1px solid #3b424c;color:#c9d0d9;opacity:1}
+#bib .bib-vide{padding:22px 16px;border:1px dashed #667180;border-radius:10px;color:#cbd2db;opacity:1!important}
+#bib .bib-cible select{width:50%;flex:1 1 0}
+#bib .bib-meta{gap:10px}
+#bib #bib-poser-liste{min-height:44px}
+#bib .bib-etoile{min-height:44px;font-size:20px}
+#bib .bib-etoile.on{color:#ffda83;border-color:#c39a47;box-shadow:none}
+#bib .bib-ligne[aria-current="true"]{outline:2px solid #7dcc99;outline-offset:-2px;background:#1b3028}
+#bib #bib-essai{max-height:32%;overflow:auto;background:#15251e;border-bottom:2px solid #7dcc99;padding:10px 16px}
+#bib #bib-essai .bib-actions{margin-top:8px}
+#bib #bib-essai button{min-height:44px}
+#bib .ed canvas{border:1px solid #556170;box-shadow:inset 0 2px 5px #0009}
+#bib .ed-curseur{min-height:44px}
+#bib .fson summary,#bib .fson-credits summary{color:#d8e8dc}
+/* Les notices restent des documents : pas de réduction des paragraphes. */
+#note .enc p:last-child{margin-bottom:0}
+#note .fmod{border-left:2px solid #636f7e;margin:16px 0;padding:3px 0 3px 12px}
+#note .fmod>b{color:#e5e9ef;font-size:13px;letter-spacing:.8px}
+#note .fmod span{color:#b7c1cd;opacity:1;font-size:12px;line-height:1.55}
+#note .fsom u{color:#ccd4de;font-size:11px}
+#note .fsom a{display:inline-flex;align-items:center;min-height:44px;margin:3px 2px;padding:7px 10px;border:1px solid #505b69;border-radius:6px;background:#252e39;color:#edf0f4}
+#note .doc button{margin:5px 6px 5px 0}
+/* Transports en rail ; le corps conserve la place pour travailler. */
+:is(#enr .enr-tete,#table .table-tete){
+  flex:none;min-width:0;flex-wrap:nowrap;gap:8px;overflow-x:auto;
+  padding:10px 12px;background:#181e26;border-bottom:1px solid #3d4652;
+}
+:is(#enr .enr-tete,#table .table-tete)>button{flex:0 0 auto;white-space:nowrap;min-height:44px;padding:10px 12px;font-size:11px}
+:is(#enr .enr-tete,#table .table-tete)>b{flex:0 0 220px;min-width:180px;color:#c1cbd8;font-size:11px;line-height:1.5}
+/* Le message MIDI / SET reste lisible au départ du rail, sur sa propre ligne. */
+#enr .enr-tete{display:grid;grid-template-columns:repeat(5,max-content);align-items:center}
+#table .table-tete{display:grid;grid-template-columns:repeat(4,max-content);align-items:center}
+:is(#enr .enr-tete,#table .table-tete)>b{grid-column:1/-1;min-width:0;width:320px;max-width:calc(100vw - 40px);font-size:11px}
+#enr #enr-rec{background:linear-gradient(#9b3939,#76272c);border-color:#d16c70;color:#fff}
+#enr #enr-rec.on{background:linear-gradient(#de4e4e,#ba3037);border-color:#ff9a9a;color:#fff;box-shadow:inset 0 -3px #ffb7b7}
+:is(#table #table-play.on,#pr #pr-jouer.on,#bib #bib-essai-jouer[aria-pressed="true"]){background:#244d38;border-color:#75c18e;color:#e0ffe9;box-shadow:inset 0 -3px #75c18e}
+#table #table-rien{border-color:#a1686a;color:#ffd0d0;background:#35282d}
+/* MIDI : conserver le dessin et la hauteur de ses 34 px par piste.
+   Les M/S du bandeau restent compacts (28 px) pour ne pas désaligner le canvas.
+   Les commandes principales et les listes inférieures passent à 44 px. */
+#enr .enr-corps{height:38vh;min-height:136px;background:#0c1015;border-bottom:1px solid #424b57}
+#enr .enr-tetes{width:132px;background:#1a2028;border-right:1px solid #424b57}
+#enr .enr-tt{height:34px;padding:0 4px;gap:3px;border-color:#343e4a}
+#enr .enr-tt b{font-size:11px;color:#d0d8e4;letter-spacing:0}
+#enr .enr-tt button{min-width:28px;min-height:28px;width:28px;height:28px;padding:3px;font-size:11px;border-radius:4px}
+#enr .enr-espace{height:22px}
+#enr .enr-bas{padding:14px 16px 28px;background:#141a22;min-width:0}
+#enr .enr-bas label{font-size:11px;letter-spacing:1px;color:#bcc7d5;margin:16px 0 8px}
+#enr .enr-bas label:first-child{margin-top:0}
+#enr .enr-piste{padding:6px;border:1px solid #3a4451;border-radius:7px;background:#1b232e;gap:8px}
+#enr .enr-piste b{font-size:12px}
+#enr .enr-piste button{min-height:44px;font-size:11px;padding:8px}
+#enr .enr-canal b{font-size:11px;color:#c2ccda}
+#enr .enr-canal select{width:0;flex:1;min-height:44px}
+:is(#enr button.coupe.on,#table .voie button.coupe.on){background:#592d33;border-color:#d28087;color:#ffe9eb;box-shadow:inset 0 -3px #d28087}
+#enr .enr-prise.joue{border-color:#75c18e;box-shadow:inset 3px 0 #75c18e}
+/* Piano roll : sélecteur lisible et outils sur une seule rangée défilante. */
+#pr #pr-barre{display:grid;grid-template-columns:minmax(0,1fr) auto auto 44px 44px;min-width:0;gap:8px;padding:10px 12px;background:#181e26;border-bottom:1px solid #3d4652}
+#pr #pr-barre select{width:100%;min-width:0}
+#pr #pr-barre button{min-height:44px;padding:8px 10px;font-size:11px;white-space:nowrap}
+#pr #pr-outils{flex-wrap:nowrap;min-width:0;overflow-x:auto;gap:8px;padding:10px 12px;background:#181e26;border-block:1px solid #3d4652}
+#pr #pr-outils button{flex:0 0 auto;white-space:nowrap;min-height:44px;padding:9px 12px}
+#pr #pr-pied{min-width:0;max-height:30vh;padding:14px 16px 20px;background:#141b24;border-color:#3d4652}
+#pr #pr-pied p{margin:0 0 10px;overflow-wrap:anywhere}
+#pr #pr-pied p:nth-child(3){display:flex;flex-wrap:wrap;gap:8px}
+#pr #pr-garder{width:100%;background:#303d4d;border-color:#8595ab;box-shadow:inset 0 -3px var(--outil-accent)}
+#pr #pr-etat{padding:10px;border:1px solid #425165;border-radius:7px;background:#101722;color:#cad7e7;font-size:12px;line-height:1.5}
+#pr #pr-zone{background:#0b1016}
+#pr #pr-outils [data-pr="supprimer"]{border-color:#a1686a;color:#ffd0d0;background:#35282d}
+/* Console : tranches plus larges, EQ encastré, fader à sa place.
+   Le nombre de voies, leurs curseurs et le calcul des niveaux ne changent pas. */
+#table .table-voies{gap:12px;padding:16px;align-items:flex-start;background:#11171e;scroll-padding:16px}
+#table .voie{width:148px;flex:0 0 148px;gap:8px;padding:12px 10px;border:1px solid #4c5866;border-top:3px solid #667689;border-radius:9px;background:linear-gradient(90deg,#252d37,#1c242e 70%,#27313c);box-shadow:inset 0 1px #ffffff18,0 4px 10px #0005}
+#table .voie.jouee{border-color:var(--outil-accent);background:linear-gradient(90deg,#2d3742,#242e38);box-shadow:inset 0 2px var(--outil-accent),0 4px 10px #0005}
+#table .voie>b{height:auto;min-height:34px;font-size:12px;line-height:1.4;letter-spacing:.5px;color:#f0f2f5;overflow:visible;overflow-wrap:anywhere}
+#table .voie label{font-size:11px;line-height:1.4;color:#bcc8d7;letter-spacing:.5px}
+#table .voie input[type=range]{width:100%;min-height:44px;margin:0}
+#table .voie .eq{padding:10px 5px 4px;background:#141c26;border:1px solid #465365;border-radius:6px}
+#table .voie .btns{gap:6px}
+#table .voie button{min-height:44px;padding:7px 4px;font-size:11px;letter-spacing:.2px}
+#table .voie .bas{height:138px;flex:none;align-items:center;margin-top:0;gap:10px}
+#table .voie .mes{width:12px;height:120px;border-color:#5a6777}
+#table .voie .fad{height:120px;min-width:0;background:#101720;border:1px solid #465365;border-radius:7px}
+#table .voie .fad input{width:104px;min-width:104px;min-height:44px;max-width:none;flex:none;transform:rotate(-90deg)}
+/* Transfert / diagnostic : instructions séparées des actions. */
+#syro .syro-corps{max-width:680px;padding:18px 16px 32px}
+#syro .syro-corps label{font-size:11px;color:#c1cbd8;letter-spacing:.8px;margin:16px 0 8px}
+#syro .syro-corps label span{color:#b1bdcb;font-size:11px}
+#syro .syro-ligne{gap:10px;flex-wrap:wrap}
+#syro .syro-ligne button{flex:1 1 130px;font-size:12px}
+#syro #syro-envoyer{border-color:#8595ab;box-shadow:inset 0 -3px var(--outil-accent)}
+#syro .syro-pas{color:#c2cad5;line-height:1.65}
+#syro .syro-mot{border-color:#946f40;background:#342a1f;color:#f3d8b4}
+#audio-diagnostic{padding:18px;max-width:600px;max-height:calc(100% - 24px);border:1px solid #778597;border-top:3px solid var(--outil-accent);border-radius:12px;box-shadow:0 18px 60px #000b}
+#audio-diagnostic h2{font-size:18px;letter-spacing:1px;color:#f1f4f8}
+#audio-diagnostic #audio-releve{padding:14px;background:#0e1620;border:1px solid #4a5b70;border-radius:8px;font:13px/1.75 ui-monospace,monospace;color:#d7e4f6;user-select:text;-webkit-user-select:text}
+#audio-diagnostic .audio-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#audio-diagnostic #audio-relancer{border-color:#b59b65;color:#f9e1ad}
+/* Applications invitées : seul leur châssis parent est harmonisé. */
+:is(#studio,#nexus) .invite-absent{margin:20px auto;padding:20px;border:1px solid #4c5866;border-radius:10px;background:#1c2530}
+/* Portrait : laisser de la largeur au nom de la prise. */
+@media (max-width:600px){
+  #bib-corps>div:first-child>.bib-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  #bib-corps>div:first-child>.bib-actions>button:last-child:nth-child(odd){grid-column:1/-1}
+
+  #pr #pr-barre{grid-template-columns:1fr 1fr 44px 44px}
+  #pr #pr-prise{grid-column:1/-1}
+  :is(#enr,#syro,#table)>.note-bar{gap:6px;padding-inline:10px}
+  :is(#enr,#syro,#table)>.note-bar>button{max-width:99px;padding:8px;font-size:11px}
+  :is(#enr,#syro,#table)>.note-bar>b{font-size:12px;letter-spacing:.4px}
+  :is(#enr,#syro,#table)>.note-bar>b::before{font-size:10.5px;letter-spacing:.4px}
+}
+/* Paysage / grand écran : les réglages passent à droite, sans diminuer le
+   dessin du MIDI. Les scrolls de droite et du piano roll restent indépendants. */
+@media (min-width:700px) and (max-height:540px),(min-width:1100px){
+  #enr.show{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,32%);grid-template-rows:auto auto minmax(0,1fr)}
+  #enr>.note-bar{grid-column:1/-1;grid-row:1}
+  #enr>.enr-tete{grid-column:1;grid-row:2}
+  #enr>.enr-corps{grid-column:1;grid-row:3;min-height:0;height:auto}
+  #enr>.enr-bas{grid-column:2;grid-row:2/4;border-left:1px solid #4c5866}
+  #pr.show{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,30%);grid-template-rows:auto auto minmax(0,1fr) auto}
+  #pr>.note-bar{grid-column:1/-1;grid-row:1}
+  #pr>#pr-barre{grid-column:1;grid-row:2}
+  #pr>#pr-zone{grid-column:1;grid-row:3}
+  #pr>#pr-outils{grid-column:1;grid-row:4}
+  #pr>#pr-pied{grid-column:2;grid-row:2/5;max-height:none;border-left:1px solid #4c5866}
+}
+/* Clavier ouvert / fenêtre courte : garder une zone centrale utilisable. */
+@media (max-width:699px) and (max-height:540px){
+  :is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus)>.note-bar{min-height:58px;padding-block:6px}
+  :is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus)>.note-bar>b::before{display:none}
+  #pr #pr-barre{display:flex;flex-wrap:nowrap;overflow-x:auto;padding-block:6px}
+  #pr #pr-barre>*{flex:0 0 auto}
+  #pr #pr-barre select{width:155px}
+  #pr #pr-outils{padding-block:6px}
+  #pr #pr-pied{max-height:88px;padding-block:8px}
+  #enr .enr-corps{height:30vh;min-height:100px}
+  #enr .enr-bas{padding-top:10px}
+  #bib #bib-essai{max-height:27%}
+}
+@media (prefers-reduced-motion:reduce){
+  :is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus,#audio-diagnostic) *{scroll-behavior:auto;transition:none;animation:none}
+}

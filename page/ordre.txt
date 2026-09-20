@@ -24,6 +24,7 @@ css/200-confort-mobile.css
 css/210-facades-matieres.css
 css/220-eurorack-focus.css
 css/230-menu-machines.css
+css/240-outils-studio.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
