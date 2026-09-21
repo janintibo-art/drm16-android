@@ -261,6 +261,10 @@ function voixKo(t, k, vel){
   }else src.connect(g);
   g.connect(pasVoie(n.e));
   src.start(t, Math.min(debut, Math.max(0, tampon.duration - 0.01))); src.stop(t + d + 0.05);
+  /* v270 : témoin visuel après programmation, exclu de l’export audio. */
+  if(!ctx.startRendering && typeof temoinFrappe === "function"){
+    try{temoinFrappe("ko",ctx,t,k,note);}catch(e){}
+  }
 }
 
 /* Déclenche une frappe avec la variante de timbre demandée. La valeur renvoyée
@@ -359,6 +363,9 @@ function beatKo(i){
   if(typeof majKoPlock === "function") majKoPlock();
 }
 function arretKo(){
+  if((!ctx || !ctx.startRendering) && typeof effacerFrappes === "function"){
+    try{effacerFrappes("ko");}catch(e){}
+  }
   if(KO.fxWriteDirty){
     try{ memKo(); }catch(e){}
   }

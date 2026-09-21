@@ -308,6 +308,12 @@ function jouerBoucleMc(k, clip, i, t){
     b.g.gain.setValueAtTime(P.niv, Math.max(t, b.fin - 0.003));
     b.g.gain.linearRampToValueAtTime(0, b.fin);
   }
+  if(i === 0){
+  /* v270 : témoin visuel après programmation, exclu de l’export audio. */
+  if(!ctx.startRendering && typeof temoinFrappe === "function"){
+    try{temoinFrappe("mc",ctx,t,k,null);}catch(e){}
+  }
+  }
   return i === 0;
 }
 
@@ -356,6 +362,10 @@ function voixMc(t, i, note, vel){
       g.gain.exponentialRampToValueAtTime(0.0001, t + d);
       b.connect(f); f.connect(g); b.stop(t + d + 0.05);
     }
+  /* v270 : témoin visuel après programmation, exclu de l’export audio. */
+  if(!ctx.startRendering && typeof temoinFrappe === "function"){
+    try{temoinFrappe("mc",ctx,t,i,null);}catch(e){}
+  }
     return;
   }
 
@@ -373,6 +383,10 @@ function voixMc(t, i, note, vel){
     g.gain.linearRampToValueAtTime(0.0001, t + duree);
     src.connect(filtre); filtre.connect(g);
     src.start(t); src.stop(t + duree);
+  /* v270 : témoin visuel après programmation, exclu de l’export audio. */
+  if(!ctx.startRendering && typeof temoinFrappe === "function"){
+    try{temoinFrappe("mc",ctx,t,i,null);}catch(e){}
+  }
     return;
   }
 
@@ -391,6 +405,10 @@ function voixMc(t, i, note, vel){
   g.gain.exponentialRampToValueAtTime(0.0001, t + d2);
   o2.connect(f2); f2.connect(g);
   o2.start(t); o2.stop(t + d2 + 0.05);
+  /* v270 : témoin visuel après programmation, exclu de l’export audio. */
+  if(!ctx.startRendering && typeof temoinFrappe === "function"){
+    try{temoinFrappe("mc",ctx,t,i,null);}catch(e){}
+  }
 }
 
 /* Le SCATTER : quel pas jouer, et combien de fois. Il ne touche pas au motif —
@@ -452,6 +470,9 @@ function beatMc(i){
   for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i);
 }
 function arretMc(){
+  if((!ctx || !ctx.startRendering) && typeof effacerFrappes === "function"){
+    try{effacerFrappes("mc");}catch(e){}
+  }
   var entendu = validerDepartMc();
   viderAttenteMc();
   if(entendu) memMc();

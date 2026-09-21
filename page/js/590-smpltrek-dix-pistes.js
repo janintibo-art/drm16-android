@@ -298,6 +298,11 @@ function voixStk(t, i, acc, tranche, note, velocite){
     src.start(t, bornes.debut / buf.sampleRate, portion * Math.max(0.05, P.dec));
     src.stop(t + duree);
   }
+
+  /* v270 : témoin visuel après programmation, exclu de l’export audio. */
+  if(!ctx.startRendering && typeof temoinFrappe === "function"){
+    try{temoinFrappe("stk",ctx,t,i,null);}catch(e){}
+  }
   /* v269 : témoin graphique après la programmation réelle. Le dessin ne
      reçoit aucun nœud, et reste totalement exclu des rendus hors ligne. */
   if(!ctx.startRendering && typeof ONDE_STK === "object" && ONDE_STK){
@@ -343,6 +348,9 @@ function beatStk(i){
   for(var j=0;j<b.length;j++) b[j].classList.toggle("cur", j === i && (typeof STK_MODE === "undefined" || STK_MODE !== "ptn"));
 }
 function arretStk(){
+  if((!ctx || !ctx.startRendering) && typeof effacerFrappes === "function"){
+    try{effacerFrappes("stk");}catch(e){}
+  }
   /* v269 : oublier les curseurs dont les sources vont être débranchées. */
   if((!ctx || !ctx.startRendering) && typeof ONDE_STK === "object" && ONDE_STK){
     try{ ONDE_STK.effacer(); }catch(e){}
