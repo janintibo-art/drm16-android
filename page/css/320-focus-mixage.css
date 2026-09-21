@@ -1,0 +1,81 @@
+/* v273 — une tranche à taille lisible, sans réduire ni reconstruire ses INPUT. */
+#table .tf-champ,#table .tf-reglage,#table .tf-volume{display:contents}
+#table :is(.tf-pas,.tf-val,.tf-aide),#table .tf-volume>label{display:none}
+#table .tf-ouvrir{flex:none;border:1px solid #698293;color:#e1eff8;background:linear-gradient(#344653,#24343f)}
+#table .tf-ouvrir:active{background:#45616f}
+#tf-nav[hidden]{display:none}
+#tf-nav{flex:none;display:grid;grid-template-columns:44px minmax(0,1fr) 44px auto;gap:6px;align-items:center;
+  padding:9px 12px;background:linear-gradient(#25313d,#1a2530);border-bottom:1px solid #596c80;min-width:0}
+#tf-nav .tf-surtitre{grid-column:1/-1;color:#c3d1df;font:700 10.5px/1.3 Arial,sans-serif;letter-spacing:1px}
+#tf-nav :is(button,select){min-width:44px;min-height:44px;margin:0;padding:8px;border:1px solid #697b8e;border-radius:6px;
+  font:700 12px/1.3 Arial,sans-serif;color:#eef3f6;background:#24323e;touch-action:manipulation}
+#tf-nav select{display:block;width:100%;background:#121f2a}
+#tf-nav .tf-navigation{min-width:0}
+#tf-nav :is(#tf-precedent,#tf-suivant){font-size:28px;line-height:1}
+#tf-nav #tf-retour{font-size:11px;border-color:#9aaebc;background:#354754}
+#tf-nav #tf-etat{grid-column:1/-1;margin:0;font:700 11px/1.4 Arial,sans-serif;color:#b9d6cb;overflow-wrap:anywhere}
+#tf-nav #tf-etat[data-coupe="1"]{color:#f4bdbd}
+#tf-nav .tf-sr{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+#table :is(.tf-ouvrir,.tf-pas):focus-visible,#tf-nav :is(button,select):focus-visible{outline:2px solid #eef8ff;outline-offset:2px}
+#table.tf-focus .voie:not(.tf-cible),#table.tf-focus .tf-ouvrir{display:none}
+#table.tf-focus #rm-console{display:none}
+#table.tf-focus .table-tete{display:flex;flex-wrap:wrap;gap:6px;padding:6px 12px}
+#table.tf-focus .table-tete :is(#table-ensemble,#table-rien,#table-etat){display:none}
+#table.tf-focus .table-tete>button{flex:1;min-width:100px}
+#table.tf-focus #table-voies{display:block;padding:12px;scroll-padding:12px;min-width:0;overscroll-behavior:contain}
+#table.tf-focus .voie.tf-cible{width:100%;max-width:960px;min-width:0;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);
+  grid-template-areas:"titre" "actif" "trim" "eq" "pan" "volume" "mutes" "ouvrir" "aide";
+  gap:12px;padding:12px;background:linear-gradient(105deg,#27323c,#18232d);border-top-color:#8ea2b4}
+#table.tf-focus .voie>b{grid-area:titre;min-height:0;font:800 16px/1.3 Arial,sans-serif;color:#f0f4f8}
+#table.tf-focus .tf-active{grid-area:actif}
+#table.tf-focus .tf-trim{grid-area:trim}
+#table.tf-focus .tf-pan{grid-area:pan}
+#table.tf-focus .tf-mutes{grid-area:mutes}
+#table.tf-focus .ouvrir{grid-area:ouvrir;width:100%}
+#table.tf-focus .tf-volume{grid-area:volume}
+#table.tf-focus .tf-aide{grid-area:aide;display:block;margin:0;color:#b8c7d5;font:11px/1.5 Arial,sans-serif;letter-spacing:0}
+#table.tf-focus .tf-champ{display:block;min-width:0}
+#table.tf-focus .voie .eq{grid-area:eq;min-width:0;padding:12px;display:flex;flex-direction:column;gap:14px;background:#101b25}
+#table.tf-focus .voie label{display:flex;justify-content:space-between;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:4px;
+  text-align:left;letter-spacing:.2px;font:700 11px/1.4 Arial,sans-serif;color:#d3dde7}
+#table.tf-focus .tf-val{display:inline-block;font:700 13px/1.4 ui-monospace,monospace;color:#eef2dc;white-space:nowrap}
+#table.tf-focus .tf-reglage{display:flex;align-items:center;gap:6px;min-width:0}
+#table.tf-focus .tf-reglage input[type=range]{flex:1;min-width:44px;width:0;accent-color:#abc4d8}
+#table.tf-focus .tf-pas{display:block;flex:0 0 44px;width:44px;min-width:44px;min-height:44px;padding:0;
+  border:1px solid #64798c;border-radius:6px;background:linear-gradient(#384c5e,#263848);color:#f0f5fb;font:700 22px/1 Arial,sans-serif;touch-action:manipulation}
+#table.tf-focus .tf-pas:active{background:#4a6377}
+#table.tf-focus .tf-pas:disabled{opacity:.35}
+#table.tf-focus .tf-volume{display:flex;flex-direction:column;min-width:0;padding:10px;border:1px solid #465365;border-radius:6px;background:#101b25}
+#table.tf-focus .tf-volume>label{display:flex}
+#table.tf-focus .voie .tf-volume .bas{height:208px;justify-content:center;gap:12px;margin:8px 0}
+#table.tf-focus .tf-volume .fad{flex:0 0 64px;height:200px}
+#table.tf-focus .tf-volume .fad input{width:180px;min-width:180px;min-height:44px;accent-color:#abc4d8}
+#table.tf-focus .tf-volume .tf-reglage{justify-content:space-between}
+#table.tf-focus .tf-volume .rm-canal{height:204px}
+#table.tf-focus .tf-volume .rm-canal canvas{height:172px}
+#table.tf-focus .tf-mutes .coupe.on{background:#743d40;border:1px solid #e49c9c;color:#fff0f0}
+#table.tf-focus .tf-mutes [data-a=solo].on{background:#645023;border:1px solid #d5bb79;color:#fff0c3}
+#table.tf-focus .tf-active [data-a=on].on{background:#2b5340;border:1px solid #9ac4ad;color:#e8fff1}
+@media(max-width:480px){
+  #tf-nav{grid-template-columns:44px minmax(0,1fr) 44px}
+  #tf-nav #tf-retour{grid-column:1/-1}
+  #tf-nav .tf-surtitre{display:none}
+}
+@media(min-width:600px){
+  #table.tf-focus .voie.tf-cible{grid-template-columns:minmax(0,1fr) 168px;
+    grid-template-areas:"titre titre" "trim actif" "eq volume" "pan mutes" "aide ouvrir"}
+}
+@media(min-width:600px) and (orientation:landscape) and (max-height:540px){
+  #table.tf-focus.show{display:grid;grid-template-columns:166px minmax(0,1fr);grid-template-rows:56px auto minmax(0,1fr)}
+  #table.tf-focus>.note-bar{grid-column:1/-1;grid-row:1;min-height:56px;padding:6px 12px}
+  #table.tf-focus>.note-bar>b::before{display:none}
+  #table.tf-focus #tf-nav{grid-column:1;grid-row:2;grid-template-columns:44px minmax(0,1fr) 44px;padding:8px;gap:6px;border-bottom:0}
+  #table.tf-focus #tf-nav .tf-navigation{grid-column:1/-1;grid-row:2}
+  #table.tf-focus #tf-nav #tf-precedent{grid-column:1;grid-row:3}
+  #table.tf-focus #tf-nav #tf-suivant{grid-column:3;grid-row:3}
+  #table.tf-focus #tf-nav #tf-retour{grid-column:1/-1;grid-row:4}
+  #table.tf-focus .table-tete{grid-column:1;grid-row:3;display:block;overflow:auto;padding:6px 8px;align-self:stretch}
+  #table.tf-focus .table-tete>button{display:block;width:100%;margin-bottom:6px}
+  #table.tf-focus #table-voies{grid-column:2;grid-row:2/4;padding:8px}
+  #table.tf-focus .voie.tf-cible{padding:10px;gap:10px;grid-template-columns:minmax(0,1fr) 156px}
+}
