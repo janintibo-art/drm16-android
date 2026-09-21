@@ -1,0 +1,75 @@
+/* v274 — atelier de sons : onde stéréo et sélection précise.
+   Les styles restent dans l'éditeur de la bibliothèque. Aucun effet animé. */
+#bib.ev-edition #bib-corps{max-width:1180px!important}
+#bib #ed.ev-atelier{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0}
+#bib .ev-visual,#bib .ev-outils{min-width:0;padding:12px;border:1px solid #485462;border-radius:10px;
+  background:linear-gradient(145deg,#222c35,#182129);box-shadow:inset 0 1px #ffffff0d}
+#bib #ed.ev-atelier h3{margin-top:8px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+#bib #ed.ev-atelier #ed-titre{font-size:16px;letter-spacing:.3px;margin:0 0 12px}
+#bib .ev-zoom{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:6px;align-items:center;margin:8px 0}
+#bib .ev-zoom output{text-align:center;color:#d5e4ed;font:700 12px/1.5 ui-monospace,monospace}
+#bib .ev-zoom button{padding:6px;font-size:22px}
+#bib .ev-cadrage{min-width:0}
+#bib .ev-cadrer{display:flex;gap:6px;margin-bottom:8px}
+#bib .ev-cadrer button{flex:1;min-width:0;font-size:11px;padding:8px 6px}
+#bib .ev-ecran{position:relative;border:1px solid #556775;border-radius:7px;overflow:hidden;background:#0d161e}
+#bib #ed.ev-atelier #ed-onde{display:block;width:100%;height:180px;border:0;border-radius:0;
+  touch-action:none;background:#0d161e;cursor:ew-resize}
+#bib .ev-regle{display:flex;justify-content:space-between;gap:8px;padding:5px 8px;border-top:1px solid #394c5a;
+  color:#c0d4df;font:11px/1.4 ui-monospace,monospace;white-space:nowrap}
+#bib .ev-pan{display:flex;align-items:center;gap:8px;margin:5px 0 0;color:#becdd8;font:11px/1.4 Arial,sans-serif}
+#bib .ev-pan span{flex:0 0 72px}
+#bib .ev-pan input{display:block;flex:1;width:0;min-width:44px;margin:0;accent-color:#90bbcf}
+#bib .ev-aide{margin:4px 0 12px;color:#bdcbd6;font:11px/1.5 Arial,sans-serif}
+#bib .ev-precision{display:flex;align-items:center;gap:10px;margin:10px 0;color:#d1dce4;font:700 11px/1.4 Arial,sans-serif}
+#bib .ev-precision select{flex:1;min-width:0;min-height:44px;font-size:12px}
+#bib .ev-bornes{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+#bib .ev-borne{min-width:0;padding:10px;border:1px solid #44586a;border-radius:7px;background:#101e29}
+#bib .ev-borne>label{display:block;margin-bottom:6px;color:#d9e5eb;font:700 11px/1.4 Arial,sans-serif;letter-spacing:.4px}
+#bib .ev-saisie{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:6px;min-width:0;align-items:center}
+#bib .ev-saisie button{padding:6px;font-size:22px}
+#bib .ev-saisie input{width:100%;text-align:center;font:700 14px/1.4 ui-monospace,monospace;padding:8px 4px}
+#bib .ev-saisie input[aria-invalid=true]{border-color:#e08c83;outline:1px solid #e08c83}
+#bib #ed.ev-atelier .ed-curseur{display:flex;align-items:center;gap:7px;margin:4px 0 0}
+#bib #ed.ev-atelier .ed-curseur span{flex:0 0 44px;color:#b9ccd8;font-size:10.5px;letter-spacing:0}
+#bib #ed.ev-atelier .ed-curseur input{width:0;min-width:44px;min-height:44px;margin:0;accent-color:#91bfd4}
+#bib .ev-echantillons{display:block;color:#c0d0dc;font:11px/1.5 ui-monospace,monospace;overflow-wrap:anywhere}
+#bib #ed.ev-atelier #ed-info{font:12px/1.6 Arial,sans-serif;color:#c7d6df;opacity:1;margin:10px 0 0}
+#bib .ev-outils .bib-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+#bib .ev-outils .bib-actions :is(button,select){width:100%;min-width:44px;min-height:44px;font-size:11.5px;line-height:1.4;padding:9px 7px}
+#bib .ev-outils .bib-actions #ed-ecouter,#bib .ev-outils .bib-actions #ed-copie{grid-column:1/-1}
+#bib .ev-outils #ed-ecouter{border-color:#83b899;background:linear-gradient(#355341,#253e30);color:#edfff3}
+#bib .ev-outils #ed-remplacer{border-color:#aa7471;color:#ffcfca;background:#3c2b2d}
+#bib .ev-outils #ed-fermer{border-color:#8d9ba8}
+#bib .ev-outils h3:not(:first-child){margin-top:24px!important}
+#bib #ed.ev-atelier :is(button,input,select):focus-visible{outline:2px solid #edf7ff;outline-offset:2px}
+@media(min-width:500px){#bib .ev-bornes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:760px) and (orientation:landscape){
+  #bib #ed.ev-atelier{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start}
+  #bib .ev-bornes{grid-template-columns:minmax(0,1fr)}
+}
+@media(min-width:1100px){#bib .ev-bornes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:380px){
+  #bib .ev-visual,#bib .ev-outils{padding:9px}
+  #bib .ev-borne{padding:8px}
+  #bib #ed.ev-atelier #ed-onde{height:164px}
+}
+
+/* Les trois boutons natifs d’écoute/sélection/annulation suivent l’onde. */
+#bib .ev-lecture{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0}
+#bib .ev-lecture button{min-width:44px;min-height:44px;font-size:11px;line-height:1.4;padding:8px 6px}
+#bib .ev-lecture #ed-ecouter{grid-column:1/-1;border-color:#83b899;background:linear-gradient(#355341,#253e30);color:#edfff3}
+@media(min-width:760px) and (orientation:landscape){
+  #bib .ev-cadrage{display:grid;grid-template-columns:148px minmax(0,1fr);gap:8px;align-items:center;margin-bottom:8px}
+  #bib .ev-cadrage .ev-zoom,#bib .ev-cadrage .ev-cadrer{margin:0}
+  #bib .ev-cadrage .ev-cadrer button{padding:6px 4px}
+}
+@media(orientation:landscape) and (max-height:480px){
+  #bib.ev-edition>.note-bar{min-height:56px;padding:6px 12px}
+  #bib.ev-edition>.note-bar>b::before{display:none}
+  #bib.ev-edition #bib-nav{padding:6px 12px}
+  #bib.ev-edition>.note-corps{padding:10px 12px 28px}
+}
+
+#bib .ev-erreur{display:block;color:#ffb5ab;font:11px/1.45 Arial,sans-serif;margin:5px 0}
+#bib .ev-erreur:empty{display:none}
