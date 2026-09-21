@@ -41161,7 +41161,7 @@ var ONDE_STK=(function(){
         maximum:forme.max.map(function(a){return Math.max.apply(null,a);})}:null,
       resume:resume?JSON.parse(JSON.stringify(resume)):null};}};
 })();
-/* v270 — Témoins de départ des voix internes, pas de mesure sonore.
+/* v271 — Témoins de départ des voix internes, pas de mesure sonore.
    Appel après la programmation native, jamais pendant le rendu hors ligne.
    On ne relit PAS le motif : FX/SCATTER, silence, MIDI et notes superposées
    ont déjà été traités par la machine. Aucun nœud audio n'entre ici.
@@ -41261,9 +41261,11 @@ var RETOURS_FRAPPE=(function(){
     suivre(c);
     var maintenant=c.currentTime;
     if(t<maintenant-PERIME || t>maintenant+60){ignores++;return;}
-    var e={m:m,t:Math.max(maintenant,t),k:k,note:note,sig:sens(m)};
-    /* Les deux voix d'un unisson représentent une seule frappe. */
-    if(file.some(function(a){return a.m===m && a.k===k && a.note===note && Math.abs(a.t-e.t)<.0001;}))return;
+    var e={m:m,t:Math.max(maintenant,t),dateSource:t,k:k,note:note,sig:sens(m)};
+    /* v271 : reconnaître l'unisson par sa date audio d'origine, pas par
+       l'heure de réception : currentTime peut avancer entre ses deux voix.
+       Deux vrais départs proches restent distincts, même reçus en retard. */
+    if(file.some(function(a){return a.m===m && a.k===k && a.note===note && a.sig===e.sig && Math.abs(a.dateSource-e.dateSource)<.0001;}))return;
     file.push(e);file.sort(function(a,b){return a.t-b.t;});
     if(file.length>MAX){file.pop();ignores++;}
     if(minuterie!==null){clearTimeout(minuterie);minuterie=null;}
@@ -41338,7 +41340,7 @@ var RETOURS_FRAPPE=(function(){
   if(reduire.addEventListener)reduire.addEventListener("change",function(){effacer();});
   synchroniser();
   return {programmer:programmer,effacer:effacer,synchroniser:synchroniser,
-    inspecter:function(){return {version:270,mode:mode,masque:masque,file:file.length,impacts:impacts.size,appuis:appuis.size,
+    inspecter:function(){return {version:271,mode:mode,masque:masque,file:file.length,impacts:impacts.size,appuis:appuis.size,
       enAttente:raf!==null || minuterie!==null,frames:frames,signaux:signaux,ignores:ignores,reduction:reduire.matches};}};
 })();
 </script>

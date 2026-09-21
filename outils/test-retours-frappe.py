@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""v270 : appuis et déclenchements réels PO-33 / MC-101 / SmplTrek.
+"""v271 : appuis, déclenchements et unisson sans course avec le dessin.
 --contenu utilise un stockage temporaire et injecte la page en mémoire.
 Par défaut, navigation locale comme les autres suites GitHub.
 """
@@ -36,7 +36,7 @@ mc:{pistes:MC.pistes,sel:MC.sel,attente:MC.attente},stk:{pistes:STK.pistes,motif
 def main():
  ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--chromium');ap.add_argument('--contenu',action='store_true')
  ap.add_argument('--format');ap.add_argument('--rapport',type=Path);ap.add_argument('--captures',type=Path);a=ap.parse_args()
- total=0;erreurs=[]
+ total=0;erreurs=[];diagnostics=[]
  def v(ok,msg):
   nonlocal total
   total+=1
@@ -132,6 +132,10 @@ def main():
    pg.locator(GROUPES[m]+'>button').first.scroll_into_view_if_needed();pg.wait_for_timeout(80)
   def etat():return pg.evaluate('RETOURS_FRAPPE.inspecter()')
   def attendre():pg.wait_for_timeout(100)
+  def instant(expression):
+   # Action et relevé dans LA MÊME tâche JS : le dessin ne peut pas vider
+   # la file entre un appel Playwright et le suivant (régression v270).
+   return pg.evaluate('()=>{'+expression+';return RETOURS_FRAPPE.inspecter()}')
   ouvrir('ko')
   pg.evaluate("KO.sons[0]='absent270';voixKo(rfTemps,0,1)");attendre();v(etat()['impacts']==0 and etat()['file']==0,'KO sample absent sans témoin')
   pg.evaluate("KO.sons[0]='rfTest';KO_MODE='ptn';majKo();RETOURS_FRAPPE.synchroniser();voixKo(rfTemps,0,1)");attendre();v(etat()['impacts']==0,'KO PATTERN ne clignote pas comme un son')
@@ -139,20 +143,84 @@ def main():
   pg.evaluate("KO_MODE='son';KO.chroma=true;KO.chromaSource=0;majKo();RETOURS_FRAPPE.synchroniser();voixKo(rfTemps,0,1,-1,5)");attendre()
   v(pg.locator('#ko-pads>button').nth(12).locator('.rf-impact').evaluate('e=>+e.style.opacity>0'),'KO CHROMA correspond à la note, pas à la source')
   pg.evaluate("RETOURS_FRAPPE.effacer();voixKo(rfTemps,0,1,-1,12)");attendre();v(etat()['impacts']==0,'KO note hors clavier sans faux pad')
-  pg.evaluate("KO.chroma=false;majKo();RETOURS_FRAPPE.synchroniser();RETOURS_FRAPPE.effacer();jouerVoixFxKo('unison',rfTemps,0,0,0,1,.1)")
-  v(etat()['file']==1,'KO unisson : deux voix, une frappe');attendre()
-  pg.evaluate("RETOURS_FRAPPE.effacer();KO.motifs[0].pas[0]=1;KO.fxTenu=true;KO.fx=KO_FX.findIndex(x=>x[0]==='stutter4');scheduleKo(0,rfTemps+.08)")
-  v(etat()['file']==4,'KO répétition FX : quatre vrais départs')
-  pg.evaluate('arretKo()');v(etat()['file']==0,'KO STOP efface aussi les répétitions futures')
+  pg.evaluate("KO.chroma=false;majKo();RETOURS_FRAPPE.synchroniser();RETOURS_FRAPPE.effacer()")
+  pg.locator('#ko-pads>button').first.scroll_into_view_if_needed();attendre()
+  # Même chemin audio natif, deux timbres d'unisson, départ immédiat/futur.
+  # L'horloge peut avancer ENTRE les deux notifications, même sans frame JS.
+  for fx in ['unison','unisonLow']:
+   for delai,avance in [(0,0),(.08,0),(0,.003),(.08,.003)]:
+    cas={'fx':fx,'delai':delai,'avance':avance};nom='KO '+str(cas)+' : '
+    avant=pg.evaluate(DONNEES)
+    d=pg.evaluate("""cas=>{
+     RETOURS_FRAPPE.effacer();rfTemps+=1;
+     const date=rfTemps+cas.delai,avant=RETOURS_FRAPPE.inspecter().signaux;
+     const ancien=temoinFrappe;let appels=0,voix=0;
+     temoinFrappe=function(){
+      ancien.apply(this,arguments);appels++;
+      if(appels===1)rfTemps+=cas.avance;
+     };
+     try{voix=jouerVoixFxKo(cas.fx,date,0,0,0,1,.1)}
+     finally{temoinFrappe=ancien}
+     return {voix,appels,date,avant,instant:RETOURS_FRAPPE.inspecter()};
+    }""",cas)
+    diagnostics.append({'cas':cas,**d})
+    v(d['voix']==2 and d['appels']==2,nom+'deux voix natives notifiées')
+    v(d['instant']['file']==1 and d['instant']['impacts']==0,nom+'deux voix, une frappe en attente (relevé atomique)')
+    if delai:
+     attendre();e=etat()
+     v(e['file']==1 and e['impacts']==0 and e['signaux']==d['avant'],nom+'aucun allumage avant la date audio')
+     pg.evaluate('t=>{rfTemps=t}',d['date']+.001)
+    pg.wait_for_function('RETOURS_FRAPPE.inspecter().file===0 && RETOURS_FRAPPE.inspecter().impacts===1')
+    e=etat();v(e['signaux']==d['avant']+1,nom+'un seul départ traité après le dessin')
+    cible=pg.locator('#ko-pads>button').first.locator('.rf-impact')
+    v(cible.count()==1 and float(cible.evaluate('e=>e.style.opacity'))>0,nom+'un seul point visible sur le bon pad')
+    # Le dessin a explicitement eu lieu avant ce second relevé : la file
+    # doit être vide, pas égale à 1 comme le supposait l'ancien contrôle.
+    pg.evaluate('()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))')
+    e=etat();v(e['file']==0 and e['impacts']==1 and e['signaux']==d['avant']+1,nom+'lecture après deux frames sans faux échec ni doublon')
+    v(pg.evaluate(DONNEES)==avant,nom+'sons, motifs et sauvegardes inchangés')
+    pg.evaluate('rfTemps+=.25')
+    pg.wait_for_function('!RETOURS_FRAPPE.inspecter().enAttente')
+    v(etat()['impacts']==0,nom+'extinction puis repos')
+  # La date d'origine ne doit pas fusionner deux vrais départs proches.
+  # Ils peuvent être reçus dans le même tick, tous deux légèrement en retard.
+  for m in GROUPES:
+   ouvrir(m)
+   for genre in ['doublon','dates','notes','parties']:
+    nom=m+' dates stables '+genre+' : '
+    d=pg.evaluate("""({m,genre})=>{
+     RETOURS_FRAPPE.effacer();rfTemps+=1;
+     const date=rfTemps,avant=RETOURS_FRAPPE.inspecter().signaux;
+     if(genre==='doublon'){
+      RETOURS_FRAPPE.programmer(m,ctx,date,0,0);rfTemps+=.003;
+      RETOURS_FRAPPE.programmer(m,ctx,date,0,0);
+     }else if(genre==='dates'){
+      RETOURS_FRAPPE.programmer(m,ctx,date-.012,0,0);
+      RETOURS_FRAPPE.programmer(m,ctx,date-.006,0,0);
+     }else{
+      RETOURS_FRAPPE.programmer(m,ctx,date,0,0);
+      RETOURS_FRAPPE.programmer(m,ctx,date,genre==='parties'?1:0,genre==='notes'?1:0);
+     }
+     return {avant,instant:RETOURS_FRAPPE.inspecter()};
+    }""",{'m':m,'genre':genre})
+    attendu=1 if genre=='doublon' else 2
+    v(d['instant']['file']==attendu,nom+'nombre exact de départs avant dessin')
+    pg.wait_for_function('RETOURS_FRAPPE.inspecter().file===0')
+    v(etat()['signaux']==d['avant']+attendu,nom+'aucun départ perdu ou compté deux fois')
+    pg.evaluate(ARRET[m])
+  ouvrir('ko')
+  e=instant("RETOURS_FRAPPE.effacer();KO.motifs[0].pas[0]=1;KO.fxTenu=true;KO.fx=KO_FX.findIndex(x=>x[0]==='stutter4');scheduleKo(0,rfTemps+.08)")
+  v(e['file']==4,'KO répétition FX : quatre vrais départs')
+  e=instant('arretKo()');v(e['file']==0,'KO STOP efface aussi les répétitions futures')
   ouvrir('mc')
   pg.evaluate('MC.pistes[0].clips[0][0]=0;MC.pistes[0].muet=true;scheduleMc(0,rfTemps)');attendre();v(etat()['impacts']==0,'MC piste muette sans départ')
-  pg.evaluate('MC.pistes[0].muet=false;MC.scatOn=true;MC.scatProf=1;MC.scatType=3;scheduleMc(0,rfTemps+.08)');v(etat()['file']==4,'MC SCATTER : répétitions natives')
+  e=instant('MC.pistes[0].muet=false;MC.scatOn=true;MC.scatProf=1;MC.scatType=3;scheduleMc(0,rfTemps+.08)');v(e['file']==4,'MC SCATTER : répétitions natives')
   pg.evaluate('arretMc();MC.scatType=2;MC.scatOn=true;scheduleMc(1,rfTemps)');attendre();v(etat()['impacts']==0,'MC SCATTER : pas supprimé sans flash')
   pg.evaluate("MC.pistes[1].type='synth';MC.pistes[1].ech='absent270';voixMc(rfTemps,1,0,1)");attendre();v(etat()['impacts']==0,'MC sample absent sans flash')
   pg.evaluate("MC.pistes[1].ech='rfTest';voixMc(rfTemps,1,12,1)");attendre();v(etat()['impacts']==1,'MC sample transposé')
   pg.evaluate("RETOURS_FRAPPE.effacer();MC.pistes[1].ech='';voixMc(rfTemps,1,0,1)");attendre();v(etat()['impacts']==1,'MC synthé')
-  pg.evaluate("RETOURS_FRAPPE.effacer();MC.pistes[1].looper=true;MC.pistes[1].boucles[0]='rfTest';jouerBoucleMc(1,0,0,rfTemps+.08)");v(etat()['file']==1,'MC LOOPER : départ de boucle')
-  pg.evaluate('jouerBoucleMc(1,0,1,rfTemps+.08+stepDur())');v(etat()['file']==1,'MC LOOPER : pas de fausse nouvelle frappe à chaque pas')
+  e=instant("RETOURS_FRAPPE.effacer();MC.pistes[1].looper=true;MC.pistes[1].boucles[0]='rfTest';jouerBoucleMc(1,0,0,rfTemps+.08)");v(e['file']==1,'MC LOOPER : départ de boucle')
+  e=instant('jouerBoucleMc(1,0,1,rfTemps+.08+stepDur())');v(e['file']==1,'MC LOOPER : pas de fausse nouvelle frappe à chaque pas')
   ouvrir('stk')
   pg.evaluate('STK.motifs[0].pas[0]=1;STK.pistes[0].muet=true;scheduleStk(0,rfTemps)');attendre();v(etat()['impacts']==0,'STK MUTE sans départ')
   pg.evaluate('STK.solo=0;scheduleStk(0,rfTemps)');attendre();v(etat()['impacts']==1,'STK SOLO prioritaire comme le moteur')
@@ -164,9 +232,9 @@ def main():
   v(pg.evaluate('''()=>{let old=Element.prototype.getBoundingClientRect;Element.prototype.getBoundingClientRect=()=>{throw Error('géométrie interdite')};
    try{RETOURS_FRAPPE.programmer('stk',ctx,rfTemps,0,null);return true}finally{Element.prototype.getBoundingClientRect=old}}'''),'aucune géométrie dans le callback audio')
   v(pg.evaluate('''()=>{let old=temoinFrappe;temoinFrappe=()=>{throw Error('test')};try{voixStk(rfTemps,0,false,-1,0);return true}finally{temoinFrappe=old}}'''),'défaillance graphique sans exception musicale')
-  pg.evaluate('arretStk();for(let i=0;i<300;i++)RETOURS_FRAPPE.programmer("stk",ctx,rfTemps+.08+i*.001,0,null)')
-  v(etat()['file']==128,'file plafonnée à 128 départs');pg.evaluate('arretStk()')
-  pg.evaluate('RETOURS_FRAPPE.programmer("stk",ctx,rfTemps-1,0,null)');v(etat()['file']==0,'signal périmé ignoré')
+  e=instant('arretStk();for(let i=0;i<300;i++)RETOURS_FRAPPE.programmer("stk",ctx,rfTemps+.08+i*.001,0,null)')
+  v(e['file']==128,'file plafonnée à 128 départs');pg.evaluate('arretStk()')
+  e=instant('RETOURS_FRAPPE.programmer("stk",ctx,rfTemps-1,0,null)');v(e['file']==0,'signal périmé ignoré')
   v(pg.evaluate('''()=>{let old=temoinFrappe,n=0;temoinFrappe=()=>n++;Object.defineProperty(ctx,'startRendering',{configurable:true,value:function(){}});
    try{voixStk(rfTemps,0,false,-1,0);return n===0}finally{delete ctx.startRendering;temoinFrappe=old}}'''),'rendu hors ligne exclu avant appel graphique')
   pg.evaluate('RETOURS_FRAPPE.effacer();document.getElementById("unit-stk").dispatchEvent(new Event("scroll",{bubbles:true}))');v(not etat()['enAttente'],'défilement sans témoin résiduel')
@@ -179,8 +247,10 @@ def main():
   v(True,'horloge réelle : témoin au départ')
   pg.wait_for_function('!RETOURS_FRAPPE.inspecter().enAttente');v(True,'horloge réelle : extinction et repos')
   v(not errs,'Horloge réelle : aucune erreur');c.close();nav.close()
- rapport={'version':270,'verifications':total,'erreurs':erreurs,'formats':formats,'contenu_simule':a.contenu}
- if a.rapport:a.rapport.write_text(json.dumps(rapport,ensure_ascii=False,indent=2))
+ rapport={'version':271,'diagnostics_unisson':diagnostics,'verifications':total,'erreurs':erreurs,'formats':formats,'contenu_simule':a.contenu}
+ if a.rapport:
+  a.rapport.parent.mkdir(parents=True,exist_ok=True)
+  a.rapport.write_text(json.dumps(rapport,ensure_ascii=False,indent=2),encoding='utf-8')
  print(f'{total} vérifications ; {len(erreurs)} erreur(s).',flush=True)
  return bool(erreurs)
 if __name__=='__main__':raise SystemExit(main())

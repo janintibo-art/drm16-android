@@ -57,7 +57,7 @@ jobs:
           python outils/test-automations-machines.py
           python outils/test-ecrans-performance.py
           python outils/test-onde-smpltrek.py
-          python outils/test-retours-frappe.py
+          python outils/test-retours-frappe.py --rapport app/build/reports/retours-frappe.json
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble
