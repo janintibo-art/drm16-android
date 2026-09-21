@@ -31,6 +31,7 @@ css/270-automations-machines.css
 css/280-ecrans-performance.css
 css/290-onde-smpltrek.css
 css/300-retours-frappe.css
+css/310-reperes-effets-kaoss.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -181,6 +182,7 @@ js/700-automations-machines.js
 js/710-ecrans-performance.js
 js/720-onde-smpltrek.js
 js/730-retours-frappe.js
+js/740-reperes-effets-kaoss.js
 html/609-demarrage.html
 js/005-demarrage-projet.js
 html/610-fin.html

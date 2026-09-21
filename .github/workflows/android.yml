@@ -58,6 +58,7 @@ jobs:
           python outils/test-ecrans-performance.py
           python outils/test-onde-smpltrek.py
           python outils/test-retours-frappe.py --rapport app/build/reports/retours-frappe.json
+          python outils/test-reperes-kaoss.py --rapport app/build/reports/reperes-kaoss.json
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble

@@ -15,7 +15,7 @@ var KP_EFFETS = [
   ["grain",   "HACHOIR",              "X la vitesse, Y la profondeur"],
   ["ring",    "MODULATION EN ANNEAU", "X la fréquence, Y le mélange"],
   ["crush",   "RÉDUCTION",            "X la résolution, Y le mélange"],
-  ["verb",    "RÉVERBÉRATION",        "X la taille, Y le mélange"],
+  ["verb",    "RÉVERBÉRATION",        "X la brillance, Y le retour FX"],
   ["pitch",   "VITESSE",              "X la vitesse, Y le glissement"],
   /* v259 : sept effets de plus, repris des familles du KAOSS PAD (KP3) :
      ajoutés à la fin, pour que les mémoires et projets gardent leurs numéros */
