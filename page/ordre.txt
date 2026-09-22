@@ -34,6 +34,7 @@ css/300-retours-frappe.css
 css/310-reperes-effets-kaoss.css
 css/320-focus-mixage.css
 css/330-editeur-sons.css
+css/340-vue-ensemble.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html

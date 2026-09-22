@@ -1,5 +1,9 @@
 /* ================= mise à l'échelle ================= */
 function fit(){
+  /* v275 : un resize (ou un rappel différé) ne doit pas redimensionner la
+     dernière façade solo au milieu de la scène. La vue d'ensemble défile à
+     taille naturelle ; sa feuille de style disparaît dès qu'on la quitte. */
+  if(typeof ENS !== "undefined" && ENS && ENS.actif) return;
   var u = actif, large = (u === unit) ? "1040px" : "1120px";
   u.style.transform = "none";
   u.style.flex = "";

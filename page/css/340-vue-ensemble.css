@@ -1,0 +1,41 @@
+/* v275 — Vue des machines du set : visibilité explicite et scène défilante.
+   Toutes les règles sont limitées à body.ensemble. Aucun clone de façade,
+   aucune modification des commandes ou du traitement audio. */
+body.ensemble #scene{
+  position:fixed;
+  inset:calc(56px + env(safe-area-inset-top, 0px)) 0 calc(58px + env(safe-area-inset-bottom, 0px));
+  display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;
+  justify-content:flex-start;gap:18px;
+  width:auto;height:auto;min-width:0;min-height:0;max-width:none;max-height:none;
+  margin:0;padding:12px 16px 24px;overflow:auto;overscroll-behavior:contain;
+  scroll-padding:12px 16px;scrollbar-width:auto;scrollbar-color:#727780 #15171b;
+}
+/* Les styles de chaque machine les cachent par défaut. La sélection du set
+   devient ici prioritaire, y compris sur les styles inline du zoom solo. */
+body.ensemble #scene > [id^="unit"]:not(.ens-cache){
+  display:block !important;position:relative;flex:0 0 auto !important;
+  width:var(--ens-largeur,1120px) !important;max-width:none !important;
+  min-width:0;height:auto !important;max-height:none !important;
+  margin:0 !important;transform:none !important;
+}
+body.ensemble #scene > [id^="unit"].ens-cache{display:none !important}
+body.ensemble #unit{--ens-largeur:1040px}
+body.ensemble :is(#unit-emx,#unit-esx,#unit-mpc,#unit-tr808,#unit-eur){--ens-largeur:1180px}
+body.ensemble #unit-ko{--ens-largeur:520px}
+body.ensemble :is(#unit-mc,#unit-stk,#unit-kp){--ens-largeur:680px}
+/* Le pavé Kaoss a besoin d'une colonne flex, même sans body.kp. */
+body.ensemble #scene > #unit-kp:not(.ens-cache){
+  display:flex !important;flex-direction:column;min-height:580px;
+}
+body.ensemble #unit-kp .kp-pav{min-height:240px;height:auto}
+/* Les quatre façades mobiles ne doivent pas défiler à l'intérieur d'une
+   deuxième boîte de hauteur limitée, dans une scène qui défile déjà. */
+body.ensemble #scene > .ui-confort{overflow:visible}
+body.ensemble #scene::-webkit-scrollbar{display:block;width:12px;height:12px}
+body.ensemble #scene::-webkit-scrollbar-track{background:#15171b}
+body.ensemble #scene::-webkit-scrollbar-thumb{background:#727780;border:3px solid #15171b;border-radius:8px}
+body.ensemble #scene::-webkit-scrollbar-corner{background:#15171b}
+body.ensemble #ens-sortir{
+  bottom:max(8px,env(safe-area-inset-bottom, 0px));min-height:44px;
+}
+body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2px}

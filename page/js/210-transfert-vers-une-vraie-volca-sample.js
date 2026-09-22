@@ -233,14 +233,40 @@ function uniteDeVoie(id){
            td3:"unit-td3",   eur:"unit-eur"};
   return T[id] ? document.getElementById(T[id]) : null;
 }
+/* Certaines façades construisent leurs commandes à la première ouverture.
+   Les rendre visibles ne suffit donc pas si elles n'ont jamais été choisies
+   dans le menu. On construit seulement les commandes manquantes, à partir
+   de l'état courant : pas d'activerX() ou de STOP. La TR, seule à n'avoir
+   aucun motif en mémoire vive au démarrage, est chargée une fois si nécessaire. */
+function preparerFacadesEnsemble(choisies){
+  choisies.forEach(function(v){
+    var id = v[0];
+    if(id === "tr" && !document.getElementById("tr8-instr").childElementCount){
+      if(!TR.def){ TR.m = TR_MODELES[TR.m] ? TR.m : "tr808"; TR.def = TR_MODELES[TR.m]; }
+      if(!TR.pat) chargerTr();
+      construireTr(); majTr(); majKnobsTr();
+    } else if(id === "ko" && !document.getElementById("ko-pads").childElementCount){
+      majKo();
+    } else if(id === "stk" && !document.getElementById("stk-pads").childElementCount){
+      majStk(); majKnobsStk();
+    } else if(id === "mc" && !document.getElementById("mc-pads").childElementCount){
+      majMc(); majKnobsMc();
+    }
+  });
+}
 function ouvrirEnsemble(){
   var choisies = SET_VOIES.filter(function(v){ return SET.actives[v[0]]; });
   if(!choisies.length){ signal("CHOISISSEZ D'ABORD DES MACHINES"); return; }
   preparerSet();
   ENS.retour = S.modele;
   fermerTable();
-  /* Sans classe de machine sur le corps, plus rien n'est caché : on repart de
-     là et on masque nommément ce qu'on ne veut pas voir. */
+  /* v275 : la table peut être ouverte depuis le menu. Fermer seulement la
+     table laissait ce menu devant la scène, malgré le message de réussite. */
+  menu.classList.add("hide");
+  document.body.classList.remove("menu-ouvert");
+  /* La vue d'ensemble impose explicitement l'affichage des façades choisies
+     (340-vue-ensemble.css). Effacer les classes de machine ne suffit pas :
+     presque toutes les façades ont display:none par défaut. */
   poserMachine();
   var garder = {};
   choisies.forEach(function(v){
@@ -251,7 +277,12 @@ function ouvrirEnsemble(){
   for(var i=0;i<l.length;i++) l[i].classList.toggle("ens-cache", !garder[l[i].id]);
   ENS.actif = true;
   document.body.classList.add("ensemble");
-  signal(choisies.length + " MACHINES À L'ÉCRAN");
+  preparerFacadesEnsemble(choisies);
+  var scene = document.getElementById("scene");
+  if(scene){ scene.scrollTop = 0; scene.scrollLeft = 0; }
+  /* Le focus ne doit pas rester sur un bouton de la table désormais cachée. */
+  document.getElementById("ens-sortir").focus({preventScroll:true});
+  signal(choisies.length + " MACHINE" + (choisies.length > 1 ? "S" : "") + " DANS LA VUE");
 }
 function fermerEnsemble(){
   if(!ENS.actif) return;
