@@ -6,7 +6,9 @@
 
    Format : mods est une liste de [type, réglages], cables une liste de
    [rang de départ, prise de sortie, rang d'arrivée, prise d'entrée]. Les rangs
-   renvoient aux positions dans mods. bpm est facultatif. */
+   renvoient aux positions dans mods. bpm est facultatif.
+   v276 : rangees peut préciser la rangée (0 ou 1) de chaque module ; les
+   anciens montages sans ce champ gardent leur répartition habituelle. */
 var EUR_MONT_FAM = [["rythme","RYTHMES"],["basse","BASSES"],["nappe","AMBIANCES"],
                     ["etrange","TEXTURES"],["style","STYLES"]];
 var EUR_MONTAGES = [
@@ -296,6 +298,9 @@ function repartirRangees(seuil){
 /* Monte un patch complet d'un coup. On garde la même mécanique que partout :
    tout est reconstruit, ce qui est plus court et plus sûr que de rapiécer. */
 function eurMonter(P){
+  /* Un ensemble neuf repart au premier temps au prochain START, jamais au
+     milieu de l'ancienne phrase. Les anciens montages gardent leur conduite. */
+  if(P.fam === "ensemble") stop();
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
   var rangs = P.mods.map(function(x){
     var m = eurAjouter(x[0], true);
@@ -308,7 +313,9 @@ function eurMonter(P){
   });
   if(P.bpm){ S.bpm = P.bpm; kEurTempo.maj(); saveSoon(); }
   EUR.nom = P.nom;                    /* le rack prend le nom du montage */
-  repartirRangees();
+  if(P.rangees && P.rangees.length === EUR.mods.length){
+    EUR.mods.forEach(function(m, i){ m.r = P.rangees[i] === 1 ? 1 : 0; });
+  } else repartirRangees();
   eurBatir(); eurDessiner(); memEur(); majRackEur();
   lcdEur(P.nom, EUR.mods.length + " MODULES · RACK " + (EUR.cur + 1), true);
   signal(P.nom + " · " + P.res);
@@ -330,10 +337,29 @@ function eurMontages(){
   });
   c.appendChild(onglets);
   var fam = EUR.montFam || EUR_MONT_FAM[0][0];
+  if(fam === "ensemble"){
+    var aide = document.createElement("p");
+    aide.className = "eur-ensembles-aide";
+    aide.textContent = "Kick + percussion + charley + basse + mélodie. Choisissez un montage, puis START. " +
+      "MIX 4 du bas : A batterie · B basse · C mélodie. FOCUS agrandit ses réglages. " +
+      "Le rack courant sera remplacé après confirmation ; les sept autres restent intacts.";
+    c.appendChild(aide);
+  }
   EUR_MONTAGES.forEach(function(P){
     if(P.fam !== fam) return;
     var b = document.createElement("button");
-    b.innerHTML = P.nom + "<span>" + P.res + "</span>";
+    b.dataset.montage = P.id;
+    b.dataset.famille = P.fam;
+    b.textContent = P.nom;
+    if(P.fam === "ensemble"){
+      var meta = document.createElement("span");
+      meta.className = "eur-ensemble-meta";
+      meta.textContent = P.bpm + " BPM · " + P.tonalite + " · " + P.mods.length + " MODULES";
+      b.appendChild(meta);
+    }
+    var res = document.createElement("span");
+    res.textContent = P.res;
+    b.appendChild(res);
     b.addEventListener("click", function(){
       if(EUR.mods.length &&
          !window.confirm("Monter « " + P.nom + " » à la place de « " +

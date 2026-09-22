@@ -1,0 +1,11 @@
+/* v276 — montages complets : des cartes explicites, sans modifier le rack. */
+#eur-cat .eur-ensembles-aide{grid-column:1/-1;margin:0;padding:10px 12px;
+  color:#d8e1e6;background:#151e24;border:1px solid #41535e;border-radius:7px;
+  font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+#eur-cat button[data-famille="ensemble"]{min-height:112px;white-space:normal;
+  background:linear-gradient(155deg,#303b43,#1a2026);border:1px solid #62737b;
+  border-left:3px solid #ddb46a;font-size:12px;line-height:1.35;padding:12px}
+#eur-cat button[data-famille="ensemble"] span{font-size:11px;line-height:1.45;color:#d6dce1}
+#eur-cat button[data-famille="ensemble"] .eur-ensemble-meta{font-size:10px;
+  letter-spacing:.2px;color:#f2ce90;font-weight:700;margin:6px 0}
+#eur-cat button[data-famille="ensemble"]:focus-visible{outline:2px solid #f2ce90;outline-offset:-3px}

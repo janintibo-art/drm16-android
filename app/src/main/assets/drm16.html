@@ -3807,6 +3807,17 @@ body.ensemble #ens-sortir{
   bottom:max(8px,env(safe-area-inset-bottom, 0px));min-height:44px;
 }
 body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2px}
+/* v276 — montages complets : des cartes explicites, sans modifier le rack. */
+#eur-cat .eur-ensembles-aide{grid-column:1/-1;margin:0;padding:10px 12px;
+  color:#d8e1e6;background:#151e24;border:1px solid #41535e;border-radius:7px;
+  font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+#eur-cat button[data-famille="ensemble"]{min-height:112px;white-space:normal;
+  background:linear-gradient(155deg,#303b43,#1a2026);border:1px solid #62737b;
+  border-left:3px solid #ddb46a;font-size:12px;line-height:1.35;padding:12px}
+#eur-cat button[data-famille="ensemble"] span{font-size:11px;line-height:1.45;color:#d6dce1}
+#eur-cat button[data-famille="ensemble"] .eur-ensemble-meta{font-size:10px;
+  letter-spacing:.2px;color:#f2ce90;font-weight:700;margin:6px 0}
+#eur-cat button[data-famille="ensemble"]:focus-visible{outline:2px solid #f2ce90;outline-offset:-3px}
 </style>
 </head>
 <body>
@@ -7548,7 +7559,7 @@ Général) rend la chaîne entière, une fois.</p>
   <li><b>RACK ▾</b> — quel meuble, et que met-on dessus. <b>RACK 1</b> ouvre la liste des huit racks, avec leur nom et leur
   contenu. <b>NOMMER</b> baptise celui en cours, jusqu'à vingt-deux caractères ; le bouton et l'afficheur
   montrent alors ce nom, et les confirmations aussi — on sait ce qu'on s'apprête à écraser.
-  <b>MONTAGES</b> ouvre les vingt-quatre patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
+  <b>MONTAGES</b> ouvre les trente-deux patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
   <b>EXEMPLE</b> remonte le patch de démonstration. <b>VIDER</b> repart d'un rack nu, après confirmation,
   et seul le rack courant est touché.</li>
   <li><b>PATCH ▾</b> — ce qu'on a monté dedans. <b>AJOUTER</b> ouvre le catalogue des cent trois modules,
@@ -7574,12 +7585,39 @@ Général) rend la chaîne entière, une fois.</p>
   qu'un module en compte plus de six, il reste plus haut que l'écran. Pincez alors à deux doigts pour
   rétrécir la façade, puis déplacez-la d'un doigt posé sur le châssis.</p>
 
-  <h3>Vingt-quatre montages tout faits</h3>
+  <h3>Ensembles complets : kick, basse et mélodie</h3>
+  <p>Dans <b>RACK ▾ → MONTAGES → ENSEMBLES</b>, huit patchs réunissent une batterie,
+  une basse et une mélodie : <b>Techno mélodique, Acid &amp; Arpège, House nocturne,
+  Dub profond, Break mélodique, Électro minuit, Downtempo et Tribe harmonique</b>.</p>
+  <p>Choisissez un rack vide pour garder votre travail. Confirmez le remplacement, puis
+  appuyez sur <b>START</b>. Le chargement arrête la lecture ; le prochain départ commence
+  au premier temps. Les sept autres racks ne sont pas modifiés. Le tempo indiqué sur
+  la carte devient le <b>tempo général</b>, partagé avec la table de mixage.</p>
+  <p>Ce sont des modules et des câbles ordinaires, <b>pas des boucles enregistrées</b>.
+  Une CLOCK commune synchronise les trois parties. Deux SEQ 16 indépendants contiennent
+  les phrases de basse et de mélodie, préparées en <b>la mineur</b>. Suivant la subdivision
+  d'horloge, une phrase dure une, deux ou quatre mesures.</p>
+  <p><b>Rangée du haut :</b> horloge, rythmes, percussions, premier MIX 4, basse.
+  <b>Rangée du bas :</b> mélodie et effets, second MIX 4, LIMIT, OUTPUT.</p>
+  <p>Dans le <b>MIX 4 du haut</b>, A règle le kick, B le clap, la caisse claire ou la
+  percussion, C le charley. Dans le <b>MIX 4 du bas</b>, A règle toute la batterie,
+  B la basse et C la mélodie. D est libre dans les deux. Mettre une entrée à zéro la
+  coupe ; remonter son potard la rétablit. Le mode <b>FOCUS</b> agrandit ces réglages.</p>
+  <p>Dans le premier <b>SEQ 16</b>, changez la basse ; dans celui du bas, changez la
+  mélodie. Les potards de note couvrent 24 demi-tons. Les notes ne sont pas verrouillées
+  dans une gamme : une modification peut donc sortir du la mineur initial.</p>
+  <p>Les effets sont sur la mélodie pour garder le kick et la basse nets. L'écho est
+  calé au tempo du montage au chargement ; son réglage <b>TIME</b> reste un temps absolu
+  et ne suit pas automatiquement un changement de tempo ultérieur. LIMIT contient les
+  crêtes sans dispenser de régler les niveaux.</p>
+
+  <h3>Trente-deux montages tout faits</h3>
   <p>La liste s'ouvre <b>au-dessus du rack</b>, là où on la lit sans faire défiler la page.</p>
   <p>Un rack vide décourage : il faut connaître cent trois modules et savoir lesquels vont ensemble avant
-  d'entendre quoi que ce soit. <b>MONTAGES</b> donne des points de départ qui sonnent, rangés en cinq
+  d'entendre quoi que ce soit. <b>MONTAGES</b> donne des points de départ qui sonnent, rangés en six
   genres. Ils remplacent le rack courant — passez au rack suivant d'abord si vous tenez au vôtre.</p>
   <ul>
+  <li><b>ENSEMBLES</b> — les huit patchs complets détaillés ci-dessus.</li>
   <li><b>RYTHMES</b> — <i>Kick 4 au sol</i>, la grosse caisse sur chaque temps avec charley à contretemps ;
   <i>Polyrythme euclidien</i>, trois densités qui se recroisent lentement ; <i>Roulements</i>, une caisse
   claire qui part en roulement une fois sur trois.</li>
@@ -24987,7 +25025,9 @@ document.getElementById("eur-hasard").addEventListener("click", function(){ eurH
 
    Format : mods est une liste de [type, réglages], cables une liste de
    [rang de départ, prise de sortie, rang d'arrivée, prise d'entrée]. Les rangs
-   renvoient aux positions dans mods. bpm est facultatif. */
+   renvoient aux positions dans mods. bpm est facultatif.
+   v276 : rangees peut préciser la rangée (0 ou 1) de chaque module ; les
+   anciens montages sans ce champ gardent leur répartition habituelle. */
 var EUR_MONT_FAM = [["rythme","RYTHMES"],["basse","BASSES"],["nappe","AMBIANCES"],
                     ["etrange","TEXTURES"],["style","STYLES"]];
 var EUR_MONTAGES = [
@@ -25277,6 +25317,9 @@ function repartirRangees(seuil){
 /* Monte un patch complet d'un coup. On garde la même mécanique que partout :
    tout est reconstruit, ce qui est plus court et plus sûr que de rapiécer. */
 function eurMonter(P){
+  /* Un ensemble neuf repart au premier temps au prochain START, jamais au
+     milieu de l'ancienne phrase. Les anciens montages gardent leur conduite. */
+  if(P.fam === "ensemble") stop();
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
   var rangs = P.mods.map(function(x){
     var m = eurAjouter(x[0], true);
@@ -25289,7 +25332,9 @@ function eurMonter(P){
   });
   if(P.bpm){ S.bpm = P.bpm; kEurTempo.maj(); saveSoon(); }
   EUR.nom = P.nom;                    /* le rack prend le nom du montage */
-  repartirRangees();
+  if(P.rangees && P.rangees.length === EUR.mods.length){
+    EUR.mods.forEach(function(m, i){ m.r = P.rangees[i] === 1 ? 1 : 0; });
+  } else repartirRangees();
   eurBatir(); eurDessiner(); memEur(); majRackEur();
   lcdEur(P.nom, EUR.mods.length + " MODULES · RACK " + (EUR.cur + 1), true);
   signal(P.nom + " · " + P.res);
@@ -25311,10 +25356,29 @@ function eurMontages(){
   });
   c.appendChild(onglets);
   var fam = EUR.montFam || EUR_MONT_FAM[0][0];
+  if(fam === "ensemble"){
+    var aide = document.createElement("p");
+    aide.className = "eur-ensembles-aide";
+    aide.textContent = "Kick + percussion + charley + basse + mélodie. Choisissez un montage, puis START. " +
+      "MIX 4 du bas : A batterie · B basse · C mélodie. FOCUS agrandit ses réglages. " +
+      "Le rack courant sera remplacé après confirmation ; les sept autres restent intacts.";
+    c.appendChild(aide);
+  }
   EUR_MONTAGES.forEach(function(P){
     if(P.fam !== fam) return;
     var b = document.createElement("button");
-    b.innerHTML = P.nom + "<span>" + P.res + "</span>";
+    b.dataset.montage = P.id;
+    b.dataset.famille = P.fam;
+    b.textContent = P.nom;
+    if(P.fam === "ensemble"){
+      var meta = document.createElement("span");
+      meta.className = "eur-ensemble-meta";
+      meta.textContent = P.bpm + " BPM · " + P.tonalite + " · " + P.mods.length + " MODULES";
+      b.appendChild(meta);
+    }
+    var res = document.createElement("span");
+    res.textContent = P.res;
+    b.appendChild(res);
     b.addEventListener("click", function(){
       if(EUR.mods.length &&
          !window.confirm("Monter « " + P.nom + " » à la place de « " +
@@ -25504,6 +25568,145 @@ function activerEur(){
   setTimeout(function(){ fit(); eurCables(); }, 150);
 }
 
+/* ================= Ensembles Eurorack — v276 =================
+   Huit vrais patchs : batterie + basse + mélodie, pas des boucles audio.
+   Exclusivement les modules natifs et leurs prises publiques. La sauvegarde
+   reste {type,p,r,cables} ; aucun champ nouveau à importer ou à convertir.
+
+   Une seule CLOCK pilote toutes les parties. Les valeurs de SEQ 16 sont
+   des demi-tons / 24 (sa conversion native) : les deux phrases sont écrites
+   en la mineur, sans quantification par lecture d'un analyseur en avance.
+   Les subdivisions /2 et /4 de CLOCK commencent au premier pas, contrairement
+   à un diviseur qui attend plusieurs impulsions avant sa première sortie.
+
+   Rangée haute : horloge, batterie et basse.
+   Rangée basse : mélodie, effets, MIX 4 général, LIMIT, OUTPUT.
+   Les descriptions/repères sont des données du catalogue, pas du rack sauvé. */
+(function ajouterEnsemblesEur(){
+  "use strict";
+  var definitions = [
+    {id:"ens-techno", nom:"TECHNO MÉLODIQUE", bpm:128,
+     res:"Kick droit, clap et charley décalé ; basse ronde et réponse mélodique sur quatre mesures.",
+     kick:[4,0,.36,.32], caisse:"clap", hat:[4,2,.10],
+     basse:[0,0,7,0,0,3,0,7,5,5,12,5,3,3,10,7], bclk:"out2", bcut:.29, bq:.24, bdec:.072,
+     melodie:[12,7,3,7,10,7,3,0,8,5,0,5,10,7,3,7], mclk:"out4", voix:"wave", couleur:.28,
+     mcut:.57, mdec:.19, echo:.75, feed:.34, reverb:.22},
+    {id:"ens-acid", nom:"ACID & ARPÈGE", bpm:138,
+     res:"Kick sec, basse résonante avec glissando et saturation ; arpège cristallin à l'octave supérieure.",
+     kick:[4,0,.34,.22], caisse:"clap", hat:[8,1,.06],
+     basse:[0,0,7,0,3,0,10,7,0,12,0,7,5,3,0,10], bclk:"out", bcut:.19, bq:.58, bdec:.037, acide:true,
+     melodie:[0,7,12,15,12,7,3,7,5,12,17,12,10,7,3,7], mclk:"out2", voix:"fm2", couleur:.075,
+     mcut:.65, mdec:.09, echo:.75, feed:.3, reverb:.17},
+    {id:"ens-house", nom:"HOUSE NOCTURNE", bpm:122,
+     res:"Quatre au sol et charley sur les contretemps ; basse rebondissante, motif doux et écho court.",
+     kick:[4,0,.4,.28], caisse:"clap", hat:[4,2,.16],
+     basse:[0,7,0,12,3,7,3,10,5,12,5,7,3,10,7,3], bclk:"out2", bcut:.32, bq:.18, bdec:.09, bonde:"tri",
+     melodie:[7,12,15,12,3,7,10,7,5,8,12,8,3,7,10,7], mclk:"out2", voix:"wave", couleur:.06,
+     mcut:.66, mdec:.11, echo:.5, feed:.22, reverb:.2},
+    {id:"ens-dub", nom:"DUB PROFOND", bpm:110,
+     res:"Kick syncopé, rim et charley ; basse espacée et mélodie dont les échos remplissent les silences.",
+     kick:[3,0,.38,.4], caisse:"rim", hat:[4,2,.08],
+     basse:[0,0,7,0,3,3,10,3,5,5,12,5,3,3,7,0], bclk:"out4", bcut:.21, bq:.14, bdec:.19, bonde:"tri",
+     melodie:[12,7,3,0,10,7,3,7,12,8,5,0,10,7,3,0], mclk:"out4", voix:"fm2", couleur:.055,
+     mcut:.57, mdec:.15, echo:.75, feed:.56, reverb:.28},
+    {id:"ens-break", nom:"BREAK MÉLODIQUE", bpm:164,
+     res:"Grosse caisse à trois frappes par mesure, caisse claire régulière ; basse roulante et thème lumineux.",
+     kick:[3,0,.32,.19], caisse:"snare", hat:[8,1,.05],
+     basse:[0,0,7,0,3,0,10,7,5,5,12,5,3,3,7,0], bclk:"out2", bcut:.27, bq:.21, bdec:.057,
+     melodie:[12,10,7,3,7,10,15,12,8,12,17,12,10,7,3,7], mclk:"out4", voix:"wave", couleur:.31,
+     mcut:.62, mdec:.13, echo:.75, feed:.29, reverb:.21},
+    {id:"ens-electro", nom:"ÉLECTRO MINUIT", bpm:118,
+     res:"Kick décalé, snare et charley serré ; basse carrée filtrée et petite phrase FM métallique.",
+     kick:[3,2,.44,.23], caisse:"snare", hat:[8,0,.06],
+     basse:[0,12,0,7,3,0,10,7,5,12,5,0,3,10,7,0], bclk:"out2", bcut:.3, bq:.3, bdec:.075, bonde:"sqr",
+     melodie:[0,12,7,3,10,7,15,12,5,17,12,8,10,7,3,0], mclk:"out2", voix:"fm2", couleur:.11,
+     mcut:.66, mdec:.085, echo:.5, feed:.28, reverb:.16},
+    {id:"ens-down", nom:"DOWNTEMPO", bpm:90,
+     res:"Batterie lente et mate ; basse triangulaire profonde, notes de cloche et espace stéréo.",
+     kick:[3,0,.35,.4], caisse:"snare", hat:[8,1,.07],
+     basse:[0,0,7,0,3,3,10,3,5,5,12,5,3,3,7,0], bclk:"out4", bcut:.22, bq:.13, bdec:.24, bonde:"tri",
+     melodie:[12,7,3,7,10,7,3,0,8,12,5,0,10,7,3,7], mclk:"out4", voix:"fm2", couleur:.05,
+     mcut:.67, mdec:.23, echo:.75, feed:.32, reverb:.3},
+    {id:"ens-tribe", nom:"TRIBE HARMONIQUE", bpm:150,
+     res:"Kick droit, percussions euclidiennes à cinq frappes ; basse rapide et mélodie répétitive filtrée.",
+     kick:[4,0,.3,.26], caisse:"tom", caisseCoups:5, caisseDec:3, hat:[8,1,.075],
+     basse:[0,0,7,0,0,3,0,7,5,5,12,5,3,3,10,7], bclk:"out", bcut:.24, bq:.35, bdec:.032,
+     melodie:[0,3,7,12,7,3,10,7,5,8,12,17,12,8,10,7], mclk:"out2", voix:"wave", couleur:.4,
+     mcut:.48, mdec:.08, echo:.75, feed:.37, reverb:.18}
+  ];
+
+  function fabriquer(d){
+    var P = {id:d.id, nom:d.nom, fam:"ensemble", bpm:d.bpm, res:d.res,
+             tonalite:"LA MINEUR", mods:[], cables:[], rangees:[], reperes:{}};
+    function mod(cle, type, p, rangee){
+      var i = P.mods.length;
+      P.mods.push([type, p || {}]); P.rangees.push(rangee || 0); P.reperes[cle] = i;
+      return i;
+    }
+    function fil(a, sortie, b, entree){ P.cables.push([P.reperes[a], sortie, P.reperes[b], entree]); }
+    function notes(l){
+      var p = {lg:1};
+      for(var i=0;i<16;i++) p["n"+(i+1)] = l[i] / 24;
+      return p;
+    }
+    function rythme(cle, coups, dec){ mod(cle, "euclid", {pas:1,coups:coups/16,dec:dec/16}); }
+    mod("horloge", "clock");
+    rythme("rythmeKick", d.kick[0], d.kick[1]);
+    rythme("rythmeCaisse", d.caisseCoups || 2, d.caisseDec === undefined ? 4 : d.caisseDec);
+    rythme("rythmeHat", d.hat[0], d.hat[1]);
+    mod("kick", "kick", {tune:d.kick[2],dec:d.kick[3],niv:.88});
+    mod("caisse", d.caisse, {tune:d.caisse === "tom" ? .48 : .42,dec:.3,niv:.68});
+    mod("hat", "hat", {tune:.52,dec:d.hat[2],niv:.44});
+    mod("mixBatterie", "mix4", {a:.85,b:.66,c:.4,d:0});
+    mod("seqBasse", "seq16", notes(d.basse));
+    if(d.acide) mod("glisse", "slew", {t:.025});
+    mod("oscBasse", "vco", {oct:.5,fin:.5,fm:0});
+    mod("filtreBasse", "vcf", {cut:d.bcut,q:d.bq,mod:d.acide ? .72 : .28});
+    mod("envBasse", "ad", {a:.002,d:d.bdec});
+    mod("vcaBasse", "vca", {gain:0});
+    if(d.acide) mod("distBasse", "dist", {drv:.18,mix:.28});
+
+    mod("seqMelodie", "seq16", notes(d.melodie), 1);
+    mod("oscMelodie", d.voix, d.voix === "fm2" ? {oct:1,rap:3/7,idx:d.couleur} :
+        {oct:1,modele:d.couleur,harm:.18}, 1);
+    mod("filtreMelodie", "vcf", {cut:d.mcut,q:.14,mod:.2}, 1);
+    mod("envMelodie", "ad", {a:.006,d:d.mdec}, 1);
+    mod("vcaMelodie", "vca", {gain:0}, 1);
+    /* Calé au tempo INITIAL du montage. ECHO reste le module natif en temps
+       absolu : si le tempo change ensuite, TIME reste volontairement libre. */
+    mod("echoMelodie", "delay", {time:((60/d.bpm)*d.echo-.02)/1.2,fb:d.feed,mix:.26}, 1);
+    mod("reverbMelodie", "verb", {taille:.45,mix:d.reverb}, 1);
+    mod("panMelodie", "pan", {p:.12}, 1);
+    mod("mixGeneral", "mix4", {a:.68,b:d.bonde === "tri" ? .46 : .32,c:d.voix === "fm2" ? .37 : .5,d:0}, 1);
+    mod("limiteur", "limit", {seuil:.85,rap:.72}, 1);
+    mod("sortie", "out", {niv:.84}, 1);
+
+    ["rythmeKick","rythmeCaisse","rythmeHat"].forEach(function(c){ fil("horloge","out",c,"in"); });
+    fil("rythmeKick","out","kick","trig"); fil("rythmeCaisse","out","caisse","trig");
+    fil("rythmeHat","out","hat","trig");
+    fil("kick","out","mixBatterie","a"); fil("caisse","out","mixBatterie","b");
+    fil("hat","out","mixBatterie","c");
+    fil("horloge",d.bclk,"seqBasse","clk");
+    if(d.acide){ fil("seqBasse","cv","glisse","in"); fil("glisse","out","oscBasse","voct"); }
+    else fil("seqBasse","cv","oscBasse","voct");
+    fil("seqBasse","gate","envBasse","trig");
+    fil("oscBasse",d.bonde || "saw","filtreBasse","in");
+    fil("envBasse","out","filtreBasse","cv"); fil("filtreBasse","out","vcaBasse","in");
+    fil("envBasse","out","vcaBasse","cv");
+    if(d.acide){ fil("vcaBasse","out","distBasse","in"); fil("distBasse","out","mixGeneral","b"); }
+    else fil("vcaBasse","out","mixGeneral","b");
+    fil("horloge",d.mclk,"seqMelodie","clk"); fil("seqMelodie","cv","oscMelodie","voct");
+    fil("seqMelodie","gate","envMelodie","trig"); fil("oscMelodie","out","filtreMelodie","in");
+    fil("envMelodie","out","filtreMelodie","cv"); fil("filtreMelodie","out","vcaMelodie","in");
+    fil("envMelodie","out","vcaMelodie","cv"); fil("vcaMelodie","out","echoMelodie","in");
+    fil("echoMelodie","out","reverbMelodie","in"); fil("reverbMelodie","out","panMelodie","in");
+    fil("panMelodie","out","mixGeneral","c"); fil("mixBatterie","out","mixGeneral","a");
+    fil("mixGeneral","out","limiteur","in"); fil("limiteur","out","sortie","in");
+    return P;
+  }
+  EUR_MONT_FAM.unshift(["ensemble", "ENSEMBLES"]);
+  definitions.forEach(function(d){ EUR_MONTAGES.push(fabriquer(d)); });
+})();
 /* ================= Module Focus Eurorack — v262 =================
    Vue de commande uniquement : aucun clone de module audio, aucun eurBatir
    à l'ouverture/fermeture. Les paramètres restent dans les objets EUR.mods ;
