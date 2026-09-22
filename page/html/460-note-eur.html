@@ -38,11 +38,11 @@
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>cent trois modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>104 modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
-  <p>Il y a des différences avec un vrai rack, autant les dire. La rangée est <b>unique</b> et défile
+  <p>Il y a des différences avec un vrai rack, autant les dire. Le rack comporte <b>deux rangées</b> et défile
   horizontalement ; la largeur en HP dessine la façade mais ne limite rien, on peut ajouter des modules sans
   fin. Il n'y a <b>pas de polyphonie</b> : chaque oscillateur est une voix. Une entrée n'accepte
   <b>qu'un seul câble</b>, comme sur un vrai modulaire, alors qu'une sortie peut en alimenter plusieurs.
@@ -207,7 +207,7 @@
   <h3>Les portes se propagent</h3>
   <p>Un module qui reçoit une impulsion peut en émettre une à son tour. C'est ce qui permet d'enchaîner
   <b>horloge → diviseur → générateur euclidien → percussion</b>, chacun transformant ce qu'il reçoit avant
-  de le passer au suivant. La propagation est bornée à quatre cents étapes par pas : un câblage en boucle
+  de le passer au suivant. La propagation est bornée à neuf cents étapes par pas : un câblage en boucle
   ralentit, mais ne fait pas tourner l'application indéfiniment.</p>
   <p>Attention : seules les <b>sorties de déclenchement</b> se propagent ainsi. Une sortie CV porte bien sa
   tension dans le câble, mais elle ne réveille pas le module d'en face. D'où les modules à deux entrées
@@ -229,6 +229,44 @@
   double-croche, seize pas par mesure. Le module CLOCK sort une impulsion à chaque pas, plus deux sorties
   divisées par deux et par quatre — la croche et la noire. Pour des subdivisions plus fines, CLK MULT
   descend jusqu'au triolet de quadruple-croche.</p>
+
+  <h3>DRUM 32 : quatre pistes de batterie programmables</h3>
+  <p>Dans <b>AJOUTER → SÉQUENCEURS → DRUM 32</b>, ajoutez le module puis reliez une sortie
+  CLOCK à <b>CLK</b>. Les sorties <b>A, B, C et D</b> vont chacune vers le TRIG d'une percussion.
+  Elles transportent des impulsions, pas des sons : les percussions doivent rejoindre un MIX 4
+  puis OUTPUT. Une sortie peut aussi déclencher une enveloppe ou un autre séquenceur.</p>
+  <p>Touchez l'une des quatre pistes sur la façade, ou ouvrez <b>FOCUS</b>. Choisissez la piste,
+  puis <b>PAS 1–16</b> ou <b>PAS 17–32</b>. Le réglage <b>FRAPPES PAR PAS</b> choisit un coup
+  simple ou un roulement de deux, trois ou quatre coups. Touchez une case pour écrire cette valeur ;
+  un second appui avec la même valeur l'efface. Les chiffres ×2, ×3 et ×4 indiquent des frappes
+  répétées, pas des accents de volume.</p>
+  <p>Chaque piste a sa <b>LONGUEUR</b> de 1 à 32 pas, son <b>DÉCALAGE</b>, sa <b>PROBABILITÉ</b>
+  de 0 à 100 % et sa coupure indépendante. La coupure ne fige pas son compteur. Les pas situés
+  au-delà de la longueur restent en mémoire, prêts à revenir lorsqu'on agrandit le cycle.
+  La probabilité concerne le pas entier : les répétitions passent ou sont omises ensemble.</p>
+  <p><b>COPIER CETTE PAGE</b> remplace l'autre groupe de seize pas de la piste sélectionnée,
+  après confirmation. <b>VIDER LA PISTE</b> efface uniquement ses 32 pas, également après
+  confirmation. Les trois autres pistes et leurs réglages sont conservés.</p>
+  <p>Les départs sont programmés sur l'horloge audio. L'espacement des répétitions utilise le
+  dernier intervalle CLK reçu ; au premier CLK, il utilise la double-croche du tempo général.
+  Un changement brutal de division n'est donc pris en compte qu'au CLK suivant. Le témoin de pas
+  suit la position entendue, non les événements préparés en avance ; ce n'est pas un VU-mètre.</p>
+  <p><b>RST</b> remet les quatre compteurs avant leur premier pas. Le prochain CLK les fait
+  repartir ensemble. Un START depuis la façade reconstruit le rack et repart au début.
+  Les motifs DRUM 32 sont sauvegardés avec le rack et le projet.</p>
+
+  <h3>Deux montages avancés avec DRUM 32</h3>
+  <p><b>RACK ▾ → MONTAGES → AVANCÉS</b> propose <b>TECHNO 32 · VARIATIONS</b> et
+  <b>TRIBAL 32 · CYCLES</b>. Chacun contient 26 modules : kick, caisse claire ou tom,
+  charley, percussion, basse, mélodie, effets et sortie. DRUM 32 commande la batterie :
+  A = kick, B = caisse/tom, C = charley, D = percussion en écho.</p>
+  <p>Le premier montage utilise deux mesures avec roulements de fin de phrase et une percussion
+  de 24 pas à 75 % de probabilité. Le second superpose des cycles de <b>32, 15, 16 et 7 pas</b>.
+  Les deux SEQ 16 pilotent toujours la basse et la mélodie séparément. Un LFO déplace doucement
+  la mélodie dans le champ stéréo. Le MIX 4 de batterie règle A/B/C/D ; le MIX 4 général règle
+  A = batterie, B = basse, C = mélodie.</p>
+  <p>Choisissez un rack vide pour conserver le montage actuel. Ces deux exemples s'ajoutent
+  aux 32 précédents ; ils ne les remplacent pas. Appuyez ensuite sur <b>START</b>.</p>
 
   <h3>Quand ça ne sonne pas</h3>
   <p>Neuf fois sur dix, c'est l'un de ces six points :</p>

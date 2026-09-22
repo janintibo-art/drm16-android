@@ -300,7 +300,7 @@ function repartirRangees(seuil){
 function eurMonter(P){
   /* Un ensemble neuf repart au premier temps au prochain START, jamais au
      milieu de l'ancienne phrase. Les anciens montages gardent leur conduite. */
-  if(P.fam === "ensemble") stop();
+  if(P.fam === "ensemble" || P.fam === "avance") stop();
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
   var rangs = P.mods.map(function(x){
     var m = eurAjouter(x[0], true);
@@ -345,13 +345,21 @@ function eurMontages(){
       "Le rack courant sera remplacé après confirmation ; les sept autres restent intacts.";
     c.appendChild(aide);
   }
+  if(fam === "avance"){
+    var aideAv = document.createElement("p");
+    aideAv.className = "eur-ensembles-aide";
+    aideAv.textContent = "DRUM 32 : A kick · B caisse claire · C charley · D percussion. " +
+      "Touchez une piste pour programmer les pas dans FOCUS. Basse et mélodie ont leurs séquenceurs séparés. " +
+      "Choisissez un rack vide pour conserver votre montage actuel.";
+    c.appendChild(aideAv);
+  }
   EUR_MONTAGES.forEach(function(P){
     if(P.fam !== fam) return;
     var b = document.createElement("button");
     b.dataset.montage = P.id;
     b.dataset.famille = P.fam;
     b.textContent = P.nom;
-    if(P.fam === "ensemble"){
+    if(P.fam === "ensemble" || P.fam === "avance"){
       var meta = document.createElement("span");
       meta.className = "eur-ensemble-meta";
       meta.textContent = P.bpm + " BPM · " + P.tonalite + " · " + P.mods.length + " MODULES";

@@ -170,7 +170,7 @@ def main():
             pg.evaluate('eurExemple();EUR_FOCUS.ouvrir(3);poserRack(JSON.parse(JSON.stringify(rackCourant())));eurDessiner()');pg.wait_for_timeout(30)
             verifier(pg.evaluate('EUR_FOCUS.actif()===null'),prefixe+' : un rack rechargé avec les mêmes numéros ferme la vue obsolète')
             # Le dense SEQ16 et tous les types de module : affichage, sans bâtir
-            # 103 graphes audio. Aucun état utilisateur réel n’est employé.
+            # 104 graphes audio. Aucun état utilisateur réel n’est employé.
             result=pg.evaluate("""() => {
               const r=[];
               Object.keys(EUR_CAT).forEach((type,i)=>{
@@ -179,12 +179,12 @@ def main():
                 const root=document.querySelector('#eur-focus'),d=EUR_CAT[type],zone=root.querySelector('.ef-zone');
                 const bad=[...root.querySelectorAll('button,select,[role="slider"]')].filter(e=>e.getClientRects().length)
                   .filter(e=>{const r=e.getBoundingClientRect();return r.width<43.9||r.height<43.9;});
-                r.push({type,kn:root.querySelectorAll('[role="slider"]').length===d.kns.length,
+                r.push({type,kn:(d.interface ? root.querySelectorAll('.dr32-pas').length===16 && root.querySelectorAll('.dr32-piste').length===4 && root.querySelectorAll('.dr32-reglages select').length===4 : root.querySelectorAll('[role="slider"]').length===d.kns.length),
                   j:root.querySelectorAll('.ef-jack').length===d.jacks.length,bad:bad.length,
                   deborde:zone.scrollWidth-zone.clientWidth});
               });return r;
             }""")
-            verifier(len(result)==103 and all(x['kn'] and x['j'] and x['bad']==0 and x['deborde']<=1 for x in result),prefixe+' : 103 façades complètes et cibles confortables : '+str([x for x in result if not(x['kn'] and x['j']) or x['bad'] or x['deborde']>1]))
+            verifier(len(result)==104 and all(x['kn'] and x['j'] and x['bad']==0 and x['deborde']<=1 for x in result),prefixe+' : 104 façades complètes et cibles confortables : '+str([x for x in result if not(x['kn'] and x['j']) or x['bad'] or x['deborde']>1]))
             catalogue.append({'format':[largeur,hauteur],'types':len(result)})
             pg.evaluate('EUR_FOCUS.fermer(false);EUR.mods=[];EUR.cables=[];eurAjouter("seq16",true);eurDessiner();EUR_FOCUS.ouvrir(EUR.mods[0].id)')
             bas=pg.locator('.ef-jack').last
@@ -199,7 +199,7 @@ def main():
             verifier(pg.locator('#eur-focus-ouvrir').is_disabled(),prefixe+' : rack vide')
             verifier(not fautes_js,prefixe+' : JavaScript '+str(fautes_js))
             cas.append({'format':[largeur,hauteur],'mesure':mesure})
-            print('Contrôlé : '+prefixe+' · gestes, audio, câbles, cycle de vie et 103 types',flush=True)
+            print('Contrôlé : '+prefixe+' · gestes, audio, câbles, cycle de vie et 104 types',flush=True)
             ctx.close()
         nav.close()
     rapport={'formats':cas,'catalogue':catalogue,'erreurs':erreurs,'stockage_simule':args.contenu}

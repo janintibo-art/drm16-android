@@ -36,6 +36,7 @@ css/320-focus-mixage.css
 css/330-editeur-sons.css
 css/340-vue-ensemble.css
 css/350-ensembles-eurorack.css
+css/360-drum32-eurorack.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -144,6 +145,8 @@ js/430-traitements.js
 js/440-percussions.js
 js/450-montages-tout-faits.js
 js/452-ensembles-eurorack.js
+js/453-drum32-eurorack.js
+js/454-montages-drum32.js
 js/455-eurorack-focus.js
 js/460-behringer-td-3.js
 js/470-machine-d-archive.js

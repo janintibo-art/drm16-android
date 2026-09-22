@@ -3818,6 +3818,51 @@ body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2p
 #eur-cat button[data-famille="ensemble"] .eur-ensemble-meta{font-size:10px;
   letter-spacing:.2px;color:#f2ce90;font-weight:700;margin:6px 0}
 #eur-cat button[data-famille="ensemble"]:focus-visible{outline:2px solid #f2ce90;outline-offset:-3px}
+/* v279 : DRUM 32. Façade de repérage ; édition à l'échelle de l'écran dans FOCUS. */
+.dr32{min-width:0;color:#e8edf3;font:12px/1.4 system-ui,Arial,sans-serif}
+.dr32 [hidden]{display:none!important}
+.dr32-intro{font-size:10px;text-align:center;letter-spacing:.7px;color:#9bb0c5;margin:4px 0 10px}
+#unit-eur .dr32-resume{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;margin:5px 0;
+  padding:8px;border:1px solid #526170;border-radius:5px;background:linear-gradient(#323d49,#1b242e);
+  color:#eff4fa;touch-action:manipulation;box-shadow:inset 0 1px #ffffff16,0 2px 3px #0006;cursor:pointer}
+.dr32-resume .dr32-nom{font:800 17px/1.1 system-ui;min-width:20px;color:#edbd80}
+.dr32-points{flex:1;display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:3px}
+.dr32-points i{display:block;height:8px;border-radius:2px;background:#101923;border:1px solid #5a6a78}
+.dr32-points i.on{background:#dfae67;border-color:#f1d5a9}
+.dr32-points i.rafale{background:#82c8e7;border-color:#c4e9fa}
+.dr32-points i.hors{opacity:.3}
+.dr32-points i.courant{outline:2px solid #fff;outline-offset:1px}
+.dr32 .muette{opacity:.58}
+.dr32-etat{min-height:32px;margin:10px 0;padding:8px;border:1px solid #435868;border-radius:4px;
+  background:#111b25;color:#c8e6fa;font:700 11px/1.5 system-ui;overflow-wrap:anywhere}
+#eur-focus .ef-knobs.ef-surmesure{display:block;min-width:0}
+#eur-focus .dr32 button,#eur-focus .dr32 select{min-height:44px;min-width:44px;max-width:100%;padding:7px 5px;
+  font-size:11px;letter-spacing:0;touch-action:manipulation}
+#eur-focus .dr32 button:focus-visible,#eur-focus .dr32 select:focus-visible{outline:3px solid #b2e5ff;outline-offset:1px}
+.dr32-pistes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:9px}
+.dr32-pages,.dr32-reglages,.dr32-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+#eur-focus .dr32 [aria-pressed="true"]{border-color:#e1b578;background:linear-gradient(#f1d39e,#cfa766);color:#1b232e}
+#eur-focus .dr32 .dr32-piste.muette{opacity:1;box-shadow:inset 0 -4px #b95d68}
+.dr32-reglages label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.dr32-reglages label>span{font-size:10px;font-weight:700;letter-spacing:.25px;color:#c3d0dd}
+#eur-focus .dr32-reglages select{width:100%;min-width:0;background:#121c28;color:#edf5ff}
+#eur-focus .dr32-mute{width:100%;margin:6px 0 12px}
+#eur-focus .dr32-mute[aria-pressed="true"]{background:#743944;border-color:#cf8491;color:#fff0f2}
+.dr32-grille{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#eur-focus button.dr32-pas{position:relative;display:flex;flex-direction:column;justify-content:space-between;
+  align-items:center;min-width:44px;min-height:58px;padding:5px 2px;border-radius:5px;
+  background:linear-gradient(#394654,#202b38);border-color:#65778b;color:#b8c9d8;box-shadow:inset 0 1px #ffffff24,0 2px 3px #0007}
+.dr32-num{font:700 10px/1 system-ui}
+.dr32-coups{font:800 17px/1.4 system-ui}
+#eur-focus .dr32-pas[aria-pressed="true"]{color:#162331;background:linear-gradient(#efd5aa,#cfab73);border-color:#ffe3b2}
+#eur-focus .dr32-pas.rafale{background:linear-gradient(#b5e2ef,#76afc9);border-color:#d0f0fc}
+#eur-focus .dr32-pas.hors{opacity:.45;border-style:dashed}
+#eur-focus .dr32-pas.courant{outline:3px solid #eff9ff;outline-offset:-2px}
+#eur-focus .dr32-pas.courant::after{content:"";position:absolute;top:3px;right:3px;width:5px;height:5px;background:#fff;border-radius:50%}
+.dr32-aide{margin:12px 0 4px;font-size:11px;line-height:1.55;color:#c2cfdd}
+@media(min-width:900px){.dr32-grille{grid-template-columns:repeat(8,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.dr32 *{transition:none!important;animation:none!important}}
+#eur-cat button[data-famille="avance"]{border-color:#697f96;box-shadow:inset 3px 0 #dbb176}
 </style>
 </head>
 <body>
@@ -7508,11 +7553,11 @@ Général) rend la chaîne entière, une fois.</p>
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>cent trois modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>104 modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
-  <p>Il y a des différences avec un vrai rack, autant les dire. La rangée est <b>unique</b> et défile
+  <p>Il y a des différences avec un vrai rack, autant les dire. Le rack comporte <b>deux rangées</b> et défile
   horizontalement ; la largeur en HP dessine la façade mais ne limite rien, on peut ajouter des modules sans
   fin. Il n'y a <b>pas de polyphonie</b> : chaque oscillateur est une voix. Une entrée n'accepte
   <b>qu'un seul câble</b>, comme sur un vrai modulaire, alors qu'une sortie peut en alimenter plusieurs.
@@ -7677,7 +7722,7 @@ Général) rend la chaîne entière, une fois.</p>
   <h3>Les portes se propagent</h3>
   <p>Un module qui reçoit une impulsion peut en émettre une à son tour. C'est ce qui permet d'enchaîner
   <b>horloge → diviseur → générateur euclidien → percussion</b>, chacun transformant ce qu'il reçoit avant
-  de le passer au suivant. La propagation est bornée à quatre cents étapes par pas : un câblage en boucle
+  de le passer au suivant. La propagation est bornée à neuf cents étapes par pas : un câblage en boucle
   ralentit, mais ne fait pas tourner l'application indéfiniment.</p>
   <p>Attention : seules les <b>sorties de déclenchement</b> se propagent ainsi. Une sortie CV porte bien sa
   tension dans le câble, mais elle ne réveille pas le module d'en face. D'où les modules à deux entrées
@@ -7699,6 +7744,44 @@ Général) rend la chaîne entière, une fois.</p>
   double-croche, seize pas par mesure. Le module CLOCK sort une impulsion à chaque pas, plus deux sorties
   divisées par deux et par quatre — la croche et la noire. Pour des subdivisions plus fines, CLK MULT
   descend jusqu'au triolet de quadruple-croche.</p>
+
+  <h3>DRUM 32 : quatre pistes de batterie programmables</h3>
+  <p>Dans <b>AJOUTER → SÉQUENCEURS → DRUM 32</b>, ajoutez le module puis reliez une sortie
+  CLOCK à <b>CLK</b>. Les sorties <b>A, B, C et D</b> vont chacune vers le TRIG d'une percussion.
+  Elles transportent des impulsions, pas des sons : les percussions doivent rejoindre un MIX 4
+  puis OUTPUT. Une sortie peut aussi déclencher une enveloppe ou un autre séquenceur.</p>
+  <p>Touchez l'une des quatre pistes sur la façade, ou ouvrez <b>FOCUS</b>. Choisissez la piste,
+  puis <b>PAS 1–16</b> ou <b>PAS 17–32</b>. Le réglage <b>FRAPPES PAR PAS</b> choisit un coup
+  simple ou un roulement de deux, trois ou quatre coups. Touchez une case pour écrire cette valeur ;
+  un second appui avec la même valeur l'efface. Les chiffres ×2, ×3 et ×4 indiquent des frappes
+  répétées, pas des accents de volume.</p>
+  <p>Chaque piste a sa <b>LONGUEUR</b> de 1 à 32 pas, son <b>DÉCALAGE</b>, sa <b>PROBABILITÉ</b>
+  de 0 à 100 % et sa coupure indépendante. La coupure ne fige pas son compteur. Les pas situés
+  au-delà de la longueur restent en mémoire, prêts à revenir lorsqu'on agrandit le cycle.
+  La probabilité concerne le pas entier : les répétitions passent ou sont omises ensemble.</p>
+  <p><b>COPIER CETTE PAGE</b> remplace l'autre groupe de seize pas de la piste sélectionnée,
+  après confirmation. <b>VIDER LA PISTE</b> efface uniquement ses 32 pas, également après
+  confirmation. Les trois autres pistes et leurs réglages sont conservés.</p>
+  <p>Les départs sont programmés sur l'horloge audio. L'espacement des répétitions utilise le
+  dernier intervalle CLK reçu ; au premier CLK, il utilise la double-croche du tempo général.
+  Un changement brutal de division n'est donc pris en compte qu'au CLK suivant. Le témoin de pas
+  suit la position entendue, non les événements préparés en avance ; ce n'est pas un VU-mètre.</p>
+  <p><b>RST</b> remet les quatre compteurs avant leur premier pas. Le prochain CLK les fait
+  repartir ensemble. Un START depuis la façade reconstruit le rack et repart au début.
+  Les motifs DRUM 32 sont sauvegardés avec le rack et le projet.</p>
+
+  <h3>Deux montages avancés avec DRUM 32</h3>
+  <p><b>RACK ▾ → MONTAGES → AVANCÉS</b> propose <b>TECHNO 32 · VARIATIONS</b> et
+  <b>TRIBAL 32 · CYCLES</b>. Chacun contient 26 modules : kick, caisse claire ou tom,
+  charley, percussion, basse, mélodie, effets et sortie. DRUM 32 commande la batterie :
+  A = kick, B = caisse/tom, C = charley, D = percussion en écho.</p>
+  <p>Le premier montage utilise deux mesures avec roulements de fin de phrase et une percussion
+  de 24 pas à 75 % de probabilité. Le second superpose des cycles de <b>32, 15, 16 et 7 pas</b>.
+  Les deux SEQ 16 pilotent toujours la basse et la mélodie séparément. Un LFO déplace doucement
+  la mélodie dans le champ stéréo. Le MIX 4 de batterie règle A/B/C/D ; le MIX 4 général règle
+  A = batterie, B = basse, C = mélodie.</p>
+  <p>Choisissez un rack vide pour conserver le montage actuel. Ces deux exemples s'ajoutent
+  aux 32 précédents ; ils ne les remplacent pas. Appuyez ensuite sur <b>START</b>.</p>
 
   <h3>Quand ça ne sonne pas</h3>
   <p>Neuf fois sur dix, c'est l'un de ces six points :</p>
@@ -10646,6 +10729,8 @@ function stop(){
   if(typeof MACHINE_MC !== "undefined" && MACHINE_MC && MACHINE !== MACHINE_MC) MACHINE_MC.arret();
   if(typeof MACHINE_STK !== "undefined" && MACHINE_STK && MACHINE !== MACHINE_STK) MACHINE_STK.arret();
   if(typeof MACHINE_KP !== "undefined" && MACHINE_KP && MACHINE !== MACHINE_KP) MACHINE_KP.arret();
+  /* v279 : annuler aussi les portes DRUM 32 quand le rack joue dans un SET. */
+  if(typeof MACHINE_EUR !== "undefined" && MACHINE_EUR && MACHINE !== MACHINE_EUR) MACHINE_EUR.arret();
   host(false);
   midiHorloge(false);
 }
@@ -24753,6 +24838,8 @@ function eurSortie(id, o, t){
 }
 function beatEur(i){ EUR.pos = i; }
 function arretEur(){
+  /* v279 : seuls les modules qui offrent cet arrêt sont concernés. */
+  EUR.mods.forEach(function(m){if(m.arreter) m.arreter();});
   var b = document.getElementById("eur-play");
   if(b) b.classList.remove("on");
 }
@@ -24777,10 +24864,12 @@ function eurDessiner(){
     e.dataset.i = i;
     var h = "<b>" + d.nom + "</b>";
     /* deux colonnes dès que la pile deviendrait plus haute que l'écran */
-    var deuxCol = d.kns.length > 6;
+    var controles = d.interface ? [] : d.kns;
+    if(d.interface) h += '<div class="eur-surmesure"></div>';
+    var deuxCol = controles.length > 6;
     if(deuxCol) h += '<div class="eur-kns2" style="grid-template-rows:repeat(' +
-                     Math.ceil(d.kns.length / 2) + ',auto)">';
-    d.kns.forEach(function(k){
+                     Math.ceil(controles.length / 2) + ',auto)">';
+    controles.forEach(function(k){
       /* la poignée est le bloc entier, étiquette comprise : le bouton seul fait
          vingt-six pixels, et bien moins une fois le rack mis à l'échelle */
       h += '<div class="eur-kn" id="eur-k-' + m.id + '-' + k[0] + '"><div class="bt"><i></i></div>' +
@@ -24795,9 +24884,11 @@ function eurDessiner(){
     h += "</div>";
     e.innerHTML = h;
     rangees[m.r === 1 ? 1 : 0].appendChild(e);
+    if(d.interface) d.interface(e.querySelector(".eur-surmesure"),m,false);
   });
   EUR.mods.forEach(function(m){
     var d = EUR_CAT[m.type];
+    if(d.interface) return;
     d.kns.forEach(function(k){
       var id = "eur-k-" + m.id + "-" + k[0];
       if(!document.getElementById(id)) return;
@@ -24875,6 +24966,7 @@ function majLcdEur(){
 (function gestesEur(){
   var piste = document.getElementById("eur-piste");
   piste.addEventListener("click", function(e){
+    if(e.target.closest(".eur-surmesure")) return;
     var j = e.target.closest(".eur-j");
     if(j){
       var id = +j.dataset.m, nom = j.dataset.j, sortie = j.dataset.s === "1";
@@ -25398,7 +25490,7 @@ function repartirRangees(seuil){
 function eurMonter(P){
   /* Un ensemble neuf repart au premier temps au prochain START, jamais au
      milieu de l'ancienne phrase. Les anciens montages gardent leur conduite. */
-  if(P.fam === "ensemble") stop();
+  if(P.fam === "ensemble" || P.fam === "avance") stop();
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
   var rangs = P.mods.map(function(x){
     var m = eurAjouter(x[0], true);
@@ -25443,13 +25535,21 @@ function eurMontages(){
       "Le rack courant sera remplacé après confirmation ; les sept autres restent intacts.";
     c.appendChild(aide);
   }
+  if(fam === "avance"){
+    var aideAv = document.createElement("p");
+    aideAv.className = "eur-ensembles-aide";
+    aideAv.textContent = "DRUM 32 : A kick · B caisse claire · C charley · D percussion. " +
+      "Touchez une piste pour programmer les pas dans FOCUS. Basse et mélodie ont leurs séquenceurs séparés. " +
+      "Choisissez un rack vide pour conserver votre montage actuel.";
+    c.appendChild(aideAv);
+  }
   EUR_MONTAGES.forEach(function(P){
     if(P.fam !== fam) return;
     var b = document.createElement("button");
     b.dataset.montage = P.id;
     b.dataset.famille = P.fam;
     b.textContent = P.nom;
-    if(P.fam === "ensemble"){
+    if(P.fam === "ensemble" || P.fam === "avance"){
       var meta = document.createElement("span");
       meta.className = "eur-ensemble-meta";
       meta.textContent = P.bpm + " BPM · " + P.tonalite + " · " + P.mods.length + " MODULES";
@@ -25786,13 +25886,317 @@ function activerEur(){
   EUR_MONT_FAM.unshift(["ensemble", "ENSEMBLES"]);
   definitions.forEach(function(d){ EUR_MONTAGES.push(fabriquer(d)); });
 })();
+/* ================= DRUM 32 — v279 =================
+   Quatre pistes de 32 pas. Les paramètres restent numériques dans m.p :
+   rackCourant/poserRack, les huit emplacements et les projets les conservent
+   sans nouveau format. Les 103 modules précédents ne changent pas de recette.
+   Un pas vaut 0 (silence) ou 1 à 4 frappes, aux dates de l'horloge audio.
+   Les répétitions utilisent l'intervalle CLK précédent (stepDur au premier
+   CLK) ; un changement brusque d'horloge ne peut pas être prédit à l'avance. */
+var EUR_DRUM32 = (function(){
+  var lettres = ["a","b","c","d"], noms = ["A","B","C","D"];
+  var exemples = ["10001000100010001000100010001000",
+                  "00001000000010000000100000001234",
+                  "01010101010101010101010101010101",
+                  "00000010000000000000001000000020"];
+  var kns = [];
+  lettres.forEach(function(c, voie){
+    kns.push([c+"len", noms[voie]+" LEN", 1,32,32],
+             [c+"shift", noms[voie]+" ROT", 0,31,0],
+             [c+"chance", noms[voie]+" CHANCE", 0,100,100],
+             [c+"mute", noms[voie]+" MUTE", 0,1,0]);
+    for(var i=1;i<=32;i++) kns.push([c+i,noms[voie]+" "+i,0,4,+exemples[voie].charAt(i-1)]);
+  });
+  function entier(v, min, max, def){
+    return Number.isFinite(v) ? Math.max(min,Math.min(max,Math.round(v))) : def;
+  }
+  function normaliser(m){
+    if(!m.p) m.p={};
+    kns.forEach(function(k){ m.p[k[0]]=entier(m.p[k[0]],k[2],k[3],k[4]); });
+  }
+  function creer(m){
+    normaliser(m);
+    var ports={ta:eurConst(0),tb:eurConst(0),tc:eurConst(0),td:eurConst(0)};
+    var etat=m.drum32={pos:[-1,-1,-1,-1], dernier:null, dates:[], entendu:null};
+    function eteindre(t){
+      Object.keys(ports).forEach(function(k){
+        ports[k].offset.cancelScheduledValues(t); ports[k].offset.setValueAtTime(0,t);
+      });
+    }
+    m.arreter=function(){
+      var t=ctx ? maintenantAudio() : 0;
+      eteindre(t); etat.pos=[-1,-1,-1,-1]; etat.dernier=null;
+      etat.dates=[]; etat.entendu=null; reveiller();
+    };
+    m.recevoir=function(t, entree){
+      if(!Number.isFinite(t) || t<0) return null;
+      if(entree==="rst"){
+        eteindre(t); etat.pos=[-1,-1,-1,-1]; etat.dernier=null;
+        etat.dates=etat.dates.filter(function(e){return e.t<t;});
+        if(!ctx || typeof ctx.startRendering!=="function") etat.dates.push({t:t,pos:[-1,-1,-1,-1],coups:[0,0,0,0]});
+        reveiller(); return null;
+      }
+      if(entree!=="clk") return null;
+      /* Une boucle de câblage ne doit pas faire avancer 900 pas au même instant. */
+      if(etat.dernier!==null && t<=etat.dernier+0.0000001) return null;
+      var intervalle=etat.dernier===null ? stepDur() : t-etat.dernier;
+      intervalle=Math.max(.001,Math.min(60,intervalle)); etat.dernier=t;
+      var sorties=[], positions=[], coups=[];
+      lettres.forEach(function(c, v){
+        var L=entier(m.p[c+"len"],1,32,32), decal=entier(m.p[c+"shift"],0,31,0)%L;
+        etat.pos[v]=(etat.pos[v]+1)%L;
+        var pas=(etat.pos[v]+decal)%L, n=entier(m.p[c+(pas+1)],0,4,0);
+        var chance=entier(m.p[c+"chance"],0,100,100);
+        if(m.p[c+"mute"]>=.5 || chance===0 || (n>0 && chance<100 && Math.random()*100>=chance)) n=0;
+        positions.push(pas); coups.push(n);
+        for(var j=0;j<n;j++){
+          var date=t+j*intervalle/n;
+          eurPorte(ports["t"+c],date,Math.min(.012,intervalle/n*.45));
+          sorties.push(["t"+c,date]);
+        }
+      });
+      /* Hors ligne : aucun historique graphique ne grossit avec le morceau. */
+      if(!ctx || typeof ctx.startRendering!=="function"){
+        etat.dates.push({t:t,pos:positions,coups:coups});
+        if(etat.dates.length>128) etat.dates.splice(0,etat.dates.length-128);
+        reveiller();
+      }
+      sorties.sort(function(a,b){return a[1]-b[1];});
+      return sorties;
+    };
+    return {e:{clk:eurGain(1),rst:eurGain(1)},s:ports};
+  }
+
+  /* Un seul ordonnanceur graphique, uniquement lorsqu'une vue est visible.
+     Les dates sont consommées à l'heure audio, jamais au moment du look-ahead. */
+  var vues=[], raf=0;
+  function visible(v){
+    if(typeof document==="undefined" || document.hidden || !v.el.isConnected || EUR.mods.indexOf(v.m)<0) return false;
+    if(document.body.classList.contains("menu-ouvert")) return false;
+    if(v.grand) return v.el.closest("#eur-focus").classList.contains("show");
+    return !panneauVisible() && v.el.getClientRects().length>0 &&
+      (S.modele==="eur" || (typeof ENS!=="undefined" && ENS.actif));
+  }
+  function dessinerTemps(){
+    raf=0;
+    vues=vues.filter(function(v){return v.el.isConnected && EUR.mods.indexOf(v.m)>=0;});
+    var maintenant=ctx ? maintenantAudio() : 0;
+    var actifs=vues.filter(visible);
+    actifs.forEach(function(v){
+      var d=v.m.drum32;
+      if(d) while(d.dates.length && d.dates[0].t<=maintenant) d.entendu=d.dates.shift();
+      v.temps(S.run && ctx && ctx.state==="running" && d ? d.entendu : null);
+    });
+    if(actifs.length && S.run && ctx && ctx.state==="running") raf=requestAnimationFrame(dessinerTemps);
+  }
+  function reveiller(){
+    if(typeof document==="undefined" || typeof requestAnimationFrame!=="function" || raf) return;
+    /* Le contrôle visible inclut les overlays : aucun rAF au repos sous MENU. */
+    if(vues.some(visible)) raf=requestAnimationFrame(dessinerTemps);
+  }
+  function rafraichir(m){
+    vues=vues.filter(function(v){return v.el.isConnected && EUR.mods.indexOf(v.m)>=0;});
+    vues.forEach(function(v){if(v.m===m) v.maj();}); reveiller();
+  }
+  function element(nom,classe,texte){
+    var e=document.createElement(nom); if(classe) e.className=classe;
+    if(texte!==undefined) e.textContent=texte; return e;
+  }
+  function bouton(parent,texte,fn,classe){
+    var e=element("button",classe||"",texte);e.type="button";
+    e.addEventListener("click",function(ev){ev.stopPropagation();fn();});parent.appendChild(e);return e;
+  }
+  function interfaceModule(parent,m,grand){
+    var el=element("div","dr32"+(grand?" dr32-editeur":" dr32-mini"));
+    el.dataset.module=m.id; parent.appendChild(el);
+    var voie=entier(m.drum32Voie,0,3,0), page=0, outil=1;
+    var lignes=[], cellules=[], selection={}, etatTexte;
+    function valide(){return EUR.mods.indexOf(m)>=0;}
+    function modifier(cle,val){
+      if(!valide()) return;
+      m.p[cle]=val; memEur(); rafraichir(m);
+    }
+    function choisir(v){voie=v;m.drum32Voie=v;maj();reveiller();}
+    if(!grand){
+      el.appendChild(element("p","dr32-intro","4 PISTES · 32 PAS · ROULEMENTS"));
+      lettres.forEach(function(c,v){
+        var b=bouton(el,"",function(){
+          if(!valide()) return;m.drum32Voie=v;
+          if(typeof EUR_FOCUS!=="undefined") EUR_FOCUS.ouvrir(m.id);
+        },"dr32-resume");
+        b.dataset.voie=v;
+        var nom=element("span","dr32-nom",noms[v]), points=element("span","dr32-points");
+        for(var i=0;i<32;i++) points.appendChild(element("i",""));
+        b.appendChild(nom);b.appendChild(points);lignes.push(b);
+      });
+      etatTexte=element("p","dr32-etat","TOUCHEZ UNE PISTE POUR L'ÉDITER");el.appendChild(etatTexte);
+    }else{
+      var pistes=element("div","dr32-pistes");el.appendChild(pistes);
+      lettres.forEach(function(c,v){
+        var b=bouton(pistes,"PISTE "+noms[v],function(){choisir(v);},"dr32-piste");
+        b.dataset.voie=v;lignes.push(b);
+      });
+      var navigation=element("div","dr32-pages");el.appendChild(navigation);
+      [0,1].forEach(function(n){
+        var b=bouton(navigation,n?"PAS 17–32":"PAS 1–16",function(){page=n;maj();reveiller();});
+        b.dataset.page=n;
+      });
+      var cadre=element("div","dr32-reglages");el.appendChild(cadre);
+      function select(cle,titre,valeurs,fn){
+        var label=element("label",""),nom=element("span","",titre),s=element("select","");
+        s.setAttribute("aria-label",titre);s.dataset.champ=cle;
+        valeurs.forEach(function(x){var o=element("option","",x[1]);o.value=x[0];s.appendChild(o);});
+        s.addEventListener("change",function(){if(valide()) fn(+s.value);});
+        label.appendChild(nom);label.appendChild(s);cadre.appendChild(label);selection[cle]=s;
+      }
+      function plage(a,b,suffixe){var r=[];for(var i=a;i<=b;i++) r.push([i,i+(suffixe||"")]);return r;}
+      select("len","LONGUEUR",plage(1,32," pas"),function(n){modifier(lettres[voie]+"len",n);});
+      select("shift","DÉCALAGE",plage(0,31),function(n){modifier(lettres[voie]+"shift",n);});
+      select("chance","PROBABILITÉ",plage(0,100," %"),function(n){modifier(lettres[voie]+"chance",n);});
+      select("outil","FRAPPES PAR PAS",[[1,"1 coup"],[2,"×2"],[3,"×3"],[4,"×4"]],function(n){outil=n;maj();});
+      var mute=bouton(el,"",function(){modifier(lettres[voie]+"mute",m.p[lettres[voie]+"mute"]?0:1);},"dr32-mute");
+      var grille=element("div","dr32-grille");grille.setAttribute("aria-label","Seize pas de la page sélectionnée");el.insertBefore(grille,cadre);
+      for(var n=0;n<16;n++) (function(i){
+        var b=bouton(grille,"",function(){
+          var cle=lettres[voie]+(page*16+i+1);
+          modifier(cle,m.p[cle]===outil?0:outil);H.cran();
+        },"dr32-pas");
+        b.appendChild(element("span","dr32-num"));b.appendChild(element("strong","dr32-coups"));cellules.push(b);
+      })(n);
+      etatTexte=element("p","dr32-etat");el.appendChild(etatTexte);
+      var actions=element("div","dr32-actions");el.appendChild(actions);
+      bouton(actions,"COPIER CETTE PAGE",function(){
+        if(!valide()) return;
+        var c=lettres[voie],de=page*16,vers=(1-page)*16;
+        if(!window.confirm("Copier les pas "+(de+1)+"–"+(de+16)+" sur "+(vers+1)+"–"+(vers+16)+" de la piste "+noms[voie]+" ? Cette page sera remplacée.")) return;
+        for(var i=1;i<=16;i++) m.p[c+(vers+i)]=m.p[c+(de+i)];memEur();rafraichir(m);
+      },"dr32-copier");
+      bouton(actions,"VIDER LA PISTE",function(){
+        if(!valide() || !window.confirm("Effacer les 32 pas de la piste "+noms[voie]+" ? Les trois autres pistes sont conservées.")) return;
+        for(var i=1;i<=32;i++) m.p[lettres[voie]+i]=0;memEur();rafraichir(m);
+      },"dr32-vider");
+      el.appendChild(element("p","dr32-aide","Choisissez 1 coup, ×2, ×3 ou ×4 puis touchez un pas. Un second appui identique l'efface. Les pas au-delà de LONGUEUR sont conservés mais ne jouent pas. CLK avance les quatre pistes ; RST les réaligne. La probabilité s'applique au pas entier, pas à chaque répétition."));
+      el.addEventListener("click",function(e){e.stopPropagation();});
+    }
+    function maj(){
+      if(!valide()) return;
+      if(!grand){
+        lignes.forEach(function(b,v){
+          var c=lettres[v], L=m.p[c+"len"];
+          b.setAttribute("aria-label","Éditer la piste "+noms[v]+", "+L+" pas, probabilité "+m.p[c+"chance"]+" pour cent"+(m.p[c+"mute"]?", muette":""));
+          b.classList.toggle("muette",!!m.p[c+"mute"]);
+          b.querySelectorAll("i").forEach(function(p,i){
+            p.classList.toggle("on",m.p[c+(i+1)]>0);p.classList.toggle("rafale",m.p[c+(i+1)]>1);p.classList.toggle("hors",i>=L);
+          });
+        });return;
+      }
+      lignes.forEach(function(b,v){b.setAttribute("aria-pressed",String(v===voie));b.classList.toggle("muette",!!m.p[lettres[v]+"mute"]);});
+      el.querySelectorAll("[data-page]").forEach(function(b){b.setAttribute("aria-pressed",String(+b.dataset.page===page));});
+      var c=lettres[voie];["len","shift","chance"].forEach(function(k){selection[k].value=m.p[c+k];});selection.outil.value=outil;
+      var muet=!!m.p[c+"mute"], bMute=el.querySelector(".dr32-mute");
+      bMute.textContent="PISTE "+noms[voie]+" : "+(muet?"MUETTE":"ACTIVE");bMute.setAttribute("aria-pressed",String(muet));
+      cellules.forEach(function(b,i){
+        var n=page*16+i+1, valeur=m.p[c+n]; b.dataset.pas=n;
+        b.querySelector(".dr32-num").textContent=String(n).padStart(2,"0");
+        b.querySelector(".dr32-coups").textContent=valeur?(valeur===1?"●":"×"+valeur):"—";
+        b.setAttribute("aria-pressed",String(valeur>0));
+        b.setAttribute("aria-label","Piste "+noms[voie]+", pas "+n+", "+(valeur?valeur+" frappe"+(valeur>1?"s":""):"silence")+(n>m.p[c+"len"]?", hors longueur":""));
+        b.classList.toggle("hors",n>m.p[c+"len"]);b.classList.toggle("rafale",valeur>1);
+      });
+      temps(null);
+    }
+    function temps(d){
+      if(!grand){
+        lignes.forEach(function(b,v){b.querySelectorAll("i").forEach(function(p,i){p.classList.toggle("courant",!!d && d.pos[v]===i);});});
+        return;
+      }
+      cellules.forEach(function(b){b.classList.toggle("courant",!!d && +b.dataset.pas===d.pos[voie]+1);});
+      var texte="PISTE "+noms[voie]+" · "+m.p[lettres[voie]+"len"]+" PAS";
+      if(m.p[lettres[voie]+"mute"]) texte+=" · MUETTE";
+      else if(m.p[lettres[voie]+"chance"]===0) texte+=" · PROBABILITÉ 0 %";
+      else if(d && d.pos[voie]>=0) texte+=" · PAS "+(d.pos[voie]+1)+(d.coups[voie]?" · "+d.coups[voie]+" COUP"+(d.coups[voie]>1?"S":""):" · SILENCE");
+      else texte+=S.run?" · EN ATTENTE DE CLK":" · ÉDITION / ARRÊT";
+      if(etatTexte.textContent!==texte) etatTexte.textContent=texte;
+    }
+    var vue={el:el,m:m,grand:grand,maj:maj,temps:temps};vues.push(vue);maj();reveiller();
+    return {rafraichir:maj,detruire:function(){vues=vues.filter(function(v){return v!==vue;});}};
+  }
+  EUR_CAT.drum32={nom:"DRUM 32",hp:248,sombre:true,fam:"seq",
+    res:"Quatre pistes programmables de 32 pas, cycles indépendants, probabilité et roulements ×2 à ×4",
+    kns:kns,jacks:[["clk","CLK",0],["rst","RST",0],["ta","A",1],["tb","B",1],["tc","C",1],["td","D",1]],
+    creer:creer,interface:interfaceModule};
+  EUR_ORDRE.push("drum32");
+  if(typeof document!=="undefined"){
+    new MutationObserver(reveiller).observe(document.body,{attributes:true,attributeFilter:["class"]});
+    new MutationObserver(reveiller).observe(document.getElementById("eur-play"),{attributes:true,attributeFilter:["class"]});
+    document.addEventListener("visibilitychange",reveiller);
+  }
+  return {normaliser:normaliser,rafraichir:rafraichir,reveiller:reveiller};
+})();
+/* v279 : deux ensembles pour programmer et entendre DRUM 32.
+   Les huit modèles v276 sont clonés, jamais modifiés. Quatre percussions,
+   basse, mélodie, écho de percussion et déplacement stéréo lent de la mélodie. */
+(function montagesDrum32(){
+  "use strict";
+  function fabriquer(source,id,nom,tribal){
+    var base=EUR_MONTAGES.find(function(p){return p.id===source;});
+    if(!base) return;
+    base=JSON.parse(JSON.stringify(base));
+    var omettre=[base.reperes.rythmeKick,base.reperes.rythmeCaisse,base.reperes.rythmeHat];
+    var P={id:id,nom:nom,fam:"avance",bpm:base.bpm,tonalite:base.tonalite,
+      res:tribal?"Batterie en cycles de 32, 15, 16 et 7 pas ; basse rapide, mélodie et percussion en écho.":
+        "Quatre pistes de batterie sur deux mesures, roulement final, basse, mélodie et mouvement stéréo lent.",
+      mods:[],cables:[],rangees:[],reperes:{}};
+    var map={};
+    function ajouter(role,type,p,r){var i=P.mods.length;P.mods.push([type,p||{}]);P.rangees.push(r||0);P.reperes[role]=i;return i;}
+    var params={};
+    ["a","b","c","d"].forEach(function(c){
+      params[c+"len"]=32;params[c+"chance"]=100;params[c+"shift"]=0;params[c+"mute"]=0;
+      for(var i=1;i<=32;i++) params[c+i]=0;
+    });
+    function ligne(c,pas){pas.forEach(function(n){params[c+n]=1;});}
+    ligne("a",[1,5,9,13,17,21,25,29]);
+    if(tribal){
+      params.blen=15;params.clen=16;params.dlen=7;
+      ligne("b",[1,4,7,10,13]);ligne("c",[1,3,5,7,9,11,13,15]);ligne("d",[1,4,6]);
+      params.b15=2;params.d6=2;
+    }else{
+      ligne("b",[5,13,21,29]);params.b31=2;params.b32=4;
+      ligne("c",[3,7,11,15,19,23,27,31]);params.c32=2;
+      ligne("d",[7,15,19,23,27]);params.dlen=24;params.dchance=75;
+    }
+    base.mods.forEach(function(x,i){
+      if(omettre.indexOf(i)>=0) return;
+      map[i]=P.mods.length;P.mods.push(x);P.rangees.push(base.rangees[i]);
+      if(i===base.reperes.horloge) ajouter("seqBatterie","drum32",params,0);
+    });
+    Object.keys(base.reperes).forEach(function(k){if(map[base.reperes[k]]!==undefined) P.reperes[k]=map[base.reperes[k]];});
+    base.cables.forEach(function(c){
+      if(map[c[0]]!==undefined && map[c[2]]!==undefined) P.cables.push([map[c[0]],c[1],map[c[2]],c[3]]);
+    });
+    ajouter("perc","rim",{tune:tribal?.62:.43,dec:.17,niv:.42},0);
+    ajouter("filtrePerc","hpf",{cut:.09,q:.08,mod:0},0);
+    ajouter("echoPerc","delay",{time:((60/P.bpm)*.75-.02)/1.2,fb:.26,mix:.22},0);
+    ajouter("balancement","lfo",{rate:.08,amt:.16},1);
+    function fil(a,s,b,e){P.cables.push([P.reperes[a],s,P.reperes[b],e]);}
+    fil("horloge","out","seqBatterie","clk");
+    ["kick","caisse","hat","perc"].forEach(function(k,i){fil("seqBatterie","t"+"abcd"[i],k,"trig");});
+    fil("perc","out","filtrePerc","in");fil("filtrePerc","out","echoPerc","in");fil("echoPerc","out","mixBatterie","d");
+    fil("balancement","sine","panMelodie","cv");
+    P.mods[P.reperes.mixBatterie][1].d=.34;
+    return P;
+  }
+  EUR_MONT_FAM.splice(1,0,["avance","AVANCÉS"]);
+  [fabriquer("ens-techno","av-techno32","TECHNO 32 · VARIATIONS",false),
+   fabriquer("ens-tribe","av-tribal32","TRIBAL 32 · CYCLES",true)].forEach(function(p){if(p) EUR_MONTAGES.push(p);});
+})();
 /* ================= Module Focus Eurorack — v262 =================
    Vue de commande uniquement : aucun clone de module audio, aucun eurBatir
    à l'ouverture/fermeture. Les paramètres restent dans les objets EUR.mods ;
    les jacks délèguent au câblage existant. Pas de boucle d'animation au repos. */
 var EUR_FOCUS = (function(){
   var piste = document.getElementById("eur-piste"), rack = document.getElementById("eur-rack");
-  var mod = null, controles = [], caches = [], retour = null, dernier = null;
+  var mod = null, controles = [], caches = [], retour = null, dernier = null, surmesure = null;
   var root = document.createElement("div");
   root.id = "eur-focus";
   root.setAttribute("role", "dialog");
@@ -25856,7 +26260,9 @@ var EUR_FOCUS = (function(){
   function lacher(){ controles.forEach(function(c){ c.fin(); }); }
   function fermer(rendreFocus){
     if(!mod) return;
-    lacher(); mod = null; controles = []; dernier = null;
+    lacher();
+    if(surmesure && surmesure.detruire) surmesure.detruire();
+    surmesure=null; mod = null; controles = []; dernier = null;
     root.classList.remove("show");
     liberer(); majNoteOuverte();
     /* Les petits potards ont leur propre cache de valeur : le resynchroniser
@@ -25883,6 +26289,9 @@ var EUR_FOCUS = (function(){
       /* Déplacer le focus avant de masquer sémantiquement son ancien parent. */
       q("#eur-focus-fermer").focus({preventScroll:true}); proteger();
     }
+    /* La zone cachée n'a pas encore de géométrie : repartir en haut une fois
+       le panneau visible, même après avoir câblé tout en bas d'un autre module. */
+    zone.scrollTop=0;
     return true;
   }
   function majListe(){
@@ -25996,12 +26405,20 @@ var EUR_FOCUS = (function(){
     q(".ef-pied span").textContent=S.run?"LECTURE EN COURS":"TRANSPORT ARRÊTÉ";
   }
   function dessiner(){
+    if(surmesure && surmesure.detruire) surmesure.detruire();
+    surmesure=null;
     controles=[]; q(".ef-knobs").textContent=""; q(".ef-jacks").textContent="";
     var d=EUR_CAT[mod.type]; face.classList.toggle("ef-sombre",!!d.sombre);
     q("#ef-titre").textContent=d.nom; q(".ef-module-titre").textContent=d.nom;
     q(".ef-description").textContent=d.res || "";
+    q(".ef-aide").hidden=!!d.interface;
     q("#ef-lab").textContent="TOUCHEZ UN RÉGLAGE"; q("#ef-val").textContent="—";
-    d.kns.forEach(function(k){ boutonRotatif(mod,k); });
+    q(".ef-knobs").classList.toggle("ef-surmesure",!!d.interface);
+    if(d.interface){
+      surmesure=d.interface(q(".ef-knobs"),mod,true);
+      q("#ef-lab").textContent="CHOISISSEZ UNE PISTE ET SES PAS";
+      q("#ef-val").textContent="4 × 32";
+    }else d.kns.forEach(function(k){ boutonRotatif(mod,k); });
     d.jacks.forEach(function(j){
       var e=document.createElement("button"); e.type="button";
       e.className="ef-jack"+(j[2]?" ef-sortie":"");e.dataset.j=j[0];e.dataset.s=j[2];
@@ -26030,6 +26447,7 @@ var EUR_FOCUS = (function(){
     if(!valide()){ fermer(false); return; }
     selectionner(); majListe(); majJacks(); majTransport();
     controles.forEach(function(c){ lire(c,false); });
+    if(surmesure && surmesure.rafraichir) surmesure.rafraichir();
   }
   function parcourir(sens){
     if(!valide()){ fermer(false); return; }
@@ -26054,7 +26472,7 @@ var EUR_FOCUS = (function(){
      sélectionne et redessine déjà le rack. On retient donc l'identité du module,
      pas celle du titre. Les potards et les jacks gardent leurs propres gestes. */
   piste.addEventListener("click",function(e){
-    if(e.target.closest(".eur-kn,.eur-j")) return;
+    if(e.target.closest(".eur-kn,.eur-j,.eur-surmesure")) return;
     var bloc=e.target.closest(".eur-mod");
     if(!bloc) return;
     var m=EUR.mods[+bloc.dataset.i], maintenant=Date.now();
@@ -26073,7 +26491,7 @@ var EUR_FOCUS = (function(){
     e.stopPropagation();
     if(e.key==="Escape"){e.preventDefault();fermer();return;}
     if(e.key!=="Tab") return;
-    var fs=Array.prototype.filter.call(root.querySelectorAll('button,select,[tabindex="0"]'),function(x){
+    var fs=Array.prototype.filter.call(root.querySelectorAll('button,select,input,[tabindex="0"]'),function(x){
       return !x.disabled && !x.hidden && x.getClientRects().length>0;
     });
     if(!fs.length) return;

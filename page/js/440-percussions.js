@@ -598,6 +598,8 @@ function eurSortie(id, o, t){
 }
 function beatEur(i){ EUR.pos = i; }
 function arretEur(){
+  /* v279 : seuls les modules qui offrent cet arrêt sont concernés. */
+  EUR.mods.forEach(function(m){if(m.arreter) m.arreter();});
   var b = document.getElementById("eur-play");
   if(b) b.classList.remove("on");
 }
@@ -622,10 +624,12 @@ function eurDessiner(){
     e.dataset.i = i;
     var h = "<b>" + d.nom + "</b>";
     /* deux colonnes dès que la pile deviendrait plus haute que l'écran */
-    var deuxCol = d.kns.length > 6;
+    var controles = d.interface ? [] : d.kns;
+    if(d.interface) h += '<div class="eur-surmesure"></div>';
+    var deuxCol = controles.length > 6;
     if(deuxCol) h += '<div class="eur-kns2" style="grid-template-rows:repeat(' +
-                     Math.ceil(d.kns.length / 2) + ',auto)">';
-    d.kns.forEach(function(k){
+                     Math.ceil(controles.length / 2) + ',auto)">';
+    controles.forEach(function(k){
       /* la poignée est le bloc entier, étiquette comprise : le bouton seul fait
          vingt-six pixels, et bien moins une fois le rack mis à l'échelle */
       h += '<div class="eur-kn" id="eur-k-' + m.id + '-' + k[0] + '"><div class="bt"><i></i></div>' +
@@ -640,9 +644,11 @@ function eurDessiner(){
     h += "</div>";
     e.innerHTML = h;
     rangees[m.r === 1 ? 1 : 0].appendChild(e);
+    if(d.interface) d.interface(e.querySelector(".eur-surmesure"),m,false);
   });
   EUR.mods.forEach(function(m){
     var d = EUR_CAT[m.type];
+    if(d.interface) return;
     d.kns.forEach(function(k){
       var id = "eur-k-" + m.id + "-" + k[0];
       if(!document.getElementById(id)) return;
@@ -720,6 +726,7 @@ function majLcdEur(){
 (function gestesEur(){
   var piste = document.getElementById("eur-piste");
   piste.addEventListener("click", function(e){
+    if(e.target.closest(".eur-surmesure")) return;
     var j = e.target.closest(".eur-j");
     if(j){
       var id = +j.dataset.m, nom = j.dataset.j, sortie = j.dataset.s === "1";

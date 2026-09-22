@@ -77,6 +77,7 @@ node outils/test-roles.cjs
 node outils/test-corbeille.cjs
 node outils/test-memoire.cjs
 node outils/test-autotest-midi.cjs
+node outils/test-drum32.cjs
 fin
 
 etape "6. Java : compilation de controle et tests"

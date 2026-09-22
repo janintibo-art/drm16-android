@@ -123,6 +123,8 @@ function stop(){
   if(typeof MACHINE_MC !== "undefined" && MACHINE_MC && MACHINE !== MACHINE_MC) MACHINE_MC.arret();
   if(typeof MACHINE_STK !== "undefined" && MACHINE_STK && MACHINE !== MACHINE_STK) MACHINE_STK.arret();
   if(typeof MACHINE_KP !== "undefined" && MACHINE_KP && MACHINE !== MACHINE_KP) MACHINE_KP.arret();
+  /* v279 : annuler aussi les portes DRUM 32 quand le rack joue dans un SET. */
+  if(typeof MACHINE_EUR !== "undefined" && MACHINE_EUR && MACHINE !== MACHINE_EUR) MACHINE_EUR.arret();
   host(false);
   midiHorloge(false);
 }

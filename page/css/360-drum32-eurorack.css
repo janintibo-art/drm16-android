@@ -1,0 +1,45 @@
+/* v279 : DRUM 32. Façade de repérage ; édition à l'échelle de l'écran dans FOCUS. */
+.dr32{min-width:0;color:#e8edf3;font:12px/1.4 system-ui,Arial,sans-serif}
+.dr32 [hidden]{display:none!important}
+.dr32-intro{font-size:10px;text-align:center;letter-spacing:.7px;color:#9bb0c5;margin:4px 0 10px}
+#unit-eur .dr32-resume{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;margin:5px 0;
+  padding:8px;border:1px solid #526170;border-radius:5px;background:linear-gradient(#323d49,#1b242e);
+  color:#eff4fa;touch-action:manipulation;box-shadow:inset 0 1px #ffffff16,0 2px 3px #0006;cursor:pointer}
+.dr32-resume .dr32-nom{font:800 17px/1.1 system-ui;min-width:20px;color:#edbd80}
+.dr32-points{flex:1;display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:3px}
+.dr32-points i{display:block;height:8px;border-radius:2px;background:#101923;border:1px solid #5a6a78}
+.dr32-points i.on{background:#dfae67;border-color:#f1d5a9}
+.dr32-points i.rafale{background:#82c8e7;border-color:#c4e9fa}
+.dr32-points i.hors{opacity:.3}
+.dr32-points i.courant{outline:2px solid #fff;outline-offset:1px}
+.dr32 .muette{opacity:.58}
+.dr32-etat{min-height:32px;margin:10px 0;padding:8px;border:1px solid #435868;border-radius:4px;
+  background:#111b25;color:#c8e6fa;font:700 11px/1.5 system-ui;overflow-wrap:anywhere}
+#eur-focus .ef-knobs.ef-surmesure{display:block;min-width:0}
+#eur-focus .dr32 button,#eur-focus .dr32 select{min-height:44px;min-width:44px;max-width:100%;padding:7px 5px;
+  font-size:11px;letter-spacing:0;touch-action:manipulation}
+#eur-focus .dr32 button:focus-visible,#eur-focus .dr32 select:focus-visible{outline:3px solid #b2e5ff;outline-offset:1px}
+.dr32-pistes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:9px}
+.dr32-pages,.dr32-reglages,.dr32-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+#eur-focus .dr32 [aria-pressed="true"]{border-color:#e1b578;background:linear-gradient(#f1d39e,#cfa766);color:#1b232e}
+#eur-focus .dr32 .dr32-piste.muette{opacity:1;box-shadow:inset 0 -4px #b95d68}
+.dr32-reglages label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.dr32-reglages label>span{font-size:10px;font-weight:700;letter-spacing:.25px;color:#c3d0dd}
+#eur-focus .dr32-reglages select{width:100%;min-width:0;background:#121c28;color:#edf5ff}
+#eur-focus .dr32-mute{width:100%;margin:6px 0 12px}
+#eur-focus .dr32-mute[aria-pressed="true"]{background:#743944;border-color:#cf8491;color:#fff0f2}
+.dr32-grille{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#eur-focus button.dr32-pas{position:relative;display:flex;flex-direction:column;justify-content:space-between;
+  align-items:center;min-width:44px;min-height:58px;padding:5px 2px;border-radius:5px;
+  background:linear-gradient(#394654,#202b38);border-color:#65778b;color:#b8c9d8;box-shadow:inset 0 1px #ffffff24,0 2px 3px #0007}
+.dr32-num{font:700 10px/1 system-ui}
+.dr32-coups{font:800 17px/1.4 system-ui}
+#eur-focus .dr32-pas[aria-pressed="true"]{color:#162331;background:linear-gradient(#efd5aa,#cfab73);border-color:#ffe3b2}
+#eur-focus .dr32-pas.rafale{background:linear-gradient(#b5e2ef,#76afc9);border-color:#d0f0fc}
+#eur-focus .dr32-pas.hors{opacity:.45;border-style:dashed}
+#eur-focus .dr32-pas.courant{outline:3px solid #eff9ff;outline-offset:-2px}
+#eur-focus .dr32-pas.courant::after{content:"";position:absolute;top:3px;right:3px;width:5px;height:5px;background:#fff;border-radius:50%}
+.dr32-aide{margin:12px 0 4px;font-size:11px;line-height:1.55;color:#c2cfdd}
+@media(min-width:900px){.dr32-grille{grid-template-columns:repeat(8,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.dr32 *{transition:none!important;animation:none!important}}
+#eur-cat button[data-famille="avance"]{border-color:#697f96;box-shadow:inset 3px 0 #dbb176}

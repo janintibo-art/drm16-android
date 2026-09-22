@@ -4,7 +4,7 @@
    les jacks délèguent au câblage existant. Pas de boucle d'animation au repos. */
 var EUR_FOCUS = (function(){
   var piste = document.getElementById("eur-piste"), rack = document.getElementById("eur-rack");
-  var mod = null, controles = [], caches = [], retour = null, dernier = null;
+  var mod = null, controles = [], caches = [], retour = null, dernier = null, surmesure = null;
   var root = document.createElement("div");
   root.id = "eur-focus";
   root.setAttribute("role", "dialog");
@@ -68,7 +68,9 @@ var EUR_FOCUS = (function(){
   function lacher(){ controles.forEach(function(c){ c.fin(); }); }
   function fermer(rendreFocus){
     if(!mod) return;
-    lacher(); mod = null; controles = []; dernier = null;
+    lacher();
+    if(surmesure && surmesure.detruire) surmesure.detruire();
+    surmesure=null; mod = null; controles = []; dernier = null;
     root.classList.remove("show");
     liberer(); majNoteOuverte();
     /* Les petits potards ont leur propre cache de valeur : le resynchroniser
@@ -95,6 +97,9 @@ var EUR_FOCUS = (function(){
       /* Déplacer le focus avant de masquer sémantiquement son ancien parent. */
       q("#eur-focus-fermer").focus({preventScroll:true}); proteger();
     }
+    /* La zone cachée n'a pas encore de géométrie : repartir en haut une fois
+       le panneau visible, même après avoir câblé tout en bas d'un autre module. */
+    zone.scrollTop=0;
     return true;
   }
   function majListe(){
@@ -208,12 +213,20 @@ var EUR_FOCUS = (function(){
     q(".ef-pied span").textContent=S.run?"LECTURE EN COURS":"TRANSPORT ARRÊTÉ";
   }
   function dessiner(){
+    if(surmesure && surmesure.detruire) surmesure.detruire();
+    surmesure=null;
     controles=[]; q(".ef-knobs").textContent=""; q(".ef-jacks").textContent="";
     var d=EUR_CAT[mod.type]; face.classList.toggle("ef-sombre",!!d.sombre);
     q("#ef-titre").textContent=d.nom; q(".ef-module-titre").textContent=d.nom;
     q(".ef-description").textContent=d.res || "";
+    q(".ef-aide").hidden=!!d.interface;
     q("#ef-lab").textContent="TOUCHEZ UN RÉGLAGE"; q("#ef-val").textContent="—";
-    d.kns.forEach(function(k){ boutonRotatif(mod,k); });
+    q(".ef-knobs").classList.toggle("ef-surmesure",!!d.interface);
+    if(d.interface){
+      surmesure=d.interface(q(".ef-knobs"),mod,true);
+      q("#ef-lab").textContent="CHOISISSEZ UNE PISTE ET SES PAS";
+      q("#ef-val").textContent="4 × 32";
+    }else d.kns.forEach(function(k){ boutonRotatif(mod,k); });
     d.jacks.forEach(function(j){
       var e=document.createElement("button"); e.type="button";
       e.className="ef-jack"+(j[2]?" ef-sortie":"");e.dataset.j=j[0];e.dataset.s=j[2];
@@ -242,6 +255,7 @@ var EUR_FOCUS = (function(){
     if(!valide()){ fermer(false); return; }
     selectionner(); majListe(); majJacks(); majTransport();
     controles.forEach(function(c){ lire(c,false); });
+    if(surmesure && surmesure.rafraichir) surmesure.rafraichir();
   }
   function parcourir(sens){
     if(!valide()){ fermer(false); return; }
@@ -266,7 +280,7 @@ var EUR_FOCUS = (function(){
      sélectionne et redessine déjà le rack. On retient donc l'identité du module,
      pas celle du titre. Les potards et les jacks gardent leurs propres gestes. */
   piste.addEventListener("click",function(e){
-    if(e.target.closest(".eur-kn,.eur-j")) return;
+    if(e.target.closest(".eur-kn,.eur-j,.eur-surmesure")) return;
     var bloc=e.target.closest(".eur-mod");
     if(!bloc) return;
     var m=EUR.mods[+bloc.dataset.i], maintenant=Date.now();
@@ -285,7 +299,7 @@ var EUR_FOCUS = (function(){
     e.stopPropagation();
     if(e.key==="Escape"){e.preventDefault();fermer();return;}
     if(e.key!=="Tab") return;
-    var fs=Array.prototype.filter.call(root.querySelectorAll('button,select,[tabindex="0"]'),function(x){
+    var fs=Array.prototype.filter.call(root.querySelectorAll('button,select,input,[tabindex="0"]'),function(x){
       return !x.disabled && !x.hidden && x.getClientRects().length>0;
     });
     if(!fs.length) return;
