@@ -1,18 +1,24 @@
 name: Exécutable Windows
+run-name: "Windows · ${{ github.event.head_commit.message || github.ref_name }}"
 
-# À la demande seulement. Compiler du Rust prend dix à quinze minutes : le faire
-# à chaque virgule corrigée gâcherait le temps d'exécution pour rien. On lance
-# depuis l'onglet Actions quand on veut l'exécutable, et la publication le
-# produit de toute façon à chaque version.
+# v277 : un installateur à chaque mise à jour envoyée sur main, comme l'APK.
+# Le lancement à la demande reste disponible dans l'onglet Actions.
+# Aucun filtre de fichiers : une modification d'interface, de sons ou de code
+# doit toujours pouvoir produire son exécutable Windows.
 #
 # Deux postes (v136) : Linux prépare la page (contrôles, Syro, bureau/dist),
 # Windows ne fait que compiler. Le Syro ne se compile que sous Linux : c'est ce
 # partage qui le met enfin dans l'exécutable.
 on:
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
+# Une nouvelle version n'annule pas la compilation Windows de la précédente.
+# Seuls deux lancements du même commit sur la même référence se remplacent.
+# Le préfixe windows- reste distinct de celui du workflow APK.
 concurrency:
-  group: windows-${{ github.ref }}
+  group: windows-${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
