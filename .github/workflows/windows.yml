@@ -105,23 +105,18 @@ jobs:
       # Bloquant depuis la v140 : vu fonctionner sur l'exécuteur Windows en v139.
       - name: Essai automatique de l'application
         shell: pwsh
-        run: |
-          $exe = Get-ChildItem bureau/src-tauri/target/release -Filter *.exe |
-                 Where-Object { $_.Name -notlike "*setup*" } | Select-Object -First 1
-          if (-not $exe) { throw "Exécutable introuvable." }
-          $env:DRM16_AUTOTEST = Join-Path $PWD "autotest.txt"
-          $env:DRM16_DOSSIER = Join-Path $PWD "autotest-dossier"
-          $p = Start-Process $exe.FullName -PassThru
-          $null = $p.Handle
-          if (-not $p.WaitForExit(120000)) { $p.Kill(); throw "L'application n'a pas rendu son rapport en deux minutes." }
-          if (Test-Path autotest.txt) { Get-Content autotest.txt } else { Write-Host "Aucun rapport écrit." }
-          if (Test-Path autotest.txt) {
-            "### Essai automatique (Windows)" >> $env:GITHUB_STEP_SUMMARY
-            '```' >> $env:GITHUB_STEP_SUMMARY
-            Get-Content autotest.txt >> $env:GITHUB_STEP_SUMMARY
-            '```' >> $env:GITHUB_STEP_SUMMARY
-          }
-          if ($p.ExitCode -ne 0) { throw "Essai en échec (code $($p.ExitCode))." }
+        run: ./outils/essai-windows.ps1
+
+      - name: Joindre le rapport de l'essai Windows
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rapport-autotest-windows
+          path: |
+            autotest.txt
+            autotest-lancement.txt
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Récupérer l'installeur
         shell: pwsh

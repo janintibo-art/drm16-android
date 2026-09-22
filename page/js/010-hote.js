@@ -69,6 +69,7 @@ var HOST = (function(){
     if(!actif) return;
     var erreurs = [];
     window.addEventListener("error", function(e){ erreurs.push(String(e.message)); });
+    window.addEventListener("unhandledrejection", function(e){ erreurs.push("promesse : " + String(e.reason)); });
     window.addEventListener("load", function(){ setTimeout(lancer, 2500); });
     function lancer(){
       if(typeof PROJET_DEMARRAGE !== "undefined" && PROJET_DEMARRAGE.bloque){
@@ -124,61 +125,139 @@ var HOST = (function(){
           "projet .drm16 écrit et relu : " + (projet || "rien") + (typeof relu === "string" ? " (" + relu + ")" : ""));
         if(projet) h.fichierSupprimer(projet);
       }catch(e){ t(false, "exception : " + e.message); }
-      /* MIDI (v141) : sur le premier appareil qui a une sortie, s'il y en a un */
+      /* MIDI AUTOTEST v278 — début (testé aussi avec une horloge simulée).
+         Un port énuméré n'est pas forcément ouvrable. Un refus EXPLICITE du
+         pilote est non concluant ; une absence de réponse reste un échec.
+         Ces attentes ne sont exécutées que si DRM16_AUTOTEST est actif. */
       function pause(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+      function maintenantMidi(){ return performance.now(); }
       function attendreQue(cond, ms){
-        var t0 = Date.now();
-        return new Promise(function(r){
-          (function boucle(){ if(cond() || Date.now() - t0 > ms) r(cond()); else setTimeout(boucle, 50); })();
+        var debut = maintenantMidi();
+        return new Promise(function(resolve, reject){
+          (function boucle(){
+            try{
+              var fini = !!cond();
+              if(fini || maintenantMidi() - debut >= ms){ resolve(fini); return; }
+              setTimeout(boucle, Math.min(50, ms - (maintenantMidi() - debut)));
+            }catch(e){ reject(e); }
+          })();
         });
       }
       function essaiMidi(){
-        var liste = [];
-        try{ liste = h.midiAppareils().split("\n").filter(Boolean); }catch(e){}
-        if(!liste.length){ t(true, "MIDI : aucun appareil sur cette machine, essais d'ouverture sautés"); return; }
-        var c = liste[0].split("\t"), id = parseInt(c[1], 10);
-        /* on note chaque événement reçu : en cas d'échec, le rapport dit si
-           l'ouverture a raté (côté Rust) ou si l'événement n'est pas arrivé */
-        var recus = [], avant = window.__midiEtat;
-        var raison = "";
-        window.__midiEtat = function(e){ recus.push(e && e.evt); if(e && e.erreur) raison = e.erreur; return avant(e); };
-        h.midiOuvrirId(id);
-        return attendreQue(function(){ return MIDI.ouvertId === id; }, 6000).then(function(ouvert){
-          if(!ouvert && recus.indexOf("echec") >= 0 && raison){
-            /* Le système a refusé l'ouverture et l'a dit : c'est le bon comportement du
-               code, mais l'appareil de cet exécuteur ne permet pas d'aller plus loin. */
-            t(true, "MIDI : NON CONCLUANT — « " + c[0] + " » refusé par le système (" + raison +
-                    "), refus bien transmis à la page ; essais d'envoi sautés");
-            window.__midiEtat = avant;
+        var debut = maintenantMidi(), phase = "inventaire", nom = "", id = -1;
+        var recus = [], issue = null, erreurRappel = "", avant = window.__midiEtat;
+        var branche = false, ouvertureDemandee = false, fermetureConfirmee = false;
+        var DELAI_OUVERTURE = 30000, DELAI_FERMETURE = 10000;
+        function message(e){ return e && e.message ? e.message : String(e); }
+        function noter(e){
+          if(recus.length < 64) recus.push({
+            ms:Math.round(maintenantMidi() - debut), phase:phase,
+            evt:e && e.evt, nom:e && e.nom, ouvert:e && e.ouvert,
+            erreur:e && e.erreur
+          });
+          /* Le vrai gestionnaire de la page reste celui qui change MIDI.
+             Une erreur de ce gestionnaire doit faire échouer le test. */
+          try{ avant(e); }catch(ex){ erreurRappel = message(ex); }
+          if(!e) return;
+          if(phase === "ouverture" && e.nom === nom &&
+             (e.evt === "ouvert" || e.evt === "echec")) issue = e;
+          if((phase === "fermeture" || phase === "preparation") &&
+             e.evt === "ferme") issue = e;
+        }
+        function diagnostic(){
+          var natif;
+          try{ natif = h.midiOuvertId(); }catch(e){ natif = "erreur : " + message(e); }
+          var page = typeof MIDI !== "undefined" ? MIDI.ouvertId : "absent";
+          return "après " + Math.round(maintenantMidi() - debut) + " ms ; demandé=" + id +
+            " ; page=" + page + " ; Rust=" + natif + " ; événements=" + JSON.stringify(recus);
+        }
+        function verifierRappel(){
+          if(erreurRappel) throw new Error("gestionnaire __midiEtat : " + erreurRappel);
+        }
+        function fermerConfirme(preparation){
+          phase = preparation ? "preparation" : "fermeture";
+          issue = null;
+          h.midiHorloge(false, 0);
+          h.midiFermer();
+          return attendreQue(function(){ return !!issue || !!erreurRappel; }, DELAI_FERMETURE).then(function(recu){
+            verifierRappel();
+            var ferme = recu && issue && issue.ouvert === -1 && MIDI.ouvertId === -1 && h.midiOuvertId() === -1;
+            t(!!ferme, "MIDI : " + (preparation ? "connexion précédente fermée" : "horloge arrêtée et fermeture confirmée") +
+              (ferme ? " par la page et Rust" : " — " + diagnostic()));
+            if(!ferme) throw new Error("fermeture sans confirmation cohérente en 10 secondes");
+            if(!preparation) fermetureConfirmee = true;
+          });
+        }
+        function nettoyer(){
+          /* Même si l'ouverture répond trop tard, la fermeture est enfilée
+             derrière elle. Cela n'est PAS présenté comme une confirmation. */
+          if(ouvertureDemandee && !fermetureConfirmee){
+            try{ h.midiHorloge(false, 0); }catch(e){ t(false, "MIDI : arrêt de sécurité : " + message(e)); }
+            try{ h.midiFermer(); }catch(e){ t(false, "MIDI : fermeture de sécurité : " + message(e)); }
+          }
+          if(branche){
+            if(window.__midiEtat === noter) window.__midiEtat = avant;
+            else t(false, "MIDI : le gestionnaire d'événements a été remplacé pendant le test");
+          }
+          l.push("INFO  MIDI : " + diagnostic());
+        }
+        return Promise.resolve().then(function(){
+          var texte = h.midiAppareils();
+          if(typeof texte !== "string") throw new Error("inventaire MIDI invalide");
+          var liste = texte.split("\n").filter(function(s){ return s.trim().length > 0; });
+          if(!liste.length){
+            l.push("INFO  MIDI : NON CONCLUANT — aucun appareil ; ouverture et envoi non testés");
             return;
           }
-          t(ouvert, "MIDI : « " + c[0] + " » ouvert, confirmé par __midiEtat (reçus : " +
-                    (recus.join(",") || "aucun") + " · côté Rust : " + h.midiOuvertId() + ")");
-          if(!ouvert){ window.__midiEtat = avant; return; }
-          var sansErreur = true;
-          try{
+          var c = liste[0].split("\t");
+          if(c.length !== 2 || !c[0].trim() || !/^[1-9][0-9]*$/.test(c[1])) throw new Error("identifiant MIDI invalide");
+          nom = c[0]; id = Number(c[1]);
+          if(!Number.isSafeInteger(id)) throw new Error("identifiant MIDI hors limites");
+          if(typeof avant !== "function" || typeof MIDI === "undefined") throw new Error("réception MIDI absente de la page");
+          window.__midiEtat = noter; branche = true;
+          var natifAvant = h.midiOuvertId();
+          /* Un état restauré ne doit pas faire réussir une ouverture jamais
+             confirmée. On ferme d'abord une connexion réellement existante. */
+          return (natifAvant !== -1 ? fermerConfirme(true) : Promise.resolve()).then(function(){
+            if(MIDI.ouvertId !== -1 || h.midiOuvertId() !== -1) throw new Error("état initial MIDI incohérent");
+            phase = "ouverture"; issue = null; ouvertureDemandee = true;
+            h.midiOuvrirId(id);
+            return attendreQue(function(){ return !!issue || !!erreurRappel; }, DELAI_OUVERTURE);
+          }).then(function(recu){
+            verifierRappel();
+            if(!recu) throw new Error("aucune réponse d'ouverture en 30 secondes — " + diagnostic());
+            var natif = h.midiOuvertId();
+            if(issue.evt === "echec"){
+              if(typeof issue.erreur !== "string" || !issue.erreur.trim() || issue.ouvert !== -1 ||
+                 MIDI.ouvertId !== -1 || natif !== -1) throw new Error("refus MIDI incomplet ou incohérent — " + diagnostic());
+              l.push("INFO  MIDI : NON CONCLUANT — « " + nom + " » refusé par le système (" + issue.erreur +
+                ") ; refus reçu, ouverture et envoi non validés");
+              return;
+            }
+            var ouvert = issue.ouvert === id && MIDI.ouvertId === id && natif === id;
+            t(ouvert, "MIDI : « " + nom + " » ouvert, événement reçu et état Rust/page concordant");
+            if(!ouvert) throw new Error("confirmation d'ouverture incohérente — " + diagnostic());
+            phase = "envoi";
             h.midiEnvoyer(0x90, 60, 1); h.midiEnvoyer(0x80, 60, 0);
             h.midiEnvoyer(0xF0, 0, 0); h.midiEnvoyer(0x42, 0, 0);
-          }catch(e){ sansErreur = false; }
-          t(sansErreur, "MIDI : note envoyée, F0 seul et octet de donnée ignorés sans erreur");
-          t(h.midiSysex(btoa("\xF0\x7E\x7F\x06\x01\xF7")) === true, "MIDI : exclusif complet envoyé");
-          t(h.midiSysex(btoa("\xF0\x7E\x7F")) === false, "MIDI : exclusif incomplet refusé");
-          h.midiTempo(130);
-          h.midiHorloge(true, 130);
-          return pause(400).then(function(){
-            h.midiHorloge(false, 0);
-            h.midiFermer();
-            return attendreQue(function(){ return MIDI.ouvertId === -1; }, 3000);
-          }).then(function(ferme){
-            window.__midiEtat = avant;
-            t(ferme, "MIDI : horloge lancée puis arrêtée, appareil fermé (reçus : " + recus.join(",") + ")");
+            t(true, "MIDI : note envoyée, F0 seul et octet de donnée ignorés sans erreur");
+            t(h.midiSysex(btoa("\xF0\x7E\x7F\x06\x01\xF7")) === true, "MIDI : exclusif complet envoyé");
+            t(h.midiSysex(btoa("\xF0\x7E\x7F")) === false, "MIDI : exclusif incomplet refusé");
+            h.midiTempo(130);
+            h.midiHorloge(true, 130);
+            return pause(400).then(function(){ return fermerConfirme(false); });
           });
-        });
+        }).catch(function(e){ t(false, "MIDI : " + message(e)); }).then(nettoyer);
       }
+      /* MIDI AUTOTEST v278 — fin. */
       /* réseau (v140) : la réponse revient plus tard, par window.__net */
       function attendre(url, max){
         return netCharger(url, max).then(function(b64){ return {ok:true, taille:atob(b64).length}; },
                                          function(e){ return {ok:false, erreur:String(e)}; });
+      }
+      function terminer(){
+        t(!erreurs.length, "aucune erreur JavaScript " + erreurs.slice(0, 3).join(" | "));
+        try{ natif("autotestFin", [ok, l.join("\n")]); }catch(e){}
       }
       Promise.all([
         attendre("http://archive.org/robots.txt", 0),
@@ -188,9 +267,9 @@ var HOST = (function(){
         t(!r[0].ok && /https/.test(r[0].erreur), "réseau : http refusé (" + r[0].erreur + ")");
         t(r[1].ok && r[1].taille > 10, "réseau : archive.org répond (" + (r[1].ok ? r[1].taille + " octets" : r[1].erreur) + ")");
         t(!r[2].ok && /trop gros/.test(r[2].erreur), "réseau : plafond respecté (" + r[2].erreur + ")");
-      }, function(e){ t(false, "réseau : " + e); }).then(essaiMidi).then(function(){
-        t(!erreurs.length, "aucune erreur JavaScript " + erreurs.slice(0, 3).join(" | "));
-        try{ natif("autotestFin", [ok, l.join("\n")]); }catch(e){}
+      }, function(e){ t(false, "réseau : " + e); }).then(essaiMidi).then(terminer, function(e){
+        t(false, "exception asynchrone : " + (e && e.message ? e.message : String(e)));
+        terminer();
       });
     }
   }
