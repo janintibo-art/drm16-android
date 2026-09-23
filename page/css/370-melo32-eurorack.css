@@ -1,0 +1,36 @@
+/* v280 : MÉLO 32 — édition à taille réelle dans FOCUS, aucune image externe. */
+.ml32{min-width:0;color:#e9f0f7;font:12px/1.45 system-ui,Arial,sans-serif}
+.ml32 [hidden]{display:none!important}
+.ml32-intro{margin:4px 0 8px;text-align:center;color:#a4c7c9;font-size:10px;letter-spacing:.5px}
+#unit-eur .ml32-apercu{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:3px;width:100%;padding:7px;
+  background:linear-gradient(#263a3d,#111e27);border:1px solid #567780;border-radius:5px;color:#c0e9e8;cursor:pointer;touch-action:manipulation}
+.ml32-point{padding:5px 0;font:700 9px/1.2 system-ui;border:1px solid #43626b;border-radius:3px;background:#172d36}
+.ml32-point.accent{border-bottom:3px solid #e9c377}
+.ml32 .silence{opacity:.48}.ml32 .hors{opacity:.3;border-style:dashed!important}
+.ml32-point.courant{outline:2px solid #fff;outline-offset:-1px}
+.ml32-etat{min-height:32px;margin:10px 0;padding:8px;background:#0e2028;border:1px solid #4b6975;
+  border-radius:4px;color:#c7eeee;font:700 11px/1.5 system-ui;overflow-wrap:anywhere}
+#eur-focus .ml32 button,#eur-focus .ml32 select{min-height:44px;min-width:44px;max-width:100%;padding:7px 5px;
+  font-size:11px;letter-spacing:0;touch-action:manipulation}
+#eur-focus .ml32 button:focus-visible,#eur-focus .ml32 select:focus-visible{outline:3px solid #c1f3ed;outline-offset:1px}
+.ml32-pages,.ml32-detail,.ml32-global,.ml32-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.ml32-detail label,.ml32-global label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ml32 label>span{font:700 10px/1.3 system-ui;color:#c0d9df}
+#eur-focus .ml32 select{width:100%;min-width:0;background:#122730;color:#edfafa}
+.ml32-grille{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#eur-focus .ml32-pas{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+  min-height:66px;min-width:44px;padding:5px 2px;border-radius:5px;background:linear-gradient(#314e58,#182f3a);
+  border:1px solid #698b97;color:#d5f0f2;box-shadow:inset 0 1px #ffffff20,0 2px 3px #0007}
+.ml32-num{font-size:10px}.ml32-note{font-size:15px;white-space:nowrap}.ml32-flags{font-size:9px;min-height:12px;white-space:nowrap}
+#eur-focus .ml32 [aria-pressed="true"]{background:linear-gradient(#d3efde,#90c5bd);border-color:#d5fff0;color:#152d35}
+#eur-focus .ml32-pas[aria-pressed="true"]{opacity:1}
+#eur-focus .ml32-pas.courant{outline:3px solid #fff4ce;outline-offset:-2px}
+#eur-focus .ml32-pas.courant::after{content:"";position:absolute;top:3px;right:3px;width:5px;height:5px;background:#fff4ce;border-radius:50%}
+#eur-focus .ml32-titre{font-size:12px;margin:14px 0 6px;color:#c8ebde}
+.ml32-calcule{display:flex;align-items:center;justify-content:center;min-height:44px;padding:5px;background:#0e2028;
+  border:1px solid #4b6975;border-radius:4px;color:#f4dab0;font:700 11px/1.4 system-ui;text-align:center;overflow-wrap:anywhere}
+#eur-focus .ml32-mute{width:100%;margin:8px 0}
+#eur-focus .ml32-mute[aria-pressed="true"]{background:#6a3e49;border-color:#cf8892;color:#fff}
+.ml32-aide{font-size:11px;line-height:1.55;color:#c1d2dd;margin:12px 0 4px}
+@media(min-width:1000px){.ml32-grille{grid-template-columns:repeat(8,minmax(0,1fr))}.ml32-global{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.ml32 *{animation:none!important;transition:none!important}}

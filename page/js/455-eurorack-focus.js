@@ -224,8 +224,8 @@ var EUR_FOCUS = (function(){
     q(".ef-knobs").classList.toggle("ef-surmesure",!!d.interface);
     if(d.interface){
       surmesure=d.interface(q(".ef-knobs"),mod,true);
-      q("#ef-lab").textContent="CHOISISSEZ UNE PISTE ET SES PAS";
-      q("#ef-val").textContent="4 × 32";
+      q("#ef-lab").textContent=d.focusLabel || "CHOISISSEZ UNE PISTE ET SES PAS";
+      q("#ef-val").textContent=d.focusValeur || "4 × 32";
     }else d.kns.forEach(function(k){ boutonRotatif(mod,k); });
     d.jacks.forEach(function(j){
       var e=document.createElement("button"); e.type="button";

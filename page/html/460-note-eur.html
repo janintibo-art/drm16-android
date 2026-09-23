@@ -268,6 +268,40 @@
   <p>Choisissez un rack vide pour conserver le montage actuel. Ces deux exemples s'ajoutent
   aux 32 précédents ; ils ne les remplacent pas. Appuyez ensuite sur <b>START</b>.</p>
 
+  <h3>MÉLO 32 : basse et mélodie sur 32 pas</h3>
+  <p>Dans <b>MODULES → SÉQUENCEURS</b>, ajoutez <b>MÉLO 32</b>. Reliez une horloge à
+  <b>CLK</b>, <b>CV</b> à l'entrée V/OCT d'un oscillateur et <b>GATE</b> à une enveloppe.
+  Touchez son aperçu pour ouvrir <b>FOCUS</b>. Choisissez PAS 1–16 ou PAS 17–32, puis un pas
+  et sa <b>NOTE ÉCRITE</b>. Chaque pas garde aussi son silence, sa probabilité, son accent et son glissé.</p>
+  <p>La <b>TRANSPOSITION</b> (−24 à +24 demi-tons) précède l'ajustement dans la <b>GAMME</b> :
+  chromatique, mineure, majeure, dorienne ou pentatonique mineure. La tonique est libre.
+  La note écrite n'est jamais remplacée par la note ajustée. L'écran montre les deux.
+  À égalité entre deux notes de la gamme, la plus basse est retenue, même à la frontière d'octave.</p>
+  <p>La sortie CV prend <b>LA1 = 55 Hz = 0 V</b> comme référence et ajoute un volt par octave.
+  Pour retrouver exactement les notes indiquées, utilisez VCO/MODEL avec OCT au milieu et
+  FINE au milieu lorsqu'il existe. Changer l'accord de l'oscillateur décale le résultat sonore.</p>
+  <p><b>LONGUEUR</b> va de 1 à 32 pas ; les pas en dehors restent en mémoire. Le sens peut être
+  avant, arrière, aller-retour (sans répéter les extrémités) ou aléatoire. Un changement de sens
+  repart au début de ce nouveau parcours au prochain CLK. La coupure n'arrête pas le compteur.</p>
+  <p><b>ACCENT</b> émet une impulsion distincte sur ACC, avant GATE. Reliez-la à l'entrée ACC
+  du module ACID pour obtenir son accent sonore. Un accent non câblé ne change pas le volume.
+  <b>GLISSÉ</b> rejoint la note du pas depuis la précédente, mais redéclenche GATE : ce n'est pas
+  une liaison de portes. La durée va de 0 à 250 ms, limitée à 80 % du dernier intervalle CLK.
+  Au premier CLK, l'intervalle utilisé est celui du tempo général. Après un silence, la reprise
+  se fait sans glissé. Un silence ne change pas le CV précédent ; l'enveloppe et les effets peuvent finir leur queue.</p>
+  <p><b>COPIER CETTE PAGE</b> remplace les seize pas de l'autre page après confirmation.
+  <b>TOUT EN SILENCE</b> coupe les 32 pas sans effacer leurs notes. RST réaligne le parcours ;
+  STOP annule les portes et les hauteurs encore programmées. Le curseur suit les dates audio,
+  pas les événements préparés en avance. Aucune mesure du volume n'est déduite de cet affichage.</p>
+  <h3>Deux nouveaux montages avec MÉLO 32</h3>
+  <p>Dans <b>MONTAGES → AVANCÉS</b>, <b>ACID 32 · DIALOGUE</b> (138 BPM, 26 modules)
+  associe DRUM 32, basse acide accentuée et glissée, mélodie indépendante et échos.
+  <b>BERLIN 32 · ENTRELACS</b> (112 BPM, 27 modules) mêle une basse de 32 pas à une mélodie
+  de 24 pas en aller-retour et un filtre à modulation lente, sur une batterie discrète.</p>
+  <p>Le premier MÉLO 32 règle la basse et le second la mélodie. Le MIX 4 général garde
+  A = batterie, B = basse, C = mélodie. Les 34 montages précédents ne sont pas remplacés.
+  Choisissez un rack vide pour conserver votre travail, chargez l'exemple puis appuyez sur START.</p>
+
   <h3>Quand ça ne sonne pas</h3>
   <p>Neuf fois sur dix, c'est l'un de ces six points :</p>
   <ol>

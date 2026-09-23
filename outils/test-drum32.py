@@ -46,7 +46,7 @@ AUDIO = r"""async ({id,rate})=>{
  return {id,rate,nPas:n,stats,portes,plan,joue,historique:seq.drum32.dates.length};
 }"""
 
-STRUCTURE = r"""()=>EUR_MONTAGES.filter(p=>p.fam==='avance').map(p=>{
+STRUCTURE = r"""()=>EUR_MONTAGES.filter(p=>['av-techno32','av-tribal32'].includes(p.id)).map(p=>{
  const erreurs=[],dest=new Set();
  p.mods.forEach(([t,params],i)=>{const d=EUR_CAT[t];if(!d){erreurs.push('module '+t);return;}Object.entries(params).forEach(([k,v])=>{const p=d.kns.find(x=>x[0]===k);if(!p||!Number.isFinite(v)||v<p[2]||v>p[3])erreurs.push('param '+i+' '+k);});});
  p.cables.forEach(([a,s,b,e])=>{let x=EUR_CAT[p.mods[a][0]],y=EUR_CAT[p.mods[b][0]];if(!x.jacks.some(j=>j[0]===s&&j[2])||!y.jacks.some(j=>j[0]===e&&!j[2]))erreurs.push('prise');let key=b+':'+e;if(dest.has(key))erreurs.push('double entrée '+key);dest.add(key);});
@@ -76,10 +76,10 @@ def main():
         for w,h in FORMATS:
             c,pg,fautes=ouvrir(w,h);nom=f'{w}x{h}'
             accepter={'oui':False};pg.on('dialog',lambda d:d.accept() if accepter['oui'] else d.dismiss())
-            v(pg.evaluate('Object.keys(EUR_CAT).length===104 && EUR_ORDRE.filter(x=>x==="drum32").length===1'),nom+' catalogue 104 modules sans doublon')
-            v(pg.evaluate('EUR_MONTAGES.length===34 && EUR_MONTAGES.filter(p=>p.fam==="ensemble").length===8'),nom+' 32 anciens montages et deux ajouts')
+            v(pg.evaluate('Object.keys(EUR_CAT).length===105 && EUR_ORDRE.filter(x=>x==="drum32").length===1'),nom+' catalogue 105 modules sans doublon')
+            v(pg.evaluate('EUR_MONTAGES.length===36 && EUR_MONTAGES.filter(p=>p.fam==="ensemble").length===8'),nom+' 32 anciens montages et deux ajouts')
             pg.evaluate('window.ancienPatch=JSON.stringify(rackCourant());window.anciens=JSON.stringify(EUR_MONTAGES.filter(p=>p.fam!=="avance")); EUR.montFam="avance";eurMontages()')
-            v(pg.locator('#eur-cat button[data-famille="avance"]').count()==2,nom+' deux cartes avancées')
+            v(pg.locator('#eur-cat button[data-famille="avance"]').count()==4,nom+' quatre cartes avancées')
             pg.locator('[data-montage="av-techno32"]').click()
             v(pg.evaluate('JSON.stringify(rackCourant())===ancienPatch'),nom+' confirmation refusée conserve le rack')
             accepter['oui']=True;pg.locator('[data-montage="av-techno32"]').click();pg.wait_for_timeout(80)
