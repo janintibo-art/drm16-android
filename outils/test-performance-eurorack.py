@@ -46,7 +46,7 @@ def main():
    pg.evaluate(G.OUVRIR,'eur');return c,pg,er
   for w,h in FORMATS:
    c,pg,er=ouvrir(w,h);tag=f'{w}x{h}';accord={'oui':False};pg.on('dialog',lambda d:d.accept() if accord['oui'] else d.dismiss())
-   v(pg.evaluate('EUR_MONTAGES.length===54&&Object.keys(EUR_CAT).length===112'),tag+' catalogue 112 modules / 54 montages')
+   v(pg.evaluate('EUR_MONTAGES.length===56&&Object.keys(EUR_CAT).length===113'),tag+' catalogue 113 modules / 56 montages')
    pg.evaluate('EUR.montFam="performance";eurMontages()')
    v(pg.locator('[data-famille=performance]').count()==6,tag+' six cartes dans la famille PERFORMANCE')
    pg.evaluate('window.vieuxRack=JSON.stringify(rackCourant())');pg.locator('[data-montage=perf-jungle]').click()

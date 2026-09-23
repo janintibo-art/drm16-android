@@ -17,7 +17,7 @@ var EUR_PERFORMANCE=(function(){
      Les anciens modules à potards gardent toutes leurs courses natives. */
   function parametres(m){
     var d=m && EUR_CAT[m.type];if(!d)return [];
-    var permis={drum32:/^[abcd]chance$/,melo32:/^(trans|glide)$/,scenes8:/^fade$/,break32:/^(tone|pitch|niv)$/,kicklab:/^(tune|dec|sweep|knee|fall|settle|drive|tone|click|clickdec|niv)$/,ducktrig:/^(depth|attack|hold|release|shape)$/};
+    var permis={stutterlive:/^mix$/,drum32:/^[abcd]chance$/,melo32:/^(trans|glide)$/,scenes8:/^fade$/,break32:/^(tone|pitch|niv)$/,kicklab:/^(tune|dec|sweep|knee|fall|settle|drive|tone|click|clickdec|niv)$/,ducktrig:/^(depth|attack|hold|release|shape)$/};
     return d.kns.filter(function(k){
       return typeof k[0]==="string" && fini(k[2]) && fini(k[3]) && k[3]>k[2] &&
         (permis[m.type] ? permis[m.type].test(k[0]) : !d.interface && d.fam!=="seq");

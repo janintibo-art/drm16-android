@@ -1,0 +1,19 @@
+/* v288 : STUTTER LIVE, commandes tactiles et clavier dans le Focus. */
+.stl{min-width:0;color:#f2ebfb;font:12px/1.5 system-ui,Arial,sans-serif}
+.stl-sur{font-size:10px;text-align:center;color:#d0bde2;letter-spacing:.3px;margin:4px 0 9px}
+#unit-eur .stl-ecran,#eur-focus .stl-ecran{display:flex;flex-direction:column;align-items:stretch;width:100%;min-height:108px;min-width:0;border:1px solid #876c9d;border-radius:7px;padding:10px;background:linear-gradient(150deg,#2d233a,#120f19);color:#f6eaff;text-align:left;box-shadow:inset 0 1px 5px #0009;white-space:normal;letter-spacing:0}
+.stl-fraction{font:700 30px/1.2 monospace;color:#d8adff}.stl-etat{display:block;min-height:36px;margin:8px 0;font-size:11px;overflow-wrap:anywhere}.stl-resume{font-size:10px;color:#d1bfdc}
+#unit-eur .stl-active .stl-ecran,#eur-focus .stl-active .stl-ecran{border-color:#efc99e;box-shadow:inset 0 0 0 1px #efc99e}.stl-active .stl-fraction{color:#ffdaab}
+.stl-grille{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.stl label{display:flex;flex-direction:column;gap:6px;min-width:0;font:700 10px/1.45 system-ui;letter-spacing:.2px}
+#eur-focus .stl select,#eur-focus .stl input,#eur-focus .stl button{min-height:44px;min-width:44px;max-width:100%;font-size:11px;letter-spacing:0;touch-action:manipulation}
+#eur-focus .stl select{width:100%;min-width:0;border:1px solid #795e89;background:#251a30;color:#f5eafe;padding:6px 3px;border-radius:5px}
+.stl-dose{margin:14px 0}.stl-dose input{width:100%;accent-color:#d1a4f5}
+.stl-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#eur-focus .stl-actions button{min-height:60px;padding:8px 4px;white-space:normal;overflow-wrap:anywhere}
+#eur-focus .stl-hold{touch-action:none;user-select:none;-webkit-user-select:none}
+#eur-focus .stl-hold[aria-pressed="true"]{background:#dfbbfa;color:#24122e}
+#eur-focus .stl button:focus-visible,#eur-focus .stl input:focus-visible,#eur-focus .stl select:focus-visible{outline:3px solid #ead5ff;outline-offset:1px}
+.stl-message{min-height:28px;color:#f6d6a5;margin:9px 0;font-size:11px}.stl-aide{margin:10px 0 0;color:#d3c8dc;font-size:11px;line-height:1.6}
+@media(max-width:420px){.stl-grille{grid-template-columns:1fr}.stl-actions{grid-template-columns:1fr}.stl-actions button{width:100%}}
+@media(prefers-reduced-motion:reduce){.stl *{animation:none!important;transition:none!important}}

@@ -45,6 +45,7 @@ css/410-performance-eurorack.css
 css/420-variations-rythmiques.css
 css/430-atelier-kick-basse.css
 css/440-harmonie8.css
+css/450-stutter-live.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -177,6 +178,9 @@ js/475-montages-atelier.js
 js/476-harmonie8-eurorack.js
 js/477-harmonie-interface.js
 js/478-montages-harmonie.js
+js/479-stutter-live.js
+js/479a-stutter-interface.js
+js/479b-montages-stutter.js
 js/460-behringer-td-3.js
 js/470-machine-d-archive.js
 js/480-roland-tr-1000.js
