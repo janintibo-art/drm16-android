@@ -103,8 +103,8 @@ def main():
             pg.goto(f.as_uri(), wait_until='domcontentloaded'); pg.wait_for_timeout(80)
             pg.evaluate(G.OUVRIR, 'eur')
             tag = f'{w}x{h}'
-            v(pg.evaluate("Object.keys(EUR_CAT).length===122 && new Set(EUR_ORDRE).size===122 && EUR_MONTAGES.length===72"),
-              tag + ' catalogue 122 modules / 72 montages')
+            v(pg.evaluate("Object.keys(EUR_CAT).length===123 && new Set(EUR_ORDRE).size===123 && EUR_MONTAGES.length===74"),
+              tag + ' catalogue 123 modules / 74 montages')
             v(pg.evaluate("!!EUR_CAT.dialogue && EUR_CAT.dialogue.jacks.length===6 && EUR_CAT.dialogue.kns.length===7"),
               tag + ' module DIALOGUE : six prises, sept réglages')
             pg.evaluate("EUR.mods=[];EUR.cables=[];EUR.attente=null;const m=eurAjouter('dialogue',true);eurDessiner();EUR_FOCUS.ouvrir(m.id);")

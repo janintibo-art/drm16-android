@@ -87,8 +87,8 @@ def main():
             pg = c.new_page(); err = []; pg.on('pageerror', lambda e: err.append(str(e)))
             pg.goto(f.as_uri(), wait_until='domcontentloaded'); pg.wait_for_timeout(80)
             tag = f'{w}x{h}'
-            v(pg.evaluate("Object.keys(EUR_CAT).length===122 && new Set(EUR_ORDRE).size===122 && EUR_MONTAGES.length===72"),
-              tag + ' catalogue 122 modules / 72 montages')
+            v(pg.evaluate("Object.keys(EUR_CAT).length===123 && new Set(EUR_ORDRE).size===123 && EUR_MONTAGES.length===74"),
+              tag + ' catalogue 123 modules / 74 montages')
             v(pg.evaluate("!!EUR_CAT.voyelle && EUR_CAT.voyelle.jacks.map(j=>j[0]).sort().join(',')==='out,voct,voyin' && EUR_CAT.voyelle.kns.length===6"),
               tag + ' module VOYELLE : trois prises, six réglages')
             v(pg.evaluate("!!EUR_CAT.vocodeur && EUR_CAT.vocodeur.jacks.map(j=>j[0]).sort().join(',')==='mod,out,por' && EUR_CAT.vocodeur.kns.length===6"),

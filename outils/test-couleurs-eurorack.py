@@ -99,7 +99,7 @@ def main():
         for w,h in ([] if a.audio_seulement else FORMATS):
             context,pg,err=ouvrir(w,h);tag=f'{w}x{h}';accept={'oui':False}
             pg.on('dialog',lambda d:d.accept() if accept['oui'] else d.dismiss())
-            v(pg.evaluate('Object.keys(EUR_CAT).length===122&&new Set(EUR_ORDRE).size===122&&EUR_MONTAGES.length===72'),tag+' catalogue exact')
+            v(pg.evaluate('Object.keys(EUR_CAT).length===123&&new Set(EUR_ORDRE).size===123&&EUR_MONTAGES.length===74'),tag+' catalogue exact')
             for s in pg.evaluate(STRUCTURE):
                 b=s['id']=='couleur-balkans7'
                 v(not s['erreurs'] and s['modules']==(21 if b else 22) and s['cables']==(31 if b else 36) and s['horloges']==1 and s['melos']==3 and s['scenes']==(0 if b else 1) and s['rangees'],tag+' structure '+str(s))

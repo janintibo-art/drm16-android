@@ -34,7 +34,7 @@ def main():
    pg.evaluate(G.OUVRIR,'eur');return c,pg,er
   for w,h in FORMATS:
    c,pg,er=ouvrir(w,h);tag=f'{w}x{h}';accord={'oui':True};pg.on('dialog',lambda d:d.accept() if accord['oui'] else d.dismiss())
-   v(pg.evaluate('EUR_MONTAGES.length===72&&Object.keys(EUR_CAT).length===122'),tag+' catalogue')
+   v(pg.evaluate('EUR_MONTAGES.length===74&&Object.keys(EUR_CAT).length===123'),tag+' catalogue')
    pg.evaluate('eurMonter(EUR_MONTAGES.find(p=>p.id==="var-jungle"));window.dm=EUR.mods.find(m=>m.type==="drum32");window.br=EUR.mods.find(m=>m.type==="break32");window.V=EUR_VARIATIONS;window.baseA=JSON.stringify(dm.p);window.busAvant=EUR.bus;window.cablesAvant=JSON.stringify(EUR.cables);EUR_FOCUS.ouvrir(dm.id)')
    v(pg.evaluate('!S.run&&!!dm.variation&&!!br.variation'),tag+' deux variantes chargées sans autoplay')
    pg.locator('.dr32-editeur .rv-editer-b').click();pg.select_option('.dr32-editeur [data-champ=outil]','4');pg.locator('.dr32-editeur .dr32-pas[data-pas="1"]').click()

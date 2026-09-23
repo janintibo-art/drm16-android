@@ -170,7 +170,7 @@ def main():
             pg.evaluate('eurExemple();EUR_FOCUS.ouvrir(3);poserRack(JSON.parse(JSON.stringify(rackCourant())));eurDessiner()');pg.wait_for_timeout(30)
             verifier(pg.evaluate('EUR_FOCUS.actif()===null'),prefixe+' : un rack rechargé avec les mêmes numéros ferme la vue obsolète')
             # Le dense SEQ16 et tous les types de module : affichage, sans bâtir
-            # 122 graphes audio. Aucun état utilisateur réel n’est employé.
+            # 123 graphes audio. Aucun état utilisateur réel n’est employé.
             result=pg.evaluate("""() => {
               const r=[];
               Object.keys(EUR_CAT).forEach((type,i)=>{
@@ -179,12 +179,12 @@ def main():
                 const root=document.querySelector('#eur-focus'),d=EUR_CAT[type],zone=root.querySelector('.ef-zone');
                 const bad=[...root.querySelectorAll('button,select,[role="slider"]')].filter(e=>e.getClientRects().length)
                   .filter(e=>{const r=e.getBoundingClientRect();return r.width<43.9||r.height<43.9;});
-                r.push({type,kn:(type === "stutterlive" ? root.querySelectorAll(".stl-grand select").length===4 && !!root.querySelector(".stl-hold") && !!root.querySelector(".stl-dose input") : type === "harmonie8" ? root.querySelectorAll(".hr8-case").length===8 && root.querySelectorAll(".hr8-grand select").length===11 : type === "kicklab" || type === "ducktrig" ? root.querySelectorAll(".kb-range").length===d.kns.length && !!root.querySelector(".kb-courbe") : type === "break32" ? root.querySelectorAll(".br32-pas").length===16 && root.querySelectorAll(".br32-editeur select[data-champ]").length===8 && !!root.querySelector(".brs-source") : type === "scenes8" ? root.querySelectorAll(".sc8-scene").length===8 && root.querySelectorAll(".sc8-editeur select").length===9 : type === "melo32" ? root.querySelectorAll(".ml32-pas").length===16 && root.querySelectorAll(".ml32-global select").length===6 : type === "poly4" ? root.querySelectorAll(".p4-touche").length===13 && root.querySelectorAll(".p4-mem").length===4 && root.querySelectorAll(".p4-reglages select").length===7 && !!root.querySelector(".p4-memoriser") : type === "looper" ? root.querySelectorAll(".lpr-piste").length===4 && root.querySelectorAll(".lpr-reglages select").length===7 && root.querySelectorAll(".lpr-rec").length===4 && root.querySelectorAll(".lpr-muet").length===4 && root.querySelectorAll(".lpr-clear").length===4 : type === "dialogue" ? root.querySelectorAll(".dlg-reglages select").length===7 : d.interface ? root.querySelectorAll('.dr32-pas').length===16 && root.querySelectorAll('.dr32-piste').length===4 && root.querySelectorAll('.dr32-reglages select').length===4 : root.querySelectorAll('[role="slider"]').length===d.kns.length),
+                r.push({type,kn:(type === "stutterlive" ? root.querySelectorAll(".stl-grand select").length===4 && !!root.querySelector(".stl-hold") && !!root.querySelector(".stl-dose input") : type === "harmonie8" ? root.querySelectorAll(".hr8-case").length===8 && root.querySelectorAll(".hr8-grand select").length===11 : type === "kicklab" || type === "ducktrig" ? root.querySelectorAll(".kb-range").length===d.kns.length && !!root.querySelector(".kb-courbe") : type === "break32" ? root.querySelectorAll(".br32-pas").length===16 && root.querySelectorAll(".br32-editeur select[data-champ]").length===8 && !!root.querySelector(".brs-source") : type === "scenes8" ? root.querySelectorAll(".sc8-scene").length===8 && root.querySelectorAll(".sc8-editeur select").length===9 : type === "melo32" ? root.querySelectorAll(".ml32-pas").length===16 && root.querySelectorAll(".ml32-global select").length===6 : type === "poly4" ? root.querySelectorAll(".p4-touche").length===13 && root.querySelectorAll(".p4-mem").length===4 && root.querySelectorAll(".p4-reglages select").length===7 && !!root.querySelector(".p4-memoriser") : type === "looper" ? root.querySelectorAll(".lpr-piste").length===4 && root.querySelectorAll(".lpr-reglages select").length===7 && root.querySelectorAll(".lpr-rec").length===4 && root.querySelectorAll(".lpr-muet").length===4 && root.querySelectorAll(".lpr-clear").length===4 : type === "dialogue" ? root.querySelectorAll(".dlg-reglages select").length===7 : type === "accordage" ? root.querySelectorAll(".acc-reglages select").length===7 && !!root.querySelector(".acc-importer") : d.interface ? root.querySelectorAll('.dr32-pas').length===16 && root.querySelectorAll('.dr32-piste').length===4 && root.querySelectorAll('.dr32-reglages select').length===4 : root.querySelectorAll('[role="slider"]').length===d.kns.length),
                   j:root.querySelectorAll('.ef-jack').length===d.jacks.length,bad:bad.length,
                   deborde:zone.scrollWidth-zone.clientWidth});
               });return r;
             }""")
-            verifier(len(result)==122 and all(x['kn'] and x['j'] and x['bad']==0 and x['deborde']<=1 for x in result),prefixe+' : 122 façades complètes et cibles confortables : '+str([x for x in result if not(x['kn'] and x['j']) or x['bad'] or x['deborde']>1]))
+            verifier(len(result)==123 and all(x['kn'] and x['j'] and x['bad']==0 and x['deborde']<=1 for x in result),prefixe+' : 123 façades complètes et cibles confortables : '+str([x for x in result if not(x['kn'] and x['j']) or x['bad'] or x['deborde']>1]))
             catalogue.append({'format':[largeur,hauteur],'types':len(result)})
             pg.evaluate('EUR_FOCUS.fermer(false);EUR.mods=[];EUR.cables=[];eurAjouter("seq16",true);eurDessiner();EUR_FOCUS.ouvrir(EUR.mods[0].id)')
             bas=pg.locator('.ef-jack').last
@@ -199,7 +199,7 @@ def main():
             verifier(pg.locator('#eur-focus-ouvrir').is_disabled(),prefixe+' : rack vide')
             verifier(not fautes_js,prefixe+' : JavaScript '+str(fautes_js))
             cas.append({'format':[largeur,hauteur],'mesure':mesure})
-            print('Contrôlé : '+prefixe+' · gestes, audio, câbles, cycle de vie et 122 types',flush=True)
+            print('Contrôlé : '+prefixe+' · gestes, audio, câbles, cycle de vie et 123 types',flush=True)
             ctx.close()
         nav.close()
     rapport={'formats':cas,'catalogue':catalogue,'erreurs':erreurs,'stockage_simule':args.contenu}

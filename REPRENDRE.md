@@ -127,7 +127,7 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 ## 5. Ce qui reste à faire
 
-### État au 297 (23 septembre 2026)
+### État au 298 (23 septembre 2026)
 
 Les cinq analyses de la v122 servent de feuille de route, dans l'ordre choisi : analyse complète, version
 Windows, qualité sonore, fidélité des machines, qualité graphique.
@@ -161,21 +161,21 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
   breakcore/gabber/psytrance (v282), BREAK 32 (v283), PERFORMANCE (v284), variations A/B et FILL rythmiques
   (v285), atelier kick/basse (v286), HARMONIE 8 (v287), STUTTER LIVE (v288), voix Inde/Balkans/dabké (v289),
   FREEZE GRANULAIRE (v290), CYCLES LIBRES (v291), PERFORMANCE MOUVANTE (v292), correctif du test FOCUS
-  après CYCLES LIBRES (v293), VOIX MUTANTES (v294), POLY 4 (v295), LOOPER DE RACK (v296), DIALOGUE (v297).
+  après CYCLES LIBRES (v293), VOIX MUTANTES (v294), POLY 4 (v295), LOOPER DE RACK (v296), DIALOGUE (v297),
+  ACCORDAGES ET ORNEMENTS (v298) — les trois derniers éléments laissés au choix sont maintenant tous en place.
 
 **Reste à faire, par ordre d'intérêt**
 1. *Qualité sonore* : équilibre des voix au sein de chaque machine, à l'oreille ; réverbérations ROOM, PLATE,
    SPRING, HALL ; grave en mono ; grosses caisses, charlestons et cymbales ; essayer les saturations en 4x.
-2. *Eurorack, suite proposée après la v297* : ACCORDAGES ET ORNEMENTS (accordage par note, import Scala .scl).
-3. *Qualité graphique, ce qui reste* : façades KAOSS PAD/SmplTrek encore à affiner selon l'usage.
-4. *Essais sur matériel* : USB-MIDI sur le téléphone, ouverture de projet interrompue, lecture longue en
+2. *Qualité graphique, ce qui reste* : façades KAOSS PAD/SmplTrek encore à affiner selon l'usage.
+3. *Essais sur matériel* : USB-MIDI sur le téléphone, ouverture de projet interrompue, lecture longue en
    arrière-plan, clé de signature des APK ; sur PC, voir `docs/parite.md` ; Bluetooth MIDI (ci-dessous).
 
 **Échecs de tests connus, sans défaut de l'application** — relancer le run suffit :
 bloc 14 du test navigateur (« un gain existant rejoint sa cible en douceur ») quand la machine est chargée.
 Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en écrire en `file://`.
 
-### Versions v177 à v297
+### Versions v177 à v298
 
 | Version | Sujet |
 |---|---|
@@ -300,6 +300,7 @@ Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en
 | v295 | POLY 4 : synthé autonome à quatre voix, clavier tactile d'une octave, vol de voix, quatre mémoires d'accord ; deux montages (poly4-nappe, poly4-club) |
 | v296 | LOOPER DE RACK : quatre pistes qui captent une phrase sur IN puis la bouclent, RECORD/MUET/CLEAR, fondu aux bords ; deux montages (looper-boucle, looper-dub) |
 | v297 | DIALOGUE : deux voix qui se répondent, question improvisée puis réponse décalée et/ou retournée (MIROIR) ; deux montages (dialogue-duo, dialogue-psy) |
+| v298 | ACCORDAGES ET ORNEMENTS : arpège sur une gamme personnalisée (ÉGAL 12, JUSTE, PYTHAGORICIEN ou import Scala .scl), appoggiature/mordant/trille calculés sur les écarts réels de la gamme ; deux montages (accordage-juste, accordage-pytha) |
 
 ---
 
