@@ -302,7 +302,7 @@ function eurMonter(P){
   EUR.performance=null;
   /* Un ensemble neuf repart au premier temps au prochain START, jamais au
      milieu de l'ancienne phrase. Les anciens montages gardent leur conduite. */
-  if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance") stop();
+  if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance" || P.fam === "couleurs") stop();
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
   var rangs = P.mods.map(function(x,index){
     var m = eurAjouter(x[0], true);
@@ -362,6 +362,11 @@ function eurMontages(){
     aidePerf.textContent="Montages déjà affectés aux huit commandes PERFORMANCE : niveaux des quatre parties, couleurs et échos. START, puis PERFORMANCE. MÉMORISER garde un point de retour sans changer le son.";
     c.appendChild(aidePerf);
   }
+  if(fam === "couleurs"){
+    var aideCouleurs=document.createElement("p");aideCouleurs.className="eur-ensembles-aide";
+    aideCouleurs.textContent="Voix synthétiques originales, pas de samples traditionnels. PERFORMANCE : percussions, basse, mélodie, bourdon/réponse. Le 7/8 utilise 14 pas (2+2+3 croches), sans scènes/fills 4/4. Les autres exemples utilisent SCÈNES 8. Démarrez dans un rack vide, puis START.";
+    c.appendChild(aideCouleurs);
+  }
   if(fam === "rave"){
     var aideRave = document.createElement("p");
     aideRave.className = "eur-ensembles-aide";
@@ -376,7 +381,7 @@ function eurMontages(){
     b.dataset.montage = P.id;
     b.dataset.famille = P.fam;
     b.textContent = P.nom;
-    if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance"){
+    if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance" || P.fam === "couleurs"){
       var meta = document.createElement("span");
       meta.className = "eur-ensemble-meta";
       meta.textContent = P.bpm + " BPM · " + P.tonalite + " · " + P.mods.length + " MODULES";

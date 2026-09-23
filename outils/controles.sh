@@ -87,6 +87,7 @@ node outils/test-variations-rythmiques.cjs
 node outils/test-atelier-kick-basse.cjs
 node outils/test-harmonie8.cjs
 node outils/test-stutter-live.cjs
+node outils/test-couleurs-eurorack.cjs
 fin
 
 etape "6. Java : compilation de controle et tests"

@@ -73,6 +73,7 @@ jobs:
           python outils/test-atelier-kick-basse.py --rapport app/build/reports/atelier-kick-basse.json
           python outils/test-harmonie8.py --rapport app/build/reports/harmonie8.json
           python outils/test-stutter-live.py --rapport app/build/reports/stutter-live.json
+          python outils/test-couleurs-eurorack.py --rapport app/build/reports/couleurs-eurorack.json
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble

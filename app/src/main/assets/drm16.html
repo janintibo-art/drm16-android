@@ -4148,6 +4148,13 @@ body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2p
 .stl-message{min-height:28px;color:#f6d6a5;margin:9px 0;font-size:11px}.stl-aide{margin:10px 0 0;color:#d3c8dc;font-size:11px;line-height:1.6}
 @media(max-width:420px){.stl-grille{grid-template-columns:1fr}.stl-actions{grid-template-columns:1fr}.stl-actions button{width:100%}}
 @media(prefers-reduced-motion:reduce){.stl *{animation:none!important;transition:none!important}}
+/* v289 — les quatre cartes ont la même ergonomie que les ensembles existants. */
+#eur-cat button[data-famille="couleurs"]{min-height:120px;white-space:normal;
+  padding:12px;background:linear-gradient(145deg,#34302a,#1a2027);border:1px solid #827151;
+  border-left:3px solid #ddae67;font-size:12px;line-height:1.4}
+#eur-cat button[data-famille="couleurs"] span{font-size:11px;line-height:1.5;color:#e0ded8}
+#eur-cat button[data-famille="couleurs"] .eur-ensemble-meta{margin:7px 0;color:#f5c981;font-weight:700}
+#eur-cat button[data-famille="couleurs"]:focus-visible{outline:2px solid #f5c981;outline-offset:-3px}
 </style>
 </head>
 <body>
@@ -8338,6 +8345,61 @@ Général) rend la chaîne entière, une fois.</p>
 <p>Dans le FOCUS du module, RÉPÉTER capture le fragment situé juste avant l'appui. Choisissez une longueur de 1/4 à 1/64 de ronde et une durée de 1 à 16 pas de double-croche. TENIR garde la boucle pendant l'appui ; LIBÉRER revient au son direct sans arrêter les séquenceurs. CLOCK OUT vers CLK apporte seize impulsions par mesure ; AUTO capture en fin de chaque deuxième, quatrième ou huitième mesure.</p>
 <p>À la sortie, un fragment doit remplir le tampon avant la prochaine capture : RÉARMEMENT le signale. La longueur, l'adoucissement et la durée sont pris au départ ; la DOSE reste réglable pendant la répétition. Un changement de tempo ne déforme pas la boucle tenue : il vaut pour la prochaine capture. Les deux canaux sont conservés. Pas d'importation, inversion, transposition ni étirement temporel dans ce module. Ce n'est pas un effet MIDI externe.</p>
 <p>Les réglages sont sauvegardés, mais pas le son temporairement capturé, les compteurs ou un appui TENIR. STOP, RST et un recâblage libèrent la répétition. En quittant le Focus ou en perdant le focus de la fenêtre, TENIR est relâché. Le mode AUTO reste programmé pour les prochains tours.</p>
+<h3>Inde, Balkans et dabké — trois voix électroniques (v289)</h3>
+<p>Dans <b>RACK ▾ → MONTAGES → INDE / BALKANS / DABKÉ</b>, quatre nouvelles compositions
+originales associent percussions, basse, mélodie et réponse ou bourdon. Choisissez
+un emplacement vide, chargez un montage, puis START. Les anciens racks restent disponibles.
+Les trois nouveaux modules sont dans <b>CORDES / ANCHES / PEAUX</b> du catalogue de modules.</p>
+<p><b>CORDE RÉSO</b> : une corde pincée électronique avec BOURDONNEMENT harmonique,
+RÉSONANCE et BRILLANCE. CHUTE règle la décroissance ; les harmoniques résonantes
+peuvent durer environ une fois et demie cette durée. Le module évoque une corde
+bourdonnante d’inspiration indienne, sans reproduire un sitar acoustique.</p>
+<p><b>ANCHE LEAD</b> : un timbre allant de DOUX à NASAL, une ATTAQUE et une DURÉE de note,
+un VIBRATO dont l’amplitude est en cents et la vitesse en Hz. APPEL commence la note
+un peu plus bas puis rejoint sa hauteur pendant ses premières millisecondes.
+Il évoque une anche de clarinette ou de zurna, sans modèle acoustique complet.</p>
+<p>Pour ces deux voix : <b>MÉLO 32 CV → V/OCT et GATE → TRIG</b>. La référence est
+55 Hz à 0 V. OCTAVE transpose de −2 à +2 octaves, de manière continue ; ACCORD affine
+sur ±100 cents. Les glissés de MÉLO 32 restent transmis. Chaque note coupe doucement
+la queue précédente : ce sont des voix monophoniques, pas des accords. Le timbre et
+la durée s’appliquent à la prochaine note ; NIVEAU agit immédiatement.</p>
+<p><b>PEAUX DUO</b> : deux frappes indépendantes, GRAVE et AIGU, avec leurs fréquences
+propres. COURBE GRAVE ajoute une descente de hauteur ; TABLA → DOUM modifie les modes
+résonants, FRAPPE la composante bruitée et CHUTE leur longueur. Ces noms décrivent des
+couleurs électroniques : ni tabla enregistré, ni reproduction d’un jeu traditionnel.
+Chaque peau coupe sa propre queue sans couper l’autre.</p>
+<p><b>BAS et HAUT</b> donnent les sons séparément ; <b>OUT</b> additionne les deux.
+Ces trois sorties suivent NIVEAU. Utilisez OUT, ou BAS et HAUT séparés, mais évitez de
+les additionner tous trois au même endroit pour ne pas doubler le niveau. STOP, RST,
+le recâblage et la suppression du module coupent ses voix programmées.</p>
+<p><b>FOCUS</b> agrandit tous les potards : glissement vertical, molette, flèches du clavier,
+Home/End et touche Maj pour affiner. Aucun panneau de réglages spécifique n’est nécessaire.
+Les huit commandes <b>PERFORMANCE</b> sont déjà affectées dans les exemples :
+PERCUSSIONS, BASSE, MÉLODIE, BOURDON ou RÉPONSE, puis COULEUR MÉLODIE,
+RÉSONANCE CORDES ou VIBRATO ANCHE, ÉCHOS et PEAUX VIVANTES.</p>
+<p><b>INDE · CORDES ET PEAUX</b> (112 BPM) : mélodie pentatonique en ré, peaux,
+basse douce et cordes graves alternant ré/la. <b>INDE · TRANSE DES CORDES</b>
+(144 BPM) ajoute une pulsation électronique et une réponse d’anche.
+<b>DABKÉ · ANCHES ÉLECTRIQUES</b> (148 BPM) associe anche nasale, notes d’appel,
+percussions et réponses pincées. Ces trois montages comportent huit scènes sur
+une boucle de douze mesures ; laissez tourner pour entendre les entrées et les breaks.</p>
+<p><b>BALKANS · DANSE EN SEPT</b> (138 BPM) suit un cycle réel de <b>7/8</b> :
+14 doubles-croches, regroupées 4 + 4 + 6, soit 2 + 2 + 3 croches.
+Les quatre pistes DRUM 32 et la basse ont une longueur de 14 pas ; les deux
+mélodies, 28 pas. Ce montage n’utilise ni SCÈNES 8 ni fills automatiques sur
+16 pas. Le compteur global garde son affichage 4/4 : le cycle des modules,
+non ce compteur, définit ici la mesure. Ajouter un fill automatique 4/4 à ce
+montage le ferait tomber sur une autre frontière.</p>
+<p>Les motifs sont écrits en <b>tempérament égal</b>, avec les MÉLO 32 en mode
+CHROMATIQUE pour conserver les intervalles choisis. Ce lot ne simule pas un raga,
+un maqam complet ou une intonation microtonale traditionnelle. La référence à
+Omar Souleyman inspire la couleur dabké électronique syrienne, distincte des
+propositions indiennes et balkaniques ; aucune voix, mélodie de chanson ou
+prise de son de l’artiste n’est incluse.</p>
+<p>Tous les sons sont synthétisés dans l’application : aucun téléchargement de
+banque supplémentaire. Paramètres, câbles et macros sont conservés dans les
+huit racks et les projets .drm16. Les sources sonores temporaires ne sont pas
+sauvegardées. Le catalogue compte maintenant 116 types de modules et 60 montages.</p>
 </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
   <p>Les cent trois modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
@@ -26046,7 +26108,7 @@ function eurMonter(P){
   EUR.performance=null;
   /* Un ensemble neuf repart au premier temps au prochain START, jamais au
      milieu de l'ancienne phrase. Les anciens montages gardent leur conduite. */
-  if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance") stop();
+  if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance" || P.fam === "couleurs") stop();
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
   var rangs = P.mods.map(function(x,index){
     var m = eurAjouter(x[0], true);
@@ -26106,6 +26168,11 @@ function eurMontages(){
     aidePerf.textContent="Montages déjà affectés aux huit commandes PERFORMANCE : niveaux des quatre parties, couleurs et échos. START, puis PERFORMANCE. MÉMORISER garde un point de retour sans changer le son.";
     c.appendChild(aidePerf);
   }
+  if(fam === "couleurs"){
+    var aideCouleurs=document.createElement("p");aideCouleurs.className="eur-ensembles-aide";
+    aideCouleurs.textContent="Voix synthétiques originales, pas de samples traditionnels. PERFORMANCE : percussions, basse, mélodie, bourdon/réponse. Le 7/8 utilise 14 pas (2+2+3 croches), sans scènes/fills 4/4. Les autres exemples utilisent SCÈNES 8. Démarrez dans un rack vide, puis START.";
+    c.appendChild(aideCouleurs);
+  }
   if(fam === "rave"){
     var aideRave = document.createElement("p");
     aideRave.className = "eur-ensembles-aide";
@@ -26120,7 +26187,7 @@ function eurMontages(){
     b.dataset.montage = P.id;
     b.dataset.famille = P.fam;
     b.textContent = P.nom;
-    if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance"){
+    if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance" || P.fam === "couleurs"){
       var meta = document.createElement("span");
       meta.className = "eur-ensemble-meta";
       meta.textContent = P.bpm + " BPM · " + P.tonalite + " · " + P.mods.length + " MODULES";
@@ -29732,6 +29799,250 @@ var EUR_STUTTER_UI=(function(){
   }
   EUR_MONT_FAM.push(["capture","CAPTURE LIVE"]);
   [faire(false),faire(true)].forEach(function(p){if(p)EUR_MONTAGES.push(p);});
+})();
+/* ================= COULEURS INDE / BALKANS / DABKÉ — v289 =================
+   Synthèse originale, sans échantillons ni imitation d'un enregistrement.
+   CORDE RÉSO et ANCHE LEAD : voix monophoniques, référence 55 Hz à 0 V ;
+   V/OCT reste un signal audio, donc les glissés de MÉLO 32 sont conservés.
+   PEAUX DUO : deux peaux indépendantes, modes résonants + attaque bruitée.
+   Les réglages de timbre s'appliquent à la prochaine note/frappe. NIVEAU agit
+   immédiatement (même chemin lissé que les potards natifs). Tout est numérique
+   dans m.p ; aucun format de sauvegarde ni ancien module n'est remplacé. */
+var EUR_COULEURS=(function(){
+  "use strict";
+  var B=EUR_RAVE.borne;
+  var descriptions={
+    cordesreso:{nom:"CORDE RÉSO",hp:128,sombre:false,fam:"couleurs",
+      res:"Corde pincée électronique : harmoniques bourdonnantes et résonance. V/OCT 0 V = 55 Hz. Timbre à la prochaine note ; NIVEAU immédiat.",
+      kns:[["oct","OCTAVE",-2,2,0],["fine","ACCORD cents",-100,100,0],["dec","CHUTE ms",60,2200,450],
+        ["buzz","BOURDONNEMENT",0,1,.48],["res","RÉSONANCE",0,1,.35],["tone","BRILLANCE",0,1,.6],["niv","NIVEAU",0,1,.65]],
+      jacks:[["trig","TRIG",0],["voct","V/OCT",0],["rst","RST",0],["out","OUT",1]]},
+    anchelead:{nom:"ANCHE LEAD",hp:144,sombre:true,fam:"couleurs",
+      res:"Anche électronique : doux vers nasal, vibrato et appel glissé. Évocation clarinette/zurna, pas une reproduction acoustique. V/OCT 0 V = 55 Hz.",
+      kns:[["oct","OCTAVE",-2,2,0],["fine","ACCORD cents",-100,100,0],["dec","DURÉE ms",70,1800,280],
+        ["attack","ATTAQUE ms",2,100,9],["mode","DOUX → NASAL",0,1,.65],["tone","BRILLANCE",0,1,.58],
+        ["vib","VIBRATO cents",0,70,16],["rate","VIBRATO Hz",3,10,6],["grace","APPEL cents",0,200,35],["niv","NIVEAU",0,1,.55]],
+      jacks:[["trig","TRIG",0],["voct","V/OCT",0],["rst","RST",0],["out","OUT",1]]},
+    peauxduo:{nom:"PEAUX DUO",hp:128,sombre:false,fam:"couleurs",
+      res:"Deux percussions modales : grave courbé et frappe aiguë. Couleur tabla vers doum électronique ; GRAVE/AIGU indépendants. OUT additionne les deux peaux.",
+      kns:[["low","GRAVE Hz",55,180,82],["high","AIGU Hz",150,520,294],["dec","CHUTE ms",60,700,260],
+        ["bend","COURBE GRAVE",0,1,.4],["mode","TABLA → DOUM",0,1,.15],["snap","FRAPPE",0,1,.45],["niv","NIVEAU",0,1,.65]],
+      jacks:[["low","GRAVE",0],["high","AIGU",0],["rst","RST",0],["lowout","BAS",1],["highout","HAUT",1],["out","OUT",1]]}
+  };
+  function valeurs(type,raw){
+    var p={},d=descriptions[type];if(!d)return p;
+    d.kns.forEach(function(k){p[k[0]]=B(raw&&raw[k[0]],k[2],k[3],k[4]);});
+    return p;
+  }
+  function normaliser(m){var p=valeurs(m.type,m.p);if(!m.p)m.p={};Object.keys(p).forEach(function(k){m.p[k]=p[k];});}
+  /* Le cache est attaché au contexte : pas de rétention des anciens graphes.
+     Le timbre du PeriodicWave est quantifié sur 32 positions ; l'oscillateur
+     Web Audio élimine les harmoniques au-delà de Nyquist. */
+  var ondes=new WeakMap(),bruits=new Map();
+  function coefficients(type,x){
+    x=B(x,0,1,0);var a=new Float32Array(49),b=new Float32Array(49),somme=0;
+    for(var i=1;i<b.length;i++){
+      b[i]=type==="cordesreso"?Math.pow(i,-(1.8-.7*x))*(i%2?.85:1):
+        Math.pow(i,-1.25)*(i%2?1:x*.82);
+      somme+=Math.abs(b[i]);
+    }
+    for(var j=1;j<b.length;j++)b[j]/=somme;return {real:a,imag:b};
+  }
+  function onde(type,x){
+    var cache=ondes.get(ctx);if(!cache){cache=new Map();ondes.set(ctx,cache);}
+    var n=Math.round(B(x,0,1,0)*32),key=type+":"+n;
+    if(!cache.has(key)){var c=coefficients(type,n/32);cache.set(key,ctx.createPeriodicWave(c.real,c.imag,{disableNormalization:true}));}
+    return cache.get(key);
+  }
+  function bruit(){
+    var sr=ctx.sampleRate;if(bruits.has(sr))return bruits.get(sr);
+    var b=ctx.createBuffer(1,Math.ceil(sr*.028),sr),d=b.getChannelData(0),seed=289,last=0;
+    for(var i=0;i<d.length;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;var x=seed/2147483648-1;d[i]=(x-last)*.35;last=x;}
+    if(bruits.size>=3)bruits.delete(bruits.keys().next().value);bruits.set(sr,b);return b;
+  }
+  function enveloppe(g,t,attack,d,peak){
+    g.gain.setValueAtTime(0,t);if(peak<=0)return;g.gain.linearRampToValueAtTime(peak,t+attack);
+    g.gain.exponentialRampToValueAtTime(.00001,t+attack+d);g.gain.setValueAtTime(0,t+attack+d+.002);
+  }
+  /* Le panier reçoit un groupe complet, pas uniquement son premier oscillateur.
+     La source finissant la dernière nettoie aussi les connexions V/OCT entrantes.
+     Aucun callback d'interface, aucune mesure/analyse pour décider une note. */
+  function groupe(pool,t,d,voct){
+    pool.couper(t);
+    var gain=eurGain(1),src=[],noeuds=[gain],pitched=[],fin=t+d+.008;
+    /* Point explicite au départ : sinon une future linearRamp du choke peut
+       partir de t=0 et atténuer toute la voix avant son relâchement. */
+    gain.gain.setValueAtTime(1,t);gain.gain.linearRampToValueAtTime(1,fin);
+    return {gain:gain,src:src,noeuds:noeuds,fin:fin,
+      hauteur:function(o){if(voct){voct.connect(o.detune);pitched.push(o);}},
+      jouer:function(){
+        var sentinelle=src[0];
+        var source={stop:function(at){src.forEach(function(o){try{o.stop(at);}catch(ignore){}});}};
+        Object.defineProperty(source,"onended",{set:function(f){sentinelle.onended=function(){
+          if(voct)pitched.forEach(function(o){try{voct.disconnect(o.detune);}catch(ignore){}});f();
+        };}});
+        src.forEach(function(o){o.start(t);o.stop(fin);});pool.ajouter(source,gain,t,fin,noeuds);
+      }};
+  }
+  function base(m){
+    normaliser(m);var out=eurGain(m.p.niv),pools=[],ferme=false,barriere=0,dates={};
+    m.maj=function(){normaliser(m);out.gain.value=m.p.niv;};
+    function arreter(t){pools.forEach(function(p){p.couper(t);});dates={};barriere=t;}
+    m.arreter=function(){if(!ferme)arreter(maintenantAudio());};
+    m.couleurs={sources:function(){return pools.reduce(function(n,p){return n+p.nombre();},0);},ferme:function(){return ferme;}};
+    return {out:out,pool:function(){var p=EUR_RAVE.panier();pools.push(p);return p;},
+      accepter:function(t,e,ports){
+        if(ferme||!Number.isFinite(t)||t<0||t<barriere)return false;
+        if(e==="rst"){arreter(t);return false;}
+        if(ports.indexOf(e)<0||(dates[e]!==undefined&&t<=dates[e]+.0000001))return false;
+        dates[e]=t;return true;
+      },detruire:function(){ferme=true;pools.forEach(function(p){p.detruire();});out.disconnect();}};
+  }
+  function corde(m){
+    var c=base(m),pool=c.pool(),voct=eurGain(1200);
+    m.recevoir=function(t,e){
+      if(!c.accepter(t,e,["trig"]))return null;var p=valeurs(m.type,m.p),d=p.dec/1000;
+      var g=groupe(pool,t,d*1.5,voct),mix=eurGain(1),lp=ctx.createBiquadFilter(),hp=ctx.createBiquadFilter();
+      lp.type="lowpass";lp.Q.value=.55;lp.frequency.value=Math.min(ctx.sampleRate*.4,650*Math.pow(14,p.tone));
+      hp.type="highpass";hp.frequency.value=35;hp.Q.value=.6;
+      mix.connect(lp);lp.connect(hp);hp.connect(g.gain);g.gain.connect(c.out);g.noeuds.push(mix,lp,hp);
+      [1,2,3].forEach(function(r,i){
+        var o=ctx.createOscillator(),a=eurGain(0);o.frequency.value=55*Math.pow(2,p.oct)*r;o.detune.value=p.fine;
+        if(i===0)o.setPeriodicWave(onde(m.type,p.buzz));else o.type="sine";
+        g.hauteur(o);o.connect(a);a.connect(mix);g.src.push(o);g.noeuds.push(o,a);
+        enveloppe(a,t,.002,i===0?d:d*1.45,i===0?.70:p.res*(i===1?.14:.09));
+      });g.jouer();return null;
+    };
+    return {e:{trig:eurGain(1),rst:eurGain(1),voct:voct},s:{out:c.out},detruire:function(){c.detruire();voct.disconnect();}};
+  }
+  function anche(m){
+    var c=base(m),pool=c.pool(),voct=eurGain(1200);
+    m.recevoir=function(t,e){
+      if(!c.accepter(t,e,["trig"]))return null;var p=valeurs(m.type,m.p),d=p.dec/1000,a=Math.min(p.attack/1000,d*.3);
+      var g=groupe(pool,t,a+d,voct),o=ctx.createOscillator(),vib=ctx.createOscillator(),vg=eurGain(0),lp=ctx.createBiquadFilter(),amp=eurGain(0);
+      o.frequency.value=55*Math.pow(2,p.oct);o.setPeriodicWave(onde(m.type,p.mode));g.hauteur(o);
+      o.detune.setValueAtTime(p.fine-p.grace,t);o.detune.linearRampToValueAtTime(p.fine,t+Math.min(.045,d*.35));
+      vib.type="sine";vib.frequency.value=p.rate;vg.gain.setValueAtTime(0,t);vg.gain.linearRampToValueAtTime(p.vib,t+Math.min(.07,d*.4));vib.connect(vg);vg.connect(o.detune);
+      lp.type="lowpass";lp.Q.value=.55;lp.frequency.value=Math.min(ctx.sampleRate*.4,800*Math.pow(12,p.tone));
+      o.connect(lp);lp.connect(amp);amp.connect(g.gain);g.gain.connect(c.out);
+      amp.gain.setValueAtTime(0,t);amp.gain.linearRampToValueAtTime(.65,t+a);
+      amp.gain.linearRampToValueAtTime(.48,t+a+d*.65);amp.gain.linearRampToValueAtTime(0,t+a+d);
+      g.src.push(o,vib);g.noeuds.push(o,vib,vg,lp,amp);g.jouer();return null;
+    };
+    return {e:{trig:eurGain(1),rst:eurGain(1),voct:voct},s:{out:c.out},detruire:function(){c.detruire();voct.disconnect();}};
+  }
+  function peaux(m){
+    var c=base(m),pools={low:c.pool(),high:c.pool()},low=eurGain(.5),high=eurGain(.5),masterMaj=m.maj;
+    /* Chaque peau est calibrée à 0,5 : une frappe double garde de la marge.
+       Les sorties séparées sont après NIVEAU, comme OUT ; ne pas brancher OUT
+       et les deux sorties dans le même mixeur sauf pour doubler volontairement. */
+    low.connect(c.out);high.connect(c.out);
+    var lowout=eurGain(m.p.niv),highout=eurGain(m.p.niv);low.connect(lowout);high.connect(highout);
+    m.maj=function(){masterMaj();lowout.gain.value=m.p.niv;highout.gain.value=m.p.niv;};
+    m.recevoir=function(t,e){
+      if(!c.accepter(t,e,["low","high"]))return null;var p=valeurs(m.type,m.p),grave=e==="low",d=p.dec/1000*(grave?1:.60),f=grave?p.low:p.high;
+      var g=groupe(pools[e],t,d,null),hp=ctx.createBiquadFilter();hp.type="highpass";hp.Q.value=.5;hp.frequency.value=35;hp.connect(g.gain);g.gain.connect(grave?low:high);g.noeuds.push(hp);
+      [1,2-p.mode*.5,3-p.mode*.8].forEach(function(r,i){
+        var o=ctx.createOscillator(),a=eurGain(0);o.type="sine";
+        o.frequency.setValueAtTime(f*r*(1+(grave?.34:.025)*p.bend),t);o.frequency.exponentialRampToValueAtTime(f*r,t+.02+d*.2);
+        o.connect(a);a.connect(hp);g.src.push(o);g.noeuds.push(o,a);enveloppe(a,t,.0015,d/(1+i*.6),[.46,.23,.12][i]);
+      });
+      var n=ctx.createBufferSource(),ng=eurGain(0);n.buffer=bruit();n.connect(ng);ng.connect(hp);g.src.push(n);g.noeuds.push(n,ng);
+      enveloppe(ng,t,.0006,grave?.010:.017,p.snap*(grave?.22:.40));g.jouer();return null;
+    };
+    return {e:{low:eurGain(1),high:eurGain(1),rst:eurGain(1)},s:{lowout:lowout,highout:highout,out:c.out},detruire:function(){c.detruire();[low,high,lowout,highout].forEach(function(n){n.disconnect();});}};
+  }
+  descriptions.cordesreso.creer=corde;descriptions.anchelead.creer=anche;descriptions.peauxduo.creer=peaux;
+  Object.keys(descriptions).forEach(function(k){EUR_CAT[k]=descriptions[k];EUR_ORDRE.push(k);});
+  EUR_FAM.push(["couleurs","CORDES / ANCHES / PEAUX"]);
+  return {valeurs:valeurs,normaliser:normaliser,coefficients:coefficients,types:Object.keys(descriptions)};
+})();
+/* v289 — quatre compositions originales, pas de reprise d'une chanson.
+   Les hauteurs sont en tempérament égal ; aucun raga/maqam complet n'est simulé.
+   Le 7/8 emploie des cycles réels de 14 doubles-croches (4+4+6), sans SCÈNES 8
+   ni fills automatiques 4/4 qui imposeraient une frontière de 16 pas. */
+(function montagesCouleurs(){
+  "use strict";
+  function fabriquer(style){
+    var inde=style<2,transe=style===1,balkan=style===2,dabke=style===3;
+    var bpm=[112,144,138,148][style],L=balkan?28:32;
+    var P={id:["couleur-inde","couleur-inde-transe","couleur-balkans7","couleur-dabke"][style],
+      nom:["INDE · CORDES ET PEAUX","INDE · TRANSE DES CORDES","BALKANS · DANSE EN SEPT","DABKÉ · ANCHES ÉLECTRIQUES"][style],fam:"couleurs",bpm:bpm,
+      tonalite:inde?"RÉ · COULEUR PENTATONIQUE":balkan?"RÉ MINEUR HARMONIQUE · 7/8":"RÉ · COULEUR HIJAZ TEMPÉRÉE",
+      res:["Cordes pincées, peaux graves/aiguës, basse douce et bourdon alternant ré/la. Quatre parties et scènes.",
+        "Fusion électronique : cordes brillantes, peaux rapides, kick régulier, basse et réponse d'anche.",
+        "Anches et peaux en 7/8 : groupes 2+2+3 croches. Basse de 14 pas, mélodies de 28 pas. Sans scènes ni fills 4/4.",
+        "Danse électronique : anche nasale, notes d'appel, vibrato, percussion grave/aiguë et phrases en réponse. Composition originale."][style],
+      mods:[],cables:[],rangees:[],reperes:{},cyclePas:balkan?14:16};
+    function mod(k,type,p,r){P.reperes[k]=P.mods.length;P.mods.push([type,p||{}]);P.rangees.push(r===1?1:0);}
+    function fil(a,s,b,e){P.cables.push([P.reperes[a],s,P.reperes[b],e]);}
+    function notes(seq,longueur,on,slide){
+      var p={len:longueur,dir:0,root:2,scale:0,trans:0,glide:55,mute:0};
+      for(var i=1;i<=32;i++){
+        p["n"+i]=seq[(i-1)%seq.length];p["on"+i]=on.indexOf((i-1)%longueur+1)>=0?1:0;
+        p["a"+i]=i%4===1?1:0;p["s"+i]=slide.indexOf((i-1)%longueur+1)>=0?1:0;p["p"+i]=100;
+      }return p;
+    }
+    mod("horloge","clock");
+    if(!balkan){
+      var sc={len:8,fade:40,hold:0};
+      var levels=[[90,50,100,40],[100,100,100,65],[100,100,90,100],[20,0,100,75],[100,100,100,85],[80,100,70,100],[0,0,100,60],[100,100,100,100]];
+      for(var i=1;i<=8;i++){sc["bars"+i]=[1,1,2,1,2,2,1,2][i-1];sc["nom"+i]=[0,1,2,3,4,2,3,4][i-1];"abcd".split("").forEach(function(k,j){sc[k+i]=levels[i-1][j];});}
+      mod("scenes","scenes8",sc);
+    }
+    var dp={};"abcd".split("").forEach(function(k){dp[k+"len"]=balkan?14:32;dp[k+"shift"]=0;dp[k+"chance"]=100;dp[k+"mute"]=0;for(var i=1;i<=32;i++)dp[k+i]=0;});
+    var rows=balkan?[[1,5,9,12],[3,7,11,13],[1,3,5,7,9,11,13],[1,9]]:
+      dabke?[[1,7,9,17,23,25],[3,5,11,13,15,19,21,27,29,31],[2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32],[1,9,17,25]]:
+        [[1,7,9,17,23,25],[3,5,11,13,15,19,21,27,29,31],[3,7,11,15,19,23,27,31],transe?[1,5,9,13,17,21,25,29]:[1,17]];
+    rows.forEach(function(row,j){row.forEach(function(i){dp["abcd"[j]+i]=1;});});
+    if(!balkan){dp.b16=2;dp.b32=transe||dabke?3:2;}
+    mod("seqBatterie","drum32",dp);
+    mod("peaux","peauxduo",{low:inde?73.42:98,high:inde?293.66:392,dec:inde?310:180,bend:inde?.65:.32,mode:inde?.05:.85,snap:inde?.45:.65,niv:.70});
+    mod("hat","shaker",{tune:.60,dec:.08,niv:.28});
+    mod("kick","kicklab",{tune:49,dec:transe?110:140,sweep:20,knee:0,fall:15,settle:35,drive:.06,tone:.32,click:.08,clickdec:5,niv:.55});
+    mod("mixBatterie","mix4",{a:.9,b:.48,c:transe?.75:.42,d:0});
+    var bnotes=balkan?[38,38,38,45,38,38,45,45,38,38,45,45,50,45]:[38,38,38,45,38,38,45,38,38,38,50,45,38,45,38,45];
+    mod("seqBasse","melo32",notes(bnotes,balkan?14:32,balkan?[1,5,9,12]:transe?[3,4,7,8,11,12,15,16,19,20,23,24,27,28,31,32]:[1,7,9,15,17,23,25,31],[]),1);
+    mod("basse","bassrave",{mode:.06,oct:0,dec:transe?65:160,cut:.17,env:.22,det:.12,sub:.32,drive:.08,niv:.52},1);
+    var mel=inde?[62,65,67,69,72,69,67,65,62,67,69,74,72,69,67,65,62,65,67,69,77,74,72,69,67,65,62,65,67,69,65,62]:
+      balkan?[62,64,65,69,67,69,70,69,73,74,73,70,69,65,62,65,64,62,65,69,70,73,74,77,74,73,70,69]:
+        [62,63,66,67,69,67,66,63,62,66,67,69,70,69,67,66,74,73,70,69,67,66,67,69,66,63,62,63,66,67,66,62];
+    var on=Array.from({length:L},function(_,i){return i+1;}).filter(function(i){return balkan?i!==4&&i!==18:transe||dabke?i%8!==0:i%2===1||i===16;});
+    mod("seqMelodie","melo32",notes(mel,L,on,inde?[7,23]:[5,6,13,21,22]),1);
+    mod("melodie",inde?"cordesreso":"anchelead",inde?{oct:0,fine:0,dec:transe?290:650,buzz:transe?.72:.5,res:.40,tone:.70,niv:.70}:
+      {oct:0,fine:0,dec:balkan?160:170,attack:5,mode:balkan?.3:.9,tone:.68,vib:balkan?14:22,rate:6.2,grace:balkan?35:80,niv:.65},1);
+    var counter=inde&&!transe?Array.from({length:32},function(_,i){return i<16?50:57;}):inde?[74,77,79,81,79,77,74,72]:balkan?[50,50,57,57,53,53,57,57,50,50,57,57,61,57]:[50,51,54,55,57,55,54,51];
+    var con=inde&&!transe?[1,17]:balkan?[1,5,9,15,19,23]:[5,7,13,15,21,23,29,31];
+    mod("seqReponse","melo32",notes(counter,L,con,[]),1);
+    mod("reponse",transe?"anchelead":"cordesreso",transe?{oct:0,fine:0,dec:190,attack:12,mode:.25,tone:.48,vib:14,rate:5.5,grace:30,niv:.40}:
+      {oct:0,fine:0,dec:inde?2200:400,buzz:inde?.12:.54,res:inde?.85:.35,tone:inde?.38:.52,niv:inde?.42:.55},1);
+    mod("groupeAB","vca2",{g1:balkan?1:0,g2:balkan?1:0},1);mod("groupeCD","vca2",{g1:balkan?1:0,g2:balkan?1:0},1);
+    var time=(60/bpm*.75-.02)/1.2;
+    mod("echoMelodie","delay",{time:time,fb:.26,mix:inde?.3:.18},1);mod("panMelodie","pan",{p:.10},1);
+    mod("echoReponse","delay",{time:time,fb:.30,mix:.30},1);mod("panReponse","pan",{p:-.25},1);
+    mod("mixGeneral","mix4",{a:.67,b:.43,c:.65,d:.48},1);mod("limiteur","limit",{seuil:.55,rap:.8},1);mod("sortie","out",{niv:.70},1);
+    if(!balkan)fil("horloge","out","scenes","in");
+    ["seqBatterie","seqBasse","seqMelodie","seqReponse"].forEach(function(k){fil(balkan?"horloge":"scenes",balkan?"out":"clk",k,"clk");});
+    fil("seqBatterie","ta","peaux","low");fil("seqBatterie","tb","peaux","high");fil("seqBatterie","tc","hat","trig");fil("seqBatterie","td","kick","trig");
+    fil("peaux","out","mixBatterie","a");fil("hat","out","mixBatterie","b");fil("kick","out","mixBatterie","c");
+    [["seqBasse","basse"],["seqMelodie","melodie"],["seqReponse","reponse"]].forEach(function(pair){fil(pair[0],"cv",pair[1],"voct");fil(pair[0],"gate",pair[1],"trig");});
+    fil("mixBatterie","out","groupeAB","in1");fil("basse","out","groupeAB","in2");fil("melodie","out","groupeCD","in1");fil("reponse","out","groupeCD","in2");
+    if(!balkan){fil("scenes","a","groupeAB","cv1");fil("scenes","b","groupeAB","cv2");fil("scenes","c","groupeCD","cv1");fil("scenes","d","groupeCD","cv2");}
+    fil("groupeAB","o1","mixGeneral","a");fil("groupeAB","o2","mixGeneral","b");
+    fil("groupeCD","o1","echoMelodie","in");fil("echoMelodie","out","panMelodie","in");fil("panMelodie","out","mixGeneral","c");
+    fil("groupeCD","o2","echoReponse","in");fil("echoReponse","out","panReponse","in");fil("panReponse","out","mixGeneral","d");
+    fil("mixGeneral","out","limiteur","in");fil("limiteur","out","sortie","in");
+    var macros=EUR_PERFORMANCE.vide();
+    ["PERCUSSIONS","BASSE","MÉLODIE",inde&&!transe?"BOURDON":"RÉPONSE"].forEach(function(n,i){macros.commandes[i]={nom:n,valeur:1,cibles:[{index:P.reperes.mixGeneral,type:"mix4",param:"abcd"[i],min:0,max:P.mods[P.reperes.mixGeneral][1]["abcd"[i]]}]};});
+    function macro(i,n,liens){macros.commandes[i]={nom:n,valeur:0,cibles:liens.map(function(l){var idx=P.reperes[l[0]],x=P.mods[idx],k=EUR_CAT[x[0]].kns.find(function(k){return k[0]===l[1];});return {index:idx,type:x[0],param:k[0],min:x[1][k[0]]===undefined?k[4]:x[1][k[0]],max:l[2]};})};}
+    macro(4,"COULEUR MÉLODIE",[["melodie",inde?"buzz":"mode",1],["melodie","tone",.95]]);
+    macro(5,inde?"RÉSONANCE CORDES":"VIBRATO ANCHE",[["melodie",inde?"res":"vib",inde?.85:55]]);
+    macro(6,"ÉCHOS",[["echoMelodie","mix",.50],["echoReponse","mix",.48]]);
+    macro(7,"PEAUX VIVANTES",[["peaux","bend",.95],["peaux","snap",.9]]);P.performance=macros;
+    return P;
+  }
+  EUR_MONT_FAM.push(["couleurs","INDE / BALKANS / DABKÉ"]);
+  [0,1,2,3].forEach(function(i){EUR_MONTAGES.push(fabriquer(i));});
 })();
 /* ===================== BEHRINGER TD-3 =====================
    La 303 remise en circuit. Tout son caractère tient à trois choses : un

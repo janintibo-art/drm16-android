@@ -1,0 +1,7 @@
+/* v289 — les quatre cartes ont la même ergonomie que les ensembles existants. */
+#eur-cat button[data-famille="couleurs"]{min-height:120px;white-space:normal;
+  padding:12px;background:linear-gradient(145deg,#34302a,#1a2027);border:1px solid #827151;
+  border-left:3px solid #ddae67;font-size:12px;line-height:1.4}
+#eur-cat button[data-famille="couleurs"] span{font-size:11px;line-height:1.5;color:#e0ded8}
+#eur-cat button[data-famille="couleurs"] .eur-ensemble-meta{margin:7px 0;color:#f5c981;font-weight:700}
+#eur-cat button[data-famille="couleurs"]:focus-visible{outline:2px solid #f5c981;outline-offset:-3px}
