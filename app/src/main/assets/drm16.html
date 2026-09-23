@@ -8399,7 +8399,24 @@ prise de son de l’artiste n’est incluse.</p>
 <p>Tous les sons sont synthétisés dans l’application : aucun téléchargement de
 banque supplémentaire. Paramètres, câbles et macros sont conservés dans les
 huit racks et les projets .drm16. Les sources sonores temporaires ne sont pas
-sauvegardées. Le catalogue compte maintenant 116 types de modules et 60 montages.</p>
+sauvegardées. Le catalogue comptait alors 116 types de modules et 60 montages.</p>
+
+<h3>FREEZE GRANULAIRE (v290)</h3>
+<p>Un module qui <b>capture réellement</b> le signal reçu sur IN — de 0,2 à 4 s,
+réglées par CAPTURE — puis en rejoue de petits grains (10 à 300 ms) déclenchés un
+par un sur l'entrée GRAIN, à une position et une hauteur choisies. POSITION lit un
+point précis du fragment figé, SPRAY disperse ce point au hasard, HAUTEUR transpose
+jusqu'à deux octaves. RST vide le tampon. Le module GRAIN (délai modulé, dans
+TRAITEMENTS) n'a pas changé : c'est une texture différente, gardée telle quelle
+pour ne pas modifier d'anciens montages.</p>
+<p>CAPTURER et GRAIN sont des entrées de porte comme les autres : elles ne
+répondent qu'aux instants transmis par l'horloge, un diviseur ou un générateur
+euclidien qu'on y branche, donc à la résolution du pas global — pas de nuage plus
+dense que cette grille. Trois montages : <b>PSY · CORDES SUSPENDUES</b>,
+<b>JUNGLE · NUAGE DE VOIX</b> et <b>DUB · MÉMOIRE DES ANCHES</b>, chacun avec une
+commande PERFORMANCE qui fait glisser le mélange de la phrase reconnaissable vers
+sa version granulaire. Le catalogue compte maintenant 117 types de modules et
+63 montages.</p>
 </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
   <p>Les cent trois modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
@@ -8420,7 +8437,7 @@ sauvegardées. Le catalogue compte maintenant 116 types de modules et 60 montage
   <u>Utilitaires</u>
   <p><a href="#fm-output">OUTPUT</a> · <a href="#fm-vca">VCA</a> · <a href="#fm-dualvca">DUAL VCA</a> · <a href="#fm-trancegate">TRANCE GATE</a> · <a href="#fm-head">HEAD</a> · <a href="#fm-transpose">TRANSPOSE</a> · <a href="#fm-compare">COMPARE</a> · <a href="#fm-attenuv">ATTENUV</a> · <a href="#fm-slew">SLEW</a> · <a href="#fm-mix4">MIX 4</a> · <a href="#fm-mult">MULT</a> · <a href="#fm-xfade">XFADE</a> · <a href="#fm-pan">PAN</a> · <a href="#fm-switch">SWITCH</a></p>
   <u>Traitements</u>
-  <p><a href="#fm-echo">ECHO</a> · <a href="#fm-reverb">REVERB</a> · <a href="#fm-fold">FOLD</a> · <a href="#fm-drive">DRIVE</a> · <a href="#fm-bits">BITS</a> · <a href="#fm-ring">RING</a> · <a href="#fm-chorus">CHORUS</a> · <a href="#fm-phaser">PHASER</a> · <a href="#fm-grain">GRAIN</a> · <a href="#fm-kamieniec">KAMIENIEC</a> · <a href="#fm-plasma">PLASMA</a> · <a href="#fm-plexiphon">PLEXIPHON</a> · <a href="#fm-bbd">BBD</a> · <a href="#fm-spring">SPRING</a> · <a href="#fm-clip">CLIP</a> · <a href="#fm-limit">LIMIT</a> · <a href="#fm-eq3">EQ 3</a> · <a href="#fm-pingpong">PING PONG</a></p>
+  <p><a href="#fm-echo">ECHO</a> · <a href="#fm-reverb">REVERB</a> · <a href="#fm-fold">FOLD</a> · <a href="#fm-drive">DRIVE</a> · <a href="#fm-bits">BITS</a> · <a href="#fm-ring">RING</a> · <a href="#fm-chorus">CHORUS</a> · <a href="#fm-phaser">PHASER</a> · <a href="#fm-grain">GRAIN</a> · <a href="#fm-freeze">FREEZE GRANULAIRE</a> · <a href="#fm-kamieniec">KAMIENIEC</a> · <a href="#fm-plasma">PLASMA</a> · <a href="#fm-plexiphon">PLEXIPHON</a> · <a href="#fm-bbd">BBD</a> · <a href="#fm-spring">SPRING</a> · <a href="#fm-clip">CLIP</a> · <a href="#fm-limit">LIMIT</a> · <a href="#fm-eq3">EQ 3</a> · <a href="#fm-pingpong">PING PONG</a></p>
   <u>Percussions</u>
   <p><a href="#fm-batteringram">BATTERING RAM</a> · <a href="#fm-squidsalmple">SQUID SALMPLE</a> · <a href="#fm-mutanthihats">MUTANT HIHATS</a> · <a href="#fm-tekkick">TEK KICK</a> · <a href="#fm-tribal">TRIBAL</a> · <a href="#fm-zap">ZAP</a> · <a href="#fm-drum">DRUM</a> · <a href="#fm-kick">KICK</a> · <a href="#fm-snare">SNARE</a> · <a href="#fm-hat">HAT</a> · <a href="#fm-clap">CLAP</a> · <a href="#fm-tom">TOM</a> · <a href="#fm-cymbal">CYMBAL</a> · <a href="#fm-rim">RIM</a> · <a href="#fm-cowbell">COWBELL</a> · <a href="#fm-shaker">SHAKER</a> · <a href="#fm-claves">CLAVES</a></p>
   </div>
@@ -8875,6 +8892,17 @@ sauvegardées. Le catalogue compte maintenant 116 types de modules et 60 montage
   n'est pas un vrai granulateur — c'est un délai dont le temps saute sans arrêt —, mais le nuage y ressemble
   beaucoup.</p>
   <span>Potards SIZE, DENSITY, MIX · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-freeze"><b>FREEZE GRANULAIRE (v290)</b>
+  <p>Celui-ci capture <b>réellement</b> quelques secondes du signal reçu sur IN, à un
+  instant choisi par une porte sur CAPTURER (CAPTURE règle la durée figée, 0,2 à
+  4 s). Chaque impulsion sur GRAIN rejoue ensuite un petit fragment (TAILLE, 10 à
+  300 ms) du tampon figé : POSITION choisit où dans ce tampon, SPRAY disperse ce
+  point au hasard, HAUTEUR transpose jusqu'à deux octaves. RST vide le tampon.</p>
+  <p>GRAIN est une porte, pas une horloge interne : brancher une horloge rapide,
+  un diviseur ou un générateur euclidien dessus donne la densité du nuage — au
+  plus dense, à la résolution du pas global.</p>
+  <span>Potards CAPTURE, POSITION, SPRAY, TAILLE, HAUTEUR, NIVEAU · Entrées IN,
+  CAPTURER, GRAIN, RST · Sortie OUT</span></div>
   <div class="fmod" id="fm-kamieniec"><b>KAMIENIEC</b>
   <p>Un phaser ne filtre pas : il fait <b>tourner la phase</b>. Douze cellules laissent tout passer mais
   décalent chaque fréquence différemment, et c'est en réadditionnant au signal d'origine que les creux
@@ -30043,6 +30071,295 @@ var EUR_COULEURS=(function(){
   }
   EUR_MONT_FAM.push(["couleurs","INDE / BALKANS / DABKÉ"]);
   [0,1,2,3].forEach(function(i){EUR_MONTAGES.push(fabriquer(i));});
+})();
+/* ================= FREEZE GRANULAIRE — v290 =================
+   Le module GRAIN (430) reste inchangé : un délai modulé, pas un vrai
+   lecteur de fragments. Celui-ci capture réellement le signal d'entrée dans
+   un tampon, puis en rejoue de petits grains à une position, une taille et
+   une hauteur réglables.
+
+   Aucun MediaRecorder, aucun AudioWorklet : la capture écrit directement
+   dans un AudioBuffer via un ScriptProcessorNode, échantillon par
+   échantillon, aux instants exacts de ev.playbackTime — ce qui reste correct
+   à la fois en direct et dans un rendu OfflineAudioContext (export WAV,
+   figer une machine). Un MediaRecorder est asynchrone et n'existe pas dans
+   un rendu hors ligne ; un AudioWorklet demande un fichier séparé, fragile
+   dans la WebView Android (leçon déjà tirée pour le limiteur, doc B3).
+
+   CAPTURER et GRAIN sont des entrées de porte, au même titre que TRIG sur
+   les percussions : elles ne réagissent qu'aux instants transmis par
+   scheduleEur (horloge, diviseur, générateur euclidien…), donc à la
+   résolution du pas global — pas de nuage continu plus dense que la grille.
+   RST vide le tampon : GRAIN ne rejoue plus rien tant qu'une nouvelle
+   capture n'a pas abouti.
+
+   scheduleEur appelle recevoir() à l'avance, avant que le moteur audio ait
+   réellement rendu l'instant t (c'est le principe même du look-ahead, et
+   c'est encore plus net dans un rendu OfflineAudioContext, où rien n'a
+   encore joué au moment où tous les événements sont programmés). gel.pret
+   — mis à jour dans onaudioprocess — ne reflète donc que ce qui a déjà été
+   RÉELLEMENT rendu, pas ce qui SERA rendu à l'instant t d'un futur GRAIN.
+   La décision de jouer un grain se fonde uniquement sur les instants
+   programmés (t ≥ fin de capture programmée) : l'ordre chronologique du
+   rendu garantit qu'à cet instant-là, le tampon aura bien été écrit.
+   gel.pret ne sert qu'à l'affichage (Focus, à venir). */
+var EUR_FREEZE = (function(){
+  "use strict";
+  var MAXDUR = 4;
+  var kns = [["dur","CAPTURE s",0.2,4,1.5],["pos","POSITION",0,1,0.3],["spray","SPRAY",0,1,0.25],
+    ["taille","GRAIN ms",10,300,80],["haut","HAUTEUR st",-24,24,0],["niv","NIVEAU",0,1,0.7]];
+  function borne(v,a,b,d){ return typeof v === "number" && Number.isFinite(v) ? Math.max(a, Math.min(b, v)) : d; }
+  function valeurs(raw){
+    var p = {};
+    kns.forEach(function(k){ p[k[0]] = borne(raw && raw[k[0]], k[2], k[3], k[4]); });
+    return p;
+  }
+  function normaliser(m){
+    var p = valeurs(m.p);
+    if(!m.p) m.p = {};
+    Object.keys(p).forEach(function(k){ m.p[k] = p[k]; });
+    return p;
+  }
+  /* position et durée d'un grain : pur, vérifiable à part du contexte audio */
+  function grainOffset(pos, spray, longueur, dureeGrain, hasard){
+    var libre = Math.max(0, longueur - dureeGrain);
+    if(libre <= 0) return 0;
+    var jit = (hasard * 2 - 1) * spray * longueur * 0.5;
+    return Math.max(0, Math.min(libre, pos * libre + jit));
+  }
+  function creer(m){
+    normaliser(m);
+    var sr = ctx.sampleRate, n = Math.ceil(MAXDUR * sr) + 2048;
+    var buf = ctx.createBuffer(2, n, sr);
+    var gel = {longueur:0, pret:false, debut:0, fin:0};
+    var entree = eurGain(1), out = eurGain(1), zero = eurGain(0);
+    var sp = ctx.createScriptProcessor(1024, 2, 2);
+    entree.connect(sp);
+    /* Un ScriptProcessorNode ne se met à jour que s'il tient à la sortie :
+       un gain à zéro le relie sans rien ajouter au son, exact en direct
+       comme hors ligne (0 + x = x, sans perte de précision, même leçon que
+       le contournement du KAOSS PAD en v259). */
+    sp.connect(zero); zero.connect(ctx.destination);
+    var chL = buf.getChannelData(0), chR = buf.getChannelData(1);
+    sp.onaudioprocess = function(ev){
+      if(gel.fin <= gel.debut) return;
+      var t0 = ev.playbackTime, ib = ev.inputBuffer, len = ib.length;
+      if(t0 >= gel.fin){ gel.pret = true; return; }
+      var l = ib.getChannelData(0), r = ib.numberOfChannels > 1 ? ib.getChannelData(1) : l;
+      for(var i=0;i<len;i++){
+        var tt = t0 + i / sr;
+        if(tt < gel.debut || tt >= gel.fin) continue;
+        var idx = Math.round((tt - gel.debut) * sr);
+        if(idx < 0 || idx >= n) continue;
+        chL[idx] = l[i]; chR[idx] = r[i];
+      }
+    };
+    m.gel = gel;
+    m.recevoir = function(t, e){
+      if(e === "capt"){
+        normaliser(m);
+        gel.debut = t; gel.fin = t + m.p.dur; gel.longueur = m.p.dur; gel.pret = false;
+        return null;
+      }
+      if(e === "rst"){ gel.fin = gel.debut; gel.pret = false; gel.longueur = 0; return null; }
+      if(e !== "trig") return null;
+      /* pas gel.pret : décision fondée sur les instants programmés, pas sur
+         ce qui a déjà été rendu (voir la note en tête de fichier) */
+      if(gel.fin <= gel.debut || gel.longueur <= 0 || t < gel.fin) return null;
+      normaliser(m);
+      var dureeS = Math.min(m.p.taille / 1000, gel.longueur);
+      if(dureeS <= 0) return null;
+      var off = grainOffset(m.p.pos, m.p.spray, gel.longueur, dureeS, Math.random());
+      var src = ctx.createBufferSource();
+      src.buffer = buf; src.playbackRate.value = Math.pow(2, m.p.haut / 12);
+      var g = eurGain(0);
+      var att = Math.min(dureeS * 0.4, 0.015), fin = t + dureeS;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(m.p.niv, t + att);
+      g.gain.linearRampToValueAtTime(0, fin);
+      src.connect(g); g.connect(out);
+      src.start(t, off, dureeS);
+      src.stop(fin + 0.05);
+      return null;
+    };
+    m.maj = function(){ normaliser(m); };
+    return {e:{in:entree, capt:eurGain(1), trig:eurGain(1), rst:eurGain(1)}, s:{out:out},
+      detruire:function(){
+        try{ sp.disconnect(); }catch(ignore){}
+        try{ zero.disconnect(); }catch(ignore){}
+        sp.onaudioprocess = null;
+        [entree, out].forEach(function(nd){ try{ nd.disconnect(); }catch(ignore){} });
+      }};
+  }
+  EUR_CAT.freeze = {nom:"FREEZE GRANULAIRE", hp:176, sombre:false, fam:"effet",
+    res:"Capture quelques secondes du signal entrant et en rejoue de petits grains, à une autre hauteur, position ou taille. CAPTURER fige, GRAIN déclenche un grain, RST vide le tampon.",
+    kns:kns, jacks:[["in","IN",0],["capt","CAPTURER",0],["trig","GRAIN",0],["rst","RST",0],["out","OUT",1]], creer:creer};
+  EUR_ORDRE.push("freeze");
+  return {valeurs:valeurs, normaliser:normaliser, grainOffset:grainOffset, maxdur:MAXDUR};
+})();
+/* ================= trois montages FREEZE GRANULAIRE — v290 =================
+   Le module capture une phrase, un bouton PERFORMANCE fait glisser le mélange
+   de la phrase reconnaissable vers le nuage de grains qu'elle devient. */
+(function montagesFreeze(){
+  "use strict";
+  function fabriquer(P, faire){
+    P.mods = []; P.cables = []; P.rangees = []; var reperes = {};
+    var commandes = EUR_PERFORMANCE.vide().commandes;
+    function mod(k, type, p, r){ reperes[k] = P.mods.length; P.mods.push([type, p || {}]); P.rangees.push(r === 1 ? 1 : 0); }
+    function fil(a, s, b, e){ P.cables.push([reperes[a], s, reperes[b], e]); }
+    function macro(i, nom, liens){
+      commandes[i] = {nom:nom, valeur:0, cibles:liens.map(function(l){
+        var idx = reperes[l[0]], type = P.mods[idx][0], p = P.mods[idx][1];
+        var kdef = EUR_CAT[type].kns.find(function(k){ return k[0] === l[1]; });
+        var depart = p[l[1]] !== undefined ? p[l[1]] : kdef[4];
+        return {index:idx, type:type, param:l[1], min:depart, max:l[2]};
+      })};
+    }
+    faire(mod, fil, macro);
+    P.performance = {version:1, commandes:commandes, memoire:null};
+    return P;
+  }
+  function seq8notes(vals){ var p = {}; vals.forEach(function(v, i){ p["n" + (i + 1)] = v; }); return p; }
+
+  var MONT = [];
+
+  /* ---------- Psy · Cordes suspendues ---------- */
+  MONT.push(fabriquer({id:"freeze-psy", nom:"PSY · CORDES SUSPENDUES", fam:"etrange", bpm:145,
+    res:"Une corde pincée continue sa phrase pendant qu'un bouton la transforme en nappe granulaire flottante, kick et basse psy dessous."},
+    function(mod, fil, macro){
+      mod("clock", "clock");
+      mod("div", "clkdiv");
+      mod("euclHat", "euclid", {pas:0.7, coups:0.42, dec:0});
+      mod("euclGrain", "euclid", {pas:0.3, coups:0.6, dec:0.2});
+      mod("kick", "kick", {tune:0.3, dec:0.35, niv:0.9});
+      mod("hat", "hat", {tune:0.55, dec:0.1, niv:0.4});
+      mod("seqCorde", "seq8", seq8notes([0.5,0.58,0.67,0.58,0.75,0.67,0.58,0.5]));
+      mod("corde", "cordesreso", {oct:0, fine:0, dec:900, buzz:0.5, res:0.55, tone:0.6, niv:0.65}, 1);
+      mod("freeze", "freeze", {dur:2, pos:0.3, spray:0.3, taille:120, haut:0, niv:0.6}, 1);
+      mod("seqBasse", "seq8", seq8notes([0.2,0.2,0.28,0.2,0.2,0.2,0.28,0.24]), 1);
+      mod("basse", "bassrave", {mode:0.1, oct:0, dec:130, cut:0.2, env:0.25, det:0.1, sub:0.35, drive:0.1, niv:0.5}, 1);
+      mod("mixDrums", "mix4", {a:0.9, b:0.45, c:0, d:0}, 1);
+      mod("mixMain", "mix4", {a:0.8, b:0.5, c:0.45, d:0.55}, 1);
+      mod("verb", "verb", {taille:0.4, mix:0.2}, 1);
+      mod("limiteur", "limit", {seuil:0.6, rap:0.6}, 1);
+      mod("sortie", "out", {niv:0.72}, 1);
+
+      fil("clock", "out", "div", "in");
+      fil("div", "d4", "kick", "trig");
+      fil("clock", "out", "euclHat", "in");
+      fil("euclHat", "out", "hat", "trig");
+      fil("kick", "out", "mixDrums", "a"); fil("hat", "out", "mixDrums", "b");
+      fil("clock", "out", "seqCorde", "clk");
+      fil("seqCorde", "cv", "corde", "voct"); fil("seqCorde", "gate", "corde", "trig");
+      fil("corde", "out", "freeze", "in");
+      fil("div", "d16", "freeze", "capt");
+      fil("clock", "out", "euclGrain", "in");
+      fil("euclGrain", "out", "freeze", "trig");
+      fil("clock", "out", "seqBasse", "clk");
+      fil("seqBasse", "cv", "basse", "voct"); fil("seqBasse", "gate", "basse", "trig");
+      fil("mixDrums", "out", "mixMain", "a"); fil("corde", "out", "mixMain", "b");
+      fil("freeze", "out", "mixMain", "c"); fil("basse", "out", "mixMain", "d");
+      fil("mixMain", "out", "verb", "in"); fil("verb", "out", "limiteur", "in"); fil("limiteur", "out", "sortie", "in");
+
+      macro(0, "PERCUSSIONS", [["mixMain","a",0]]);
+      macro(1, "BASSE", [["mixMain","d",0]]);
+      macro(2, "CORDE → NUAGE", [["mixMain","b",0], ["mixMain","c",0.85]]);
+      macro(3, "TAILLE DES GRAINS", [["freeze","taille",260]]);
+      macro(4, "POSITION", [["freeze","pos",1]]);
+      macro(5, "SPRAY", [["freeze","spray",1]]);
+      macro(6, "HAUTEUR", [["freeze","haut",-12]]);
+      macro(7, "NAPPE", [["verb","mix",0.7]]);
+    }));
+
+  /* ---------- Jungle · Nuage de voix ---------- */
+  MONT.push(fabriquer({id:"freeze-jungle", nom:"JUNGLE · NUAGE DE VOIX", fam:"etrange", bpm:172,
+    res:"Une anche imite une voix nasale capturée puis dispersée en grains, au-dessus d'un roulement de batterie jungle."},
+    function(mod, fil, macro){
+      mod("clock", "clock");
+      mod("div", "clkdiv");
+      mod("euclA", "euclid", {pas:0.55, coups:0.55, dec:0});
+      mod("euclB", "euclid", {pas:0.85, coups:0.35, dec:0.4});
+      mod("euclGrain", "euclid", {pas:0.25, coups:0.65, dec:0.1});
+      mod("kick", "kick", {tune:0.28, dec:0.3, niv:0.92});
+      mod("clap", "clap", {tune:0.5, dec:0.35, niv:0.55});
+      mod("hat", "hat", {tune:0.6, dec:0.08, niv:0.35});
+      mod("seqVoix", "seq8", seq8notes([0.55,0.55,0.63,0.55,0.7,0.63,0.55,0.5]));
+      mod("voix", "anchelead", {oct:0, fine:0, dec:170, attack:6, mode:0.85, tone:0.62, vib:18, rate:6.4, grace:60, niv:0.55}, 1);
+      mod("freeze", "freeze", {dur:1.6, pos:0.4, spray:0.55, taille:70, haut:5, niv:0.7}, 1);
+      mod("mixDrums", "mix4", {a:0.92, b:0.5, c:0.35, d:0}, 1);
+      mod("mixMain", "mix4", {a:0.85, b:0.15, c:0.6, d:0}, 1);
+      mod("echo", "delay", {time:0.3, fb:0.4, mix:0.32}, 1);
+      mod("limiteur", "limit", {seuil:0.58, rap:0.7}, 1);
+      mod("sortie", "out", {niv:0.72}, 1);
+
+      fil("clock", "out", "div", "in");
+      fil("clock", "out", "euclA", "in"); fil("euclA", "out", "kick", "trig");
+      fil("div", "d2", "euclB", "in"); fil("euclB", "out", "clap", "trig");
+      fil("div", "d4", "hat", "trig");
+      fil("kick", "out", "mixDrums", "a"); fil("clap", "out", "mixDrums", "b"); fil("hat", "out", "mixDrums", "c");
+      fil("clock", "out", "seqVoix", "clk");
+      fil("seqVoix", "cv", "voix", "voct"); fil("seqVoix", "gate", "voix", "trig");
+      fil("voix", "out", "freeze", "in");
+      fil("div", "d8", "freeze", "capt");
+      fil("clock", "out", "euclGrain", "in"); fil("euclGrain", "out", "freeze", "trig");
+      fil("mixDrums", "out", "mixMain", "a"); fil("voix", "out", "mixMain", "b"); fil("freeze", "out", "mixMain", "c");
+      fil("mixMain", "out", "echo", "in"); fil("echo", "out", "limiteur", "in"); fil("limiteur", "out", "sortie", "in");
+
+      macro(0, "PERCUSSIONS", [["mixMain","a",0]]);
+      macro(1, "VOIX SÈCHE", [["mixMain","b",0]]);
+      macro(2, "NUAGE DE VOIX", [["mixMain","c",0.9]]);
+      macro(3, "TAILLE DES GRAINS", [["freeze","taille",250]]);
+      macro(4, "SPRAY", [["freeze","spray",1]]);
+      macro(5, "HAUTEUR", [["freeze","haut",-24]]);
+      macro(6, "ÉCHOS", [["echo","mix",0.6]]);
+      macro(7, "POSITION", [["freeze","pos",1]]);
+    }));
+
+  /* ---------- Dub · Mémoire des anches ---------- */
+  MONT.push(fabriquer({id:"freeze-dub", nom:"DUB · MÉMOIRE DES ANCHES", fam:"etrange", bpm:78,
+    res:"Une phrase d'anche est capturée puis reparaît par bribes éparses, comme un souvenir, sous un rythme dub clairsemé."},
+    function(mod, fil, macro){
+      mod("clock", "clock");
+      mod("div", "clkdiv");
+      mod("euclKick", "euclid", {pas:0.5, coups:0.22, dec:0});
+      mod("euclRim", "euclid", {pas:0.65, coups:0.28, dec:0.5});
+      mod("euclGrain", "euclid", {pas:0.35, coups:0.22, dec:0.15});
+      mod("kick", "kick", {tune:0.32, dec:0.5, niv:0.85});
+      mod("rim", "rim", {tune:0.55, dec:0.3, niv:0.5});
+      mod("seqAnche", "seq8", seq8notes([0.45,0.5,0.58,0.45,0.63,0.58,0.5,0.45]));
+      mod("anche", "anchelead", {oct:0, fine:0, dec:520, attack:14, mode:0.35, tone:0.5, vib:10, rate:4.5, grace:25, niv:0.6}, 1);
+      mod("freeze", "freeze", {dur:3.5, pos:0.35, spray:0.7, taille:240, haut:-7, niv:0.65}, 1);
+      mod("mixDrums", "mix4", {a:0.85, b:0.4, c:0, d:0}, 1);
+      mod("mixMain", "mix4", {a:0.8, b:0.35, c:0.55, d:0}, 1);
+      mod("echo", "bbd", {time:0.45, fb:0.55, mix:0.4}, 1);
+      mod("spring", "spring", {ten:0.4, mix:0.3}, 1);
+      mod("limiteur", "limit", {seuil:0.62, rap:0.55}, 1);
+      mod("sortie", "out", {niv:0.7}, 1);
+
+      fil("clock", "out", "div", "in");
+      fil("clock", "out", "euclKick", "in"); fil("euclKick", "out", "kick", "trig");
+      fil("div", "d3", "euclRim", "in"); fil("euclRim", "out", "rim", "trig");
+      fil("kick", "out", "mixDrums", "a"); fil("rim", "out", "mixDrums", "b");
+      fil("clock", "out", "seqAnche", "clk");
+      fil("seqAnche", "cv", "anche", "voct"); fil("seqAnche", "gate", "anche", "trig");
+      fil("anche", "out", "freeze", "in");
+      fil("div", "d8", "freeze", "capt");
+      fil("clock", "out", "euclGrain", "in"); fil("euclGrain", "out", "freeze", "trig");
+      fil("mixDrums", "out", "mixMain", "a"); fil("anche", "out", "mixMain", "b"); fil("freeze", "out", "mixMain", "c");
+      fil("mixMain", "out", "echo", "in"); fil("echo", "out", "spring", "in");
+      fil("spring", "out", "limiteur", "in"); fil("limiteur", "out", "sortie", "in");
+
+      macro(0, "PERCUSSIONS", [["mixMain","a",0]]);
+      macro(1, "ANCHE SÈCHE", [["mixMain","b",0]]);
+      macro(2, "MÉMOIRE", [["mixMain","c",0.9]]);
+      macro(3, "SPRAY", [["freeze","spray",1]]);
+      macro(4, "TAILLE DES GRAINS", [["freeze","taille",300]]);
+      macro(5, "HAUTEUR", [["freeze","haut",-24]]);
+      macro(6, "ÉCHOS", [["echo","mix",0.7]]);
+      macro(7, "RESSORT", [["spring","mix",0.65]]);
+    }));
+
+  MONT.forEach(function(P){ EUR_MONTAGES.push(P); });
 })();
 /* ===================== BEHRINGER TD-3 =====================
    La 303 remise en circuit. Tout son caractère tient à trois choses : un

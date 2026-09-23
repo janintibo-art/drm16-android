@@ -65,7 +65,7 @@ def main():
    pg.wait_for_timeout(60);pg.evaluate(G.OUVRIR,'eur');return c,pg,err
   for w,h in ([] if a.audio_seulement else FORMATS):
    c,pg,err=ouvrir(w,h);tag=f'{w}x{h}';accept={'oui':False};pg.on('dialog',lambda d:d.accept() if accept['oui'] else d.dismiss())
-   v(pg.evaluate('Object.keys(EUR_CAT).length===116&&new Set(EUR_ORDRE).size===116&&EUR_MONTAGES.length===60'),tag+' catalogue exact')
+   v(pg.evaluate('Object.keys(EUR_CAT).length===117&&new Set(EUR_ORDRE).size===117&&EUR_MONTAGES.length===63'),tag+' catalogue exact')
    for st in pg.evaluate(STRUCTURE):v(not st['erreurs'] and st['modules']==33 and st['cables']==53 and st['rangees']==33 and st['clock']==1 and st['macros']==8,tag+' structure '+str(st))
    pg.evaluate('window.avant=JSON.stringify(rackCourant());EUR.montFam="harmonie";eurMontages()');v(pg.locator('[data-famille="harmonie"]').count()==2,tag+' deux cartes HARMONIES')
    pg.locator('[data-montage="harmonie-dnb"]').click();v(pg.evaluate('JSON.stringify(rackCourant())===avant'),tag+' refus remplacement conserve rack')

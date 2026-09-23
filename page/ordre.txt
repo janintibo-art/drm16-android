@@ -184,6 +184,8 @@ js/479a-stutter-interface.js
 js/479b-montages-stutter.js
 js/479c-voix-inde-balkans.js
 js/479d-montages-inde-balkans.js
+js/479e-freeze-granulaire.js
+js/479f-montages-freeze.js
 js/460-behringer-td-3.js
 js/470-machine-d-archive.js
 js/480-roland-tr-1000.js

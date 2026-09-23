@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **259**. Depuis la v176, le détail de chaque version est dans
+La version actuelle est la **290**. Depuis la v176, le détail de chaque version est dans
 `docs/CORRECTIONS_V*.md` ; la section 5 commence par **l'état du projet** et le tableau de ces versions.
 Les v156 à v175 n'ont laissé aucune note : le check-up v176 (`docs/CHECKUP_V176.md`) fait le point à leur
 sortie.
@@ -42,13 +42,13 @@ sont sans accents (Termux).
 ## 2. Ce que contient le projet
 
 **Chiffres au 245** — à revérifier plutôt qu'à croire, les contrôles ci-dessus les recalculent :
-29 machines dans le test navigateur, 21 voies de mixage, 103 modules Eurorack, 27 onglets de notice,
+29 machines dans le test navigateur, 21 voies de mixage, 117 modules Eurorack, 27 onglets de notice,
 152 sources dans `page/`, 27 tests Node, fichier HTML de 1,6 Mo.
 
 
 La notice est découpée en **onglets `.doc`** dans `#note-corps` ; la barre de navigation est construite
 toute seule à partir de leur `data-titre`. L'Eurorack en occupe trois : `note-eur` (les principes),
-`note-eurmod` (les 103 fiches, avec sommaire cliquable), `note-eurpat` (huit patchs et le glossaire).
+`note-eurmod` (les 117 fiches, avec sommaire cliquable), `note-eurpat` (huit patchs et le glossaire).
 
 Une seule page HTML porte toute l'application : `app/src/main/assets/drm16.html`, environ **1,25 Mo**.
 Le Java ne sert que de pont vers Android.
@@ -70,7 +70,7 @@ Le Java ne sert que de pont vers Android.
 **Electro-Harmonix** DRM16, DRM32 · **Korg** Electribe EM-1, ER-1, EA-1, ES-1, ER-1 mkII, ES-1 mkII,
 EA-1 mkII, EMX-1, ESX-1, volca sample · **Akai** MPC3000, MPC2000 · **Roland** TR-808, TR-909, TR-707,
 CR-5000, TR-1000 · **Oberheim** DMX · **Arturia** DrumBrute Impact · **Behringer** RD-6, TD-3 ·
-**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (103 modules, deux rangées :
+**Machine d'archive** (n'importe laquelle des 470 boîtes d'archive.org) · **Eurorack** (117 modules, deux rangées :
 9 horloges, 8 séquenceurs, 14 oscillateurs, 11 filtres, 12 modulations, 14 utilitaires, 18 traitements,
 17 percussions). · **Teenage Engineering** PO-33 K.O! · **Sonicware** SmplTrek · **Roland** MC-101 · **Korg** KAOSS PAD
 
@@ -127,7 +127,7 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 ## 5. Ce qui reste à faire
 
-### État au 245 (19 septembre 2026)
+### État au 290 (23 septembre 2026)
 
 Les cinq analyses de la v122 servent de feuille de route, dans l'ordre choisi : analyse complète, version
 Windows, qualité sonore, fidélité des machines, qualité graphique.
@@ -146,18 +146,32 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
   AUTO FILL v236, TRACK v238), DMX (SONG v234), MPC (99 séquences v237, 8 programmes v246), et l'export WAV d'un morceau
   enchaîné pour les TR, la DMX, la MPC et la TR-1000 (v244).
 - *Bibliothèque* : Freesound (v248), sons de chaque machine et kits de sons avec retour arrière (v251), classement des sons (v252), essai d'un son pendant la lecture (v253), éditeur de son (v254), machines figées et rééchantillonnage (v255), kits par rôle (v256), packs et crédits (v257), corbeille, place occupée, sons sans emploi et doublons (v258).
+- *Fidélité* : sept effets de plus sur le KAOSS PAD, échantillonnage/découpe/étirement de la couche B sur la
+  TR-1000, échantillonnage au micro sur le PO-33 K.O! (v259). Le point ER-1/EA-1, EMX/ESX a été passé en revue
+  (v259) : les fonctions correspondent déjà aux vraies machines, et les deux seules simplifications restantes
+  (AUDIO IN simulé en bruit filtré, PCM sans import sur EMX-1/ER-1 mkII) sont volontaires, fidèles au matériel
+  réel et déjà expliquées dans les notices.
+- *Qualité graphique* : premiers lots de confort mobile et matières (v260-v261), MODULE FOCUS Eurorack (v262),
+  menu des machines (v263), panneaux d'outils (v264), VU-mètres stéréo (v265), trajectoires et automatisations
+  visibles Kaoss/volca/Electribe/TR-1000 (v266-v267), écrans de jeu PO-33/MC-101 (v268), forme d'onde SmplTrek
+  (v269), retours de frappe (v270-v271), repères des effets KAOSS PAD (v272), Focus de la table de mixage
+  (v273), éditeur de sons (v274), machines depuis la table de mixage (v275).
+- *Eurorack, au-delà du cœur du système* : huit ensembles complets (v276), installateur Windows automatique et
+  contrôle MIDI Windows (v277-v278), DRUM 32 (v279), MÉLO 32 (v280), SCÈNES 8 (v281), jungle/DnB/uptempo/
+  breakcore/gabber/psytrance (v282), BREAK 32 (v283), PERFORMANCE (v284), variations A/B et FILL rythmiques
+  (v285), atelier kick/basse (v286), HARMONIE 8 (v287), STUTTER LIVE (v288), voix Inde/Balkans/dabké (v289),
+  FREEZE GRANULAIRE (v290).
 
 **Reste à faire, par ordre d'intérêt**
-1. *Fidélité* — terminé en v259 : sept effets de plus sur le KAOSS PAD (v259), échantillonnage/découpe/étirement de
-   la couche B sur la TR-1000 (v259), échantillonnage au micro sur le PO-33 K.O! (v259). Le point ER-1/EA-1,
-   EMX/ESX a été passé en revue (v259) : les fonctions correspondent déjà aux vraies machines, et les deux seules
-   simplifications restantes (AUDIO IN simulé en bruit filtré, PCM sans import sur EMX-1/ER-1 mkII) sont
-   volontaires, fidèles au matériel réel et déjà expliquées dans les notices — rien à corriger.
-2. *Qualité sonore* : équilibre des voix au sein de chaque machine, à l'oreille ; réverbérations ROOM, PLATE,
+1. *Qualité sonore* : équilibre des voix au sein de chaque machine, à l'oreille ; réverbérations ROOM, PLATE,
    SPRING, HALL ; grave en mono ; grosses caisses, charlestons et cymbales ; essayer les saturations en 4x.
-3. *Qualité graphique* (rien de commencé) : lisibilité (texte d'au moins 10,5 px) et zones tactiles de
-   40 à 44 px ; langage commun des états ; façades PO-33, MC-101, SmplTrek, KAOSS PAD ; MODULE FOCUS de
-   l'Eurorack ; menu des machines ; VU-mètres.
+2. *Eurorack, suite proposée après la v290* : CYCLES LIBRES (suivre 7/8, 9/8, 5/4 ou un regroupement
+   personnalisé pour les scènes et les fills, au-delà du transport 4/4 fixe) ; PERFORMANCE MOUVANTE
+   (enregistrement de gestes sur les huit commandes, mémoires A/B avec transition) ; VOIX MUTANTES (voyelles
+   synthétiques puis vocodeur) ; POLY 4 (synthé autonome à quatre voix, clavier tactile, accords mémorisables) ;
+   LOOPER DE RACK (quatre pistes, phrases conservées) ; DIALOGUE (deux mélodies qui se répondent) ; ACCORDAGES
+   ET ORNEMENTS (accordage par note, import Scala .scl).
+3. *Qualité graphique, ce qui reste* : façades KAOSS PAD/SmplTrek encore à affiner selon l'usage.
 4. *Essais sur matériel* : USB-MIDI sur le téléphone, ouverture de projet interrompue, lecture longue en
    arrière-plan, clé de signature des APK ; sur PC, voir `docs/parite.md` ; Bluetooth MIDI (ci-dessous).
 
@@ -165,7 +179,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
 bloc 14 du test navigateur (« un gain existant rejoint sa cible en douceur ») quand la machine est chargée.
 Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en écrire en `file://`.
 
-### Versions v177 à v259
+### Versions v177 à v290
 
 | Version | Sujet |
 |---|---|
@@ -252,6 +266,37 @@ Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en
 | v257 | Bibliothèque : packs et kits en fichiers, import en lot, crédits |
 | v258 | Bibliothèque : corbeille, place occupée, sons sans emploi, doublons |
 | v259 | Fidélité : effets KAOSS PAD, échantillonnage/découpe/étirement TR-1000, échantillonnage micro PO-33 |
+| v260 | Graphisme : premier lot de confort mobile |
+| v261 | Graphisme G2 : matières, reliefs et états des quatre façades récentes |
+| v262 | Module Focus Eurorack |
+| v263 | Menu des machines et accès aux outils |
+| v264 | Graphisme des panneaux d'outils |
+| v265 | VU-mètres stéréo et retours musicaux |
+| v266 | Trajectoires Kaoss et mouvements visibles sur la volca sample |
+| v267 | Automatisations visibles : Electribe et TR-1000 |
+| v268 | Écrans de jeu : PO-33 et MC-101 |
+| v269 | SmplTrek : forme d'onde et position de lecture |
+| v270 | Retours de frappe : PO-33, MC-101 et SmplTrek |
+| v271 | Correction du test unisson et des retours de frappe |
+| v272 | Repères des quinze effets du KAOSS PAD |
+| v273 | Focus de la table de mixage |
+| v274 | Éditeur de sons : onde stéréo, zoom et sélection précise |
+| v275 | Afficher les machines depuis la table de mixage |
+| v276 | Huit ensembles Eurorack complets |
+| v277 | Installateur Windows automatique |
+| v278 | Contrôle MIDI Windows : attente bornée, vérifications et rapports |
+| v279 | Eurorack : DRUM 32 et deux montages avancés |
+| v280 | MÉLO 32 : notes, gammes, accents et glissés |
+| v281 | SCÈNES 8 : des arrangements à quatre parties |
+| v282 | Jungle, drum and bass, uptempo, breakcore, gabber et psytrance |
+| v283 | BREAK 32 : boucles personnelles et découpage visuel |
+| v284 | PERFORMANCE Eurorack |
+| v285 | Variations A/B et FILL rythmiques |
+| v286 | Atelier kick / basse |
+| v287 | HARMONIE 8 et montages à progressions d'accords |
+| v288 | STUTTER LIVE : capture stéréo et répétitions au tempo |
+| v289 | Cordes, anches et peaux : Inde, Balkans, dabké |
+| v290 | FREEZE GRANULAIRE : capturer un son et le transformer en grains, trois montages |
 
 ---
 

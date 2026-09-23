@@ -69,7 +69,7 @@ def main():
    pg.wait_for_timeout(80);pg.evaluate(G.OUVRIR,'eur');return c,pg,err
   for w,h in ([] if a.audio_seulement else FORMATS):
    c,pg,err=ouvrir(w,h);tag=f'{w}x{h}';accept={'oui':False};pg.on('dialog',lambda d:d.accept() if accept['oui'] else d.dismiss())
-   v(pg.evaluate('Object.keys(EUR_CAT).length===116&&new Set(EUR_ORDRE).size===116&&EUR_MONTAGES.length===60'),tag+' catalogue exact')
+   v(pg.evaluate('Object.keys(EUR_CAT).length===117&&new Set(EUR_ORDRE).size===117&&EUR_MONTAGES.length===63'),tag+' catalogue exact')
    for s in pg.evaluate(STRUCTURE):v(not s['erreurs'] and s['modules']==26 and s['cables']==41 and s['horloges']==1 and s['rangees'],tag+' structure '+str(s))
    pg.evaluate('window.before=JSON.stringify(rackCourant());EUR.montFam="capture";eurMontages()');v(pg.locator('[data-famille="capture"]').count()==2,tag+' deux cartes CAPTURE LIVE')
    pg.locator('[data-montage="stutter-jungle"]').click();v(pg.evaluate('JSON.stringify(rackCourant())===before'),tag+' refus remplacement conservé');accept['oui']=True;pg.locator('[data-montage="stutter-jungle"]').click()

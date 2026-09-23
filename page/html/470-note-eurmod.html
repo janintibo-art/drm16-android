@@ -17,7 +17,7 @@
   <u>Utilitaires</u>
   <p><a href="#fm-output">OUTPUT</a> · <a href="#fm-vca">VCA</a> · <a href="#fm-dualvca">DUAL VCA</a> · <a href="#fm-trancegate">TRANCE GATE</a> · <a href="#fm-head">HEAD</a> · <a href="#fm-transpose">TRANSPOSE</a> · <a href="#fm-compare">COMPARE</a> · <a href="#fm-attenuv">ATTENUV</a> · <a href="#fm-slew">SLEW</a> · <a href="#fm-mix4">MIX 4</a> · <a href="#fm-mult">MULT</a> · <a href="#fm-xfade">XFADE</a> · <a href="#fm-pan">PAN</a> · <a href="#fm-switch">SWITCH</a></p>
   <u>Traitements</u>
-  <p><a href="#fm-echo">ECHO</a> · <a href="#fm-reverb">REVERB</a> · <a href="#fm-fold">FOLD</a> · <a href="#fm-drive">DRIVE</a> · <a href="#fm-bits">BITS</a> · <a href="#fm-ring">RING</a> · <a href="#fm-chorus">CHORUS</a> · <a href="#fm-phaser">PHASER</a> · <a href="#fm-grain">GRAIN</a> · <a href="#fm-kamieniec">KAMIENIEC</a> · <a href="#fm-plasma">PLASMA</a> · <a href="#fm-plexiphon">PLEXIPHON</a> · <a href="#fm-bbd">BBD</a> · <a href="#fm-spring">SPRING</a> · <a href="#fm-clip">CLIP</a> · <a href="#fm-limit">LIMIT</a> · <a href="#fm-eq3">EQ 3</a> · <a href="#fm-pingpong">PING PONG</a></p>
+  <p><a href="#fm-echo">ECHO</a> · <a href="#fm-reverb">REVERB</a> · <a href="#fm-fold">FOLD</a> · <a href="#fm-drive">DRIVE</a> · <a href="#fm-bits">BITS</a> · <a href="#fm-ring">RING</a> · <a href="#fm-chorus">CHORUS</a> · <a href="#fm-phaser">PHASER</a> · <a href="#fm-grain">GRAIN</a> · <a href="#fm-freeze">FREEZE GRANULAIRE</a> · <a href="#fm-kamieniec">KAMIENIEC</a> · <a href="#fm-plasma">PLASMA</a> · <a href="#fm-plexiphon">PLEXIPHON</a> · <a href="#fm-bbd">BBD</a> · <a href="#fm-spring">SPRING</a> · <a href="#fm-clip">CLIP</a> · <a href="#fm-limit">LIMIT</a> · <a href="#fm-eq3">EQ 3</a> · <a href="#fm-pingpong">PING PONG</a></p>
   <u>Percussions</u>
   <p><a href="#fm-batteringram">BATTERING RAM</a> · <a href="#fm-squidsalmple">SQUID SALMPLE</a> · <a href="#fm-mutanthihats">MUTANT HIHATS</a> · <a href="#fm-tekkick">TEK KICK</a> · <a href="#fm-tribal">TRIBAL</a> · <a href="#fm-zap">ZAP</a> · <a href="#fm-drum">DRUM</a> · <a href="#fm-kick">KICK</a> · <a href="#fm-snare">SNARE</a> · <a href="#fm-hat">HAT</a> · <a href="#fm-clap">CLAP</a> · <a href="#fm-tom">TOM</a> · <a href="#fm-cymbal">CYMBAL</a> · <a href="#fm-rim">RIM</a> · <a href="#fm-cowbell">COWBELL</a> · <a href="#fm-shaker">SHAKER</a> · <a href="#fm-claves">CLAVES</a></p>
   </div>
@@ -472,6 +472,17 @@
   n'est pas un vrai granulateur — c'est un délai dont le temps saute sans arrêt —, mais le nuage y ressemble
   beaucoup.</p>
   <span>Potards SIZE, DENSITY, MIX · Entrée IN · Sortie OUT</span></div>
+  <div class="fmod" id="fm-freeze"><b>FREEZE GRANULAIRE (v290)</b>
+  <p>Celui-ci capture <b>réellement</b> quelques secondes du signal reçu sur IN, à un
+  instant choisi par une porte sur CAPTURER (CAPTURE règle la durée figée, 0,2 à
+  4 s). Chaque impulsion sur GRAIN rejoue ensuite un petit fragment (TAILLE, 10 à
+  300 ms) du tampon figé : POSITION choisit où dans ce tampon, SPRAY disperse ce
+  point au hasard, HAUTEUR transpose jusqu'à deux octaves. RST vide le tampon.</p>
+  <p>GRAIN est une porte, pas une horloge interne : brancher une horloge rapide,
+  un diviseur ou un générateur euclidien dessus donne la densité du nuage — au
+  plus dense, à la résolution du pas global.</p>
+  <span>Potards CAPTURE, POSITION, SPRAY, TAILLE, HAUTEUR, NIVEAU · Entrées IN,
+  CAPTURER, GRAIN, RST · Sortie OUT</span></div>
   <div class="fmod" id="fm-kamieniec"><b>KAMIENIEC</b>
   <p>Un phaser ne filtre pas : il fait <b>tourner la phase</b>. Douze cellules laissent tout passer mais
   décalent chaque fréquence différemment, et c'est en réadditionnant au signal d'origine que les creux

@@ -592,5 +592,22 @@ prise de son de l’artiste n’est incluse.</p>
 <p>Tous les sons sont synthétisés dans l’application : aucun téléchargement de
 banque supplémentaire. Paramètres, câbles et macros sont conservés dans les
 huit racks et les projets .drm16. Les sources sonores temporaires ne sont pas
-sauvegardées. Le catalogue compte maintenant 116 types de modules et 60 montages.</p>
+sauvegardées. Le catalogue comptait alors 116 types de modules et 60 montages.</p>
+
+<h3>FREEZE GRANULAIRE (v290)</h3>
+<p>Un module qui <b>capture réellement</b> le signal reçu sur IN — de 0,2 à 4 s,
+réglées par CAPTURE — puis en rejoue de petits grains (10 à 300 ms) déclenchés un
+par un sur l'entrée GRAIN, à une position et une hauteur choisies. POSITION lit un
+point précis du fragment figé, SPRAY disperse ce point au hasard, HAUTEUR transpose
+jusqu'à deux octaves. RST vide le tampon. Le module GRAIN (délai modulé, dans
+TRAITEMENTS) n'a pas changé : c'est une texture différente, gardée telle quelle
+pour ne pas modifier d'anciens montages.</p>
+<p>CAPTURER et GRAIN sont des entrées de porte comme les autres : elles ne
+répondent qu'aux instants transmis par l'horloge, un diviseur ou un générateur
+euclidien qu'on y branche, donc à la résolution du pas global — pas de nuage plus
+dense que cette grille. Trois montages : <b>PSY · CORDES SUSPENDUES</b>,
+<b>JUNGLE · NUAGE DE VOIX</b> et <b>DUB · MÉMOIRE DES ANCHES</b>, chacun avec une
+commande PERFORMANCE qui fait glisser le mélange de la phrase reconnaissable vers
+sa version granulaire. Le catalogue compte maintenant 117 types de modules et
+63 montages.</p>
 </div>
