@@ -41,6 +41,7 @@ css/370-melo32-eurorack.css
 css/380-scenes8-eurorack.css
 css/390-styles-rave.css
 css/400-break32-bibliotheque.css
+css/410-performance-eurorack.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -161,6 +162,9 @@ js/462-break32-eurorack.js
 js/464-break32-bibliotheque.js
 js/463-montages-rave.js
 js/465-montages-breaks-personnels.js
+js/466-performance-eurorack.js
+js/467-performance-interface.js
+js/468-montages-performance.js
 js/460-behringer-td-3.js
 js/470-machine-d-archive.js
 js/480-roland-tr-1000.js

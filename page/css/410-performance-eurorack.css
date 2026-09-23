@@ -1,0 +1,86 @@
+#unit-eur .ep-lanceur{display:flex;justify-content:flex-start;align-items:center;gap:8px;flex-wrap:wrap}
+#unit-eur #eur-performance-ouvrir{min-height:44px;font-size:11px;border:1px solid #7eacae;color:#cafff3;padding:10px 16px}
+/* v284 — panneau à l'échelle de l'écran, hors du zoom du rack. */
+#eur-performance{display:none;position:fixed;inset:0;z-index:24;padding:10px;
+ padding: max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
+ background:#06090dd9;color:#e5edf5;font:14px/1.4 system-ui,Arial,sans-serif;touch-action:pan-y;overscroll-behavior:contain}
+#eur-performance.show{display:flex;align-items:center;justify-content:center}
+#eur-performance [hidden]{display:none!important}
+#eur-performance *{box-sizing:border-box}
+#eur-performance .ep-panneau{width:100%;max-width:1120px;max-height:100%;min-height:0;display:flex;flex-direction:column;
+ border:1px solid #4e6073;border-radius:12px;overflow:hidden;background:#141c25;box-shadow:0 12px 40px #0009}
+#eur-performance .ep-tete{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:14px 18px;flex:none;
+ background:linear-gradient(115deg,#293c4e,#1b2632);border-bottom:1px solid #3a5065}
+#eur-performance .ep-tete>div{min-width:0}
+#eur-performance .ep-sur{color:#9dd9df;font-size:10px;font-weight:800;letter-spacing:1.5px}
+#eur-performance h2{margin:2px 0;font-size:23px;letter-spacing:1px}
+#eur-performance #ep-rack{margin:0;color:#c3d0dd;font-size:12px;overflow-wrap:anywhere}
+#eur-performance button,#eur-performance input,#eur-performance select{min-width:44px;min-height:44px;padding:9px 12px;border:1px solid #60768d;border-radius:6px;
+ background:#27384a;color:#edf5fd;font:700 12px/1.3 system-ui,Arial,sans-serif;letter-spacing:.2px;margin:0;touch-action:manipulation}
+#eur-performance button{cursor:pointer;box-shadow:inset 0 1px 0 #ffffff18,0 2px 0 #060b11}
+#eur-performance button:active:not(:disabled){background:#3e596e;box-shadow:inset 0 2px 3px #0008}
+#eur-performance button:disabled{opacity:.45;box-shadow:none;cursor:default}
+#eur-performance button.on{background:#1f645b;color:#e5fffa}
+#eur-performance button:focus-visible,#eur-performance input:focus-visible,#eur-performance select:focus-visible,#eur-performance .ep-dial:focus-visible{outline:3px solid #9aeaf1;outline-offset:2px}
+#eur-performance #ep-fermer{flex:none;max-width:140px}
+#eur-performance .ep-outils{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 18px;border-bottom:1px solid #324357;flex:none;background:#192530}
+#eur-performance #ep-memoire{color:#a4b7c9;font-size:10px;font-weight:700;flex:1;min-width:120px}
+#eur-performance .ep-zone{overflow:auto;min-height:0;flex:1;padding:12px 18px 18px;overscroll-behavior:contain;scrollbar-width:thin}
+#eur-performance .ep-intro,#eur-performance .ep-aide{font-size:12px;color:#b3c5d8;margin:0 0 12px}
+#eur-performance #ep-message{font-size:12px;color:#a6eee1;margin:0 0 10px;overflow-wrap:anywhere}
+#eur-performance #ep-message:empty{display:none}
+#eur-performance .ep-cartes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#eur-performance .ep-carte{min-width:0;padding:12px;display:flex;flex-direction:column;align-items:stretch;border-radius:9px;border:1px solid #52687d;
+ background:linear-gradient(155deg,#2b3b4b,#1a2531);box-shadow:inset 0 1px 0 #ffffff15}
+#eur-performance .ep-carte h3{font-size:12px;line-height:1.4;min-height:34px;color:#d9f8ff;letter-spacing:.5px;margin:0 0 6px;overflow-wrap:anywhere}
+#eur-performance .ep-dial{min-width:44px;min-height:110px;touch-action:none;cursor:ns-resize;align-self:stretch;display:flex;align-items:center;justify-content:center;gap:10px;flex-direction:column;border-radius:6px}
+#eur-performance .ep-disque{width:70px;height:70px;border-radius:50%;position:relative;border:3px solid #89d4dc;
+ background:radial-gradient(circle at 35% 25%,#68778a,#263447 57%,#111822 62%);box-shadow:0 4px 6px #0008,inset 0 1px 2px #d2ebf66b}
+#eur-performance .ep-disque i{display:block;position:absolute;inset:7px 30px 7px;transform-origin:50% 50%}
+#eur-performance .ep-disque i:before{content:"";display:block;width:4px;height:18px;border-radius:2px;background:#e4fbff}
+#eur-performance .ep-tourne{background:#39566d55}
+#eur-performance .ep-dial output{font:700 17px/1.2 monospace;color:#d8faff}
+#eur-performance .ep-crans{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+#eur-performance .ep-crans button{font-size:22px;padding:6px}
+#eur-performance .ep-etat{font-size:9px;line-height:1.3;font-weight:800;color:#a1d6d2;min-height:24px}
+#eur-performance .ep-ecart .ep-etat{color:#f2d594}
+#eur-performance .ep-carte-cibles{font-size:10px;color:#b6c7d7;line-height:1.5;margin:4px 0 10px;overflow-wrap:anywhere;flex:1}
+#eur-performance .ep-inactive{border-style:dashed;background:#19232d}
+#eur-performance .ep-inactive .ep-disque{border-color:#5b6b7b;opacity:.4}
+#eur-performance .ep-inactive .ep-dial{cursor:default}
+#eur-performance .ep-config{max-width:720px;margin:auto}
+#eur-performance .ep-config-tete{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+#eur-performance .ep-config h3{font-size:17px;margin:0}
+#eur-performance .ep-config h4{font-size:14px;margin:0 0 12px}
+#eur-performance .ep-champ{display:flex;flex-direction:column;gap:5px;color:#b9d0e3;font-size:10px;font-weight:800;min-width:0;margin:0 0 12px}
+#eur-performance .ep-champ input,#eur-performance .ep-champ select{width:100%;min-width:0;background:#0e1721;color:#e8f6ff;font-size:14px;font-weight:500}
+#eur-performance option{background:#0e1721;color:#e8f6ff}
+#eur-performance .ep-cible{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;background:#1e2d3c;border:1px solid #40576e;padding:10px;border-radius:6px;margin-bottom:8px}
+#eur-performance .ep-cible p{font-size:12px;margin:0;overflow-wrap:anywhere}
+#eur-performance .ep-affectation{border:1px solid #527187;background:#1c2b3a;border-radius:8px;padding:16px;margin-top:16px}
+#eur-performance .ep-bornes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#eur-performance #ep-apercu{font:12px/1.6 monospace;color:#b9f2e8;overflow-wrap:anywhere}
+#eur-performance .ep-actions{display:flex;flex-wrap:wrap;gap:8px}
+#eur-performance #ep-erreur{color:#ffbfa8;font-size:12px}
+#eur-performance input[aria-invalid=true]{border-color:#ff9878}
+#eur-performance .ep-pied{font-size:10px;color:#a4b8cd;flex:none;border-top:1px solid #324457;padding:9px 18px;background:#17212c}
+@media(max-width:760px){#eur-performance .ep-cartes{grid-template-columns:repeat(2,minmax(0,1fr))}#eur-performance .ep-tete{padding:10px 12px}#eur-performance .ep-outils{padding:8px 12px}#eur-performance .ep-zone{padding:10px 12px}#eur-performance .ep-pied{padding:8px 12px}#eur-performance h2{font-size:18px}}
+@media(max-width:400px){#eur-performance{padding:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}#eur-performance .ep-cartes{gap:8px}#eur-performance .ep-carte{padding:9px}#eur-performance .ep-sur{letter-spacing:.5px;font-size:9px}#eur-performance #ep-fermer{max-width:95px;padding:8px}#eur-performance .ep-outils{gap:6px}#eur-performance .ep-outils button{font-size:10px;padding:8px}#eur-performance .ep-cible{grid-template-columns:1fr 1fr}#eur-performance .ep-cible p{grid-column:1/-1}#eur-performance .ep-affectation{padding:10px}#eur-performance .ep-bornes{grid-template-columns:1fr}}
+@media(min-width:761px) and (max-height:540px){#eur-performance .ep-tete{padding:8px 14px}#eur-performance .ep-outils{padding:6px 14px}#eur-performance .ep-pied{padding:5px 14px}#eur-performance .ep-dial{min-height:95px}#eur-performance .ep-disque{width:62px;height:62px}#eur-performance .ep-disque i{inset:6px 26px}#eur-performance .ep-carte h3{min-height:30px}}
+/* Paysage de téléphone : les commandes de transport restent à gauche, sans
+   prendre la moitié de la hauteur des huit macros à droite. */
+@media(min-width:600px) and (max-height:500px){
+ #eur-performance .ep-panneau{height:100%;display:grid;grid-template-columns:175px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+ #eur-performance .ep-tete{grid-column:1;grid-row:1;flex-direction:column;align-items:stretch;gap:6px;padding:9px}
+ #eur-performance .ep-tete h2{font-size:16px}#eur-performance .ep-sur{font-size:8px;letter-spacing:.2px}
+ #eur-performance #ep-fermer{max-width:none;width:100%;font-size:10px}
+ #eur-performance .ep-outils{grid-column:1;grid-row:2;flex-direction:column;flex-wrap:nowrap;align-items:stretch;overflow:auto;padding:9px;gap:6px;border-bottom:0}
+ #eur-performance #ep-memoire{flex:none;min-width:0}
+ #eur-performance .ep-zone{grid-column:2;grid-row:1/3;border-left:1px solid #40566d;padding:9px}
+ #eur-performance .ep-pied,#eur-performance .ep-intro{display:none}
+ #eur-performance .ep-cartes{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #eur-performance .ep-carte{padding:9px}#eur-performance .ep-carte h3{min-height:33px}
+ #eur-performance .ep-dial{min-height:92px}#eur-performance .ep-disque{width:62px;height:62px}#eur-performance .ep-disque i{inset:6px 26px}
+ #eur-performance .ep-cible{grid-template-columns:1fr 1fr}#eur-performance .ep-cible p{grid-column:1/-1}
+ #eur-performance .ep-bornes{grid-template-columns:1fr}
+}

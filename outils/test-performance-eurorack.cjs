@@ -1,0 +1,50 @@
+/* v284 : données et commandes de PERFORMANCE, sans pilote ni son réel.
+   Les tests utilisent le vrai moteur de macros et des paramètres représentatifs.
+   L'intégration sur le catalogue réel est contrôlée dans test-performance-eurorack.py. */
+'use strict';
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../page/js/466-performance-eurorack.js'),'utf8');
+let total=0;function test(n,fn){fn();total++;console.log('ok '+n);}
+function env(){
+ let saves=0,maj=[],smooth=0;const kn=[['a','A',0,1,.5],['b','B',0,1,.5],['c','C',0,1,.5],['d','D',0,1,.5],['e','E',0,1,.5]];
+ const s={EUR:{mods:[],cables:[[1,2]],performance:null},EUR_CAT:{mix:{fam:'mix',kns:kn},drum32:{fam:'seq',interface(){},kns:[['achance','HASARD',0,100,100],['a0','PAS',0,4,1]]},melo32:{fam:'seq',interface(){},kns:[['trans','TRANS',-24,24,0],['glide','GLIDE',0,500,20],['n0','NOTE',0,127,60]]},scenes8:{fam:'seq',interface(){},kns:[['fade','FONDU',0,2000,0],['len','LONG',1,8,8]]},break32:{fam:'seq',interface(){},kns:[['tone','TONE',0,1,.7],['pitch','PITCH',-24,24,0],['niv','LEVEL',0,1,.7],['n0','TRANCHE',0,16,1]]},clock:{fam:'seq',kns:kn},special:{fam:'mix',interface(){},kns:kn}},enLissant(fn){smooth++;fn();},memEur(){saves++;}};
+ for(let i=1;i<=2;i++)s.EUR.mods.push({id:i,type:'mix',p:{a:.5,b:.5,c:.5,d:.5,e:.5},r:0,maj(){maj.push(i);}});
+ vm.createContext(s);vm.runInContext(source,s);return {s,m:s.EUR_PERFORMANCE,saves:()=>saves,updates:()=>maj,smooth:()=>smooth};
+}
+const target=(id=1,param='a',min=0,max=1,type='mix')=>({id,type,param,min,max});
+const plain=x=>JSON.parse(JSON.stringify(x));
+function bind(e,i=0,t=target(),pos){assert.equal(e.m.affecter(i,t,pos),'');}
+test('ancien rack : aucune configuration ni écriture à la simple lecture',()=>{const e=env();assert.equal(e.m.courant().commandes.length,8);assert.equal(e.s.EUR.performance,null);assert.equal(e.saves(),0);});
+test('affecter ne change ni le son ni le graphe',()=>{const e=env(),p=JSON.stringify(e.s.EUR.mods.map(m=>m.p));bind(e);assert.equal(JSON.stringify(e.s.EUR.mods.map(m=>m.p)),p);assert.equal(e.updates().length,0);assert.equal(e.s.EUR.cables.length,1);});
+test('une macro agit sur quatre paramètres et deux modules, une mise à jour chacun',()=>{const e=env();['a','b'].forEach(k=>bind(e,0,target(1,k)));['a','b'].forEach(k=>bind(e,0,target(2,k)));e.m.regler(0,.3);assert.deepEqual(e.updates(),[1,2]);assert.equal(e.smooth(),1);assert.equal(e.s.EUR.mods[1].p.b,.3);});
+test('toutes les valeurs sont écrites avant m.maj',()=>{const e=env();bind(e,0,target(1));bind(e,0,target(2));e.s.EUR.mods[0].maj=()=>assert.equal(e.s.EUR.mods[1].p.a,.8);e.m.regler(0,.8);});
+test('maximum quatre cibles',()=>{const e=env();['a','b','c','d'].forEach(k=>bind(e,0,target(1,k)));assert.match(e.m.affecter(0,target(1,'e')),/maximum/);});
+test('aucun conflit entre macros',()=>{const e=env();bind(e);assert.match(e.m.affecter(1,target()),/déjà/);assert.equal(e.m.courant().commandes[1].cibles.length,0);});
+test('aucun doublon dans une même macro',()=>{const e=env();bind(e);assert.match(e.m.affecter(0,target()),/déjà/);});
+test('remplacer une cible par elle-même reste valide',()=>{const e=env();bind(e);bind(e,0,target(1,'a',.1,.8),0);assert.equal(e.m.courant().commandes[0].cibles.length,1);});
+test('valeurs bornées à la course native',()=>{const e=env();bind(e,0,target(1,'a',-10,100));e.m.regler(0,200);assert.equal(e.s.EUR.mods[0].p.a,1);e.m.regler(0,-3);assert.equal(e.s.EUR.mods[0].p.a,0);});
+test('courses inversées',()=>{const e=env();bind(e,0,target(1,'a',.9,.1));e.m.regler(0,.75);assert.ok(Math.abs(e.s.EUR.mods[0].p.a-.3)<1e-10);});
+test('course fixe',()=>{const e=env();bind(e,0,target(1,'a',.4,.4));e.m.regler(0,0);assert.equal(e.s.EUR.mods[0].p.a,.4);e.m.regler(0,1);assert.equal(e.s.EUR.mods[0].p.a,.4);});
+test('types ID et paramètres invalides refusés',()=>{const e=env();for(const t of [target(999),target('1'),target(1,'inconnu'),target(1,'a',0,1,'autre'),target(1,'__proto__')])assert.notEqual(e.m.affecter(0,t),'');});
+test('NaN et infinis ne sont jamais appliqués',()=>{const e=env();bind(e);for(const v of [NaN,Infinity,-Infinity,'0.5',null])assert.equal(e.m.regler(0,v),false);assert.equal(e.updates().length,0);});
+test('indices de macro et remplacement invalides refusés',()=>{const e=env();for(const i of [-1,8,.5,'1']){assert.equal(e.m.regler(i,.2),false);assert.notEqual(e.m.affecter(i,target()),'');}assert.notEqual(e.m.affecter(0,target(),0),'');});
+test('pas non éditables exclus de la sélection',()=>{const e=env();for(const type of ['drum32','melo32','scenes8','break32']){const p=e.m.parametres({type}).map(x=>x[0]);assert.ok(!p.includes('a0')&&!p.includes('n0')&&!p.includes('len'));}assert.equal(e.m.parametres({type:'clock'}).length,0);assert.equal(e.m.parametres({type:'special'}).length,0);});
+test('transposition arrondie à la note',()=>{const e=env();e.s.EUR.mods.push({id:3,type:'melo32',p:{trans:0,glide:20,n0:60}});bind(e,0,target(3,'trans',-12,12,'melo32'));e.m.regler(0,.6);assert.equal(e.s.EUR.mods[2].p.trans,2);assert.equal(e.s.EUR.mods[2].p.n0,60);});
+test('BREAK32 pitch entier mais timbre fractionnaire',()=>{const e=env();e.s.EUR.mods.push({id:3,type:'break32',p:{pitch:0,tone:.7,niv:.7}});bind(e,0,target(3,'pitch',0,-5,'break32'));bind(e,0,target(3,'tone',0,1,'break32'));e.m.regler(0,.55);assert.equal(e.s.EUR.mods[2].p.pitch,-3);assert.equal(e.s.EUR.mods[2].p.tone,.55);});
+test('mémoriser les valeurs réelles sans appliquer une macro',()=>{const e=env();bind(e);e.s.EUR.mods[0].p.a=.72;assert.equal(e.m.memoriser(),true);assert.equal(e.m.courant().memoire.valeurs[0].valeur,.72);assert.equal(e.updates().length,0);});
+test('retour exact, sans effacer les autres réglages',()=>{const e=env();bind(e);e.s.EUR.mods[0].p.a=.72;e.m.memoriser();e.m.regler(0,.9);e.s.EUR.mods[0].p.e=.123;assert.equal(e.m.rappeler(),true);assert.equal(e.s.EUR.mods[0].p.a,.72);assert.equal(e.s.EUR.mods[0].p.e,.123);assert.equal(e.m.courant().commandes[0].valeur,0);});
+test('retour suit le rack après sérialisation JSON',()=>{const e=env();bind(e);e.m.memoriser();const data=plain(e.m.courant());e.m.charger(data);e.m.regler(0,.01);e.m.rappeler();assert.equal(e.s.EUR.mods[0].p.a,.5);});
+test('un changement manuel est signalé, jamais écrasé à la lecture',()=>{const e=env();bind(e);e.m.regler(0,.5);assert.equal(e.m.ecart(e.m.courant().commandes[0]),false);e.s.EUR.mods[0].p.a=.8;assert.equal(e.m.ecart(e.m.courant().commandes[0]),true);assert.equal(e.s.EUR.mods[0].p.a,.8);});
+test('un renommage conserve le point de retour',()=>{const e=env();bind(e);e.m.memoriser();e.m.nommer(0,'Ma basse');assert.ok(e.m.courant().memoire);assert.equal(e.m.courant().commandes[0].nom,'Ma basse');});
+test('modifier les bornes invalide le point de retour',()=>{const e=env();bind(e);e.m.memoriser();bind(e,0,target(1,'a',0,.8),0);assert.equal(e.m.courant().memoire,null);});
+test('retirer une affectation ne change pas le son',()=>{const e=env();bind(e);e.m.memoriser();e.m.retirer(0,0);assert.equal(e.s.EUR.mods[0].p.a,.5);assert.equal(e.m.courant().memoire,null);assert.equal(e.m.regler(0,1),false);});
+test('déplacement des modules : les références ne sont pas des indices',()=>{const e=env();bind(e);e.s.EUR.mods.reverse();e.m.regler(0,.8);assert.equal(e.s.EUR.mods.find(m=>m.id===1).p.a,.8);assert.equal(e.s.EUR.mods.find(m=>m.id===2).p.a,.5);});
+test('suppression du module : aucune cible fantôme',()=>{const e=env();bind(e);e.m.memoriser();e.s.EUR.mods.shift();e.m.nettoyer();assert.equal(e.m.courant().commandes[0].cibles.length,0);assert.equal(e.m.courant().memoire,null);});
+test('ID réutilisé avec un autre type : liaison refusée',()=>{const e=env();bind(e);e.s.EUR.mods[0].type='break32';e.m.nettoyer();assert.equal(e.m.courant().commandes[0].cibles.length,0);});
+test('normalisation bornée et noms conservés comme simples chaînes',()=>{const e=env(),d=e.m.vide();d.commandes[0]={nom:' <b>ABC</b> ',valeur:2,cibles:[target(),target(),target(99)]};d.commandes.push(d.commandes[0]);const n=e.m.normaliser(d);assert.equal(n.commandes.length,8);assert.equal(n.commandes[0].nom,'<b>ABC</b>');assert.equal(n.commandes[0].cibles.length,1);assert.equal(n.commandes[0].valeur,1);});
+test('mémoire falsifiée ou non finie ignorée',()=>{const e=env();bind(e);e.m.memoriser();for(const change of [d=>d.memoire.valeurs[0].id=999,d=>d.memoire.valeurs[0].valeur=NaN,d=>d.memoire.positions[0]=-1,d=>d.memoire.signature='fausse']){const d=plain(e.m.courant());change(d);assert.equal(e.m.normaliser(d).memoire,null);}});
+test('chargement ne rejoue pas la course et isole les données',()=>{const e=env();bind(e);const d=plain(e.m.courant());d.commandes[0].valeur=.8;e.m.charger(d);d.commandes[0].cibles[0].min=.9;assert.equal(e.s.EUR.mods[0].p.a,.5);assert.equal(e.m.courant().commandes[0].cibles[0].min,0);});
+test('ancien format sans PERFORMANCE reste compatible',()=>{const e=env();bind(e);e.m.charger(null);assert.equal(e.s.EUR.performance,null);assert.equal(e.m.rappeler(),false);});
+test('montage : résolution des indices vers IDs réels',()=>{const e=env(),d=e.m.vide();d.commandes[0].cibles=[{index:0,type:'mix',param:'a',min:0,max:1}];e.m.depuisMontage(d,[2,1]);e.m.regler(0,.4);assert.equal(e.s.EUR.mods[1].p.a,.4);assert.equal(d.commandes[0].cibles[0].index,0);});
+test('erreur native : restauration des valeurs et pas de faux état enregistré',()=>{const e=env();bind(e,0,target(1));bind(e,0,target(2));e.s.EUR.mods[1].maj=()=>{throw Error('pilote de test');};const saves=e.saves();assert.throws(()=>e.m.regler(0,.8),/pilote/);assert.equal(e.s.EUR.mods[0].p.a,.5);assert.equal(e.s.EUR.mods[1].p.a,.5);assert.equal(e.m.courant().commandes[0].valeur,0);assert.equal(e.saves(),saves);});
+console.log(total+' scénarios PERFORMANCE ; aucune erreur.');

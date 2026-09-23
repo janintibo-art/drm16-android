@@ -492,6 +492,7 @@ function eurRetirer(i){
   var id = EUR.mods[i].id;
   EUR.cables = EUR.cables.filter(function(c){ return c.de[0] !== id && c.vers[0] !== id; });
   EUR.mods.splice(i, 1);
+  if(typeof EUR_PERFORMANCE!=="undefined")EUR_PERFORMANCE.nettoyer();
   EUR.sel = Math.min(EUR.sel, EUR.mods.length - 1);
   eurBatir(); eurDessiner(); memEur();
 }
@@ -801,13 +802,15 @@ function eurCatalogue(){
    son patch avant de le défaire. Ici RACK AU SORT et VIDER effaçaient le
    travail en cours sans retour possible, ce qui décourageait d'essayer. */
 function rackCourant(){
-  return {prochain:EUR.prochain, sel:EUR.sel, nom:EUR.nom || "",
+  var rack = {prochain:EUR.prochain, sel:EUR.sel, nom:EUR.nom || "",
     mods:EUR.mods.map(function(m){
       var o={id:m.id, type:m.type, p:m.p, r:m.r || 0};
       if(m.type==="break32" && m.breakSample && typeof EUR_BREAK_SAMPLES!=="undefined")o.breakSample=EUR_BREAK_SAMPLES.copie(m.breakSample);
       return o;
     }),
     cables:EUR.cables};
+  if(EUR.performance && typeof EUR_PERFORMANCE!=="undefined")rack.performance=EUR_PERFORMANCE.normaliser(EUR.performance,EUR.mods);
+  return rack;
 }
 /* Un rack sans nom se présente par son numéro. Dès qu'il porte un nom, c'est
    le nom qui s'affiche : huit numéros ne disent rien, huit noms disent tout. */
@@ -832,6 +835,7 @@ function memEurNormalise(){
   return n;
 }
 function poserRack(o){
+  if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
   EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.prochain = 1; EUR.attente = null;
   if(o && o.mods){
     o.mods.forEach(function(x){
@@ -848,6 +852,7 @@ function poserRack(o){
     if(typeof o.sel === "number") EUR.sel = o.sel;
   }
   EUR.nom = (o && typeof o.nom === "string") ? o.nom : "";
+  if(typeof EUR_PERFORMANCE!=="undefined")EUR_PERFORMANCE.charger(o && o.performance);
 }
 function changerRack(n){
   memEur();                                   /* on garde celui qu'on quitte */
@@ -908,6 +913,8 @@ function chargerEur(){
   majRackEur();
 }
 function eurExemple(){
+  if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
+  EUR.performance=null;
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1;
   var h = eurAjouter("clock", true), s = eurAjouter("seq8", true), o = eurAjouter("vco", true),
       f = eurAjouter("vcf", true), en = eurAjouter("adsr", true), a = eurAjouter("vca", true),

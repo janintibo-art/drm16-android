@@ -298,9 +298,11 @@ function repartirRangees(seuil){
 /* Monte un patch complet d'un coup. On garde la même mécanique que partout :
    tout est reconstruit, ce qui est plus court et plus sûr que de rapiécer. */
 function eurMonter(P){
+  if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
+  EUR.performance=null;
   /* Un ensemble neuf repart au premier temps au prochain START, jamais au
      milieu de l'ancienne phrase. Les anciens montages gardent leur conduite. */
-  if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave") stop();
+  if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance") stop();
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
   var rangs = P.mods.map(function(x){
     var m = eurAjouter(x[0], true);
@@ -316,6 +318,7 @@ function eurMonter(P){
   if(P.rangees && P.rangees.length === EUR.mods.length){
     EUR.mods.forEach(function(m, i){ m.r = P.rangees[i] === 1 ? 1 : 0; });
   } else repartirRangees();
+  if(typeof EUR_PERFORMANCE!=="undefined")EUR_PERFORMANCE.depuisMontage(P.performance,rangs);
   eurBatir(); eurDessiner(); memEur(); majRackEur();
   lcdEur(P.nom, EUR.mods.length + " MODULES · RACK " + (EUR.cur + 1), true);
   signal(P.nom + " · " + P.res);
@@ -353,6 +356,11 @@ function eurMontages(){
       "Choisissez un rack vide pour conserver votre montage actuel.";
     c.appendChild(aideAv);
   }
+  if(fam === "performance"){
+    var aidePerf=document.createElement("p");aidePerf.className="eur-ensembles-aide";
+    aidePerf.textContent="Montages déjà affectés aux huit commandes PERFORMANCE : niveaux des quatre parties, couleurs et échos. START, puis PERFORMANCE. MÉMORISER garde un point de retour sans changer le son.";
+    c.appendChild(aidePerf);
+  }
   if(fam === "rave"){
     var aideRave = document.createElement("p");
     aideRave.className = "eur-ensembles-aide";
@@ -367,7 +375,7 @@ function eurMontages(){
     b.dataset.montage = P.id;
     b.dataset.famille = P.fam;
     b.textContent = P.nom;
-    if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave"){
+    if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance"){
       var meta = document.createElement("span");
       meta.className = "eur-ensemble-meta";
       meta.textContent = P.bpm + " BPM · " + P.tonalite + " · " + P.mods.length + " MODULES";
@@ -392,6 +400,8 @@ function eurMontages(){
 }
 
 function eurHasard(){
+  if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
+  EUR.performance=null;
   function tire(l){ return l[Math.floor(Math.random() * l.length)]; }
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1;
   var h = eurAjouter("clock", true);
@@ -417,6 +427,8 @@ function eurHasard(){
 document.getElementById("eur-vider").addEventListener("click", function(){
   if(!window.confirm("Vider « " + (EUR.nom || ("RACK " + (EUR.cur + 1))) +
                      " » ?\n\nLes sept autres racks ne sont pas touchés.")) return;
+  if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
+  EUR.performance=null;
   EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.attente = null; EUR.nom = "";
   eurBatir(); eurDessiner(); memEur(); majRackEur(); H.inter();
 });

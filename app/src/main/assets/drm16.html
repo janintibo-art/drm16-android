@@ -3964,6 +3964,92 @@ body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2p
 #eur-focus .brs-message{font:600 12px/1.5 system-ui;color:#ffdc9b;overflow-wrap:anywhere}
 #eur-focus .brs-message:empty{display:none}
 @media(min-width:1000px){#eur-focus .brs-actions{grid-template-columns:repeat(4,minmax(0,1fr))}}
+#unit-eur .ep-lanceur{display:flex;justify-content:flex-start;align-items:center;gap:8px;flex-wrap:wrap}
+#unit-eur #eur-performance-ouvrir{min-height:44px;font-size:11px;border:1px solid #7eacae;color:#cafff3;padding:10px 16px}
+/* v284 — panneau à l'échelle de l'écran, hors du zoom du rack. */
+#eur-performance{display:none;position:fixed;inset:0;z-index:24;padding:10px;
+ padding: max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
+ background:#06090dd9;color:#e5edf5;font:14px/1.4 system-ui,Arial,sans-serif;touch-action:pan-y;overscroll-behavior:contain}
+#eur-performance.show{display:flex;align-items:center;justify-content:center}
+#eur-performance [hidden]{display:none!important}
+#eur-performance *{box-sizing:border-box}
+#eur-performance .ep-panneau{width:100%;max-width:1120px;max-height:100%;min-height:0;display:flex;flex-direction:column;
+ border:1px solid #4e6073;border-radius:12px;overflow:hidden;background:#141c25;box-shadow:0 12px 40px #0009}
+#eur-performance .ep-tete{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:14px 18px;flex:none;
+ background:linear-gradient(115deg,#293c4e,#1b2632);border-bottom:1px solid #3a5065}
+#eur-performance .ep-tete>div{min-width:0}
+#eur-performance .ep-sur{color:#9dd9df;font-size:10px;font-weight:800;letter-spacing:1.5px}
+#eur-performance h2{margin:2px 0;font-size:23px;letter-spacing:1px}
+#eur-performance #ep-rack{margin:0;color:#c3d0dd;font-size:12px;overflow-wrap:anywhere}
+#eur-performance button,#eur-performance input,#eur-performance select{min-width:44px;min-height:44px;padding:9px 12px;border:1px solid #60768d;border-radius:6px;
+ background:#27384a;color:#edf5fd;font:700 12px/1.3 system-ui,Arial,sans-serif;letter-spacing:.2px;margin:0;touch-action:manipulation}
+#eur-performance button{cursor:pointer;box-shadow:inset 0 1px 0 #ffffff18,0 2px 0 #060b11}
+#eur-performance button:active:not(:disabled){background:#3e596e;box-shadow:inset 0 2px 3px #0008}
+#eur-performance button:disabled{opacity:.45;box-shadow:none;cursor:default}
+#eur-performance button.on{background:#1f645b;color:#e5fffa}
+#eur-performance button:focus-visible,#eur-performance input:focus-visible,#eur-performance select:focus-visible,#eur-performance .ep-dial:focus-visible{outline:3px solid #9aeaf1;outline-offset:2px}
+#eur-performance #ep-fermer{flex:none;max-width:140px}
+#eur-performance .ep-outils{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 18px;border-bottom:1px solid #324357;flex:none;background:#192530}
+#eur-performance #ep-memoire{color:#a4b7c9;font-size:10px;font-weight:700;flex:1;min-width:120px}
+#eur-performance .ep-zone{overflow:auto;min-height:0;flex:1;padding:12px 18px 18px;overscroll-behavior:contain;scrollbar-width:thin}
+#eur-performance .ep-intro,#eur-performance .ep-aide{font-size:12px;color:#b3c5d8;margin:0 0 12px}
+#eur-performance #ep-message{font-size:12px;color:#a6eee1;margin:0 0 10px;overflow-wrap:anywhere}
+#eur-performance #ep-message:empty{display:none}
+#eur-performance .ep-cartes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#eur-performance .ep-carte{min-width:0;padding:12px;display:flex;flex-direction:column;align-items:stretch;border-radius:9px;border:1px solid #52687d;
+ background:linear-gradient(155deg,#2b3b4b,#1a2531);box-shadow:inset 0 1px 0 #ffffff15}
+#eur-performance .ep-carte h3{font-size:12px;line-height:1.4;min-height:34px;color:#d9f8ff;letter-spacing:.5px;margin:0 0 6px;overflow-wrap:anywhere}
+#eur-performance .ep-dial{min-width:44px;min-height:110px;touch-action:none;cursor:ns-resize;align-self:stretch;display:flex;align-items:center;justify-content:center;gap:10px;flex-direction:column;border-radius:6px}
+#eur-performance .ep-disque{width:70px;height:70px;border-radius:50%;position:relative;border:3px solid #89d4dc;
+ background:radial-gradient(circle at 35% 25%,#68778a,#263447 57%,#111822 62%);box-shadow:0 4px 6px #0008,inset 0 1px 2px #d2ebf66b}
+#eur-performance .ep-disque i{display:block;position:absolute;inset:7px 30px 7px;transform-origin:50% 50%}
+#eur-performance .ep-disque i:before{content:"";display:block;width:4px;height:18px;border-radius:2px;background:#e4fbff}
+#eur-performance .ep-tourne{background:#39566d55}
+#eur-performance .ep-dial output{font:700 17px/1.2 monospace;color:#d8faff}
+#eur-performance .ep-crans{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+#eur-performance .ep-crans button{font-size:22px;padding:6px}
+#eur-performance .ep-etat{font-size:9px;line-height:1.3;font-weight:800;color:#a1d6d2;min-height:24px}
+#eur-performance .ep-ecart .ep-etat{color:#f2d594}
+#eur-performance .ep-carte-cibles{font-size:10px;color:#b6c7d7;line-height:1.5;margin:4px 0 10px;overflow-wrap:anywhere;flex:1}
+#eur-performance .ep-inactive{border-style:dashed;background:#19232d}
+#eur-performance .ep-inactive .ep-disque{border-color:#5b6b7b;opacity:.4}
+#eur-performance .ep-inactive .ep-dial{cursor:default}
+#eur-performance .ep-config{max-width:720px;margin:auto}
+#eur-performance .ep-config-tete{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+#eur-performance .ep-config h3{font-size:17px;margin:0}
+#eur-performance .ep-config h4{font-size:14px;margin:0 0 12px}
+#eur-performance .ep-champ{display:flex;flex-direction:column;gap:5px;color:#b9d0e3;font-size:10px;font-weight:800;min-width:0;margin:0 0 12px}
+#eur-performance .ep-champ input,#eur-performance .ep-champ select{width:100%;min-width:0;background:#0e1721;color:#e8f6ff;font-size:14px;font-weight:500}
+#eur-performance option{background:#0e1721;color:#e8f6ff}
+#eur-performance .ep-cible{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;background:#1e2d3c;border:1px solid #40576e;padding:10px;border-radius:6px;margin-bottom:8px}
+#eur-performance .ep-cible p{font-size:12px;margin:0;overflow-wrap:anywhere}
+#eur-performance .ep-affectation{border:1px solid #527187;background:#1c2b3a;border-radius:8px;padding:16px;margin-top:16px}
+#eur-performance .ep-bornes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#eur-performance #ep-apercu{font:12px/1.6 monospace;color:#b9f2e8;overflow-wrap:anywhere}
+#eur-performance .ep-actions{display:flex;flex-wrap:wrap;gap:8px}
+#eur-performance #ep-erreur{color:#ffbfa8;font-size:12px}
+#eur-performance input[aria-invalid=true]{border-color:#ff9878}
+#eur-performance .ep-pied{font-size:10px;color:#a4b8cd;flex:none;border-top:1px solid #324457;padding:9px 18px;background:#17212c}
+@media(max-width:760px){#eur-performance .ep-cartes{grid-template-columns:repeat(2,minmax(0,1fr))}#eur-performance .ep-tete{padding:10px 12px}#eur-performance .ep-outils{padding:8px 12px}#eur-performance .ep-zone{padding:10px 12px}#eur-performance .ep-pied{padding:8px 12px}#eur-performance h2{font-size:18px}}
+@media(max-width:400px){#eur-performance{padding:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}#eur-performance .ep-cartes{gap:8px}#eur-performance .ep-carte{padding:9px}#eur-performance .ep-sur{letter-spacing:.5px;font-size:9px}#eur-performance #ep-fermer{max-width:95px;padding:8px}#eur-performance .ep-outils{gap:6px}#eur-performance .ep-outils button{font-size:10px;padding:8px}#eur-performance .ep-cible{grid-template-columns:1fr 1fr}#eur-performance .ep-cible p{grid-column:1/-1}#eur-performance .ep-affectation{padding:10px}#eur-performance .ep-bornes{grid-template-columns:1fr}}
+@media(min-width:761px) and (max-height:540px){#eur-performance .ep-tete{padding:8px 14px}#eur-performance .ep-outils{padding:6px 14px}#eur-performance .ep-pied{padding:5px 14px}#eur-performance .ep-dial{min-height:95px}#eur-performance .ep-disque{width:62px;height:62px}#eur-performance .ep-disque i{inset:6px 26px}#eur-performance .ep-carte h3{min-height:30px}}
+/* Paysage de téléphone : les commandes de transport restent à gauche, sans
+   prendre la moitié de la hauteur des huit macros à droite. */
+@media(min-width:600px) and (max-height:500px){
+ #eur-performance .ep-panneau{height:100%;display:grid;grid-template-columns:175px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+ #eur-performance .ep-tete{grid-column:1;grid-row:1;flex-direction:column;align-items:stretch;gap:6px;padding:9px}
+ #eur-performance .ep-tete h2{font-size:16px}#eur-performance .ep-sur{font-size:8px;letter-spacing:.2px}
+ #eur-performance #ep-fermer{max-width:none;width:100%;font-size:10px}
+ #eur-performance .ep-outils{grid-column:1;grid-row:2;flex-direction:column;flex-wrap:nowrap;align-items:stretch;overflow:auto;padding:9px;gap:6px;border-bottom:0}
+ #eur-performance #ep-memoire{flex:none;min-width:0}
+ #eur-performance .ep-zone{grid-column:2;grid-row:1/3;border-left:1px solid #40566d;padding:9px}
+ #eur-performance .ep-pied,#eur-performance .ep-intro{display:none}
+ #eur-performance .ep-cartes{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #eur-performance .ep-carte{padding:9px}#eur-performance .ep-carte h3{min-height:33px}
+ #eur-performance .ep-dial{min-height:92px}#eur-performance .ep-disque{width:62px;height:62px}#eur-performance .ep-disque i{inset:6px 26px}
+ #eur-performance .ep-cible{grid-template-columns:1fr 1fr}#eur-performance .ep-cible p{grid-column:1/-1}
+ #eur-performance .ep-bornes{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -8025,6 +8111,46 @@ Général) rend la chaîne entière, une fois.</p>
   <li>Une voix reçoit bien une porte mais sa <b>sortie n'est branchée nulle part</b>.</li>
   <li>Sur un MIX 4, les potards <b>B, C et D partent de zéro</b> : seul A est ouvert au départ.</li>
   </ol>
+
+  <h3>PERFORMANCE : huit commandes pour jouer (v284)</h3>
+  <p>Le bouton <b>PERFORMANCE</b>, sous la ligne principale du rack, ouvre huit grandes commandes.
+  Le rack continue de jouer : cette vue ne recâble rien, ne relance pas les séquenceurs et n'ajoute
+  aucun traitement sonore. Sur téléphone en paysage, le transport reste à gauche des commandes.</p>
+  <p>Les montages <b>JUNGLE · AUX COMMANDES</b> (168 BPM, 25 modules) et <b>PSY · AUX COMMANDES</b>
+  (146 BPM, 24 modules), dans la famille <b>PERFORMANCE</b> du catalogue, sont déjà affectés.
+  Les quatre premières commandes règlent batterie, basse, mélodie et effets. Les suivantes règlent
+  plusieurs couleurs de timbre ou quantités d'écho. <b>100 % désigne la borne haute de la commande,
+  pas nécessairement le maximum du potard, et jamais une mesure du volume sonore.</b>
+  Les scènes du montage continuent à faire entrer et sortir les parties : monter un niveau ne
+  force pas une partie masquée par une scène à jouer.</p>
+  <p>Sur tout autre rack, choisissez <b>AFFECTER</b> ou <b>CONFIGURER</b>, donnez un nom à la commande,
+  puis <b>AJOUTER UNE CIBLE</b>. Sélectionnez le module, son réglage et deux bornes : la course du
+  potard quand la commande vaut 0 %, puis sa course quand elle vaut 100 %. La virgule et le point
+  sont acceptés. Des bornes inversées font descendre le réglage quand la commande monte ; deux
+  bornes identiques imposent une valeur fixe. <b>VALIDER LA CIBLE ne modifie pas le son.</b>
+  Le prochain mouvement appliquera les nouvelles bornes.</p>
+  <p>Une commande pilote au maximum <b>quatre réglages</b>, sur un ou plusieurs modules. Un même
+  réglage ne peut appartenir qu'à une commande, pour éviter des ordres contradictoires. Les cibles
+  suivent les identifiants des modules, pas leur place dans le rack. Retirer un module retire ses
+  affectations. Les pas, les notes, les durées de scène et le transport restent dans leurs éditeurs ;
+  la liste propose les potards compatibles, ainsi que les probabilités des pistes DRUM 32,
+  la transposition et le glissé de MÉLO 32, le fondu SCÈNES 8 et les réglages globaux de BREAK 32.</p>
+  <p>Glissez verticalement sur un potard pour le tourner. Écartez le doigt ou la souris sur le côté
+  pour ralentir le réglage ; sur PC, <b>Maj</b> donne également une course fine. Les boutons
+  <b>− / +</b>, la molette et les flèches fonctionnent aussi. <b>Début / Fin</b> vont aux deux bornes.
+  Les commandes modifient les véritables potards du rack. Si l'un de ces potards a été changé
+  ailleurs, <b>REPRISE AU PROCHAIN GESTE</b> prévient que le prochain mouvement réappliquera la
+  course commune ; ouvrir la vue ne ramène jamais automatiquement à une ancienne valeur.</p>
+  <p><b>MÉMORISER</b> capture les valeurs actuelles des seuls réglages affectés et les positions des
+  huit commandes. <b>REVENIR</b> les rétablit après confirmation, sans changer les notes, les câbles
+  ou la position de lecture. Les réglages non affectés ne sont pas restaurés. Changer les cibles
+  ou leurs bornes efface ce point de retour : mémorisez à nouveau. Le renommage le conserve.</p>
+  <p>Les affectations et le point de retour sont conservés séparément avec chacun des huit racks,
+  et dans les projets <b>.drm16</b>. Les anciens racks restent lisibles et n'ont pas de commandes
+  imposées. Les fichiers de sons et les découpes BREAK 32 restent inchangés.</p>
+  <p><b>Ce lot agit immédiatement :</b> il n'enregistre pas les mouvements de commande et ne
+  programme pas de FILL, BREAK ou REPRISE à la prochaine mesure. Ces fonctions ne sont pas des
+  actions cachées de cette vue. <b>RETOUR AU RACK</b>, ou Échap sur PC, ferme seulement le panneau.</p>
 
   <h3>Ce qui est gardé</h3>
   <p><b>Huit racks nommés</b>, gardés séparément, avec leurs câbles et la position de chaque potard. Tout est
@@ -12545,7 +12671,7 @@ function estCommande(t){
   }
   document.addEventListener("pointerdown", function(e){
     /* v262 : le panneau Focus possède ses propres gestes, hors du zoom du rack. */
-    if(e.target.closest && e.target.closest("#eur-focus")) return;
+    if(e.target.closest && e.target.closest("#eur-focus,#eur-performance")) return;
     pts[e.pointerId] = {x:e.clientX, y:e.clientY};
     /* un doigt sur le fond, façade agrandie : on déplace */
     if(Object.keys(pts).length === 1 && ZOOM.z > 1.02 && !estCommande(e.target)){
@@ -24965,6 +25091,7 @@ function eurRetirer(i){
   var id = EUR.mods[i].id;
   EUR.cables = EUR.cables.filter(function(c){ return c.de[0] !== id && c.vers[0] !== id; });
   EUR.mods.splice(i, 1);
+  if(typeof EUR_PERFORMANCE!=="undefined")EUR_PERFORMANCE.nettoyer();
   EUR.sel = Math.min(EUR.sel, EUR.mods.length - 1);
   eurBatir(); eurDessiner(); memEur();
 }
@@ -25274,13 +25401,15 @@ function eurCatalogue(){
    son patch avant de le défaire. Ici RACK AU SORT et VIDER effaçaient le
    travail en cours sans retour possible, ce qui décourageait d'essayer. */
 function rackCourant(){
-  return {prochain:EUR.prochain, sel:EUR.sel, nom:EUR.nom || "",
+  var rack = {prochain:EUR.prochain, sel:EUR.sel, nom:EUR.nom || "",
     mods:EUR.mods.map(function(m){
       var o={id:m.id, type:m.type, p:m.p, r:m.r || 0};
       if(m.type==="break32" && m.breakSample && typeof EUR_BREAK_SAMPLES!=="undefined")o.breakSample=EUR_BREAK_SAMPLES.copie(m.breakSample);
       return o;
     }),
     cables:EUR.cables};
+  if(EUR.performance && typeof EUR_PERFORMANCE!=="undefined")rack.performance=EUR_PERFORMANCE.normaliser(EUR.performance,EUR.mods);
+  return rack;
 }
 /* Un rack sans nom se présente par son numéro. Dès qu'il porte un nom, c'est
    le nom qui s'affiche : huit numéros ne disent rien, huit noms disent tout. */
@@ -25305,6 +25434,7 @@ function memEurNormalise(){
   return n;
 }
 function poserRack(o){
+  if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
   EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.prochain = 1; EUR.attente = null;
   if(o && o.mods){
     o.mods.forEach(function(x){
@@ -25321,6 +25451,7 @@ function poserRack(o){
     if(typeof o.sel === "number") EUR.sel = o.sel;
   }
   EUR.nom = (o && typeof o.nom === "string") ? o.nom : "";
+  if(typeof EUR_PERFORMANCE!=="undefined")EUR_PERFORMANCE.charger(o && o.performance);
 }
 function changerRack(n){
   memEur();                                   /* on garde celui qu'on quitte */
@@ -25381,6 +25512,8 @@ function chargerEur(){
   majRackEur();
 }
 function eurExemple(){
+  if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
+  EUR.performance=null;
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1;
   var h = eurAjouter("clock", true), s = eurAjouter("seq8", true), o = eurAjouter("vco", true),
       f = eurAjouter("vcf", true), en = eurAjouter("adsr", true), a = eurAjouter("vca", true),
@@ -25729,9 +25862,11 @@ function repartirRangees(seuil){
 /* Monte un patch complet d'un coup. On garde la même mécanique que partout :
    tout est reconstruit, ce qui est plus court et plus sûr que de rapiécer. */
 function eurMonter(P){
+  if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
+  EUR.performance=null;
   /* Un ensemble neuf repart au premier temps au prochain START, jamais au
      milieu de l'ancienne phrase. Les anciens montages gardent leur conduite. */
-  if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave") stop();
+  if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance") stop();
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
   var rangs = P.mods.map(function(x){
     var m = eurAjouter(x[0], true);
@@ -25747,6 +25882,7 @@ function eurMonter(P){
   if(P.rangees && P.rangees.length === EUR.mods.length){
     EUR.mods.forEach(function(m, i){ m.r = P.rangees[i] === 1 ? 1 : 0; });
   } else repartirRangees();
+  if(typeof EUR_PERFORMANCE!=="undefined")EUR_PERFORMANCE.depuisMontage(P.performance,rangs);
   eurBatir(); eurDessiner(); memEur(); majRackEur();
   lcdEur(P.nom, EUR.mods.length + " MODULES · RACK " + (EUR.cur + 1), true);
   signal(P.nom + " · " + P.res);
@@ -25784,6 +25920,11 @@ function eurMontages(){
       "Choisissez un rack vide pour conserver votre montage actuel.";
     c.appendChild(aideAv);
   }
+  if(fam === "performance"){
+    var aidePerf=document.createElement("p");aidePerf.className="eur-ensembles-aide";
+    aidePerf.textContent="Montages déjà affectés aux huit commandes PERFORMANCE : niveaux des quatre parties, couleurs et échos. START, puis PERFORMANCE. MÉMORISER garde un point de retour sans changer le son.";
+    c.appendChild(aidePerf);
+  }
   if(fam === "rave"){
     var aideRave = document.createElement("p");
     aideRave.className = "eur-ensembles-aide";
@@ -25798,7 +25939,7 @@ function eurMontages(){
     b.dataset.montage = P.id;
     b.dataset.famille = P.fam;
     b.textContent = P.nom;
-    if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave"){
+    if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance"){
       var meta = document.createElement("span");
       meta.className = "eur-ensemble-meta";
       meta.textContent = P.bpm + " BPM · " + P.tonalite + " · " + P.mods.length + " MODULES";
@@ -25823,6 +25964,8 @@ function eurMontages(){
 }
 
 function eurHasard(){
+  if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
+  EUR.performance=null;
   function tire(l){ return l[Math.floor(Math.random() * l.length)]; }
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1;
   var h = eurAjouter("clock", true);
@@ -25848,6 +25991,8 @@ function eurHasard(){
 document.getElementById("eur-vider").addEventListener("click", function(){
   if(!window.confirm("Vider « " + (EUR.nom || ("RACK " + (EUR.cur + 1))) +
                      " » ?\n\nLes sept autres racks ne sont pas touchés.")) return;
+  if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
+  EUR.performance=null;
   EUR.mods = []; EUR.cables = []; EUR.sel = -1; EUR.attente = null; EUR.nom = "";
   eurBatir(); eurDessiner(); memEur(); majRackEur(); H.inter();
 });
@@ -26527,6 +26672,7 @@ var EUR_FOCUS = (function(){
   function ouvrir(id){
     var m = eurMod(+id);
     if(!m || S.modele !== "eur" || document.body.classList.contains("menu-ouvert")) return false;
+    if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
     var premier = !mod;
     if(premier){
       retour = document.activeElement;
@@ -27947,6 +28093,370 @@ var EUR_BREAK_SAMPLES = (function(){
     }
     EUR_MONTAGES.push(p);
   });
+})();
+/* ================= PERFORMANCE EURORACK — v284 =================
+   Huit macros par rack, quatre cibles au plus par macro. Les cibles désignent
+   un ID ET un type de module, jamais sa position à l'écran. Aucun graphe audio,
+   horloge ou câble supplémentaire. Le moteur écrit les vrais paramètres par
+   les mêmes m.maj/enLissant que les potards ; pas d'animation d'automation.
+   L'affectation, le chargement et la mémorisation ne modifient jamais le son. */
+var EUR_PERFORMANCE=(function(){
+  "use strict";
+  var N=8, MAX=4;
+  function fini(x){return typeof x==="number" && Number.isFinite(x);}
+  function borne(v,a,b){return Math.max(a,Math.min(b,v));}
+  function copie(o){return JSON.parse(JSON.stringify(o));}
+  function vide(){return {version:1,commandes:Array.from({length:N},function(_,i){return {nom:"COMMANDE "+(i+1),valeur:0,cibles:[]};}),memoire:null};}
+  function mod(id,mods){return (mods||EUR.mods).find(function(m){return m.id===id;})||null;}
+  /* Les pas, les gammes, la longueur et le transport restent dans leurs
+     éditeurs. On ne modifie pas 128 notes par mégarde en tournant une macro.
+     Les anciens modules à potards gardent toutes leurs courses natives. */
+  function parametres(m){
+    var d=m && EUR_CAT[m.type];if(!d)return [];
+    var permis={drum32:/^[abcd]chance$/,melo32:/^(trans|glide)$/,scenes8:/^fade$/,break32:/^(tone|pitch|niv)$/};
+    return d.kns.filter(function(k){
+      return typeof k[0]==="string" && fini(k[2]) && fini(k[3]) && k[3]>k[2] &&
+        (permis[m.type] ? permis[m.type].test(k[0]) : !d.interface && d.fam!=="seq");
+    });
+  }
+  function descripteur(m,key){return parametres(m).find(function(k){return k[0]===key;})||null;}
+  function cible(c,mods){
+    if(!c || !Number.isSafeInteger(c.id) || typeof c.type!=="string" || typeof c.param!=="string" || !fini(c.min) || !fini(c.max))return null;
+    var m=mod(c.id,mods),k=m && m.type===c.type && descripteur(m,c.param);if(!k)return null;
+    return {id:m.id,type:m.type,param:k[0],min:borne(c.min,k[2],k[3]),max:borne(c.max,k[2],k[3])};
+  }
+  function cle(c){return c.id+":"+c.type+":"+c.param;}
+  function signature(d){return JSON.stringify(d.commandes.map(function(c){return c.cibles;}));}
+  function cibles(d){return d.commandes.reduce(function(a,c){return a.concat(c.cibles);},[]);}
+  function normaliser(raw,mods){
+    var d=vide();if(!raw || raw.version!==1 || !Array.isArray(raw.commandes))return d;
+    var vus=Object.create(null);
+    d.commandes.forEach(function(c,i){
+      var x=raw.commandes[i];if(!x || typeof x!=="object")return;
+      if(typeof x.nom==="string")c.nom=x.nom.trim().slice(0,24)||c.nom;
+      c.valeur=fini(x.valeur)?borne(x.valeur,0,1):0;
+      if(Array.isArray(x.cibles))x.cibles.slice(0,MAX).forEach(function(t){
+        var r=cible(t,mods);if(!r || vus[cle(r)])return;vus[cle(r)]=true;c.cibles.push(r);
+      });
+    });
+    var s=raw.memoire,all=cibles(d);
+    if(s && all.length && s.signature===signature(d) && Array.isArray(s.valeurs) && s.valeurs.length===all.length &&
+       Array.isArray(s.positions) && s.positions.length===N && s.positions.every(function(v){return fini(v)&&v>=0&&v<=1;})){
+      var v=s.valeurs;
+      if(v.every(function(x,i){var t=all[i],m=mod(t.id,mods),k=descripteur(m,t.param);
+        return x && x.id===t.id && x.type===t.type && x.param===t.param && fini(x.valeur) && x.valeur>=k[2] && x.valeur<=k[3];
+      }))d.memoire={signature:s.signature,positions:s.positions.slice(),valeurs:v.map(function(x){return {id:x.id,type:x.type,param:x.param,valeur:x.valeur};})};
+    }
+    return d;
+  }
+  function courant(){return EUR.performance || vide();}
+  function nettoyer(){
+    if(EUR.performance)EUR.performance=normaliser(EUR.performance,EUR.mods);
+  }
+  function nombre(v,m,k){
+    v=borne(v,k[2],k[3]);
+    if(m.type==="melo32" || m.type==="scenes8" || m.type==="drum32" || (m.type==="break32"&&k[0]==="pitch"))v=Math.round(v);
+    return v;
+  }
+  function ecrire(liste){
+    var modifies=[],avant=[];
+    enLissant(function(){
+      liste.forEach(function(x){
+        var m=mod(x.id),k=m && m.type===x.type && descripteur(m,x.param);
+        if(!k || !fini(x.valeur))return;
+        avant.push({m:m,param:x.param,valeur:m.p[x.param]});m.p[x.param]=nombre(x.valeur,m,k);
+        if(modifies.indexOf(m)<0)modifies.push(m);
+      });
+      try{modifies.forEach(function(m){if(m.maj)m.maj();});}catch(e){
+        avant.forEach(function(x){x.m.p[x.param]=x.valeur;});
+        modifies.forEach(function(m){try{if(m.maj)m.maj();}catch(ignore){}});throw e;
+      }
+    });
+    return modifies.length;
+  }
+  function sauvegarder(){memEur();}
+  function regler(i,v){
+    if(!Number.isInteger(i)||i<0||i>=N||!fini(v))return false;
+    nettoyer();var d=courant(),c=d.commandes[i];if(!c.cibles.length)return false;
+    v=borne(v,0,1);
+    ecrire(c.cibles.map(function(t){return {id:t.id,type:t.type,param:t.param,valeur:t.min+(t.max-t.min)*v};}));
+    c.valeur=v;EUR.performance=d;sauvegarder();return true;
+  }
+  function nommer(i,nom){
+    if(!Number.isInteger(i)||i<0||i>=N||typeof nom!=="string")return false;
+    var d=courant();d.commandes[i].nom=nom.trim().slice(0,24)||("COMMANDE "+(i+1));EUR.performance=d;sauvegarder();return true;
+  }
+  /* position=-1 ajoute, sinon remplace l'affectation à cette position.
+     Les deux bornes peuvent être inversées ; min=max donne une valeur fixe. */
+  function affecter(i,t,position){
+    if(!Number.isInteger(i)||i<0||i>=N)return "Commande inconnue.";
+    nettoyer();var d=courant(),c=d.commandes[i],x=cible(t,EUR.mods);
+    if(!x)return "Module ou réglage indisponible.";
+    var p=position===undefined?-1:position;
+    if(!Number.isInteger(p)||p< -1||p>=c.cibles.length)return "Cible inconnue.";
+    if(p===-1&&c.cibles.length>=MAX)return "Quatre cibles maximum par commande.";
+    for(var j=0;j<N;j++)for(var z=0;z<d.commandes[j].cibles.length;z++){
+      if(j===i&&z===p)continue;
+      if(cle(d.commandes[j].cibles[z])===cle(x))return "Ce réglage est déjà affecté à la commande "+(j+1)+".";
+    }
+    if(p===-1)c.cibles.push(x);else c.cibles[p]=x;
+    /* Un ancien point de retour ne doit pas être appliqué à de nouvelles cibles. */
+    if(d.memoire&&d.memoire.signature!==signature(d))d.memoire=null;
+    EUR.performance=d;sauvegarder();return "";
+  }
+  function retirer(i,p){
+    var d=courant(),c=d.commandes[i];if(!c||!Number.isInteger(p)||p<0||p>=c.cibles.length)return false;
+    c.cibles.splice(p,1);d.memoire=null;EUR.performance=d;sauvegarder();return true;
+  }
+  function memoriser(){
+    nettoyer();var d=courant(),all=cibles(d);if(!all.length)return false;
+    var v=all.map(function(t){var m=mod(t.id);return {id:t.id,type:t.type,param:t.param,valeur:m.p[t.param]};});
+    if(v.some(function(x){return !fini(x.valeur);}))return false;
+    d.memoire={signature:signature(d),positions:d.commandes.map(function(c){return c.valeur;}),valeurs:v};
+    EUR.performance=d;sauvegarder();return true;
+  }
+  function rappeler(){
+    nettoyer();var d=courant();if(!d.memoire)return false;
+    ecrire(d.memoire.valeurs);d.commandes.forEach(function(c,i){c.valeur=d.memoire.positions[i];});
+    sauvegarder();return true;
+  }
+  function ecart(c){
+    return c.cibles.some(function(t){var m=mod(t.id),k=m && descripteur(m,t.param);
+      return !k || Math.abs(m.p[t.param]-nombre(t.min+(t.max-t.min)*c.valeur,m,k))>Math.max(.00001,(k[3]-k[2])*.0001);
+    });
+  }
+  function charger(raw){EUR.performance=raw?normaliser(raw,EUR.mods):null;}
+  function depuisMontage(raw,rangs){
+    if(!raw){charger(null);return;}
+    var d=copie(raw);d.memoire=null;
+    (d.commandes||[]).forEach(function(c){(c.cibles||[]).forEach(function(t){t.id=rangs[t.index];delete t.index;});});
+    charger(d);
+  }
+  return {vide:vide,normaliser:normaliser,courant:courant,copie:copie,parametres:parametres,descripteur:descripteur,
+    regler:regler,affecter:affecter,retirer:retirer,nommer:nommer,memoriser:memoriser,rappeler:rappeler,
+    ecart:ecart,nettoyer:nettoyer,charger:charger,depuisMontage:depuisMontage};
+})();
+/* v284 : panneau PERFORMANCE. Aucun clone de façade, aucune boucle RAF.
+   Les sliders pilotent les données communes du rack ; leurs valeurs sont des
+   courses de macro (0–100 %), ni des dB ni une mesure de la sortie audio. */
+var EUR_PERF_UI=(function(){
+  "use strict";
+  var M=EUR_PERFORMANCE,ouvert=false,rack=null,retour=null,caches=[],edition=-1,indexCible=-1,cartes=[];
+  var root=document.createElement("div");root.id="eur-performance";root.setAttribute("role","dialog");
+  root.setAttribute("aria-modal","true");root.setAttribute("aria-labelledby","ep-titre");
+  root.innerHTML='<section class="ep-panneau"><header class="ep-tete"><div><span class="ep-sur">EURORACK / JEU EN DIRECT</span>'+
+    '<h2 id="ep-titre">PERFORMANCE</h2><p id="ep-rack"></p></div><button id="ep-fermer" type="button">RETOUR AU RACK</button></header>'+
+    '<div class="ep-outils"><button id="ep-play" type="button">▶ JOUER</button><button id="ep-memoriser" type="button">MÉMORISER</button>'+
+    '<button id="ep-rappeler" type="button">REVENIR</button><span id="ep-memoire"></span></div>'+
+    '<div class="ep-zone"><p class="ep-intro">Huit commandes, jusqu’à quatre réglages par commande. Les pourcentages indiquent la course, pas le volume mesuré.</p>'+
+    '<p id="ep-message" role="status" aria-live="polite"></p><div class="ep-cartes"></div>'+
+    '<section class="ep-config" hidden><div class="ep-config-tete"><h3 id="ep-config-titre"></h3><button id="ep-retour-commandes" type="button">LES 8 COMMANDES</button></div>'+
+    '<label class="ep-champ">NOM DE LA COMMANDE<input id="ep-nom" type="text" maxlength="24" autocomplete="off"></label>'+
+    '<p class="ep-aide">Affecter ou retirer une cible ne change pas le son. Le prochain déplacement applique la course à toutes ses cibles. Un réglage ne peut appartenir qu’à une commande.</p>'+
+    '<div class="ep-cibles"></div><button id="ep-ajouter" type="button">AJOUTER UNE CIBLE</button>'+
+    '<form class="ep-affectation" hidden><h4 id="ep-affectation-titre">NOUVELLE CIBLE</h4>'+
+    '<label class="ep-champ">MODULE<select id="ep-module"></select></label><label class="ep-champ">RÉGLAGE<select id="ep-param"></select></label>'+
+    '<div class="ep-bornes"><label class="ep-champ">À 0 % : COURSE DU RÉGLAGE (%)<input id="ep-min" type="text" inputmode="decimal" value="0" autocomplete="off"></label>'+
+    '<label class="ep-champ">À 100 % : COURSE DU RÉGLAGE (%)<input id="ep-max" type="text" inputmode="decimal" value="100" autocomplete="off"></label></div>'+
+    '<p id="ep-apercu"></p><p class="ep-aide">De 0 à 100. Inversez les bornes pour qu’un réglage descende quand la commande monte. Les notes et les pas se modifient toujours dans leur séquenceur.</p>'+
+    '<div class="ep-actions"><button id="ep-valider" type="submit">VALIDER LA CIBLE</button><button id="ep-annuler" type="button">ANNULER</button></div>'+
+    '<p id="ep-erreur" role="alert"></p></form></section></div>'+
+    '<footer class="ep-pied">Réglages immédiats · MÉMORISER ne capture que les paramètres affectés, pas le motif ni la position de lecture.</footer></section>';
+  document.body.appendChild(root);PANNEAUX.push(root.id);
+  function q(s){return root.querySelector(s);}
+  function element(tag,cls,texte){var e=document.createElement(tag);if(cls)e.className=cls;if(texte!==undefined)e.textContent=texte;return e;}
+  function bouton(texte,cls,fn){var e=element("button",cls,texte);e.type="button";e.addEventListener("click",fn);return e;}
+  var entree=bouton("PERFORMANCE","",ouvrir);entree.id="eur-performance-ouvrir";entree.setAttribute("aria-haspopup","dialog");entree.setAttribute("aria-controls",root.id);
+  /* Une ligne séparée à gauche : ni RACK, ni FOCUS, ni PERFORMANCE ne
+     doivent se retrouver sous les boutons fixes MENU / NOTICE en paysage. */
+  var lanceur=element("div","ep-lanceur"),barre=document.querySelector("#unit-eur .eur-bar");
+  ["eur-plein","eur-t-rack","eur-t-patch","eur-focus-ouvrir"].forEach(function(id){var e=document.getElementById(id);if(e)lanceur.appendChild(e);});
+  lanceur.appendChild(entree);barre.insertBefore(lanceur,barre.querySelector(".eur-grp"));
+  function valide(){return ouvert && rack===EUR.mods && S.modele==="eur" && !document.body.classList.contains("menu-ouvert");}
+  function message(t){q("#ep-message").textContent=t;}
+  function agir(fn){if(!valide()){fermer(false);return false;}try{return fn();}catch(e){message("Réglage interrompu : "+String(e.message||e));return false;}}
+  function format(k,v){var t=String(Math.round(v*1000)/1000).replace(".",",");if(k[2]===0&&k[3]===1)return String(Math.round(v*1000)/10).replace(".",",")+" %";return t+(/\bHz\b/.test(k[1])?" Hz":/\bms\b/.test(k[1])?" ms":"");}
+  function proteger(){
+    caches=[];Array.prototype.forEach.call(document.body.children,function(e){
+      if(e===root||/^(SCRIPT|STYLE|LINK)$/.test(e.tagName))return;
+      caches.push({e:e,inert:e.getAttribute("inert"),aria:e.getAttribute("aria-hidden")});e.setAttribute("inert","");e.setAttribute("aria-hidden","true");
+    });
+  }
+  function lacher(){cartes.forEach(function(c){var d=c.drag;c.drag=null;c.dial.classList.remove("ep-tourne");if(d&&c.dial.hasPointerCapture(d.id))c.dial.releasePointerCapture(d.id);});}
+  function fermer(focus){
+    if(!ouvert)return;ouvert=false;lacher();rack=null;edition=-1;root.classList.remove("show");
+    caches.forEach(function(c){if(c.inert===null)c.e.removeAttribute("inert");else c.e.setAttribute("inert",c.inert);
+      if(c.aria===null)c.e.removeAttribute("aria-hidden");else c.e.setAttribute("aria-hidden",c.aria);});caches=[];
+    majNoteOuverte();EUR_KNOBS.forEach(function(k){k.maj();});
+    if(focus!==false && S.modele==="eur" && !panneauVisible() && !document.body.classList.contains("menu-ouvert")){
+      var b=retour&&retour.isConnected&&retour!==document.body?retour:entree;b.focus({preventScroll:true});
+    }
+    retour=null;
+  }
+  function ouvrir(){
+    if(S.modele!=="eur"||document.body.classList.contains("menu-ouvert"))return false;
+    if(ouvert)return true;
+    if(typeof EUR_FOCUS!=="undefined")EUR_FOCUS.fermer(false);
+    retour=document.activeElement;fermerAutresPanneaux(root.id);ouvert=true;rack=EUR.mods;edition=-1;
+    q(".ep-cartes").hidden=false;q(".ep-config").hidden=true;q(".ep-affectation").hidden=true;
+    message("");maj();root.classList.add("show");majNoteOuverte();q("#ep-fermer").focus({preventScroll:true});proteger();q(".ep-zone").scrollTop=0;return true;
+  }
+  function mettre(i,v){agir(function(){M.regler(i,v);maj();});}
+  for(var i=0;i<8;i++)(function(n){
+    var e=element("article","ep-carte"),titre=element("h3"),dial=element("div","ep-dial"),aiguille=element("i"),valeur=element("output"),sous=element("p","ep-carte-cibles"),etat=element("span","ep-etat");
+    e.dataset.macro=n;dial.tabIndex=0;dial.setAttribute("role","slider");dial.setAttribute("aria-orientation","vertical");
+    dial.setAttribute("aria-valuemin","0");dial.setAttribute("aria-valuemax","100");
+    var dessin=element("div","ep-disque");dessin.setAttribute("aria-hidden","true");dessin.appendChild(aiguille);dial.appendChild(dessin);valeur.setAttribute("aria-hidden","true");dial.appendChild(valeur);
+    var actions=element("div","ep-crans"),moins=bouton("−","",function(){mettre(n,M.courant().commandes[n].valeur-.01);}),plus=bouton("+","",function(){mettre(n,M.courant().commandes[n].valeur+.01);});
+    moins.setAttribute("aria-label","Diminuer la commande "+(n+1));plus.setAttribute("aria-label","Augmenter la commande "+(n+1));actions.appendChild(moins);actions.appendChild(plus);
+    var config=bouton("AFFECTER","ep-configurer",function(){configurer(n);});config.setAttribute("aria-label","Affecter la commande "+(n+1));
+    [titre,dial,actions,etat,sous,config].forEach(function(x){e.appendChild(x);});q(".ep-cartes").appendChild(e);
+    var c={el:e,titre:titre,dial:dial,pin:aiguille,out:valeur,sous:sous,etat:etat,moins:moins,plus:plus,config:config,drag:null};cartes.push(c);
+    dial.addEventListener("pointerdown",function(ev){
+      if(!valide()||ev.button!==0||!ev.isPrimary||!M.courant().commandes[n].cibles.length)return;
+      c.drag={id:ev.pointerId,y:ev.clientY,x:ev.clientX};dial.setPointerCapture(ev.pointerId);dial.focus({preventScroll:true});dial.classList.add("ep-tourne");ev.preventDefault();
+    });
+    dial.addEventListener("pointermove",function(ev){
+      var d=c.drag;if(!d||d.id!==ev.pointerId)return;var dy=d.y-ev.clientY;d.y=ev.clientY;
+      var finesse=ev.shiftKey?10:1+Math.min(9,Math.abs(ev.clientX-d.x)/30);
+      if(dy)mettre(n,M.courant().commandes[n].valeur+dy/(200*finesse));ev.preventDefault();
+    });
+    ["pointerup","pointercancel","lostpointercapture"].forEach(function(t){dial.addEventListener(t,function(ev){if(c.drag&&c.drag.id===ev.pointerId){c.drag=null;dial.classList.remove("ep-tourne");if(dial.hasPointerCapture(ev.pointerId))dial.releasePointerCapture(ev.pointerId);}});});
+    dial.addEventListener("wheel",function(ev){if(!valide()||!M.courant().commandes[n].cibles.length)return;ev.preventDefault();if(ev.deltaY)mettre(n,M.courant().commandes[n].valeur+(ev.deltaY<0?1:-1)*(ev.shiftKey?.001:.01));},{passive:false});
+    dial.addEventListener("keydown",function(ev){
+      var v=M.courant().commandes[n].valeur,p=ev.shiftKey?.001:.01;
+      if(ev.key==="ArrowUp"||ev.key==="ArrowRight")v+=p;else if(ev.key==="ArrowDown"||ev.key==="ArrowLeft")v-=p;
+      else if(ev.key==="PageUp")v+=.1;else if(ev.key==="PageDown")v-=.1;else if(ev.key==="Home")v=0;else if(ev.key==="End")v=1;else return;
+      ev.preventDefault();mettre(n,v);
+    });
+  })(i);
+  function maj(){
+    if(!ouvert)return;if(!valide()){fermer(false);return;}
+    var d=M.courant(),nb=0;
+    cartes.forEach(function(c,i){
+      var x=d.commandes[i],v=Math.round(x.valeur*1000)/10,actif=!!x.cibles.length;nb+=x.cibles.length;
+      c.titre.textContent=(i+1)+" · "+x.nom;c.dial.setAttribute("aria-label",x.nom);c.dial.setAttribute("aria-valuenow",String(v));c.dial.setAttribute("aria-valuetext",v+" % de course");
+      c.dial.setAttribute("aria-disabled",String(!actif));c.dial.tabIndex=actif?0:-1;c.out.textContent=actif?String(v).replace(".",",")+" %":"—";
+      c.pin.style.transform="rotate("+(-135+270*x.valeur)+"deg)";c.moins.disabled=!actif;c.plus.disabled=!actif;
+      c.el.classList.toggle("ep-inactive",!actif);var ecart=actif&&M.ecart(x);c.el.classList.toggle("ep-ecart",ecart);
+      c.etat.textContent=ecart?"REPRISE AU PROCHAIN GESTE":actif?x.cibles.length+" RÉGLAGE"+(x.cibles.length>1?"S":""):"NON AFFECTÉE";
+      c.sous.textContent=actif?x.cibles.map(function(t){var m=eurMod(t.id),k=m&&M.descripteur(m,t.param);return k?EUR_CAT[m.type].nom+" #"+m.id+" · "+k[1]+" : "+format(k,m.p[t.param]):"CIBLE ABSENTE";}).join(" / "):"Choisissez un module et un réglage.";
+      c.config.textContent=actif?"CONFIGURER":"AFFECTER";
+    });
+    q("#ep-rack").textContent=(EUR.nom||("RACK "+(EUR.cur+1)))+" · "+EUR.mods.length+" modules";
+    q("#ep-play").textContent=S.run?"■ ARRÊTER":"▶ JOUER";q("#ep-play").classList.toggle("on",!!S.run);
+    q("#ep-memoriser").disabled=!nb;q("#ep-rappeler").disabled=!d.memoire;
+    q("#ep-memoire").textContent=d.memoire?"POINT DE RETOUR PRÊT":"AUCUN POINT DE RETOUR";
+  }
+  function configurer(n){
+    agir(function(){edition=n;q(".ep-cartes").hidden=true;q(".ep-config").hidden=false;q(".ep-affectation").hidden=true;
+      q("#ep-config-titre").textContent="COMMANDE "+(n+1);q("#ep-nom").value=M.courant().commandes[n].nom;
+      afficherCibles();q(".ep-zone").scrollTop=0;q("#ep-nom").focus({preventScroll:true});});
+  }
+  function afficherCibles(){
+    var c=M.courant().commandes[edition],box=q(".ep-cibles");box.textContent="";
+    c.cibles.forEach(function(t,j){
+      var row=element("div","ep-cible"),m=eurMod(t.id),k=m&&M.descripteur(m,t.param);
+      if(!k)return;
+      row.appendChild(element("p","",EUR_CAT[m.type].nom+" #"+m.id+" · "+k[1]+" : "+format(k,t.min)+" → "+format(k,t.max)));
+      row.appendChild(bouton("MODIFIER","",function(){formulaire(j);}));
+      row.appendChild(bouton("RETIRER","",function(){agir(function(){M.retirer(edition,j);q(".ep-affectation").hidden=true;afficherCibles();maj();message("Affectation retirée. Le son reste inchangé ; le point de retour est effacé.");});}));box.appendChild(row);
+    });
+    q("#ep-ajouter").disabled=c.cibles.length>=4;
+  }
+  function option(sel,val,t){var o=element("option","",t);o.value=String(val);sel.appendChild(o);}
+  function parametres(){
+    var m=eurMod(+q("#ep-module").value),s=q("#ep-param");s.textContent="";
+    if(m)M.parametres(m).forEach(function(k){option(s,k[0],k[1]);});
+    q("#ep-min").value="0";q("#ep-max").value="100";apercu();
+  }
+  function formulaire(j){
+    agir(function(){
+      indexCible=j;var s=q("#ep-module");s.textContent="";
+      EUR.mods.forEach(function(m,i){if(M.parametres(m).length)option(s,m.id,(i+1)+" · "+EUR_CAT[m.type].nom+" #"+m.id+" · R"+(m.r+1));});
+      var t=j>=0?M.courant().commandes[edition].cibles[j]:null;if(t)s.value=String(t.id);parametres();
+      if(t){q("#ep-param").value=t.param;var m=eurMod(t.id),k=M.descripteur(m,t.param);
+        q("#ep-min").value=String(Math.round((t.min-k[2])/(k[3]-k[2])*100000)/1000);q("#ep-max").value=String(Math.round((t.max-k[2])/(k[3]-k[2])*100000)/1000);}
+      q("#ep-affectation-titre").textContent=t?"MODIFIER LA CIBLE":"NOUVELLE CIBLE";q("#ep-erreur").textContent="";
+      q(".ep-affectation").hidden=false;apercu();q("#ep-module").focus();
+    });
+  }
+  function pourcent(sel){var s=q(sel).value.trim(),v=Number(s.replace(",","."));return /^\d{1,3}([.,]\d{1,3})?$/.test(s)&&Number.isFinite(v)&&v>=0&&v<=100?v:null;}
+  function apercu(){
+    var m=eurMod(+q("#ep-module").value),k=m&&M.descripteur(m,q("#ep-param").value),a=pourcent("#ep-min"),b=pourcent("#ep-max");
+    q("#ep-min").setAttribute("aria-invalid",String(a===null));q("#ep-max").setAttribute("aria-invalid",String(b===null));
+    q("#ep-valider").disabled=!k||a===null||b===null;
+    q("#ep-apercu").textContent=!k?"Aucun réglage disponible dans ce rack.":a===null||b===null?"Saisissez deux pourcentages entre 0 et 100.":
+      "0 % → "+format(k,k[2]+(k[3]-k[2])*a/100)+" · 100 % → "+format(k,k[2]+(k[3]-k[2])*b/100)+" · Actuel : "+format(k,m.p[k[0]]);
+  }
+  q(".ep-affectation").addEventListener("submit",function(ev){ev.preventDefault();agir(function(){
+    var m=eurMod(+q("#ep-module").value),k=m&&M.descripteur(m,q("#ep-param").value),a=pourcent("#ep-min"),b=pourcent("#ep-max");
+    if(!k||a===null||b===null){apercu();return;}
+    var erreur=M.affecter(edition,{id:m.id,type:m.type,param:k[0],min:k[2]+(k[3]-k[2])*a/100,max:k[2]+(k[3]-k[2])*b/100},indexCible);
+    q("#ep-erreur").textContent=erreur;if(erreur)return;
+    q(".ep-affectation").hidden=true;afficherCibles();maj();message("Cible affectée sans changer le son. Mémorisez vos réglages avant de jouer.");q("#ep-retour-commandes").focus({preventScroll:true});
+  });});
+  q("#ep-nom").addEventListener("change",function(){agir(function(){M.nommer(edition,q("#ep-nom").value);q("#ep-nom").value=M.courant().commandes[edition].nom;maj();});});
+  q("#ep-module").addEventListener("change",parametres);q("#ep-param").addEventListener("change",function(){q("#ep-min").value="0";q("#ep-max").value="100";apercu();});
+  ["#ep-min","#ep-max"].forEach(function(s){q(s).addEventListener("input",apercu);});
+  q("#ep-ajouter").addEventListener("click",function(){formulaire(-1);});q("#ep-annuler").addEventListener("click",function(){q(".ep-affectation").hidden=true;});
+  q("#ep-retour-commandes").addEventListener("click",function(){var n=edition;edition=-1;q(".ep-config").hidden=true;q(".ep-cartes").hidden=false;maj();q(".ep-zone").scrollTop=0;if(n>=0)cartes[n].config.focus({preventScroll:true});});
+  q("#ep-fermer").addEventListener("click",function(){fermer();});
+  q("#ep-play").addEventListener("click",function(){agir(function(){document.getElementById("eur-play").click();maj();});});
+  q("#ep-memoriser").addEventListener("click",function(){agir(function(){
+    if(M.courant().memoire&&!window.confirm("Remplacer le point de retour par les réglages actuels des paramètres affectés ?"))return;
+    if(M.memoriser()){message("Point de retour mémorisé avec le rack. Les sons et les séquences ne sont pas copiés.");maj();}
+  });});
+  q("#ep-rappeler").addEventListener("click",function(){agir(function(){
+    if(!M.courant().memoire||!window.confirm("Revenir aux réglages mémorisés ? Seuls les paramètres affectés seront rétablis, sans relancer le morceau."))return;
+    if(M.rappeler()){message("Réglages mémorisés rétablis. La lecture continue au même endroit.");maj();}
+  });});
+  root.addEventListener("keydown",function(ev){
+    ev.stopPropagation();if(ev.key==="Escape"){ev.preventDefault();fermer();return;}if(ev.key!=="Tab")return;
+    var fs=Array.prototype.filter.call(root.querySelectorAll('button,input,select,[tabindex="0"]'),function(x){return !x.disabled&&x.getClientRects().length>0;});
+    var i=fs.indexOf(document.activeElement);if(!fs.length)return;
+    if(ev.shiftKey&&i<=0){ev.preventDefault();fs[fs.length-1].focus();}else if(!ev.shiftKey&&(i<0||i===fs.length-1)){ev.preventDefault();fs[0].focus();}
+  });
+  ["pointerdown","pointermove","pointerup","pointercancel"].forEach(function(t){root.addEventListener(t,function(e){e.stopPropagation();});});
+  new MutationObserver(function(){if(ouvert&&(!root.classList.contains("show")||!valide()))fermer(false);}).observe(document.body,{attributes:true,attributeFilter:["class"]});
+  new MutationObserver(function(){if(ouvert&&!root.classList.contains("show"))fermer(false);}).observe(root,{attributes:true,attributeFilter:["class"]});
+  new MutationObserver(function(){if(ouvert){if(!valide())fermer(false);else{M.nettoyer();maj();if(edition>=0){q(".ep-affectation").hidden=true;afficherCibles();}}}}).observe(document.getElementById("eur-piste"),{childList:true});
+  new MutationObserver(maj).observe(document.getElementById("eur-play"),{attributes:true,attributeFilter:["class"]});
+  window.addEventListener("blur",lacher);document.addEventListener("visibilitychange",function(){if(document.hidden)lacher();});
+  return {ouvrir:ouvrir,fermer:fermer,actualiser:maj,actif:function(){return ouvert;}};
+})();
+/* v284 : deux variantes prêtes à jouer, copies indépendantes des racks v282.
+   Seules ces variantes reçoivent les macros ; les 46 anciens montages et les
+   recettes audio ne sont pas modifiés. Les bornes limitent les exemples. */
+(function montagesPerformance(){
+  "use strict";
+  function fabriquer(source,id,nom,psy){
+    var p=JSON.parse(JSON.stringify(EUR_MONTAGES.find(function(p){return p.id===source;})));
+    p.id=id;p.nom=nom;p.fam="performance";
+    p.res=psy?"Psytrance : quatre parties, filtre de basse, brillance, échos et montée à portée de main.":
+      "Jungle : break recomposé, basse profonde et huit commandes pour les niveaux, les couleurs et les échos.";
+    var d=EUR_PERFORMANCE.vide();
+    function macro(i,nom,v,liaisons){
+      d.commandes[i]={nom:nom,valeur:v,cibles:liaisons.map(function(l){
+        var index=p.reperes[l[0]],m=p.mods[index],k=EUR_CAT[m[0]].kns.find(function(k){return k[0]===l[1];}),actuel=m[1][k[0]];
+        if(typeof actuel!=="number")actuel=k[4];
+        return {index:index,type:m[0],param:k[0],min:v===1?l[2]:actuel,max:v===1?actuel:l[2]};
+      })};
+    }
+    macro(0,"BATTERIE",1,[["mixGeneral","a",0]]);
+    macro(1,"BASSE",1,[["mixGeneral","b",0]]);
+    macro(2,"MÉLODIE",1,[["mixGeneral","c",0]]);
+    macro(3,"EFFETS",1,[["mixGeneral","d",0]]);
+    macro(4,"COULEUR BASSE",0,[["basse","cut",psy?.48:.58],["basse","drive",.43],["basse","det",.78]]);
+    macro(5,"BRILLANCE",0,[["filtreMelodie","cut",.68],["filtreMelodie","mod",.32]]);
+    macro(6,"ÉCHOS",0,[["echoMelodie","mix",.52],["echoMelodie","fb",.48],["echoFX","mix",.58],["echoFX","fb",.48]]);
+    if(psy)macro(7,"MONTÉE",0,[["modulation","amt",.34],["fx","fm",.88],["fx","dec",.28],["envMelodie","d",.08]]);
+    else macro(7,"BREAK SOMBRE",0,[["break","tone",.35],["break","pitch",-5],["caisse","dec",.08],["hat","dec",.12]]);
+    p.performance=d;return p;
+  }
+  EUR_MONT_FAM.push(["performance","PERFORMANCE"]);
+  EUR_MONTAGES.push(fabriquer("rave-jungle","perf-jungle","JUNGLE · AUX COMMANDES",false));
+  EUR_MONTAGES.push(fabriquer("rave-psy","perf-psy","PSY · AUX COMMANDES",true));
 })();
 /* ===================== BEHRINGER TD-3 =====================
    La 303 remise en circuit. Tout son caractère tient à trois choses : un

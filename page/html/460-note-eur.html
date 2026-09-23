@@ -410,6 +410,46 @@
   <li>Sur un MIX 4, les potards <b>B, C et D partent de zéro</b> : seul A est ouvert au départ.</li>
   </ol>
 
+  <h3>PERFORMANCE : huit commandes pour jouer (v284)</h3>
+  <p>Le bouton <b>PERFORMANCE</b>, sous la ligne principale du rack, ouvre huit grandes commandes.
+  Le rack continue de jouer : cette vue ne recâble rien, ne relance pas les séquenceurs et n'ajoute
+  aucun traitement sonore. Sur téléphone en paysage, le transport reste à gauche des commandes.</p>
+  <p>Les montages <b>JUNGLE · AUX COMMANDES</b> (168 BPM, 25 modules) et <b>PSY · AUX COMMANDES</b>
+  (146 BPM, 24 modules), dans la famille <b>PERFORMANCE</b> du catalogue, sont déjà affectés.
+  Les quatre premières commandes règlent batterie, basse, mélodie et effets. Les suivantes règlent
+  plusieurs couleurs de timbre ou quantités d'écho. <b>100 % désigne la borne haute de la commande,
+  pas nécessairement le maximum du potard, et jamais une mesure du volume sonore.</b>
+  Les scènes du montage continuent à faire entrer et sortir les parties : monter un niveau ne
+  force pas une partie masquée par une scène à jouer.</p>
+  <p>Sur tout autre rack, choisissez <b>AFFECTER</b> ou <b>CONFIGURER</b>, donnez un nom à la commande,
+  puis <b>AJOUTER UNE CIBLE</b>. Sélectionnez le module, son réglage et deux bornes : la course du
+  potard quand la commande vaut 0 %, puis sa course quand elle vaut 100 %. La virgule et le point
+  sont acceptés. Des bornes inversées font descendre le réglage quand la commande monte ; deux
+  bornes identiques imposent une valeur fixe. <b>VALIDER LA CIBLE ne modifie pas le son.</b>
+  Le prochain mouvement appliquera les nouvelles bornes.</p>
+  <p>Une commande pilote au maximum <b>quatre réglages</b>, sur un ou plusieurs modules. Un même
+  réglage ne peut appartenir qu'à une commande, pour éviter des ordres contradictoires. Les cibles
+  suivent les identifiants des modules, pas leur place dans le rack. Retirer un module retire ses
+  affectations. Les pas, les notes, les durées de scène et le transport restent dans leurs éditeurs ;
+  la liste propose les potards compatibles, ainsi que les probabilités des pistes DRUM 32,
+  la transposition et le glissé de MÉLO 32, le fondu SCÈNES 8 et les réglages globaux de BREAK 32.</p>
+  <p>Glissez verticalement sur un potard pour le tourner. Écartez le doigt ou la souris sur le côté
+  pour ralentir le réglage ; sur PC, <b>Maj</b> donne également une course fine. Les boutons
+  <b>− / +</b>, la molette et les flèches fonctionnent aussi. <b>Début / Fin</b> vont aux deux bornes.
+  Les commandes modifient les véritables potards du rack. Si l'un de ces potards a été changé
+  ailleurs, <b>REPRISE AU PROCHAIN GESTE</b> prévient que le prochain mouvement réappliquera la
+  course commune ; ouvrir la vue ne ramène jamais automatiquement à une ancienne valeur.</p>
+  <p><b>MÉMORISER</b> capture les valeurs actuelles des seuls réglages affectés et les positions des
+  huit commandes. <b>REVENIR</b> les rétablit après confirmation, sans changer les notes, les câbles
+  ou la position de lecture. Les réglages non affectés ne sont pas restaurés. Changer les cibles
+  ou leurs bornes efface ce point de retour : mémorisez à nouveau. Le renommage le conserve.</p>
+  <p>Les affectations et le point de retour sont conservés séparément avec chacun des huit racks,
+  et dans les projets <b>.drm16</b>. Les anciens racks restent lisibles et n'ont pas de commandes
+  imposées. Les fichiers de sons et les découpes BREAK 32 restent inchangés.</p>
+  <p><b>Ce lot agit immédiatement :</b> il n'enregistre pas les mouvements de commande et ne
+  programme pas de FILL, BREAK ou REPRISE à la prochaine mesure. Ces fonctions ne sont pas des
+  actions cachées de cette vue. <b>RETOUR AU RACK</b>, ou Échap sur PC, ferme seulement le panneau.</p>
+
   <h3>Ce qui est gardé</h3>
   <p><b>Huit racks nommés</b>, gardés séparément, avec leurs câbles et la position de chaque potard. Tout est
   enregistré en continu, comme les motifs des autres machines : on retrouve ses patchs en revenant, et le

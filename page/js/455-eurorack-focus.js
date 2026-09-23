@@ -85,6 +85,7 @@ var EUR_FOCUS = (function(){
   function ouvrir(id){
     var m = eurMod(+id);
     if(!m || S.modele !== "eur" || document.body.classList.contains("menu-ouvert")) return false;
+    if(typeof EUR_PERF_UI!=="undefined")EUR_PERF_UI.fermer(false);
     var premier = !mod;
     if(premier){
       retour = document.activeElement;

@@ -36,7 +36,7 @@ function estCommande(t){
   }
   document.addEventListener("pointerdown", function(e){
     /* v262 : le panneau Focus possède ses propres gestes, hors du zoom du rack. */
-    if(e.target.closest && e.target.closest("#eur-focus")) return;
+    if(e.target.closest && e.target.closest("#eur-focus,#eur-performance")) return;
     pts[e.pointerId] = {x:e.clientX, y:e.clientY};
     /* un doigt sur le fond, façade agrandie : on déplace */
     if(Object.keys(pts).length === 1 && ZOOM.z > 1.02 && !estCommande(e.target)){
