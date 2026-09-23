@@ -30,7 +30,8 @@
       select(det,"bars","DURÉE EN MODE MESURES",choix(1,16,function(n){return n+" mesure"+(n>1?"s":"");}),function(n){modifier("bars"+(selection+1),n);});
       root.appendChild(el("output","hr8-notes"));
       var global=el("div","hr8-global");root.appendChild(global);
-      select(global,"sync","SUIVI DE L'ENTRÉE",[[0,"MESURES · 16 CLK / MESURE"],[1,"SCÈNES · 1 ACCORD / IMPULSION"]],function(n){modifier("sync",n);});
+      select(global,"sync","SUIVI DE L'ENTRÉE",[[0,"MESURES · PAS/MESURE CI-DESSOUS"],[1,"SCÈNES · 1 ACCORD / IMPULSION"]],function(n){modifier("sync",n);});
+      select(global,"pasmes","PAS PAR MESURE (CYCLES LIBRES)",EUR_CYCLE.presets,function(n){modifier("pasmes",n);});
       select(global,"len","ACCORDS DANS LA BOUCLE",choix(1,8),function(n){modifier("len",n);});
       select(global,"ref","RÉFÉRENCE DES MÉLO 32",choix(24,60,H.nomNote),function(n){modifier("ref",n);});
       select(global,"trans","TRANSPOSITION GLOBALE",choix(-12,12,function(n){return (n>0?"+":"")+n+" demi-tons";}),function(n){modifier("trans",n);});
@@ -40,7 +41,7 @@
       bouton(root,"COPIER VERS L'ACCORD SUIVANT",function(){if(!valide())return;var a=selection+1,b=a%8+1;
         if(!window.confirm("Remplacer l'accord "+b+" par l'accord "+a+" ? Les autres accords restent intacts."))return;
         ["root","type","inv","bars"].forEach(function(k){m.p[k+b]=m.p[k+a];});memEur();H.rafraichir(m);},"hr8-copier");
-      root.appendChild(el("p","hr8-aide","Choisir une case l'édite : la lecture ne saute pas. MESURES attend 16 CLK par mesure ; SCÈNES attend la sortie SCÈNE de SCÈNES 8 et ignore les durées locales. Dans les exemples, chaque scène avance d'un accord. TENIR garde l'accord pendant les impulsions ; relâcher reprend au prochain changement. Modifier le mode recommence au premier accord à la prochaine impulsion. RST et STOP réarment le début en conservant la dernière hauteur, pour ne pas transposer les queues de son."));
+      root.appendChild(el("p","hr8-aide","Choisir une case l'édite : la lecture ne saute pas. MESURES attend PAS/MESURE impulsions CLK par mesure (16 par défaut ; 14, 18, 20 ou un compte libre pour suivre un autre cycle) ; SCÈNES attend la sortie SCÈNE de SCÈNES 8 et ignore les durées locales. Dans les exemples, chaque scène avance d'un accord. TENIR garde l'accord pendant les impulsions ; relâcher reprend au prochain changement. Modifier le mode recommence au premier accord à la prochaine impulsion. RST et STOP réarment le début en conservant la dernière hauteur, pour ne pas transposer les queues de son."));
       root.appendChild(el("p","hr8-aide","VOIX 1–4 : CV de quatre notes vers quatre VCO. FOND : fondamentale sans renversement. TRANS : intervalle depuis RÉFÉRENCE ; additionnez-le au CV de MÉLO 32 avec un MIX 4, A et B à 1. Ce n'est PAS une correction des notes à la gamme : une note étrangère à l'accord le reste. Les exemples emploient fondamentales, quintes et octaves. Le glissé et le renversement ne concernent que les quatre voix de nappe ; TRANS change franchement, y compris sur une note encore tenue. Les chiffres supposent un VCO à 55 Hz pour 0 V."));
     }
     function maj(){
@@ -53,6 +54,9 @@
         var n=selection+1,a=H.accord(m.p,selection);root.querySelector(".hr8-titre").textContent="ÉDITER L'ACCORD "+n+(n>m.p.len?" · HORS BOUCLE":"");
         ["root","type","inv","bars"].forEach(function(k){champs[k].value=m.p[k+n];});
         ["sync","len","ref","trans","oct","glide"].forEach(function(k){champs[k].value=m.p[k];});
+        /* Le cycle peut être une métrique nommée ou un compte libre (4 à 32). */
+        if(!Array.from(champs.pasmes.options).some(function(o){return +o.value===m.p.pasmes;})){var oc=el("option","",m.p.pasmes+" pas · LIBRE");oc.value=m.p.pasmes;champs.pasmes.appendChild(oc);}
+        champs.pasmes.value=m.p.pasmes;champs.pasmes.disabled=!!m.p.sync;
         champs.bars.disabled=!!m.p.sync;
         root.querySelector(".hr8-notes").textContent="VOIX 1–4 : "+a.notes.map(H.nomNote).join(" · ")+" | TRANS : "+(a.shift*12)+" demi-tons";
         var hold=root.querySelector(".hr8-hold");hold.textContent=m.p.hold?"TENIR ACTIVÉ · RELÂCHER":"TENIR L'ACCORD";hold.setAttribute("aria-pressed",String(!!m.p.hold));
@@ -62,7 +66,7 @@
     function temps(e){
       cellules.forEach(function(b,i){b.classList.toggle("courant",!!e&&e.pos===i);});
       var texte=(m.p.sync?m.p.len+" ACCORDS · SUIVI SCÈNES":H.longueur(m)+" MESURES · BOUCLE");
-      if(e&&e.pos>=0&&e.accord)texte="LECTURE "+(e.pos+1)+" · "+H.nomNote(e.accord.fond)+" "+H.types[e.accord.type][1]+(e.mode?" · SCÈNES":" · MESURE "+(Math.floor(e.pas/16)+1)+"/"+e.accord.bars)+(e.hold?" · TENIR":"");
+      if(e&&e.pos>=0&&e.accord){var c=e.cycle||16;texte="LECTURE "+(e.pos+1)+" · "+H.nomNote(e.accord.fond)+" "+H.types[e.accord.type][1]+(e.mode?" · SCÈNES":" · MESURE "+(Math.floor(e.pas/c)+1)+"/"+e.accord.bars)+(e.hold?" · TENIR":"");}
       else texte+=S.run?" · ATTENTE IMPULSION":" · ARRÊT";
       if(etat.textContent!==texte)etat.textContent=texte;
     }

@@ -1,9 +1,12 @@
-/* ================= HARMONIE 8 — v287 =================
+/* ================= HARMONIE 8 — v287, cycle réglable v291 =================
    Progression de huit accords. Sorties CV, pas un générateur audio : 0 V =
    LA1/55 Hz pour les VCO accordés à 55 Hz. Quatre voix de nappe, fondamentale,
    et intervalle de transposition depuis une note de référence indépendante.
-   MESURES : 16 CLK par mesure. SCÈNES : chaque impulsion avance d'un accord.
-   Tous les choix persistants sont dans m.p. Aucun ancien module n'est modifié. */
+   MESURES : 16 CLK par mesure par défaut ; PAS/MESURE (v291, voir CYCLES
+   LIBRES) choisit un autre cycle (7/8, 9/8, 5/4 ou un compte libre de 4 à
+   32), ignoré quand SUIVI est actif. SCÈNES : chaque impulsion avance d'un
+   accord. Tous les choix persistants sont dans m.p. Aucun ancien module
+   n'est modifié. */
 var EUR_HARMONIE8=(function(){
   "use strict";
   var types=[
@@ -12,7 +15,7 @@ var EUR_HARMONIE8=(function(){
     ["SEPTIÈME","7",[0,4,7,10]], ["SUS 2","sus2",[0,2,7,12]],
     ["SUS 4","sus4",[0,5,7,12]], ["DIMINUÉ 7","dim7",[0,3,6,9]]
   ];
-  var kns=[["len","ACCORDS",1,8,8],["sync","SUIVI",0,1,0],["hold","TENIR",0,1,0],
+  var kns=[["len","ACCORDS",1,8,8],["sync","SUIVI",0,1,0],["pasmes","PAS/MESURE",4,32,16],["hold","TENIR",0,1,0],
     ["ref","NOTE RÉFÉRENCE",24,60,33],["trans","TRANSPOSE",-12,12,0],
     ["oct","OCTAVE NAPPE",0,2,1],["glide","GLISSÉ NAPPE ms",0,250,40]];
   for(var i=1;i<=8;i++)kns.push(["root"+i,"FONDAMENTALE "+i,24,60,[33,29,36,31][(i-1)%4]],
@@ -66,20 +69,20 @@ var EUR_HARMONIE8=(function(){
       if(e==="rst"){reset(t);noter({t:t,pos:-1});return null;}
       if(e!=="in"||(d.dernier!==null&&t<=d.dernier+.0000001))return null;
       var intervalle=d.dernier===null?stepDur():t-d.dernier;d.dernier=t;
-      var mode=entier(m.p.sync,0,1,0),L=entier(m.p.len,1,8,8),nouveau=false;
+      var mode=entier(m.p.sync,0,1,0),L=entier(m.p.len,1,8,8),nouveau=false,cycle=EUR_CYCLE.val(m.p.pasmes);
       if(mode!==d.mode){d.pos=-1;d.pas=-1;d.mode=mode;}
       if(d.pos<0){d.pos=0;d.pas=0;nouveau=true;}
       else{
         d.pas++;
-        if(mode||d.pas%16===0){
+        if(mode||d.pas%cycle===0){
           if(d.pos>=L){d.pos=0;d.pas=0;nouveau=true;}
-          else if(mode||d.pas>=accord(m.p,d.pos).bars*16){
-            if(m.p.hold>=.5)d.pas=mode?0:accord(m.p,d.pos).bars*16-16;
+          else if(mode||d.pas>=accord(m.p,d.pos).bars*cycle){
+            if(m.p.hold>=.5)d.pas=mode?0:accord(m.p,d.pos).bars*cycle-cycle;
             else{d.pos=(d.pos+1)%L;d.pas=0;nouveau=true;}
           }
         }
       }
-      var sorties=[],front=nouveau||mode||d.pas%16===0;
+      var sorties=[],front=nouveau||mode||d.pas%cycle===0;
       if(front){
         var a=accord(m.p,d.pos);d.accord=a;
         a.notes.forEach(function(n,i){poser("v"+(i+1),(n-33)/12,t,entier(m.p.glide,0,250,40));});
@@ -93,7 +96,7 @@ var EUR_HARMONIE8=(function(){
         eurPorte(s.change,t,lg);sorties.push("change");
       }
       eurPorte(s.clk,t,lg);sorties.push("clk");
-      noter({t:t,pos:d.pos,pas:d.pas,mode:mode,accord:d.accord,hold:m.p.hold>=.5});return sorties;
+      noter({t:t,pos:d.pos,pas:d.pas,mode:mode,cycle:cycle,accord:d.accord,hold:m.p.hold>=.5});return sorties;
     };
     d.valeur=valeur;d.historique=function(){return Object.keys(h).reduce(function(n,k){return n+h[k].length;},0);};
     return {e:{in:eurGain(1),rst:eurGain(1)},s:s,detruire:function(){ferme=true;d.dates=[];d.entendu=null;

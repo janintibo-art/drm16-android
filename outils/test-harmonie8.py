@@ -72,7 +72,7 @@ def main():
    accept['oui']=True;pg.locator('[data-montage="harmonie-dnb"]').click();pg.evaluate('window.hm=EUR.mods.find(m=>m.type==="harmonie8");window.ps=JSON.stringify(hm.p);window.graphe=EUR.bus;window.cab=JSON.stringify(EUR.cables)')
    pg.locator('.hr8-mini .hr8-case').first.click();v(pg.evaluate('EUR_FOCUS.actif()===hm.id'),tag+' vrai clic ouvre Focus')
    v(pg.evaluate('JSON.stringify(hm.p)===ps&&EUR.bus===graphe&&JSON.stringify(EUR.cables)===cab'),tag+' ouverture sans modifier son ni cables')
-   v(pg.locator('#eur-focus .hr8-case').count()==8 and pg.locator('#eur-focus .hr8-grand select').count()==10,tag+' huit accords dix champs')
+   v(pg.locator('#eur-focus .hr8-case').count()==8 and pg.locator('#eur-focus .hr8-grand select').count()==11,tag+' huit accords onze champs')
    tailles=pg.evaluate(TAILLES);v(not tailles['bad'] and tailles['deb']<=1,tag+' cibles 44 px sans débordement '+str(tailles))
    pg.locator('#eur-focus [data-accord="7"]').click();pg.locator('#eur-focus [data-champ=root]').select_option('38');pg.locator('#eur-focus [data-champ=type]').select_option('5');pg.locator('#eur-focus [data-champ=inv]').select_option('2')
    v(pg.evaluate('hm.p.root8===38&&hm.p.type8===5&&hm.p.inv8===2'),tag+' édition accord distinct')

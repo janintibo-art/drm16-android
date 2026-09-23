@@ -29,7 +29,7 @@ dépôt GitHub `drm16-android` (trait d'union).
 
 **Livraison.** Chaque version est livrée en **archive zip contenant uniquement les fichiers modifiés**,
 à décompresser par-dessus le dossier local. La numérotation suit `versionCode` dans `app/build.gradle`.
-La version actuelle est la **290**. Depuis la v176, le détail de chaque version est dans
+La version actuelle est la **291**. Depuis la v176, le détail de chaque version est dans
 `docs/CORRECTIONS_V*.md` ; la section 5 commence par **l'état du projet** et le tableau de ces versions.
 Les v156 à v175 n'ont laissé aucune note : le check-up v176 (`docs/CHECKUP_V176.md`) fait le point à leur
 sortie.
@@ -127,7 +127,7 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 ## 5. Ce qui reste à faire
 
-### État au 290 (23 septembre 2026)
+### État au 291 (23 septembre 2026)
 
 Les cinq analyses de la v122 servent de feuille de route, dans l'ordre choisi : analyse complète, version
 Windows, qualité sonore, fidélité des machines, qualité graphique.
@@ -160,17 +160,16 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
   contrôle MIDI Windows (v277-v278), DRUM 32 (v279), MÉLO 32 (v280), SCÈNES 8 (v281), jungle/DnB/uptempo/
   breakcore/gabber/psytrance (v282), BREAK 32 (v283), PERFORMANCE (v284), variations A/B et FILL rythmiques
   (v285), atelier kick/basse (v286), HARMONIE 8 (v287), STUTTER LIVE (v288), voix Inde/Balkans/dabké (v289),
-  FREEZE GRANULAIRE (v290).
+  FREEZE GRANULAIRE (v290), CYCLES LIBRES (v291).
 
 **Reste à faire, par ordre d'intérêt**
 1. *Qualité sonore* : équilibre des voix au sein de chaque machine, à l'oreille ; réverbérations ROOM, PLATE,
    SPRING, HALL ; grave en mono ; grosses caisses, charlestons et cymbales ; essayer les saturations en 4x.
-2. *Eurorack, suite proposée après la v290* : CYCLES LIBRES (suivre 7/8, 9/8, 5/4 ou un regroupement
-   personnalisé pour les scènes et les fills, au-delà du transport 4/4 fixe) ; PERFORMANCE MOUVANTE
-   (enregistrement de gestes sur les huit commandes, mémoires A/B avec transition) ; VOIX MUTANTES (voyelles
-   synthétiques puis vocodeur) ; POLY 4 (synthé autonome à quatre voix, clavier tactile, accords mémorisables) ;
-   LOOPER DE RACK (quatre pistes, phrases conservées) ; DIALOGUE (deux mélodies qui se répondent) ; ACCORDAGES
-   ET ORNEMENTS (accordage par note, import Scala .scl).
+2. *Eurorack, suite proposée après la v291* : PERFORMANCE MOUVANTE (enregistrement de gestes sur les huit
+   commandes, mémoires A/B avec transition) ; VOIX MUTANTES (voyelles synthétiques puis vocodeur) ; POLY 4
+   (synthé autonome à quatre voix, clavier tactile, accords mémorisables) ; LOOPER DE RACK (quatre pistes,
+   phrases conservées) ; DIALOGUE (deux mélodies qui se répondent) ; ACCORDAGES ET ORNEMENTS (accordage par
+   note, import Scala .scl).
 3. *Qualité graphique, ce qui reste* : façades KAOSS PAD/SmplTrek encore à affiner selon l'usage.
 4. *Essais sur matériel* : USB-MIDI sur le téléphone, ouverture de projet interrompue, lecture longue en
    arrière-plan, clé de signature des APK ; sur PC, voir `docs/parite.md` ; Bluetooth MIDI (ci-dessous).
@@ -179,7 +178,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
 bloc 14 du test navigateur (« un gain existant rejoint sa cible en douceur ») quand la machine est chargée.
 Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en écrire en `file://`.
 
-### Versions v177 à v290
+### Versions v177 à v291
 
 | Version | Sujet |
 |---|---|
@@ -297,6 +296,7 @@ Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en
 | v288 | STUTTER LIVE : capture stéréo et répétitions au tempo |
 | v289 | Cordes, anches et peaux : Inde, Balkans, dabké |
 | v290 | FREEZE GRANULAIRE : capturer un son et le transformer en grains, trois montages |
+| v291 | CYCLES LIBRES : PAS/MESURE réglable (7/8, 9/8, 5/4, libre) pour SCÈNES 8, HARMONIE 8 et le FILL |
 
 ---
 

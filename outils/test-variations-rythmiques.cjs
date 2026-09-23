@@ -16,7 +16,7 @@ function env(avec=true){
  const math=Object.create(Math);math.random=()=>{calls++;seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
  const b={console,Math:math,Number,Float32Array,ctx,S:{run:false},EUR_CAT:{},EUR_ORDRE:[],stepDur:()=>.1,maintenantAudio:()=>ctx.currentTime,memEur:()=>{},
  eurGain:v=>{let n=node('gain');n.gain.value=v;return n;},eurConst:v=>{let n=node('const');n.offset.value=v;return n;},eurPorte:(p,t,d)=>trigs.push({p,t,d}),eurCourbe:f=>Float32Array.from({length:1025},(_,i)=>f(i/512-1))};
- vm.createContext(b);for(const name of ['453-drum32-eurorack.js','461-voix-rave-eurorack.js','462-break32-eurorack.js'].concat(avec?['469-variations-rythmiques.js']:[]))vm.runInContext(fs.readFileSync(path.join(R,'page/js',name),'utf8'),b);
+ vm.createContext(b);for(const name of ['453-drum32-eurorack.js','461-voix-rave-eurorack.js','462-break32-eurorack.js'].concat(avec?['457b-cycles-libres.js','469-variations-rythmiques.js']:[]))vm.runInContext(fs.readFileSync(path.join(R,'page/js',name),'utf8'),b);
  function mod(type,ps={}){const m={id:1,type,p:{}};b.EUR_CAT[type].kns.forEach(k=>m.p[k[0]]=k[4]);Object.assign(m.p,ps);m.io=b.EUR_CAT[type].creer(m);return m;}
  function tick(m,i){ctx.currentTime=1+i*.1;return m.recevoir(ctx.currentTime,'clk');}
  return {b,M:b.EUR_VARIATIONS,ctx,mod,tick,starts,buffers:()=>starts.filter(s=>s.type==='buffer'),calls:()=>calls};
@@ -40,6 +40,15 @@ for(const type of ['drum32','break32']){
  test(type+' : un fill dure exactement 16 CLK et revient à A',()=>{
   const e=env(),m=e.mod(type);e.M.preparerB(m);e.b.S.run=true;e.tick(m,0);assert(e.M.fill(m));e.M.fill(m);
   for(let i=1;i<49;i++){e.tick(m,i);eq(m._rv.lecture,i>=16&&i<32?1:0);eq(m._rv.fill,i>=16&&i<32);}
+ });
+ test(type+' : CYCLES LIBRES — un fill suit PAS/MESURE (14 pas, 7/8)',()=>{
+  const e=env(),m=e.mod(type);e.M.preparerB(m);assert(e.M.pasmes(m,14));eq(m.variation.pasmes,14);
+  e.b.S.run=true;e.tick(m,0);assert(e.M.fill(m));
+  for(let i=1;i<42;i++){e.tick(m,i);eq(m._rv.lecture,i>=14&&i<28?1:0);eq(m._rv.fill,i>=14&&i<28);}
+ });
+ test(type+' : CYCLES LIBRES — sans variation B, pasmes refusé et reste 16',()=>{
+  const e=env(),m=e.mod(type);eq(e.M.pasmes(m,14),false);eq(m.variation,undefined);
+  e.b.S.run=true;for(let i=0;i<17;i++)e.tick(m,i);
  });
  test(type+' : fill automatique toutes les 2, 4, 8 mesures',()=>{
   for(const period of [2,4,8]){const e=env(),m=e.mod(type);e.M.preparerB(m);e.M.periode(m,period);e.b.S.run=true;

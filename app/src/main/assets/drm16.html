@@ -8417,6 +8417,23 @@ dense que cette grille. Trois montages : <b>PSY · CORDES SUSPENDUES</b>,
 commande PERFORMANCE qui fait glisser le mélange de la phrase reconnaissable vers
 sa version granulaire. Le catalogue compte maintenant 117 types de modules et
 63 montages.</p>
+
+<h3>CYCLES LIBRES (v291)</h3>
+<p>Un nouveau réglage <b>PAS/MESURE</b>, commun à <b>SCÈNES 8</b>, <b>HARMONIE 8</b>
+et au <b>FILL</b> automatique de DRUM 32 / BREAK 32 (voir « Variations de
+batterie A/B et FILL » plus haut) : au lieu des 16 impulsions CLK par mesure
+toujours utilisées jusqu'ici, on peut choisir 7/8 (14 pas), 9/8 (18 pas), 5/4
+(20 pas) ou un compte libre de 4 à 32, pour que les changements de scène et
+les fills suivent un cycle qui n'est pas du 4/4. Les trois modules partagent
+le même choix de valeurs ; régler le même PAS/MESURE sur chacun d'entre eux
+dans un rack les garde ensemble. La grille d'horloge de l'application reste
+le seizième de note partout — CYCLES LIBRES ne change ni le tempo ni la
+résolution des impulsions CLK, seulement le nombre d'entre elles qui forment
+une mesure. Par défaut 16, donc tous les anciens montages, y compris ceux qui
+imitaient déjà un cycle impair à la main (comme le 7/8 d'Inde/Balkans/dabké,
+v289), restent inchangés. Le catalogue compte toujours 117 types de modules
+et 63 montages : CYCLES LIBRES est un réglage de modules existants, pas un
+nouveau module.</p>
 </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
   <p>Les cent trois modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
@@ -27477,15 +27494,47 @@ var EUR_MELO32 = (function(){
   }
   [fabrique(false),fabrique(true)].forEach(function(p){if(p)EUR_MONTAGES.push(p);});
 })();
-/* ================= SCÈNES 8 — v281 =================
+/* ================= CYCLES LIBRES — v291 =================
+   Un réglage commun de pas par mesure, partagé par SCÈNES 8, HARMONIE 8 et
+   les fills de DRUM 32 / BREAK 32, pour faire suivre leurs changements de
+   scène à un cycle qui n'est pas du 4/4 : 7/8 (14 pas), 9/8 (18 pas), 5/4
+   (20 pas) ou un regroupement personnalisé (4 à 32 pas).
+
+   La grille d'horloge du rack reste toujours le seizième de note partout :
+   CYCLES LIBRES ne change ni le tempo ni la résolution des impulsions CLK,
+   seulement le nombre d'entre elles qui composent UNE mesure, module par
+   module. Par défaut 16 (4/4), donc aucun ancien montage ni projet .drm16
+   ne change de comportement. Ce fichier ne définit aucun module Eurorack :
+   c'est une aide partagée par d'autres fichiers, chargée avant eux. */
+var EUR_CYCLE = (function(){
+  "use strict";
+  var presets = [[16,"4/4 · 16 pas"],[14,"7/8 · 14 pas"],[18,"9/8 · 18 pas"],[20,"5/4 · 20 pas"]];
+  function val(v){ return Number.isFinite(v) ? Math.max(4, Math.min(32, Math.round(v))) : 16; }
+  /* Remplit un <select> HTML avec les métriques usuelles plus une option
+     LIBRE ; la valeur courante, même hors liste, reste affichée fidèlement. */
+  function remplirSelect(sel, valeur){
+    sel.innerHTML = "";
+    presets.forEach(function(p){
+      var o = document.createElement("option"); o.value = p[0]; o.textContent = p[1]; sel.appendChild(o);
+    });
+    var libre = document.createElement("option");
+    libre.value = "libre"; libre.textContent = "LIBRE · " + val(valeur) + " pas"; sel.appendChild(libre);
+    sel.value = presets.some(function(p){ return p[0] === val(valeur); }) ? String(val(valeur)) : "libre";
+  }
+  return {presets:presets, val:val, remplirSelect:remplirSelect};
+})();
+/* ================= SCÈNES 8 — v281, cycle réglable v291 =================
    Huit scènes de niveaux CV pour organiser quatre parties sans arrêter leurs
-   séquenceurs. 16 impulsions CLK = une mesure ; ce n'est pas un lecteur audio.
-   Le changement est programmé à la date audio, jamais par un timer graphique.
-   Paramètres numériques dans m.p ; pas de modification du format des racks. */
+   séquenceurs. 16 impulsions CLK = une mesure par défaut ; PAS/MESURE (v291,
+   voir CYCLES LIBRES) permet de choisir un autre cycle (7/8, 9/8, 5/4 ou un
+   compte libre de 4 à 32) pour que les changements de scène le suivent. Ce
+   n'est pas un lecteur audio. Le changement est programmé à la date audio,
+   jamais par un timer graphique. Paramètres numériques dans m.p ; pas de
+   modification du format des racks. */
 var EUR_SCENES8 = (function(){
   "use strict";
   var voies=["a","b","c","d"],noms=["INTRO","MONTÉE","PLEIN","BREAK","REPRISE","SORTIE","LIBRE"];
-  var kns=[["len","SCÈNES",1,8,8],["fade","FONDU ms",0,1000,80],["hold","TENIR",0,1,0]];
+  var kns=[["len","SCÈNES",1,8,8],["pasmes","PAS/MESURE",4,32,16],["fade","FONDU ms",0,1000,80],["hold","TENIR",0,1,0]];
   var niveaux=[[65,0,0,70],[80,100,0,50],[100,100,65,40],[100,100,100,60],
                [0,0,80,100],[100,100,100,70],[100,100,45,20],[0,0,0,90]];
   for(var i=1;i<=8;i++){
@@ -27538,13 +27587,13 @@ var EUR_SCENES8 = (function(){
       if(entree!=="in" || t<d.reset || (d.dernier!==null && t<=d.dernier+.0000001))return null;
       var intervalle=d.dernier===null?stepDur():t-d.dernier;
       intervalle=Math.max(.001,Math.min(60,intervalle));d.dernier=t;
-      var nouvelle=false,L=entier(m.p.len,1,8,8);
+      var nouvelle=false,L=entier(m.p.len,1,8,8),cycle=EUR_CYCLE.val(m.p.pasmes);
       if(d.scene<0){d.scene=0;d.pas=0;nouvelle=true;}else d.pas++;
-      var mesure=d.pas%16===0;
+      var mesure=d.pas%cycle===0;
       if(mesure){
         if(d.scene>=L){d.scene=0;d.pas=0;nouvelle=true;}
-        else if(!nouvelle && d.pas>=duree(m,d.scene)*16){
-          if(m.p.hold>=.5)d.pas=duree(m,d.scene)*16-16; // répéter la dernière mesure
+        else if(!nouvelle && d.pas>=duree(m,d.scene)*cycle){
+          if(m.p.hold>=.5)d.pas=duree(m,d.scene)*cycle-cycle; // répéter la dernière mesure
           else{d.scene=(d.scene+1)%L;d.pas=0;nouvelle=true;}
         }
         d.bars=duree(m,d.scene);d.nom=entier(m.p["nom"+(d.scene+1)],0,6,6);d.tenue=m.p.hold>=.5;
@@ -27559,7 +27608,7 @@ var EUR_SCENES8 = (function(){
       if(nouvelle){eurPorte(ports.change,t,lg);f.push("change");}
       if(mesure){eurPorte(ports.bar,t,lg);f.push("bar");}
       eurPorte(ports.clk,t,lg);f.push("clk");
-      historique({t:t,scene:d.scene,pas:d.pas,bars:d.bars,nom:d.nom,tenue:d.tenue,niveaux:d.niveaux.slice()});
+      historique({t:t,scene:d.scene,pas:d.pas,bars:d.bars,nom:d.nom,tenue:d.tenue,cycle:cycle,niveaux:d.niveaux.slice()});
       return f;
     };
     return {e:{in:eurGain(1),rst:eurGain(1)},s:ports};
@@ -27616,6 +27665,7 @@ var EUR_SCENES8 = (function(){
       voies.forEach(function(k){select(niveaux,k,"SORTIE "+k.toUpperCase(),options(0,100,function(n){return n+" % · "+(n/100).toFixed(2).replace(".",",")+" V";}),function(n){modifier(k+(selection+1),n);});});
       var glob=el("div","sc8-global");root.appendChild(glob);
       select(glob,"len","SCÈNES DANS LA BOUCLE",options(1,8),function(n){modifier("len",n);});
+      select(glob,"pasmes","PAS PAR MESURE (CYCLES LIBRES)",EUR_CYCLE.presets,function(n){modifier("pasmes",n);});
       select(glob,"fade","FONDU DES NIVEAUX",[0,5,20,40,80,150,250,500,750,1000].map(function(n){return [n,n+" ms"]; }),function(n){modifier("fade",n);});
       bouton(root,"",function(){modifier("hold",m.p.hold?0:1);},"sc8-hold");
       var actions=el("div","sc8-actions");root.appendChild(actions);
@@ -27628,7 +27678,7 @@ var EUR_SCENES8 = (function(){
         if(!valide()||!window.confirm("Mettre les quatre niveaux de cette scène à zéro ? Sa durée sera conservée."))return;
         voies.forEach(function(k){m.p[k+(selection+1)]=0;});memEur();rafraichir(m);
       },"sc8-zero");
-      root.appendChild(el("p","sc8-aide","Sélectionner une scène l'édite, sans y sauter. Les changements de niveaux et de durée sont pris en compte au prochain début de mesure. 16 CLK = une mesure : utilisez OUT de CLOCK. A–D émettent des tensions de 0 à 1 V ; reliez-les aux CV de VCA réglés à GAIN 0. Dans les deux exemples : A batterie, B basse, C mélodie, D nappe. Les séquenceurs continuent sous les parties coupées, les effets finissent leurs échos. TENIR répète la dernière mesure de la scène ; relâcher laisse ensuite avancer. RST/STOP repartent de la première scène au prochain CLK. SCÈNE et MESURE sont des impulsions, pas des niveaux audio."));
+      root.appendChild(el("p","sc8-aide","Sélectionner une scène l'édite, sans y sauter. Les changements de niveaux et de durée sont pris en compte au prochain début de mesure. 16 CLK = une mesure par défaut : utilisez OUT de CLOCK. PAS PAR MESURE choisit un autre cycle (7/8, 9/8, 5/4 ou un compte libre de 4 à 32) pour que les changements de scène le suivent ; laisser à 16 pas ne change rien aux anciens montages. A–D émettent des tensions de 0 à 1 V ; reliez-les aux CV de VCA réglés à GAIN 0. Dans les deux exemples : A batterie, B basse, C mélodie, D nappe. Les séquenceurs continuent sous les parties coupées, les effets finissent leurs échos. TENIR répète la dernière mesure de la scène ; relâcher laisse ensuite avancer. RST/STOP repartent de la première scène au prochain CLK. SCÈNE et MESURE sont des impulsions, pas des niveaux audio."));
     }
     function maj(){
       if(!valide())return;
@@ -27643,14 +27693,17 @@ var EUR_SCENES8 = (function(){
         champs.len.value=m.p.len;
         /* Les projets peuvent contenir un fondu entier entre deux presets. */
         if(!Array.from(champs.fade.options).some(function(o){return +o.value===m.p.fade;})){var o=el("option","",m.p.fade+" ms");o.value=m.p.fade;champs.fade.appendChild(o);}
-        champs.fade.value=m.p.fade;var hold=root.querySelector(".sc8-hold");hold.textContent=m.p.hold?"TENIR ACTIVÉ · RELÂCHER":"TENIR LA SCÈNE";hold.setAttribute("aria-pressed",String(!!m.p.hold));
+        champs.fade.value=m.p.fade;
+        /* Le cycle peut être une métrique nommée ou un compte libre (4 à 32). */
+        if(!Array.from(champs.pasmes.options).some(function(o){return +o.value===m.p.pasmes;})){var oc=el("option","",m.p.pasmes+" pas · LIBRE");oc.value=m.p.pasmes;champs.pasmes.appendChild(oc);}
+        champs.pasmes.value=m.p.pasmes;var hold=root.querySelector(".sc8-hold");hold.textContent=m.p.hold?"TENIR ACTIVÉ · RELÂCHER":"TENIR LA SCÈNE";hold.setAttribute("aria-pressed",String(!!m.p.hold));
       }
       temps(null);
     }
     function temps(e){
       cellules.forEach(function(b,i){b.classList.toggle("courante",!!e&&e.scene===i);});
       var txt=longueur(m)+" MESURES · BOUCLE";
-      if(e&&e.scene>=0)txt="LECTURE "+(e.scene+1)+" · "+noms[e.nom]+" · MESURE "+(Math.floor(e.pas/16)+1)+"/"+e.bars+" · PAS "+(e.pas%16+1)+"/16"+(e.tenue?" · TENIR":"");
+      if(e&&e.scene>=0){var c=e.cycle||16;txt="LECTURE "+(e.scene+1)+" · "+noms[e.nom]+" · MESURE "+(Math.floor(e.pas/c)+1)+"/"+e.bars+" · PAS "+(e.pas%c+1)+"/"+c+(e.tenue?" · TENIR":"");}
       else txt+=S.run?" · ATTENTE CLK":" · ARRÊT";
       if(etat.textContent!==txt)etat.textContent=txt;
     }
@@ -28747,12 +28800,16 @@ var EUR_PERF_UI=(function(){
   EUR_MONTAGES.push(fabriquer("rave-jungle","perf-jungle","JUNGLE · AUX COMMANDES",false));
   EUR_MONTAGES.push(fabriquer("rave-psy","perf-psy","PSY · AUX COMMANDES",true));
 })();
-/* v285 — Variations A/B de DRUM 32 et BREAK 32.
+/* v285 — Variations A/B de DRUM 32 et BREAK 32. Cycle réglable v291.
    A reste dans m.p ; seule la phrase B est un champ optionnel du module.
    Longueur, rotation, mute et timbre sont communs. Aucun échange temporaire
    de m.p, aucun redémarrage audio, aucun tirage dans Math.random.
-   Une mesure = 16 CLK reçus : les câbles définissent la synchronisation.
-   Les commandes sont consommées au prochain début de mesure non programmé. */
+   Une mesure = 16 CLK reçus par défaut ; les câbles définissent la
+   synchronisation. PAS/MESURE (v291, voir CYCLES LIBRES) choisit un autre
+   cycle (7/8, 9/8, 5/4 ou un compte libre de 4 à 32) pour que le fill
+   automatique le suive ; par défaut 16, donc les anciennes variations B
+   sont inchangées. Les commandes sont consommées au prochain début de
+   mesure non programmé. */
 var EUR_VARIATIONS=(function(){
   "use strict";
   var owns=Object.prototype.hasOwnProperty,cache={};
@@ -28770,6 +28827,7 @@ var EUR_VARIATIONS=(function(){
     if(!compatible(m)||!d||d.version!==1||!d.b||typeof d.b!=="object"||Array.isArray(d.b))return null;
     return {version:1,b:phrase(m,d.b),initial:d.initial===1?1:0,
       periode:[2,4,8].indexOf(d.periode)>=0?d.periode:0,
+      pasmes:EUR_CYCLE.val(d.pasmes),
       verrous:[0,1,2,3].map(function(i){return Array.isArray(d.verrous)?(d.verrous[i]===1?1:0):(i<2?1:0);}),
       forts:d.forts===0?0:1,graine:entier(d.graine,1,2147483646,285)};
   }
@@ -28796,9 +28854,10 @@ var EUR_VARIATIONS=(function(){
     var s=etat(m),v=m.variation;
     if(!Number.isFinite(t)||t<0||(s.dernier!==null&&t<=s.dernier+.0000001))return s.lecture&&v?v.b:m.p;
     s.dernier=t;s.pas++;
-    if(s.pas%16===0){
+    var cycle=v?EUR_CYCLE.val(v.pasmes):16;
+    if(s.pas%cycle===0){
       if(s.attente!==null){s.base=s.attente;s.attente=null;}
-      var mesure=Math.floor(s.pas/16)+1;
+      var mesure=Math.floor(s.pas/cycle)+1;
       s.fill=!!v&&(s.demandeFill||(v.periode>0&&mesure%v.periode===0));s.demandeFill=false;
       s.lecture=v&&(s.fill||s.base===1)?1:0;
       if(!(ctx&&typeof ctx.startRendering==="function")){
@@ -28817,7 +28876,7 @@ var EUR_VARIATIONS=(function(){
   }
   function preparerB(m){
     if(!compatible(m))return false;
-    var ancien=copier(m,m.variation),v=ancien||{version:1,b:{},initial:0,periode:0,verrous:[1,1,0,0],forts:1,graine:285};
+    var ancien=copier(m,m.variation),v=ancien||{version:1,b:{},initial:0,periode:0,pasmes:16,verrous:[1,1,0,0],forts:1,graine:285};
     v.b=phrase(m,m.p);m.variation=v;return true;
   }
   function editer(m,n){if(!compatible(m)||(n===1&&!m.variation))return false;m._rvEdition=n===1?1:0;reveiller();return true;}
@@ -28835,6 +28894,7 @@ var EUR_VARIATIONS=(function(){
     if(m.variation)m.variation.initial=s.base;sauver();reveiller();
   }
   function periode(m,n){if(!m.variation)return false;m.variation.periode=[2,4,8].indexOf(n)>=0?n:0;sauver();reveiller();return true;}
+  function pasmes(m,n){if(!m.variation)return false;m.variation.pasmes=EUR_CYCLE.val(n);sauver();reveiller();return true;}
   function generer(m){
     if(!compatible(m))return false;
     if(!m.variation)preparerB(m);
@@ -28869,7 +28929,7 @@ var EUR_VARIATIONS=(function(){
   }
   return {compatible:compatible,copier:copier,phrase:phrase,initialiser:initialiser,reset:reset,debut:debut,
     lire:lire,ecrire:ecrire,preparerB:preparerB,editer:editer,choisir:choisir,fill:fill,annuler:annuler,
-    periode:periode,generer:generer,lireEtat:lireEtat};
+    periode:periode,pasmes:pasmes,generer:generer,lireEtat:lireEtat};
 })();
 /* v285 — Édition A/B séparée de la lecture. Les états sont des événements
    horodatés, jamais des mesures du son. Un rAF attend seulement une transition
@@ -28911,7 +28971,7 @@ var EUR_VAR_UI=(function(){
   function interfaceModule(parent,m,grand){
     var root=el("section",grand?"rv-panel":"rv-mini"),etat=el("p","rv-etat"),titre=el("p","rv-edition");parent.appendChild(root);
     root.dataset.module=m.id;root.appendChild(titre);root.appendChild(etat);
-    var edA,edB,jA,jB,f,ann,auto,verrous=[],forts;
+    var edA,edB,jA,jB,f,ann,auto,pasmes,verrous=[],forts;
     function agir(fn){if(!valide(m))return;fn();enregistrer(m);}
     if(grand){
       var ed=el("div","rv-deux");root.insertBefore(ed,etat);
@@ -28925,7 +28985,10 @@ var EUR_VAR_UI=(function(){
       var label=el("label","rv-auto","FILL AUTOMATIQUE (PHRASE B)");auto=el("select");auto.setAttribute("aria-label","Fill automatique");
       [[0,"ARRÊT"],[2,"Toutes les 2 mesures"],[4,"Toutes les 4 mesures"],[8,"Toutes les 8 mesures"]].forEach(function(x){var o=el("option","",x[1]);o.value=x[0];auto.appendChild(o);});
       auto.addEventListener("change",function(){agir(function(){M.periode(m,+auto.value);});});label.appendChild(auto);
-      var outils=el("details","rv-outils");outils.appendChild(el("summary","","PRÉPARER B / RÉGLER LES FILLS"));root.appendChild(outils);outils.appendChild(label);
+      var labelCycle=el("label","rv-cycle","PAS PAR MESURE (CYCLES LIBRES)");pasmes=el("select");pasmes.setAttribute("aria-label","Pas par mesure");
+      EUR_CYCLE.presets.forEach(function(x){var o=el("option","",x[1]);o.value=x[0];pasmes.appendChild(o);});
+      pasmes.addEventListener("change",function(){agir(function(){if(m.variation)M.pasmes(m,+pasmes.value);});});labelCycle.appendChild(pasmes);
+      var outils=el("details","rv-outils");outils.appendChild(el("summary","","PRÉPARER B / RÉGLER LES FILLS"));root.appendChild(outils);outils.appendChild(label);outils.appendChild(labelCycle);
       var ac=el("div","rv-deux");outils.appendChild(ac);
       bouton(ac,"COPIER A → B","rv-copier",function(){agir(function(){
         if(m.variation&&!window.confirm("Remplacer toute la phrase B par A ? A et le son chargé restent intacts."))return;
@@ -28941,7 +29004,7 @@ var EUR_VAR_UI=(function(){
       if(m.type==="drum32")["A","B","C","D"].forEach(function(c,i){verrous.push(verrou("PRÉSERVER PISTE "+c,"rv-verrou",function(v){m.variation.verrous[i]=v?1:0;}));});
       else forts=verrou("PRÉSERVER LES TEMPS FORTS","rv-forts",function(v){m.variation.forts=v?1:0;});
       outils.appendChild(el("p","rv-aide",m.type==="drum32"?"La génération repart toujours de A. Par défaut, les pistes A et B (kick et caisse des exemples) sont protégées ; C et D varient. Les verrous ne bloquent pas l’édition manuelle.":"La génération repart toujours de A. La protection conserve les pas 1, 5, 9, 13, 17, 21, 25 et 29. Elle ne reconnaît pas les instruments de votre boucle. Aucun changement du fichier ni des repères de découpe."));
-      outils.appendChild(el("p","rv-aide","ÉDITER choisit les données affichées en dessous, sans changer la lecture. JOUER A/B change la phrase au prochain début de mesure. FILL utilise B pendant 16 CLK puis revient à la phrase choisie. Les séquences ne repartent pas du pas 1. Longueur, mute et timbre sont communs. 1 mesure = 16 CLK ; utilisez CLOCK OUT pour les exemples."));
+      outils.appendChild(el("p","rv-aide","ÉDITER choisit les données affichées en dessous, sans changer la lecture. JOUER A/B change la phrase au prochain début de mesure. FILL utilise B pendant une mesure puis revient à la phrase choisie. Les séquences ne repartent pas du pas 1. Longueur, mute et timbre sont communs. 1 mesure = PAS PAR MESURE impulsions CLK (16 par défaut ; 14, 18, 20 ou un compte libre pour suivre 7/8, 9/8, 5/4 ou un autre cycle) ; utilisez CLOCK OUT pour les exemples."));
     }
     function temps(now){var t=phraseEtat(m,now);if(etat.textContent!==t)etat.textContent=t;
       if(f)f.disabled=!S.run||!m.variation;
@@ -28953,6 +29016,10 @@ var EUR_VAR_UI=(function(){
       if(grand){
         edA.setAttribute("aria-pressed",String(m._rvEdition!==1));edB.setAttribute("aria-pressed",String(m._rvEdition===1));edB.disabled=!m.variation;jB.disabled=!m.variation;auto.disabled=!m.variation;
         auto.value=m.variation?m.variation.periode:0;
+        pasmes.disabled=!m.variation;
+        var pv=m.variation?EUR_CYCLE.val(m.variation.pasmes):16;
+        if(!Array.from(pasmes.options).some(function(o){return +o.value===pv;})){var oc=el("option","",pv+" pas · LIBRE");oc.value=pv;pasmes.appendChild(oc);}
+        pasmes.value=pv;
         verrous.forEach(function(e,i){e.disabled=!m.variation;e.checked=m.variation?!!m.variation.verrous[i]:i<2;});
         if(forts){forts.disabled=!m.variation;forts.checked=!m.variation||!!m.variation.forts;}
       }
@@ -28983,7 +29050,7 @@ var EUR_VAR_UI=(function(){
       bouton(commandes,"ÉDITER / PRÉPARER B","rv-live-editer",function(){if(valide(m))EUR_FOCUS.ouvrir(m.id);});
       details.appendChild(ligne);rows.push({m:m,etat:e,a:a,b:b,ann:ann});
     });
-    details.appendChild(el("p","rv-aide","FILL TOUS agit sur les DRUM 32 / BREAK 32 possédant une phrase B. Chaque séquenceur attend sa prochaine mesure de 16 CLK ; une même horloge et un même reset les gardent ensemble. Les scènes continuent d’agir sur les niveaux."));
+    details.appendChild(el("p","rv-aide","FILL TOUS agit sur les DRUM 32 / BREAK 32 possédant une phrase B. Chaque séquenceur attend sa prochaine mesure (PAS PAR MESURE CLK, 16 par défaut) ; une même horloge et un même reset les gardent ensemble. Les scènes continuent d’agir sur les niveaux."));
   }
   if(zone){
     live=el("section","rv-live");live.hidden=true;zone.insertBefore(live,zone.querySelector(".ep-cartes"));
@@ -29306,12 +29373,15 @@ var EUR_KICKBASS_UI=(function(){
   EUR_MONTAGES.push(faire("rave-psy","atelier-psy","PSY · KICK ET BASSE",true));
   EUR_MONTAGES.push(faire("rave-gabber","atelier-gabber","GABBER · KICK ACCORDÉ",false));
 })();
-/* ================= HARMONIE 8 — v287 =================
+/* ================= HARMONIE 8 — v287, cycle réglable v291 =================
    Progression de huit accords. Sorties CV, pas un générateur audio : 0 V =
    LA1/55 Hz pour les VCO accordés à 55 Hz. Quatre voix de nappe, fondamentale,
    et intervalle de transposition depuis une note de référence indépendante.
-   MESURES : 16 CLK par mesure. SCÈNES : chaque impulsion avance d'un accord.
-   Tous les choix persistants sont dans m.p. Aucun ancien module n'est modifié. */
+   MESURES : 16 CLK par mesure par défaut ; PAS/MESURE (v291, voir CYCLES
+   LIBRES) choisit un autre cycle (7/8, 9/8, 5/4 ou un compte libre de 4 à
+   32), ignoré quand SUIVI est actif. SCÈNES : chaque impulsion avance d'un
+   accord. Tous les choix persistants sont dans m.p. Aucun ancien module
+   n'est modifié. */
 var EUR_HARMONIE8=(function(){
   "use strict";
   var types=[
@@ -29320,7 +29390,7 @@ var EUR_HARMONIE8=(function(){
     ["SEPTIÈME","7",[0,4,7,10]], ["SUS 2","sus2",[0,2,7,12]],
     ["SUS 4","sus4",[0,5,7,12]], ["DIMINUÉ 7","dim7",[0,3,6,9]]
   ];
-  var kns=[["len","ACCORDS",1,8,8],["sync","SUIVI",0,1,0],["hold","TENIR",0,1,0],
+  var kns=[["len","ACCORDS",1,8,8],["sync","SUIVI",0,1,0],["pasmes","PAS/MESURE",4,32,16],["hold","TENIR",0,1,0],
     ["ref","NOTE RÉFÉRENCE",24,60,33],["trans","TRANSPOSE",-12,12,0],
     ["oct","OCTAVE NAPPE",0,2,1],["glide","GLISSÉ NAPPE ms",0,250,40]];
   for(var i=1;i<=8;i++)kns.push(["root"+i,"FONDAMENTALE "+i,24,60,[33,29,36,31][(i-1)%4]],
@@ -29374,20 +29444,20 @@ var EUR_HARMONIE8=(function(){
       if(e==="rst"){reset(t);noter({t:t,pos:-1});return null;}
       if(e!=="in"||(d.dernier!==null&&t<=d.dernier+.0000001))return null;
       var intervalle=d.dernier===null?stepDur():t-d.dernier;d.dernier=t;
-      var mode=entier(m.p.sync,0,1,0),L=entier(m.p.len,1,8,8),nouveau=false;
+      var mode=entier(m.p.sync,0,1,0),L=entier(m.p.len,1,8,8),nouveau=false,cycle=EUR_CYCLE.val(m.p.pasmes);
       if(mode!==d.mode){d.pos=-1;d.pas=-1;d.mode=mode;}
       if(d.pos<0){d.pos=0;d.pas=0;nouveau=true;}
       else{
         d.pas++;
-        if(mode||d.pas%16===0){
+        if(mode||d.pas%cycle===0){
           if(d.pos>=L){d.pos=0;d.pas=0;nouveau=true;}
-          else if(mode||d.pas>=accord(m.p,d.pos).bars*16){
-            if(m.p.hold>=.5)d.pas=mode?0:accord(m.p,d.pos).bars*16-16;
+          else if(mode||d.pas>=accord(m.p,d.pos).bars*cycle){
+            if(m.p.hold>=.5)d.pas=mode?0:accord(m.p,d.pos).bars*cycle-cycle;
             else{d.pos=(d.pos+1)%L;d.pas=0;nouveau=true;}
           }
         }
       }
-      var sorties=[],front=nouveau||mode||d.pas%16===0;
+      var sorties=[],front=nouveau||mode||d.pas%cycle===0;
       if(front){
         var a=accord(m.p,d.pos);d.accord=a;
         a.notes.forEach(function(n,i){poser("v"+(i+1),(n-33)/12,t,entier(m.p.glide,0,250,40));});
@@ -29401,7 +29471,7 @@ var EUR_HARMONIE8=(function(){
         eurPorte(s.change,t,lg);sorties.push("change");
       }
       eurPorte(s.clk,t,lg);sorties.push("clk");
-      noter({t:t,pos:d.pos,pas:d.pas,mode:mode,accord:d.accord,hold:m.p.hold>=.5});return sorties;
+      noter({t:t,pos:d.pos,pas:d.pas,mode:mode,cycle:cycle,accord:d.accord,hold:m.p.hold>=.5});return sorties;
     };
     d.valeur=valeur;d.historique=function(){return Object.keys(h).reduce(function(n,k){return n+h[k].length;},0);};
     return {e:{in:eurGain(1),rst:eurGain(1)},s:s,detruire:function(){ferme=true;d.dates=[];d.entendu=null;
@@ -29468,7 +29538,8 @@ var EUR_HARMONIE8=(function(){
       select(det,"bars","DURÉE EN MODE MESURES",choix(1,16,function(n){return n+" mesure"+(n>1?"s":"");}),function(n){modifier("bars"+(selection+1),n);});
       root.appendChild(el("output","hr8-notes"));
       var global=el("div","hr8-global");root.appendChild(global);
-      select(global,"sync","SUIVI DE L'ENTRÉE",[[0,"MESURES · 16 CLK / MESURE"],[1,"SCÈNES · 1 ACCORD / IMPULSION"]],function(n){modifier("sync",n);});
+      select(global,"sync","SUIVI DE L'ENTRÉE",[[0,"MESURES · PAS/MESURE CI-DESSOUS"],[1,"SCÈNES · 1 ACCORD / IMPULSION"]],function(n){modifier("sync",n);});
+      select(global,"pasmes","PAS PAR MESURE (CYCLES LIBRES)",EUR_CYCLE.presets,function(n){modifier("pasmes",n);});
       select(global,"len","ACCORDS DANS LA BOUCLE",choix(1,8),function(n){modifier("len",n);});
       select(global,"ref","RÉFÉRENCE DES MÉLO 32",choix(24,60,H.nomNote),function(n){modifier("ref",n);});
       select(global,"trans","TRANSPOSITION GLOBALE",choix(-12,12,function(n){return (n>0?"+":"")+n+" demi-tons";}),function(n){modifier("trans",n);});
@@ -29478,7 +29549,7 @@ var EUR_HARMONIE8=(function(){
       bouton(root,"COPIER VERS L'ACCORD SUIVANT",function(){if(!valide())return;var a=selection+1,b=a%8+1;
         if(!window.confirm("Remplacer l'accord "+b+" par l'accord "+a+" ? Les autres accords restent intacts."))return;
         ["root","type","inv","bars"].forEach(function(k){m.p[k+b]=m.p[k+a];});memEur();H.rafraichir(m);},"hr8-copier");
-      root.appendChild(el("p","hr8-aide","Choisir une case l'édite : la lecture ne saute pas. MESURES attend 16 CLK par mesure ; SCÈNES attend la sortie SCÈNE de SCÈNES 8 et ignore les durées locales. Dans les exemples, chaque scène avance d'un accord. TENIR garde l'accord pendant les impulsions ; relâcher reprend au prochain changement. Modifier le mode recommence au premier accord à la prochaine impulsion. RST et STOP réarment le début en conservant la dernière hauteur, pour ne pas transposer les queues de son."));
+      root.appendChild(el("p","hr8-aide","Choisir une case l'édite : la lecture ne saute pas. MESURES attend PAS/MESURE impulsions CLK par mesure (16 par défaut ; 14, 18, 20 ou un compte libre pour suivre un autre cycle) ; SCÈNES attend la sortie SCÈNE de SCÈNES 8 et ignore les durées locales. Dans les exemples, chaque scène avance d'un accord. TENIR garde l'accord pendant les impulsions ; relâcher reprend au prochain changement. Modifier le mode recommence au premier accord à la prochaine impulsion. RST et STOP réarment le début en conservant la dernière hauteur, pour ne pas transposer les queues de son."));
       root.appendChild(el("p","hr8-aide","VOIX 1–4 : CV de quatre notes vers quatre VCO. FOND : fondamentale sans renversement. TRANS : intervalle depuis RÉFÉRENCE ; additionnez-le au CV de MÉLO 32 avec un MIX 4, A et B à 1. Ce n'est PAS une correction des notes à la gamme : une note étrangère à l'accord le reste. Les exemples emploient fondamentales, quintes et octaves. Le glissé et le renversement ne concernent que les quatre voix de nappe ; TRANS change franchement, y compris sur une note encore tenue. Les chiffres supposent un VCO à 55 Hz pour 0 V."));
     }
     function maj(){
@@ -29491,6 +29562,9 @@ var EUR_HARMONIE8=(function(){
         var n=selection+1,a=H.accord(m.p,selection);root.querySelector(".hr8-titre").textContent="ÉDITER L'ACCORD "+n+(n>m.p.len?" · HORS BOUCLE":"");
         ["root","type","inv","bars"].forEach(function(k){champs[k].value=m.p[k+n];});
         ["sync","len","ref","trans","oct","glide"].forEach(function(k){champs[k].value=m.p[k];});
+        /* Le cycle peut être une métrique nommée ou un compte libre (4 à 32). */
+        if(!Array.from(champs.pasmes.options).some(function(o){return +o.value===m.p.pasmes;})){var oc=el("option","",m.p.pasmes+" pas · LIBRE");oc.value=m.p.pasmes;champs.pasmes.appendChild(oc);}
+        champs.pasmes.value=m.p.pasmes;champs.pasmes.disabled=!!m.p.sync;
         champs.bars.disabled=!!m.p.sync;
         root.querySelector(".hr8-notes").textContent="VOIX 1–4 : "+a.notes.map(H.nomNote).join(" · ")+" | TRANS : "+(a.shift*12)+" demi-tons";
         var hold=root.querySelector(".hr8-hold");hold.textContent=m.p.hold?"TENIR ACTIVÉ · RELÂCHER":"TENIR L'ACCORD";hold.setAttribute("aria-pressed",String(!!m.p.hold));
@@ -29500,7 +29574,7 @@ var EUR_HARMONIE8=(function(){
     function temps(e){
       cellules.forEach(function(b,i){b.classList.toggle("courant",!!e&&e.pos===i);});
       var texte=(m.p.sync?m.p.len+" ACCORDS · SUIVI SCÈNES":H.longueur(m)+" MESURES · BOUCLE");
-      if(e&&e.pos>=0&&e.accord)texte="LECTURE "+(e.pos+1)+" · "+H.nomNote(e.accord.fond)+" "+H.types[e.accord.type][1]+(e.mode?" · SCÈNES":" · MESURE "+(Math.floor(e.pas/16)+1)+"/"+e.accord.bars)+(e.hold?" · TENIR":"");
+      if(e&&e.pos>=0&&e.accord){var c=e.cycle||16;texte="LECTURE "+(e.pos+1)+" · "+H.nomNote(e.accord.fond)+" "+H.types[e.accord.type][1]+(e.mode?" · SCÈNES":" · MESURE "+(Math.floor(e.pas/c)+1)+"/"+e.accord.bars)+(e.hold?" · TENIR":"");}
       else texte+=S.run?" · ATTENTE IMPULSION":" · ARRÊT";
       if(etat.textContent!==texte)etat.textContent=texte;
     }

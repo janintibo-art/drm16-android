@@ -4,23 +4,27 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),asse
 const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'app/src/main/assets/drm16.html'),'utf8');
 const code=fs.readFileSync(path.join(root,'page/js/458-scenes8-eurorack.js'),'utf8');
 const porte=html.match(/function eurPorte\(p, t, duree\)\{[\s\S]*?\n\}/)[0];
+const cycle=html.match(/var EUR_CYCLE = \(function\(\)\{[\s\S]*?\n\}\)\(\);/)[0];
 let total=0,n=0;
 function ok(c,m){n++;assert.ok(c,m);}function eq(a,b,m){n++;assert.deepEqual(JSON.parse(JSON.stringify(a)),JSON.parse(JSON.stringify(b)),m);}function proche(a,b){ok(Math.abs(a-b)<1e-8,`${a} != ${b}`);}function test(nom,f){f();total++;console.log('ok '+nom);}
 function env(){
  const b={EUR_CAT:{},EUR_ORDRE:[],ctx:{currentTime:0},stepDur:()=>.125};b.maintenantAudio=()=>b.ctx.currentTime;
  b.eurGain=v=>({gain:{value:v},connect(){}});
  b.eurConst=v=>({offset:{value:v,events:[],cancelScheduledValues(t){this.events=this.events.filter(x=>x.t<t);},setValueAtTime(v,t){ok(Number.isFinite(v)&&Number.isFinite(t)&&t>=0);this.events.push({t,v,type:'set'});},linearRampToValueAtTime(v,t){ok(Number.isFinite(v)&&Number.isFinite(t)&&t>=0);this.events.push({t,v,type:'linear'});}}});
- vm.createContext(b);vm.runInContext(porte,b);vm.runInContext(code,b);
+ vm.createContext(b);vm.runInContext(porte,b);vm.runInContext(cycle,b);vm.runInContext(code,b);
  return {b,mod(p={}){const m={id:1,type:'scenes8',p:{...p}};m.io=b.EUR_CAT.scenes8.creer(m);return m;}};
 }
 function tick(m,i,base=1){return m.recevoir(base+i*.125,'in');}
 function aller(m,n){for(let i=0;i<n;i++)tick(m,i);}
 function niveau(m,k){return m.io.s[k].offset.events.at(-1)?.v??0;}
-test('51 paramètres numériques et 9 prises uniques',()=>{const e=env(),m=e.mod(),d=e.b.EUR_CAT.scenes8;eq(d.kns.length,51);eq(new Set(d.kns.map(k=>k[0])).size,51);eq(new Set(d.jacks.map(j=>j[0])).size,9);eq(e.b.EUR_ORDRE,['scenes8']);for(const k of d.kns)ok(Number.isFinite(m.p[k[0]])&&m.p[k[0]]>=k[2]&&m.p[k[0]]<=k[3]);});
+test('52 paramètres numériques et 9 prises uniques',()=>{const e=env(),m=e.mod(),d=e.b.EUR_CAT.scenes8;eq(d.kns.length,52);eq(new Set(d.kns.map(k=>k[0])).size,52);eq(new Set(d.jacks.map(j=>j[0])).size,9);eq(e.b.EUR_ORDRE,['scenes8']);for(const k of d.kns)ok(Number.isFinite(m.p[k[0]])&&m.p[k[0]]>=k[2]&&m.p[k[0]]<=k[3]);});
 test('la page assemblée contient exactement la source',()=>{eq(html.split(code).length,2);});
-test('normalisation des paramètres malformés',()=>{const m=env().mod({len:99,fade:Infinity,hold:.8,bars1:0,nom1:99,a1:-2,b1:999,c1:NaN,d1:'4'});eq([m.p.len,m.p.fade,m.p.hold,m.p.bars1,m.p.nom1,m.p.a1,m.p.b1,m.p.c1,m.p.d1],[8,80,1,1,6,0,100,0,70]);});
+test('normalisation des paramètres malformés',()=>{const m=env().mod({len:99,fade:Infinity,hold:.8,bars1:0,nom1:99,a1:-2,b1:999,c1:NaN,d1:'4',pasmes:'x'});eq([m.p.len,m.p.fade,m.p.hold,m.p.bars1,m.p.nom1,m.p.a1,m.p.b1,m.p.c1,m.p.d1,m.p.pasmes],[8,80,1,1,6,0,100,0,70,16]);});
 test('premier CLK : scène, mesure, puis horloge',()=>{const m=env().mod();eq(tick(m,0),['change','bar','clk']);eq([m.scenes8.scene,m.scenes8.pas],[0,0]);});
 test('16 impulsions exactement par mesure',()=>{const m=env().mod({bars1:2});tick(m,0);for(let i=1;i<16;i++)eq(tick(m,i),['clk']);eq(tick(m,16),['bar','clk']);eq([m.scenes8.scene,m.scenes8.pas],[0,16]);});
+test('CYCLES LIBRES : 14 pas (7/8) au lieu de 16',()=>{const m=env().mod({pasmes:14,len:2,bars1:1,bars2:1});tick(m,0);for(let i=1;i<14;i++)eq(tick(m,i),['clk']);eq(tick(m,14),['change','bar','clk']);eq(m.scenes8.scene,1);});
+test('CYCLES LIBRES : compte libre hors métriques nommées (11 pas)',()=>{const m=env().mod({pasmes:11});tick(m,0);for(let i=1;i<11;i++)eq(tick(m,i),['clk']);eq(tick(m,11),['change','bar','clk']);});
+test('CYCLES LIBRES : pasmes hors bornes normalisé entre 4 et 32',()=>{const m=env().mod({pasmes:2});eq(m.p.pasmes,4);const m2=env().mod({pasmes:99});eq(m2.p.pasmes,32);});
 test('durées 1, 3 et 2 mesures, puis boucle',()=>{const m=env().mod({len:3,bars1:1,bars2:3,bars3:2});const attendu=[0,1,1,1,2,2,0,1];for(let i=0;i<attendu.length*16;i++){tick(m,i);eq(m.scenes8.scene,attendu[Math.floor(i/16)]);}});
 test('longueurs 1 à 8 et durées 1 à 16',()=>{for(let L=1;L<=8;L++)for(const duree of [1,2,7,16]){const e=env(),m=e.mod({len:L});for(let j=1;j<=8;j++)m.p['bars'+j]=duree;eq(e.b.EUR_SCENES8.longueur(m),L*duree);for(let i=0;i<L*duree*16+1;i++){tick(m,i);eq(m.scenes8.scene,Math.floor(i/(duree*16))%L);}}});
 test('une seule scène émet SCÈNE à chaque nouveau cycle',()=>{const m=env().mod({len:1});aller(m,16);eq(tick(m,16),['change','bar','clk']);eq(m.scenes8.scene,0);});
@@ -44,7 +48,7 @@ test('une nouvelle scène peut interrompre un fondu sans saut rétroactif',()=>{
 test('CV continus jamais annoncés comme des déclencheurs',()=>{const m=env().mod();for(let i=0;i<150;i++)ok(tick(m,i).every(k=>['clk','bar','change'].includes(k)));});
 test('impulsions raccourcies quand CLK rapide',()=>{const m=env().mod();m.recevoir(1,'in');m.recevoir(1.002,'in');proche(m.io.s.clk.offset.events.at(-1).t,1.0029);});
 test('deux instances isolées',()=>{const e=env(),a=e.mod(),b=e.mod();a.p.a1=4;aller(a,22);eq(b.p.a1,65);eq(b.scenes8.scene,-1);ok(a.io.s.a!==b.io.s.a);});
-test('aller-retour JSON conserve les 51 réglages',()=>{const e=env(),a=e.mod({len:5,fade:137,bars3:7,d8:38,nom6:6});const b=e.mod(JSON.parse(JSON.stringify(a.p)));eq(a.p,b.p);eq(Object.keys(a.p).length,51);});
+test('aller-retour JSON conserve les 52 réglages',()=>{const e=env(),a=e.mod({len:5,fade:137,bars3:7,d8:38,nom6:6});const b=e.mod(JSON.parse(JSON.stringify(a.p)));eq(a.p,b.p);eq(Object.keys(a.p).length,52);});
 test('hors ligne : pas de file graphique et une seule rampe par voie',()=>{const e=env();e.b.ctx.startRendering=()=>{};const m=e.mod();aller(m,1200);eq(m.scenes8.dates,[]);for(const k of ['a','b','c','d'])eq(m.scenes8.hist[k].length,1);});
 test('historique direct borné au look-ahead',()=>{const e=env(),m=e.mod();for(let i=0;i<1200;i++){e.b.ctx.currentTime=.8+i*.125;tick(m,i);}ok(m.scenes8.dates.length<=128);for(const k of ['a','b','c','d'])ok(m.scenes8.hist[k].length<=3);});
 console.log(`SCÈNES 8 : ${total} scénarios, ${n} assertions, 0 erreur.`);

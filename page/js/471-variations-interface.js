@@ -38,7 +38,7 @@ var EUR_VAR_UI=(function(){
   function interfaceModule(parent,m,grand){
     var root=el("section",grand?"rv-panel":"rv-mini"),etat=el("p","rv-etat"),titre=el("p","rv-edition");parent.appendChild(root);
     root.dataset.module=m.id;root.appendChild(titre);root.appendChild(etat);
-    var edA,edB,jA,jB,f,ann,auto,verrous=[],forts;
+    var edA,edB,jA,jB,f,ann,auto,pasmes,verrous=[],forts;
     function agir(fn){if(!valide(m))return;fn();enregistrer(m);}
     if(grand){
       var ed=el("div","rv-deux");root.insertBefore(ed,etat);
@@ -52,7 +52,10 @@ var EUR_VAR_UI=(function(){
       var label=el("label","rv-auto","FILL AUTOMATIQUE (PHRASE B)");auto=el("select");auto.setAttribute("aria-label","Fill automatique");
       [[0,"ARRÊT"],[2,"Toutes les 2 mesures"],[4,"Toutes les 4 mesures"],[8,"Toutes les 8 mesures"]].forEach(function(x){var o=el("option","",x[1]);o.value=x[0];auto.appendChild(o);});
       auto.addEventListener("change",function(){agir(function(){M.periode(m,+auto.value);});});label.appendChild(auto);
-      var outils=el("details","rv-outils");outils.appendChild(el("summary","","PRÉPARER B / RÉGLER LES FILLS"));root.appendChild(outils);outils.appendChild(label);
+      var labelCycle=el("label","rv-cycle","PAS PAR MESURE (CYCLES LIBRES)");pasmes=el("select");pasmes.setAttribute("aria-label","Pas par mesure");
+      EUR_CYCLE.presets.forEach(function(x){var o=el("option","",x[1]);o.value=x[0];pasmes.appendChild(o);});
+      pasmes.addEventListener("change",function(){agir(function(){if(m.variation)M.pasmes(m,+pasmes.value);});});labelCycle.appendChild(pasmes);
+      var outils=el("details","rv-outils");outils.appendChild(el("summary","","PRÉPARER B / RÉGLER LES FILLS"));root.appendChild(outils);outils.appendChild(label);outils.appendChild(labelCycle);
       var ac=el("div","rv-deux");outils.appendChild(ac);
       bouton(ac,"COPIER A → B","rv-copier",function(){agir(function(){
         if(m.variation&&!window.confirm("Remplacer toute la phrase B par A ? A et le son chargé restent intacts."))return;
@@ -68,7 +71,7 @@ var EUR_VAR_UI=(function(){
       if(m.type==="drum32")["A","B","C","D"].forEach(function(c,i){verrous.push(verrou("PRÉSERVER PISTE "+c,"rv-verrou",function(v){m.variation.verrous[i]=v?1:0;}));});
       else forts=verrou("PRÉSERVER LES TEMPS FORTS","rv-forts",function(v){m.variation.forts=v?1:0;});
       outils.appendChild(el("p","rv-aide",m.type==="drum32"?"La génération repart toujours de A. Par défaut, les pistes A et B (kick et caisse des exemples) sont protégées ; C et D varient. Les verrous ne bloquent pas l’édition manuelle.":"La génération repart toujours de A. La protection conserve les pas 1, 5, 9, 13, 17, 21, 25 et 29. Elle ne reconnaît pas les instruments de votre boucle. Aucun changement du fichier ni des repères de découpe."));
-      outils.appendChild(el("p","rv-aide","ÉDITER choisit les données affichées en dessous, sans changer la lecture. JOUER A/B change la phrase au prochain début de mesure. FILL utilise B pendant 16 CLK puis revient à la phrase choisie. Les séquences ne repartent pas du pas 1. Longueur, mute et timbre sont communs. 1 mesure = 16 CLK ; utilisez CLOCK OUT pour les exemples."));
+      outils.appendChild(el("p","rv-aide","ÉDITER choisit les données affichées en dessous, sans changer la lecture. JOUER A/B change la phrase au prochain début de mesure. FILL utilise B pendant une mesure puis revient à la phrase choisie. Les séquences ne repartent pas du pas 1. Longueur, mute et timbre sont communs. 1 mesure = PAS PAR MESURE impulsions CLK (16 par défaut ; 14, 18, 20 ou un compte libre pour suivre 7/8, 9/8, 5/4 ou un autre cycle) ; utilisez CLOCK OUT pour les exemples."));
     }
     function temps(now){var t=phraseEtat(m,now);if(etat.textContent!==t)etat.textContent=t;
       if(f)f.disabled=!S.run||!m.variation;
@@ -80,6 +83,10 @@ var EUR_VAR_UI=(function(){
       if(grand){
         edA.setAttribute("aria-pressed",String(m._rvEdition!==1));edB.setAttribute("aria-pressed",String(m._rvEdition===1));edB.disabled=!m.variation;jB.disabled=!m.variation;auto.disabled=!m.variation;
         auto.value=m.variation?m.variation.periode:0;
+        pasmes.disabled=!m.variation;
+        var pv=m.variation?EUR_CYCLE.val(m.variation.pasmes):16;
+        if(!Array.from(pasmes.options).some(function(o){return +o.value===pv;})){var oc=el("option","",pv+" pas · LIBRE");oc.value=pv;pasmes.appendChild(oc);}
+        pasmes.value=pv;
         verrous.forEach(function(e,i){e.disabled=!m.variation;e.checked=m.variation?!!m.variation.verrous[i]:i<2;});
         if(forts){forts.disabled=!m.variation;forts.checked=!m.variation||!!m.variation.forts;}
       }
@@ -110,7 +117,7 @@ var EUR_VAR_UI=(function(){
       bouton(commandes,"ÉDITER / PRÉPARER B","rv-live-editer",function(){if(valide(m))EUR_FOCUS.ouvrir(m.id);});
       details.appendChild(ligne);rows.push({m:m,etat:e,a:a,b:b,ann:ann});
     });
-    details.appendChild(el("p","rv-aide","FILL TOUS agit sur les DRUM 32 / BREAK 32 possédant une phrase B. Chaque séquenceur attend sa prochaine mesure de 16 CLK ; une même horloge et un même reset les gardent ensemble. Les scènes continuent d’agir sur les niveaux."));
+    details.appendChild(el("p","rv-aide","FILL TOUS agit sur les DRUM 32 / BREAK 32 possédant une phrase B. Chaque séquenceur attend sa prochaine mesure (PAS PAR MESURE CLK, 16 par défaut) ; une même horloge et un même reset les gardent ensemble. Les scènes continuent d’agir sur les niveaux."));
   }
   if(zone){
     live=el("section","rv-live");live.hidden=true;zone.insertBefore(live,zone.querySelector(".ep-cartes"));

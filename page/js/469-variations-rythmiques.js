@@ -1,9 +1,13 @@
-/* v285 — Variations A/B de DRUM 32 et BREAK 32.
+/* v285 — Variations A/B de DRUM 32 et BREAK 32. Cycle réglable v291.
    A reste dans m.p ; seule la phrase B est un champ optionnel du module.
    Longueur, rotation, mute et timbre sont communs. Aucun échange temporaire
    de m.p, aucun redémarrage audio, aucun tirage dans Math.random.
-   Une mesure = 16 CLK reçus : les câbles définissent la synchronisation.
-   Les commandes sont consommées au prochain début de mesure non programmé. */
+   Une mesure = 16 CLK reçus par défaut ; les câbles définissent la
+   synchronisation. PAS/MESURE (v291, voir CYCLES LIBRES) choisit un autre
+   cycle (7/8, 9/8, 5/4 ou un compte libre de 4 à 32) pour que le fill
+   automatique le suive ; par défaut 16, donc les anciennes variations B
+   sont inchangées. Les commandes sont consommées au prochain début de
+   mesure non programmé. */
 var EUR_VARIATIONS=(function(){
   "use strict";
   var owns=Object.prototype.hasOwnProperty,cache={};
@@ -21,6 +25,7 @@ var EUR_VARIATIONS=(function(){
     if(!compatible(m)||!d||d.version!==1||!d.b||typeof d.b!=="object"||Array.isArray(d.b))return null;
     return {version:1,b:phrase(m,d.b),initial:d.initial===1?1:0,
       periode:[2,4,8].indexOf(d.periode)>=0?d.periode:0,
+      pasmes:EUR_CYCLE.val(d.pasmes),
       verrous:[0,1,2,3].map(function(i){return Array.isArray(d.verrous)?(d.verrous[i]===1?1:0):(i<2?1:0);}),
       forts:d.forts===0?0:1,graine:entier(d.graine,1,2147483646,285)};
   }
@@ -47,9 +52,10 @@ var EUR_VARIATIONS=(function(){
     var s=etat(m),v=m.variation;
     if(!Number.isFinite(t)||t<0||(s.dernier!==null&&t<=s.dernier+.0000001))return s.lecture&&v?v.b:m.p;
     s.dernier=t;s.pas++;
-    if(s.pas%16===0){
+    var cycle=v?EUR_CYCLE.val(v.pasmes):16;
+    if(s.pas%cycle===0){
       if(s.attente!==null){s.base=s.attente;s.attente=null;}
-      var mesure=Math.floor(s.pas/16)+1;
+      var mesure=Math.floor(s.pas/cycle)+1;
       s.fill=!!v&&(s.demandeFill||(v.periode>0&&mesure%v.periode===0));s.demandeFill=false;
       s.lecture=v&&(s.fill||s.base===1)?1:0;
       if(!(ctx&&typeof ctx.startRendering==="function")){
@@ -68,7 +74,7 @@ var EUR_VARIATIONS=(function(){
   }
   function preparerB(m){
     if(!compatible(m))return false;
-    var ancien=copier(m,m.variation),v=ancien||{version:1,b:{},initial:0,periode:0,verrous:[1,1,0,0],forts:1,graine:285};
+    var ancien=copier(m,m.variation),v=ancien||{version:1,b:{},initial:0,periode:0,pasmes:16,verrous:[1,1,0,0],forts:1,graine:285};
     v.b=phrase(m,m.p);m.variation=v;return true;
   }
   function editer(m,n){if(!compatible(m)||(n===1&&!m.variation))return false;m._rvEdition=n===1?1:0;reveiller();return true;}
@@ -86,6 +92,7 @@ var EUR_VARIATIONS=(function(){
     if(m.variation)m.variation.initial=s.base;sauver();reveiller();
   }
   function periode(m,n){if(!m.variation)return false;m.variation.periode=[2,4,8].indexOf(n)>=0?n:0;sauver();reveiller();return true;}
+  function pasmes(m,n){if(!m.variation)return false;m.variation.pasmes=EUR_CYCLE.val(n);sauver();reveiller();return true;}
   function generer(m){
     if(!compatible(m))return false;
     if(!m.variation)preparerB(m);
@@ -120,5 +127,5 @@ var EUR_VARIATIONS=(function(){
   }
   return {compatible:compatible,copier:copier,phrase:phrase,initialiser:initialiser,reset:reset,debut:debut,
     lire:lire,ecrire:ecrire,preparerB:preparerB,editer:editer,choisir:choisir,fill:fill,annuler:annuler,
-    periode:periode,generer:generer,lireEtat:lireEtat};
+    periode:periode,pasmes:pasmes,generer:generer,lireEtat:lireEtat};
 })();
