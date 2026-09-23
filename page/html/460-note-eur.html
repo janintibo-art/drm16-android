@@ -439,15 +439,16 @@
   Les commandes modifient les véritables potards du rack. Si l'un de ces potards a été changé
   ailleurs, <b>REPRISE AU PROCHAIN GESTE</b> prévient que le prochain mouvement réappliquera la
   course commune ; ouvrir la vue ne ramène jamais automatiquement à une ancienne valeur.</p>
-  <p><b>MÉMORISER</b> capture les valeurs actuelles des seuls réglages affectés et les positions des
-  huit commandes. <b>REVENIR</b> les rétablit après confirmation, sans changer les notes, les câbles
-  ou la position de lecture. Les réglages non affectés ne sont pas restaurés. Changer les cibles
-  ou leurs bornes efface ce point de retour : mémorisez à nouveau. Le renommage le conserve.</p>
-  <p>Les affectations et le point de retour sont conservés séparément avec chacun des huit racks,
-  et dans les projets <b>.drm16</b>. Les anciens racks restent lisibles et n'ont pas de commandes
-  imposées. Les fichiers de sons et les découpes BREAK 32 restent inchangés.</p>
-  <p><b>Les macros agissent immédiatement :</b> elles n’enregistrent pas leurs mouvements.
-  Les commandes de la section <b>VARIATIONS DE BATTERIE</b> sont distinctes : elles programment
+  <p><b>MÉMORISER A</b> et <b>MÉMORISER B</b> capturent chacune les valeurs actuelles des seuls
+  réglages affectés et les positions des huit commandes, dans deux points de retour distincts.
+  <b>REVENIR A</b> et <b>REVENIR B</b> les rétablissent d'un coup après confirmation, sans changer
+  les notes, les câbles ou la position de lecture. Les réglages non affectés ne sont pas restaurés.
+  Changer les cibles ou leurs bornes efface les deux points de retour : mémorisez à nouveau.
+  Le renommage les conserve. Voir <b>PERFORMANCE MOUVANTE</b> plus bas pour la TRANSITION et le GESTE.</p>
+  <p>Les affectations, les points de retour A/B et le geste sont conservés séparément avec chacun
+  des huit racks, et dans les projets <b>.drm16</b>. Les anciens racks restent lisibles et n'ont pas
+  de commandes imposées. Les fichiers de sons et les découpes BREAK 32 restent inchangés.</p>
+  <p>Les commandes de la section <b>VARIATIONS DE BATTERIE</b> sont distinctes : elles programment
   les phrases A/B et les FILL à la prochaine mesure, comme expliqué ci-dessous.
   <b>RETOUR AU RACK</b>, ou Échap sur PC, ferme seulement le panneau.</p>
 
@@ -627,4 +628,23 @@ imitaient déjà un cycle impair à la main (comme le 7/8 d'Inde/Balkans/dabké,
 v289), restent inchangés. Le catalogue compte toujours 117 types de modules
 et 63 montages : CYCLES LIBRES est un réglage de modules existants, pas un
 nouveau module.</p>
+
+<h3>PERFORMANCE MOUVANTE (v292)</h3>
+<p>Trois ajouts au panneau <b>PERFORMANCE</b> (voir plus haut), pour que les huit commandes
+bougent d'elles-mêmes pendant le jeu, sans rien câbler de nouveau.</p>
+<p><b>Deux points de retour, A et B</b> (au lieu d'un seul) : MÉMORISER A / MÉMORISER B
+capturent chacun un instantané des huit commandes ; REVENIR A / REVENIR B y sautent
+directement, comme avant.</p>
+<p><b>TRANSITION</b> choisit une durée (0,5 à 8 s) puis glisse les huit commandes vers A ou vers
+B en douceur, au lieu d'y sauter d'un coup — une montée ou une descente jouée à la main sans
+tenir huit potards à la fois. ARRÊTER LA TRANSITION la fige où elle en est.</p>
+<p><b>GESTE</b> enregistre les mouvements réels des commandes pendant qu'on joue (jusqu'à seize
+secondes), puis les rejoue en boucle : un mouvement de filtre, un fondu de batterie ou une
+succession de réglages repris automatiquement, les mains libres pour le reste du rack.
+ENREGISTRER capture chaque mouvement de commande ; REJOUER LE GESTE le fait boucler ; EFFACER
+LE GESTE l'efface. Un seul geste par rack, remplacé à chaque nouvel enregistrement.</p>
+<p>La TRANSITION et le GESTE utilisent l'horloge murale, pas l'horloge audio du morceau : comme
+un geste humain sur les potards, <b>ils ne sont pas capturés par un export hors ligne</b> (figer
+une machine, export WAV). Le catalogue reste à 117 types de modules et 63 montages : ce sont des
+réglages du panneau PERFORMANCE, pas un nouveau module.</p>
 </div>

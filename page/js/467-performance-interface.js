@@ -1,15 +1,31 @@
-/* v284 : panneau PERFORMANCE. Aucun clone de façade, aucune boucle RAF.
-   Les sliders pilotent les données communes du rack ; leurs valeurs sont des
-   courses de macro (0–100 %), ni des dB ni une mesure de la sortie audio. */
+/* v284 : panneau PERFORMANCE. Aucun clone de façade, aucune boucle RAF pour
+   le seul affichage des huit commandes. v292 (MOUVANTE) ajoute une petite
+   boucle RAF, mais seulement pendant qu'une TRANSITION glisse ou qu'un GESTE
+   rejoue : elle s'arrête dès que l'un et l'autre sont inactifs, exactement
+   comme reveiller() dans SCÈNES 8 ou HARMONIE 8. Les sliders pilotent les
+   données communes du rack ; leurs valeurs sont des courses de macro
+   (0–100 %), ni des dB ni une mesure de la sortie audio. */
 var EUR_PERF_UI=(function(){
   "use strict";
-  var M=EUR_PERFORMANCE,ouvert=false,rack=null,retour=null,caches=[],edition=-1,indexCible=-1,cartes=[];
+  var M=EUR_PERFORMANCE,ouvert=false,rack=null,retour=null,caches=[],edition=-1,indexCible=-1,cartes=[],raf=0;
   var root=document.createElement("div");root.id="eur-performance";root.setAttribute("role","dialog");
   root.setAttribute("aria-modal","true");root.setAttribute("aria-labelledby","ep-titre");
   root.innerHTML='<section class="ep-panneau"><header class="ep-tete"><div><span class="ep-sur">EURORACK / JEU EN DIRECT</span>'+
     '<h2 id="ep-titre">PERFORMANCE</h2><p id="ep-rack"></p></div><button id="ep-fermer" type="button">RETOUR AU RACK</button></header>'+
-    '<div class="ep-outils"><button id="ep-play" type="button">▶ JOUER</button><button id="ep-memoriser" type="button">MÉMORISER</button>'+
-    '<button id="ep-rappeler" type="button">REVENIR</button><span id="ep-memoire"></span></div>'+
+    '<div class="ep-outils"><button id="ep-play" type="button">▶ JOUER</button></div>'+
+    '<div class="ep-mouvant"><div class="ep-mouvant-ligne"><span class="ep-mouvant-titre">POINTS DE RETOUR</span>'+
+    '<button id="ep-memoriser-a" type="button">MÉMORISER A</button><button id="ep-rappeler-a" type="button">REVENIR A</button>'+
+    '<button id="ep-memoriser-b" type="button">MÉMORISER B</button><button id="ep-rappeler-b" type="button">REVENIR B</button>'+
+    '<span id="ep-memoire"></span></div>'+
+    '<div class="ep-mouvant-ligne"><span class="ep-mouvant-titre">TRANSITION</span>'+
+    '<label class="ep-champ-inline">DURÉE<select id="ep-trans-duree"><option value="500">0,5 s</option><option value="1000">1 s</option>'+
+    '<option value="2000" selected>2 s</option><option value="4000">4 s</option><option value="8000">8 s</option></select></label>'+
+    '<button id="ep-trans-a" type="button">GLISSER VERS A</button><button id="ep-trans-b" type="button">GLISSER VERS B</button>'+
+    '<button id="ep-trans-stop" type="button">ARRÊTER LA TRANSITION</button></div>'+
+    '<div class="ep-mouvant-ligne"><span class="ep-mouvant-titre">GESTE (16 s max)</span>'+
+    '<button id="ep-geste-enr" type="button">● ENREGISTRER UN GESTE</button>'+
+    '<button id="ep-geste-lecture" type="button">▶ REJOUER LE GESTE</button>'+
+    '<button id="ep-geste-effacer" type="button">EFFACER LE GESTE</button><span id="ep-geste-etat"></span></div></div>'+
     '<div class="ep-zone"><p class="ep-intro">Huit commandes, jusqu’à quatre réglages par commande. Les pourcentages indiquent la course, pas le volume mesuré.</p>'+
     '<p id="ep-message" role="status" aria-live="polite"></p><div class="ep-cartes"></div>'+
     '<section class="ep-config" hidden><div class="ep-config-tete"><h3 id="ep-config-titre"></h3><button id="ep-retour-commandes" type="button">LES 8 COMMANDES</button></div>'+
@@ -23,7 +39,7 @@ var EUR_PERF_UI=(function(){
     '<p id="ep-apercu"></p><p class="ep-aide">De 0 à 100. Inversez les bornes pour qu’un réglage descende quand la commande monte. Les notes et les pas se modifient toujours dans leur séquenceur.</p>'+
     '<div class="ep-actions"><button id="ep-valider" type="submit">VALIDER LA CIBLE</button><button id="ep-annuler" type="button">ANNULER</button></div>'+
     '<p id="ep-erreur" role="alert"></p></form></section></div>'+
-    '<footer class="ep-pied">Réglages immédiats · MÉMORISER ne capture que les paramètres affectés, pas le motif ni la position de lecture.</footer></section>';
+    '<footer class="ep-pied">Réglages immédiats · MÉMORISER ne capture que les paramètres affectés, pas le motif ni la position de lecture. La transition et le geste ne sont pas enregistrés dans un export hors ligne (figer, WAV) : comme un vrai geste sur les potards, ils n’existent que pendant une vraie lecture.</footer></section>';
   document.body.appendChild(root);PANNEAUX.push(root.id);
   function q(s){return root.querySelector(s);}
   function element(tag,cls,texte){var e=document.createElement(tag);if(cls)e.className=cls;if(texte!==undefined)e.textContent=texte;return e;}
@@ -46,7 +62,8 @@ var EUR_PERF_UI=(function(){
   }
   function lacher(){cartes.forEach(function(c){var d=c.drag;c.drag=null;c.dial.classList.remove("ep-tourne");if(d&&c.dial.hasPointerCapture(d.id))c.dial.releasePointerCapture(d.id);});}
   function fermer(focus){
-    if(!ouvert)return;ouvert=false;lacher();rack=null;edition=-1;root.classList.remove("show");
+    if(!ouvert)return;ouvert=false;lacher();if(M.enregistrementActif())M.annulerEnregistrement();rack=null;edition=-1;root.classList.remove("show");
+    if(raf&&typeof cancelAnimationFrame==="function")cancelAnimationFrame(raf);raf=0;
     caches.forEach(function(c){if(c.inert===null)c.e.removeAttribute("inert");else c.e.setAttribute("inert",c.inert);
       if(c.aria===null)c.e.removeAttribute("aria-hidden");else c.e.setAttribute("aria-hidden",c.aria);});caches=[];
     majNoteOuverte();EUR_KNOBS.forEach(function(k){k.maj();});
@@ -107,8 +124,23 @@ var EUR_PERF_UI=(function(){
     });
     q("#ep-rack").textContent=(EUR.nom||("RACK "+(EUR.cur+1)))+" · "+EUR.mods.length+" modules";
     q("#ep-play").textContent=S.run?"■ ARRÊTER":"▶ JOUER";q("#ep-play").classList.toggle("on",!!S.run);
-    q("#ep-memoriser").disabled=!nb;q("#ep-rappeler").disabled=!d.memoire;
-    q("#ep-memoire").textContent=d.memoire?"POINT DE RETOUR PRÊT":"AUCUN POINT DE RETOUR";
+    var enr=M.enregistrementActif(),lec=M.gesteEnLecture(),trans=M.transitionEnCours();
+    q("#ep-memoriser-a").disabled=!nb;q("#ep-rappeler-a").disabled=!d.memoireA||enr;
+    q("#ep-memoriser-b").disabled=!nb;q("#ep-rappeler-b").disabled=!d.memoireB||enr;
+    q("#ep-memoire").textContent=(d.memoireA?"A PRÊT":"PAS DE A")+" · "+(d.memoireB?"B PRÊT":"PAS DE B");
+    q("#ep-trans-a").disabled=!d.memoireA||enr;q("#ep-trans-b").disabled=!d.memoireB||enr;
+    q("#ep-trans-stop").disabled=!trans;q("#ep-trans-duree").disabled=enr;
+    q("#ep-geste-enr").textContent=enr?"■ ARRÊTER L’ENREGISTREMENT":"● ENREGISTRER UN GESTE";
+    q("#ep-geste-enr").classList.toggle("on",enr);q("#ep-geste-enr").disabled=lec||trans;
+    q("#ep-geste-lecture").textContent=lec?"■ ARRÊTER LE GESTE":"▶ REJOUER LE GESTE";
+    q("#ep-geste-lecture").classList.toggle("on",lec);q("#ep-geste-lecture").disabled=!d.geste||enr;
+    q("#ep-geste-effacer").disabled=!d.geste||enr||lec;
+    q("#ep-geste-etat").textContent=enr?"ENREGISTREMENT EN COURS…":d.geste?"GESTE DE "+(Math.round(d.geste.duree*10)/10+"").replace(".",",")+" S PRÊT":"AUCUN GESTE";
+    if(lec||trans){if(!raf&&typeof requestAnimationFrame==="function")raf=requestAnimationFrame(bouclerAffichage);}
+  }
+  function bouclerAffichage(){
+    raf=0;if(!ouvert)return;
+    maj();
   }
   function configurer(n){
     agir(function(){edition=n;q(".ep-cartes").hidden=true;q(".ep-config").hidden=false;q(".ep-affectation").hidden=true;
@@ -165,13 +197,37 @@ var EUR_PERF_UI=(function(){
   q("#ep-retour-commandes").addEventListener("click",function(){var n=edition;edition=-1;q(".ep-config").hidden=true;q(".ep-cartes").hidden=false;maj();q(".ep-zone").scrollTop=0;if(n>=0)cartes[n].config.focus({preventScroll:true});});
   q("#ep-fermer").addEventListener("click",function(){fermer();});
   q("#ep-play").addEventListener("click",function(){agir(function(){document.getElementById("eur-play").click();maj();});});
-  q("#ep-memoriser").addEventListener("click",function(){agir(function(){
-    if(M.courant().memoire&&!window.confirm("Remplacer le point de retour par les réglages actuels des paramètres affectés ?"))return;
-    if(M.memoriser()){message("Point de retour mémorisé avec le rack. Les sons et les séquences ne sont pas copiés.");maj();}
+  ["a","b"].forEach(function(l){
+    q("#ep-memoriser-"+l).addEventListener("click",function(){agir(function(){
+      var champ=l==="b"?"memoireB":"memoireA";
+      if(M.courant()[champ]&&!window.confirm("Remplacer le point de retour "+l.toUpperCase()+" par les réglages actuels des paramètres affectés ?"))return;
+      if(M.memoriser(l)){message("Point de retour "+l.toUpperCase()+" mémorisé avec le rack. Les sons et les séquences ne sont pas copiés.");maj();}
+    });});
+    q("#ep-rappeler-"+l).addEventListener("click",function(){agir(function(){
+      var champ=l==="b"?"memoireB":"memoireA";
+      if(!M.courant()[champ]||!window.confirm("Revenir aux réglages "+l.toUpperCase()+" ? Seuls les paramètres affectés seront rétablis, sans relancer le morceau."))return;
+      if(M.rappeler(l)){message("Réglages "+l.toUpperCase()+" rétablis. La lecture continue au même endroit.");maj();}
+    });});
+    q("#ep-trans-"+l).addEventListener("click",function(){agir(function(){
+      if(M.transitionner(l,+q("#ep-trans-duree").value)){message("Transition vers "+l.toUpperCase()+" lancée : les commandes glissent, la lecture continue.");maj();}
+    });});
+  });
+  q("#ep-trans-stop").addEventListener("click",function(){agir(function(){M.arreterTransition();message("Transition arrêtée où elle en était.");maj();});});
+  q("#ep-geste-enr").addEventListener("click",function(){agir(function(){
+    if(M.enregistrementActif()){
+      if(M.finEnregistrement())message("Geste enregistré. REJOUER LE GESTE le fait boucler sur les mouvements captés.");
+    }else if(M.enregistrer())message("Enregistrement en cours : tournez les commandes, jusqu’à seize secondes.");
+    else message("Impossible de commencer : arrêtez d’abord la transition ou la lecture du geste.");
+    maj();
   });});
-  q("#ep-rappeler").addEventListener("click",function(){agir(function(){
-    if(!M.courant().memoire||!window.confirm("Revenir aux réglages mémorisés ? Seuls les paramètres affectés seront rétablis, sans relancer le morceau."))return;
-    if(M.rappeler()){message("Réglages mémorisés rétablis. La lecture continue au même endroit.");maj();}
+  q("#ep-geste-lecture").addEventListener("click",function(){agir(function(){
+    if(M.gesteEnLecture()){M.jouerGeste(false);message("Lecture du geste arrêtée.");}
+    else if(M.jouerGeste(true))message("Le geste rejoue en boucle : les commandes bougent seules.");
+    maj();
+  });});
+  q("#ep-geste-effacer").addEventListener("click",function(){agir(function(){
+    if(!window.confirm("Effacer le geste enregistré ?"))return;
+    if(M.effacerGeste())message("Geste effacé.");maj();
   });});
   root.addEventListener("keydown",function(ev){
     ev.stopPropagation();if(ev.key==="Escape"){ev.preventDefault();fermer();return;}if(ev.key!=="Tab")return;

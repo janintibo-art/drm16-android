@@ -127,7 +127,7 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 ## 5. Ce qui reste à faire
 
-### État au 291 (23 septembre 2026)
+### État au 292 (23 septembre 2026)
 
 Les cinq analyses de la v122 servent de feuille de route, dans l'ordre choisi : analyse complète, version
 Windows, qualité sonore, fidélité des machines, qualité graphique.
@@ -160,13 +160,12 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
   contrôle MIDI Windows (v277-v278), DRUM 32 (v279), MÉLO 32 (v280), SCÈNES 8 (v281), jungle/DnB/uptempo/
   breakcore/gabber/psytrance (v282), BREAK 32 (v283), PERFORMANCE (v284), variations A/B et FILL rythmiques
   (v285), atelier kick/basse (v286), HARMONIE 8 (v287), STUTTER LIVE (v288), voix Inde/Balkans/dabké (v289),
-  FREEZE GRANULAIRE (v290), CYCLES LIBRES (v291).
+  FREEZE GRANULAIRE (v290), CYCLES LIBRES (v291), PERFORMANCE MOUVANTE (v292).
 
 **Reste à faire, par ordre d'intérêt**
 1. *Qualité sonore* : équilibre des voix au sein de chaque machine, à l'oreille ; réverbérations ROOM, PLATE,
    SPRING, HALL ; grave en mono ; grosses caisses, charlestons et cymbales ; essayer les saturations en 4x.
-2. *Eurorack, suite proposée après la v291* : PERFORMANCE MOUVANTE (enregistrement de gestes sur les huit
-   commandes, mémoires A/B avec transition) ; VOIX MUTANTES (voyelles synthétiques puis vocodeur) ; POLY 4
+2. *Eurorack, suite proposée après la v292* : VOIX MUTANTES (voyelles synthétiques puis vocodeur) ; POLY 4
    (synthé autonome à quatre voix, clavier tactile, accords mémorisables) ; LOOPER DE RACK (quatre pistes,
    phrases conservées) ; DIALOGUE (deux mélodies qui se répondent) ; ACCORDAGES ET ORNEMENTS (accordage par
    note, import Scala .scl).
@@ -178,7 +177,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
 bloc 14 du test navigateur (« un gain existant rejoint sa cible en douceur ») quand la machine est chargée.
 Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en écrire en `file://`.
 
-### Versions v177 à v291
+### Versions v177 à v292
 
 | Version | Sujet |
 |---|---|
@@ -297,6 +296,7 @@ Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en
 | v289 | Cordes, anches et peaux : Inde, Balkans, dabké |
 | v290 | FREEZE GRANULAIRE : capturer un son et le transformer en grains, trois montages |
 | v291 | CYCLES LIBRES : PAS/MESURE réglable (7/8, 9/8, 5/4, libre) pour SCÈNES 8, HARMONIE 8 et le FILL |
+| v292 | PERFORMANCE MOUVANTE : mémoires A/B, TRANSITION glissée, GESTE enregistré et rejoué en boucle |
 
 ---
 
