@@ -28,6 +28,7 @@ var EUR_DRUM32 = (function(){
   }
   function creer(m){
     normaliser(m);
+    if(typeof EUR_VARIATIONS!=="undefined")EUR_VARIATIONS.initialiser(m);
     var ports={ta:eurConst(0),tb:eurConst(0),tc:eurConst(0),td:eurConst(0)};
     var etat=m.drum32={pos:[-1,-1,-1,-1], dernier:null, dates:[], entendu:null};
     function eteindre(t){
@@ -38,11 +39,13 @@ var EUR_DRUM32 = (function(){
     m.arreter=function(){
       var t=ctx ? maintenantAudio() : 0;
       eteindre(t); etat.pos=[-1,-1,-1,-1]; etat.dernier=null;
+      if(typeof EUR_VARIATIONS!=="undefined")EUR_VARIATIONS.reset(m,t,true);
       etat.dates=[]; etat.entendu=null; reveiller();
     };
     m.recevoir=function(t, entree){
       if(!Number.isFinite(t) || t<0) return null;
       if(entree==="rst"){
+        if(typeof EUR_VARIATIONS!=="undefined")EUR_VARIATIONS.reset(m,t,false);
         eteindre(t); etat.pos=[-1,-1,-1,-1]; etat.dernier=null;
         etat.dates=etat.dates.filter(function(e){return e.t<t;});
         if(!ctx || typeof ctx.startRendering!=="function") etat.dates.push({t:t,pos:[-1,-1,-1,-1],coups:[0,0,0,0]});
@@ -53,11 +56,12 @@ var EUR_DRUM32 = (function(){
       if(etat.dernier!==null && t<=etat.dernier+0.0000001) return null;
       var intervalle=etat.dernier===null ? stepDur() : t-etat.dernier;
       intervalle=Math.max(.001,Math.min(60,intervalle)); etat.dernier=t;
+      var phrase=typeof EUR_VARIATIONS!=="undefined"?EUR_VARIATIONS.debut(m,t):m.p;
       var sorties=[], positions=[], coups=[];
       lettres.forEach(function(c, v){
         var L=entier(m.p[c+"len"],1,32,32), decal=entier(m.p[c+"shift"],0,31,0)%L;
         etat.pos[v]=(etat.pos[v]+1)%L;
-        var pas=(etat.pos[v]+decal)%L, n=entier(m.p[c+(pas+1)],0,4,0);
+        var pas=(etat.pos[v]+decal)%L, n=entier(phrase[c+(pas+1)],0,4,0);
         var chance=entier(m.p[c+"chance"],0,100,100);
         if(m.p[c+"mute"]>=.5 || chance===0 || (n>0 && chance<100 && Math.random()*100>=chance)) n=0;
         positions.push(pas); coups.push(n);
@@ -123,10 +127,13 @@ var EUR_DRUM32 = (function(){
     el.dataset.module=m.id; parent.appendChild(el);
     var voie=entier(m.drum32Voie,0,3,0), page=0, outil=1;
     var lignes=[], cellules=[], selection={}, etatTexte;
+    var variationUI=typeof EUR_VAR_UI!=="undefined"?EUR_VAR_UI.interface(el,m,grand):null;
+    function lire(k){return typeof EUR_VARIATIONS!=="undefined"?EUR_VARIATIONS.lire(m,k):m.p[k];}
+    function ecrire(k,v){if(typeof EUR_VARIATIONS!=="undefined")EUR_VARIATIONS.ecrire(m,k,v);else m.p[k]=v;}
     function valide(){return EUR.mods.indexOf(m)>=0;}
     function modifier(cle,val){
       if(!valide()) return;
-      m.p[cle]=val; memEur(); rafraichir(m);
+      ecrire(cle,val); memEur(); rafraichir(m);
     }
     function choisir(v){voie=v;m.drum32Voie=v;maj();reveiller();}
     if(!grand){
@@ -171,7 +178,7 @@ var EUR_DRUM32 = (function(){
       for(var n=0;n<16;n++) (function(i){
         var b=bouton(grille,"",function(){
           var cle=lettres[voie]+(page*16+i+1);
-          modifier(cle,m.p[cle]===outil?0:outil);H.cran();
+          modifier(cle,lire(cle)===outil?0:outil);H.cran();
         },"dr32-pas");
         b.appendChild(element("span","dr32-num"));b.appendChild(element("strong","dr32-coups"));cellules.push(b);
       })(n);
@@ -181,24 +188,25 @@ var EUR_DRUM32 = (function(){
         if(!valide()) return;
         var c=lettres[voie],de=page*16,vers=(1-page)*16;
         if(!window.confirm("Copier les pas "+(de+1)+"–"+(de+16)+" sur "+(vers+1)+"–"+(vers+16)+" de la piste "+noms[voie]+" ? Cette page sera remplacée.")) return;
-        for(var i=1;i<=16;i++) m.p[c+(vers+i)]=m.p[c+(de+i)];memEur();rafraichir(m);
+        for(var i=1;i<=16;i++) ecrire(c+(vers+i),lire(c+(de+i)));memEur();rafraichir(m);
       },"dr32-copier");
       bouton(actions,"VIDER LA PISTE",function(){
         if(!valide() || !window.confirm("Effacer les 32 pas de la piste "+noms[voie]+" ? Les trois autres pistes sont conservées.")) return;
-        for(var i=1;i<=32;i++) m.p[lettres[voie]+i]=0;memEur();rafraichir(m);
+        for(var i=1;i<=32;i++) ecrire(lettres[voie]+i,0);memEur();rafraichir(m);
       },"dr32-vider");
       el.appendChild(element("p","dr32-aide","Choisissez 1 coup, ×2, ×3 ou ×4 puis touchez un pas. Un second appui identique l'efface. Les pas au-delà de LONGUEUR sont conservés mais ne jouent pas. CLK avance les quatre pistes ; RST les réaligne. La probabilité s'applique au pas entier, pas à chaque répétition."));
       el.addEventListener("click",function(e){e.stopPropagation();});
     }
     function maj(){
       if(!valide()) return;
+      if(variationUI)variationUI.maj();
       if(!grand){
         lignes.forEach(function(b,v){
           var c=lettres[v], L=m.p[c+"len"];
           b.setAttribute("aria-label","Éditer la piste "+noms[v]+", "+L+" pas, probabilité "+m.p[c+"chance"]+" pour cent"+(m.p[c+"mute"]?", muette":""));
           b.classList.toggle("muette",!!m.p[c+"mute"]);
           b.querySelectorAll("i").forEach(function(p,i){
-            p.classList.toggle("on",m.p[c+(i+1)]>0);p.classList.toggle("rafale",m.p[c+(i+1)]>1);p.classList.toggle("hors",i>=L);
+            p.classList.toggle("on",lire(c+(i+1))>0);p.classList.toggle("rafale",lire(c+(i+1))>1);p.classList.toggle("hors",i>=L);
           });
         });return;
       }
@@ -208,7 +216,7 @@ var EUR_DRUM32 = (function(){
       var muet=!!m.p[c+"mute"], bMute=el.querySelector(".dr32-mute");
       bMute.textContent="PISTE "+noms[voie]+" : "+(muet?"MUETTE":"ACTIVE");bMute.setAttribute("aria-pressed",String(muet));
       cellules.forEach(function(b,i){
-        var n=page*16+i+1, valeur=m.p[c+n]; b.dataset.pas=n;
+        var n=page*16+i+1, valeur=lire(c+n); b.dataset.pas=n;
         b.querySelector(".dr32-num").textContent=String(n).padStart(2,"0");
         b.querySelector(".dr32-coups").textContent=valeur?(valeur===1?"●":"×"+valeur):"—";
         b.setAttribute("aria-pressed",String(valeur>0));
@@ -231,7 +239,7 @@ var EUR_DRUM32 = (function(){
       if(etatTexte.textContent!==texte) etatTexte.textContent=texte;
     }
     var vue={el:el,m:m,grand:grand,maj:maj,temps:temps};vues.push(vue);maj();reveiller();
-    return {rafraichir:maj,detruire:function(){vues=vues.filter(function(v){return v!==vue;});}};
+    return {rafraichir:maj,detruire:function(){if(variationUI)variationUI.detruire();vues=vues.filter(function(v){return v!==vue;});}};
   }
   EUR_CAT.drum32={nom:"DRUM 32",hp:248,sombre:true,fam:"seq",
     res:"Quatre pistes programmables de 32 pas, cycles indépendants, probabilité et roulements ×2 à ×4",

@@ -69,7 +69,7 @@ def main():
         for w,h in FORMATS:
             c,pg,err=ouvrir(w,h);nom=f'{w}x{h}';accord={'oui':False};pg.on('dialog',lambda d:d.accept() if accord['oui'] else d.dismiss())
             v(pg.evaluate('Object.keys(EUR_CAT).length===109 && EUR_ORDRE.filter(k=>k==="scenes8").length===1'),nom+' catalogue 109 sans doublon')
-            v(pg.evaluate('EUR_MONTAGES.length===48 && EUR_MONTAGES.filter(p=>p.fam==="avance").length===8'),nom+' 48 montages dont huit avancés')
+            v(pg.evaluate('EUR_MONTAGES.length===50 && EUR_MONTAGES.filter(p=>p.fam==="avance").length===8'),nom+' 50 montages dont huit avancés')
             pg.evaluate('window.modeles=JSON.stringify(EUR_MONTAGES);window.avantRack=JSON.stringify(rackCourant());EUR.montFam="avance";eurMontages()')
             pg.locator('[data-montage="av-progressive-scenes8"]').click();v(pg.evaluate('JSON.stringify(rackCourant())===avantRack'),nom+' refus de remplacer conservé')
             accord['oui']=True;pg.locator('[data-montage="av-progressive-scenes8"]').click()

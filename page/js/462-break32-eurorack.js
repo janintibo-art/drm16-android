@@ -43,19 +43,20 @@ var EUR_BREAK32=(function(){
   }
   function normaliser(m){EUR_RAVE.normaliser(m,kns);}
   function creer(m){
-    normaliser(m);var bank=banque(),out=eurGain(1),fil=ctx.createBiquadFilter(),pool=EUR_RAVE.panier();
+    normaliser(m);if(typeof EUR_VARIATIONS!=="undefined")EUR_VARIATIONS.initialiser(m);var bank=banque(),out=eurGain(1),fil=ctx.createBiquadFilter(),pool=EUR_RAVE.panier();
     fil.type="lowpass";fil.Q.value=.6;fil.connect(out);
     var d=m.break32={pos:-1,dernier:null,barriere:0,dates:[],entendu:null};m.raveVoix=pool;
     m.maj=function(){fil.frequency.value=800*Math.pow(20,B(m.p.tone,0,1,.8));};m.maj();
     function historique(e){if(typeof ctx.startRendering==="function")return;d.dates.push(e);if(d.dates.length>128)d.dates.shift();reveiller();}
-    function reset(t){pool.couper(t);d.pos=-1;d.dernier=null;d.barriere=t;d.dates=d.dates.filter(function(e){return e.t<t;});}
-    m.arreter=function(){if(typeof EUR_BREAK_SAMPLES!=="undefined")EUR_BREAK_SAMPLES.arreter(m);reset(maintenantAudio());d.dates=[];d.entendu=null;reveiller();};
+    function reset(t){if(typeof EUR_VARIATIONS!=="undefined")EUR_VARIATIONS.reset(m,t,false);pool.couper(t);d.pos=-1;d.dernier=null;d.barriere=t;d.dates=d.dates.filter(function(e){return e.t<t;});}
+    m.arreter=function(){if(typeof EUR_BREAK_SAMPLES!=="undefined")EUR_BREAK_SAMPLES.arreter(m);reset(maintenantAudio());if(typeof EUR_VARIATIONS!=="undefined")EUR_VARIATIONS.reset(m,maintenantAudio(),true);d.dates=[];d.entendu=null;reveiller();};
     m.recevoir=function(t,e){
       if(!pool.actif()||!Number.isFinite(t)||t<0||t<d.barriere)return null;
       if(e==="rst"){reset(t);historique({t:t,pos:-1,n:0,r:0,v:0});return null;}
       if(e!=="clk"||(d.dernier!==null&&t<=d.dernier+.0000001))return null;
       var intervalle=B(d.dernier===null?stepDur():t-d.dernier,.002,60,.125);d.dernier=t;
-      d.pos=(d.pos+1)%I(m.p.len,1,32,32);var k=d.pos+1,n=I(m.p["n"+k],0,32,0),r=I(m.p["r"+k],1,4,1),inv=m.p["v"+k]>=.5,prob=I(m.p["p"+k],0,100,100);
+      var phrase=typeof EUR_VARIATIONS!=="undefined"?EUR_VARIATIONS.debut(m,t):m.p;
+      d.pos=(d.pos+1)%I(m.p.len,1,32,32);var k=d.pos+1,n=I(phrase["n"+k],0,32,0),r=I(phrase["r"+k],1,4,1),inv=phrase["v"+k]>=.5,prob=I(phrase["p"+k],0,100,100);
       if(m.p.mute>=.5||prob===0||(n&&prob<100&&Math.random()*100>=prob)||m.p.niv<=0)n=0;
       pool.couper(t);
       if(n>(m.breakSample?m.breakSample.nb:16))n=0;
@@ -94,7 +95,10 @@ var EUR_BREAK32=(function(){
     var root=el("div","br32 "+(grand?"br32-editeur":"br32-mini")),sel=I(m._br32sel,0,31,0),page=Math.floor(sel/16),cases=[],champs={};
     parent.appendChild(root);root.dataset.module=m.id;
     function valide(){return EUR.mods.indexOf(m)>=0;}
-    function mod(k,v){if(!valide())return;m.p[k]=v;if(m.maj)m.maj();memEur();rafraichir(m);}
+    function lire(k){return typeof EUR_VARIATIONS!=="undefined"?EUR_VARIATIONS.lire(m,k):m.p[k];}
+    function ecrire(k,v){if(typeof EUR_VARIATIONS!=="undefined")EUR_VARIATIONS.ecrire(m,k,v);else m.p[k]=v;}
+    var variationUI=typeof EUR_VAR_UI!=="undefined"?EUR_VAR_UI.interface(root,m,grand):null;
+    function mod(k,v){if(!valide())return;ecrire(k,v);if(m.maj)m.maj();memEur();rafraichir(m);}
     function options(a,b,suffixe){var r=[];for(var n=a;n<=b;n++)r.push([n,n+(suffixe||"")]);return r;}
     function select(p,k,nom,opts,fn){var lab=el("label",""),s=el("select","");lab.appendChild(el("span","",nom));s.dataset.champ=k;s.setAttribute("aria-label",nom);
       opts.forEach(function(x){var o=el("option","",x[1]);o.value=x[0];s.appendChild(o);});s.addEventListener("change",function(){if(valide())fn(+s.value);});lab.appendChild(s);p.appendChild(lab);champs[k]=s;
@@ -121,23 +125,24 @@ var EUR_BREAK32=(function(){
       select(glob,"niv","NIVEAU",options(0,100," %"),function(n){mod("niv",n/100);});
       bouton(root,"",function(){mod("mute",m.p.mute?0:1);},"br32-mute");
       var ac=el("div","br32-actions");root.appendChild(ac);
-      bouton(ac,"COPIER CETTE PAGE",function(){if(!valide()||!window.confirm("Remplacer les 16 pas de l'autre page ?"))return;for(var i=1;i<=16;i++)["n","r","v","p"].forEach(function(k){m.p[k+(i+(1-page)*16)]=m.p[k+(i+page*16)];});memEur();rafraichir(m);},"br32-copier");
-      bouton(ac,"VIDER CETTE PAGE",function(){if(!valide()||!window.confirm("Mettre les 16 pas de cette page en silence ?"))return;for(var i=1;i<=16;i++)m.p["n"+(page*16+i)]=0;memEur();rafraichir(m);},"br32-vider");
+      bouton(ac,"COPIER CETTE PAGE",function(){if(!valide()||!window.confirm("Remplacer les 16 pas de l'autre page ?"))return;for(var i=1;i<=16;i++)["n","r","v","p"].forEach(function(k){ecrire(k+(i+(1-page)*16),lire(k+(i+page*16)));});memEur();rafraichir(m);},"br32-copier");
+      bouton(ac,"VIDER CETTE PAGE",function(){if(!valide()||!window.confirm("Mettre les 16 pas de cette page en silence ?"))return;for(var i=1;i<=16;i++)ecrire("n"+(page*16+i),0);memEur();rafraichir(m);},"br32-vider");
       root.appendChild(el("p","br32-aide","CLK : une double-croche, par exemple OUT de CLOCK. Les tranches 1, 8 et 11 contiennent les kicks, 5 et 13 les caisses claires ; les autres apportent charleys, ghosts et queues. ×2 à ×4 répètent le début de la tranche dans le pas. INVERSÉ retourne sa lecture. Transposer change la vitesse et la durée, sans time-stretch ; CLK conserve le tempo. MUET et les silences gardent l'avancement. RST/STOP repartent du premier pas. BOUCLE & DÉCOUPAGE permet de charger vos sons. Sans source personnelle, le break synthétisé original reste disponible. Les numéros au-delà du nombre de tranches sont silencieux."));
     }
     function maj(){
+      if(variationUI)variationUI.maj();
       var nb=m.breakSample?m.breakSample.nb:16;
       root.querySelector(".br32-intro").textContent=typeof EUR_BREAK_SAMPLES!=="undefined"?EUR_BREAK_SAMPLES.etat(m)+" · 32 PAS":"BREAK ORIGINAL · 16 TRANCHES · 32 PAS";
       if(sourceUI)sourceUI.maj();
       if(grand)Array.from(champs.n.options).forEach(function(o){o.textContent=+o.value===0?"SILENCE":o.value+(+o.value>nb?" · HORS DÉCOUPE (SILENCE)":"");});
-      cases.forEach(function(b,i){var s=page*16+i+1,n=I(m.p["n"+s],0,32,0),r=I(m.p["r"+s],1,4,1);
+      cases.forEach(function(b,i){var s=page*16+i+1,n=I(lire("n"+s),0,32,0),r=I(lire("r"+s),1,4,1);
         b.dataset.pas=s;b.querySelector(".br32-num").textContent=s;b.querySelector(".br32-slice").textContent=n?String(n).padStart(2,"0"):"—";
-        b.querySelector(".br32-rep").textContent=n?"×"+r+(m.p["v"+s]?" ↶":""):"PAUSE";
-        b.classList.toggle("hors",s>m.p.len);b.setAttribute("aria-pressed",String(grand&&s===sel+1));b.setAttribute("aria-label","Pas "+s+" : "+(n?"tranche "+n+", "+r+" frappe(s)"+(m.p["v"+s]?", inversée":""):"silence"));
+        b.querySelector(".br32-rep").textContent=n?"×"+r+(lire("v"+s)?" ↶":""):"PAUSE";
+        b.classList.toggle("hors",s>m.p.len);b.setAttribute("aria-pressed",String(grand&&s===sel+1));b.setAttribute("aria-label","Pas "+s+" : "+(n?"tranche "+n+", "+r+" frappe(s)"+(lire("v"+s)?", inversée":""):"silence"));
       });
       Array.from(nav.children).forEach(function(b,i){b.setAttribute("aria-pressed",String(i===page));});
       if(grand){root.querySelector(".br32-titre").textContent="ÉDITER LE PAS "+(sel+1)+(sel>=m.p.len?" · HORS BOUCLE":"");
-        ["n","r","v","p"].forEach(function(k){champs[k].value=Math.round(m.p[k+(sel+1)]);});champs.len.value=Math.round(m.p.len);champs.pitch.value=Math.round(m.p.pitch);
+        ["n","r","v","p"].forEach(function(k){champs[k].value=Math.round(lire(k+(sel+1)));});champs.len.value=Math.round(m.p.len);champs.pitch.value=Math.round(m.p.pitch);
         champs.tone.value=Math.round(m.p.tone*100);champs.niv.value=Math.round(m.p.niv*100);
         var b=root.querySelector(".br32-mute");b.textContent=m.p.mute?"BREAK MUET · RÉACTIVER":"COUPER LE BREAK";b.setAttribute("aria-pressed",String(!!m.p.mute));
       }afficherTemps(null);
@@ -146,7 +151,7 @@ var EUR_BREAK32=(function(){
       var t=e&&e.pos>=0?"PAS "+(e.pos+1)+" · "+(e.n?"TRANCHE "+e.n+" ×"+e.r+(e.v?" · INVERSÉE":""):"SILENCE"):"32 PAS · "+(S.run?"ATTENTE CLK":"ARRÊT");
       if(etat.textContent!==t)etat.textContent=t;
     }
-    var vue={el:root,m:m,grand:grand,maj:maj,temps:afficherTemps};vues.push(vue);maj();reveiller();return {rafraichir:maj,detruire:function(){if(sourceUI)sourceUI.detruire();vues=vues.filter(function(v){return v!==vue;});}};
+    var vue={el:root,m:m,grand:grand,maj:maj,temps:afficherTemps};vues.push(vue);maj();reveiller();return {rafraichir:maj,detruire:function(){if(variationUI)variationUI.detruire();if(sourceUI)sourceUI.detruire();vues=vues.filter(function(v){return v!==vue;});}};
   }
   EUR_CAT.break32={nom:"BREAK 32",hp:276,sombre:true,fam:"seq",res:"Break original ou boucle personnelle : découpage visuel, 32 pas, roulements et inversions",kns:kns,
     jacks:[["clk","CLK",0],["rst","RST",0],["out","OUT",1]],creer:creer,interface:interfaceModule,focusLabel:"DÉCOUPEZ LE BREAK, PAS PAR PAS",focusValeur:"16 → 32"};

@@ -446,9 +446,10 @@
   <p>Les affectations et le point de retour sont conservés séparément avec chacun des huit racks,
   et dans les projets <b>.drm16</b>. Les anciens racks restent lisibles et n'ont pas de commandes
   imposées. Les fichiers de sons et les découpes BREAK 32 restent inchangés.</p>
-  <p><b>Ce lot agit immédiatement :</b> il n'enregistre pas les mouvements de commande et ne
-  programme pas de FILL, BREAK ou REPRISE à la prochaine mesure. Ces fonctions ne sont pas des
-  actions cachées de cette vue. <b>RETOUR AU RACK</b>, ou Échap sur PC, ferme seulement le panneau.</p>
+  <p><b>Les macros agissent immédiatement :</b> elles n’enregistrent pas leurs mouvements.
+  Les commandes de la section <b>VARIATIONS DE BATTERIE</b> sont distinctes : elles programment
+  les phrases A/B et les FILL à la prochaine mesure, comme expliqué ci-dessous.
+  <b>RETOUR AU RACK</b>, ou Échap sur PC, ferme seulement le panneau.</p>
 
   <h3>Ce qui est gardé</h3>
   <p><b>Huit racks nommés</b>, gardés séparément, avec leurs câbles et la position de chaque potard. Tout est
@@ -458,4 +459,10 @@
   courant, pas les autres. C'est aussi la façon de comparer deux versions d'un même patch — montez la
   seconde à côté et passez de l'une à l'autre d'un bouton.</p>
   <p>L'<b>export WAV</b> fonctionne aussi, et enregistre ce qui sort de l'OUTPUT du rack affiché.</p>
-  </div>
+  <h3>Variations de batterie A/B et FILL</h3>
+<p>DRUM 32 et BREAK 32 proposent maintenant deux phrases. Dans FOCUS, ouvrez <b>PRÉPARER B / RÉGLER LES FILLS</b>, puis <b>COPIER A → B</b> ou <b>GÉNÉRER B</b>. La phrase A reste votre originale. Les boutons ÉDITER A et ÉDITER B choisissent les données affichées dans les commandes habituelles, sans modifier la lecture.</p>
+<p><b>JOUER A / JOUER B</b> bascule au prochain début de mesure pendant la lecture, ou choisit la phrase de départ à l’arrêt. <b>FILL · 1 MESURE</b> utilise B pendant 16 CLK, puis revient à la phrase choisie. La position des pistes n’est pas réinitialisée : sur une phrase de 32 pas, le fill utilise la moitié actuellement parcourue. Les longueurs, décalages, mutes et timbres restent communs aux deux phrases ; les répétitions, tranches, inversions et probabilités par pas de BREAK 32 sont propres à chaque phrase.</p>
+<p><b>FILL AUTOMATIQUE</b> utilise B sur la dernière mesure de chaque groupe de 2, 4 ou 8 mesures. Une mesure correspond à 16 CLK reçus, pas à la longueur d’une piste. Utilisez CLOCK OUT et le même reset pour aligner les séquenceurs. ANNULER ATTENTE retire les demandes non encore programmées ; un fill déjà en cours se termine normalement. STOP retire les fills ponctuels en attente. L’automatisme reste mémorisé avec le rack.</p>
+<p>Le générateur repart de A, utilise son propre tirage et ne change jamais A ni le fichier audio. Par défaut, les pistes A/B de DRUM 32 et les temps forts de BREAK 32 sont préservés. Les cases hors boucle sont conservées. Choisissez ÉDITER B pour modifier le résultat. Copier ou régénérer une B existante demande confirmation.</p>
+<p>Dans PERFORMANCE, <b>VARIATIONS DE BATTERIE</b> donne accès à JOUER A/B et <b>FILL TOUS</b> sans quitter les macros. Seuls les séquenceurs possédant B sont concernés. Chaque module suit son propre CLK. Les montages <b>JUNGLE · VARIATIONS A/B</b> (168 BPM) et <b>BREAKCORE · FILLS CADENCÉS</b> (202 BPM), dans PERFORMANCE, sont préparés avec un fill toutes les quatre mesures. Les scènes de niveau continuent d’agir. Le champ optionnel de variation est sauvegardé avec chaque module ; les anciens racks restent en A.</p>
+</div>

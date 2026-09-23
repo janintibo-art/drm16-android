@@ -46,9 +46,9 @@ def main():
    pg.evaluate(G.OUVRIR,'eur');return c,pg,er
   for w,h in FORMATS:
    c,pg,er=ouvrir(w,h);tag=f'{w}x{h}';accord={'oui':False};pg.on('dialog',lambda d:d.accept() if accord['oui'] else d.dismiss())
-   v(pg.evaluate('EUR_MONTAGES.length===48&&Object.keys(EUR_CAT).length===109'),tag+' catalogue 109 modules / 48 montages')
+   v(pg.evaluate('EUR_MONTAGES.length===50&&Object.keys(EUR_CAT).length===109'),tag+' catalogue 109 modules / 50 montages')
    pg.evaluate('EUR.montFam="performance";eurMontages()')
-   v(pg.locator('[data-famille=performance]').count()==2,tag+' deux cartes dans la nouvelle famille')
+   v(pg.locator('[data-famille=performance]').count()==4,tag+' quatre cartes dans la famille PERFORMANCE')
    pg.evaluate('window.vieuxRack=JSON.stringify(rackCourant())');pg.locator('[data-montage=perf-jungle]').click()
    v(pg.evaluate('JSON.stringify(rackCourant())===vieuxRack'),tag+' refus de remplacement conserve le rack')
    accord['oui']=True;pg.locator('[data-montage=perf-jungle]').click()

@@ -1,0 +1,31 @@
+/* v285 — variations : aucune commande nouvelle dans le chemin des prises. */
+.rv-panel,.rv-live{min-width:0;margin:0 0 16px;padding:12px;border:1px solid #607989;border-radius:9px;background:linear-gradient(145deg,#202f3c,#101a24);color:#e6f0fa;font:12px/1.45 system-ui,sans-serif}
+.rv-panel [hidden],.rv-live[hidden]{display:none!important}
+.rv-edition{margin:0 0 8px;font:800 12px/1.4 system-ui;letter-spacing:.6px;color:#efd4a3}
+.rv-panel[data-edition="b"] .rv-edition{color:#a8dfed}
+.rv-mini{margin:0 0 9px;min-width:0}
+.rv-mini .rv-edition{font-size:9px;text-align:center}
+.rv-etat{padding:8px;margin:7px 0;background:#0b151f;border:1px solid #3b5567;border-radius:5px;font:700 11px/1.5 system-ui;color:#c6e4f7;overflow-wrap:anywhere}
+.rv-mini .rv-etat{padding:4px;font-size:9px}
+.rv-deux,.rv-verrous{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:8px 0;min-width:0}
+#eur-focus .rv-panel button,#eur-focus .rv-panel select,#eur-performance .rv-live button{min-height:44px;min-width:44px;max-width:100%;padding:8px 5px;font:700 11px/1.4 system-ui;white-space:normal;overflow-wrap:anywhere;touch-action:manipulation;border-radius:5px}
+.rv-panel button,.rv-live button{border:1px solid #637f92;background:linear-gradient(#344858,#1e2d3b);color:#ecf6ff;cursor:pointer;box-shadow:inset 0 1px #ffffff20}
+#eur-focus .rv-panel button[aria-pressed="true"]{color:#132331;background:#c8e5ed;border-color:#e3f7ff}
+#eur-focus .rv-fill,#eur-performance .rv-fill-tous{background:linear-gradient(#705642,#3f322b);border-color:#d5b784;color:#fff1d3}
+.rv-panel button:disabled,.rv-panel select:disabled,.rv-live button:disabled{opacity:.42;cursor:default}
+.rv-auto{display:flex;flex-direction:column;gap:5px;min-width:0;font-weight:700;font-size:10px}
+#eur-focus .rv-panel .rv-auto select{width:100%;background:#102333;color:#ebf6ff}
+.rv-outils{margin-top:10px;border-top:1px solid #4b6375;padding-top:5px;min-width:0}
+.rv-outils summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:11px;font-weight:800;list-style:none;touch-action:manipulation}
+.rv-outils summary::before{content:"+ ";margin-right:6px;color:#f0ca91}
+.rv-outils[open] summary::before{content:"− "}
+.rv-verrous label{display:flex;align-items:center;gap:6px;min-width:0;font:700 10px/1.4 system-ui;cursor:pointer;overflow-wrap:anywhere}
+.rv-verrous input[type="checkbox"]{width:44px;height:44px;min-width:44px;margin:0;accent-color:#c5e3e9;cursor:pointer;touch-action:manipulation}
+.rv-aide{margin:8px 0 0;color:#bdccd9;font:11px/1.55 system-ui;overflow-wrap:anywhere}
+.rv-panel button:focus-visible,.rv-panel select:focus-visible,.rv-panel summary:focus-visible,.rv-panel input:focus-visible,.rv-live button:focus-visible{outline:3px solid #ace2f7;outline-offset:2px}
+.rv-live .rv-outils{margin-bottom:0}
+.rv-live h3{margin:0 0 7px;font:800 13px/1.5 system-ui;color:#efd4a3}
+.rv-live-ligne{border-top:1px solid #475f73;margin-top:12px;padding-top:10px;min-width:0}
+.rv-live-ligne strong{font-size:11px}
+@media(max-width:380px){.rv-panel{padding:8px}.rv-verrous{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.rv-panel *,.rv-live *{animation:none!important;transition:none!important}}

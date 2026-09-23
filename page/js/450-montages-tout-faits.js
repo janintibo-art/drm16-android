@@ -304,9 +304,10 @@ function eurMonter(P){
      milieu de l'ancienne phrase. Les anciens montages gardent leur conduite. */
   if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave" || P.fam === "performance") stop();
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
-  var rangs = P.mods.map(function(x){
+  var rangs = P.mods.map(function(x,index){
     var m = eurAjouter(x[0], true);
     if(m && x[1]) for(var k in x[1]) if(m.p[k] !== undefined) m.p[k] = x[1][k];
+    if(m && P.variations && typeof EUR_VARIATIONS!=="undefined"){var va=EUR_VARIATIONS.copier(m,P.variations[index]);if(va)m.variation=va;}
     return m ? m.id : -1;
   });
   P.cables.forEach(function(c){

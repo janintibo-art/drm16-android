@@ -69,6 +69,7 @@ jobs:
           python outils/test-rave.py --rapport app/build/reports/rave.json
           python outils/test-break32-bibliotheque.py --rapport app/build/reports/break32-bibliotheque.json
           python outils/test-performance-eurorack.py --rapport app/build/reports/performance-eurorack.json
+          python outils/test-variations-rythmiques.py --rapport app/build/reports/variations-rythmiques.json
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble

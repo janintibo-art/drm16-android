@@ -806,6 +806,7 @@ function rackCourant(){
     mods:EUR.mods.map(function(m){
       var o={id:m.id, type:m.type, p:m.p, r:m.r || 0};
       if(m.type==="break32" && m.breakSample && typeof EUR_BREAK_SAMPLES!=="undefined")o.breakSample=EUR_BREAK_SAMPLES.copie(m.breakSample);
+      if(m.variation && typeof EUR_VARIATIONS!=="undefined")o.variation=EUR_VARIATIONS.copier(m,m.variation);
       return o;
     }),
     cables:EUR.cables};
@@ -845,6 +846,7 @@ function poserRack(o){
         y.p[k[0]] = (x.p && typeof x.p[k[0]] === "number") ? x.p[k[0]] : k[4];
       });
       if(x.type==="break32" && x.breakSample && typeof EUR_BREAK_SAMPLES!=="undefined")y.breakSample=EUR_BREAK_SAMPLES.copie(x.breakSample);
+      if(x.variation && typeof EUR_VARIATIONS!=="undefined"){var va=EUR_VARIATIONS.copier(y,x.variation);if(va)y.variation=va;}
       EUR.mods.push(y);
     });
     EUR.cables = (o.cables || []).filter(function(c){ return c && c.de && c.vers; });
