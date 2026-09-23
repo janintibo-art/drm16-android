@@ -4081,6 +4081,34 @@ body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2p
 .rv-live-ligne strong{font-size:11px}
 @media(max-width:380px){.rv-panel{padding:8px}.rv-verrous{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.rv-panel *,.rv-live *{animation:none!important;transition:none!important}}
+/* v286 — Un atelier à commandes lisibles. Portée strictement limitée aux deux
+   nouveaux modules ; aucun effet d'animation permanent, ni geste sur le rack. */
+.kb-atelier{--kb-accent:#f3bc73;color:#e5eaf1;font-family:inherit;box-sizing:border-box;min-width:0;width:100%}
+.kb-atelier.kb-duck{--kb-accent:#67d9d0}
+.kb-sur{font-size:11px;letter-spacing:.08em;font-weight:700;color:var(--kb-accent);margin:0 0 8px}
+.kb-dessin{display:block;width:100%;padding:0;background:#0b1118;border:1px solid #3a4855;border-radius:8px;overflow:hidden;box-shadow:inset 0 2px 7px #0008}
+.kb-courbe{display:block;width:100%;height:auto;pointer-events:none}
+.kb-resume{display:block;color:var(--kb-accent);font-variant-numeric:tabular-nums;font-size:13px;margin:9px 0;line-height:1.5;overflow-wrap:anywhere}
+.kb-mini .kb-sur{font-size:8px;line-height:1.5;margin-top:10px}
+.kb-mini .kb-resume{font-size:10px}
+.kb-mini .kb-ouvrir{min-height:60px;cursor:pointer;touch-action:manipulation}
+.kb-grand{max-width:1000px;margin:0 auto}
+.kb-grand .kb-explication,.kb-grand .kb-cablage{font-size:13px;line-height:1.55;color:#bac9d9;white-space:normal;margin:10px 0}
+.kb-grand .kb-presets{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.kb-grand button{min-width:44px;min-height:44px;border:1px solid #506275;border-radius:7px;background:linear-gradient(#293644,#18232e);color:#eaf2fa;font-size:13px;font-family:inherit;cursor:pointer;touch-action:manipulation}
+.kb-grand .kb-preset{flex:1 1 130px;padding:8px 12px;font-size:12px;font-weight:700}
+.kb-grand .kb-controles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.kb-grand .kb-reglage{border:1px solid #3c4c5a;background:#131e29;padding:12px;border-radius:9px;min-width:0}
+.kb-grand .kb-label{font-size:12px;color:#d4dfeb;font-weight:700;display:block;min-height:18px}
+.kb-grand .kb-range{display:block;width:100%;min-height:44px;height:44px;margin:2px 0 4px;accent-color:var(--kb-accent);padding:0;box-sizing:border-box;touch-action:pan-y}
+.kb-grand .kb-precision{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:8px;align-items:center}
+.kb-grand .kb-nombre{width:100%;height:44px;min-width:0;box-sizing:border-box;border:1px solid #536679;border-radius:6px;background:#0a121b;color:var(--kb-accent);font-size:16px;font-family:inherit;font-variant-numeric:tabular-nums;text-align:center;padding:6px}
+.kb-grand .kb-nombre[aria-invalid=true]{border-color:#ff907c;background:#361c1e}
+.kb-grand .kb-message{font-size:13px;color:#ffb2a5;margin:8px 0}
+.kb-grand .kb-cablage{border-top:1px solid #40505f;padding-top:12px}
+.kb-atelier button:focus-visible,.kb-atelier input:focus-visible{outline:2px solid var(--kb-accent);outline-offset:2px}
+#eur-focus .ef-knobs:has(.kb-grand){display:block;width:100%}
+@media(max-width:600px){.kb-grand .kb-controles{grid-template-columns:minmax(0,1fr)}.kb-grand .kb-reglage{padding:10px}}
 </style>
 </head>
 <body>
@@ -7771,7 +7799,7 @@ Général) rend la chaîne entière, une fois.</p>
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>109 modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>111 modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
@@ -8198,6 +8226,38 @@ Général) rend la chaîne entière, une fois.</p>
 <p><b>FILL AUTOMATIQUE</b> utilise B sur la dernière mesure de chaque groupe de 2, 4 ou 8 mesures. Une mesure correspond à 16 CLK reçus, pas à la longueur d’une piste. Utilisez CLOCK OUT et le même reset pour aligner les séquenceurs. ANNULER ATTENTE retire les demandes non encore programmées ; un fill déjà en cours se termine normalement. STOP retire les fills ponctuels en attente. L’automatisme reste mémorisé avec le rack.</p>
 <p>Le générateur repart de A, utilise son propre tirage et ne change jamais A ni le fichier audio. Par défaut, les pistes A/B de DRUM 32 et les temps forts de BREAK 32 sont préservés. Les cases hors boucle sont conservées. Choisissez ÉDITER B pour modifier le résultat. Copier ou régénérer une B existante demande confirmation.</p>
 <p>Dans PERFORMANCE, <b>VARIATIONS DE BATTERIE</b> donne accès à JOUER A/B et <b>FILL TOUS</b> sans quitter les macros. Seuls les séquenceurs possédant B sont concernés. Chaque module suit son propre CLK. Les montages <b>JUNGLE · VARIATIONS A/B</b> (168 BPM) et <b>BREAKCORE · FILLS CADENCÉS</b> (202 BPM), dans PERFORMANCE, sont préparés avec un fill toutes les quatre mesures. Les scènes de niveau continuent d’agir. Le champ optionnel de variation est sauvegardé avec chaque module ; les anciens racks restent en A.</p>
+  <h3>Atelier kick / basse — KICK LAB et DUCK TRIG</h3>
+  <p>Deux nouveaux modules, sans changer les sons des anciens racks. <b>KICK LAB</b>
+  est dans PERCUSSIONS ; <b>DUCK TRIG</b> dans TRAITEMENTS. Touchez leur courbe pour
+  ouvrir l'atelier FOCUS. Les courbes décrivent les réglages, pas le son mesuré.</p>
+  <p><b>KICK LAB</b> possède une fondamentale en Hz, une queue de 40 à 900 ms et
+  une courbe de hauteur : DÉPART et COUDE en demi-tons, DESCENTE et RETOUR FOND en
+  millisecondes. Les temps sont limités par la longueur de la queue. DISTORSION
+  CORPS et BRILLANCE CORPS ne traitent pas l'attaque bruitée, dont le niveau et la
+  durée sont séparés. Chaque frappe redémarre un oscillateur et coupe rapidement
+  la queue précédente ; l'ancienne voix CORE KICK reste disponible.</p>
+  <p>Pour un kick accordé : <b>MÉLO 32 CV → V/OCT</b>, <b>GATE → TRIG</b>, et
+  FOND = <b>55 Hz</b>. Le CV est continu : une note suivante peut aussi transposer
+  la queue encore active. La sortie HIT émet seulement lors d'une frappe acceptée
+  dont le niveau est supérieur à zéro ; elle peut déclencher DUCK TRIG.</p>
+  <p><b>DUCK TRIG</b> baisse le volume de sa source puis le rétablit : basse OUT → IN,
+  DUCK OUT → mixeur ou VCA de groupe, kick HIT → TRIG. RÉDUCTION règle de 0 à 48 dB,
+  DESCENTE de 1 à 20 ms, MAINTIEN de 0 à 160 ms, RETOUR de 10 à 800 ms ; FORME change
+  la vitesse de remontée. <b>0 dB ne réduit rien.</b> Il ne détecte pas le niveau
+  sonore : ce n'est ni un compresseur à seuil ni un correcteur automatique de phase.
+  Les deux canaux restent distincts et reçoivent le même gain. GAIN CV émet ce gain
+  (0 à 1 V) pour un VCA supplémentaire réglé à gain 0.</p>
+  <p>Les changements s'appliquent aux <b>prochaines frappes</b>. Les pré-réglages
+  demandent confirmation et préservent les câbles ; ceux du kick conservent son
+  niveau. STOP/RST coupent les voix futures et annulent les baisses de gain à venir.
+  Les réglages sont conservés dans les racks et projets, comme les autres potards.</p>
+  <p><b>MONTAGES → PERFORMANCE</b> : PSY · KICK ET BASSE (146 BPM) et GABBER · KICK
+  ACCORDÉ (185 BPM). Quatre parties, scènes, huit commandes et batterie A/B avec
+  fills toutes les quatre mesures. Dans le Gabber, un troisième MÉLO 32 commande
+  le kick ; les variations DRUM 32 n'en modifient donc pas le rythme.
+  Les commandes 5–8 règlent corps du kick, queue, place pour le kick et couleur de
+  basse. Utilisez un rack vide pour conserver votre montage actuel.</p>
+
 </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
   <p>Les cent trois modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
@@ -28167,7 +28227,7 @@ var EUR_PERFORMANCE=(function(){
      Les anciens modules à potards gardent toutes leurs courses natives. */
   function parametres(m){
     var d=m && EUR_CAT[m.type];if(!d)return [];
-    var permis={drum32:/^[abcd]chance$/,melo32:/^(trans|glide)$/,scenes8:/^fade$/,break32:/^(tone|pitch|niv)$/};
+    var permis={drum32:/^[abcd]chance$/,melo32:/^(trans|glide)$/,scenes8:/^fade$/,break32:/^(tone|pitch|niv)$/,kicklab:/^(tune|dec|sweep|knee|fall|settle|drive|tone|click|clickdec|niv)$/,ducktrig:/^(depth|attack|hold|release|shape)$/};
     return d.kns.filter(function(k){
       return typeof k[0]==="string" && fini(k[2]) && fini(k[3]) && k[3]>k[2] &&
         (permis[m.type] ? permis[m.type].test(k[0]) : !d.interface && d.fam!=="seq");
@@ -28792,6 +28852,284 @@ var EUR_VAR_UI=(function(){
   }
   EUR_MONTAGES.push(faire("perf-jungle","var-jungle","JUNGLE · VARIATIONS A/B",4));
   EUR_MONTAGES.push(faire("rave-breakcore","var-breakcore","BREAKCORE · FILLS CADENCÉS",4));
+})();
+/* ================= ATELIER KICK / BASSE — v286 =================
+   Deux modules nouveaux : aucun remplacement de CORE KICK ou BASS RAVE.
+   KICK LAB : oscillateur neuf par frappe, enveloppe de hauteur en deux segments,
+   attaque bruitée distincte et sortie HIT. V/OCT est un vrai signal connecté au
+   detune ; 0 V laisse FOND inchangé (55 Hz pour suivre les notes de MÉLO 32).
+   DUCK TRIG : baisse de gain déclenchée par une porte, PAS un compresseur qui
+   mesure le kick. Une enveloppe identique traite les deux canaux, sans sommation.
+   Les paramètres persistants sont seulement numériques dans m.p. */
+var EUR_KICKBASS=(function(){
+  "use strict";
+  var B=EUR_RAVE.borne;
+  var kickKns=[["tune","FOND Hz",30,100,55],["dec","QUEUE ms",40,900,130],
+    ["sweep","DÉPART demi-tons",0,48,24],["knee","COUDE demi-tons",-12,12,0],
+    ["fall","DESCENTE ms",2,90,18],["settle","RETOUR FOND ms",2,300,45],
+    ["drive","DISTORSION CORPS",0,1,.15],["tone","BRILLANCE CORPS",0,1,.40],
+    ["click","ATTAQUE BRUITÉE",0,1,.20],["clickdec","DURÉE ATTAQUE ms",1,25,6],
+    ["niv","NIVEAU",0,1,.65]];
+  var duckKns=[["depth","RÉDUCTION dB",0,48,18],["attack","DESCENTE ms",1,20,3],
+    ["hold","MAINTIEN ms",0,160,15],["release","RETOUR ms",10,800,110],
+    ["shape","FORME RETOUR",.25,4,1.5]];
+  function parametres(type){return type==="kicklab"?kickKns:type==="ducktrig"?duckKns:[];}
+  function valeurs(type,raw){var p={};parametres(type).forEach(function(k){p[k[0]]=B(raw&&raw[k[0]],k[2],k[3],k[4]);});return p;}
+  function normaliser(m){var p=valeurs(m.type,m.p);if(!m.p)m.p={};Object.keys(p).forEach(function(k){m.p[k]=p[k];});}
+  function notifier(m){if(typeof EUR_KICKBASS_UI!=="undefined")EUR_KICKBASS_UI.rafraichir(m);}
+  function profilKick(raw){
+    var p=valeurs("kicklab",raw),d=p.dec/1000,a=Math.min(p.fall/1000,d*.45),b=Math.min(a+p.settle/1000,d*.85);
+    return {duree:d,points:[[0,p.tune*Math.pow(2,p.sweep/12)],[a,p.tune*Math.pow(2,p.knee/12)],[b,p.tune],[d,p.tune]]};
+  }
+  /* Le graphe et le DSP emploient exactement les mêmes sommets de la courbe.
+     Segments linéaires : annuler un roulement en plein retour reste possible
+     même sans cancelAndHoldAtTime, sans faire sauter le gain avant son instant. */
+  function profilDuck(raw,depart){
+    var p=valeurs("ducktrig",raw),a=p.attack/1000,h=p.hold/1000,r=p.release/1000,g=Math.pow(10,-p.depth/20);
+    var pts=[[0,B(depart,0,1,1)],[a,g]];
+    if(h>0)pts.push([a+h,g]);
+    for(var i=1;i<=32;i++)pts.push([a+h+r*i/32,g+(1-g)*Math.pow(i/32,p.shape)]);
+    return {duree:a+h+r,points:pts};
+  }
+  function lirePoints(pts,t){
+    if(t<=pts[0][0])return pts[0][1];
+    for(var i=1;i<pts.length;i++)if(t<=pts[i][0]){
+      var a=pts[i-1],b=pts[i];return a[1]+(b[1]-a[1])*(t-a[0])/(b[0]-a[0]);
+    }
+    return pts[pts.length-1][1];
+  }
+  var bruits=new Map();
+  function clic(){
+    var sr=ctx.sampleRate;if(bruits.has(sr))return bruits.get(sr);
+    var n=Math.ceil(sr*.025),b=ctx.createBuffer(1,n,sr),d=b.getChannelData(0),seed=286,avant=0;
+    /* Petit bruit original déterministe. Aucun tirage Math.random : les
+       probabilités des séquenceurs voisins restent rigoureusement inchangées. */
+    for(var i=0;i<n;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;var x=seed/2147483648-1;d[i]=(x-avant)*.5;avant=x;}
+    if(bruits.size>=4)bruits.delete(bruits.keys().next().value);bruits.set(sr,b);return b;
+  }
+  function creerKick(m){
+    normaliser(m);var out=eurGain(1),voct=eurGain(1200),hit=eurConst(0),pool=EUR_RAVE.panier();
+    var dernier=null,barriere=0,ferme=false;
+    m.raveVoix=pool;
+    m.maj=function(){normaliser(m);notifier(m);};
+    function arreter(t){pool.couper(t);hit.offset.cancelScheduledValues(t);hit.offset.setValueAtTime(0,t);dernier=null;barriere=t;}
+    m.arreter=function(){if(!ferme)arreter(maintenantAudio());};
+    m.recevoir=function(t,e){
+      if(ferme||!Number.isFinite(t)||t<0||t<barriere)return null;
+      if(e==="rst"){arreter(t);return null;}
+      if(e!=="trig"||(dernier!==null&&t<=dernier+.0000001))return null;
+      dernier=t;var p=valeurs("kicklab",m.p);if(p.niv<=0)return null;
+      pool.couper(t);
+      var profil=profilKick(p),d=profil.duree,o=ctx.createOscillator(),pre=eurGain(1+p.drive*28),sh=ctx.createWaveShaper();
+      var lp=ctx.createBiquadFilter(),body=eurGain(0),g=eurGain(0),attaque=ctx.createBufferSource(),ag=eurGain(0);
+      o.type="sine";o.frequency.setValueAtTime(profil.points[0][1],t);
+      for(var i=1;i<3;i++)o.frequency.exponentialRampToValueAtTime(profil.points[i][1],t+profil.points[i][0]);
+      voct.connect(o.detune);
+      sh.curve=eurCourbe(function(x){return Math.tanh(x*1.6)/Math.tanh(1.6);});sh.oversample="4x";
+      lp.type="lowpass";lp.frequency.value=Math.min(ctx.sampleRate*.45,450*Math.pow(25,p.tone));lp.Q.value=.55;
+      /* Corps et attaque ont des gains indépendants avant la fenêtre commune,
+         utilisée uniquement pour couper proprement la frappe précédente. */
+      body.gain.setValueAtTime(0,t);body.gain.linearRampToValueAtTime(.78,t+.0015);
+      body.gain.setValueAtTime(.65,t+Math.min(.018,d*.25));body.gain.exponentialRampToValueAtTime(.00001,t+d);
+      attaque.buffer=clic();var ad=p.clickdec/1000;
+      ag.gain.setValueAtTime(0,t);ag.gain.linearRampToValueAtTime(p.click*.22,t+.0005);
+      if(p.click>0)ag.gain.exponentialRampToValueAtTime(.00001,t+ad);ag.gain.setValueAtTime(0,t+ad+.001);
+      o.connect(pre);pre.connect(sh);sh.connect(lp);lp.connect(body);body.connect(g);attaque.connect(ag);ag.connect(g);g.connect(out);
+      g.gain.setValueAtTime(p.niv,t);g.gain.setValueAtTime(p.niv,t+d);g.gain.linearRampToValueAtTime(0,t+d+.002);
+      o.start(t);attaque.start(t);o.stop(t+d+.004);attaque.stop(t+ad+.002);
+      /* Le panier arrête LES DEUX sources, y compris une attaque programmée
+         dans le futur au moment où STOP ou un recâblage arrive. */
+      var source={stop:function(at){try{o.stop(at);}catch(ignore){}try{attaque.stop(at);}catch(ignore){}}};
+      Object.defineProperty(source,"onended",{set:function(fn){o.onended=function(){try{voct.disconnect(o.detune);}catch(ignore){}fn();};}});
+      pool.ajouter(source,g,t,t+d+.004,[o,pre,sh,lp,body,g,attaque,ag]);
+      eurPorte(hit,t,.001);return ["hit"];
+    };
+    return {e:{trig:eurGain(1),rst:eurGain(1),voct:voct},s:{out:out,hit:hit},detruire:function(){
+      ferme=true;pool.detruire();try{hit.stop();}catch(ignore){}try{voct.disconnect();}catch(ignore){}
+    }};
+  }
+  function creerDuck(m){
+    normaliser(m);var entree=eurGain(1),out=eurGain(0),cv=eurConst(1);entree.connect(out);cv.connect(out.gain);
+    var historique=[],dernier=null,barriere=0,ferme=false;
+    function valeur(t){for(var i=historique.length-1;i>=0;i--)if(historique[i].t<=t)return lirePoints(historique[i].pts,t-historique[i].t);return 1;}
+    function retenir(t,pts){
+      historique=historique.filter(function(x){return x.t<t;});historique.push({t:t,pts:pts});
+      /* Garder deux secondes hors ligne couvre aussi les triggers du look-ahead
+         annulés par STOP avant leur date, sans conserver tout le morceau. */
+      var avant=typeof ctx.startRendering==="function"?t-2:ctx.currentTime;
+      while(historique.length>1&&historique[1].t<=avant)historique.shift();
+    }
+    function programmer(t,pts){
+      var v=valeur(t),p=cv.offset;
+      if(p.cancelAndHoldAtTime)p.cancelAndHoldAtTime(t);
+      else{p.cancelScheduledValues(t);if(historique.length)p.linearRampToValueAtTime(v,t);}
+      p.setValueAtTime(v,t);
+      for(var i=1;i<pts.length;i++)p.linearRampToValueAtTime(pts[i][1],t+pts[i][0]);
+      retenir(t,pts);
+    }
+    function arreter(t){programmer(t,[[0,valeur(t)],[.003,1]]);dernier=null;barriere=t;}
+    m.maj=function(){normaliser(m);notifier(m);};
+    m.arreter=function(){if(!ferme)arreter(maintenantAudio());};
+    m.recevoir=function(t,e){
+      if(ferme||!Number.isFinite(t)||t<0||t<barriere)return null;
+      if(e==="rst"){arreter(t);return null;}
+      if(e!=="trig"||(dernier!==null&&t<=dernier+.0000001))return null;
+      dernier=t;programmer(t,profilDuck(m.p,valeur(t)).points);return null;
+    };
+    /* Lecture de la courbe programmée, jamais une prétendue mesure sonore. */
+    m.kbDuck={valeur:valeur,historique:function(){return historique.length;}};
+    return {e:{in:entree,trig:eurGain(1),rst:eurGain(1)},s:{out:out,env:cv},detruire:function(){
+      ferme=true;historique=[];try{cv.stop();}catch(ignore){}try{cv.disconnect();out.disconnect();entree.disconnect();}catch(ignore){}
+    }};
+  }
+  EUR_CAT.kicklab={nom:"KICK LAB",hp:132,sombre:true,fam:"perc",res:"Kick accordable, courbe de hauteur en deux segments et attaque séparée. HIT pilote DUCK TRIG.",
+    kns:kickKns,jacks:[["trig","TRIG",0],["rst","RST",0],["voct","V/OCT",0],["out","OUT",1],["hit","HIT",1]],creer:creerKick};
+  EUR_CAT.ducktrig={nom:"DUCK TRIG",hp:128,sombre:true,fam:"effet",res:"Baisse de volume stéréo au déclenchement du kick : profondeur, maintien et retour réglables. Pas de détection audio.",
+    kns:duckKns,jacks:[["in","IN",0],["trig","TRIG",0],["rst","RST",0],["out","OUT",1],["env","GAIN CV",1]],creer:creerDuck};
+  EUR_ORDRE.push("kicklab","ducktrig");
+  return {parametres:parametres,valeurs:valeurs,profilKick:profilKick,profilDuck:profilDuck,lirePoints:lirePoints};
+})();
+/* v286 : atelier tactile dans le Focus. Dessins des réglages uniquement, sans
+   animation ni analyseur. La courbe ne prétend pas mesurer le son ou le CV. */
+var EUR_KICKBASS_UI=(function(){
+  "use strict";
+  var K=EUR_KICKBASS,vues=[];
+  function el(t,c,txt){var e=document.createElement(t);if(c)e.className=c;if(txt!==undefined)e.textContent=txt;return e;}
+  function fmt(v){return String(Math.round(v*100)/100).replace(".",",");}
+  function pas(k){return k[0]==="tune"||k[0]==="sweep"||k[0]==="knee"?.1:k[3]<=4?.01:1;}
+  function bouton(p,txt,fn,c){var b=el("button",c,txt);b.type="button";b.addEventListener("click",function(e){e.stopPropagation();fn();});p.appendChild(b);return b;}
+  var sons=[
+    ["PSY COURT",{tune:55,dec:105,sweep:29,knee:0,fall:12,settle:22,drive:.04,tone:.4,click:.2,clickdec:4}],
+    ["GABBER LONG",{tune:49,dec:280,sweep:20,knee:5,fall:14,settle:100,drive:.77,tone:.55,click:.3,clickdec:7}],
+    ["UPTEMPO SEC",{tune:62,dec:88,sweep:42,knee:8,fall:6,settle:30,drive:.9,tone:.76,click:.48,clickdec:3}]
+  ];
+  var baisses=[
+    ["DISCRET",{depth:6,attack:4,hold:8,release:90,shape:1}],
+    ["PSY SERRÉ",{depth:22,attack:2,hold:15,release:95,shape:1.8}],
+    ["POMPAGE LONG",{depth:28,attack:3,hold:35,release:320,shape:2.2}]
+  ];
+  function tracer(canvas,m){
+    var kick=m.type==="kicklab",p=kick?K.profilKick(m.p):K.profilDuck(m.p),g=canvas.getContext("2d");if(!g)return;
+    var w=canvas.width,h=canvas.height,x0=16,y0=12,w2=w-32,h2=h-24;
+    g.clearRect(0,0,w,h);g.fillStyle="#0b1118";g.fillRect(0,0,w,h);
+    g.strokeStyle="#253443";g.lineWidth=1;
+    for(var i=0;i<=4;i++){g.beginPath();g.moveTo(x0+i*w2/4,y0);g.lineTo(x0+i*w2/4,h-y0);g.stroke();g.beginPath();g.moveTo(x0,y0+i*h2/4);g.lineTo(w-x0,y0+i*h2/4);g.stroke();}
+    var max=kick?Math.max.apply(null,p.points.map(function(x){return x[1];}))*1.1:1;
+    function y(v){return y0+h2*(1-(kick?Math.log(Math.max(15,v)/15)/Math.log(max/15):v));}
+    g.strokeStyle=kick?"#f3bc73":"#67d9d0";g.lineWidth=3;g.beginPath();
+    if(kick){
+      /* Le DSP fait des rampes exponentielles en Hz : sur notre axe logarithmique
+         les sommets sont reliés par des droites. */
+      p.points.forEach(function(a,i){var x=x0+a[0]/p.duree*w2;if(i)g.lineTo(x,y(a[1]));else g.moveTo(x,y(a[1]));});
+    }else p.points.forEach(function(a,i){var x=x0+a[0]/p.duree*w2;if(i)g.lineTo(x,y(a[1]));else g.moveTo(x,y(a[1]));});
+    g.stroke();
+    if(kick){g.fillStyle="#ffe3b5";p.points.forEach(function(a){g.beginPath();g.arc(x0+a[0]/p.duree*w2,y(a[1]),4,0,Math.PI*2);g.fill();});}
+  }
+  function rafraichir(m){vues=vues.filter(function(v){return v.el.isConnected && EUR.mods.indexOf(v.m)>=0;});vues.forEach(function(v){if(v.m===m)v.maj();});}
+  function interfaceModule(parent,m,grand){
+    var kick=m.type==="kicklab",root=el("section","kb-atelier "+(grand?"kb-grand":"kb-mini")+(kick?" kb-kick":" kb-duck"));
+    root.dataset.module=m.id;parent.appendChild(root);var champs={},message=null,destruction=false;
+    function valide(){return !destruction && root.isConnected && EUR.mods.indexOf(m)>=0;}
+    var titre=el("p","kb-sur",kick?"COURBE DE HAUTEUR":"GAIN APRÈS LE KICK");root.appendChild(titre);
+    var cadre=grand?el("div","kb-dessin"):bouton(root,"",function(){if(valide())EUR_FOCUS.ouvrir(m.id);},"kb-dessin kb-ouvrir");
+    if(grand)root.appendChild(cadre);else cadre.setAttribute("aria-label","Ouvrir l'atelier "+EUR_CAT[m.type].nom);
+    var canvas=el("canvas","kb-courbe");canvas.width=grand?640:280;canvas.height=grand?180:150;canvas.setAttribute("aria-hidden","true");cadre.appendChild(canvas);
+    var resume=el("output","kb-resume");root.appendChild(resume);
+    function mettre(k,v){
+      if(!valide()||!Number.isFinite(v))return;
+      v=Math.round(Math.max(k[2],Math.min(k[3],v))*100)/100;
+      enLissant(function(){m.p[k[0]]=v;if(m.maj)m.maj();});memEur();rafraichir(m);
+    }
+    if(grand){
+      root.appendChild(el("p","kb-explication",kick?
+        "Courbe calculée avant V/OCT, pas une mesure sonore. Les deux temps se raccourcissent si la queue est trop courte. Les changements s'appliquent aux prochaines frappes.":
+        "Courbe de gain programmée, pas un VU-mètre. Réglez la baisse puis le retour de la basse : les nouveaux réglages s'appliquent au prochain TRIG. 0 dB = aucun effet."));
+      var presets=el("div","kb-presets");root.appendChild(presets);
+      (kick?sons:baisses).forEach(function(x){bouton(presets,x[0],function(){
+        if(!valide()||!window.confirm("Appliquer « "+x[0]+" » ? Les réglages de ce module seront remplacés"+(kick?", sauf son niveau":"")+". Les câbles restent en place."))return;
+        enLissant(function(){Object.keys(x[1]).forEach(function(k){m.p[k]=x[1][k];});if(m.maj)m.maj();});memEur();rafraichir(m);
+      },"kb-preset");});
+      var controles=el("div","kb-controles");root.appendChild(controles);
+      K.parametres(m.type).forEach(function(k){
+        var l=el("div","kb-reglage"),label=el("span","kb-label",k[1]);l.appendChild(label);controles.appendChild(l);
+        var slider=el("input","kb-range");slider.type="range";slider.min=k[2];slider.max=k[3];slider.step=pas(k);slider.dataset.param=k[0];slider.setAttribute("aria-label",EUR_CAT[m.type].nom+" "+k[1]);
+        slider.addEventListener("input",function(){mettre(k,+slider.value);});l.appendChild(slider);
+        var precision=el("div","kb-precision");l.appendChild(precision);
+        var moins=bouton(precision,"−",function(){mettre(k,m.p[k[0]]-pas(k));},"kb-moins");moins.setAttribute("aria-label","Diminuer "+k[1]);
+        var nombre=el("input","kb-nombre");nombre.type="text";nombre.inputMode="decimal";nombre.dataset.nombre=k[0];nombre.setAttribute("aria-label","Valeur précise "+k[1]);
+        nombre.addEventListener("change",function(){
+          var t=nombre.value.trim().replace(",",".");
+          if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(t)||!Number.isFinite(Number(t))){nombre.setAttribute("aria-invalid","true");message.textContent="Saisie incorrecte : le réglage précédent est conservé.";return;}
+          nombre.removeAttribute("aria-invalid");message.textContent="";mettre(k,Number(t));nombre.value=fmt(m.p[k[0]]);
+        });precision.appendChild(nombre);
+        var plus=bouton(precision,"+",function(){mettre(k,m.p[k[0]]+pas(k));},"kb-plus");plus.setAttribute("aria-label","Augmenter "+k[1]);
+        champs[k[0]]={slider:slider,nombre:nombre};
+      });
+      message=el("p","kb-message");message.setAttribute("role","status");root.appendChild(message);
+      root.appendChild(el("p","kb-cablage",kick?
+        "CÂBLAGE : séquenceur → TRIG ; OUT → mixeur ; HIT → TRIG de DUCK TRIG. Pour un kick mélodique : MÉLO 32 CV → V/OCT, GATE → TRIG, FOND = 55 Hz. Le CV reste continu : la queue suit aussi les changements de hauteur.":
+        "CÂBLAGE : sortie de basse → IN ; OUT → mixeur ou VCA de groupe ; HIT de KICK LAB (ou porte du séquenceur) → TRIG. GAIN CV sort de 0 à 1 V pour un autre VCA réglé à gain 0. IN/OUT conservent la stéréo. STOP/RST annulent les baisses futures et rétablissent le gain en 3 ms."));
+    }
+    function maj(){
+      var p=K.valeurs(m.type,m.p);Object.keys(champs).forEach(function(k){
+        var c=champs[k];c.slider.value=p[k];c.slider.setAttribute("aria-valuetext",fmt(p[k]));
+        if(document.activeElement!==c.nombre){c.nombre.value=fmt(p[k]);c.nombre.removeAttribute("aria-invalid");}
+      });
+      if(kick){var profil=K.profilKick(p);resume.textContent=fmt(p.tune)+" Hz · "+fmt(p.dec)+" ms"+(grand?" · descente réelle "+fmt(profil.points[1][0]*1000)+" + "+fmt((profil.points[2][0]-profil.points[1][0])*1000)+" ms":"");}
+      else resume.textContent="−"+fmt(p.depth)+" dB · retour "+fmt(p.release)+" ms";
+      tracer(canvas,m);
+    }
+    /* eurDessiner remplace ses miniatures sans appeler detruire : purger les
+       vues détachées à chaque nouvelle inscription, pas seulement au réglage. */
+    var v={el:root,m:m,maj:maj};vues=vues.filter(function(x){return x.el.isConnected && EUR.mods.indexOf(x.m)>=0;});vues.push(v);maj();
+    return {rafraichir:maj,detruire:function(){destruction=true;vues=vues.filter(function(x){return x!==v;});}};
+  }
+  ["kicklab","ducktrig"].forEach(function(type){EUR_CAT[type].interface=interfaceModule;EUR_CAT[type].focusLabel="SCULPTEZ LE KICK ET LA PLACE DE LA BASSE";EUR_CAT[type].focusValeur="ATELIER";});
+  return {rafraichir:rafraichir};
+})();
+/* v286 : copies indépendantes, les 50 anciens montages restent inchangés.
+   Le duck n'agit que sur la basse avant son VCA de scène. */
+(function montagesAtelier(){
+  "use strict";
+  function faire(source,id,nom,psy){
+    var p=JSON.parse(JSON.stringify(EUR_MONTAGES.find(function(p){return p.id===source;})));
+    p.id=id;p.nom=nom;p.fam="performance";
+    p.res=psy?"Atelier kick/basse : kick court, trois notes de basse entre les kicks et baisse de gain synchronisée. FOCUS dessine les deux courbes.":
+      "Atelier hardcore : kick accordé par un MÉLO 32 dédié, basse en contretemps, duck et fills. FOND 55 Hz fait correspondre V/OCT aux notes MIDI.";
+    var r=p.reperes,k=r.kick,du=p.mods.length;
+    p.mods[k]=["kicklab",psy?{tune:55,dec:105,sweep:29,knee:0,fall:12,settle:22,drive:.04,tone:.4,click:.2,clickdec:4,niv:.70}:
+      {tune:55,dec:205,sweep:26,knee:4,fall:12,settle:75,drive:.73,tone:.5,click:.3,clickdec:6,niv:.69}];
+    r.duck=du;p.mods.push(["ducktrig",psy?{depth:22,attack:2,hold:15,release:95,shape:1.8}:{depth:18,attack:3,hold:20,release:150,shape:1.5}]);p.rangees.push(1);
+    var ancien=p.cables.find(function(c){return c[0]===r.basse && c[1]==="out";});
+    var vers=[ancien[2],ancien[3]];ancien[2]=du;ancien[3]="in";
+    p.cables.push([du,"out",vers[0],vers[1]],[k,"hit",du,"trig"]);
+    if(!psy){
+      /* Un troisième séquenceur joue les notes ET le rythme du kick. Sa sortie
+         HIT déclenche le duck, donc même un silence de note reste cohérent. */
+      var seq=p.mods.length,notes={len:32,dir:0,root:9,scale:1,trans:0,glide:0,mute:0};
+      for(var i=1;i<=32;i++){notes["n"+i]=i<=16?33:i<=24?36:31;notes["on"+i]=i%4===1?1:0;notes["a"+i]=0;notes["s"+i]=0;notes["p"+i]=100;}
+      r.seqKick=seq;p.mods.push(["melo32",notes]);p.rangees.push(0);
+      p.cables=p.cables.filter(function(c){return !(c[2]===k&&c[3]==="trig");});
+      p.cables.push([r.scenes,"clk",seq,"clk"],[seq,"cv",k,"voct"],[seq,"gate",k,"trig"]);
+    }
+    var d=EUR_PERFORMANCE.vide();
+    function macro(i,nom,liens){d.commandes[i]={nom:nom,valeur:0,cibles:liens.map(function(l){
+      var idx=r[l[0]],mod=p.mods[idx],def=EUR_CAT[mod[0]].kns.find(function(k){return k[0]===l[1];});
+      return {index:idx,type:mod[0],param:l[1],min:mod[1][l[1]]===undefined?def[4]:mod[1][l[1]],max:l[2]};
+    })};}
+    ["BATTERIE","BASSE","MÉLODIE","EFFETS"].forEach(function(n,i){var param="abcd"[i];d.commandes[i]={nom:n,valeur:1,cibles:[{index:r.mixGeneral,type:"mix4",param:param,min:0,max:p.mods[r.mixGeneral][1][param]}]};});
+    macro(4,"CORPS DU KICK",[["kick","drive",psy?.4:.92],["kick","tone",.72]]);
+    macro(5,"QUEUE DU KICK",[["kick","dec",psy?185:320],["kick","settle",psy?40:120]]);
+    macro(6,"PLACE POUR LE KICK",[["duck","depth",32],["duck","release",psy?155:230]]);
+    macro(7,"COULEUR BASSE",[["basse","cut",.48],["basse","drive",.4]]);p.performance=d;
+    p.variations={};p.mods.forEach(function(x,i){
+      if(x[0]!=="drum32")return;var m={type:x[0],p:EUR_CAT[x[0]].kns.reduce(function(a,k){a[k[0]]=x[1][k[0]]===undefined?k[4]:x[1][k[0]];return a;},{})};
+      EUR_VARIATIONS.preparerB(m);m.variation.graine=286;EUR_VARIATIONS.generer(m);m.variation.periode=4;p.variations[i]=EUR_VARIATIONS.copier(m,m.variation);
+    });
+    return p;
+  }
+  EUR_MONTAGES.push(faire("rave-psy","atelier-psy","PSY · KICK ET BASSE",true));
+  EUR_MONTAGES.push(faire("rave-gabber","atelier-gabber","GABBER · KICK ACCORDÉ",false));
 })();
 /* ===================== BEHRINGER TD-3 =====================
    La 303 remise en circuit. Tout son caractère tient à trois choses : un

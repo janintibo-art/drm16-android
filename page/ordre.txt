@@ -43,6 +43,7 @@ css/390-styles-rave.css
 css/400-break32-bibliotheque.css
 css/410-performance-eurorack.css
 css/420-variations-rythmiques.css
+css/430-atelier-kick-basse.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -169,6 +170,9 @@ js/468-montages-performance.js
 js/469-variations-rythmiques.js
 js/471-variations-interface.js
 js/472-montages-variations.js
+js/473-atelier-kick-basse.js
+js/474-atelier-interface.js
+js/475-montages-atelier.js
 js/460-behringer-td-3.js
 js/470-machine-d-archive.js
 js/480-roland-tr-1000.js

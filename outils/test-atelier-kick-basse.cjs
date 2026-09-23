@@ -1,0 +1,57 @@
+/* v286 — Les vraies définitions des modules, API audio simulée pour les dates.
+   Les courbes et le son réels sont contrôlés dans test-atelier-kick-basse.py. */
+'use strict';
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('node:assert/strict');
+const R=path.resolve(__dirname,'..');let total=0;
+function test(n,fn){fn();total++;console.log('ok '+n);}
+const plain=x=>JSON.parse(JSON.stringify(x));
+function pres(a,b,tol=1e-7){assert.ok(Math.abs(a-b)<=tol,`${a} != ${b}`);}
+function env(hold=true){
+ const nodes=[];
+ class Param{
+  constructor(v=0){this.value=v;this.ev=[];}
+  setValueAtTime(v,t){assert.ok(Number.isFinite(v)&&Number.isFinite(t)&&t>=0);this.ev.push({v,t,type:'set'});}
+  linearRampToValueAtTime(v,t){this.setValueAtTime(v,t);this.ev.at(-1).type='linear';}
+  exponentialRampToValueAtTime(v,t){assert.ok(v>0);this.setValueAtTime(v,t);this.ev.at(-1).type='exp';}
+  cancelScheduledValues(t){this.ev=this.ev.filter(e=>e.t<t);}
+ }
+ if(hold)Param.prototype.cancelAndHoldAtTime=function(t){this.cancelScheduledValues(t);};
+ function node(kind){const n={kind,type:kind,links:[],gain:new Param(1),offset:new Param(),frequency:new Param(440),detune:new Param(),Q:new Param(),
+  connect(p){this.links.push(p);return p;},disconnect(p){this.links=p?this.links.filter(x=>x!==p):[];},start(t=0){this.debut=t;},stop(t=0){this.fin=t;}};nodes.push(n);return n;}
+ const ctx={currentTime:0,sampleRate:48000,createGain:()=>node('gain'),createOscillator:()=>node('osc'),createConstantSource:()=>node('const'),createWaveShaper:()=>node('shape'),createBiquadFilter:()=>node('filter'),createBufferSource:()=>node('buffer'),
+  createBuffer(c,n,s){const d=Array.from({length:c},()=>new Float32Array(n));return {sampleRate:s,length:n,duration:n/s,numberOfChannels:c,getChannelData:i=>d[i]};}};
+ const b={ctx,console,EUR_CAT:{},EUR_ORDRE:[],Math:Object.create(Math),Number,Float32Array,Map,maintenantAudio:()=>ctx.currentTime,
+  eurGain:v=>{const n=ctx.createGain();n.gain.value=v;return n;},eurConst:v=>{const n=ctx.createConstantSource();n.offset.value=v;n.start();return n;},
+  eurCourbe:f=>Float32Array.from({length:1025},(_,i)=>f(i/512-1)),eurPorte(n,t,d){n.offset.setValueAtTime(1,t);n.offset.setValueAtTime(0,t+d);}};
+ vm.createContext(b);for(const f of ['461-voix-rave-eurorack.js','473-atelier-kick-basse.js'])vm.runInContext(fs.readFileSync(path.join(R,'page/js',f),'utf8'),b);
+ function mod(type,ps={}){const m={id:1,type,p:{}};b.EUR_CAT[type].kns.forEach(k=>m.p[k[0]]=k[4]);Object.assign(m.p,ps);m.io=b.EUR_CAT[type].creer(m);return m;}
+ return {b,ctx,nodes,mod,k:b.EUR_KICKBASS,oscs:()=>nodes.filter(n=>n.kind==='osc'),clicks:()=>nodes.filter(n=>n.kind==='buffer')};
+}
+test('deux types ajoutés sans modifier CORE KICK/BASS RAVE',()=>{const e=env();assert.deepEqual(plain(e.b.EUR_ORDRE),['corekick','bassrave','kicklab','ducktrig']);for(const type of ['kicklab','ducktrig']){const d=e.b.EUR_CAT[type],m=e.mod(type);assert.deepEqual(Object.keys(m.io.e).sort(),plain(d.jacks.filter(x=>!x[2]).map(x=>x[0]).sort()));assert.deepEqual(Object.keys(m.io.s).sort(),plain(d.jacks.filter(x=>x[2]).map(x=>x[0]).sort()));assert.equal(new Set(d.kns.map(x=>x[0])).size,d.kns.length);}});
+test('paramètres non finis et manquants : valeurs sûres',()=>{const e=env(),a=e.mod('kicklab',{tune:NaN,drive:Infinity,dec:-4}),b=e.mod('ducktrig',{depth:99,attack:null});assert.deepEqual([a.p.tune,a.p.drive,a.p.dec,b.p.depth,b.p.attack],[55,.15,40,48,3]);});
+test('toutes les combinaisons extrêmes du profil de hauteur',()=>{const e=env();for(const dec of [40,900])for(const tune of [30,100])for(const sweep of [0,48])for(const knee of [-12,12])for(const fall of [2,90])for(const settle of [2,300]){const p=e.k.profilKick({dec,tune,sweep,knee,fall,settle});pres(p.duree,dec/1000);pres(p.points.at(-1)[1],tune);for(let i=1;i<p.points.length;i++){assert.ok(p.points[i][0]>p.points[i-1][0]);assert.ok(p.points[i][1]>0&&p.points[i][1]<=1600);}}});
+test('coude et départ en demi-tons, pas en fréquence additive',()=>{const e=env(),p=e.k.profilKick({tune:55,sweep:24,knee:12,dec:500,fall:20,settle:80});assert.deepEqual(plain(p.points),[[0,220],[.02,110],[.1,55],[.5,55]]);});
+test('KICK LAB branche réellement V/OCT sur la hauteur de chaque voix',()=>{const e=env(),m=e.mod('kicklab');m.recevoir(1,'trig');m.recevoir(1.2,'trig');assert.equal(m.io.e.voct.gain.value,1200);for(const o of e.oscs())assert.ok(m.io.e.voct.links.includes(o.detune));});
+test('courbe audio conforme au profil graphique',()=>{const e=env(),m=e.mod('kicklab',{tune:62,sweep:32,knee:5});m.recevoir(1,'trig');const p=e.k.profilKick(m.p),events=e.oscs()[0].frequency.ev;assert.equal(events.length,3);events.forEach((x,i)=>{pres(x.t,1+p.points[i][0]);pres(x.v,p.points[i][1]);});});
+test('HIT seulement sur les frappes acceptées et audibles',()=>{const e=env(),m=e.mod('kicklab');assert.deepEqual(plain(m.recevoir(1,'trig')),['hit']);for(const t of [1,.9,NaN,Infinity,-1])assert.equal(m.recevoir(t,'trig'),null);assert.equal(m.recevoir(2,'autre'),null);m.p.niv=0;assert.equal(m.recevoir(2,'trig'),null);assert.equal(e.oscs().length,1);});
+test('les roulements coupent le corps ET son attaque',()=>{const e=env(),m=e.mod('kicklab',{dec:900});m.recevoir(1,'trig');m.recevoir(1.015,'trig');pres(e.oscs()[0].fin,1.019);pres(e.clicks()[0].fin,1.019);assert.equal(e.oscs().length,2);});
+test('STOP annule les deux sources même avant leur départ',()=>{const e=env(),m=e.mod('kicklab');m.recevoir(1,'trig');e.ctx.currentTime=.8;m.arreter();assert.equal(e.oscs()[0].fin,.8);assert.equal(e.clicks()[0].fin,.8);assert.ok(m.io.s.hit.offset.ev.every(e=>e.t<1));});
+test('RST autorise le déclenchement au même instant mais refuse les anciennes dates',()=>{const e=env(),m=e.mod('kicklab');m.recevoir(1,'trig');m.recevoir(2,'rst');assert.equal(m.recevoir(1.9,'trig'),null);assert.deepEqual(plain(m.recevoir(2,'trig')),['hit']);});
+test('destruction interdit de nouveaux sons et ferme le panier',()=>{const e=env(),m=e.mod('kicklab');m.recevoir(1,'trig');m.io.detruire();assert.equal(m.recevoir(2,'trig'),null);assert.equal(e.oscs().length,1);assert.equal(m.raveVoix.nombre(),0);assert.equal(m.raveVoix.actif(),false);});
+test('les liaisons CV par voix sont libérées à la fin',()=>{const e=env(),m=e.mod('kicklab');m.recevoir(1,'trig');e.oscs()[0].onended();assert.equal(m.io.e.voct.links.length,0);assert.equal(m.raveVoix.nombre(),0);});
+test('bruit original déterministe sans toucher aux probabilités voisines',()=>{const e=env();let calls=0;e.b.Math.random=()=>{calls++;return .5;};const m=e.mod('kicklab');m.recevoir(1,'trig');m.recevoir(2,'trig');assert.equal(calls,0);assert.equal(e.clicks()[0].buffer,e.clicks()[1].buffer);assert.ok(e.clicks()[0].buffer.getChannelData(0).every(x=>Number.isFinite(x)&&Math.abs(x)<=1));});
+test('saturation symétrique, zéro reste zéro',()=>{const e=env(),m=e.mod('kicklab');m.recevoir(1,'trig');const c=e.nodes.find(n=>n.curve).curve;assert.equal(c[512],0);for(let i=0;i<512;i++)pres(c[i],-c[1024-i]);});
+test('les nouvelles valeurs de timbre ne réécrivent pas une frappe passée',()=>{const e=env(),m=e.mod('kicklab');m.recevoir(1,'trig');const a=JSON.stringify(e.oscs()[0].frequency.ev);m.p.tune=70;m.maj();assert.equal(JSON.stringify(e.oscs()[0].frequency.ev),a);m.recevoir(2,'trig');pres(e.oscs()[1].frequency.ev.at(-1).v,70);});
+test('duck : 0 dB est transparent pendant toute la courbe',()=>{const e=env(),p=e.k.profilDuck({depth:0},1);assert.ok(p.points.every(x=>x[1]===1));});
+test('duck : profondeur en décibels, maintien puis retour à un',()=>{const e=env(),p=e.k.profilDuck({depth:20,attack:5,hold:40,release:100,shape:1},1);pres(p.points[1][1],.1);pres(p.points[2][0],.045);pres(p.duree,.145);pres(e.k.lirePoints(p.points,.095),.55);pres(p.points.at(-1)[1],1);});
+test('formes de retour bornées, monotones et sans dépassement',()=>{const e=env();for(const depth of [0,6,48])for(const shape of [.25,1,4])for(const hold of [0,160]){const p=e.k.profilDuck({depth,shape,hold},1);let previous=-Infinity;for(const x of p.points.slice(2)){assert.ok(x[1]>=previous&&x[1]>=0&&x[1]<=1);previous=x[1];}assert.equal(p.points.at(-1)[1],1);}});
+test('duck stéréo : aucun splitter/merger ni sommation de canaux',()=>{const e=env(),m=e.mod('ducktrig');assert.deepEqual(e.nodes.map(n=>n.kind).sort(),['const','gain','gain','gain','gain']);assert.equal(m.io.e.in.links[0],m.io.s.out);assert.equal(m.io.s.out.gain.value,0);assert.ok(m.io.s.env.links.includes(m.io.s.out.gain));});
+test('duck : chaque sommet est programmé à sa vraie date audio',()=>{const e=env(),m=e.mod('ducktrig');m.recevoir(1,'trig');const p=e.k.profilDuck(m.p,1),ev=m.io.s.env.offset.ev;assert.equal(ev.length,p.points.length);ev.forEach((x,i)=>{pres(x.t,1+p.points[i][0]);pres(x.v,p.points[i][1]);});});
+for(const hold of [true,false])test('retrigger au milieu du retour, avec cancelAndHold='+hold,()=>{const e=env(hold),m=e.mod('ducktrig',{attack:5,hold:0,release:200,shape:1,depth:20});m.recevoir(1,'trig');const v=m.kbDuck.valeur(1.1);m.recevoir(1.1,'trig');pres(m.kbDuck.valeur(1.1),v);pres(m.io.s.env.offset.ev.filter(e=>e.t===1.1).at(-1).v,v);pres(m.kbDuck.valeur(1.105),.1);});
+test('STOP pendant un maintien annule les creux à venir et remonte en 3 ms',()=>{const e=env(),m=e.mod('ducktrig',{attack:2,hold:100,depth:30});m.recevoir(1,'trig');m.recevoir(1.5,'trig');e.ctx.currentTime=1.05;m.arreter();assert.ok(m.io.s.env.offset.ev.every(e=>e.t<=1.053));pres(m.kbDuck.valeur(1.0531),1);});
+test('duck rejette événements invalides, doublons et dates antérieures à RST',()=>{const e=env(),m=e.mod('ducktrig');for(const t of [-1,NaN,Infinity])m.recevoir(t,'trig');assert.equal(m.io.s.env.offset.ev.length,0);m.recevoir(1,'trig');const n=m.io.s.env.offset.ev.length;m.recevoir(1,'trig');assert.equal(m.io.s.env.offset.ev.length,n);m.recevoir(2,'rst');const e2=JSON.stringify(m.io.s.env.offset.ev);m.recevoir(1.99,'trig');assert.equal(JSON.stringify(m.io.s.env.offset.ev),e2);m.recevoir(2,'trig');assert.ok(m.io.s.env.offset.ev.at(-1).t>2.003);});
+test('duck détruit ne conserve aucune enveloppe ni source active',()=>{const e=env(),m=e.mod('ducktrig');m.recevoir(1,'trig');m.io.detruire();const n=m.io.s.env.offset.ev.length;m.recevoir(2,'trig');assert.equal(m.io.s.env.offset.ev.length,n);assert.equal(m.kbDuck.historique(),0);assert.equal(m.io.s.env.fin,0);});
+test('programmation hors ligne : historique borné pour 1 000 frappes',()=>{const e=env();e.ctx.startRendering=()=>{};const m=e.mod('ducktrig');for(let i=0;i<1000;i++)m.recevoir(1+i*.02,'trig');assert.ok(m.kbDuck.historique()<=103);const k=e.mod('kicklab',{click:0});for(let i=0;i<1000;i++)k.recevoir(1+i*.05,'trig');assert.ok(k.raveVoix.nombre()<20);});
+test('sauvegarde JSON ne change aucun paramètre',()=>{const e=env();for(const type of ['kicklab','ducktrig']){const m=e.mod(type),d=JSON.stringify(m.p),n=e.mod(type,JSON.parse(d));assert.equal(JSON.stringify(n.p),d);}});
+test('tous les paramètres des deux ateliers sont affectables à PERFORMANCE',()=>{const e=env();e.b.EUR={mods:[],performance:null};e.b.enLissant=fn=>fn();e.b.memEur=()=>{};vm.runInContext(fs.readFileSync(path.join(R,'page/js/466-performance-eurorack.js'),'utf8'),e.b);for(const type of ['kicklab','ducktrig']){e.b.EUR_CAT[type].interface=()=>{};const m=e.mod(type);assert.equal(e.b.EUR_PERFORMANCE.parametres(m).length,e.b.EUR_CAT[type].kns.length);}});
+console.log(`ATELIER KICK/BASSE : ${total} scénarios, aucune erreur.`);

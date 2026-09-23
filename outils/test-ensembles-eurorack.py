@@ -131,7 +131,7 @@ def main():
                 structures=pg.evaluate(STRUCTURE)
                 verifie(len(structures)==8,'huit ensembles')
                 verifie(pg.evaluate('EUR_MONTAGES.filter(p=>p.fam!=="ensemble" && p.fam!=="avance" && p.fam!=="rave" && p.fam!=="performance").length')==24,'24 anciens montages conservés')
-                verifie(pg.evaluate('Object.keys(EUR_CAT).length')==109,'103 modules historiques, DRUM 32, MÉLO 32 et SCÈNES 8')
+                verifie(pg.evaluate('Object.keys(EUR_CAT).length')==111,'111 modules : catalogue historique et extensions')
                 for st in structures:
                     verifie(not st['erreurs'],st['id']+' structure '+str(st['erreurs']))
                     verifie(st['horloges']==1 and st['seq']==2 and st['mix']==2 and st['rangees'],st['id']+' structure musicale et rangées')

@@ -1,0 +1,2670 @@
+{
+  "version": 286,
+  "date": "2026-09-23",
+  "base_commit": "3e17afc8b482582ddc2428dfbb6cc471ea8a9a75",
+  "base_html_blob": "38c14287734b9dc0305a7d3f8d44f85c5afbbfcc",
+  "environnement": {
+    "navigateur": "Chromium Linux /usr/bin/chromium",
+    "chargement": "page assemblée en mémoire",
+    "stockage": "temporaire simulé",
+    "audio": "OfflineAudioContext natif Chromium pour le banc, nœuds simulés dans Node",
+    "compilations_APK_et_Windows_executees": false
+  },
+  "atelier": {
+    "scenarios_node": 28,
+    "verifications_interface": 231,
+    "verifications_audio": 34,
+    "verifications_navigateur_total": 265,
+    "formats_interface": 7,
+    "essais_signaux": 12,
+    "rendus_montages": 4,
+    "mesures_par_rendu": 13,
+    "frequences_Hz": [
+      44100,
+      48000
+    ]
+  },
+  "execution": "Les portions interface et audio du nouveau test ont été exécutées séparément. Les cinq régressions navigateur ciblées ont été exécutées ; leurs rendus complets facultatifs ont été omis lorsque --sans-audio est disponible. Aucun échec n’est transformé en réussite.",
+  "compatibilite": {
+    "base_sha": "3e17afc8b482582ddc2428dfbb6cc471ea8a9a75",
+    "definitions_historiques_identiques": 109,
+    "montages_historiques_identiques": 50,
+    "nouveaux_modules": 2,
+    "nouveaux_montages": 2
+  },
+  "controles_statiques": {
+    "assemblage_reversible": true,
+    "scripts_inline_syntaxe": true,
+    "identifiants_html_uniques": true,
+    "versions_coherentes": true,
+    "yaml_valide": true,
+    "workflow_windows_inchange": true
+  },
+  "node": [
+    {
+      "suite": "atelier-kick-basse",
+      "journal": "ok deux types ajoutés sans modifier CORE KICK/BASS RAVE\nok paramètres non finis et manquants : valeurs sûres\nok toutes les combinaisons extrêmes du profil de hauteur\nok coude et départ en demi-tons, pas en fréquence additive\nok KICK LAB branche réellement V/OCT sur la hauteur de chaque voix\nok courbe audio conforme au profil graphique\nok HIT seulement sur les frappes acceptées et audibles\nok les roulements coupent le corps ET son attaque\nok STOP annule les deux sources même avant leur départ\nok RST autorise le déclenchement au même instant mais refuse les anciennes dates\nok destruction interdit de nouveaux sons et ferme le panier\nok les liaisons CV par voix sont libérées à la fin\nok bruit original déterministe sans toucher aux probabilités voisines\nok saturation symétrique, zéro reste zéro\nok les nouvelles valeurs de timbre ne réécrivent pas une frappe passée\nok duck : 0 dB est transparent pendant toute la courbe\nok duck : profondeur en décibels, maintien puis retour à un\nok formes de retour bornées, monotones et sans dépassement\nok duck stéréo : aucun splitter/merger ni sommation de canaux\nok duck : chaque sommet est programmé à sa vraie date audio\nok retrigger au milieu du retour, avec cancelAndHold=true\nok retrigger au milieu du retour, avec cancelAndHold=false\nok STOP pendant un maintien annule les creux à venir et remonte en 3 ms\nok duck rejette événements invalides, doublons et dates antérieures à RST\nok duck détruit ne conserve aucune enveloppe ni source active\nok programmation hors ligne : historique borné pour 1 000 frappes\nok sauvegarde JSON ne change aucun paramètre\nok tous les paramètres des deux ateliers sont affectables à PERFORMANCE\nATELIER KICK/BASSE : 28 scénarios, aucune erreur.\n"
+    },
+    {
+      "suite": "rave",
+      "journal": "ok trois définitions uniques et ports déclarés\nok paramètres invalides bornés\nok banque de seize tranches originales : finie, normalisée, inversée\nok banque partagée par fréquence mais instances indépendantes\nok 32 pas avant le retour au premier\nok toutes les longueurs 1 à 32\nok raccourcir ne supprime pas les pas hors boucle\nok silence coupe la tranche sans déclencher une voix\nok muet garde avancement et notes\nok probabilités 0 et 100 sans tirage inutile\nok probabilité intermédiaire évaluée une seule fois par pas\nok ×2, ×3, ×4 programmés aux dates audio\nok répétitions suivent l’intervalle reçu précédent\nok transposition change le débit, pas les départs\nok inversion sélectionne la tranche renversée\nok dates invalides, doublées et anciennes ignorées\nok RST puis CLK au même instant repart du premier pas\nok STOP coupe les répétitions déjà programmées dans le futur\nok suppression du graphe ferme les voix et refuse les anciennes notifications\nok rendu hors ligne : pas d’historique graphique ni de panier non borné\nok CORE KICK respecte fondamentale, queue et niveau nul\nok CORE KICK ignore doublons et coupe la queue au prochain départ\nok CORE KICK : distorsion centrée sur zéro dans les deux modes\nok BASS RAVE relie V/OCT aux trois oscillateurs\nok BASS RAVE reese désaccorde seulement les dents, sub propre\nok BASS RAVE court et long gardent des dates valides\nok JSON conserve les nouveaux paramètres sans format séparé\nRAVE : 27 scénarios, 14307 assertions, 0 erreur.\n"
+    },
+    {
+      "suite": "drum32",
+      "journal": "ok schema numérique complet, prises et catalogue\nok premier CLK commence au pas 1 des quatre pistes\nok 32 longueurs : trois tours exacts, dont les pas 17 à 32\nok longueurs indépendantes 3 / 5 / 7 / 32\nok roulements de un à quatre coups : dates et tensions concordent\nok intervalle reçu suivi, CLK divisée et accélération sans temporisateur\nok sorties de pistes triées chronologiquement\nok 0 et 100 % ne tirent jamais de hasard\nok probabilité au pas entier : les quatre répétitions passent ensemble\nok les silences ne consomment pas de hasard\nok MUTE avance sans déclencher et réactive au bon pas\nok décalage modulo longueur sans déplacer les données\nok les pas hors longueur sont conservés, mais ne jouent pas\nok RST annule les tensions futures et réaligne les quatre pistes\nok STOP efface les portes et le suivi graphique\nok horloges doublées ou en arrière ignorées\nok entrée inconnue et dates non finies sans effet\nok normalisation de valeurs malformées, non finies et absentes\nok deux instances entièrement indépendantes\nok reconstruction reprend les paramètres mais pas les anciennes positions\nok historique graphique borné à 128 pas\nok aucun historique de lecture accumulé en rendu hors ligne\nok longueurs et décalages changés à chaud\nok aucun changement aux états persistants lors de 1024 CLK\nDRUM 32 : 24 scénarios, 3687 assertions, 0 erreur.\n"
+    },
+    {
+      "suite": "melo32",
+      "journal": "ok schema, catalogue et 167 paramètres numériques uniques\nok quantification exhaustive sur 12 toniques, 5 gammes, 128 notes\nok frontières d’octave et égalités : plus proche puis plus basse\nok transposition avant gamme sans réécrire les notes\nok CV exact, 0 V LA1, une octave par volt\nok noms de notes en notation MIDI standard\nok les 32 longueurs en avant et arrière, trois cycles chacune\nok aller-retour sans redoubler les extrémités et longueur 1\nok aléatoire limité à la longueur choisie\nok changer de sens repart sur la première note de ce parcours\nok raccourcir conserve les données et ignore les notes hors cycle\nok silence sans déplacement du CV ni nouvelle porte\nok probabilité 0 et 100 sans tirage aléatoire\nok probabilité du pas : seuil strict\nok les silences ne consomment pas de hasard de probabilité\nok MUTE avance, réactivation sur le bon pas\nok ACC envoyé avant GATE, aux mêmes dates audio\nok un silence accentué ne transmet pas ACC\nok première note franche, deuxième glissée en 60 ms\nok glissé limité à 80 % du dernier intervalle\nok rampe interrompue conserve la partie déjà programmée\nok aucun glissé après un silence\nok RST réaligne et annule portes programmées\nok STOP avant look-ahead garde le CV réellement courant\nok STOP pendant rampe, avec une autre note déjà planifiée\nok dates doublées, anciennes, invalides et entrées inconnues ignorées\nok normalisation bornée des valeurs malformées\nok deux instances ne partagent ni paramètres ni sorties\nok aller-retour JSON garde les 167 paramètres exactement\nok rendu hors ligne sans historique graphique accumulé\nok histoire en direct bornée au dernier CV et au look-ahead\nMÉLO 32 : 31 scénarios, 33351 assertions, 0 erreur.\n"
+    },
+    {
+      "suite": "scenes8",
+      "journal": "ok 51 paramètres numériques et 9 prises uniques\nok la page assemblée contient exactement la source\nok normalisation des paramètres malformés\nok premier CLK : scène, mesure, puis horloge\nok 16 impulsions exactement par mesure\nok durées 1, 3 et 2 mesures, puis boucle\nok longueurs 1 à 8 et durées 1 à 16\nok une seule scène émet SCÈNE à chaque nouveau cycle\nok raccourcir la boucle conserve les scènes hors longueur\nok réduire la longueur rejoint la première scène à la mesure suivante\nok quatre CV indépendants, de 0 à 1 V\nok fondu de 80 ms aux dates audio\nok fondu nul change le niveau sans rampe\nok aucune reprogrammation des CV inchangés\nok édition à chaud appliquée à la prochaine mesure\nok durée réduite : passage au prochain début de mesure\nok TENIR conserve le CLK et répète la dernière mesure\nok relâcher TENIR reprend au prochain début de mesure\nok paramètres conservés pendant TENIR\nok dates invalides, doublées, anciennes et prises inconnues ignorées\nok RST réaligne puis premier CLK, même à la même date\nok RST annule les impulsions futures\nok STOP avant le look-ahead supprime les quatre niveaux futurs\nok STOP dans un fondu conserve sa partie déjà prévue\nok une nouvelle scène peut interrompre un fondu sans saut rétroactif\nok CV continus jamais annoncés comme des déclencheurs\nok impulsions raccourcies quand CLK rapide\nok deux instances isolées\nok aller-retour JSON conserve les 51 réglages\nok hors ligne : pas de file graphique et une seule rampe par voie\nok historique direct borné au look-ahead\nSCÈNES 8 : 31 scénarios, 57833 assertions, 0 erreur.\n"
+    },
+    {
+      "suite": "break32-bibliotheque",
+      "journal": "ok grilles 8/16/32 exactes et repli sur 16\nok métadonnées clonées sans partage mutable\nok métadonnées corrompues, identifiants dangereux et bornes croisées\nok affectation conserve paramètres, autre module et tampon source\nok refus d’une source absente, jetée, trop longue ou module retiré\nok repères convertis dans la fréquence propre du fichier\nok découpe ne supprime pas les numéros hors plage\nok chaque borne arrondie reste séparée d’au moins un échantillon\nok édition transitoire puis validation : mémoire seulement à la fin\nok lecture normale sans copie, inversion exacte pour les deux canaux\nok cache inverse invalidé par repères et remplacement sous le même nom\nok tampon supprimé : silence, sans repli vers la banque synthétique\nok chargement asynchrone signalé puis source disponible\nok sources personnelles : offsets, durées et répétitions corrects\nok tranche très courte et pitch haut : enveloppe bornée, pas de fuite voisine\nok STOP et destruction coupent les sources personnelles futures\nok original inchangé et tranches 17..32 silencieuses sans fichier\nok usage compté dans les huit racks sans doubler le rack courant\nok détection : nombre fixe, pics cohérents, aucune mutation de source\nok détection sur silence et grille 32\nok WAV PCM/float, fréquences et stéréo reconnus avant décodage\nok WAV tronqué, format inconnu, bloc mal aligné : refus\nok limites WAV 30 secondes, trop court et taille excessive\nok import réussi : copie mono, nouveau nom, paramètres conservés\nok absence de stockage : retour session seulement sans mentir sur sauvegarde\nok import invalide ne remplace jamais une source déjà affectée\nok import contenant des NaN : refus avant écriture\nok décodage refusé : erreur transmise, pas de mutation\nok annulation après lecture ou décodage tardif : ni mutation ni écriture\nok deux imports : identifiants distincts et aucune écriture sur ancienne source\nBREAK BIBLIOTHÈQUE : 30 scénarios, 0 erreur.\n"
+    },
+    {
+      "suite": "performance-eurorack",
+      "journal": "ok ancien rack : aucune configuration ni écriture à la simple lecture\nok affecter ne change ni le son ni le graphe\nok une macro agit sur quatre paramètres et deux modules, une mise à jour chacun\nok toutes les valeurs sont écrites avant m.maj\nok maximum quatre cibles\nok aucun conflit entre macros\nok aucun doublon dans une même macro\nok remplacer une cible par elle-même reste valide\nok valeurs bornées à la course native\nok courses inversées\nok course fixe\nok types ID et paramètres invalides refusés\nok NaN et infinis ne sont jamais appliqués\nok indices de macro et remplacement invalides refusés\nok pas non éditables exclus de la sélection\nok transposition arrondie à la note\nok BREAK32 pitch entier mais timbre fractionnaire\nok mémoriser les valeurs réelles sans appliquer une macro\nok retour exact, sans effacer les autres réglages\nok retour suit le rack après sérialisation JSON\nok un changement manuel est signalé, jamais écrasé à la lecture\nok un renommage conserve le point de retour\nok modifier les bornes invalide le point de retour\nok retirer une affectation ne change pas le son\nok déplacement des modules : les références ne sont pas des indices\nok suppression du module : aucune cible fantôme\nok ID réutilisé avec un autre type : liaison refusée\nok normalisation bornée et noms conservés comme simples chaînes\nok mémoire falsifiée ou non finie ignorée\nok chargement ne rejoue pas la course et isole les données\nok ancien format sans PERFORMANCE reste compatible\nok montage : résolution des indices vers IDs réels\nok erreur native : restauration des valeurs et pas de faux état enregistré\n33 scénarios PERFORMANCE ; aucune erreur.\n"
+    },
+    {
+      "suite": "variations-rythmiques",
+      "journal": "ok drum32 : sans B, aucun changement des paramètres ni de la lecture\nok drum32 : copie B indépendante de A, édition indépendante de la lecture\nok drum32 : sélection B différée, phase des pistes conservée\nok drum32 : un fill dure exactement 16 CLK et revient à A\nok drum32 : fill automatique toutes les 2, 4, 8 mesures\nok drum32 : annuler retire uniquement les commandes non programmées\nok drum32 : STOP et RST vident les fills ponctuels sans effacer B\nok drum32 : générer B ne tire pas dans le hasard audio et ne touche jamais A\nok drum32 : sérialisation bornée et indépendante, données étrangères rejetées\nok drum32 : témoins différés à leur date audio\nok drum32 : historique borné et absent dans les rendus hors ligne\nok drum32 : clic répété, CLK doublé et autre entrée ne décalent pas les mesures\nok drum32 : choix à l’arrêt n’avance pas le séquenceur et définit le prochain départ\nok break32 : sans B, aucun changement des paramètres ni de la lecture\nok break32 : copie B indépendante de A, édition indépendante de la lecture\nok break32 : sélection B différée, phase des pistes conservée\nok break32 : un fill dure exactement 16 CLK et revient à A\nok break32 : fill automatique toutes les 2, 4, 8 mesures\nok break32 : annuler retire uniquement les commandes non programmées\nok break32 : STOP et RST vident les fills ponctuels sans effacer B\nok break32 : générer B ne tire pas dans le hasard audio et ne touche jamais A\nok break32 : sérialisation bornée et indépendante, données étrangères rejetées\nok break32 : témoins différés à leur date audio\nok break32 : historique borné et absent dans les rendus hors ligne\nok break32 : clic répété, CLK doublé et autre entrée ne décalent pas les mesures\nok break32 : choix à l’arrêt n’avance pas le séquenceur et définit le prochain départ\nok DRUM : protections de pistes respectées et vrais déclenchements de B\nok BREAK : protection des temps forts, B inverse et répète la vraie tranche\nok Paramètres globaux communs aux deux phrases et longueurs non détruites\nok Deux instances gardent leurs banques et leurs files séparées\nok BREAK personnel : la génération conserve la référence et le découpage\nok BREAK personnel : B utilise la tranche demandée, non le break de secours\nVARIATIONS : 32 scénarios réussis, 0 erreur.\n"
+    },
+    {
+      "suite": "autotest-midi",
+      "journal": "ok  ouverture normale, notes, SysEx, horloge, fermeture\nok  ouverture lente à 8 secondes\nok  ouverture lente à 24 secondes\nok  événement retardé après ouverture native\nok  fermeture lente à 7 secondes\nok  aucune réponse : toujours bloquant après 30 secondes\nok  réponse dépassant la limite : ne passe pas\nok  état page et Rust sans événement : rejet\nok  Rust ouvert sans événement : rejet\nok  événement ouvert mais Rust fermé : rejet\nok  mauvais identifiant dans événement : rejet\nok  événement d’un autre port : ne confirme pas le port demandé\nok  refus explicite : non concluant, aucun envoi\nok  refus sans raison : rejet\nok  refus avec état contradictoire : rejet\nok  refus d’un autre port : pas d’exemption\nok  aucun appareil : explicitement non testé\nok  exception inventaire : pas confondue avec une liste vide\nok  inventaires et identifiants invalides\nok  gestionnaire MIDI absent : rejet\nok  gestionnaire MIDI en erreur : rapport et nettoyage\nok  commande ouverture en erreur : rapport et nettoyage\nok  état natif inaccessible : rapport sans promesse perdue\nok  envoi MIDI en erreur : toujours bloquant et fermeture demandée\nok  SysEx en erreur : rapport et nettoyage\nok  SysEx incomplet accepté à tort : rejet\nok  fermeture sans événement : rejet\nok  fermeture native bloquée : rejet\nok  fermeture annoncée mais Rust encore ouvert : rejet\nok  erreurs pendant le nettoyage ne cachent pas l’échec initial\nok  ancienne connexion fermée avant le nouvel essai\nok  page qui ignore les événements : rejet\nok  journal daté avec nom, identifiant, phase et erreur\nok  hors autotest, aucune écoute ni commande de test installée\nok  plateforme navigateur : aucun appel ni écouteur d’autotest\nAutotest MIDI Windows : 35 scénarios réussis ; source et page assemblée concordantes.\n"
+    }
+  ],
+  "rapports": {
+    "atelier-interface": {
+      "verifications": 231,
+      "erreurs": [],
+      "formats": [
+        [
+          320,
+          568
+        ],
+        [
+          360,
+          640
+        ],
+        [
+          393,
+          851
+        ],
+        [
+          640,
+          360
+        ],
+        [
+          880,
+          400
+        ],
+        [
+          1280,
+          800
+        ],
+        [
+          1920,
+          1080
+        ]
+      ],
+      "signaux": [],
+      "rendus": []
+    },
+    "atelier-audio": {
+      "verifications": 34,
+      "erreurs": [],
+      "formats": [
+        [
+          320,
+          568
+        ],
+        [
+          360,
+          640
+        ],
+        [
+          393,
+          851
+        ],
+        [
+          640,
+          360
+        ],
+        [
+          880,
+          400
+        ],
+        [
+          1280,
+          800
+        ],
+        [
+          1920,
+          1080
+        ]
+      ],
+      "signaux": [
+        {
+          "sr": 44100,
+          "fallback": false,
+          "maxSignal": 1.433674179929234e-07,
+          "maxEnv": 2.649365640206014e-07,
+          "maxStereo": 7.947285973752827e-08,
+          "restored": 0
+        },
+        {
+          "sr": 44100,
+          "fallback": true,
+          "maxSignal": 1.433674179929234e-07,
+          "maxEnv": 2.649365640206014e-07,
+          "maxStereo": 7.947285973752827e-08,
+          "restored": 0
+        },
+        {
+          "sr": 44100,
+          "cv": -1,
+          "f": 27.499999210231664,
+          "peak": 0.3900001645088196,
+          "bad": 0
+        },
+        {
+          "sr": 44100,
+          "cv": 0,
+          "f": 54.99999828557962,
+          "peak": 0.3900008201599121,
+          "bad": 0
+        },
+        {
+          "sr": 44100,
+          "cv": 1,
+          "f": 109.99999708668628,
+          "peak": 0.3901500105857849,
+          "bad": 0
+        },
+        {
+          "sr": 44100,
+          "silence": 0,
+          "peak": 0.8426526784896851
+        },
+        {
+          "sr": 48000,
+          "fallback": false,
+          "maxSignal": 2.833604809404644e-07,
+          "maxEnv": 4.673004144750692e-07,
+          "maxStereo": 7.947285973752827e-08,
+          "restored": 0
+        },
+        {
+          "sr": 48000,
+          "fallback": true,
+          "maxSignal": 2.833604809404644e-07,
+          "maxEnv": 4.673004144750692e-07,
+          "maxStereo": 7.947285973752827e-08,
+          "restored": 0
+        },
+        {
+          "sr": 48000,
+          "cv": -1,
+          "f": 27.499998924102137,
+          "peak": 0.3900003135204315,
+          "bad": 0
+        },
+        {
+          "sr": 48000,
+          "cv": 0,
+          "f": 54.999997856193296,
+          "peak": 0.39004960656166077,
+          "bad": 0
+        },
+        {
+          "sr": 48000,
+          "cv": 1,
+          "f": 109.99999526633931,
+          "peak": 0.390187531709671,
+          "bad": 0
+        },
+        {
+          "sr": 48000,
+          "silence": 0,
+          "peak": 0.8366948962211609
+        }
+      ],
+      "rendus": [
+        {
+          "id": "atelier-psy",
+          "sr": 44100,
+          "stats": [
+            {
+              "c": 0,
+              "peak": 0.24126707017421722,
+              "rms": 0.0421110476073286,
+              "dc": -0.00034742044617358384,
+              "bad": 0
+            },
+            {
+              "c": 1,
+              "peak": 0.2476993203163147,
+              "rms": 0.042200121164628145,
+              "dc": -0.0003468488302880617,
+              "bad": 0
+            },
+            {
+              "c": 2,
+              "peak": 0.5385603904724121,
+              "rms": 0.06843415853613215,
+              "dc": -0.0009625650808224584,
+              "bad": 0
+            },
+            {
+              "c": 3,
+              "peak": 0.6446411609649658,
+              "rms": 0.06521275482198749,
+              "dc": -4.588473106476041e-05,
+              "bad": 0
+            },
+            {
+              "c": 4,
+              "peak": 0.5536677241325378,
+              "rms": 0.03568786334484381,
+              "dc": -1.2298116452151507e-05,
+              "bad": 0
+            },
+            {
+              "c": 5,
+              "peak": 0.3833993077278137,
+              "rms": 0.03275801462290458,
+              "dc": 6.417624619334551e-05,
+              "bad": 0
+            },
+            {
+              "c": 6,
+              "peak": 0.6983534097671509,
+              "rms": 0.09667533408220225,
+              "dc": -0.0014338400380116505,
+              "bad": 0
+            }
+          ],
+          "journal": [
+            {
+              "t": 0.1,
+              "scene": 0,
+              "niveaux": [
+                100,
+                75,
+                0,
+                0
+              ]
+            },
+            {
+              "t": 1.7438356164383562,
+              "scene": 1,
+              "niveaux": [
+                100,
+                100,
+                50,
+                20
+              ]
+            },
+            {
+              "t": 3.3876712328767122,
+              "scene": 2,
+              "niveaux": [
+                100,
+                100,
+                100,
+                55
+              ]
+            },
+            {
+              "t": 5.031506849315068,
+              "scene": 2,
+              "niveaux": [
+                100,
+                100,
+                100,
+                55
+              ]
+            },
+            {
+              "t": 6.675342465753424,
+              "scene": 3,
+              "niveaux": [
+                0,
+                0,
+                85,
+                65
+              ]
+            },
+            {
+              "t": 8.31917808219178,
+              "scene": 4,
+              "niveaux": [
+                100,
+                100,
+                100,
+                60
+              ]
+            },
+            {
+              "t": 9.963013698630137,
+              "scene": 4,
+              "niveaux": [
+                100,
+                100,
+                100,
+                60
+              ]
+            },
+            {
+              "t": 11.606849315068493,
+              "scene": 5,
+              "niveaux": [
+                100,
+                100,
+                65,
+                40
+              ]
+            },
+            {
+              "t": 13.250684931506848,
+              "scene": 5,
+              "niveaux": [
+                100,
+                100,
+                65,
+                40
+              ]
+            },
+            {
+              "t": 14.894520547945204,
+              "scene": 6,
+              "niveaux": [
+                55,
+                0,
+                90,
+                100
+              ]
+            },
+            {
+              "t": 16.53835616438356,
+              "scene": 7,
+              "niveaux": [
+                100,
+                100,
+                100,
+                65
+              ]
+            },
+            {
+              "t": 18.182191780821917,
+              "scene": 7,
+              "niveaux": [
+                100,
+                100,
+                100,
+                65
+              ]
+            },
+            {
+              "t": 19.826027397260276,
+              "scene": 0,
+              "niveaux": [
+                100,
+                75,
+                0,
+                0
+              ]
+            }
+          ],
+          "cv": [
+            {
+              "scene": 0,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 3,
+              "ok": true
+            }
+          ],
+          "clean": [
+            {
+              "k": "basse",
+              "peak": 9.755648534337524e-06
+            }
+          ],
+          "hist": [],
+          "notesKick": []
+        },
+        {
+          "id": "atelier-psy",
+          "sr": 48000,
+          "stats": [
+            {
+              "c": 0,
+              "peak": 0.24272462725639343,
+              "rms": 0.04241860559275476,
+              "dc": -0.0004149090794795905,
+              "bad": 0
+            },
+            {
+              "c": 1,
+              "peak": 0.24664483964443207,
+              "rms": 0.04250677965570201,
+              "dc": -0.0004144088443523946,
+              "bad": 0
+            },
+            {
+              "c": 2,
+              "peak": 0.5493311285972595,
+              "rms": 0.06903788340382273,
+              "dc": -0.0010638420938375338,
+              "bad": 0
+            },
+            {
+              "c": 3,
+              "peak": 0.6490152478218079,
+              "rms": 0.06516854158728878,
+              "dc": -3.530569675911401e-05,
+              "bad": 0
+            },
+            {
+              "c": 4,
+              "peak": 0.5755429863929749,
+              "rms": 0.03567548649573219,
+              "dc": -1.0971513492493017e-05,
+              "bad": 0
+            },
+            {
+              "c": 5,
+              "peak": 0.3905886113643646,
+              "rms": 0.032738773243290255,
+              "dc": 6.43507826014716e-05,
+              "bad": 0
+            },
+            {
+              "c": 6,
+              "peak": 0.6980456113815308,
+              "rms": 0.09775994459720262,
+              "dc": -0.0015775549552820031,
+              "bad": 0
+            }
+          ],
+          "journal": [
+            {
+              "t": 0.1,
+              "scene": 0,
+              "niveaux": [
+                100,
+                75,
+                0,
+                0
+              ]
+            },
+            {
+              "t": 1.7438356164383562,
+              "scene": 1,
+              "niveaux": [
+                100,
+                100,
+                50,
+                20
+              ]
+            },
+            {
+              "t": 3.3876712328767122,
+              "scene": 2,
+              "niveaux": [
+                100,
+                100,
+                100,
+                55
+              ]
+            },
+            {
+              "t": 5.031506849315068,
+              "scene": 2,
+              "niveaux": [
+                100,
+                100,
+                100,
+                55
+              ]
+            },
+            {
+              "t": 6.675342465753424,
+              "scene": 3,
+              "niveaux": [
+                0,
+                0,
+                85,
+                65
+              ]
+            },
+            {
+              "t": 8.31917808219178,
+              "scene": 4,
+              "niveaux": [
+                100,
+                100,
+                100,
+                60
+              ]
+            },
+            {
+              "t": 9.963013698630137,
+              "scene": 4,
+              "niveaux": [
+                100,
+                100,
+                100,
+                60
+              ]
+            },
+            {
+              "t": 11.606849315068493,
+              "scene": 5,
+              "niveaux": [
+                100,
+                100,
+                65,
+                40
+              ]
+            },
+            {
+              "t": 13.250684931506848,
+              "scene": 5,
+              "niveaux": [
+                100,
+                100,
+                65,
+                40
+              ]
+            },
+            {
+              "t": 14.894520547945204,
+              "scene": 6,
+              "niveaux": [
+                55,
+                0,
+                90,
+                100
+              ]
+            },
+            {
+              "t": 16.53835616438356,
+              "scene": 7,
+              "niveaux": [
+                100,
+                100,
+                100,
+                65
+              ]
+            },
+            {
+              "t": 18.182191780821917,
+              "scene": 7,
+              "niveaux": [
+                100,
+                100,
+                100,
+                65
+              ]
+            },
+            {
+              "t": 19.826027397260276,
+              "scene": 0,
+              "niveaux": [
+                100,
+                75,
+                0,
+                0
+              ]
+            }
+          ],
+          "cv": [
+            {
+              "scene": 0,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 3,
+              "ok": true
+            }
+          ],
+          "clean": [
+            {
+              "k": "basse",
+              "peak": 9.707824574434198e-06
+            }
+          ],
+          "hist": [],
+          "notesKick": []
+        },
+        {
+          "id": "atelier-gabber",
+          "sr": 44100,
+          "stats": [
+            {
+              "c": 0,
+              "peak": 0.22946220636367798,
+              "rms": 0.044524408487034275,
+              "dc": 0.00016992440870406962,
+              "bad": 0
+            },
+            {
+              "c": 1,
+              "peak": 0.22919750213623047,
+              "rms": 0.04599014352143105,
+              "dc": 0.00017114840155015964,
+              "bad": 0
+            },
+            {
+              "c": 2,
+              "peak": 0.5806611180305481,
+              "rms": 0.08804573363649996,
+              "dc": -0.00012494740157349333,
+              "bad": 0
+            },
+            {
+              "c": 3,
+              "peak": 0.7006727457046509,
+              "rms": 0.057017463468961874,
+              "dc": 0.0006387831888572869,
+              "bad": 0
+            },
+            {
+              "c": 4,
+              "peak": 0.6652651429176331,
+              "rms": 0.14202054060756772,
+              "dc": -1.1034712752321603e-05,
+              "bad": 0
+            },
+            {
+              "c": 5,
+              "peak": 0.4193616807460785,
+              "rms": 0.030972398919927625,
+              "dc": 6.0245532149833324e-05,
+              "bad": 0
+            },
+            {
+              "c": 6,
+              "peak": 0.7417221665382385,
+              "rms": 0.12472178179616765,
+              "dc": -0.000251808003607464,
+              "bad": 0
+            }
+          ],
+          "journal": [
+            {
+              "t": 0.1,
+              "scene": 0,
+              "niveaux": [
+                100,
+                75,
+                0,
+                0
+              ]
+            },
+            {
+              "t": 1.3972972972972975,
+              "scene": 1,
+              "niveaux": [
+                100,
+                100,
+                50,
+                20
+              ]
+            },
+            {
+              "t": 2.694594594594595,
+              "scene": 2,
+              "niveaux": [
+                100,
+                100,
+                100,
+                55
+              ]
+            },
+            {
+              "t": 3.991891891891892,
+              "scene": 2,
+              "niveaux": [
+                100,
+                100,
+                100,
+                55
+              ]
+            },
+            {
+              "t": 5.289189189189189,
+              "scene": 3,
+              "niveaux": [
+                0,
+                0,
+                85,
+                65
+              ]
+            },
+            {
+              "t": 6.5864864864864865,
+              "scene": 4,
+              "niveaux": [
+                100,
+                100,
+                100,
+                60
+              ]
+            },
+            {
+              "t": 7.883783783783784,
+              "scene": 4,
+              "niveaux": [
+                100,
+                100,
+                100,
+                60
+              ]
+            },
+            {
+              "t": 9.18108108108108,
+              "scene": 5,
+              "niveaux": [
+                100,
+                100,
+                65,
+                40
+              ]
+            },
+            {
+              "t": 10.478378378378379,
+              "scene": 5,
+              "niveaux": [
+                100,
+                100,
+                65,
+                40
+              ]
+            },
+            {
+              "t": 11.775675675675677,
+              "scene": 6,
+              "niveaux": [
+                55,
+                0,
+                90,
+                100
+              ]
+            },
+            {
+              "t": 13.072972972972973,
+              "scene": 7,
+              "niveaux": [
+                100,
+                100,
+                100,
+                65
+              ]
+            },
+            {
+              "t": 14.37027027027027,
+              "scene": 7,
+              "niveaux": [
+                100,
+                100,
+                100,
+                65
+              ]
+            },
+            {
+              "t": 15.667567567567568,
+              "scene": 0,
+              "niveaux": [
+                100,
+                75,
+                0,
+                0
+              ]
+            }
+          ],
+          "cv": [
+            {
+              "scene": 0,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 3,
+              "ok": true
+            }
+          ],
+          "clean": [
+            {
+              "k": "basse",
+              "peak": 1.3399913768807892e-05
+            }
+          ],
+          "hist": [],
+          "notesKick": [
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33
+          ]
+        },
+        {
+          "id": "atelier-gabber",
+          "sr": 48000,
+          "stats": [
+            {
+              "c": 0,
+              "peak": 0.22522790729999542,
+              "rms": 0.044769141903503326,
+              "dc": 0.00017018472556284384,
+              "bad": 0
+            },
+            {
+              "c": 1,
+              "peak": 0.22546038031578064,
+              "rms": 0.04622530423575551,
+              "dc": 0.00017093401764375405,
+              "bad": 0
+            },
+            {
+              "c": 2,
+              "peak": 0.580970287322998,
+              "rms": 0.08861994102668658,
+              "dc": -0.0001044443431736554,
+              "bad": 0
+            },
+            {
+              "c": 3,
+              "peak": 0.7035510540008545,
+              "rms": 0.057148432380269655,
+              "dc": 0.0006329992972559047,
+              "bad": 0
+            },
+            {
+              "c": 4,
+              "peak": 0.6645717024803162,
+              "rms": 0.14217421656753818,
+              "dc": -1.5233156494925383e-05,
+              "bad": 0
+            },
+            {
+              "c": 5,
+              "peak": 0.4222743809223175,
+              "rms": 0.031022013719757834,
+              "dc": 4.8024073839791276e-05,
+              "bad": 0
+            },
+            {
+              "c": 6,
+              "peak": 0.7419608235359192,
+              "rms": 0.1258466755974985,
+              "dc": -0.00022122932471722894,
+              "bad": 0
+            }
+          ],
+          "journal": [
+            {
+              "t": 0.1,
+              "scene": 0,
+              "niveaux": [
+                100,
+                75,
+                0,
+                0
+              ]
+            },
+            {
+              "t": 1.3972972972972975,
+              "scene": 1,
+              "niveaux": [
+                100,
+                100,
+                50,
+                20
+              ]
+            },
+            {
+              "t": 2.694594594594595,
+              "scene": 2,
+              "niveaux": [
+                100,
+                100,
+                100,
+                55
+              ]
+            },
+            {
+              "t": 3.991891891891892,
+              "scene": 2,
+              "niveaux": [
+                100,
+                100,
+                100,
+                55
+              ]
+            },
+            {
+              "t": 5.289189189189189,
+              "scene": 3,
+              "niveaux": [
+                0,
+                0,
+                85,
+                65
+              ]
+            },
+            {
+              "t": 6.5864864864864865,
+              "scene": 4,
+              "niveaux": [
+                100,
+                100,
+                100,
+                60
+              ]
+            },
+            {
+              "t": 7.883783783783784,
+              "scene": 4,
+              "niveaux": [
+                100,
+                100,
+                100,
+                60
+              ]
+            },
+            {
+              "t": 9.18108108108108,
+              "scene": 5,
+              "niveaux": [
+                100,
+                100,
+                65,
+                40
+              ]
+            },
+            {
+              "t": 10.478378378378379,
+              "scene": 5,
+              "niveaux": [
+                100,
+                100,
+                65,
+                40
+              ]
+            },
+            {
+              "t": 11.775675675675677,
+              "scene": 6,
+              "niveaux": [
+                55,
+                0,
+                90,
+                100
+              ]
+            },
+            {
+              "t": 13.072972972972973,
+              "scene": 7,
+              "niveaux": [
+                100,
+                100,
+                100,
+                65
+              ]
+            },
+            {
+              "t": 14.37027027027027,
+              "scene": 7,
+              "niveaux": [
+                100,
+                100,
+                100,
+                65
+              ]
+            },
+            {
+              "t": 15.667567567567568,
+              "scene": 0,
+              "niveaux": [
+                100,
+                75,
+                0,
+                0
+              ]
+            }
+          ],
+          "cv": [
+            {
+              "scene": 0,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 1,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 2,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 3,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 4,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 5,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 6,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 7,
+              "voie": 3,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 0,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 1,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 2,
+              "ok": true
+            },
+            {
+              "scene": 0,
+              "voie": 3,
+              "ok": true
+            }
+          ],
+          "clean": [
+            {
+              "k": "basse",
+              "peak": 1.3264381777844392e-05
+            }
+          ],
+          "hist": [],
+          "notesKick": [
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33,
+            36,
+            36,
+            31,
+            31,
+            33,
+            33,
+            33,
+            33
+          ]
+        }
+      ]
+    },
+    "reg-focus": {
+      "formats": [
+        {
+          "format": [
+            393,
+            851
+          ],
+          "mesure": {
+            "mauvais": [],
+            "deborde": 0,
+            "fenetre": 393,
+            "cadre": {
+              "x": 12,
+              "y": 43.15625,
+              "width": 369,
+              "height": 764.6875,
+              "top": 43.15625,
+              "right": 381,
+              "bottom": 807.84375,
+              "left": 12
+            },
+            "doublons": [],
+            "nKn": 3,
+            "nJ": 3
+          }
+        },
+        {
+          "format": [
+            880,
+            400
+          ],
+          "mesure": {
+            "mauvais": [],
+            "deborde": 0,
+            "fenetre": 880,
+            "cadre": {
+              "x": 60,
+              "y": 6,
+              "width": 760,
+              "height": 388,
+              "top": 6,
+              "right": 820,
+              "bottom": 394,
+              "left": 60
+            },
+            "doublons": [],
+            "nKn": 3,
+            "nJ": 3
+          }
+        },
+        {
+          "format": [
+            360,
+            640
+          ],
+          "mesure": {
+            "mauvais": [],
+            "deborde": 0,
+            "fenetre": 360,
+            "cadre": {
+              "x": 8,
+              "y": 8,
+              "width": 344,
+              "height": 624,
+              "top": 8,
+              "right": 352,
+              "bottom": 632,
+              "left": 8
+            },
+            "doublons": [],
+            "nKn": 3,
+            "nJ": 3
+          }
+        },
+        {
+          "format": [
+            1180,
+            860
+          ],
+          "mesure": {
+            "mauvais": [],
+            "deborde": 0,
+            "fenetre": 1180,
+            "cadre": {
+              "x": 210,
+              "y": 72.40625,
+              "width": 760,
+              "height": 715.1875,
+              "top": 72.40625,
+              "right": 970,
+              "bottom": 787.59375,
+              "left": 210
+            },
+            "doublons": [],
+            "nKn": 3,
+            "nJ": 3
+          }
+        }
+      ],
+      "catalogue": [
+        {
+          "format": [
+            393,
+            851
+          ],
+          "types": 111
+        },
+        {
+          "format": [
+            880,
+            400
+          ],
+          "types": 111
+        },
+        {
+          "format": [
+            360,
+            640
+          ],
+          "types": 111
+        },
+        {
+          "format": [
+            1180,
+            860
+          ],
+          "types": 111
+        }
+      ],
+      "erreurs": [],
+      "stockage_simule": true
+    },
+    "reg-performance": {
+      "verifications": 472,
+      "formats": [
+        [
+          320,
+          568
+        ],
+        [
+          360,
+          640
+        ],
+        [
+          393,
+          851
+        ],
+        [
+          640,
+          360
+        ],
+        [
+          880,
+          400
+        ],
+        [
+          1280,
+          800
+        ],
+        [
+          1920,
+          1080
+        ]
+      ],
+      "mesures": [
+        {
+          "format": "320x568",
+          "bad": [],
+          "overflow": 0,
+          "root": {
+            "x": 0,
+            "y": 0,
+            "width": 320,
+            "height": 568,
+            "top": 0,
+            "right": 320,
+            "bottom": 568,
+            "left": 0
+          },
+          "fermer": {
+            "x": 206,
+            "y": 33.59375,
+            "width": 95,
+            "height": 49.1875,
+            "top": 33.59375,
+            "right": 301,
+            "bottom": 82.78125,
+            "left": 206
+          },
+          "modal": "true"
+        },
+        {
+          "format": "360x640",
+          "bad": [],
+          "overflow": 0,
+          "root": {
+            "x": 0,
+            "y": 0,
+            "width": 360,
+            "height": 640,
+            "top": 0,
+            "right": 360,
+            "bottom": 640,
+            "left": 0
+          },
+          "fermer": {
+            "x": 246,
+            "y": 33.59375,
+            "width": 95,
+            "height": 49.1875,
+            "top": 33.59375,
+            "right": 341,
+            "bottom": 82.78125,
+            "left": 246
+          },
+          "modal": "true"
+        },
+        {
+          "format": "393x851",
+          "bad": [],
+          "overflow": 0,
+          "root": {
+            "x": 0,
+            "y": 0,
+            "width": 393,
+            "height": 851,
+            "top": 0,
+            "right": 393,
+            "bottom": 851,
+            "left": 0
+          },
+          "fermer": {
+            "x": 279,
+            "y": 25.1875,
+            "width": 95,
+            "height": 49.1875,
+            "top": 25.1875,
+            "right": 374,
+            "bottom": 74.375,
+            "left": 279
+          },
+          "modal": "true"
+        },
+        {
+          "format": "640x360",
+          "bad": [],
+          "overflow": 0,
+          "root": {
+            "x": 0,
+            "y": 0,
+            "width": 640,
+            "height": 360,
+            "top": 0,
+            "right": 640,
+            "bottom": 360,
+            "left": 0
+          },
+          "fermer": {
+            "x": 20,
+            "y": 105.578125,
+            "width": 157,
+            "height": 44,
+            "top": 105.578125,
+            "right": 177,
+            "bottom": 149.578125,
+            "left": 20
+          },
+          "modal": "true"
+        },
+        {
+          "format": "880x400",
+          "bad": [],
+          "overflow": 0,
+          "root": {
+            "x": 0,
+            "y": 0,
+            "width": 880,
+            "height": 400,
+            "top": 0,
+            "right": 880,
+            "bottom": 400,
+            "left": 0
+          },
+          "fermer": {
+            "x": 20,
+            "y": 105.578125,
+            "width": 157,
+            "height": 44,
+            "top": 105.578125,
+            "right": 177,
+            "bottom": 149.578125,
+            "left": 20
+          },
+          "modal": "true"
+        },
+        {
+          "format": "1280x800",
+          "bad": [],
+          "overflow": 0,
+          "root": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 800,
+            "top": 0,
+            "right": 1280,
+            "bottom": 800,
+            "left": 0
+          },
+          "fermer": {
+            "x": 1049.140625,
+            "y": 39.28125,
+            "width": 131.859375,
+            "height": 44,
+            "top": 39.28125,
+            "right": 1181,
+            "bottom": 83.28125,
+            "left": 1049.140625
+          },
+          "modal": "true"
+        },
+        {
+          "format": "1920x1080",
+          "bad": [],
+          "overflow": 0,
+          "root": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080,
+            "top": 0,
+            "right": 1920,
+            "bottom": 1080,
+            "left": 0
+          },
+          "fermer": {
+            "x": 1369.140625,
+            "y": 39.28125,
+            "width": 131.859375,
+            "height": 44,
+            "top": 39.28125,
+            "right": 1501,
+            "bottom": 83.28125,
+            "left": 1369.140625
+          },
+          "modal": "true"
+        }
+      ],
+      "rendus": [],
+      "erreurs": [],
+      "stockage_simule": true
+    },
+    "reg-variations": {
+      "verifications": 196,
+      "erreurs": [],
+      "rendus": [],
+      "formats": [
+        [
+          320,
+          568
+        ],
+        [
+          360,
+          640
+        ],
+        [
+          393,
+          851
+        ],
+        [
+          640,
+          360
+        ],
+        [
+          880,
+          400
+        ],
+        [
+          1280,
+          800
+        ],
+        [
+          1920,
+          1080
+        ]
+      ]
+    },
+    "reg-rave": {
+      "verifications": 231,
+      "erreurs": [],
+      "structures": [
+        {
+          "id": "rave-jungle",
+          "erreurs": [],
+          "modules": 25,
+          "cables": 39,
+          "horloges": 1,
+          "melos": 2,
+          "scenes": 1,
+          "rangees": true
+        },
+        {
+          "id": "rave-dnb",
+          "erreurs": [],
+          "modules": 25,
+          "cables": 39,
+          "horloges": 1,
+          "melos": 2,
+          "scenes": 1,
+          "rangees": true
+        },
+        {
+          "id": "rave-uptempo",
+          "erreurs": [],
+          "modules": 24,
+          "cables": 37,
+          "horloges": 1,
+          "melos": 2,
+          "scenes": 1,
+          "rangees": true
+        },
+        {
+          "id": "rave-breakcore",
+          "erreurs": [],
+          "modules": 25,
+          "cables": 39,
+          "horloges": 1,
+          "melos": 2,
+          "scenes": 1,
+          "rangees": true
+        },
+        {
+          "id": "rave-gabber",
+          "erreurs": [],
+          "modules": 24,
+          "cables": 37,
+          "horloges": 1,
+          "melos": 2,
+          "scenes": 1,
+          "rangees": true
+        },
+        {
+          "id": "rave-psy",
+          "erreurs": [],
+          "modules": 24,
+          "cables": 37,
+          "horloges": 1,
+          "melos": 2,
+          "scenes": 1,
+          "rangees": true
+        }
+      ],
+      "rendus": []
+    },
+    "reg-bibliotheque": {
+      "verifications": 308,
+      "erreurs": [],
+      "rendus": [],
+      "formats": [
+        [
+          320,
+          568
+        ],
+        [
+          360,
+          640
+        ],
+        [
+          393,
+          851
+        ],
+        [
+          640,
+          360
+        ],
+        [
+          880,
+          400
+        ],
+        [
+          1280,
+          800
+        ],
+        [
+          1920,
+          1080
+        ]
+      ]
+    }
+  },
+  "non_execute": [
+    "Compilation Gradle APK",
+    "Compilation Rust/Tauri Windows et essai WebView2",
+    "Suite outils/controles.sh entière (dépendances et certaines sources historiques absentes du conteneur)",
+    "Écoute humaine et mesure de charge sur Samsung/PC utilisateur"
+  ]
+}

@@ -84,6 +84,7 @@ node outils/test-rave.cjs
 node outils/test-break32-bibliotheque.cjs
 node outils/test-performance-eurorack.cjs
 node outils/test-variations-rythmiques.cjs
+node outils/test-atelier-kick-basse.cjs
 fin
 
 etape "6. Java : compilation de controle et tests"
