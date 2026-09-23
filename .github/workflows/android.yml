@@ -78,6 +78,7 @@ jobs:
           python outils/test-cycles-libres.py --rapport app/build/reports/cycles-libres.json
           python outils/test-voix-mutantes.py --rapport app/build/reports/voix-mutantes.json
           python outils/test-poly4.py --rapport app/build/reports/poly4.json
+          python outils/test-looper.py --rapport app/build/reports/looper.json
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble

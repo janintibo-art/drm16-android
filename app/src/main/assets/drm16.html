@@ -4202,6 +4202,29 @@ body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2p
 @media(min-width:1000px){.p4-clavier{flex-wrap:nowrap}#eur-focus .p4-touche{max-width:56px}
   .p4-reglages{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.p4 *{animation:none!important;transition:none!important}}
+.lpr{min-width:0;color:#ecf3fa;font:12px/1.45 system-ui,Arial,sans-serif}
+.lpr-intro{margin:4px 0 8px;text-align:center;color:#bdd4f1;font-size:10px;letter-spacing:.4px}
+.lpr-mini{text-align:center}
+#unit-eur .lpr-ouvrir,#eur-focus .lpr-ouvrir{min-height:44px;min-width:44px;width:100%;border-radius:4px;
+  border:1px solid #45608a;background:#1b304c;color:#eef5ff}
+.lpr-reglages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.lpr label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.lpr label>span{font:700 10px/1.3 system-ui;color:#cbddf6}
+#eur-focus .lpr select{width:100%;min-width:0;min-height:44px;background:#15283f;color:#eef5ff;
+  border:1px solid #45608a;border-radius:4px}
+.lpr-pistes{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:10px;margin:10px 0}
+.lpr-piste{border:1px solid #566e91;border-radius:6px;padding:8px}
+.lpr-num{display:block;font-size:11px;letter-spacing:.4px;color:#d9e6fc}
+.lpr-etat{min-height:20px;margin:4px 0 8px;color:#bdd4f1;font-size:11px}
+.lpr-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#eur-focus .lpr-rec,#eur-focus .lpr-muet,#eur-focus .lpr-clear{min-height:44px;min-width:44px;
+  border-radius:4px;border:1px solid #45608a;background:#233c5e;color:#eef5ff}
+#eur-focus .lpr-rec.actif{background:#6a2a2a;color:#ffd9d9;border-color:#d97a7a}
+#eur-focus .lpr-muet.actif{background:#69532e;color:#fff0cc;border-color:#dfbb6b}
+.lpr-aide{font-size:11px;line-height:1.55;color:#c8d6e9;margin:12px 0 4px}
+@media(min-width:1000px){.lpr-pistes{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lpr-reglages{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.lpr *{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -8535,8 +8558,24 @@ pastille) et le rejouent ensuite d'une seule pression, sans repasser par les tou
 enchaîner des accords en jouant d'une main. Comme TENIR sur SCÈNES 8, ce sont des gestes de jeu, non
 enregistrés dans le projet. OCTAVE − / + décale le clavier de deux octaves dans chaque sens. Deux
 montages : <b>NAPPE · ACCORDS AU DOIGT</b> (lent, chute longue) et <b>CLUB · ACCORDS COURTS</b>
-(124 bpm, chute brève), chacun avec un fond rythmique déjà séquencé sous POLY 4. Le catalogue compte
-maintenant 120 types de modules et 68 montages.</p>
+(124 bpm, chute brève), chacun avec un fond rythmique déjà séquencé sous POLY 4. Le catalogue comptait
+alors 120 types de modules et 68 montages.</p>
+
+<h3>LOOPER DE RACK (v296)</h3>
+<p><b>LOOPER DE RACK</b> capture quatre phrases sur son entrée IN puis les boucle — les phrases
+restent en mémoire tant qu'on ne les efface pas (CLEAR), pas seulement le temps d'une lecture : on
+peut couper une piste (MUET) et la retrouver intacte en la rallumant. Comme FREEZE GRANULAIRE, aucun
+MediaRecorder ni AudioWorklet : la capture écrit directement dans un AudioBuffer via un
+ScriptProcessorNode, échantillon par échantillon, correct en direct comme dans un rendu
+OfflineAudioContext.</p>
+<p>RECORD arme une piste au doigt : l'enregistrement démarre au prochain temps fort (seizième CLK
+reçue) et dure le nombre de MESURES réglé (1 à 4), puis boucle tout seul — pas de second geste pour
+arrêter. Un fondu (FONDU ms) est appliqué à l'entrée et à la sortie du fragment capté une fois fini,
+pour que la boucle ne claque pas au raccord. Chaque piste ne retient qu'une seule prise à la fois :
+ré-armer RECORD remplace la phrase en cours dès que la nouvelle est captée. NIVEAU règle le mélange
+général, NIVEAU 1 à 4 chaque piste. Deux montages : <b>BOUCLE · PHRASE CAPTÉE EN DIRECT</b> et
+<b>DUB · COUCHES ACCUMULÉES</b>, chacun avec une mélodie déjà séquencée prête à être captée en direct
+sur le LOOPER. Le catalogue compte maintenant 121 types de modules et 70 montages.</p>
 </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
   <p>Les cent trois modules, dans l'ordre des huit onglets du catalogue. Pour chacun : ce qu'il fait, ses
@@ -9216,6 +9255,16 @@ maintenant 120 types de modules et 68 montages.</p>
   puis une pastille) et le rejouent d'une seule pression ; OCTAVE − / + décale le clavier de deux octaves
   dans chaque sens.</p>
   <span>Potards OSCILLATEUR, DÉSACCORD, FILTRE, RÉSONANCE, ATTAQUE ms, CHUTE ms, NIVEAU · Sortie OUT</span></div>
+
+  <h3>Looper de rack · 1 module (v296)</h3>
+  <div class="fmod" id="fm-looper"><b>LOOPER DE RACK</b>
+  <p>Quatre pistes qui captent chacune une phrase sur IN puis la bouclent, sans MediaRecorder ni
+  AudioWorklet : la capture écrit directement dans un AudioBuffer via un ScriptProcessorNode. RECORD arme
+  une piste au doigt : la capture démarre au prochain temps fort et dure le nombre de MESURES réglé (1 à
+  4), puis boucle toute seule. MUET coupe une piste sans effacer sa phrase ; CLEAR la vide pour de bon —
+  les phrases restent en mémoire tant qu'on ne les efface pas. Un fondu (FONDU ms) évite que la boucle
+  claque au raccord. NIVEAU règle le mélange général, NIVEAU 1 à 4 chaque piste.</p>
+  <span>Potards MESURES, FONDU ms, NIVEAU, NIVEAU 1-4 · Entrées IN, CLK, RST · Sortie OUT</span></div>
   </div>
   <div class="doc" id="note-eurpat" data-titre="PATCHS EUR.">
   <p>Huit patchs à monter soi-même, du plus simple au plus retors. À chaque fois : les modules à ajouter dans
@@ -31387,6 +31436,325 @@ var EUR_POLY4 = (function(){
 
   MONT.forEach(function(P){ EUR_MONTAGES.push(P); });
   EUR_MONT_FAM.push(["seq", "POLY 4"]);
+})();
+/* ================= LOOPER DE RACK — v296 =================
+   Quatre pistes, chacune une phrase captée sur IN puis bouclée — les phrases
+   restent en mémoire tant qu'on ne les efface pas (CLEAR), pas seulement le
+   temps d'une lecture : on peut couper une piste (MUET) et la retrouver
+   intacte en la rallumant. Comme FREEZE GRANULAIRE : aucun MediaRecorder,
+   aucun AudioWorklet — la capture écrit directement dans un AudioBuffer via
+   un ScriptProcessorNode, échantillon par échantillon, aux instants exacts
+   de ev.playbackTime, correct en direct comme dans un rendu
+   OfflineAudioContext (export WAV, figer une machine).
+
+   RECORD arme la piste : l'enregistrement démarre au prochain temps fort
+   (seizième CLK reçue, comme partout ailleurs) et dure le nombre de MESURES
+   réglé, puis boucle automatiquement — pas de second geste pour arrêter,
+   comme une prise à durée fixe plutôt qu'un pédalier à deux appuis. Un
+   fondu (FONDU ms) est appliqué à l'entrée et à la sortie du fragment capté
+   une fois qu'il est fini, pour que la boucle ne claque pas au raccord ;
+   simplification délibérée (un fondu à chaque bord plutôt qu'un vrai
+   recouvrement) dans le même esprit que les autres traitements légers de
+   l'application. Chaque piste ne retient qu'une seule prise à la fois : ré-
+   armer RECORD remplace la phrase en cours dès que la nouvelle est captée,
+   sans mélanger les deux (pas d'overdub dans ce premier lot). Capacité fixe
+   de 8 s par piste (mono) : au-delà, MESURES est simplement borné pour ne
+   jamais dépasser le tampon. */
+var EUR_LOOPER = (function(){
+  "use strict";
+  var MAXDUR = 8;
+  var kns = [["mes","MESURES",1,4,2],["fondu","FONDU ms",1,60,10],["niv","NIVEAU",0,100,80],
+    ["niv1","NIVEAU 1",0,100,80],["niv2","NIVEAU 2",0,100,80],["niv3","NIVEAU 3",0,100,80],["niv4","NIVEAU 4",0,100,80]];
+  function borne(v,a,b,d){return Number.isFinite(v)?Math.max(a,Math.min(b,v)):d;}
+  function entier(v,a,b,d){return Math.round(borne(v,a,b,d));}
+  function normaliser(m){if(!m.p)m.p={};kns.forEach(function(k){m.p[k[0]]=borne(m.p[k[0]],k[2],k[3],k[4]);});}
+
+  function fondre(chan,n,bordEchant){
+    var b=Math.max(1,Math.min(bordEchant,Math.floor(n/2)));
+    for(var i=0;i<b;i++){var g=i/b;chan[i]*=g;chan[n-1-i]*=g;}
+  }
+
+  function creer(m){
+    normaliser(m);
+    var sr=ctx.sampleRate,n=Math.ceil(MAXDUR*sr)+2048,ferme=false;
+    var entree=eurGain(1),out=eurGain(1),mix=eurGain(1);mix.connect(out);
+    var sp=ctx.createScriptProcessor(1024,1,1),zero=eurGain(0);
+    entree.connect(sp);sp.connect(zero);zero.connect(ctx.destination);
+    var pistes=[];
+    for(var i=0;i<4;i++){
+      var buf=ctx.createBuffer(1,n,sr),g=eurGain(borne(m.p["niv"+(i+1)],0,100,80)/100);g.connect(mix);
+      pistes.push({buf:buf,chan:buf.getChannelData(0),gain:g,src:null,
+        arme:false,enregistre:false,lecture:false,muet:false,
+        debut:0,fin:0,longueur:0,nEch:0,bord:1});
+    }
+    var pasCompte=-1;
+    /* L'écriture ne dépend que des bornes temporelles (debut/fin), jamais
+       d'un drapeau mis à jour en code JS "logique" : scheduleEur appelle
+       recevoir() par avance, avant que le moteur audio ait réellement rendu
+       l'instant t (même principe que FREEZE GRANULAIRE, voir sa note d'en-
+       tête) — dans un rendu OfflineAudioContext, tous les recevoir() d'une
+       passe s'exécutent avant qu'un seul échantillon soit réellement rendu.
+       Le fondu est calculé échantillon par échantillon pendant l'écriture,
+       pas en une passe après coup sur tout le tampon : une passe après coup
+       s'exécuterait elle aussi trop tôt, sur un tampon encore vide. */
+    sp.onaudioprocess=function(ev){
+      var t0=ev.playbackTime,ib=ev.inputBuffer,len=ib.length,l=ib.getChannelData(0);
+      pistes.forEach(function(tr){
+        if(tr.fin<=tr.debut)return;
+        for(var i2=0;i2<len;i2++){
+          var tt=t0+i2/sr;if(tt<tr.debut||tt>=tr.fin)continue;
+          var idx=Math.round((tt-tr.debut)*sr);if(idx<0||idx>=tr.nEch)continue;
+          var g=1;
+          if(idx<tr.bord)g=idx/tr.bord;else if(idx>=tr.nEch-tr.bord)g=(tr.nEch-1-idx)/tr.bord;
+          tr.chan[idx]=l[i2]*g;
+        }
+      });
+    };
+    function arreterSource(tr){if(tr.src){try{tr.src.stop();}catch(e){}try{tr.src.disconnect();}catch(e){}tr.src=null;}}
+    function finaliser(tr,t){
+      tr.enregistre=false;
+      arreterSource(tr);
+      var src=ctx.createBufferSource();src.buffer=tr.buf;src.loop=true;src.loopStart=0;src.loopEnd=tr.longueur;
+      src.connect(tr.gain);src.start(t,0);tr.src=src;tr.lecture=true;tr.pret=true;
+    }
+    m.recevoir=function(t,e){
+      if(ferme||!Number.isFinite(t)||t<0)return null;
+      if(e==="rst"){pasCompte=-1;pistes.forEach(function(tr){tr.arme=false;});return null;}
+      if(e!=="clk")return null;
+      pasCompte++;if(pasCompte%16!==0)return null;
+      normaliser(m);var mesures=entier(m.p.mes,1,4,2);
+      pistes.forEach(function(tr){
+        if(tr.arme&&!tr.enregistre){
+          tr.arme=false;tr.enregistre=true;tr.debut=t;tr.pret=false;
+          tr.longueur=Math.min(MAXDUR,mesures*16*stepDur());tr.fin=t+tr.longueur;
+          tr.nEch=Math.max(1,Math.round(tr.longueur*sr));
+          tr.bord=Math.max(1,Math.min(Math.round(borne(m.p.fondu,1,60,10)*sr/1000),Math.floor(tr.nEch/2)));
+        }else if(tr.enregistre&&t+1e-7>=tr.fin){
+          finaliser(tr,t);
+        }
+      });
+      return null;
+    };
+    m.looper={
+      armer:function(i){var tr=pistes[i];if(!tr||ferme)return;if(!tr.enregistre)tr.arme=true;},
+      muet:function(i,v){var tr=pistes[i];if(!tr)return;tr.muet=!!v;m.maj();},
+      effacer:function(i){
+        var tr=pistes[i];if(!tr)return;tr.arme=false;tr.enregistre=false;tr.lecture=false;tr.pret=false;
+        tr.longueur=0;tr.fin=tr.debut;arreterSource(tr);
+      },
+      etat:function(i){
+        var tr=pistes[i];if(!tr)return null;
+        return {arme:tr.arme,enregistre:tr.enregistre,lecture:tr.lecture,muet:tr.muet,longueur:tr.longueur};
+      }
+    };
+    m.maj=function(){
+      normaliser(m);
+      pistes.forEach(function(tr,i){tr.gain.gain.value=tr.muet?0:borne(m.p["niv"+(i+1)],0,100,80)/100;});
+      mix.gain.value=1;out.gain.value=borne(m.p.niv,0,100,80)/100;
+    };
+    m.maj();
+    m.arreter=function(){pistes.forEach(function(tr){tr.arme=false;tr.enregistre=false;});};
+    return {e:{in:entree,clk:eurGain(1),rst:eurGain(1)},s:{out:out},detruire:function(){
+      ferme=true;
+      pistes.forEach(function(tr){arreterSource(tr);try{tr.gain.disconnect();}catch(e){}});
+      try{sp.disconnect();}catch(e){}try{zero.disconnect();}catch(e){}sp.onaudioprocess=null;
+      [entree,out,mix].forEach(function(nd){try{nd.disconnect();}catch(e){}});
+    }};
+  }
+
+  /* ---------- Façade : quatre pistes, RECORD/MUET/CLEAR ---------- */
+  function el(tag,classe,txt){var e=document.createElement(tag);if(classe)e.className=classe;if(txt!==undefined)e.textContent=txt;return e;}
+  function bouton(p,t,cl){var b=el("button",cl,t);b.type="button";p.appendChild(b);return b;}
+  function interfaceModule(parent,m,grand){
+    var root=el("div","lpr "+(grand?"lpr-editeur":"lpr-mini"));parent.appendChild(root);root.dataset.module=m.id;
+    function valide(){return EUR.mods.indexOf(m)>=0;}
+    if(!grand){
+      root.appendChild(el("p","lpr-intro","LOOPER"));
+      var ouvrir=bouton(root,"OUVRIR LE LOOPER","lpr-ouvrir");
+      ouvrir.addEventListener("click",function(e){e.stopPropagation();if(valide()&&typeof EUR_FOCUS!=="undefined")EUR_FOCUS.ouvrir(m.id);});
+      return {rafraichir:function(){},detruire:function(){}};
+    }
+    var champs={};
+    function modifier(k,v){if(!valide())return;m.p[k]=v;memEur();if(m.maj)m.maj();}
+    function options(a,b,pas,fn){var r=[];for(var i=a;i<=b;i+=pas)r.push([i,fn?fn(i):String(i)]);return r;}
+    function select(p,k,t,l){
+      var lab=el("label",""),s=el("select","");lab.appendChild(el("span","",t));s.dataset.champ=k;s.setAttribute("aria-label",t);
+      l.forEach(function(x){var o=el("option","",x[1]);o.value=x[0];s.appendChild(o);});
+      s.addEventListener("change",function(){modifier(k,+s.value);});lab.appendChild(s);p.appendChild(lab);champs[k]=s;
+    }
+    root.appendChild(el("p","lpr-intro","QUATRE PISTES · PHRASES CONSERVÉES"));
+    var reglages=el("div","lpr-reglages");root.appendChild(reglages);
+    select(reglages,"mes","MESURES",options(1,4,1,function(n){return n+" mesure"+(n>1?"s":"");}));
+    select(reglages,"fondu","FONDU",options(1,60,1,function(n){return n+" ms";}));
+    select(reglages,"niv","NIVEAU",options(0,100,5,function(n){return n+" %";}));
+    select(reglages,"niv1","NIVEAU 1",options(0,100,5,function(n){return n+" %";}));
+    select(reglages,"niv2","NIVEAU 2",options(0,100,5,function(n){return n+" %";}));
+    select(reglages,"niv3","NIVEAU 3",options(0,100,5,function(n){return n+" %";}));
+    select(reglages,"niv4","NIVEAU 4",options(0,100,5,function(n){return n+" %";}));
+    Object.keys(champs).forEach(function(k){champs[k].value=m.p[k];});
+    var pistesEl=[];
+    var grille=el("div","lpr-pistes");root.appendChild(grille);
+    for(var i=0;i<4;i++)(function(i){
+      var piste=el("div","lpr-piste");grille.appendChild(piste);
+      piste.appendChild(el("strong","lpr-num","PISTE "+(i+1)));
+      var etat=el("p","lpr-etat");piste.appendChild(etat);
+      var actions=el("div","lpr-actions");piste.appendChild(actions);
+      var rec=bouton(actions,"RECORD","lpr-rec");
+      rec.addEventListener("click",function(e){e.stopPropagation();if(valide())m.looper.armer(i);maj();});
+      var muet=bouton(actions,"MUET","lpr-muet");
+      muet.addEventListener("click",function(e){e.stopPropagation();if(!valide())return;var d=m.looper.etat(i);m.looper.muet(i,!d.muet);maj();});
+      var clear=bouton(actions,"CLEAR","lpr-clear");
+      clear.addEventListener("click",function(e){e.stopPropagation();if(!valide())return;if(!window.confirm("Effacer la phrase de la piste "+(i+1)+" ?"))return;m.looper.effacer(i);maj();});
+      pistesEl.push({piste:piste,etat:etat,rec:rec,muet:muet});
+    })(i);
+    root.appendChild(el("p","lpr-aide","RECORD arme la piste : la capture démarre au prochain temps fort et dure le nombre de MESURES réglé, puis boucle toute seule. MUET coupe la piste sans effacer sa phrase ; CLEAR la vide pour de bon. IN reçoit le signal à capturer, CLK cadence les temps forts, RST désarme tout sans rien effacer."));
+    function maj(){
+      pistesEl.forEach(function(v,i){
+        var d=m.looper?m.looper.etat(i):null;
+        var txt=!d?"—":d.enregistre?"ENREGISTRE…":d.arme?"ARMÉE · PROCHAIN TEMPS FORT":d.lecture?(d.muet?"EN BOUCLE · MUET":"EN BOUCLE"):"VIDE";
+        v.etat.textContent=txt;
+        v.rec.classList.toggle("actif",!!(d&&(d.arme||d.enregistre)));
+        v.muet.classList.toggle("actif",!!(d&&d.muet));
+        v.muet.setAttribute("aria-pressed",String(!!(d&&d.muet)));
+      });
+    }
+    maj();
+    return {rafraichir:maj,detruire:function(){}};
+  }
+
+  EUR_CAT.looper={nom:"LOOPER DE RACK",hp:248,sombre:true,fam:"effet",
+    res:"Quatre pistes qui captent une phrase sur IN puis la bouclent ; RECORD arme la piste, MUET la coupe sans l'effacer, CLEAR la vide.",
+    kns:kns,jacks:[["in","IN",0],["clk","CLK",0],["rst","RST",0],["out","OUT",1]],creer:creer,interface:interfaceModule,
+    focusLabel:"CAPTUREZ ET BOUCLEZ QUATRE PHRASES",focusValeur:"LOOPER"};
+  EUR_ORDRE.push("looper");
+  return {normaliser:normaliser,fondre:fondre,maxdur:MAXDUR};
+})();
+/* ================= deux montages LOOPER DE RACK — v296 =================
+   Une ligne mélodique alimente l'entrée IN du LOOPER : RECORD (au doigt,
+   dans la façade) capture ce qu'elle joue à ce moment-là, au prochain temps
+   fort, et le boucle. Les quatre pistes restent vides tant qu'on n'a pas
+   armé RECORD une fois sur scène — les deux montages tournent déjà, prêts
+   à être joués et bouclés en direct. */
+(function montagesLooper(){
+  "use strict";
+  function fabriquer(P, faire){
+    P.mods = []; P.cables = []; P.rangees = []; var reperes = {};
+    var perf = EUR_PERFORMANCE.vide();
+    function mod(k, type, p, r){ reperes[k] = P.mods.length; P.mods.push([type, p || {}]); P.rangees.push(r === 1 ? 1 : 0); }
+    function fil(a, s, b, e){ P.cables.push([reperes[a], s, reperes[b], e]); }
+    function macro(i, nom, liens){
+      perf.commandes[i] = {nom:nom, valeur:0, cibles:liens.map(function(l){
+        var idx = reperes[l[0]], type = P.mods[idx][0], p = P.mods[idx][1];
+        var kdef = EUR_CAT[type].kns.find(function(k){ return k[0] === l[1]; });
+        var depart = p[l[1]] !== undefined ? p[l[1]] : kdef[4];
+        return {index:idx, type:type, param:l[1], min:depart, max:l[2]};
+      })};
+    }
+    faire(mod, fil, macro);
+    P.performance = perf;
+    return P;
+  }
+  function seq8notes(vals){ var p = {}; vals.forEach(function(v, i){ p["n" + (i + 1)] = v; }); return p; }
+
+  var MONT = [];
+
+  /* ---------- Boucle · Phrase captée en direct ---------- */
+  MONT.push(fabriquer({id:"looper-boucle", nom:"BOUCLE · PHRASE CAPTÉE EN DIRECT", fam:"looper", bpm:112,
+    res:"Un fond batterie/basse tourne pendant qu'une petite mélodie joue sur VCO ; armer RECORD sur une piste du LOOPER en capture un passage et le boucle, en direct."},
+    function(mod, fil, macro){
+      mod("clock", "clock");
+      mod("div", "clkdiv");
+      mod("euclHat", "euclid", {pas:0.6, coups:0.4, dec:0});
+      mod("kick", "kick", {tune:0.32, dec:0.42, niv:0.9});
+      mod("hat", "hat", {tune:0.55, dec:0.1, niv:0.4});
+      mod("seqBasse", "seq8", seq8notes([0.2,0.2,0.28,0.2,0.2,0.2,0.32,0.24]));
+      mod("basse", "bassrave", {mode:0.2, oct:0, dec:140, cut:0.2, env:0.3, det:0.1, sub:0.4, drive:0.1, niv:0.55}, 1);
+      mod("seqMelo", "seq8", seq8notes([0.55,0.6,0.62,0.6,0.67,0.62,0.6,0.58]));
+      mod("melo", "wave", {oct:0.5, modele:0.15, harm:0.3}, 1);
+      mod("env", "ad", {a:0.01, d:0.18});
+      mod("vca", "vca", {gain:0.85}, 1);
+      mod("looper", "looper", {mes:2, fondu:10, niv:80, niv1:80, niv2:80, niv3:80, niv4:80}, 1);
+      mod("mixDrums", "mix4", {a:0.85, b:0.4, c:0, d:0}, 1);
+      mod("mixMain", "mix4", {a:0.85, b:0.55, c:0.7, d:0}, 1);
+      mod("echo", "delay", {time:0.28, fb:0.32, mix:0.22}, 1);
+      mod("limiteur", "limit", {seuil:0.6, rap:0.6}, 1);
+      mod("sortie", "out", {niv:0.72}, 1);
+
+      fil("clock", "out", "div", "in");
+      fil("div", "d4", "kick", "trig");
+      fil("clock", "out", "euclHat", "in"); fil("euclHat", "out", "hat", "trig");
+      fil("clock", "out", "seqBasse", "clk");
+      fil("seqBasse", "cv", "basse", "voct"); fil("seqBasse", "gate", "basse", "trig");
+      fil("clock", "out", "seqMelo", "clk");
+      fil("seqMelo", "cv", "melo", "voct"); fil("seqMelo", "gate", "env", "trig");
+      fil("env", "out", "vca", "cv"); fil("melo", "out", "vca", "in");
+      fil("vca", "out", "looper", "in"); fil("clock", "out", "looper", "clk");
+      fil("kick", "out", "mixDrums", "a"); fil("hat", "out", "mixDrums", "b");
+      fil("mixDrums", "out", "mixMain", "a"); fil("basse", "out", "mixMain", "b");
+      fil("looper", "out", "mixMain", "c");
+      fil("mixMain", "out", "echo", "in"); fil("echo", "out", "limiteur", "in"); fil("limiteur", "out", "sortie", "in");
+
+      macro(0, "PERCUSSIONS", [["mixMain","a",0]]);
+      macro(1, "BASSE", [["mixMain","b",0]]);
+      macro(2, "LOOPER", [["mixMain","c",0.95]]);
+      macro(3, "NIVEAU LOOPER", [["looper","niv",100]]);
+      macro(4, "PISTE 1", [["looper","niv1",0]]);
+      macro(5, "PISTE 2", [["looper","niv2",0]]);
+      macro(6, "ÉCHOS", [["echo","mix",0.6]]);
+      macro(7, "MÉLODIE SÈCHE", [["mixMain","c",0]]);
+    }));
+
+  /* ---------- Dub · Couches accumulées ---------- */
+  MONT.push(fabriquer({id:"looper-dub", nom:"DUB · COUCHES ACCUMULÉES", fam:"looper", bpm:78,
+    res:"Kick et rim clap épars, basse dub lente : le LOOPER capte des passages de la mélodie au fil du set pour empiler des couches qui reviennent, échos et ressort en dessous."},
+    function(mod, fil, macro){
+      mod("clock", "clock");
+      mod("div", "clkdiv");
+      mod("euclKick", "euclid", {pas:0.5, coups:0.22, dec:0});
+      mod("euclRim", "euclid", {pas:0.65, coups:0.28, dec:0.5});
+      mod("kick", "kick", {tune:0.3, dec:0.5, niv:0.85});
+      mod("rim", "rim", {tune:0.55, dec:0.3, niv:0.5});
+      mod("seqBasse", "seq8", seq8notes([0.16,0.16,0.16,0.16,0.24,0.24,0.16,0.16]));
+      mod("basse", "bassrave", {mode:0.1, oct:-1, dec:220, cut:0.16, env:0.2, det:0.08, sub:0.42, drive:0.06, niv:0.5}, 1);
+      mod("seqMelo", "seq8", seq8notes([0.45,0.5,0.55,0.5,0.6,0.55,0.5,0.48]));
+      mod("melo", "wave", {oct:0.65, modele:0.4, harm:0.25}, 1);
+      mod("env", "ad", {a:0.02, d:0.5});
+      mod("vca", "vca", {gain:0.8}, 1);
+      mod("looper", "looper", {mes:4, fondu:20, niv:75, niv1:75, niv2:75, niv3:75, niv4:75}, 1);
+      mod("mixDrums", "mix4", {a:0.8, b:0.4, c:0, d:0}, 1);
+      mod("mixMain", "mix4", {a:0.8, b:0.55, c:0.65, d:0}, 1);
+      mod("echo", "bbd", {time:0.42, fb:0.5, mix:0.4}, 1);
+      mod("spring", "spring", {ten:0.4, mix:0.3}, 1);
+      mod("limiteur", "limit", {seuil:0.62, rap:0.55}, 1);
+      mod("sortie", "out", {niv:0.7}, 1);
+
+      fil("clock", "out", "div", "in");
+      fil("clock", "out", "euclKick", "in"); fil("euclKick", "out", "kick", "trig");
+      fil("div", "d3", "euclRim", "in"); fil("euclRim", "out", "rim", "trig");
+      fil("clock", "out", "seqBasse", "clk");
+      fil("seqBasse", "cv", "basse", "voct"); fil("seqBasse", "gate", "basse", "trig");
+      fil("clock", "out", "seqMelo", "clk");
+      fil("seqMelo", "cv", "melo", "voct"); fil("seqMelo", "gate", "env", "trig");
+      fil("env", "out", "vca", "cv"); fil("melo", "out", "vca", "in");
+      fil("vca", "out", "looper", "in"); fil("clock", "out", "looper", "clk");
+      fil("kick", "out", "mixDrums", "a"); fil("rim", "out", "mixDrums", "b");
+      fil("mixDrums", "out", "mixMain", "a"); fil("basse", "out", "mixMain", "b");
+      fil("looper", "out", "mixMain", "c");
+      fil("mixMain", "out", "echo", "in"); fil("echo", "out", "spring", "in");
+      fil("spring", "out", "limiteur", "in"); fil("limiteur", "out", "sortie", "in");
+
+      macro(0, "PERCUSSIONS", [["mixMain","a",0]]);
+      macro(1, "BASSE", [["mixMain","b",0]]);
+      macro(2, "LOOPER", [["mixMain","c",0.95]]);
+      macro(3, "NIVEAU LOOPER", [["looper","niv",100]]);
+      macro(4, "PISTE 1", [["looper","niv1",0]]);
+      macro(5, "PISTE 2", [["looper","niv2",0]]);
+      macro(6, "ÉCHOS", [["echo","mix",0.7]]);
+      macro(7, "RESSORT", [["spring","mix",0.65]]);
+    }));
+
+  MONT.forEach(function(P){ EUR_MONTAGES.push(P); });
+  EUR_MONT_FAM.push(["looper", "LOOPER DE RACK"]);
 })();
 /* ===================== BEHRINGER TD-3 =====================
    La 303 remise en circuit. Tout son caractère tient à trois choses : un

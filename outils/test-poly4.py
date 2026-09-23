@@ -91,8 +91,8 @@ def main():
             pg.goto(f.as_uri(), wait_until='domcontentloaded'); pg.wait_for_timeout(80)
             pg.evaluate(G.OUVRIR, 'eur')
             tag = f'{w}x{h}'
-            v(pg.evaluate("Object.keys(EUR_CAT).length===120 && new Set(EUR_ORDRE).size===120 && EUR_MONTAGES.length===68"),
-              tag + ' catalogue 120 modules / 68 montages')
+            v(pg.evaluate("Object.keys(EUR_CAT).length===121 && new Set(EUR_ORDRE).size===121 && EUR_MONTAGES.length===70"),
+              tag + ' catalogue 121 modules / 70 montages')
             v(pg.evaluate("!!EUR_CAT.poly4 && EUR_CAT.poly4.jacks.length===1 && EUR_CAT.poly4.jacks[0][0]==='out' && EUR_CAT.poly4.kns.length===7"),
               tag + ' module POLY 4 : une sortie, sept réglages')
             pg.evaluate("EUR.mods=[];EUR.cables=[];EUR.attente=null;const m=eurAjouter('poly4',true);eurDessiner();EUR_FOCUS.ouvrir(m.id);")

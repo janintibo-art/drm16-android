@@ -676,4 +676,14 @@
   puis une pastille) et le rejouent d'une seule pression ; OCTAVE − / + décale le clavier de deux octaves
   dans chaque sens.</p>
   <span>Potards OSCILLATEUR, DÉSACCORD, FILTRE, RÉSONANCE, ATTAQUE ms, CHUTE ms, NIVEAU · Sortie OUT</span></div>
+
+  <h3>Looper de rack · 1 module (v296)</h3>
+  <div class="fmod" id="fm-looper"><b>LOOPER DE RACK</b>
+  <p>Quatre pistes qui captent chacune une phrase sur IN puis la bouclent, sans MediaRecorder ni
+  AudioWorklet : la capture écrit directement dans un AudioBuffer via un ScriptProcessorNode. RECORD arme
+  une piste au doigt : la capture démarre au prochain temps fort et dure le nombre de MESURES réglé (1 à
+  4), puis boucle toute seule. MUET coupe une piste sans effacer sa phrase ; CLEAR la vide pour de bon —
+  les phrases restent en mémoire tant qu'on ne les efface pas. Un fondu (FONDU ms) évite que la boucle
+  claque au raccord. NIVEAU règle le mélange général, NIVEAU 1 à 4 chaque piste.</p>
+  <span>Potards MESURES, FONDU ms, NIVEAU, NIVEAU 1-4 · Entrées IN, CLK, RST · Sortie OUT</span></div>
   </div>

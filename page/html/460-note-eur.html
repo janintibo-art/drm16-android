@@ -681,6 +681,22 @@ pastille) et le rejouent ensuite d'une seule pression, sans repasser par les tou
 enchaîner des accords en jouant d'une main. Comme TENIR sur SCÈNES 8, ce sont des gestes de jeu, non
 enregistrés dans le projet. OCTAVE − / + décale le clavier de deux octaves dans chaque sens. Deux
 montages : <b>NAPPE · ACCORDS AU DOIGT</b> (lent, chute longue) et <b>CLUB · ACCORDS COURTS</b>
-(124 bpm, chute brève), chacun avec un fond rythmique déjà séquencé sous POLY 4. Le catalogue compte
-maintenant 120 types de modules et 68 montages.</p>
+(124 bpm, chute brève), chacun avec un fond rythmique déjà séquencé sous POLY 4. Le catalogue comptait
+alors 120 types de modules et 68 montages.</p>
+
+<h3>LOOPER DE RACK (v296)</h3>
+<p><b>LOOPER DE RACK</b> capture quatre phrases sur son entrée IN puis les boucle — les phrases
+restent en mémoire tant qu'on ne les efface pas (CLEAR), pas seulement le temps d'une lecture : on
+peut couper une piste (MUET) et la retrouver intacte en la rallumant. Comme FREEZE GRANULAIRE, aucun
+MediaRecorder ni AudioWorklet : la capture écrit directement dans un AudioBuffer via un
+ScriptProcessorNode, échantillon par échantillon, correct en direct comme dans un rendu
+OfflineAudioContext.</p>
+<p>RECORD arme une piste au doigt : l'enregistrement démarre au prochain temps fort (seizième CLK
+reçue) et dure le nombre de MESURES réglé (1 à 4), puis boucle tout seul — pas de second geste pour
+arrêter. Un fondu (FONDU ms) est appliqué à l'entrée et à la sortie du fragment capté une fois fini,
+pour que la boucle ne claque pas au raccord. Chaque piste ne retient qu'une seule prise à la fois :
+ré-armer RECORD remplace la phrase en cours dès que la nouvelle est captée. NIVEAU règle le mélange
+général, NIVEAU 1 à 4 chaque piste. Deux montages : <b>BOUCLE · PHRASE CAPTÉE EN DIRECT</b> et
+<b>DUB · COUCHES ACCUMULÉES</b>, chacun avec une mélodie déjà séquencée prête à être captée en direct
+sur le LOOPER. Le catalogue compte maintenant 121 types de modules et 70 montages.</p>
 </div>
