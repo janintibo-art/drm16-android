@@ -54,8 +54,8 @@ def main():
    pg.wait_for_timeout(100);pg.evaluate(G.OUVRIR,'eur');return c,pg,er
   for w,h in FORMATS:
    c,pg,er=ouvrir(w,h);tag=f'{w}x{h}';accord={'oui':False};pg.on('dialog',lambda d:d.accept() if accord['oui'] else d.dismiss())
-   v(pg.evaluate('Object.keys(EUR_CAT).length===111 && new Set(EUR_ORDRE).size===111'),tag+' 111 modules uniques')
-   v(pg.evaluate('EUR_MONTAGES.length===52 && EUR_MONTAGES.filter(p=>p.fam==="rave").length===6'),tag+' 52 montages dont six RAVE')
+   v(pg.evaluate('Object.keys(EUR_CAT).length===112 && new Set(EUR_ORDRE).size===112'),tag+' 112 modules uniques')
+   v(pg.evaluate('EUR_MONTAGES.length===54 && EUR_MONTAGES.filter(p=>p.fam==="rave").length===6'),tag+' 54 montages dont six RAVE')
    st=pg.evaluate(STRUCTURE);structures=st
    for x in st:v(not x['erreurs'] and x['horloges']==1 and x['melos']==2 and x['scenes']==1 and x['rangees'],tag+' câblage '+str(x))
    pg.evaluate('window.rackAvant=JSON.stringify(rackCourant());EUR.montFam="rave";eurMontages()')

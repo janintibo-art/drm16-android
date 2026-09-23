@@ -4109,6 +4109,26 @@ body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2p
 .kb-atelier button:focus-visible,.kb-atelier input:focus-visible{outline:2px solid var(--kb-accent);outline-offset:2px}
 #eur-focus .ef-knobs:has(.kb-grand){display:block;width:100%}
 @media(max-width:600px){.kb-grand .kb-controles{grid-template-columns:minmax(0,1fr)}.kb-grand .kb-reglage{padding:10px}}
+/* v287 : famille harmonique, toujours lisible dans Focus. */
+.hr8{min-width:0;color:#edf3fb;font:12px/1.5 system-ui,Arial,sans-serif}
+.hr8-intro{margin:4px 0 8px;text-align:center;color:#cee7de;font-size:10px;letter-spacing:.3px}
+.hr8-grille{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#unit-eur .hr8-case,#eur-focus .hr8-case{display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-width:0;min-height:66px;padding:5px 2px;border-radius:5px;border:1px solid #799d91;background:linear-gradient(#324e46,#172c28);color:#effff7;touch-action:manipulation;letter-spacing:0}
+.hr8-num{font-size:10px}.hr8-nom{font-size:10px;white-space:normal;overflow-wrap:anywhere}.hr8-bars{font-size:9px}
+.hr8 .hors{opacity:.4;border-style:dashed!important}
+.hr8-etat,.hr8-notes{display:block;min-height:44px;padding:9px;margin:9px 0;background:#112520;border:1px solid #598876;border-radius:5px;color:#e0f3ea;overflow-wrap:anywhere}
+#eur-focus .hr8 button,#eur-focus .hr8 select{min-height:44px;min-width:44px;max-width:100%;padding:8px 5px;font-size:11px;letter-spacing:0;touch-action:manipulation}
+#eur-focus .hr8 button:focus-visible,#eur-focus .hr8 select:focus-visible{outline:3px solid #e4fff0;outline-offset:1px}
+#eur-focus .hr8 [aria-pressed="true"]{background:linear-gradient(#ddf8eb,#94cfb5);color:#172c24;border-color:#f3fff9;opacity:1}
+#unit-eur .hr8-case.courant,#eur-focus .hr8-case.courant{outline:3px solid #ffd493;outline-offset:-2px}
+.hr8-detail,.hr8-global{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:8px 0}
+.hr8 label{display:flex;flex-direction:column;gap:5px;min-width:0}.hr8 label>span{font:700 10px/1.4 system-ui;color:#d4eadd}
+#eur-focus .hr8 select{width:100%;min-width:0;background:#182d26;color:#f0faf4}.hr8 select:disabled{opacity:.5}
+#eur-focus .hr8-titre{font-size:12px;margin:14px 0 7px;color:#e3f2eb}
+#eur-focus .hr8-hold,#eur-focus .hr8-copier{width:100%;margin:5px 0;white-space:normal}
+.hr8-aide{font-size:11px;line-height:1.6;color:#c8dcd3;margin:12px 0 4px}
+@media(min-width:1000px){#eur-focus .hr8-grille{grid-template-columns:repeat(8,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.hr8 *{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -8257,6 +8277,42 @@ Général) rend la chaîne entière, une fois.</p>
   le kick ; les variations DRUM 32 n'en modifient donc pas le rythme.
   Les commandes 5–8 règlent corps du kick, queue, place pour le kick et couleur de
   basse. Utilisez un rack vide pour conserver votre montage actuel.</p>
+
+  <h3>HARMONIE 8 — progressions d’accords</h3>
+  <p>Dans SÉQUENCEURS, <b>HARMONIE 8</b> mémorise huit accords avec leur fondamentale,
+  type, renversement et durée. Touchez une case pour l’éditer dans FOCUS : cela ne
+  fait pas sauter la lecture. Huit qualités sont proposées : majeur, mineur,
+  mineur 7, majeur 7, septième, sus 2, sus 4 et diminué 7. Les triades doublent
+  leur fondamentale à l’octave ; les renversements gardent quatre notes distinctes.</p>
+  <p><b>MESURES</b> : reliez CLOCK OUT à CLK / SCÈNE, seize impulsions font une
+  mesure et chaque accord dure de 1 à 16 mesures. <b>SCÈNES</b> : reliez SCÈNES 8
+  SCÈNE à CLK / SCÈNE ; chaque changement avance d’un accord, sans utiliser les
+  durées locales. Ne branchez pas les deux sources à la fois. TENIR maintient
+  l’accord tout en laissant passer CLK OUT. Modifier le mode réarme le premier
+  accord à la prochaine impulsion. Les accords au-delà de la longueur restent conservés.</p>
+  <p><b>VOIX 1–4</b> sont quatre tensions de hauteur : reliez-les à quatre VCO
+  accordés à 55 Hz pour 0 V. Leur octave et leur glissé sont réglables.
+  <b>FOND</b> émet la fondamentale sans octave de nappe ni renversement.
+  <b>TRANS</b> émet l’intervalle entre la fondamentale et RÉFÉRENCE : un MIX 4,
+  entrées A et B à 1, additionne le CV de MÉLO 32 et TRANS. Il ne quantifie pas
+  les notes et ne corrige pas automatiquement une note étrangère à l’accord.
+  La transposition est franche et peut modifier une note encore tenue.</p>
+  <p>Les changements édités sont pris en compte à la prochaine frontière de
+  mesure ou impulsion SCÈNE. STOP et RST annulent les changements futurs et
+  conservent la dernière hauteur ; le premier accord revient au prochain CLK.
+  ACCORD émet une impulsion à chaque nouvel accord, CYCLE au retour au premier,
+  puis CLK OUT retransmet l’impulsion. Ce sont des commandes, pas des sorties audio.</p>
+  <p><b>MONTAGES → HARMONIES</b> : DnB · ACCORDS NOCTURNES (174 BPM) et
+  PSY · HARMONIE EN MOUVEMENT (146 BPM). Batterie, basse, mélodie et nappe suivent
+  huit scènes sur douze mesures : LA m7, FA maj7, DO majeur et SOL7, deux fois.
+  Les MÉLO 32 gardent l’écriture en LA, faite de fondamentales, quintes et octaves ;
+  TRANS la déplace. Le quatrième groupe est la NAPPE. PERFORMANCE fournit quatre
+  niveaux et les couleurs de basse, nappe, échos et lead. Les fills de batterie
+  restent indépendants des accords. Dans le Psy, le kick et le duck restent
+  synchronisés ; le kick n’est pas transposé par la progression.</p>
+  <p>Les réglages d’accord sont conservés dans les huit racks et les projets .drm16.
+  La copie vers l’accord suivant demande confirmation. Ce lot n’enregistre pas
+  les macros et ne change pas les phrases A/B en fonction des scènes.</p>
 
 </div>
   <div class="doc" id="note-eurmod" data-titre="MODULES EUR.">
@@ -29130,6 +29186,272 @@ var EUR_KICKBASS_UI=(function(){
   }
   EUR_MONTAGES.push(faire("rave-psy","atelier-psy","PSY · KICK ET BASSE",true));
   EUR_MONTAGES.push(faire("rave-gabber","atelier-gabber","GABBER · KICK ACCORDÉ",false));
+})();
+/* ================= HARMONIE 8 — v287 =================
+   Progression de huit accords. Sorties CV, pas un générateur audio : 0 V =
+   LA1/55 Hz pour les VCO accordés à 55 Hz. Quatre voix de nappe, fondamentale,
+   et intervalle de transposition depuis une note de référence indépendante.
+   MESURES : 16 CLK par mesure. SCÈNES : chaque impulsion avance d'un accord.
+   Tous les choix persistants sont dans m.p. Aucun ancien module n'est modifié. */
+var EUR_HARMONIE8=(function(){
+  "use strict";
+  var types=[
+    ["MAJEUR","maj",[0,4,7,12]], ["MINEUR","min",[0,3,7,12]],
+    ["MINEUR 7","m7",[0,3,7,10]], ["MAJEUR 7","maj7",[0,4,7,11]],
+    ["SEPTIÈME","7",[0,4,7,10]], ["SUS 2","sus2",[0,2,7,12]],
+    ["SUS 4","sus4",[0,5,7,12]], ["DIMINUÉ 7","dim7",[0,3,6,9]]
+  ];
+  var kns=[["len","ACCORDS",1,8,8],["sync","SUIVI",0,1,0],["hold","TENIR",0,1,0],
+    ["ref","NOTE RÉFÉRENCE",24,60,33],["trans","TRANSPOSE",-12,12,0],
+    ["oct","OCTAVE NAPPE",0,2,1],["glide","GLISSÉ NAPPE ms",0,250,40]];
+  for(var i=1;i<=8;i++)kns.push(["root"+i,"FONDAMENTALE "+i,24,60,[33,29,36,31][(i-1)%4]],
+    ["type"+i,"ACCORD "+i,0,7,[2,3,0,4][(i-1)%4]],
+    ["inv"+i,"RENVERSEMENT "+i,0,3,0],["bars"+i,"MESURES "+i,1,16,1]);
+  function entier(v,a,b,d){return Number.isFinite(v)?Math.max(a,Math.min(b,Math.round(v))):d;}
+  function normaliser(m){if(!m.p)m.p={};kns.forEach(function(k){m.p[k[0]]=entier(m.p[k[0]],k[2],k[3],k[4]);});}
+  function nomNote(n){return ["DO","DO♯","RÉ","RÉ♯","MI","FA","FA♯","SOL","SOL♯","LA","LA♯","SI"][((n%12)+12)%12]+(Math.floor(n/12)-1);}
+  function accord(p,i){
+    var n=entier(i,0,7,0)+1,fond=entier(p["root"+n],24,60,33)+entier(p.trans,-12,12,0),
+      type=entier(p["type"+n],0,7,0),inv=entier(p["inv"+n],0,3,0),oct=entier(p.oct,0,2,1);
+    var notes=types[type][2].map(function(x){return fond+x+12*oct;});
+    for(var j=0;j<inv;j++){var basse=notes.shift()+12;while(basse<=notes[notes.length-1])basse+=12;notes.push(basse);}
+    return {fond:fond,type:type,inv:inv,notes:notes,root:(fond-33)/12,
+      shift:(fond-entier(p.ref,24,60,33))/12,bars:entier(p["bars"+n],1,16,1)};
+  }
+  function longueur(m){var n=0;for(var i=0;i<entier(m.p.len,1,8,8);i++)n+=accord(m.p,i).bars;return n;}
+  function lire(r,t){return t<=r.t?r.a:t>=r.fin?r.b:r.a+(r.b-r.a)*(t-r.t)/(r.fin-r.t);}
+  function creer(m){
+    normaliser(m);
+    var init=accord(m.p,0),s={},h={},clefs=["v1","v2","v3","v4","root","shift"],ferme=false;
+    clefs.forEach(function(k,i){var v=i<4?(init.notes[i]-33)/12:init[k];s[k]=eurConst(v);h[k]=[{t:0,fin:0,a:v,b:v}];});
+    ["change","cycle","clk"].forEach(function(k){s[k]=eurConst(0);});
+    var d=m.harmonie8={pos:-1,pas:-1,dernier:null,barriere:0,mode:m.p.sync,dates:[],entendu:null,accord:null};
+    function rampeA(k,t){var l=h[k],r=l[0];for(var i=l.length-1;i>=0;i--)if(l[i].t<=t){r=l[i];break;}return r;}
+    function valeur(k,t){return h[k]?lire(rampeA(k,t),t):0;}
+    function poser(k,b,t,ms){
+      var r=rampeA(k,t),a=lire(r,t),p=s[k].offset;
+      p.cancelScheduledValues(t);
+      /* Garder la pente antérieure si une rampe est interrompue. */
+      if(r.fin>t&&r.t<t)p.linearRampToValueAtTime(a,t);
+      p.setValueAtTime(ms?a:b,t);if(ms)p.linearRampToValueAtTime(b,t+ms/1000);
+      var l=h[k]=h[k].filter(function(r){return r.t<t;});l.push({t:t,fin:t+ms/1000,a:ms?a:b,b:b});
+      var avant=ctx&&typeof ctx.startRendering==="function"?t:maintenantAudio();
+      while(l.length>1&&l[1].t<=avant)l.shift();
+    }
+    function noter(e){
+      if(ctx&&typeof ctx.startRendering==="function")return;
+      d.dates.push(e);if(d.dates.length>128)d.dates.splice(0,d.dates.length-128);reveiller();
+    }
+    function reset(t){
+      clefs.forEach(function(k){poser(k,valeur(k,t),t,0);});
+      ["change","cycle","clk"].forEach(function(k){s[k].offset.cancelScheduledValues(t);s[k].offset.setValueAtTime(0,t);});
+      d.pos=-1;d.pas=-1;d.dernier=null;d.barriere=t;d.mode=m.p.sync;d.accord=null;
+      d.dates=d.dates.filter(function(e){return e.t<t;});
+    }
+    m.maj=function(){normaliser(m);rafraichir(m);};
+    m.arreter=function(){if(ferme)return;reset(maintenantAudio());d.dates=[];d.entendu=null;reveiller();};
+    m.recevoir=function(t,e){
+      if(ferme||!Number.isFinite(t)||t<0||t<d.barriere)return null;
+      if(e==="rst"){reset(t);noter({t:t,pos:-1});return null;}
+      if(e!=="in"||(d.dernier!==null&&t<=d.dernier+.0000001))return null;
+      var intervalle=d.dernier===null?stepDur():t-d.dernier;d.dernier=t;
+      var mode=entier(m.p.sync,0,1,0),L=entier(m.p.len,1,8,8),nouveau=false;
+      if(mode!==d.mode){d.pos=-1;d.pas=-1;d.mode=mode;}
+      if(d.pos<0){d.pos=0;d.pas=0;nouveau=true;}
+      else{
+        d.pas++;
+        if(mode||d.pas%16===0){
+          if(d.pos>=L){d.pos=0;d.pas=0;nouveau=true;}
+          else if(mode||d.pas>=accord(m.p,d.pos).bars*16){
+            if(m.p.hold>=.5)d.pas=mode?0:accord(m.p,d.pos).bars*16-16;
+            else{d.pos=(d.pos+1)%L;d.pas=0;nouveau=true;}
+          }
+        }
+      }
+      var sorties=[],front=nouveau||mode||d.pas%16===0;
+      if(front){
+        var a=accord(m.p,d.pos);d.accord=a;
+        a.notes.forEach(function(n,i){poser("v"+(i+1),(n-33)/12,t,entier(m.p.glide,0,250,40));});
+        /* La transposition reste franche, indépendante de l'octave et du
+           renversement de la nappe : ne pas décaler la basse de deux octaves. */
+        poser("root",a.root,t,0);poser("shift",a.shift,t,0);
+      }
+      var lg=Math.max(.001,Math.min(.012,intervalle*.45));
+      if(nouveau){
+        if(d.pos===0){eurPorte(s.cycle,t,lg);sorties.push("cycle");}
+        eurPorte(s.change,t,lg);sorties.push("change");
+      }
+      eurPorte(s.clk,t,lg);sorties.push("clk");
+      noter({t:t,pos:d.pos,pas:d.pas,mode:mode,accord:d.accord,hold:m.p.hold>=.5});return sorties;
+    };
+    d.valeur=valeur;d.historique=function(){return Object.keys(h).reduce(function(n,k){return n+h[k].length;},0);};
+    return {e:{in:eurGain(1),rst:eurGain(1)},s:s,detruire:function(){ferme=true;d.dates=[];d.entendu=null;
+      Object.keys(s).forEach(function(k){try{s[k].stop();s[k].disconnect();}catch(e){}});h={};}};
+  }
+  var vues=[],raf=0,derniere=-Infinity;
+  function visible(v){
+    if(typeof document==="undefined"||document.hidden||!v.el.isConnected||EUR.mods.indexOf(v.m)<0)return false;
+    if(document.body.classList.contains("menu-ouvert"))return false;
+    if(v.grand){var f=v.el.closest("#eur-focus");return !!f&&f.classList.contains("show");}
+    return !panneauVisible()&&v.el.getClientRects().length>0&&(S.modele==="eur"||(typeof ENS!=="undefined"&&ENS.actif));
+  }
+  function dessiner(ms){
+    raf=0;vues=vues.filter(function(v){return v.el.isConnected&&EUR.mods.indexOf(v.m)>=0;});
+    var l=vues.filter(visible),now=ctx?maintenantAudio():0;
+    if(ms-derniere>=50||!S.run){derniere=ms;l.forEach(function(v){var d=v.m.harmonie8;
+      if(d)while(d.dates.length&&d.dates[0].t<=now)d.entendu=d.dates.shift();
+      v.temps(S.run&&ctx&&ctx.state==="running"&&d?d.entendu:null);});}
+    if(l.length&&S.run&&ctx&&ctx.state==="running")raf=requestAnimationFrame(dessiner);
+  }
+  function reveiller(){if(typeof document!=="undefined"&&typeof requestAnimationFrame==="function"&&!raf&&vues.some(visible)){derniere=-Infinity;raf=requestAnimationFrame(dessiner);}}
+  function rafraichir(m){vues=vues.filter(function(v){return v.el.isConnected&&EUR.mods.indexOf(v.m)>=0;});vues.forEach(function(v){if(v.m===m)v.maj();});reveiller();}
+  function enregistrerVue(v){vues.push(v);reveiller();return function(){vues=vues.filter(function(x){return x!==v;});};}
+  EUR_CAT.harmonie8={nom:"HARMONIE 8",hp:280,sombre:true,fam:"seq",res:"Huit accords, quatre hauteurs CV, transposition des séquences et suivi des scènes",
+    kns:kns,jacks:[["in","CLK / SCÈNE",0],["rst","RST",0],["v1","VOIX 1",1],["v2","VOIX 2",1],["v3","VOIX 3",1],["v4","VOIX 4",1],
+      ["root","FOND",1],["shift","TRANS",1],["change","ACCORD",1],["cycle","CYCLE",1],["clk","CLK OUT",1]],creer:creer};
+  EUR_ORDRE.push("harmonie8");
+  if(typeof document!=="undefined"){
+    new MutationObserver(reveiller).observe(document.body,{attributes:true,attributeFilter:["class"]});
+    var play=document.getElementById("eur-play");if(play)new MutationObserver(reveiller).observe(play,{attributes:true,attributeFilter:["class"]});
+    document.addEventListener("visibilitychange",reveiller);
+  }
+  return {normaliser:normaliser,accord:accord,types:types,nomNote:nomNote,longueur:longueur,rafraichir:rafraichir,vue:enregistrerVue,reveiller:reveiller};
+})();
+/* v287 : édition HARMONIE 8, sans toucher aux CV avant le prochain événement. */
+(function interfaceHarmonie(){
+  "use strict";
+  var H=EUR_HARMONIE8;
+  function el(tag,cl,txt){var e=document.createElement(tag);if(cl)e.className=cl;if(txt!==undefined)e.textContent=txt;return e;}
+  function bouton(p,txt,fn,cl){var b=el("button",cl,txt);b.type="button";b.addEventListener("click",function(e){e.stopPropagation();fn();});p.appendChild(b);return b;}
+  function interfaceModule(parent,m,grand){
+    var root=el("div","hr8 "+(grand?"hr8-grand":"hr8-mini")),selection=m._hrEdit||0,cellules=[],champs={};parent.appendChild(root);
+    root.dataset.module=m.id;
+    function valide(){return EUR.mods.indexOf(m)>=0;}
+    function modifier(k,v){if(!valide())return;m.p[k]=v;memEur();H.rafraichir(m);}
+    function choix(a,b,fn){var l=[];for(var i=a;i<=b;i++)l.push([i,fn?fn(i):String(i)]);return l;}
+    function select(p,k,nom,l,fn){var lab=el("label",""),s=el("select","");lab.appendChild(el("span","",nom));s.dataset.champ=k;s.setAttribute("aria-label",nom);
+      l.forEach(function(x){var o=el("option","",x[1]);o.value=x[0];s.appendChild(o);});
+      s.addEventListener("change",function(){if(valide())fn(+s.value);});lab.appendChild(s);p.appendChild(lab);champs[k]=s;}
+    root.appendChild(el("p","hr8-intro","ACCORDS · NAPPE · TRANSPOSITION"));
+    var grille=el("div","hr8-grille");root.appendChild(grille);
+    for(var i=0;i<8;i++)(function(i){
+      var b=bouton(grille,"",function(){if(!valide())return;selection=i;m._hrEdit=i;
+        if(!grand&&typeof EUR_FOCUS!=="undefined")EUR_FOCUS.ouvrir(m.id);else{maj();H.reveiller();}},"hr8-case");
+      b.dataset.accord=i;b.appendChild(el("span","hr8-num",String(i+1)));b.appendChild(el("strong","hr8-nom"));b.appendChild(el("small","hr8-bars"));cellules.push(b);
+    })(i);
+    var etat=el("p","hr8-etat");root.appendChild(etat);
+    if(grand){
+      root.appendChild(el("h3","hr8-titre"));
+      var det=el("div","hr8-detail");root.appendChild(det);
+      select(det,"root","FONDAMENTALE ÉCRITE",choix(24,60,H.nomNote),function(n){modifier("root"+(selection+1),n);});
+      select(det,"type","TYPE D'ACCORD",H.types.map(function(t,i){return [i,t[0]];}),function(n){modifier("type"+(selection+1),n);});
+      select(det,"inv","RENVERSEMENT",[[0,"POSITION DE BASE"],[1,"PREMIER"],[2,"DEUXIÈME"],[3,"TROISIÈME"]],function(n){modifier("inv"+(selection+1),n);});
+      select(det,"bars","DURÉE EN MODE MESURES",choix(1,16,function(n){return n+" mesure"+(n>1?"s":"");}),function(n){modifier("bars"+(selection+1),n);});
+      root.appendChild(el("output","hr8-notes"));
+      var global=el("div","hr8-global");root.appendChild(global);
+      select(global,"sync","SUIVI DE L'ENTRÉE",[[0,"MESURES · 16 CLK / MESURE"],[1,"SCÈNES · 1 ACCORD / IMPULSION"]],function(n){modifier("sync",n);});
+      select(global,"len","ACCORDS DANS LA BOUCLE",choix(1,8),function(n){modifier("len",n);});
+      select(global,"ref","RÉFÉRENCE DES MÉLO 32",choix(24,60,H.nomNote),function(n){modifier("ref",n);});
+      select(global,"trans","TRANSPOSITION GLOBALE",choix(-12,12,function(n){return (n>0?"+":"")+n+" demi-tons";}),function(n){modifier("trans",n);});
+      select(global,"oct","OCTAVE DES QUATRE VOIX",choix(0,2,function(n){return "+"+n+" octave"+(n>1?"s":"");}),function(n){modifier("oct",n);});
+      select(global,"glide","GLISSÉ DES QUATRE VOIX",choix(0,250,function(n){return n+" ms";}),function(n){modifier("glide",n);});
+      bouton(root,"",function(){modifier("hold",m.p.hold?0:1);},"hr8-hold");
+      bouton(root,"COPIER VERS L'ACCORD SUIVANT",function(){if(!valide())return;var a=selection+1,b=a%8+1;
+        if(!window.confirm("Remplacer l'accord "+b+" par l'accord "+a+" ? Les autres accords restent intacts."))return;
+        ["root","type","inv","bars"].forEach(function(k){m.p[k+b]=m.p[k+a];});memEur();H.rafraichir(m);},"hr8-copier");
+      root.appendChild(el("p","hr8-aide","Choisir une case l'édite : la lecture ne saute pas. MESURES attend 16 CLK par mesure ; SCÈNES attend la sortie SCÈNE de SCÈNES 8 et ignore les durées locales. Dans les exemples, chaque scène avance d'un accord. TENIR garde l'accord pendant les impulsions ; relâcher reprend au prochain changement. Modifier le mode recommence au premier accord à la prochaine impulsion. RST et STOP réarment le début en conservant la dernière hauteur, pour ne pas transposer les queues de son."));
+      root.appendChild(el("p","hr8-aide","VOIX 1–4 : CV de quatre notes vers quatre VCO. FOND : fondamentale sans renversement. TRANS : intervalle depuis RÉFÉRENCE ; additionnez-le au CV de MÉLO 32 avec un MIX 4, A et B à 1. Ce n'est PAS une correction des notes à la gamme : une note étrangère à l'accord le reste. Les exemples emploient fondamentales, quintes et octaves. Le glissé et le renversement ne concernent que les quatre voix de nappe ; TRANS change franchement, y compris sur une note encore tenue. Les chiffres supposent un VCO à 55 Hz pour 0 V."));
+    }
+    function maj(){
+      if(!valide())return;
+      cellules.forEach(function(b,i){var a=H.accord(m.p,i),nom=H.nomNote(a.fond)+" "+H.types[a.type][1];
+        b.querySelector(".hr8-nom").textContent=nom;b.querySelector(".hr8-bars").textContent=m.p.sync?"1 SCÈNE":a.bars+" MES.";
+        b.classList.toggle("hors",i>=m.p.len);b.setAttribute("aria-pressed",String(grand&&i===selection));b.setAttribute("aria-label","Accord "+(i+1)+" : "+nom+(i>=m.p.len?", hors boucle":""));
+      });
+      if(grand){
+        var n=selection+1,a=H.accord(m.p,selection);root.querySelector(".hr8-titre").textContent="ÉDITER L'ACCORD "+n+(n>m.p.len?" · HORS BOUCLE":"");
+        ["root","type","inv","bars"].forEach(function(k){champs[k].value=m.p[k+n];});
+        ["sync","len","ref","trans","oct","glide"].forEach(function(k){champs[k].value=m.p[k];});
+        champs.bars.disabled=!!m.p.sync;
+        root.querySelector(".hr8-notes").textContent="VOIX 1–4 : "+a.notes.map(H.nomNote).join(" · ")+" | TRANS : "+(a.shift*12)+" demi-tons";
+        var hold=root.querySelector(".hr8-hold");hold.textContent=m.p.hold?"TENIR ACTIVÉ · RELÂCHER":"TENIR L'ACCORD";hold.setAttribute("aria-pressed",String(!!m.p.hold));
+      }
+      temps(null);
+    }
+    function temps(e){
+      cellules.forEach(function(b,i){b.classList.toggle("courant",!!e&&e.pos===i);});
+      var texte=(m.p.sync?m.p.len+" ACCORDS · SUIVI SCÈNES":H.longueur(m)+" MESURES · BOUCLE");
+      if(e&&e.pos>=0&&e.accord)texte="LECTURE "+(e.pos+1)+" · "+H.nomNote(e.accord.fond)+" "+H.types[e.accord.type][1]+(e.mode?" · SCÈNES":" · MESURE "+(Math.floor(e.pas/16)+1)+"/"+e.accord.bars)+(e.hold?" · TENIR":"");
+      else texte+=S.run?" · ATTENTE IMPULSION":" · ARRÊT";
+      if(etat.textContent!==texte)etat.textContent=texte;
+    }
+    var detruire=H.vue({el:root,m:m,grand:grand,maj:maj,temps:temps});maj();return {rafraichir:maj,detruire:detruire};
+  }
+  EUR_CAT.harmonie8.interface=interfaceModule;
+  EUR_CAT.harmonie8.focusLabel="CHOISISSEZ UN ACCORD";
+  EUR_CAT.harmonie8.focusValeur="8 ACCORDS";
+})();
+/* v287 : deux copies indépendantes. Les huit impulsions SCÈNE pilotent les
+   accords avant les CLK mélodiques. Les MIX 4 CV à gain un font une addition
+   exacte, pas une quantification. Les exemples écrivent des fondamentales,
+   quintes et octaves compatibles avec leurs accords majeurs et mineurs. */
+(function montagesHarmonie(){
+  "use strict";
+  function fabriquer(psy){
+    var origine=EUR_MONTAGES.find(function(p){return p.id===(psy?"atelier-psy":"rave-dnb");});if(!origine)return;
+    var p=JSON.parse(JSON.stringify(origine)),r=p.reperes;
+    p.id=psy?"harmonie-psy":"harmonie-dnb";p.nom=psy?"PSY · HARMONIE EN MOUVEMENT":"DnB · ACCORDS NOCTURNES";
+    p.fam="harmonie";p.tonalite="LA m7 · FA maj7 · DO · SOL7";
+    p.res=psy?"Kick/basse, arpège et nappe de quatre notes : huit accords suivent les huit scènes, macros et fills déjà préparés.":
+      "Breaks, basse Reese et mélodie transposés, nappe à quatre voix et huit accords calés sur les scènes.";
+    function mod(k,type,ps,rangee){r[k]=p.mods.length;p.mods.push([type,ps]);p.rangees.push(rangee);}
+    function fil(a,s,b,e){p.cables.push([r[a],s,r[b],e]);}
+    var hp={len:8,sync:1,hold:0,ref:33,trans:0,oct:2,glide:psy?35:140};
+    var racines=[33,29,36,31,33,29,36,31],qualites=[2,3,0,4,2,3,0,4],durees=[1,1,2,1,2,2,1,2];
+    for(var i=1;i<=8;i++){hp["root"+i]=racines[i-1];hp["type"+i]=qualites[i-1];hp["inv"+i]=[0,1,0,1,0,1,0,1][i-1];hp["bars"+i]=durees[i-1];}
+    mod("harmonie","harmonie8",hp,0);
+    mod("transposeBasse","mix4",{a:1,b:1,c:0,d:0},1);
+    mod("transposeMelodie","mix4",{a:1,b:1,c:0,d:0},1);
+    p.cables=p.cables.filter(function(c){return !(c[2]===r.basse&&c[3]==="voct")&&!(c[2]===r.oscMelodie&&c[3]==="voct")&&c[2]!==r.fx&&c[0]!==r.fx;});
+    fil("scenes","change","harmonie","in");
+    [["seqBasse","transposeBasse","basse"],["seqMelodie","transposeMelodie","oscMelodie"]].forEach(function(l){
+      fil(l[0],"cv",l[1],"a");fil("harmonie","shift",l[1],"b");fil(l[1],"out",l[2],"voct");
+    });
+    /* Réutiliser l'emplacement du ZAP pour la première voix évite de garder
+       un module non câblé. Les 52 montages sources ne changent pas. */
+    r.nappe1=r.fx;p.mods[r.nappe1]=["vco",{oct:.5,fin:.5,fm:0}];p.rangees[r.nappe1]=1;
+    [2,3,4].forEach(function(i){mod("nappe"+i,"vco",{oct:.5,fin:.5,fm:0},1);});
+    mod("mixNappe","mix4",{a:.16,b:.16,c:.16,d:.16},1);
+    mod("filtreNappe","vcf",{cut:psy?.30:.25,q:.08,mod:.10},1);
+    for(var i=1;i<=4;i++){fil("harmonie","v"+i,"nappe"+i,"voct");fil("nappe"+i,"tri","mixNappe","abcd"[i-1]);}
+    fil("mixNappe","out","filtreNappe","in");fil("filtreNappe","out","groupeCD","in2");fil("modulation","tri","filtreNappe","cv");
+    var basse=p.mods[r.seqBasse][1],melodie=p.mods[r.seqMelodie][1];basse.scale=0;melodie.scale=0;
+    for(var i=1;i<=32;i++){
+      basse["n"+i]=33+[0,0,0,7,0,12,7,0][(i-1)%8];
+      melodie["n"+i]=57+[0,7,12,7,19,12,7,0,12,19,7,0,24,19,12,7][(i-1)%16];
+    }
+    /* D désigne désormais la nappe, pas les zaps. */
+    p.mods[r.mixGeneral][1].d=psy?.30:.38;
+    var sc=p.mods[r.scenes][1];[35,55,75,100,80,60,100,85].forEach(function(x,i){sc["d"+(i+1)]=x;});
+    var macros=EUR_PERFORMANCE.vide();
+    ["BATTERIE","BASSE","MÉLODIE","NAPPE"].forEach(function(n,i){var k="abcd"[i];macros.commandes[i]={nom:n,valeur:1,
+      cibles:[{index:r.mixGeneral,type:"mix4",param:k,min:0,max:p.mods[r.mixGeneral][1][k]}]};});
+    function macro(i,nom,liens){macros.commandes[i]={nom:nom,valeur:0,cibles:liens.map(function(l){var idx=r[l[0]],x=p.mods[idx],k=EUR_CAT[x[0]].kns.find(function(k){return k[0]===l[1];});
+      return {index:idx,type:x[0],param:l[1],min:x[1][l[1]]===undefined?k[4]:x[1][l[1]],max:l[2]};})};}
+    macro(4,"COULEUR BASSE",[["basse","cut",.48],["basse","drive",.32]]);
+    macro(5,"OUVERTURE NAPPE",[["filtreNappe","cut",.55]]);
+    macro(6,"ÉCHOS",[["echoMelodie","mix",.45],["echoFX","mix",.55]]);
+    macro(7,"BRILLANCE LEAD",[["filtreMelodie","cut",.56],["oscMelodie","harm",.25]]);p.performance=macros;
+    /* Le DnB gagne B sans altérer le rythme A. Le Psy conserve ses B de v286. */
+    if(!p.variations)p.variations={};
+    p.mods.forEach(function(x,i){if((x[0]!=="drum32"&&x[0]!=="break32")||p.variations[i])return;
+      var m={type:x[0],p:{}};EUR_CAT[x[0]].kns.forEach(function(k){m.p[k[0]]=x[1][k[0]]===undefined?k[4]:x[1][k[0]];});
+      EUR_VARIATIONS.preparerB(m);m.variation.graine=287;EUR_VARIATIONS.generer(m);m.variation.periode=4;p.variations[i]=EUR_VARIATIONS.copier(m,m.variation);
+    });
+    return p;
+  }
+  EUR_MONT_FAM.push(["harmonie","HARMONIES"]);
+  [fabriquer(false),fabriquer(true)].forEach(function(p){if(p)EUR_MONTAGES.push(p);});
 })();
 /* ===================== BEHRINGER TD-3 =====================
    La 303 remise en circuit. Tout son caractère tient à trois choses : un

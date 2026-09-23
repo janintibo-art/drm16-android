@@ -44,6 +44,7 @@ css/400-break32-bibliotheque.css
 css/410-performance-eurorack.css
 css/420-variations-rythmiques.css
 css/430-atelier-kick-basse.css
+css/440-harmonie8.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -173,6 +174,9 @@ js/472-montages-variations.js
 js/473-atelier-kick-basse.js
 js/474-atelier-interface.js
 js/475-montages-atelier.js
+js/476-harmonie8-eurorack.js
+js/477-harmonie-interface.js
+js/478-montages-harmonie.js
 js/460-behringer-td-3.js
 js/470-machine-d-archive.js
 js/480-roland-tr-1000.js

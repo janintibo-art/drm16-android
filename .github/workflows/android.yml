@@ -71,6 +71,7 @@ jobs:
           python outils/test-performance-eurorack.py --rapport app/build/reports/performance-eurorack.json
           python outils/test-variations-rythmiques.py --rapport app/build/reports/variations-rythmiques.json
           python outils/test-atelier-kick-basse.py --rapport app/build/reports/atelier-kick-basse.json
+          python outils/test-harmonie8.py --rapport app/build/reports/harmonie8.json
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble

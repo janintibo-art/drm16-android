@@ -1,0 +1,20 @@
+/* v287 : famille harmonique, toujours lisible dans Focus. */
+.hr8{min-width:0;color:#edf3fb;font:12px/1.5 system-ui,Arial,sans-serif}
+.hr8-intro{margin:4px 0 8px;text-align:center;color:#cee7de;font-size:10px;letter-spacing:.3px}
+.hr8-grille{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#unit-eur .hr8-case,#eur-focus .hr8-case{display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-width:0;min-height:66px;padding:5px 2px;border-radius:5px;border:1px solid #799d91;background:linear-gradient(#324e46,#172c28);color:#effff7;touch-action:manipulation;letter-spacing:0}
+.hr8-num{font-size:10px}.hr8-nom{font-size:10px;white-space:normal;overflow-wrap:anywhere}.hr8-bars{font-size:9px}
+.hr8 .hors{opacity:.4;border-style:dashed!important}
+.hr8-etat,.hr8-notes{display:block;min-height:44px;padding:9px;margin:9px 0;background:#112520;border:1px solid #598876;border-radius:5px;color:#e0f3ea;overflow-wrap:anywhere}
+#eur-focus .hr8 button,#eur-focus .hr8 select{min-height:44px;min-width:44px;max-width:100%;padding:8px 5px;font-size:11px;letter-spacing:0;touch-action:manipulation}
+#eur-focus .hr8 button:focus-visible,#eur-focus .hr8 select:focus-visible{outline:3px solid #e4fff0;outline-offset:1px}
+#eur-focus .hr8 [aria-pressed="true"]{background:linear-gradient(#ddf8eb,#94cfb5);color:#172c24;border-color:#f3fff9;opacity:1}
+#unit-eur .hr8-case.courant,#eur-focus .hr8-case.courant{outline:3px solid #ffd493;outline-offset:-2px}
+.hr8-detail,.hr8-global{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:8px 0}
+.hr8 label{display:flex;flex-direction:column;gap:5px;min-width:0}.hr8 label>span{font:700 10px/1.4 system-ui;color:#d4eadd}
+#eur-focus .hr8 select{width:100%;min-width:0;background:#182d26;color:#f0faf4}.hr8 select:disabled{opacity:.5}
+#eur-focus .hr8-titre{font-size:12px;margin:14px 0 7px;color:#e3f2eb}
+#eur-focus .hr8-hold,#eur-focus .hr8-copier{width:100%;margin:5px 0;white-space:normal}
+.hr8-aide{font-size:11px;line-height:1.6;color:#c8dcd3;margin:12px 0 4px}
+@media(min-width:1000px){#eur-focus .hr8-grille{grid-template-columns:repeat(8,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.hr8 *{animation:none!important;transition:none!important}}
