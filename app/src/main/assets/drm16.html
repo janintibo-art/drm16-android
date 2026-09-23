@@ -3926,6 +3926,24 @@ body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2p
 .sc8-aide{font-size:11px;line-height:1.55;color:#c8d6e9;margin:12px 0 4px}
 @media(min-width:1000px){#eur-focus .sc8-grille{grid-template-columns:repeat(8,minmax(0,1fr))}#eur-focus .sc8-niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.sc8 *{animation:none!important;transition:none!important}}
+/* v282 : édition BREAK 32. Pas de ressource distante, vraie façade et Focus. */
+.br32{min-width:0;color:#edf0ff;font:12px/1.4 system-ui,Arial,sans-serif}
+.br32-intro{font-size:10px;text-align:center;color:#b7c5e6;margin:5px 0 9px}
+.br32-pages,.br32-detail,.br32-global,.br32-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.br32-grille{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#unit-eur .br32 button,#eur-focus .br32 button{min-height:44px;min-width:44px;padding:6px 3px;letter-spacing:0;border:1px solid #6880b1;border-radius:5px;background:linear-gradient(#2e3a58,#1b253c);color:#eaf2ff;touch-action:manipulation}
+#unit-eur .br32-pas,#eur-focus .br32-pas{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:62px;box-shadow:inset 0 1px #ffffff15,0 2px 3px #0006}
+.br32-pas small{font-size:10px}.br32-pas strong{font:700 14px system-ui}.br32 .hors{opacity:.40;border-style:dashed!important}
+#unit-eur .br32 [aria-pressed="true"],#eur-focus .br32 [aria-pressed="true"]{background:#bdd5fc;border-color:#eaf4ff;color:#13233e}
+#unit-eur .br32-pas.courant,#eur-focus .br32-pas.courant{outline:3px solid #f8d797;outline-offset:-3px}
+.br32-etat{min-height:40px;margin:8px 0;padding:7px;background:#101b2c;border:1px solid #59739e;border-radius:4px;font:700 11px/1.5 system-ui;overflow-wrap:anywhere}
+.br32 label{display:flex;flex-direction:column;min-width:0;gap:4px}.br32 label>span{font:700 10px/1.4 system-ui;color:#c3d3ed}
+#eur-focus .br32 select{width:100%;min-width:44px;min-height:44px;max-width:100%;padding:6px;font-size:11px;background:#142239;color:#e8f2ff}
+#eur-focus .br32 button:focus-visible,#eur-focus .br32 select:focus-visible{outline:3px solid #e0edff;outline-offset:1px}
+.br32-titre{font:700 12px system-ui!important;margin:14px 0 8px}.br32-aide{font:11px/1.55 system-ui;color:#c3d1e8;margin:12px 0 4px}
+#eur-focus .br32-mute{width:100%;margin:6px 0}
+@media(min-width:1000px){#eur-focus .br32-grille{grid-template-columns:repeat(8,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.br32 *{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -7616,7 +7634,7 @@ Général) rend la chaîne entière, une fois.</p>
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>106 modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>109 modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
@@ -7667,7 +7685,7 @@ Général) rend la chaîne entière, une fois.</p>
   <li><b>RACK ▾</b> — quel meuble, et que met-on dessus. <b>RACK 1</b> ouvre la liste des huit racks, avec leur nom et leur
   contenu. <b>NOMMER</b> baptise celui en cours, jusqu'à vingt-deux caractères ; le bouton et l'afficheur
   montrent alors ce nom, et les confirmations aussi — on sait ce qu'on s'apprête à écraser.
-  <b>MONTAGES</b> ouvre les trente-huit patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
+  <b>MONTAGES</b> ouvre les quarante-quatre patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
   <b>EXEMPLE</b> remonte le patch de démonstration. <b>VIDER</b> repart d'un rack nu, après confirmation,
   et seul le rack courant est touché.</li>
   <li><b>PATCH ▾</b> — ce qu'on a monté dedans. <b>AJOUTER</b> ouvre le catalogue des cent six modules,
@@ -7911,6 +7929,35 @@ Général) rend la chaîne entière, une fois.</p>
   rangée. Le MIX 4 général règle les quatre parties ; ses gains se multiplient par ceux des
   scènes. Les deux MÉLO 32 éditent toujours basse et mélodie, DRUM 32 la batterie.
   Les 36 exemples antérieurs sont conservés. Utilisez un rack vide avant de charger un exemple.</p>
+
+  <h3>Jungle, drum &amp; bass, uptempo, breakcore, gabber et psytrance</h3>
+  <p>Dans <b>RACK → MONTAGES → JUNGLE / HARD / PSY</b>, six racks indépendants associent
+  batterie, basse, mélodie et effets. Les tempos sont des points de départ modifiables :
+  Jungle 168, Drum &amp; Bass 174, Uptempo 220, Breakcore 202, Gabber 185 et Psytrance 146 BPM.
+  Ils partagent une horloge, DRUM 32, deux MÉLO 32 et SCÈNES 8 : huit scènes sur douze mesures.
+  Dans ces montages, <b>A = batterie, B = basse, C = mélodie, D = effets</b> pour les scènes
+  et le MIX 4 général. D n'est pas une nappe comme dans les exemples Marées et Construction.</p>
+  <p><b>BREAK 32</b> (SÉQUENCEURS) : seize tranches d'un break original synthétisé et trente-deux
+  pas d'édition. Touchez une case pour ouvrir FOCUS. Choisissez sa tranche, ses 1 à 4 frappes,
+  son sens de lecture et sa probabilité. La tranche 0 est un silence. Les tranches 1, 8 et 11
+  contiennent les kicks ; 5 et 13 les caisses claires. Les autres contiennent charleys, ghosts et
+  queues de sons. Les pages 1–16 et 17–32 se copient ou se vident après confirmation.
+  Raccourcir ou rendre muet garde les pas écrits. Une impulsion CLK avance d'un pas.
+  Le tempo suit l'horloge ; la transposition modifie vitesse et durée, sans time-stretch.
+  Ce n'est ni une boucle Amen, ni un échantillon commercial, ni encore un lecteur de vos fichiers.</p>
+  <p><b>CORE KICK</b> (PERCUSSIONS) : fréquence fondamentale en Hz, queue en millisecondes,
+  attaque, distorsion, morphing gabber vers uptempo, brillance et niveau. Chaque nouveau coup
+  coupe progressivement la queue du précédent pour éviter l'empilement dans les roulements.
+  Les changements s'appliquent aux nouveaux coups. Il complète RAM et TEK KICK, sans les modifier.</p>
+  <p><b>BASS RAVE</b> (OSCILLATEURS) : voix mono avec enveloppes intégrées, dent de scie courte
+  côté PSY et deux dents désaccordées côté REESE. SUB ajoute une sinusoïde une octave plus bas,
+  après la distorsion et le filtre. Réglez CHUTE ms, FILTRE, ENV FILTRE, DÉSACCORD et DISTORSION.
+  Reliez CV de MÉLO 32 à V/OCT et GATE à TRIG. À OCTAVE 0, 0 V donne LA1 (55 Hz) pour la voix
+  principale. Le kick psy laisse trois notes de basse entre ses coups. Les oscillateurs de cette
+  voix restent continus : ils ne sont pas remis en phase à chaque note.</p>
+  <p>Les nouvelles sources sont arrêtées à STOP et libérées lors d'un recâblage, d'un changement
+  ou d'une suppression de rack. Les effets existants peuvent finir leurs queues. Les anciens
+  modules et les 38 montages précédents sont conservés. Commencez avec un niveau d'écoute modéré.</p>
 
   <h3>Quand ça ne sonne pas</h3>
   <p>Neuf fois sur dix, c'est l'un de ces six points :</p>
@@ -24879,6 +24926,9 @@ function eurBatir(){
      continuaient d'être calculés : un rack chargé, reconstruit à chaque ajout
      de module, finissait par coûter plus cher que tout le reste. On les arrête
      pour de bon avant d'en fabriquer d'autres. */
+  /* v282 : libérer aussi les voix courtes des modules supprimés. Les anciens
+     graphes restent disponibles dans noeuds, même après remplacement de mods. */
+  (EUR.noeuds || []).forEach(function(io){if(io && io.detruire) io.detruire();});
   if(EUR.sources) EUR.sources.forEach(function(n){ try{ n.stop(); }catch(e){} });
   EUR.bus = eurGain(document.body.classList.contains("eur") ? 1 : 0);
   EUR.bus.connect(busSet("eur") || master);
@@ -25619,7 +25669,7 @@ function repartirRangees(seuil){
 function eurMonter(P){
   /* Un ensemble neuf repart au premier temps au prochain START, jamais au
      milieu de l'ancienne phrase. Les anciens montages gardent leur conduite. */
-  if(P.fam === "ensemble" || P.fam === "avance") stop();
+  if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave") stop();
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
   var rangs = P.mods.map(function(x){
     var m = eurAjouter(x[0], true);
@@ -25672,13 +25722,21 @@ function eurMontages(){
       "Choisissez un rack vide pour conserver votre montage actuel.";
     c.appendChild(aideAv);
   }
+  if(fam === "rave"){
+    var aideRave = document.createElement("p");
+    aideRave.className = "eur-ensembles-aide";
+    aideRave.textContent = "6 styles, kick + basse + mélodie + effets. BREAK 32 découpe un break original ; CORE KICK sculpte le kick hardcore. " +
+      "MIX 4 général : A batterie · B basse · C mélodie · D effets. SCÈNES 8 organise les entrées et les breaks sur 12 mesures. " +
+      "Utilisez un rack vide pour conserver votre montage actuel, puis START.";
+    c.appendChild(aideRave);
+  }
   EUR_MONTAGES.forEach(function(P){
     if(P.fam !== fam) return;
     var b = document.createElement("button");
     b.dataset.montage = P.id;
     b.dataset.famille = P.fam;
     b.textContent = P.nom;
-    if(P.fam === "ensemble" || P.fam === "avance"){
+    if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave"){
       var meta = document.createElement("span");
       meta.className = "eur-ensemble-meta";
       meta.textContent = P.bpm + " BPM · " + P.tonalite + " · " + P.mods.length + " MODULES";
@@ -27181,6 +27239,376 @@ var EUR_SCENES8 = (function(){
     return P;
   }
   [fabriquer(false),fabriquer(true)].forEach(function(p){if(p)EUR_MONTAGES.push(p);});
+})();
+/* ================= VOIX RAVE — v282 =================
+   Trois outils spécialisés, sans remplacer RAM, TEK KICK ou les voix anciennes.
+   Pas de fichier externe : le break est synthétisé ici, il ne contient ni Amen
+   ni enregistrement commercial. Les sources transitoires sont fermées à STOP,
+   au recâblage, à la suppression et au changement de rack par io.detruire. */
+var EUR_RAVE = (function(){
+  "use strict";
+  function borne(v,a,b,d){return Number.isFinite(v)?Math.max(a,Math.min(b,v)):d;}
+  function entier(v,a,b,d){return Math.round(borne(v,a,b,d));}
+  function normaliser(m,kns){if(!m.p)m.p={};kns.forEach(function(k){m.p[k[0]]=borne(m.p[k[0]],k[2],k[3],k[4]);});}
+  /* Un panier par instance. Le rendu hors ligne ne conserve pas un historique
+     de toutes les notes. En direct on conserve aussi les voix du look-ahead. */
+  function panier(){
+    var voix=[],ferme=false;
+    function nettoyer(t){var avant=typeof ctx.startRendering==="function"?t-.5:ctx.currentTime-.01;voix=voix.filter(function(v){return v.fin>avant;});}
+    function couper(v,t){
+      if(v.fin<=t)return;
+      if(v.debut>=t){try{v.src.stop(t);}catch(e){}v.fin=t;return;}
+      var p=v.g.gain;
+      if(p.cancelAndHoldAtTime)p.cancelAndHoldAtTime(t);
+      else{p.cancelScheduledValues(t);p.setValueAtTime(0,t);}
+      p.linearRampToValueAtTime(0,t+.003);
+      try{v.src.stop(t+.004);}catch(e){}v.fin=Math.min(v.fin,t+.004);
+    }
+    return {
+      actif:function(){return !ferme;},
+      ajouter:function(src,g,debut,fin,noeuds){
+        if(ferme){try{src.stop();}catch(e){}return;}
+        nettoyer(debut);var v={src:src,g:g,debut:debut,fin:fin};voix.push(v);
+        src.onended=function(){noeuds.forEach(function(n){try{n.disconnect();}catch(e){}});voix=voix.filter(function(x){return x!==v;});};
+      },
+      couper:function(t){voix.forEach(function(v){couper(v,t);});},
+      detruire:function(){ferme=true;voix.forEach(function(v){try{v.src.stop();}catch(e){}});voix=[];},
+      nombre:function(){return voix.length;}
+    };
+  }
+  function enveloppe(p){
+    var h=[];
+    function valeur(t){
+      var r=null;for(var i=h.length-1;i>=0;i--)if(h[i].t<=t){r=h[i];break;}
+      if(!r)return .00001;
+      if(t<r.a)return r.de+(r.pic-r.de)*(t-r.t)/(r.a-r.t);
+      if(t>=r.fin)return .00001;
+      if(r.stop)return .00001;
+      if(t<r.coude)return r.pic*Math.pow(r.milieu/r.pic,(t-r.a)/(r.coude-r.a));
+      return r.milieu*Math.pow(.00001/r.milieu,(t-r.coude)/(r.fin-r.coude));
+    }
+    function tenir(t){
+      var v=valeur(t);
+      if(p.cancelAndHoldAtTime)p.cancelAndHoldAtTime(t);else p.cancelScheduledValues(t);
+      p.setValueAtTime(Math.max(.00001,v),t);h=h.filter(function(r){return r.t<t;});return v;
+    }
+    return {jouer:function(t,attaque,chute,pic){
+      var v=tenir(t),coude=t+attaque+chute*.75,milieu=Math.max(.00001,pic*.15);
+      /* Garder un corps audible, même pour 50 ms : une seule exponentielle
+         vers -100 dB ferait surtout un clic et presque aucune basse. */
+      p.linearRampToValueAtTime(pic,t+attaque);p.exponentialRampToValueAtTime(milieu,coude);
+      p.exponentialRampToValueAtTime(.00001,t+attaque+chute);
+      h.push({t:t,a:t+attaque,coude:coude,milieu:milieu,fin:t+attaque+chute,de:v,pic:pic});
+      var avant=typeof ctx.startRendering==="function"?t:ctx.currentTime;
+      while(h.length>1&&h[1].t<=avant)h.shift();
+    },arreter:function(t){var v=tenir(t);p.linearRampToValueAtTime(.00001,t+.003);h.push({t:t,a:t+.003,fin:t+.004,de:v,pic:.00001,stop:true});},valeur:valeur};
+  }
+  var kickKns=[["tune","FOND Hz",32,90,49],["dec","QUEUE ms",40,600,180],["punch","ATTAQUE",0,1,.55],
+    ["drive","DISTORSION",0,1,.65],["type","GABBER → UP",0,1,0],["tone","BRILLANCE",0,1,.45],["niv","NIVEAU",0,1,.65]];
+  function creerKick(m){
+    normaliser(m,kickKns);var out=eurGain(1),hp=ctx.createBiquadFilter();hp.type="highpass";hp.frequency.value=25;hp.Q.value=.7;hp.connect(out);
+    var pool=panier(),dernier=null,barriere=0;
+    m.raveVoix=pool;
+    m.recevoir=function(t,e){
+      if(!pool.actif()||!Number.isFinite(t)||t<barriere)return null;
+      if(e==="rst"){pool.couper(t);barriere=t;dernier=null;return null;}
+      if(e!=="trig"||t<0||(dernier!==null&&t<=dernier+.0000001))return null;dernier=t;
+      var p=m.p,f=borne(p.tune,32,90,49),d=borne(p.dec,40,600,180)/1000,up=borne(p.type,0,1,0),a=borne(p.punch,0,1,.55);
+      if(p.niv<=0)return null;
+      /* Chopper la queue au prochain coup garde un kick propre dans un roulement. */
+      pool.couper(t);
+      var o=ctx.createOscillator(),pre=eurGain(1),sh=ctx.createWaveShaper(),lp=ctx.createBiquadFilter(),g=eurGain(0);
+      o.type="sine";o.frequency.setValueAtTime(f*(3+14*a+up*6),t);o.frequency.exponentialRampToValueAtTime(f,t+.009+.035*(1-up));
+      pre.gain.setValueAtTime(1.5+a*9,t);pre.gain.linearRampToValueAtTime(1+borne(p.drive,0,1,.65)*(12+up*22),t+.017);
+      sh.curve=eurCourbe(function(x){return (1-up*.35)*Math.tanh(x*2.2)+up*.35*Math.sin(x*3.8);});sh.oversample="4x";
+      lp.type="lowpass";lp.frequency.value=900*Math.pow(14,borne(p.tone,0,1,.45));lp.Q.value=.6;
+      var niveau=borne(p.niv,0,1,.65)*.75;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(niveau,t+.0015);
+      g.gain.setValueAtTime(niveau*.85,t+Math.min(.024,d*.25));g.gain.exponentialRampToValueAtTime(.00001,t+d);
+      g.gain.setValueAtTime(0,t+d+.002);
+      o.connect(pre);pre.connect(sh);sh.connect(lp);lp.connect(g);g.connect(hp);o.start(t);o.stop(t+d+.004);
+      pool.ajouter(o,g,t,t+d+.004,[o,pre,sh,lp,g]);return null;
+    };
+    m.arreter=function(){var t=maintenantAudio();pool.couper(t);barriere=t;dernier=null;};
+    return {e:{trig:eurGain(1),rst:eurGain(1)},s:{out:out},detruire:pool.detruire};
+  }
+  var bassKns=[["mode","PSY → REESE",0,1,0],["oct","OCTAVE",-1,1,0],["dec","CHUTE ms",20,750,85],
+    ["cut","FILTRE",0,1,.24],["env","ENV FILTRE",0,1,.65],["det","DÉSACCORD",0,1,.35],
+    ["sub","SUB",0,1,.35],["drive","DISTORSION",0,1,.2],["niv","NIVEAU",0,1,.6]];
+  function creerBasse(m){
+    normaliser(m,bassKns);
+    var out=eurGain(1),voct=eurGain(1200),mix=eurGain(1),amp=eurGain(.00001),fil=ctx.createBiquadFilter(),fenv=eurConst(.00001);
+    fil.type="lowpass";fil.Q.value=.65;fenv.connect(fil.frequency);
+    var o1=ctx.createOscillator(),o2=ctx.createOscillator(),sub=ctx.createOscillator();o1.type=o2.type="sawtooth";sub.type="sine";
+    var a1=eurGain(.2),a2=eurGain(.2),as=eurGain(.25),sh=ctx.createWaveShaper(),pre=eurGain(1),hp=ctx.createBiquadFilter();
+    sh.curve=eurCourbe(function(x){return Math.tanh(x*2);});sh.oversample="2x";hp.type="highpass";hp.frequency.value=24;hp.Q.value=.7;
+    o1.connect(a1);o2.connect(a2);a1.connect(mix);a2.connect(mix);mix.connect(pre);pre.connect(sh);sh.connect(fil);fil.connect(hp);
+    /* Le coupe-DC précède le VCA : il ne peut pas résonner après STOP. */
+    sub.connect(as);as.connect(hp);hp.connect(amp);amp.connect(out);
+    [o1,o2,sub].forEach(function(o){voct.connect(o.detune);o.start();});
+    var ea=enveloppe(amp.gain),ef=enveloppe(fenv.offset),dernier=null,barriere=0,ferme=false;
+    m.maj=function(){var p=m.p,mode=borne(p.mode,0,1,0),det=borne(p.det,0,1,.35)*mode*22,base=55*Math.pow(2,entier(p.oct,-1,1,0));
+      o1.frequency.value=base;o2.frequency.value=base;sub.frequency.value=base/2;o1.detune.value=-det;o2.detune.value=det;
+      a1.gain.value=.30;a2.gain.value=.30*mode;as.gain.value=.45*borne(p.sub,0,1,.35);
+      pre.gain.value=1+borne(p.drive,0,1,.2)*5;fil.frequency.value=65*Math.pow(45,borne(p.cut,0,1,.24));
+    };m.maj();
+    m.recevoir=function(t,e){
+      if(ferme||!Number.isFinite(t)||t<barriere||t<0)return null;
+      if(e==="rst"){ea.arreter(t);ef.arreter(t);dernier=null;barriere=t;return null;}
+      if(e!=="trig"||(dernier!==null&&t<=dernier+.0000001))return null;dernier=t;
+      var d=borne(m.p.dec,20,750,85)/1000;
+      ea.jouer(t,.0015,d,Math.max(.00001,borne(m.p.niv,0,1,.6)*.72));ef.jouer(t,.001,Math.max(.012,d*.65),1+borne(m.p.env,0,1,.65)*4200);return null;
+    };
+    m.arreter=function(){var t=maintenantAudio();ea.arreter(t);ef.arreter(t);barriere=t;dernier=null;};
+    return {e:{trig:eurGain(1),rst:eurGain(1),voct:voct},s:{out:out},detruire:function(){ferme=true;[o1,o2,sub,fenv].forEach(function(o){try{o.stop();}catch(e){}});}};
+  }
+  EUR_CAT.corekick={nom:"CORE KICK",hp:100,sombre:true,fam:"perc",res:"Kick hardcore : attaque séparée, queue distordue, gabber vers uptempo",kns:kickKns,
+    jacks:[["trig","TRIG",0],["rst","RST",0],["out","OUT",1]],creer:creerKick};
+  EUR_CAT.bassrave={nom:"BASS RAVE",hp:112,sombre:true,fam:"osc",res:"Voix de basse : psy courte ou deux dents de scie désaccordées, sub propre et enveloppe",kns:bassKns,
+    jacks:[["trig","TRIG",0],["rst","RST",0],["voct","V/OCT",0],["out","OUT",1]],creer:creerBasse};
+  EUR_ORDRE.push("corekick","bassrave");
+  return {borne:borne,entier:entier,normaliser:normaliser,panier:panier};
+})();
+/* ================= BREAK 32 — v282 =================
+   32 pas d'édition, 16 tranches d'un break ORIGINAL synthétisé à 136 BPM.
+   Les tranches sont rejouées dans l'ordre écrit : découpe, roulements, inverse,
+   silences et probabilité. Aucun Amen, aucun téléchargement, aucun sample tiers.
+   Le CLK règle le rythme. La transposition change aussi la durée de la tranche,
+   sans time-stretch. Un nouveau pas/roulement coupe le précédent avec 3 ms de fondu. */
+var EUR_BREAK32=(function(){
+  "use strict";
+  var I=EUR_RAVE.entier,B=EUR_RAVE.borne,cache=[],pasOrigine=60/136/4;
+  var kns=[["len","LONGUEUR",1,32,32],["pitch","TRANSPOSE",-12,12,0],["tone","BRILLANCE",0,1,.8],
+    ["niv","NIVEAU",0,1,.65],["mute","MUET",0,1,0]];
+  for(var i=1;i<=32;i++)kns.push(["n"+i,"TRANCHE "+i,0,16,(i-1)%16+1],["r"+i,"RÉPÉTITIONS "+i,1,4,1],
+    ["v"+i,"INVERSE "+i,0,1,0],["p"+i,"CHANCE "+i,0,100,100]);
+  function banque(){
+    var sr=ctx.sampleRate,c=cache.find(function(c){return c.sr===sr;});if(c)return c;
+    var N=Math.round(sr*pasOrigine),total=N*16,d=new Float32Array(total),seed=282;
+    function bruit(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/2147483648-1;}
+    function frappe(s,type,vel){
+      var duree=type===0?.26:type===1?.19:.065,n=Math.ceil(duree*sr),avant=0;
+      for(var j=0;j<n;j++){
+        var t=j/sr,x=0;
+        if(type===0){var ph=2*Math.PI*(52*t+95*.018*(1-Math.exp(-t/.018)));x=Math.sin(ph)*Math.exp(-t/.070)*.8;}
+        else{var b=bruit(),h=b-avant*.88;avant=b;
+          if(type===1)x=(h*.48+Math.sin(2*Math.PI*185*t)*.34)*Math.exp(-t/.037);
+          else x=h*.20*Math.exp(-t/.012);
+        }
+        x*=Math.min(1,j/(sr*.0007));d[(s*N+j)%total]+=x*vel;
+      }
+    }
+    [0,7,10].forEach(function(s){frappe(s,0,s===0?1:.8);});
+    [4,12].forEach(function(s){frappe(s,1,1);});
+    [3,6,11,15].forEach(function(s){frappe(s,1,.23);});
+    for(var s=0;s<16;s++)frappe(s,2,s%2===0?.95:.50);
+    var max=0,moy=0;for(var j=0;j<d.length;j++){moy+=d[j];}moy/=d.length;
+    for(var j=0;j<d.length;j++){d[j]-=moy;max=Math.max(max,Math.abs(d[j]));}
+    c={sr:sr,avant:[],inverse:[],duree:N/sr};
+    for(var s=0;s<16;s++){
+      var a=ctx.createBuffer(1,N,sr),b=ctx.createBuffer(1,N,sr),aa=a.getChannelData(0),bb=b.getChannelData(0);
+      for(var j=0;j<N;j++){aa[j]=d[s*N+j]*.8/Math.max(.001,max);bb[N-1-j]=aa[j];}
+      c.avant.push(a);c.inverse.push(b);
+    }
+    cache.push(c);if(cache.length>2)cache.shift();return c;
+  }
+  function normaliser(m){EUR_RAVE.normaliser(m,kns);}
+  function creer(m){
+    normaliser(m);var bank=banque(),out=eurGain(1),fil=ctx.createBiquadFilter(),pool=EUR_RAVE.panier();
+    fil.type="lowpass";fil.Q.value=.6;fil.connect(out);
+    var d=m.break32={pos:-1,dernier:null,barriere:0,dates:[],entendu:null};m.raveVoix=pool;
+    m.maj=function(){fil.frequency.value=800*Math.pow(20,B(m.p.tone,0,1,.8));};m.maj();
+    function historique(e){if(typeof ctx.startRendering==="function")return;d.dates.push(e);if(d.dates.length>128)d.dates.shift();reveiller();}
+    function reset(t){pool.couper(t);d.pos=-1;d.dernier=null;d.barriere=t;d.dates=d.dates.filter(function(e){return e.t<t;});}
+    m.arreter=function(){reset(maintenantAudio());d.dates=[];d.entendu=null;reveiller();};
+    m.recevoir=function(t,e){
+      if(!pool.actif()||!Number.isFinite(t)||t<0||t<d.barriere)return null;
+      if(e==="rst"){reset(t);historique({t:t,pos:-1,n:0,r:0,v:0});return null;}
+      if(e!=="clk"||(d.dernier!==null&&t<=d.dernier+.0000001))return null;
+      var intervalle=B(d.dernier===null?stepDur():t-d.dernier,.002,60,.125);d.dernier=t;
+      d.pos=(d.pos+1)%I(m.p.len,1,32,32);var k=d.pos+1,n=I(m.p["n"+k],0,16,0),r=I(m.p["r"+k],1,4,1),inv=m.p["v"+k]>=.5,prob=I(m.p["p"+k],0,100,100);
+      if(m.p.mute>=.5||prob===0||(n&&prob<100&&Math.random()*100>=prob)||m.p.niv<=0)n=0;
+      pool.couper(t);
+      if(n){
+        var rate=Math.pow(2,I(m.p.pitch,-12,12,0)/12),buf=(inv?bank.inverse:bank.avant)[n-1];
+        for(var j=0;j<r;j++){
+          var depart=t+j*intervalle/r,duree=Math.min(intervalle/r,buf.duration/rate),fin=depart+duree,fade=Math.min(.002,duree*.2);
+          var src=ctx.createBufferSource(),g=eurGain(0);src.buffer=buf;src.playbackRate.value=rate;
+          g.gain.setValueAtTime(0,depart);g.gain.linearRampToValueAtTime(B(m.p.niv,0,1,.65),depart+fade);
+          g.gain.setValueAtTime(B(m.p.niv,0,1,.65),fin-fade);g.gain.linearRampToValueAtTime(0,fin);
+          src.connect(g);g.connect(fil);src.start(depart);src.stop(fin+.0005);pool.ajouter(src,g,depart,fin+.0005,[src,g]);
+        }
+      }
+      historique({t:t,pos:d.pos,n:n,r:n?r:0,v:inv});return null;
+    };
+    return {e:{clk:eurGain(1),rst:eurGain(1)},s:{out:out},detruire:pool.detruire};
+  }
+  var vues=[],raf=0;
+  function visible(v){
+    if(typeof document==="undefined"||document.hidden||!v.el.isConnected||EUR.mods.indexOf(v.m)<0||document.body.classList.contains("menu-ouvert"))return false;
+    if(v.grand){var f=v.el.closest("#eur-focus");return !!f&&f.classList.contains("show");}
+    return !panneauVisible()&&v.el.getClientRects().length>0&&(S.modele==="eur"||(typeof ENS!=="undefined"&&ENS.actif));
+  }
+  function temps(){
+    raf=0;vues=vues.filter(function(v){return v.el.isConnected&&EUR.mods.indexOf(v.m)>=0;});var act=vues.filter(visible),now=ctx?maintenantAudio():0;
+    act.forEach(function(v){var d=v.m.break32;if(d)while(d.dates.length&&d.dates[0].t<=now)d.entendu=d.dates.shift();v.temps(S.run&&ctx&&ctx.state==="running"&&d?d.entendu:null);});
+    if(act.length&&S.run&&ctx&&ctx.state==="running")raf=requestAnimationFrame(temps);
+  }
+  function reveiller(){if(typeof requestAnimationFrame==="function"&&!raf&&vues.some(visible))raf=requestAnimationFrame(temps);}
+  function rafraichir(m){vues=vues.filter(function(v){return v.el.isConnected&&EUR.mods.indexOf(v.m)>=0;});vues.forEach(function(v){if(v.m===m)v.maj();});reveiller();}
+  function el(tag,cl,txt){var e=document.createElement(tag);if(cl)e.className=cl;if(txt!==undefined)e.textContent=txt;return e;}
+  function bouton(p,t,fn,cl){var b=el("button",cl,t);b.type="button";b.addEventListener("click",function(e){e.stopPropagation();fn();});p.appendChild(b);return b;}
+  function interfaceModule(parent,m,grand){
+    var root=el("div","br32 "+(grand?"br32-editeur":"br32-mini")),sel=I(m._br32sel,0,31,0),page=Math.floor(sel/16),cases=[],champs={};
+    parent.appendChild(root);root.dataset.module=m.id;
+    function valide(){return EUR.mods.indexOf(m)>=0;}
+    function mod(k,v){if(!valide())return;m.p[k]=v;if(m.maj)m.maj();memEur();rafraichir(m);}
+    function options(a,b,suffixe){var r=[];for(var n=a;n<=b;n++)r.push([n,n+(suffixe||"")]);return r;}
+    function select(p,k,nom,opts,fn){var lab=el("label",""),s=el("select","");lab.appendChild(el("span","",nom));s.dataset.champ=k;s.setAttribute("aria-label",nom);
+      opts.forEach(function(x){var o=el("option","",x[1]);o.value=x[0];s.appendChild(o);});s.addEventListener("change",function(){if(valide())fn(+s.value);});lab.appendChild(s);p.appendChild(lab);champs[k]=s;
+    }
+    root.appendChild(el("p","br32-intro","BREAK ORIGINAL · 16 TRANCHES · 32 PAS"));
+    var nav=el("div","br32-pages");root.appendChild(nav);
+    [0,1].forEach(function(n){var b=bouton(nav,n?"PAS 17–32":"PAS 1–16",function(){page=n;sel=n*16;m._br32sel=sel;maj();reveiller();});b.dataset.page=n;});
+    var grille=el("div","br32-grille");root.appendChild(grille);
+    for(var i=0;i<16;i++)(function(i){var b=bouton(grille,"",function(){if(!valide())return;sel=page*16+i;m._br32sel=sel;if(!grand)EUR_FOCUS.ouvrir(m.id);else{maj();reveiller();}},"br32-pas");
+      b.appendChild(el("small","br32-num"));b.appendChild(el("strong","br32-slice"));b.appendChild(el("small","br32-rep"));cases.push(b);
+    })(i);
+    var etat=el("p","br32-etat");root.appendChild(etat);
+    if(grand){
+      root.appendChild(el("h3","br32-titre"));var detail=el("div","br32-detail");root.appendChild(detail);
+      select(detail,"n","TRANCHE",[[0,"SILENCE"]].concat(options(1,16)),function(n){mod("n"+(sel+1),n);});
+      select(detail,"r","FRAPPES PAR PAS",options(1,4," coup(s)"),function(n){mod("r"+(sel+1),n);});
+      select(detail,"v","SENS",[[0,"NORMAL"],[1,"INVERSÉ"]],function(n){mod("v"+(sel+1),n);});
+      select(detail,"p","PROBABILITÉ",options(0,100," %"),function(n){mod("p"+(sel+1),n);});
+      var glob=el("div","br32-global");root.appendChild(glob);
+      select(glob,"len","LONGUEUR",options(1,32," pas"),function(n){mod("len",n);});
+      select(glob,"pitch","TRANSPOSITION",options(-12,12," demi-ton(s)"),function(n){mod("pitch",n);});
+      select(glob,"tone","BRILLANCE",options(0,100," %"),function(n){mod("tone",n/100);});
+      select(glob,"niv","NIVEAU",options(0,100," %"),function(n){mod("niv",n/100);});
+      bouton(root,"",function(){mod("mute",m.p.mute?0:1);},"br32-mute");
+      var ac=el("div","br32-actions");root.appendChild(ac);
+      bouton(ac,"COPIER CETTE PAGE",function(){if(!valide()||!window.confirm("Remplacer les 16 pas de l'autre page ?"))return;for(var i=1;i<=16;i++)["n","r","v","p"].forEach(function(k){m.p[k+(i+(1-page)*16)]=m.p[k+(i+page*16)];});memEur();rafraichir(m);},"br32-copier");
+      bouton(ac,"VIDER CETTE PAGE",function(){if(!valide()||!window.confirm("Mettre les 16 pas de cette page en silence ?"))return;for(var i=1;i<=16;i++)m.p["n"+(page*16+i)]=0;memEur();rafraichir(m);},"br32-vider");
+      root.appendChild(el("p","br32-aide","CLK : une double-croche, par exemple OUT de CLOCK. Les tranches 1, 8 et 11 contiennent les kicks, 5 et 13 les caisses claires ; les autres apportent charleys, ghosts et queues. ×2 à ×4 répètent le début de la tranche dans le pas. INVERSÉ retourne sa lecture. Transposer change la vitesse et la durée, sans time-stretch ; CLK conserve le tempo. MUET et les silences gardent l'avancement. RST/STOP repartent du premier pas. Ce module utilise un break synthétisé original, pas un Amen ni un lecteur de fichiers personnels."));
+    }
+    function maj(){
+      cases.forEach(function(b,i){var s=page*16+i+1,n=I(m.p["n"+s],0,16,0),r=I(m.p["r"+s],1,4,1);
+        b.dataset.pas=s;b.querySelector(".br32-num").textContent=s;b.querySelector(".br32-slice").textContent=n?String(n).padStart(2,"0"):"—";
+        b.querySelector(".br32-rep").textContent=n?"×"+r+(m.p["v"+s]?" ↶":""):"PAUSE";
+        b.classList.toggle("hors",s>m.p.len);b.setAttribute("aria-pressed",String(grand&&s===sel+1));b.setAttribute("aria-label","Pas "+s+" : "+(n?"tranche "+n+", "+r+" frappe(s)"+(m.p["v"+s]?", inversée":""):"silence"));
+      });
+      Array.from(nav.children).forEach(function(b,i){b.setAttribute("aria-pressed",String(i===page));});
+      if(grand){root.querySelector(".br32-titre").textContent="ÉDITER LE PAS "+(sel+1)+(sel>=m.p.len?" · HORS BOUCLE":"");
+        ["n","r","v","p"].forEach(function(k){champs[k].value=Math.round(m.p[k+(sel+1)]);});champs.len.value=Math.round(m.p.len);champs.pitch.value=Math.round(m.p.pitch);
+        champs.tone.value=Math.round(m.p.tone*100);champs.niv.value=Math.round(m.p.niv*100);
+        var b=root.querySelector(".br32-mute");b.textContent=m.p.mute?"BREAK MUET · RÉACTIVER":"COUPER LE BREAK";b.setAttribute("aria-pressed",String(!!m.p.mute));
+      }afficherTemps(null);
+    }
+    function afficherTemps(e){cases.forEach(function(b,i){b.classList.toggle("courant",!!e&&e.pos===page*16+i);});
+      var t=e&&e.pos>=0?"PAS "+(e.pos+1)+" · "+(e.n?"TRANCHE "+e.n+" ×"+e.r+(e.v?" · INVERSÉE":""):"SILENCE"):"32 PAS · "+(S.run?"ATTENTE CLK":"ARRÊT");
+      if(etat.textContent!==t)etat.textContent=t;
+    }
+    var vue={el:root,m:m,grand:grand,maj:maj,temps:afficherTemps};vues.push(vue);maj();reveiller();return {rafraichir:maj,detruire:function(){vues=vues.filter(function(v){return v!==vue;});}};
+  }
+  EUR_CAT.break32={nom:"BREAK 32",hp:276,sombre:true,fam:"seq",res:"Break original découpé : 16 tranches, 32 pas, roulements et lecture inversée",kns:kns,
+    jacks:[["clk","CLK",0],["rst","RST",0],["out","OUT",1]],creer:creer,interface:interfaceModule,focusLabel:"DÉCOUPEZ LE BREAK, PAS PAR PAS",focusValeur:"16 → 32"};
+  EUR_ORDRE.push("break32");
+  if(typeof document!=="undefined"){
+    new MutationObserver(reveiller).observe(document.body,{attributes:true,attributeFilter:["class"]});
+    new MutationObserver(reveiller).observe(document.getElementById("eur-play"),{attributes:true,attributeFilter:["class"]});document.addEventListener("visibilitychange",reveiller);
+  }
+  return {normaliser:normaliser,banque:banque,rafraichir:rafraichir,reveiller:reveiller};
+})();
+/* v282 : six compositions originales pour les styles demandés. Les tempos
+   sont des choix pour ces exemples, pas des frontières de genre. Chaque rack
+   est indépendant ; aucun des 38 anciens modèles n'est muté. */
+(function montagesRave(){
+  "use strict";
+  var genres=[
+    {id:"jungle",nom:"JUNGLE · FRAGMENTS",bpm:168,break:true,
+      res:"Break découpé, ghosts, tranches retournées en fin de phrase, basse profonde et mélodie espacée."},
+    {id:"dnb",nom:"DRUM & BASS · DOUBLE NUIT",bpm:174,break:true,
+      res:"Batterie syncopée, break resserré, basse Reese désaccordée et motif mélodique en réponse."},
+    {id:"uptempo",nom:"UPTEMPO · IMPACT",bpm:220,core:true,
+      res:"Kicks courts très distordus, roulements de fin de phrase, basse à contretemps et stabs rapides."},
+    {id:"breakcore",nom:"BREAKCORE · FRACTURES",bpm:202,core:true,break:true,
+      res:"Découpes discontinues, répétitions ×2 à ×4, inversions, kick hardcore et mélodie en cycles de 15 pas."},
+    {id:"gabber",nom:"GABBER · BÉTON",bpm:185,core:true,
+      res:"Kick à queue distordue, caisse claire droite, charleys, basse courte et thème rave mineur."},
+    {id:"psy",nom:"PSYTRANCE · SPIRALES",bpm:146,
+      res:"Kick droit, trois notes de basse entre les kicks, arpège en la mineur, filtre modulé et zaps en écho."}
+  ];
+  function fabriquer(g){
+    var P={id:"rave-"+g.id,nom:g.nom,fam:"rave",bpm:g.bpm,tonalite:"LA MINEUR",res:g.res,
+      mods:[],cables:[],rangees:[],reperes:{}};
+    function mod(k,type,p,r){P.reperes[k]=P.mods.length;P.mods.push([type,p||{}]);P.rangees.push(r||0);}
+    function fil(a,s,b,e){P.cables.push([P.reperes[a],s,P.reperes[b],e]);}
+    var psy=g.id==="psy",jungle=g.id==="jungle",dnb=g.id==="dnb",bc=g.id==="breakcore",up=g.id==="uptempo";
+    var dp={};"abcd".split("").forEach(function(k){dp[k+"len"]=32;dp[k+"chance"]=100;dp[k+"shift"]=0;dp[k+"mute"]=0;for(var i=1;i<=32;i++)dp[k+i]=0;});
+    function ligne(k,pas){pas.forEach(function(i){dp[k+i]=1;});}
+    ligne("a",jungle?[1,11,17,27]:dnb?[1,7,17,23]:bc?[1,8,11,17,22,27,31]:[1,5,9,13,17,21,25,29]);
+    ligne("b",g.break?[5,21]:[5,13,21,29]);
+    ligne("c",[3,7,11,15,19,23,27,31]);ligne("d",psy?[7,15,23,30]:[15,31]);
+    if(up){dp.a31=2;dp.a32=3;dp.b32=4;}if(bc){dp.a16=2;dp.b30=3;dp.c32=4;dp.dchance=70;}
+    if(dnb){dp.b13=1;dp.b29=1;dp.c32=2;}
+    var sc={len:8,fade:g.core?10:40,hold:0},bars=[1,1,2,1,2,2,1,2],roles=[0,1,2,3,4,2,3,4];
+    var niveaux=[[100,75,0,0],[100,100,50,20],[100,100,100,55],[0,0,85,65],[100,100,100,60],[100,100,65,40],[55,0,90,100],[100,100,100,65]];
+    for(var i=1;i<=8;i++){sc["bars"+i]=bars[i-1];sc["nom"+i]=roles[i-1];"abcd".split("").forEach(function(k,j){sc[k+i]=niveaux[i-1][j];});}
+    mod("horloge","clock");mod("scenes","scenes8",sc);mod("seqBatterie","drum32",dp);
+    if(g.break){
+      var bp={len:32,pitch:bc?2:dnb?1:0,tone:dnb?.68:.84,niv:bc?.56:.67,mute:0};
+      var seq=bc?[1,5,5,9,13,3,7,13,8,8,11,5,0,16,13,13,1,1,5,5,11,7,13,13,8,5,16,3,13,13,0,5]:
+        dnb?[1,2,3,4,5,6,1,8,9,10,11,12,13,14,15,16,1,2,3,4,5,6,8,8,9,10,11,12,13,14,5,16]:
+          [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,1,2,3,4,5,7,6,8,9,10,11,5,13,14,16,13];
+      for(var i=1;i<=32;i++){bp["n"+i]=seq[i-1];bp["r"+i]=bc?([3,4,11,16,20,24,29,32].indexOf(i)>=0?4:i%3===0?2:1):[30,32].indexOf(i)>=0?2:1;
+        bp["v"+i]=[bc?7:28,bc?23:31].indexOf(i)>=0?1:0;bp["p"+i]=100;}
+      mod("break","break32",bp);
+    }
+    mod("kick",g.core?"corekick":"kick",g.core?{tune:up?63:48,dec:up?105:bc?115:185,punch:up?.85:.65,drive:up?.87:.72,type:up?.95:bc?.4:.1,tone:up?.65:.44,niv:.69}:
+      {tune:psy?.19:.27,dec:psy?.08:.15,niv:.61});
+    mod("caisse","snare",{tune:bc?.65:.4,dec:.18,niv:g.break?.22:.46});mod("hat","hat",{tune:.6,dec:.04,niv:g.break?.2:.34});
+    mod("fx","zap",{tune:psy?.66:.47,dec:.15,fm:psy?.65:.4,niv:.35});
+    mod("mixBatterie","mix4",{a:g.break?.4:.70,b:.36,c:.4,d:g.break?.70:0});
+    var pb={len:32,dir:0,root:9,scale:1,trans:0,glide:50,mute:0},pm={len:bc?15:32,dir:0,root:9,scale:1,trans:0,glide:45,mute:0};
+    var basse=[0,0,0,0,0,0,0,7,0,0,0,0,3,3,7,7,5,5,5,5,5,5,5,12,3,3,3,3,7,7,7,7];
+    var notes=[0,7,3,12,10,7,3,0,5,12,8,17,10,7,3,7];
+    for(var i=1;i<=32;i++){
+      pb["n"+i]=33+basse[i-1];pb["on"+i]=psy?(i%4!==1?1:0):g.core?(i%4===3?1:0):[1,4,7,11,15,17,20,23,27,30].indexOf(i)>=0?1:0;
+      pb["a"+i]=i%8===3?1:0;pb["s"+i]=0;pb["p"+i]=100;
+      pm["n"+i]=57+notes[(i-1)%16];pm["on"+i]=psy?(i%4!==1?1:0):bc?(i%3!==0?1:0):(i%4===3||i%8===0?1:0);
+      pm["a"+i]=i%4===3?1:0;pm["s"+i]=0;pm["p"+i]=100;
+    }
+    mod("seqBasse","melo32",pb,1);
+    mod("basse","bassrave",{mode:dnb?1:jungle?.12:bc?.75:0,oct:0,dec:psy?52:up?38:g.core?55:jungle?270:330,
+      cut:psy?.24:dnb?.34:jungle?.14:.26,env:psy?.60:.25,det:.52,sub:psy?.18:.50,drive:g.core?.35:.18,niv:.67},1);
+    mod("seqMelodie","melo32",pm,1);mod("oscMelodie","wave",{oct:.5,modele:g.core?.3:psy?.08:.02,harm:g.core?.24:.10},1);
+    mod("filtreMelodie","vcf",{cut:g.core?.41:.33,q:psy?.25:.1,mod:.17},1);
+    mod("envMelodie","ad",{a:.002,d:psy?.037:g.core?.045:.10},1);mod("vcaMelodie","vca",{gain:0},1);
+    mod("groupeAB","vca2",{g1:0,g2:0},1);mod("groupeCD","vca2",{g1:0,g2:0},1);
+    var t=((60/g.bpm)*.75-.02)/1.2;
+    mod("echoMelodie","delay",{time:t,fb:psy?.35:.23,mix:.22},1);mod("panMelodie","pan",{p:.08},1);
+    mod("modulation","lfo",{rate:psy?.14:.05,amt:.15},1);mod("echoFX","delay",{time:t,fb:.27,mix:.30},1);
+    mod("mixGeneral","mix4",{a:.64,b:g.core?.32:.56,c:g.core?.29:.31,d:.27},1);
+    mod("limiteur","limit",{seuil:.58,rap:.82},1);mod("sortie","out",{niv:.65},1);
+    fil("horloge","out","scenes","in");["seqBatterie","seqBasse","seqMelodie"].forEach(function(k){fil("scenes","clk",k,"clk");});
+    if(g.break){fil("scenes","clk","break","clk");fil("break","out","mixBatterie","d");}
+    ["kick","caisse","hat","fx"].forEach(function(k,i){fil("seqBatterie","t"+"abcd"[i],k,"trig");});
+    ["kick","caisse","hat"].forEach(function(k,i){fil(k,"out","mixBatterie","abcd"[i]);});
+    fil("seqBasse","cv","basse","voct");fil("seqBasse","gate","basse","trig");
+    fil("seqMelodie","cv","oscMelodie","voct");fil("seqMelodie","gate","envMelodie","trig");
+    fil("oscMelodie","out","filtreMelodie","in");fil("modulation","tri","filtreMelodie","cv");
+    fil("filtreMelodie","out","vcaMelodie","in");fil("envMelodie","out","vcaMelodie","cv");
+    fil("mixBatterie","out","groupeAB","in1");fil("basse","out","groupeAB","in2");
+    fil("vcaMelodie","out","groupeCD","in1");fil("fx","out","groupeCD","in2");
+    fil("scenes","a","groupeAB","cv1");fil("scenes","b","groupeAB","cv2");fil("scenes","c","groupeCD","cv1");fil("scenes","d","groupeCD","cv2");
+    fil("groupeAB","o1","mixGeneral","a");fil("groupeAB","o2","mixGeneral","b");
+    fil("groupeCD","o1","echoMelodie","in");fil("echoMelodie","out","panMelodie","in");fil("modulation","sine","panMelodie","cv");fil("panMelodie","out","mixGeneral","c");
+    fil("groupeCD","o2","echoFX","in");fil("echoFX","out","mixGeneral","d");
+    fil("mixGeneral","out","limiteur","in");fil("limiteur","out","sortie","in");return P;
+  }
+  EUR_MONT_FAM.splice(2,0,["rave","JUNGLE / HARD / PSY"]);
+  genres.forEach(function(g){EUR_MONTAGES.push(fabriquer(g));});
 })();
 /* ===================== BEHRINGER TD-3 =====================
    La 303 remise en circuit. Tout son caractère tient à trois choses : un

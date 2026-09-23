@@ -80,6 +80,7 @@ node outils/test-autotest-midi.cjs
 node outils/test-drum32.cjs
 node outils/test-melo32.cjs
 node outils/test-scenes8.cjs
+node outils/test-rave.cjs
 fin
 
 etape "6. Java : compilation de controle et tests"

@@ -1,0 +1,18 @@
+/* v282 : édition BREAK 32. Pas de ressource distante, vraie façade et Focus. */
+.br32{min-width:0;color:#edf0ff;font:12px/1.4 system-ui,Arial,sans-serif}
+.br32-intro{font-size:10px;text-align:center;color:#b7c5e6;margin:5px 0 9px}
+.br32-pages,.br32-detail,.br32-global,.br32-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.br32-grille{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#unit-eur .br32 button,#eur-focus .br32 button{min-height:44px;min-width:44px;padding:6px 3px;letter-spacing:0;border:1px solid #6880b1;border-radius:5px;background:linear-gradient(#2e3a58,#1b253c);color:#eaf2ff;touch-action:manipulation}
+#unit-eur .br32-pas,#eur-focus .br32-pas{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:62px;box-shadow:inset 0 1px #ffffff15,0 2px 3px #0006}
+.br32-pas small{font-size:10px}.br32-pas strong{font:700 14px system-ui}.br32 .hors{opacity:.40;border-style:dashed!important}
+#unit-eur .br32 [aria-pressed="true"],#eur-focus .br32 [aria-pressed="true"]{background:#bdd5fc;border-color:#eaf4ff;color:#13233e}
+#unit-eur .br32-pas.courant,#eur-focus .br32-pas.courant{outline:3px solid #f8d797;outline-offset:-3px}
+.br32-etat{min-height:40px;margin:8px 0;padding:7px;background:#101b2c;border:1px solid #59739e;border-radius:4px;font:700 11px/1.5 system-ui;overflow-wrap:anywhere}
+.br32 label{display:flex;flex-direction:column;min-width:0;gap:4px}.br32 label>span{font:700 10px/1.4 system-ui;color:#c3d3ed}
+#eur-focus .br32 select{width:100%;min-width:44px;min-height:44px;max-width:100%;padding:6px;font-size:11px;background:#142239;color:#e8f2ff}
+#eur-focus .br32 button:focus-visible,#eur-focus .br32 select:focus-visible{outline:3px solid #e0edff;outline-offset:1px}
+.br32-titre{font:700 12px system-ui!important;margin:14px 0 8px}.br32-aide{font:11px/1.55 system-ui;color:#c3d1e8;margin:12px 0 4px}
+#eur-focus .br32-mute{width:100%;margin:6px 0}
+@media(min-width:1000px){#eur-focus .br32-grille{grid-template-columns:repeat(8,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.br32 *{animation:none!important;transition:none!important}}

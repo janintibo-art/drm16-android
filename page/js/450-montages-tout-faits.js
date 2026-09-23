@@ -300,7 +300,7 @@ function repartirRangees(seuil){
 function eurMonter(P){
   /* Un ensemble neuf repart au premier temps au prochain START, jamais au
      milieu de l'ancienne phrase. Les anciens montages gardent leur conduite. */
-  if(P.fam === "ensemble" || P.fam === "avance") stop();
+  if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave") stop();
   EUR.mods = []; EUR.cables = []; EUR.prochain = 1; EUR.sel = -1; EUR.attente = null;
   var rangs = P.mods.map(function(x){
     var m = eurAjouter(x[0], true);
@@ -353,13 +353,21 @@ function eurMontages(){
       "Choisissez un rack vide pour conserver votre montage actuel.";
     c.appendChild(aideAv);
   }
+  if(fam === "rave"){
+    var aideRave = document.createElement("p");
+    aideRave.className = "eur-ensembles-aide";
+    aideRave.textContent = "6 styles, kick + basse + mélodie + effets. BREAK 32 découpe un break original ; CORE KICK sculpte le kick hardcore. " +
+      "MIX 4 général : A batterie · B basse · C mélodie · D effets. SCÈNES 8 organise les entrées et les breaks sur 12 mesures. " +
+      "Utilisez un rack vide pour conserver votre montage actuel, puis START.";
+    c.appendChild(aideRave);
+  }
   EUR_MONTAGES.forEach(function(P){
     if(P.fam !== fam) return;
     var b = document.createElement("button");
     b.dataset.montage = P.id;
     b.dataset.famille = P.fam;
     b.textContent = P.nom;
-    if(P.fam === "ensemble" || P.fam === "avance"){
+    if(P.fam === "ensemble" || P.fam === "avance" || P.fam === "rave"){
       var meta = document.createElement("span");
       meta.className = "eur-ensemble-meta";
       meta.textContent = P.bpm + " BPM · " + P.tonalite + " · " + P.mods.length + " MODULES";

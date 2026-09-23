@@ -510,6 +510,9 @@ function eurBatir(){
      continuaient d'être calculés : un rack chargé, reconstruit à chaque ajout
      de module, finissait par coûter plus cher que tout le reste. On les arrête
      pour de bon avant d'en fabriquer d'autres. */
+  /* v282 : libérer aussi les voix courtes des modules supprimés. Les anciens
+     graphes restent disponibles dans noeuds, même après remplacement de mods. */
+  (EUR.noeuds || []).forEach(function(io){if(io && io.detruire) io.detruire();});
   if(EUR.sources) EUR.sources.forEach(function(n){ try{ n.stop(); }catch(e){} });
   EUR.bus = eurGain(document.body.classList.contains("eur") ? 1 : 0);
   EUR.bus.connect(busSet("eur") || master);

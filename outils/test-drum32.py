@@ -76,8 +76,8 @@ def main():
         for w,h in FORMATS:
             c,pg,fautes=ouvrir(w,h);nom=f'{w}x{h}'
             accepter={'oui':False};pg.on('dialog',lambda d:d.accept() if accepter['oui'] else d.dismiss())
-            v(pg.evaluate('Object.keys(EUR_CAT).length===106 && EUR_ORDRE.filter(x=>x==="drum32").length===1'),nom+' catalogue 106 modules sans doublon')
-            v(pg.evaluate('EUR_MONTAGES.length===38 && EUR_MONTAGES.filter(p=>p.fam==="ensemble").length===8'),nom+' 32 anciens montages et deux ajouts')
+            v(pg.evaluate('Object.keys(EUR_CAT).length===109 && EUR_ORDRE.filter(x=>x==="drum32").length===1'),nom+' catalogue 109 modules sans doublon')
+            v(pg.evaluate('EUR_MONTAGES.length===44 && EUR_MONTAGES.filter(p=>p.fam==="ensemble").length===8'),nom+' 32 anciens montages et deux ajouts')
             pg.evaluate('window.ancienPatch=JSON.stringify(rackCourant());window.anciens=JSON.stringify(EUR_MONTAGES.filter(p=>p.fam!=="avance")); EUR.montFam="avance";eurMontages()')
             v(pg.locator('#eur-cat button[data-famille="avance"]').count()==6,nom+' six cartes avancées')
             pg.locator('[data-montage="av-techno32"]').click()

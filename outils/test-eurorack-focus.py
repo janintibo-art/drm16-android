@@ -170,7 +170,7 @@ def main():
             pg.evaluate('eurExemple();EUR_FOCUS.ouvrir(3);poserRack(JSON.parse(JSON.stringify(rackCourant())));eurDessiner()');pg.wait_for_timeout(30)
             verifier(pg.evaluate('EUR_FOCUS.actif()===null'),prefixe+' : un rack rechargé avec les mêmes numéros ferme la vue obsolète')
             # Le dense SEQ16 et tous les types de module : affichage, sans bâtir
-            # 106 graphes audio. Aucun état utilisateur réel n’est employé.
+            # 109 graphes audio. Aucun état utilisateur réel n’est employé.
             result=pg.evaluate("""() => {
               const r=[];
               Object.keys(EUR_CAT).forEach((type,i)=>{
@@ -179,12 +179,12 @@ def main():
                 const root=document.querySelector('#eur-focus'),d=EUR_CAT[type],zone=root.querySelector('.ef-zone');
                 const bad=[...root.querySelectorAll('button,select,[role="slider"]')].filter(e=>e.getClientRects().length)
                   .filter(e=>{const r=e.getBoundingClientRect();return r.width<43.9||r.height<43.9;});
-                r.push({type,kn:(type === "scenes8" ? root.querySelectorAll(".sc8-scene").length===8 && root.querySelectorAll(".sc8-editeur select").length===8 : type === "melo32" ? root.querySelectorAll(".ml32-pas").length===16 && root.querySelectorAll(".ml32-global select").length===6 : d.interface ? root.querySelectorAll('.dr32-pas').length===16 && root.querySelectorAll('.dr32-piste').length===4 && root.querySelectorAll('.dr32-reglages select').length===4 : root.querySelectorAll('[role="slider"]').length===d.kns.length),
+                r.push({type,kn:(type === "break32" ? root.querySelectorAll(".br32-pas").length===16 && root.querySelectorAll(".br32-editeur select").length===8 : type === "scenes8" ? root.querySelectorAll(".sc8-scene").length===8 && root.querySelectorAll(".sc8-editeur select").length===8 : type === "melo32" ? root.querySelectorAll(".ml32-pas").length===16 && root.querySelectorAll(".ml32-global select").length===6 : d.interface ? root.querySelectorAll('.dr32-pas').length===16 && root.querySelectorAll('.dr32-piste').length===4 && root.querySelectorAll('.dr32-reglages select').length===4 : root.querySelectorAll('[role="slider"]').length===d.kns.length),
                   j:root.querySelectorAll('.ef-jack').length===d.jacks.length,bad:bad.length,
                   deborde:zone.scrollWidth-zone.clientWidth});
               });return r;
             }""")
-            verifier(len(result)==106 and all(x['kn'] and x['j'] and x['bad']==0 and x['deborde']<=1 for x in result),prefixe+' : 106 façades complètes et cibles confortables : '+str([x for x in result if not(x['kn'] and x['j']) or x['bad'] or x['deborde']>1]))
+            verifier(len(result)==109 and all(x['kn'] and x['j'] and x['bad']==0 and x['deborde']<=1 for x in result),prefixe+' : 109 façades complètes et cibles confortables : '+str([x for x in result if not(x['kn'] and x['j']) or x['bad'] or x['deborde']>1]))
             catalogue.append({'format':[largeur,hauteur],'types':len(result)})
             pg.evaluate('EUR_FOCUS.fermer(false);EUR.mods=[];EUR.cables=[];eurAjouter("seq16",true);eurDessiner();EUR_FOCUS.ouvrir(EUR.mods[0].id)')
             bas=pg.locator('.ef-jack').last
@@ -199,7 +199,7 @@ def main():
             verifier(pg.locator('#eur-focus-ouvrir').is_disabled(),prefixe+' : rack vide')
             verifier(not fautes_js,prefixe+' : JavaScript '+str(fautes_js))
             cas.append({'format':[largeur,hauteur],'mesure':mesure})
-            print('Contrôlé : '+prefixe+' · gestes, audio, câbles, cycle de vie et 106 types',flush=True)
+            print('Contrôlé : '+prefixe+' · gestes, audio, câbles, cycle de vie et 109 types',flush=True)
             ctx.close()
         nav.close()
     rapport={'formats':cas,'catalogue':catalogue,'erreurs':erreurs,'stockage_simule':args.contenu}
