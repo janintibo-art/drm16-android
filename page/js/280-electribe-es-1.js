@@ -354,6 +354,7 @@ function sauverEch(id, buf){
    panneau ne doivent pas lancer deux décodages concurrents du même fichier. */
 var ES_CHARGES = Object.create(null);
 function actualiserEchs(){
+  if(typeof EUR_BREAK_SAMPLES!=="undefined")EUR_BREAK_SAMPLES.actualiser();
   majLedsEs();
   if(typeof STK !== "undefined" && STK && S.modele === "stk"){ STK.ondePour = ""; majStk(); }
   if(typeof MC !== "undefined" && MC && S.modele === "mc") majMc();
@@ -441,6 +442,8 @@ function usagesEch(id){
   });
   var kom = S.modele === "ko" && typeof KO !== "undefined" && KO ? KO : memLire("ko");
   if(kom && Array.isArray(kom.sons)) kom.sons.forEach(function(so){ if(so === id) n++; });
+  /* v283 : les boucles des huit racks Eurorack servent aussi. */
+  if(typeof EUR_BREAK_SAMPLES!=="undefined")n+=EUR_BREAK_SAMPLES.usages(id);
   /* v251 : les kits rangés dans la bibliothèque comptent aussi */
   if(typeof kitsUsagesEch === "function") try{ n += kitsUsagesEch(id); }catch(e){}
   return n;

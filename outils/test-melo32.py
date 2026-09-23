@@ -76,7 +76,7 @@ def main():
         for w,h in FORMATS:
             c,pg,fautes=ouvrir(w,h);nom=f'{w}x{h}';decision={'oui':False};pg.on('dialog',lambda d:d.accept() if decision['oui'] else d.dismiss())
             v(pg.evaluate('Object.keys(EUR_CAT).length===109 && EUR_ORDRE.filter(x=>x==="melo32").length===1'),nom+' catalogue unique 106')
-            v(pg.evaluate('EUR_MONTAGES.length===44 && EUR_MONTAGES.filter(p=>p.fam==="avance").length===6'),nom+' 34 montages historiques et deux ajouts')
+            v(pg.evaluate('EUR_MONTAGES.length===46 && EUR_MONTAGES.filter(p=>p.fam==="avance").length===8'),nom+' 46 montages dont huit avancés')
             pg.evaluate('window.rackAvant=JSON.stringify(rackCourant());window.modelesAvant=JSON.stringify(EUR_MONTAGES);EUR.montFam="avance";eurMontages();')
             pg.locator('[data-montage="av-acid-melo32"]').click();v(pg.evaluate('JSON.stringify(rackCourant())===rackAvant'),nom+' confirmation refusée')
             decision['oui']=True;pg.locator('[data-montage="av-acid-melo32"]').click()

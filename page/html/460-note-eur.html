@@ -348,7 +348,7 @@
   queues de sons. Les pages 1–16 et 17–32 se copient ou se vident après confirmation.
   Raccourcir ou rendre muet garde les pas écrits. Une impulsion CLK avance d'un pas.
   Le tempo suit l'horloge ; la transposition modifie vitesse et durée, sans time-stretch.
-  Ce n'est ni une boucle Amen, ni un échantillon commercial, ni encore un lecteur de vos fichiers.</p>
+  Le break d'origine n'est ni une boucle Amen, ni un échantillon commercial. Vous pouvez aussi charger vos fichiers depuis BOUCLE &amp; DÉCOUPAGE dans FOCUS.</p>
   <p><b>CORE KICK</b> (PERCUSSIONS) : fréquence fondamentale en Hz, queue en millisecondes,
   attaque, distorsion, morphing gabber vers uptempo, brillance et niveau. Chaque nouveau coup
   coupe progressivement la queue du précédent pour éviter l'empilement dans les roulements.
@@ -362,6 +362,40 @@
   <p>Les nouvelles sources sont arrêtées à STOP et libérées lors d'un recâblage, d'un changement
   ou d'une suppression de rack. Les effets existants peuvent finir leurs queues. Les anciens
   modules et les 38 montages précédents sont conservés. Commencez avec un niveau d'écoute modéré.</p>
+
+  <h3>BREAK 32 : vos boucles et leur découpage (v283)</h3>
+  <p>Ouvrez le <b>FOCUS d'un BREAK 32</b>. Dans <b>BOUCLE &amp; DÉCOUPAGE</b>,
+  <b>BIBLIOTHÈQUE</b> affiche les sons disponibles, filtrables par nom ; choisissez un son puis
+  <b>CHARGER CE SON</b>. <b>IMPORTER WAV</b> ouvre directement un fichier de votre appareil.
+  Seul ce module change de source. Les 32 pas, leurs répétitions et leurs inversions sont conservés.</p>
+  <p>L'import accepte un WAV RIFF PCM 8/16/24/32 bits ou float 32 bits, mono ou stéréo,
+  de <b>30 secondes et 20 Mo maximum</b>. Les nouveaux imports sont mélangés en <b>mono</b>
+  et gardés en PCM 16 bits par la bibliothèque actuelle, sans normalisation automatique.
+  Les WAV compressés, extensibles et RF64 ne sont pas acceptés dans ce lot.
+  Le fichier choisi sur le disque n'est pas modifié. En cas d'échec d'écriture ou dans le navigateur
+  sans pont natif, un message <b>SESSION SEULEMENT</b> avertit que le son n'est pas enregistré.</p>
+  <p>Choisissez <b>8, 16 ou 32 tranches</b>, puis <b>DÉCOUPE ÉGALE</b> ou <b>DÉTECTER ATTAQUES</b>.
+  La détection propose des séparations sur les changements d'énergie, pas une reconnaissance des
+  instruments ni du tempo. Écoutez chaque tranche et ajustez au besoin. <b>ANNULER DÉCOUPE</b>
+  remonte les douze dernières modifications de repères tant que ce Focus reste ouvert.</p>
+  <p>Touchez une tranche sur l'onde ou utilisez le sélecteur. Glissez sa borne de début ou de fin,
+  ou saisissez les temps en millisecondes (virgule ou point). Les limites voisines sont partagées
+  et ne peuvent pas se croiser. <b>ZOOM</b>, <b>TOUT VOIR</b>, <b>VOIR TRANCHE</b> et le curseur
+  de déplacement ne modifient pas le son ni les repères. Les écoutes normale et inversée sont
+  indépendantes des scènes et passent à niveau réduit dans la voie Eurorack.</p>
+  <p>La tranche 0 est un silence. Après une découpe en huit tranches, les pas pointant sur 9 à 32
+  restent écrits mais sont silencieux. <b>BREAK ORIGINAL</b> revient aux seize tranches synthétisées,
+  sans effacer votre boucle de la bibliothèque. Aucun son de remplacement n'est joué quand une
+  source personnelle manque : le module indique <b>SON MANQUANT</b> et reste silencieux.</p>
+  <p>Le rack sauvegarde le nom de la source et ses repères, pas une copie audio. Conservez le son
+  associé dans la bibliothèque ; un projet .drm16 exporté depuis l'application native embarque
+  les fichiers qu'elle y a enregistrés. Le tempo cale le départ des tranches, sans étirement
+  temporel : une tranche courte finit plus tôt, une longue est coupée au prochain pas.
+  La transposition change également la vitesse de lecture.</p>
+  <p><b>MONTAGES → AVANCÉS</b> ajoute <b>JUNGLE · MON BREAK</b> (170 BPM) et
+  <b>BREAKCORE · MON DÉCOUPAGE</b> (198 BPM) : batterie, basse, mélodie et scènes déjà câblées.
+  Ils démarrent avec le break synthétisé, puis accueillent votre propre boucle depuis FOCUS.
+  Les 44 montages antérieurs sont conservés. Choisissez un rack vide pour protéger votre travail.</p>
 
   <h3>Quand ça ne sonne pas</h3>
   <p>Neuf fois sur dix, c'est l'un de ces six points :</p>

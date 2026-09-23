@@ -552,6 +552,7 @@ function activerEur(){
   poserMachine("eur");
   audioInit();
   chargerEur();
+  chargerEchs();  /* v283 : sources personnelles de BREAK 32, chargement asynchrone */
   /* Le patch d'exemple ne se pose qu'à la toute première visite. Depuis qu'il y
      a huit racks, un rack vide est un choix : le remplir d'office effacerait ce
      que l'on vient délibérément de vider. */

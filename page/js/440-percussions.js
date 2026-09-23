@@ -802,7 +802,11 @@ function eurCatalogue(){
    travail en cours sans retour possible, ce qui décourageait d'essayer. */
 function rackCourant(){
   return {prochain:EUR.prochain, sel:EUR.sel, nom:EUR.nom || "",
-    mods:EUR.mods.map(function(m){ return {id:m.id, type:m.type, p:m.p, r:m.r || 0}; }),
+    mods:EUR.mods.map(function(m){
+      var o={id:m.id, type:m.type, p:m.p, r:m.r || 0};
+      if(m.type==="break32" && m.breakSample && typeof EUR_BREAK_SAMPLES!=="undefined")o.breakSample=EUR_BREAK_SAMPLES.copie(m.breakSample);
+      return o;
+    }),
     cables:EUR.cables};
 }
 /* Un rack sans nom se présente par son numéro. Dès qu'il porte un nom, c'est
@@ -836,6 +840,7 @@ function poserRack(o){
       EUR_CAT[x.type].kns.forEach(function(k){
         y.p[k[0]] = (x.p && typeof x.p[k[0]] === "number") ? x.p[k[0]] : k[4];
       });
+      if(x.type==="break32" && x.breakSample && typeof EUR_BREAK_SAMPLES!=="undefined")y.breakSample=EUR_BREAK_SAMPLES.copie(x.breakSample);
       EUR.mods.push(y);
     });
     EUR.cables = (o.cables || []).filter(function(c){ return c && c.de && c.vers; });
