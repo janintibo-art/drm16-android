@@ -49,6 +49,7 @@ css/450-stutter-live.css
 css/460-couleurs-eurorack.css
 css/470-poly4.css
 css/480-looper-rack.css
+css/490-dialogue.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -195,6 +196,8 @@ js/479i-poly4.js
 js/479j-montages-poly4.js
 js/479k-looper-rack.js
 js/479l-montages-looper.js
+js/479m-dialogue.js
+js/479n-montages-dialogue.js
 js/460-behringer-td-3.js
 js/470-machine-d-archive.js
 js/480-roland-tr-1000.js

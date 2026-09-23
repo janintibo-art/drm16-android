@@ -51,7 +51,7 @@ def main():
   for w,h in FORMATS:
    c,pg,er=ouvrir(w,h);tag=f'{w}x{h}';accord={'oui':True};pg.on('dialog',lambda d:d.accept() if accord['oui'] else d.dismiss())
    pg.evaluate(PREPARER)
-   v(pg.evaluate('EUR_MONTAGES.length===70&&Object.keys(EUR_CAT).length===121'),tag+' catalogue 121 modules / 70 montages')
+   v(pg.evaluate('EUR_MONTAGES.length===72&&Object.keys(EUR_CAT).length===122'),tag+' catalogue 122 modules / 72 montages')
    v(pg.locator('.brs-source').is_visible(),tag+' atelier dans le Focus')
    v('BREAK ORIGINAL' in pg.locator('.brs-statut').inner_text(),tag+' source d’origine explicite')
    v(not pg.locator('.brs-atelier').is_visible(),tag+' édition de fichier masquée sans fichier')

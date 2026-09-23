@@ -686,4 +686,15 @@
   les phrases restent en mémoire tant qu'on ne les efface pas. Un fondu (FONDU ms) évite que la boucle
   claque au raccord. NIVEAU règle le mélange général, NIVEAU 1 à 4 chaque piste.</p>
   <span>Potards MESURES, FONDU ms, NIVEAU, NIVEAU 1-4 · Entrées IN, CLK, RST · Sortie OUT</span></div>
+
+  <h3>Dialogue · 1 module (v297)</h3>
+  <div class="fmod" id="fm-dialogue"><b>DIALOGUE</b>
+  <p>Deux voix qui se répondent : pendant les LONGUEUR premiers pas d'un cycle, la voix 1 improvise une
+  phrase (une chance DENSITÉ à chaque pas, dans la GAMME choisie autour de la TONIQUE) et la mémorise ;
+  pendant les LONGUEUR pas suivants, la voix 2 la rejoue décalée de DÉCALAGE demi-tons et requantifiée
+  dans la même gamme — MIROIR la relit à l'envers. Chaque voix se tait pendant la phrase de l'autre :
+  une question puis sa réponse, pas un duo simultané. Réutilise la gamme et la convention de tonique de
+  MÉLO 32 et HARMONIE 8.</p>
+  <span>Potards TONIQUE, GAMME, LONGUEUR, DÉCALAGE st, DENSITÉ, MIROIR, GLISSÉ ms · Entrées CLK, RST ·
+  Sorties CV 1, GATE 1, CV 2, GATE 2</span></div>
   </div>
