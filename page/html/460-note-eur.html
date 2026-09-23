@@ -38,7 +38,7 @@
   d'accorder juste un oscillateur d'une autre.</p>
 
   <h3>Ce que fait ce rack-ci</h3>
-  <p>L'application reprend le modèle au complet : <b>104 modules</b>, un rack à remplir, des
+  <p>L'application reprend le modèle au complet : <b>106 modules</b>, un rack à remplir, des
   câbles à poser. Les tensions sont de vrais signaux audio, y compris les commandes. Les entrées de hauteur
   sont branchées sur le <b>désaccord</b> des oscillateurs, exprimé en cents, ce qui donne la réponse
   exponentielle du 1 V/octave sans le moindre calcul. Une unité vaut un volt vaut une octave.</p>
@@ -89,10 +89,10 @@
   <li><b>RACK ▾</b> — quel meuble, et que met-on dessus. <b>RACK 1</b> ouvre la liste des huit racks, avec leur nom et leur
   contenu. <b>NOMMER</b> baptise celui en cours, jusqu'à vingt-deux caractères ; le bouton et l'afficheur
   montrent alors ce nom, et les confirmations aussi — on sait ce qu'on s'apprête à écraser.
-  <b>MONTAGES</b> ouvre les trente-deux patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
+  <b>MONTAGES</b> ouvre les trente-huit patchs tout faits. <b>RACK AU SORT</b> tire un ensemble cohérent.
   <b>EXEMPLE</b> remonte le patch de démonstration. <b>VIDER</b> repart d'un rack nu, après confirmation,
   et seul le rack courant est touché.</li>
-  <li><b>PATCH ▾</b> — ce qu'on a monté dedans. <b>AJOUTER</b> ouvre le catalogue des cent trois modules,
+  <li><b>PATCH ▾</b> — ce qu'on a monté dedans. <b>AJOUTER</b> ouvre le catalogue des cent six modules,
   rangé en huit onglets. <b>RETIRER</b> enlève le module choisi et ses câbles. <b>RANGÉE</b> le fait passer
   sur l'autre rangée. <b>DÉCÂBLER</b> retire tous les câbles en gardant les modules.</li>
   </ul>
@@ -301,6 +301,38 @@
   <p>Le premier MÉLO 32 règle la basse et le second la mélodie. Le MIX 4 général garde
   A = batterie, B = basse, C = mélodie. Les 34 montages précédents ne sont pas remplacés.
   Choisissez un rack vide pour conserver votre travail, chargez l'exemple puis appuyez sur START.</p>
+
+  <h3>SCÈNES 8 : construire un morceau</h3>
+  <p>Huit scènes règlent quatre niveaux de 0 à 100 %. Dans les deux nouveaux exemples,
+  <b>A = batterie, B = basse, C = mélodie, D = nappe</b>. Le module envoie des tensions
+  de commande (0 à 1 V), pas du son. Ses sorties sont reliées aux CV de deux DUAL VCA,
+  dont les gains de repos doivent rester à zéro. Les séquenceurs continuent d'avancer,
+  même lorsqu'une partie est fermée ; les échos et réverbérations peuvent finir leur queue.</p>
+  <p>Touchez une scène du module pour ouvrir <b>FOCUS</b>, puis choisissez celle à éditer.
+  Sélectionner une case ne fait pas sauter la lecture. Chaque scène a un rôle, une durée
+  de <b>1 à 16 mesures</b> et quatre niveaux. Les niveaux, durées et la longueur de boucle
+  sont relus au début de la prochaine mesure. <b>16 impulsions CLK = une mesure</b> :
+  reliez OUT de CLOCK à CLK. Changer le tempo garde le même compte de mesures.</p>
+  <p><b>SCÈNES DANS LA BOUCLE</b> limite le parcours de 1 à 8 scènes, sans effacer les autres.
+  Le fondu de 0 à 1 000 ms adoucit les changements de niveau. <b>TENIR LA SCÈNE</b>
+  répète sa dernière mesure au lieu de passer à la suivante ; relâcher permet d'avancer
+  au prochain début de mesure si la durée est déjà écoulée. CLK OUT reste actif.
+  <b>SCÈNE</b> émet une impulsion à chaque début de scène, <b>MESURE</b> toutes les seize
+  horloges, et <b>CLK OUT</b> relaie chaque impulsion. Les CV A–D ne sont pas des déclencheurs.</p>
+  <p>RST et STOP annulent les niveaux et impulsions encore programmés ; le prochain CLK
+  reprend à la scène 1. La copie vers la scène suivante et la mise à zéro de ses quatre
+  niveaux demandent confirmation. L'éclairage suit la lecture audio, pas l'avance du calcul.</p>
+  <h3>Deux arrangements à quatre parties</h3>
+  <p>Dans <b>MONTAGES → AVANCÉS</b>, <b>PROGRESSIVE 8 · CONSTRUCTION</b> (124 BPM) ajoute
+  progressivement basse et mélodie, puis réalise un break et une reprise.
+  <b>AMBIENT 8 · MARÉES</b> (92 BPM) commence par la nappe et la mélodie, puis laisse entrer
+  une basse douce et une batterie espacée. Chacun compte <b>33 modules</b> et huit scènes
+  sur <b>douze mesures</b>, en boucle. La nappe est un accord de la mineur 7 tenu, pas une
+  progression d'accords. Ses niveaux changent selon les scènes.</p>
+  <p>Appuyez sur START et laissez défiler les scènes. SCÈNES 8 se trouve en fin de première
+  rangée. Le MIX 4 général règle les quatre parties ; ses gains se multiplient par ceux des
+  scènes. Les deux MÉLO 32 éditent toujours basse et mélodie, DRUM 32 la batterie.
+  Les 36 exemples antérieurs sont conservés. Utilisez un rack vide avant de charger un exemple.</p>
 
   <h3>Quand ça ne sonne pas</h3>
   <p>Neuf fois sur dix, c'est l'un de ces six points :</p>

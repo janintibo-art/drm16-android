@@ -1,0 +1,27 @@
+/* v281 : SCÈNES 8. Façade compacte, édition lisible dans Focus. */
+.sc8{min-width:0;color:#ecf3fa;font:12px/1.45 system-ui,Arial,sans-serif}
+.sc8-intro{margin:4px 0 8px;text-align:center;color:#bdd4f1;font-size:10px;letter-spacing:.4px}
+.sc8-grille{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#unit-eur .sc8-scene,#eur-focus .sc8-scene{display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+  min-width:0;min-height:64px;padding:5px 2px;border-radius:5px;background:linear-gradient(#34435e,#17253b);
+  border:1px solid #788dac;color:#dfecff;box-shadow:inset 0 1px #ffffff1a,0 2px 3px #0006;position:relative;touch-action:manipulation}
+.sc8-num{font-size:10px}.sc8-nom{font-size:10px;white-space:nowrap}.sc8-duree{font-size:9px}
+.sc8 .hors{opacity:.35;border-style:dashed!important}
+.sc8-etat{min-height:44px;margin:9px 0;padding:8px;border:1px solid #566e91;border-radius:4px;
+  background:#0f1d32;color:#d2e3fb;font:700 11px/1.5 system-ui;overflow-wrap:anywhere}
+#eur-focus .sc8 button,#eur-focus .sc8 select{min-height:44px;min-width:44px;max-width:100%;padding:7px 5px;
+  font-size:11px;letter-spacing:0;touch-action:manipulation}
+#eur-focus .sc8 button:focus-visible,#eur-focus .sc8 select:focus-visible{outline:3px solid #d3e8ff;outline-offset:1px}
+#eur-focus .sc8 [aria-pressed="true"]{background:linear-gradient(#dceaff,#92b2e0);color:#14243c;border-color:#e2edff;opacity:1}
+#unit-eur .sc8-scene.courante,#eur-focus .sc8-scene.courante{outline:3px solid #f7d995;outline-offset:-2px}
+.sc8-scene.courante::after{content:"";position:absolute;top:4px;right:4px;width:5px;height:5px;border-radius:50%;background:#ffdf99}
+.sc8-detail,.sc8-global,.sc8-niveaux,.sc8-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.sc8 label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.sc8 label>span{font:700 10px/1.3 system-ui;color:#cbddf6}
+#eur-focus .sc8 select{width:100%;min-width:0;background:#15283f;color:#eef5ff}
+#eur-focus .sc8-titre{font-size:12px;margin:14px 0 6px;color:#d9e6fc}
+#eur-focus .sc8-hold{width:100%;margin:8px 0}
+#eur-focus .sc8-hold[aria-pressed="true"]{background:#69532e;color:#fff0cc;border-color:#dfbb6b}
+.sc8-aide{font-size:11px;line-height:1.55;color:#c8d6e9;margin:12px 0 4px}
+@media(min-width:1000px){#eur-focus .sc8-grille{grid-template-columns:repeat(8,minmax(0,1fr))}#eur-focus .sc8-niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.sc8 *{animation:none!important;transition:none!important}}

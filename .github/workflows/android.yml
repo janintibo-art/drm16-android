@@ -65,6 +65,7 @@ jobs:
           python outils/test-ensembles-eurorack.py --rapport app/build/reports/ensembles-eurorack.json
           python outils/test-drum32.py --rapport app/build/reports/drum32.json
           python outils/test-melo32.py --rapport app/build/reports/melo32.json
+          python outils/test-scenes8.py --rapport app/build/reports/scenes8.json
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble

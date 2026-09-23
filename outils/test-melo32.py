@@ -75,8 +75,8 @@ def main():
             pg.wait_for_timeout(150);pg.evaluate(G.OUVRIR,'eur');return c,pg,fautes
         for w,h in FORMATS:
             c,pg,fautes=ouvrir(w,h);nom=f'{w}x{h}';decision={'oui':False};pg.on('dialog',lambda d:d.accept() if decision['oui'] else d.dismiss())
-            v(pg.evaluate('Object.keys(EUR_CAT).length===105 && EUR_ORDRE.filter(x=>x==="melo32").length===1'),nom+' catalogue unique 105')
-            v(pg.evaluate('EUR_MONTAGES.length===36 && EUR_MONTAGES.filter(p=>p.fam==="avance").length===4'),nom+' 34 montages historiques et deux ajouts')
+            v(pg.evaluate('Object.keys(EUR_CAT).length===106 && EUR_ORDRE.filter(x=>x==="melo32").length===1'),nom+' catalogue unique 106')
+            v(pg.evaluate('EUR_MONTAGES.length===38 && EUR_MONTAGES.filter(p=>p.fam==="avance").length===6'),nom+' 34 montages historiques et deux ajouts')
             pg.evaluate('window.rackAvant=JSON.stringify(rackCourant());window.modelesAvant=JSON.stringify(EUR_MONTAGES);EUR.montFam="avance";eurMontages();')
             pg.locator('[data-montage="av-acid-melo32"]').click();v(pg.evaluate('JSON.stringify(rackCourant())===rackAvant'),nom+' confirmation refusée')
             decision['oui']=True;pg.locator('[data-montage="av-acid-melo32"]').click()

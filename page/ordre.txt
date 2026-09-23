@@ -38,6 +38,7 @@ css/340-vue-ensemble.css
 css/350-ensembles-eurorack.css
 css/360-drum32-eurorack.css
 css/370-melo32-eurorack.css
+css/380-scenes8-eurorack.css
 html/020-corps.html
 html/030-unit.html
 html/040-unit-em1.html
@@ -151,6 +152,8 @@ js/454-montages-drum32.js
 js/455-eurorack-focus.js
 js/456-melo32-eurorack.js
 js/457-montages-melo32.js
+js/458-scenes8-eurorack.js
+js/459-montages-scenes8.js
 js/460-behringer-td-3.js
 js/470-machine-d-archive.js
 js/480-roland-tr-1000.js
