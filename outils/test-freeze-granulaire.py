@@ -73,8 +73,8 @@ def main():
             pg = c.new_page(); err = []; pg.on('pageerror', lambda e: err.append(str(e)))
             pg.goto(f.as_uri(), wait_until='domcontentloaded'); pg.wait_for_timeout(80)
             tag = f'{w}x{h}'
-            v(pg.evaluate("Object.keys(EUR_CAT).length===117 && new Set(EUR_ORDRE).size===117 && EUR_MONTAGES.length===63"),
-              tag + ' catalogue 117 modules / 63 montages')
+            v(pg.evaluate("Object.keys(EUR_CAT).length===119 && new Set(EUR_ORDRE).size===119 && EUR_MONTAGES.length===66"),
+              tag + ' catalogue 119 modules / 66 montages')
             v(pg.evaluate("!!EUR_CAT.freeze && EUR_CAT.freeze.jacks.map(j=>j[0]).sort().join(',')==='capt,in,out,rst,trig' && EUR_CAT.freeze.kns.length===6"),
               tag + ' module FREEZE GRANULAIRE : cinq prises, six réglages')
             for s in pg.evaluate(STRUCTURE):

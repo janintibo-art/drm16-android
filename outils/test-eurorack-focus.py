@@ -170,7 +170,7 @@ def main():
             pg.evaluate('eurExemple();EUR_FOCUS.ouvrir(3);poserRack(JSON.parse(JSON.stringify(rackCourant())));eurDessiner()');pg.wait_for_timeout(30)
             verifier(pg.evaluate('EUR_FOCUS.actif()===null'),prefixe+' : un rack rechargé avec les mêmes numéros ferme la vue obsolète')
             # Le dense SEQ16 et tous les types de module : affichage, sans bâtir
-            # 117 graphes audio. Aucun état utilisateur réel n’est employé.
+            # 119 graphes audio. Aucun état utilisateur réel n’est employé.
             result=pg.evaluate("""() => {
               const r=[];
               Object.keys(EUR_CAT).forEach((type,i)=>{
@@ -184,7 +184,7 @@ def main():
                   deborde:zone.scrollWidth-zone.clientWidth});
               });return r;
             }""")
-            verifier(len(result)==117 and all(x['kn'] and x['j'] and x['bad']==0 and x['deborde']<=1 for x in result),prefixe+' : 117 façades complètes et cibles confortables : '+str([x for x in result if not(x['kn'] and x['j']) or x['bad'] or x['deborde']>1]))
+            verifier(len(result)==119 and all(x['kn'] and x['j'] and x['bad']==0 and x['deborde']<=1 for x in result),prefixe+' : 119 façades complètes et cibles confortables : '+str([x for x in result if not(x['kn'] and x['j']) or x['bad'] or x['deborde']>1]))
             catalogue.append({'format':[largeur,hauteur],'types':len(result)})
             pg.evaluate('EUR_FOCUS.fermer(false);EUR.mods=[];EUR.cables=[];eurAjouter("seq16",true);eurDessiner();EUR_FOCUS.ouvrir(EUR.mods[0].id)')
             bas=pg.locator('.ef-jack').last
@@ -199,7 +199,7 @@ def main():
             verifier(pg.locator('#eur-focus-ouvrir').is_disabled(),prefixe+' : rack vide')
             verifier(not fautes_js,prefixe+' : JavaScript '+str(fautes_js))
             cas.append({'format':[largeur,hauteur],'mesure':mesure})
-            print('Contrôlé : '+prefixe+' · gestes, audio, câbles, cycle de vie et 117 types',flush=True)
+            print('Contrôlé : '+prefixe+' · gestes, audio, câbles, cycle de vie et 119 types',flush=True)
             ctx.close()
         nav.close()
     rapport={'formats':cas,'catalogue':catalogue,'erreurs':erreurs,'stockage_simule':args.contenu}

@@ -642,4 +642,26 @@
   <div class="fmod" id="fm-claves"><b>CLAVES</b>
   <p>Un sinus aigu et très bref. Presque rien, mais c'est ce presque rien qui perce un mélange chargé.</p>
   <span>Potards TUNE, DECAY, LEVEL · Entrée TRIG · Sortie OUT</span></div>
+
+  <h3>Voix mutantes · 2 modules (v294)</h3>
+  <p>Deux modules qui se complètent sans se dépendre l'un de l'autre : une voix à formants et un vocodeur.
+  Brancher OUT de VOYELLE sur MOD de VOCODEUR fait chanter des voyelles à travers le vocodeur — le sujet de
+  ce lot.</p>
+  <div class="fmod" id="fm-voyelle"><b>VOYELLE</b>
+  <p>Un VCO ordinaire, toujours actif comme les autres oscillateurs (VCO, MODEL, FM 2OP…), dont le timbre
+  passe par deux filtres accordés sur les formants d'une voyelle — la même table que le filtre FORMANT.
+  VOYELLE parcourt A → E → I → O → U en continu ; MUTATION ajoute un LFO lent qui la fait dériver toute
+  seule, et l'entrée VOYELLE CV permet de la piloter depuis un séquenceur ou une enveloppe du rack, en plus
+  du potard. Comme tout VCO, il n'a pas d'enveloppe intégrée : le gater avec un VCA et une ENVELOPE le rend
+  jouable en rythme (voir les montages VOIX MUTANTES).</p>
+  <span>Potards OCTAVE, VOYELLE, TIMBRE, MUTATION, RÉSONANCE, NIVEAU · Entrées V/OCT, VOYELLE CV · Sortie
+  OUT</span></div>
+  <div class="fmod" id="fm-vocodeur"><b>VOCODEUR</b>
+  <p>Un banc de huit bandes fixes, sans FFT ni AudioWorklet : sur chaque bande, un filtre passe-bande
+  analyse MOD, un redressement puis un lissage (VITESSE) en tirent une enveloppe qui pilote directement le
+  gain d'un filtre jumeau sur la porteuse. Sans rien de branché sur POR, un oscillateur interne (OSC
+  INTERNE, NOTE) sert de porteuse, comme sur un vrai vocodeur de table ; brancher POR s'ajoute à lui plutôt
+  que de le remplacer. FORMANTS transpose les bandes de la porteuse par rapport à celles de l'analyse —
+  l'effet classique de voix qui change de taille. MIX mélange voix vocodée et signal MOD sec.</p>
+  <span>Potards OSC INTERNE, NOTE, FORMANTS, VITESSE, MIX, NIVEAU · Entrées MOD, POR · Sortie OUT</span></div>
   </div>

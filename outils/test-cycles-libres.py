@@ -69,8 +69,8 @@ def main():
             pg = c.new_page(); err = []; pg.on('pageerror', lambda e: err.append(str(e)))
             pg.goto(f.as_uri(), wait_until='domcontentloaded'); pg.wait_for_timeout(80)
             tag = f'{w}x{h}'
-            v(pg.evaluate("Object.keys(EUR_CAT).length===117 && new Set(EUR_ORDRE).size===117 && EUR_MONTAGES.length===63"),
-              tag + ' catalogue inchangé : 117 modules / 63 montages (CYCLES LIBRES ne crée pas de module)')
+            v(pg.evaluate("Object.keys(EUR_CAT).length===119 && new Set(EUR_ORDRE).size===119 && EUR_MONTAGES.length===66"),
+              tag + ' catalogue inchangé : 119 modules / 66 montages (CYCLES LIBRES ne crée pas de module)')
             v(pg.evaluate("typeof EUR_CYCLE==='object' && EUR_CYCLE.presets.length===4 && EUR_CYCLE.val(2)===4 && EUR_CYCLE.val(99)===32 && EUR_CYCLE.val(undefined)===16 && EUR_CYCLE.val(14)===14"),
               tag + ' EUR_CYCLE : presets et bornage 4–32, défaut 16')
             v(pg.evaluate("(k=>k && k[2]===4 && k[3]===32 && k[4]===16)(EUR_CAT.scenes8.kns.find(k=>k[0]==='pasmes'))"),

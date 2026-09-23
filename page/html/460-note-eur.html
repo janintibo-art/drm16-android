@@ -626,8 +626,8 @@ résolution des impulsions CLK, seulement le nombre d'entre elles qui forment
 une mesure. Par défaut 16, donc tous les anciens montages, y compris ceux qui
 imitaient déjà un cycle impair à la main (comme le 7/8 d'Inde/Balkans/dabké,
 v289), restent inchangés. Le catalogue compte toujours 117 types de modules
-et 63 montages : CYCLES LIBRES est un réglage de modules existants, pas un
-nouveau module.</p>
+et 63 montages à ce stade (CYCLES LIBRES est un réglage de modules
+existants, pas un nouveau module).</p>
 
 <h3>PERFORMANCE MOUVANTE (v292)</h3>
 <p>Trois ajouts au panneau <b>PERFORMANCE</b> (voir plus haut), pour que les huit commandes
@@ -645,6 +645,26 @@ ENREGISTRER capture chaque mouvement de commande ; REJOUER LE GESTE le fait bouc
 LE GESTE l'efface. Un seul geste par rack, remplacé à chaque nouvel enregistrement.</p>
 <p>La TRANSITION et le GESTE utilisent l'horloge murale, pas l'horloge audio du morceau : comme
 un geste humain sur les potards, <b>ils ne sont pas capturés par un export hors ligne</b> (figer
-une machine, export WAV). Le catalogue reste à 117 types de modules et 63 montages : ce sont des
-réglages du panneau PERFORMANCE, pas un nouveau module.</p>
+une machine, export WAV). Le catalogue reste à 117 types de modules et 63 montages à ce stade : ce
+sont des réglages du panneau PERFORMANCE, pas un nouveau module.</p>
+
+<h3>VOIX MUTANTES (v294)</h3>
+<p>Deux modules qui se complètent sans se dépendre l'un de l'autre. <b>VOYELLE</b> est un VCO
+ordinaire, toujours actif comme les autres oscillateurs, dont le timbre passe par deux formants de
+voyelle (la même table que le filtre FORMANT) : le potard VOYELLE parcourt A → E → I → O → U en
+continu, MUTATION ajoute un LFO lent qui le fait dériver tout seul, et l'entrée VOYELLE CV permet de
+le piloter depuis un séquenceur ou une enveloppe du rack. Comme tout VCO il n'a pas d'enveloppe
+intégrée : le gater avec un VCA et une ENVELOPE le rend jouable en rythme.</p>
+<p><b>VOCODEUR</b> est un banc de huit bandes fixes, bâti sans FFT ni AudioWorklet — uniquement des
+filtres passe-bande et un redressement (comme les autres traitements de TRAITEMENTS) : sur chaque
+bande, un filtre analyse MOD, un redressement puis un lissage (VITESSE) en tirent une enveloppe qui
+pilote directement le gain d'un filtre jumeau sur la porteuse. Sans rien de branché sur POR, un
+oscillateur interne (OSC INTERNE, NOTE) sert de porteuse ; brancher POR s'ajoute à lui plutôt que de
+le remplacer. FORMANTS transpose les bandes de la porteuse par rapport à celles de l'analyse, MIX
+mélange voix vocodée et signal MOD sec.</p>
+<p>Les deux se combinent naturellement : brancher OUT de VOYELLE sur MOD de VOCODEUR fait chanter
+des voyelles à travers le vocodeur — le sujet de ce lot. Trois montages : <b>ROBOT · VOIX DE
+MACHINE</b>, <b>PSY · CHŒUR MUTANT</b> et <b>DUB · TALKBOX LENT</b>, chacun avec des commandes
+PERFORMANCE pour la voyelle, la mutation et les formants. Le catalogue compte maintenant 119 types
+de modules et 66 montages.</p>
 </div>

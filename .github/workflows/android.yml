@@ -76,6 +76,7 @@ jobs:
           python outils/test-couleurs-eurorack.py --rapport app/build/reports/couleurs-eurorack.json
           python outils/test-freeze-granulaire.py --rapport app/build/reports/freeze-granulaire.json
           python outils/test-cycles-libres.py --rapport app/build/reports/cycles-libres.json
+          python outils/test-voix-mutantes.py --rapport app/build/reports/voix-mutantes.json
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble
