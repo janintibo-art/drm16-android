@@ -68,8 +68,8 @@ def main():
             pg.wait_for_timeout(150);pg.evaluate(G.OUVRIR,'eur');return c,pg,err
         for w,h in FORMATS:
             c,pg,err=ouvrir(w,h);nom=f'{w}x{h}';accord={'oui':False};pg.on('dialog',lambda d:d.accept() if accord['oui'] else d.dismiss())
-            v(pg.evaluate('Object.keys(EUR_CAT).length===119 && EUR_ORDRE.filter(k=>k==="scenes8").length===1'),nom+' catalogue 119 sans doublon')
-            v(pg.evaluate('EUR_MONTAGES.length===66 && EUR_MONTAGES.filter(p=>p.fam==="avance").length===8'),nom+' 66 montages dont huit avancés')
+            v(pg.evaluate('Object.keys(EUR_CAT).length===120 && EUR_ORDRE.filter(k=>k==="scenes8").length===1'),nom+' catalogue 120 sans doublon')
+            v(pg.evaluate('EUR_MONTAGES.length===68 && EUR_MONTAGES.filter(p=>p.fam==="avance").length===8'),nom+' 68 montages dont huit avancés')
             pg.evaluate('window.modeles=JSON.stringify(EUR_MONTAGES);window.avantRack=JSON.stringify(rackCourant());EUR.montFam="avance";eurMontages()')
             pg.locator('[data-montage="av-progressive-scenes8"]').click();v(pg.evaluate('JSON.stringify(rackCourant())===avantRack'),nom+' refus de remplacer conservé')
             accord['oui']=True;pg.locator('[data-montage="av-progressive-scenes8"]').click()

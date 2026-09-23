@@ -1,0 +1,36 @@
+.p4{min-width:0;color:#ecf3fa;font:12px/1.45 system-ui,Arial,sans-serif}
+.p4-intro{margin:4px 0 8px;text-align:center;color:#bdd4f1;font-size:10px;letter-spacing:.4px}
+.p4-mini{text-align:center}
+#unit-eur .p4-ouvrir,#eur-focus .p4-ouvrir{min-height:44px;min-width:44px;width:100%;border-radius:4px;
+  border:1px solid #45608a;background:#1b304c;color:#eef5ff}
+.p4-reglages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.p4 label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.p4 label>span{font:700 10px/1.3 system-ui;color:#cbddf6}
+#eur-focus .p4 select{width:100%;min-width:0;min-height:44px;background:#15283f;color:#eef5ff;
+  border:1px solid #45608a;border-radius:4px}
+.p4-octaves{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0}
+.p4-oct-val{min-width:56px;text-align:center;font:700 12px/1 system-ui;color:#d9e6fc}
+#eur-focus .p4-oct{min-height:44px;min-width:44px;padding:7px 10px;border-radius:4px;border:1px solid #45608a;
+  background:#1b304c;color:#eef5ff}
+.p4-clavier{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0;touch-action:none}
+#eur-focus .p4-touche{min-height:44px;min-width:44px;flex:1 1 44px;max-width:70px;border-radius:4px;
+  border:1px solid #45608a;background:#233c5e;color:#eef5ff;display:flex;align-items:flex-end;
+  justify-content:center;padding:4px 0 6px}
+#eur-focus .p4-touche.p4-noire{background:#0e1c30;color:#bcd0ee}
+#eur-focus .p4-touche.tenue{background:linear-gradient(#dceaff,#92b2e0);color:#14243c;border-color:#e2edff}
+.p4-touche-nom{font-size:9px;pointer-events:none}
+.p4-memzone{margin:10px 0 4px}
+#eur-focus .p4-memoriser{min-height:44px;min-width:44px;width:100%;border-radius:4px;border:1px solid #45608a;
+  background:#1b304c;color:#eef5ff}
+#eur-focus .p4-memoriser.arme{background:#69532e;color:#fff0cc;border-color:#dfbb6b}
+.p4-grille{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0}
+#eur-focus .p4-mem{min-height:44px;min-width:44px;border-radius:4px;border:1px solid #45608a;background:#233c5e;
+  color:#eef5ff;font-size:10px}
+.p4-mem.vide{opacity:.45;border-style:dashed}
+#eur-focus .p4-mem.tenue{background:linear-gradient(#dceaff,#92b2e0);color:#14243c;border-color:#e2edff}
+.p4-etat{min-height:44px;margin:9px 0;padding:8px;border:1px solid #566e91;border-radius:4px;
+  text-align:center;color:#d9e6fc}
+.p4-aide{font-size:11px;line-height:1.55;color:#c8d6e9;margin:12px 0 4px}
+@media(min-width:1000px){.p4-clavier{flex-wrap:nowrap}#eur-focus .p4-touche{max-width:56px}
+  .p4-reglages{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.p4 *{animation:none!important;transition:none!important}}

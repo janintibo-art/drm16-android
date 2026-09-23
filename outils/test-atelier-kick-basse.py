@@ -68,7 +68,7 @@ def main():
    pg.wait_for_timeout(50);pg.evaluate(G.OUVRIR,'eur');return c,pg,err
   for w,h in ([] if a.audio_seulement else FORMATS):
    c,pg,err=ouvrir(w,h);tag=f'{w}x{h}';accepter={'oui':True};pg.on('dialog',lambda d:d.accept() if accepter['oui'] else d.dismiss())
-   v(pg.evaluate('Object.keys(EUR_CAT).length===119&&new Set(EUR_ORDRE).size===119&&EUR_MONTAGES.length===66'),tag+' catalogue exact')
+   v(pg.evaluate('Object.keys(EUR_CAT).length===120&&new Set(EUR_ORDRE).size===120&&EUR_MONTAGES.length===68'),tag+' catalogue exact')
    for s in pg.evaluate(STRUCTURE):v(not s['erreurs'] and s['clock']==1 and s['macros']==8 and s['modules']==s['rangees'],tag+' câblage et affectations '+str(s))
    pg.evaluate('EUR.montFam="performance";eurMontages()');pg.locator('[data-montage="atelier-psy"]').click()
    pg.evaluate('window.k=EUR.mods.find(m=>m.type==="kicklab");window.d=EUR.mods.find(m=>m.type==="ducktrig");window.sonAvant=JSON.stringify(k.p);window.busAvant=EUR.bus;window.cablesAvant=JSON.stringify(EUR.cables)')

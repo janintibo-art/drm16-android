@@ -127,7 +127,7 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 ## 5. Ce qui reste à faire
 
-### État au 294 (23 septembre 2026)
+### État au 295 (23 septembre 2026)
 
 Les cinq analyses de la v122 servent de feuille de route, dans l'ordre choisi : analyse complète, version
 Windows, qualité sonore, fidélité des machines, qualité graphique.
@@ -161,14 +161,13 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
   breakcore/gabber/psytrance (v282), BREAK 32 (v283), PERFORMANCE (v284), variations A/B et FILL rythmiques
   (v285), atelier kick/basse (v286), HARMONIE 8 (v287), STUTTER LIVE (v288), voix Inde/Balkans/dabké (v289),
   FREEZE GRANULAIRE (v290), CYCLES LIBRES (v291), PERFORMANCE MOUVANTE (v292), correctif du test FOCUS
-  après CYCLES LIBRES (v293), VOIX MUTANTES (v294).
+  après CYCLES LIBRES (v293), VOIX MUTANTES (v294), POLY 4 (v295).
 
 **Reste à faire, par ordre d'intérêt**
 1. *Qualité sonore* : équilibre des voix au sein de chaque machine, à l'oreille ; réverbérations ROOM, PLATE,
    SPRING, HALL ; grave en mono ; grosses caisses, charlestons et cymbales ; essayer les saturations en 4x.
-2. *Eurorack, suite proposée après la v294* : POLY 4 (synthé autonome à quatre voix, clavier tactile, accords
-   mémorisables) ; LOOPER DE RACK (quatre pistes, phrases conservées) ; DIALOGUE (deux mélodies qui se
-   répondent) ; ACCORDAGES ET ORNEMENTS (accordage par note, import Scala .scl).
+2. *Eurorack, suite proposée après la v295* : LOOPER DE RACK (quatre pistes, phrases conservées) ; DIALOGUE
+   (deux mélodies qui se répondent) ; ACCORDAGES ET ORNEMENTS (accordage par note, import Scala .scl).
 3. *Qualité graphique, ce qui reste* : façades KAOSS PAD/SmplTrek encore à affiner selon l'usage.
 4. *Essais sur matériel* : USB-MIDI sur le téléphone, ouverture de projet interrompue, lecture longue en
    arrière-plan, clé de signature des APK ; sur PC, voir `docs/parite.md` ; Bluetooth MIDI (ci-dessous).
@@ -177,7 +176,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
 bloc 14 du test navigateur (« un gain existant rejoint sa cible en douceur ») quand la machine est chargée.
 Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en écrire en `file://`.
 
-### Versions v177 à v294
+### Versions v177 à v295
 
 | Version | Sujet |
 |---|---|
@@ -299,6 +298,7 @@ Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en
 | v292 | PERFORMANCE MOUVANTE : mémoires A/B, TRANSITION glissée, GESTE enregistré et rejoué en boucle |
 | v293 | Correctif : test FOCUS (`test-eurorack-focus.py`) resynchronisé avec PAS/MESURE (CYCLES LIBRES v291) sur SCÈNES 8 et HARMONIE 8, qui bloquait la compilation depuis la v291 |
 | v294 | VOIX MUTANTES : VOYELLE (VCO à formants A/E/I/O/U, MUTATION, entrée CV) et VOCODEUR (huit bandes, porteuse interne ou externe, DÉCALAGE FORMANTS) ; trois montages (voix-robot, voix-psy, voix-dub) |
+| v295 | POLY 4 : synthé autonome à quatre voix, clavier tactile d'une octave, vol de voix, quatre mémoires d'accord ; deux montages (poly4-nappe, poly4-club) |
 
 ---
 
