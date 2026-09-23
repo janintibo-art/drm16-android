@@ -10,7 +10,7 @@
 
    CRÉDITS DES SONS écrit un fichier texte qui réunit l'origine des sons
    venus d'ailleurs : Freesound (titre, auteur, licence, adresse), archive.org,
-   packs reçus. À joindre à ce que l'on publie. */
+   CC0 GitHub, packs reçus. À joindre à ce que l'on publie. */
 
 /* 16 Mo : le plafond des projets, que le pont applique aussi aux .drmpack,
    à l'écriture comme à la lecture */
@@ -46,6 +46,7 @@ function creditSon(id){
     return "« " + f.nom + " » par " + f.auteur + " · " + f.licence + " · " + f.url;
   }
   if(o === "archive") return "« " + nom + " » · Internet Archive, collection de boîtes à rythmes (archive.org)";
+  if(o === "cc0github") return "« " + nom + " » · github.com/Boochi44/free-drum-samples · CC0 1.0";
   return "";
 }
 

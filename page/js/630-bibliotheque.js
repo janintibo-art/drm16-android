@@ -229,6 +229,7 @@ function majBibUI(){
   else if(BIB.onglet === 3) bibRendreArchive(corps);
   else if(BIB.onglet === 4) bibRendreFreesound(corps);
   else if(BIB.onglet === 5) bibRendreMachines(corps);
+  else if(BIB.onglet === 6) bibRendreCc0Github(corps);
   if(defile) defile.scrollTop = memeRayon ? haut : 0;
   if(typeof majBarreEssai === "function") majBarreEssai();
 }

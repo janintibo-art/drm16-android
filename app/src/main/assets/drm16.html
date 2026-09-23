@@ -6225,7 +6225,7 @@ body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2p
 <div id="bib">
   <div class="note-bar"><b>BIBLIOTHÈQUE</b><button id="bib-fermer">FERMER</button></div>
   <div id="bib-nav">
-    <button class="on">SONS</button><button>PRISES MIDI</button><button>SAUVEGARDES</button><button>ARCHIVE</button><button>FREESOUND</button><button>MACHINES</button>
+    <button class="on">SONS</button><button>PRISES MIDI</button><button>SAUVEGARDES</button><button>ARCHIVE</button><button>FREESOUND</button><button>MACHINES</button><button>CC0 GITHUB</button>
   </div>
   <div id="bib-essai" hidden role="status" aria-live="polite">
     <p><span class="bib-essai-t">À L'ESSAI</span> <b id="bib-essai-quoi"></b><br><span id="bib-essai-ou"></span></p>
@@ -6450,7 +6450,7 @@ body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2p
   jouent ensemble se disputeraient la sortie. Fermer la referme complètement, son et tout.</p>
 
   <h3>Bibliothèque</h3>
-  <p>Six rayons. <b>SONS</b> réunit la banque interne et tous vos enregistrements : écouter, renommer,
+  <p>Sept rayons. <b>SONS</b> réunit la banque interne et tous vos enregistrements : écouter, renommer,
   supprimer, importer un fichier, enregistrer au micro, et surtout <b>affecter</b> un son à la partie ou au
   pad de votre choix — la machine visée est chargée toute seule.</p>
   <p><b>Essayer un son dans le morceau.</b> Lancez le motif, choisissez la partie dans « Affecter à »,
@@ -6504,14 +6504,14 @@ body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2p
   pack, comme un projet.</p>
   <p><b>IMPORTER DES FICHIERS</b> accepte maintenant plusieurs sons d'un coup. <b>CRÉDITS DES SONS</b>
   (rayon SAUVEGARDES) écrit un fichier texte qui réunit l'origine des sons venus d'ailleurs — Freesound
-  (titre, auteur, licence, adresse), archive.org, crédits reçus avec un pack — à joindre à ce que vous
-  publiez.</p>
+  (titre, auteur, licence, adresse), archive.org, CC0 GitHub, crédits reçus avec un pack — à joindre à ce
+  que vous publiez.</p>
   <p><b>Retrouver un son.</b> Chaque son a une <b>catégorie</b> — kick, caisse, clap, charley, cymbale, tom,
   percu, basse, mélodique, voix, boucle, FX. Elle est devinée d'abord par le nom (« Oberheim BD1 », « Crash
   ride »), sinon en écoutant le son : grave ou aigu, bruité ou tonal, court ou tenu. Une catégorie devinée
   porte la mention <i>(auto)</i> ; la liste sous le son la corrige, et votre choix l'emporte toujours.
   Au-dessus de la liste : une <b>recherche</b> (nom ou catégorie, sans se soucier des accents), les filtres
-  par catégorie et par origine (banque, micro, fichiers, archive, Freesound, KAOSS), le <b>tri</b> par nom,
+  par catégorie et par origine (banque, micro, fichiers, archive, Freesound, CC0 GitHub, KAOSS), le <b>tri</b> par nom,
   date, durée ou catégorie, et <b>★ favoris seulement</b>. L'étoile ☆ d'un son en fait un favori, rangé en
   tête. Une petite forme d'onde montre l'allure de chaque son. La liste s'affiche par pages de quarante.
   Catégories et favoris suivent les projets.</p>
@@ -6567,6 +6567,20 @@ body.ensemble #ens-sortir:focus-visible{outline:2px solid #fff;outline-offset:2p
   <p>Vous y trouverez les vraies machines dont l'application propose des recréations : Electro-Harmonix
   DRM-15, DRM-16 et DRM-32, les Electribe, les MPC, les TR-808, 909 et 707, l'Oberheim DMX, la volca
   sample. De quoi comparer ma synthèse aux enregistrements d'origine.</p>
+
+  <h3>Les packs CC0 (GitHub)</h3>
+  <p>Le septième rayon ouvre trois kits d'un dépôt public sur GitHub, tous les sons sous licence
+  <b>Creative Commons Zéro (CC0 1.0)</b> : libres d'usage, de modification et de redistribution, sans
+  attribution obligatoire. Quarante-huit sons en tout — seize par kit — servis un par un depuis GitHub,
+  jamais téléchargés en bloc.</p>
+  <p>Contrairement à beaucoup de sites de sons « gratuits », ce dépôt est explicitement pensé pour être
+  intégré à un instrument : chaque son porte déjà son type (kick, 808, caisse, clap, charley fermé ou
+  ouvert, percu, FX), repris directement dans la catégorie de la bibliothèque à l'import. Trois kits :
+  <b>HARD TRAP</b> (808 distordus, caisses nettes), <b>BOUNCE</b> (808 propres, kicks ronds) et
+  <b>SOULFUL VINTAGE</b> (sons lofi, percussions inhabituelles).</p>
+  <p>La plupart des sites « royalty-free » interdisent explicitement de redistribuer leurs fichiers en
+  tant que sons isolés ou bibliothèque de sons — c'est pour cette raison, et pas au hasard, que ce dépôt
+  précis a été choisi : sa licence CC0 le permet sans ambiguïté.</p>
 
   <h3>Exporter pour la carte de l'ES-1</h3>
   <p>Écrit tous les sons en <b>WAV 32 kHz, seize bits, mono</b>, nommés <code>00.WAV</code> à
@@ -42681,6 +42695,7 @@ function majBibUI(){
   else if(BIB.onglet === 3) bibRendreArchive(corps);
   else if(BIB.onglet === 4) bibRendreFreesound(corps);
   else if(BIB.onglet === 5) bibRendreMachines(corps);
+  else if(BIB.onglet === 6) bibRendreCc0Github(corps);
   if(defile) defile.scrollTop = memeRayon ? haut : 0;
   if(typeof majBarreEssai === "function") majBarreEssai();
 }
@@ -43132,8 +43147,8 @@ var BIB_CATEGORIES = [["kick","KICK"],["caisse","CAISSE"],["clap","CLAP"],["char
   ["cymbale","CYMBALE"],["tom","TOM"],["percu","PERCU"],["basse","BASSE"],["melodique","MÉLODIQUE"],
   ["voix","VOIX"],["boucle","BOUCLE"],["fx","FX"],["autre","AUTRE"]];
 var BIB_ORIGINES = [["tout","ORIGINES"],["banque","BANQUE"],["vous","TOUS LES VÔTRES"],["mic","MICRO"],
-  ["fichier","FICHIERS"],["archive","ARCHIVE"],["freesound","FREESOUND"],["kaoss","KAOSS"],["edition","ÉDITÉS"],
-  ["fige","FIGÉS"],["reech","RÉÉCHANTILLONNÉS"],["pack","PACKS"]];
+  ["fichier","FICHIERS"],["archive","ARCHIVE"],["freesound","FREESOUND"],["cc0github","CC0 GITHUB"],
+  ["kaoss","KAOSS"],["edition","ÉDITÉS"],["fige","FIGÉS"],["reech","RÉÉCHANTILLONNÉS"],["pack","PACKS"]];
 var BIB_TRIS = [["nom","TRI : NOM"],["recent","TRI : PLUS RÉCENTS"],["duree","TRI : DURÉE"],["cat","TRI : CATÉGORIE"]];
 var BIB_PAGE = 40;
 var BIB_ONDES = typeof WeakMap === "function" ? new WeakMap() : null;
@@ -43245,6 +43260,7 @@ function bibOrigine(id){
   var n = ES.noms && ES.noms[id];
   if(/^ufs\d+$/.test(id) || n === "freesound") return "freesound";
   if(n === "archive") return "archive";
+  if(n === "cc0github") return "cc0github";
   if(n === "kaoss") return "kaoss";
   if(n === "edition") return "edition";
   if(n === "fige") return "fige";
@@ -45169,7 +45185,7 @@ function machinesAEchantillons(){
 
    CRÉDITS DES SONS écrit un fichier texte qui réunit l'origine des sons
    venus d'ailleurs : Freesound (titre, auteur, licence, adresse), archive.org,
-   packs reçus. À joindre à ce que l'on publie. */
+   CC0 GitHub, packs reçus. À joindre à ce que l'on publie. */
 
 /* 16 Mo : le plafond des projets, que le pont applique aussi aux .drmpack,
    à l'écriture comme à la lecture */
@@ -45205,6 +45221,7 @@ function creditSon(id){
     return "« " + f.nom + " » par " + f.auteur + " · " + f.licence + " · " + f.url;
   }
   if(o === "archive") return "« " + nom + " » · Internet Archive, collection de boîtes à rythmes (archive.org)";
+  if(o === "cc0github") return "« " + nom + " » · github.com/Boochi44/free-drum-samples · CC0 1.0";
   return "";
 }
 
@@ -45618,6 +45635,164 @@ function nettoyageRendre(corps){
       l.appendChild(a); corps.appendChild(l);
     });
   }
+}
+/* ================= packs CC0 sur GitHub (v299) =================
+   Trois kits d'un dépôt public, tous les fichiers sous licence Creative
+   Commons Zéro (CC0 1.0) : libres d'usage, de modification et de
+   redistribution, sans attribution requise. Source : github.com/Boochi44/
+   free-drum-samples (fichier beatpacks-config.ts, lu et recopié ici le
+   23/09/2026 — quarante-huit sons, seize par kit, servis un par un depuis
+   raw.githubusercontent.com, jamais téléchargés en bloc). */
+var CC0G = {kit:null, occupe:false};
+
+var CC0G_KITS = [
+  {id:"hard-trap", nom:"HARD TRAP", res:"Metro Boomin / 808 Mafia : 808 distordus, caisses claires nettes, ambiance sombre.",
+   sons:[
+    {nom:"Hard Kick 1", type:"kick", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/kicks/hard-kick-01.wav"},
+    {nom:"Hard Kick 2", type:"kick", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/kicks/hard-kick-02.wav"},
+    {nom:"Hard Kick 3", type:"kick", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/kicks/hard-kick-03.wav"},
+    {nom:"808 Distorted", type:"808", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/808s/808-bass-dist.wav"},
+    {nom:"808 Sub", type:"808", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/808s/808-bass-sub.wav"},
+    {nom:"Hard Snare 1", type:"snare", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/snares/hard-snare-01.wav"},
+    {nom:"Hard Snare 2", type:"snare", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/snares/hard-snare-02.wav"},
+    {nom:"Hard Snare 3", type:"snare", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/snares/hard-snare-03.wav"},
+    {nom:"Trap Clap 1", type:"clap", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/claps/clap-01.wav"},
+    {nom:"Trap Clap 2", type:"clap", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/claps/cl.wav"},
+    {nom:"Closed Hat 1", type:"hi-hat", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/hi-hats/hi-hat-closed-01.wav"},
+    {nom:"Closed Hat 2", type:"hi-hat", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/hi-hats/ch.wav"},
+    {nom:"Open Hat", type:"open-hat", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/open-hats/open-hat-01.wav"},
+    {nom:"Perc Cowbell", type:"perc", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/percs/perc-cowbell.wav"},
+    {nom:"Perc Rimshot", type:"perc", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/percs/perc-rimshot.wav"},
+    {nom:"Trap FX", type:"fx", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/01-hard-trap/fx/fx-cymbal.wav"}
+   ]},
+  {id:"bounce", nom:"BOUNCE", res:"Mustard / West Coast : 808 propres, kicks ronds, claps qui claquent.",
+   sons:[
+    {nom:"Bounce Kick 1", type:"kick", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/kicks/bounce-kick-01.wav"},
+    {nom:"Bounce Kick 2", type:"kick", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/kicks/bounce-kick-02.wav"},
+    {nom:"Bounce Kick 3", type:"kick", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/kicks/bounce-kick-03.wav"},
+    {nom:"808 Long", type:"808", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/808s/808-bass-long.wav"},
+    {nom:"808 Punch", type:"808", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/808s/808-bass-punch.wav"},
+    {nom:"Bounce Snare 1", type:"snare", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/snares/bounce-snare-01.wav"},
+    {nom:"Bounce Snare 2", type:"snare", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/snares/bounce-snare-02.wav"},
+    {nom:"Bounce Snare 3", type:"snare", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/snares/bounce-snare-03.wav"},
+    {nom:"Bounce Clap 1", type:"clap", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/claps/clap-01.wav"},
+    {nom:"Bounce Clap 2", type:"clap", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/claps/cp.wav"},
+    {nom:"Closed Hat", type:"hi-hat", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/hi-hats/hi-hat-closed-01.wav"},
+    {nom:"Open Hat", type:"open-hat", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/open-hats/open-hat-01.wav"},
+    {nom:"Perc High Tom", type:"perc", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/percs/perc-high-tom.wav"},
+    {nom:"Perc Low Tom", type:"perc", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/percs/perc-low-tom.wav"},
+    {nom:"808 Round", type:"808", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/808s/808-round-long.wav"},
+    {nom:"Bounce FX", type:"fx", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/02-bounce/fx/fx-cymbal.wav"}
+   ]},
+  {id:"soulful-vintage", nom:"SOULFUL VINTAGE", res:"Alchemist / boom-bap : sons lofi, kicks chaleureux, percussions inhabituelles.",
+   sons:[
+    {nom:"Vintage Kick 1", type:"kick", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/kicks/vintage-kick-01.wav"},
+    {nom:"Vintage Kick 2", type:"kick", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/kicks/vintage-kick-02.wav"},
+    {nom:"Vintage Kick 3", type:"kick", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/kicks/vintage-kick-03.wav"},
+    {nom:"808 Bass Lofi", type:"808", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/808s/808-bass-lofi.wav"},
+    {nom:"808 Lofi", type:"808", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/808s/808-lofi.wav"},
+    {nom:"Vintage Snare 1", type:"snare", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/snares/vintage-snare-01.wav"},
+    {nom:"Vintage Snare 2", type:"snare", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/snares/vintage-snare-02.wav"},
+    {nom:"Vintage Snare 3", type:"snare", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/snares/vintage-snare-03.wav"},
+    {nom:"Vintage Clap", type:"clap", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/claps/vintage-clap-01.wav"},
+    {nom:"Clap Lofi", type:"clap", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/claps/cl-lofi.wav"},
+    {nom:"Closed Hat Lofi", type:"hi-hat", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/hi-hats/ch-lofi.wav"},
+    {nom:"Open Hat Lofi", type:"open-hat", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/open-hats/oh00-lofi.wav"},
+    {nom:"Open Hat", type:"open-hat", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/open-hats/open-hat-01.wav"},
+    {nom:"Perc Maraca", type:"perc", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/percs/perc-maraca.wav"},
+    {nom:"Perc Lofi Tom", type:"perc", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/percs/ht00-lofi.wav"},
+    {nom:"Vintage FX", type:"fx", url:"https://raw.githubusercontent.com/Boochi44/free-drum-samples/main/drum-samples/03-soulful-vintage/fx/cy0000-lofi.wav"}
+   ]}
+];
+
+/* type de sample → catégorie de la bibliothèque, pour un classement immédiat
+   sans attendre l'analyse par le nom ou par l'écoute */
+var CC0G_CATEGORIE = {kick:"kick", "808":"basse", snare:"caisse", clap:"clap",
+  "hi-hat":"charley", "open-hat":"charley", perc:"percu", fx:"fx"};
+
+/* ---------- écoute et import d'un son ---------- */
+function cc0gSon(kit, s, importer){
+  if(CC0G.occupe) return;
+  CC0G.occupe = true;
+  majCc0gUI();
+  audioInit(); banqueEs();
+  netCharger(s.url, 3 * 1024 * 1024).then(function(b64){
+    var o = b64VersOctets(b64);
+    return new Promise(function(ok, rej){
+      ctx.decodeAudioData(o.buffer.slice(0), ok, function(){ rej("format refusé"); });
+    });
+  }).then(function(buf){
+    CC0G.occupe = false;
+    if(PROJET_EN_COURS) return;
+    if(!importer){
+      var src = ctx.createBufferSource(); src.buffer = buf;
+      var g = ctx.createGain(); g.gain.value = 0.85;
+      src.connect(g); g.connect(master); src.start();
+      majCc0gUI();
+      signal(s.nom + " · " + buf.duration.toFixed(2) + " s · " + Math.round(buf.sampleRate/1000) + " kHz");
+      return;
+    }
+    var court = reduireEch(buf, 32000, 8);
+    var r = traiterSon(court, BIB.preset || "aucun", 0);
+    court = r.buffer;
+    var id = "u" + Date.now().toString(36);
+    ES.buf[id] = court;
+    ES.noms[id] = "cc0github";
+    BIB.noms[id] = (kit.nom + " " + s.nom).slice(0, 28);
+    if(CC0G_CATEGORIE[s.type]) bibMeta(id).c = CC0G_CATEGORIE[s.type];
+    bibEcrire();
+    sauverEch(id, court);
+    majCc0gUI();
+    signal("IMPORTÉ : " + BIB.noms[id]);
+    H.inter();
+  }).catch(function(e){
+    CC0G.occupe = false;
+    majCc0gUI();
+    signal("SON INDISPONIBLE · " + String(e).toUpperCase());
+  });
+}
+function majCc0gUI(){ if(BIB.onglet === 6) majBibUI(); }
+
+/* ---------- interface ---------- */
+function bibRendreCc0Github(corps){
+  var p1 = document.createElement("p");
+  p1.innerHTML = "Trois kits d'un dépôt GitHub, tous en licence <b>CC0</b> (domaine public assimilé) : " +
+    "libres d'usage, de modification et de redistribution, sans attribution obligatoire. Quarante-huit " +
+    "sons au total, servis un par un — rien n'est téléchargé en bloc.";
+  corps.appendChild(p1);
+
+  if(CC0G.kit){
+    var h0 = document.createElement("h3");
+    h0.textContent = CC0G.kit.nom;
+    corps.appendChild(h0);
+    var pk = document.createElement("p"); pk.style.opacity = ".75";
+    pk.textContent = CC0G.kit.res;
+    corps.appendChild(pk);
+    var a1 = document.createElement("div"); a1.className = "bib-actions";
+    boutonBib(a1, "◀ LES TROIS KITS", function(){ CC0G.kit = null; majCc0gUI(); });
+    corps.appendChild(a1);
+    CC0G.kit.sons.forEach(function(s){
+      var l = ligneBib(s.nom, s.type.toUpperCase());
+      var a = document.createElement("div"); a.className = "bib-actions";
+      boutonBib(a, "ÉCOUTER", function(){ cc0gSon(CC0G.kit, s, false); });
+      boutonBib(a, "IMPORTER", function(){ cc0gSon(CC0G.kit, s, true); });
+      l.appendChild(a);
+      corps.appendChild(l);
+    });
+    return;
+  }
+
+  CC0G_KITS.forEach(function(k){
+    var l = ligneBib(k.nom, k.res + " · " + k.sons.length + " sons");
+    var a = document.createElement("div"); a.className = "bib-actions";
+    boutonBib(a, "OUVRIR", function(){ CC0G.kit = k; majCc0gUI(); }, false);
+    l.appendChild(a);
+    corps.appendChild(l);
+  });
+
+  var p2 = document.createElement("p"); p2.style.opacity = ".6"; p2.style.fontSize = "12.5px";
+  p2.textContent = "Source : github.com/Boochi44/free-drum-samples (licence CC0 1.0).";
+  corps.appendChild(p2);
 }
 /* ================= travail du MIDI : éditeur en rouleau =================
    Une prise est convertie en notes (début, durée, hauteur), une piste par son.

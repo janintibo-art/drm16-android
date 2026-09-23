@@ -127,7 +127,7 @@ identifiants en double, syntaxe JavaScript, compilation Java de contrôle et tes
 
 ## 5. Ce qui reste à faire
 
-### État au 298 (23 septembre 2026)
+### État au 299 (23 septembre 2026)
 
 Les cinq analyses de la v122 servent de feuille de route, dans l'ordre choisi : analyse complète, version
 Windows, qualité sonore, fidélité des machines, qualité graphique.
@@ -145,7 +145,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
   64 pas, Song), PO-33 (Parameter Locks, CHROMA, Swing, 16 effets, WRITE v231), TR (SCALE v232, FILL et
   AUTO FILL v236, TRACK v238), DMX (SONG v234), MPC (99 séquences v237, 8 programmes v246), et l'export WAV d'un morceau
   enchaîné pour les TR, la DMX, la MPC et la TR-1000 (v244).
-- *Bibliothèque* : Freesound (v248), sons de chaque machine et kits de sons avec retour arrière (v251), classement des sons (v252), essai d'un son pendant la lecture (v253), éditeur de son (v254), machines figées et rééchantillonnage (v255), kits par rôle (v256), packs et crédits (v257), corbeille, place occupée, sons sans emploi et doublons (v258).
+- *Bibliothèque* : Freesound (v248), sons de chaque machine et kits de sons avec retour arrière (v251), classement des sons (v252), essai d'un son pendant la lecture (v253), éditeur de son (v254), machines figées et rééchantillonnage (v255), kits par rôle (v256), packs et crédits (v257), corbeille, place occupée, sons sans emploi et doublons (v258), rayon CC0 GITHUB : trois kits libres de droits, quarante-huit sons (v299).
 - *Fidélité* : sept effets de plus sur le KAOSS PAD, échantillonnage/découpe/étirement de la couche B sur la
   TR-1000, échantillonnage au micro sur le PO-33 K.O! (v259). Le point ER-1/EA-1, EMX/ESX a été passé en revue
   (v259) : les fonctions correspondent déjà aux vraies machines, et les deux seules simplifications restantes
@@ -175,7 +175,7 @@ Windows, qualité sonore, fidélité des machines, qualité graphique.
 bloc 14 du test navigateur (« un gain existant rejoint sa cible en douceur ») quand la machine est chargée.
 Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en écrire en `file://`.
 
-### Versions v177 à v298
+### Versions v177 à v299
 
 | Version | Sujet |
 |---|---|
@@ -301,6 +301,7 @@ Depuis la v235, les tests qui rechargent la page la servent en http : ne plus en
 | v296 | LOOPER DE RACK : quatre pistes qui captent une phrase sur IN puis la bouclent, RECORD/MUET/CLEAR, fondu aux bords ; deux montages (looper-boucle, looper-dub) |
 | v297 | DIALOGUE : deux voix qui se répondent, question improvisée puis réponse décalée et/ou retournée (MIROIR) ; deux montages (dialogue-duo, dialogue-psy) |
 | v298 | ACCORDAGES ET ORNEMENTS : arpège sur une gamme personnalisée (ÉGAL 12, JUSTE, PYTHAGORICIEN ou import Scala .scl), appoggiature/mordant/trille calculés sur les écarts réels de la gamme ; deux montages (accordage-juste, accordage-pytha) |
+| v299 | Bibliothèque : septième rayon CC0 GITHUB, trois kits (HARD TRAP, BOUNCE, SOULFUL VINTAGE), quarante-huit sons en licence CC0 1.0, classés automatiquement par type |
 
 ---
 

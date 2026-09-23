@@ -81,6 +81,7 @@ jobs:
           python outils/test-looper.py --rapport app/build/reports/looper.json
           python outils/test-dialogue.py --rapport app/build/reports/dialogue.json
           python outils/test-accordages.py --rapport app/build/reports/accordages.json
+          python outils/test-cc0-github.py --rapport app/build/reports/cc0-github.json
 
       # Banc de mesure du son (v148) : informatif. Compare aux mesures du dépôt
       # (docs/mesures-son.json) et joint le rapport au run ; la vue d'ensemble

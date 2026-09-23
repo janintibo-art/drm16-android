@@ -153,8 +153,8 @@ def main():
                     pg.keyboard.press('ArrowLeft')
                     verifier(abs(pg.evaluate('id=>SET.niv[id]',cle)-max(0,ancien-0.01))<0.0001,prefixe+' fader raccordé au mixage')
                 elif id=='bib':
-                    verifier(pg.locator('#bib-nav button').count()==6,prefixe+' six rayons conservés')
-                    for index in range(6):
+                    verifier(pg.locator('#bib-nav button').count()==7,prefixe+' sept rayons conservés')
+                    for index in range(7):
                         pg.locator('#bib-nav button').nth(index).click()
                         verifier(pg.evaluate('BIB.onglet')==index,prefixe+' rayon '+str(index)+' sélectionné')
                         mesurer('bib','rayon '+str(index))
