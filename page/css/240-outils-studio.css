@@ -263,3 +263,31 @@
 @media (prefers-reduced-motion:reduce){
   :is(#bib,#enr,#pr,#note,#syro,#table,#studio,#nexus,#audio-diagnostic) *{scroll-behavior:auto;transition:none;animation:none}
 }
+
+/* v303 — diagnostic général intégré au relevé audio. */
+#audio-diagnostic[data-diag303="1"]{width:calc(100% - 20px);max-width:780px;padding:18px}
+#audio-diagnostic .diag-resume{margin:0 0 12px;padding:11px 13px;border:1px solid #526173;border-left:4px solid #8192a6;border-radius:7px;background:#111923;font:750 12px/1.45 system-ui,Arial,sans-serif;color:#e8eef6}
+#audio-diagnostic .diag-resume[data-etat="ok"]{border-left-color:#6fb88a;color:#d9f4e3}
+#audio-diagnostic .diag-resume[data-etat="warn"]{border-left-color:#c7a45e;color:#f5e4bd}
+#audio-diagnostic .diag-resume[data-etat="fail"]{border-left-color:#c76f72;color:#ffd9db}
+#audio-diagnostic .diag-grille{display:grid;grid-template-columns:1fr;gap:10px;margin:0 0 14px}
+#audio-diagnostic .diag-carte{min-width:0;padding:11px;border:1px solid #3f4d5d;border-radius:8px;background:#111820;box-shadow:inset 0 1px #ffffff08}
+#audio-diagnostic .diag-carte h3,#audio-diagnostic .diag-audio-titre{margin:0 0 9px;color:#c9d7e8;font:800 11px/1.3 system-ui,Arial,sans-serif;letter-spacing:1.2px}
+#audio-diagnostic .diag-ligne{display:grid;grid-template-columns:minmax(90px,.72fr) auto;gap:4px 8px;padding:8px 0;border-top:1px solid #283542;align-items:center}
+#audio-diagnostic .diag-ligne:first-of-type{border-top:0;padding-top:2px}
+#audio-diagnostic .diag-nom{min-width:0;color:#dce4ee;font:700 11px/1.35 system-ui,Arial,sans-serif;letter-spacing:.35px}
+#audio-diagnostic .diag-etat{justify-self:end;padding:3px 6px;border:1px solid #607080;border-radius:999px;background:#26313d;color:#d8e3ed;font:800 9.5px/1.2 system-ui,Arial,sans-serif;letter-spacing:.5px;white-space:nowrap}
+#audio-diagnostic .diag-ligne[data-etat="ok"] .diag-etat{border-color:#4f8966;background:#20382a;color:#c9f2d6}
+#audio-diagnostic .diag-ligne[data-etat="warn"] .diag-etat{border-color:#9a7d43;background:#3a3020;color:#f4dfac}
+#audio-diagnostic .diag-ligne[data-etat="fail"] .diag-etat{border-color:#9b5358;background:#3b2327;color:#ffd0d3}
+#audio-diagnostic .diag-ligne[data-etat="info"] .diag-etat{border-color:#506f91;background:#1d3145;color:#cfe7ff}
+#audio-diagnostic .diag-detail{grid-column:1/-1;min-width:0;color:#aebac8;font:11px/1.45 system-ui,Arial,sans-serif;overflow-wrap:anywhere}
+#audio-diagnostic .diag-audio-titre{margin-top:4px}
+#audio-diagnostic .diag-note{margin:10px 0 12px;padding:9px 10px;border-left:3px solid #617890;background:#121a23;color:#bfcbd8;font-size:11.5px;line-height:1.5}
+#audio-diagnostic .diag-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px;padding:0 0 12px;border-bottom:1px solid #394653}
+#audio-diagnostic .diag-actions #diag-tout,#audio-diagnostic .diag-actions #diag-copier{grid-column:1/-1}
+#audio-diagnostic .diag-actions #diag-tout{border-color:#6b8fae;box-shadow:inset 0 -3px #6b8fae}
+#audio-diagnostic .diag-actions #diag-copier{border-color:#72896f}
+#audio-diagnostic .audio-actions::before{content:"AUDIO";grid-column:1/-1;color:#aebdcd;font:800 10px/1.3 system-ui,Arial,sans-serif;letter-spacing:1.1px}
+@media(min-width:700px){#audio-diagnostic .diag-grille{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:420px){#audio-diagnostic .diag-actions,#audio-diagnostic .audio-actions{grid-template-columns:1fr}}

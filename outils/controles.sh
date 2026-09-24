@@ -39,6 +39,7 @@ fin
 
 etape "5. Syntaxe JavaScript"
 python3 outils/verifier-js.py
+python3 outils/test-diagnostic-v303.py
 node outils/test-dbi.cjs
 node outils/test-kp.cjs
 node outils/test-kp-resample.cjs
