@@ -16,18 +16,85 @@ concurrency:
 jobs:
   publier:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45          # v301 : même batterie navigateur que le workflow APK
     permissions:
       contents: write            # nécessaire pour créer la version et y joindre l'APK
 
     steps:
       - uses: actions/checkout@v7
 
+      # v301 : une vraie publication ne doit jamais retomber silencieusement sur
+      # la clé Android de debug. On vérifie aussi que les trois numéros de version
+      # et, pour un push de tag, l'étiquette elle-même racontent la même chose.
+      - name: Vérifier la publication
+        env:
+          CLE: ${{ secrets.KEYSTORE_BASE64 }}
+          MDP_MAGASIN: ${{ secrets.KEYSTORE_PASSWORD }}
+          ALIAS: ${{ secrets.KEY_ALIAS }}
+          MDP_CLE: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          V=$(grep -oP "versionName\s+'\K[^']+" app/build.gradle)
+          VC=$(grep -oP "versionCode\s+\K[0-9]+" app/build.gradle)
+          TV=$(grep -oP '"version"\s*:\s*"\K[^"]+' bureau/src-tauri/tauri.conf.json)
+
+          if [ -z "$V" ] || [ "$VC" != "$V" ]; then
+            echo "::error::Version Android incohérente : versionCode=$VC, versionName=$V."
+            exit 1
+          fi
+          if [ "$TV" != "$V.0.0" ]; then
+            echo "::error::Version Windows incohérente : $TV au lieu de $V.0.0."
+            exit 1
+          fi
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF_NAME" != "v$V" ]; then
+            echo "::error::Le tag $GITHUB_REF_NAME ne correspond pas à la version v$V."
+            exit 1
+          fi
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$GITHUB_REF_NAME" != "main" ]; then
+            echo "::error::Une publication manuelle doit être lancée depuis main, pas $GITHUB_REF_NAME."
+            exit 1
+          fi
+
+          MANQUANTS=""
+          [ -n "$CLE" ] || MANQUANTS="$MANQUANTS KEYSTORE_BASE64"
+          [ -n "$MDP_MAGASIN" ] || MANQUANTS="$MANQUANTS KEYSTORE_PASSWORD"
+          [ -n "$ALIAS" ] || MANQUANTS="$MANQUANTS KEY_ALIAS"
+          [ -n "$MDP_CLE" ] || MANQUANTS="$MANQUANTS KEY_PASSWORD"
+          if [ -n "$MANQUANTS" ]; then
+            echo "::error::Publication refusée : secret(s) absent(s) :$MANQUANTS"
+            echo "::error::Le workflow ne fabriquera jamais une Release signée avec la clé de debug."
+            exit 1
+          fi
+
+          if ! printf '%s' "$CLE" | base64 -d > "$RUNNER_TEMP/cle.jks"; then
+            echo "::error::KEYSTORE_BASE64 n'est pas un magasin de clés Base64 valide."
+            exit 1
+          fi
+          if [ ! -s "$RUNNER_TEMP/cle.jks" ]; then
+            echo "::error::Le magasin de clés restauré est vide."
+            exit 1
+          fi
+          echo "KEYSTORE_FILE=$RUNNER_TEMP/cle.jks" >> "$GITHUB_ENV"
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          echo "Version v$V cohérente ; secrets de signature présents."
+
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
           cache: gradle
+
+      - name: Vérifier la clé de signature
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          if ! keytool -list -keystore "$KEYSTORE_FILE" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null; then
+            echo "::error::La clé de publication est illisible, le mot de passe est faux ou l'alias n'existe pas."
+            exit 1
+          fi
+          echo "Clé de publication vérifiée avant les tests."
 
       # Contrôles automatiques AVANT tout le reste (v134) : une faute détectée ici
       # coûte une minute au lieu de toute la compilation. Détail : outils/controles.sh
@@ -37,9 +104,8 @@ jobs:
       - name: Contrôles automatiques
         run: bash outils/controles.sh
 
-      # Test de la page dans un vrai navigateur (v135) : chargement, les 29
-      # machines ouvertes et jouées dans trois formats, et les corrections
-      # audio, fichiers, MIDI et HTML des v124 à v132. Détail : outils/test-navigateur.py
+      # v301 : la publication passe désormais la même batterie navigateur que
+      # l'APK ordinaire. Une Release ne peut donc plus être moins testée qu'un push.
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
@@ -50,24 +116,45 @@ jobs:
           python -m playwright install --with-deps chromium > /dev/null
           python outils/test-navigateur.py
           python outils/test-export-midi.py
+          python outils/test-graphique.py
+          python outils/test-facades.py
+          python outils/test-eurorack-focus.py
+          python outils/test-menu-machines.py
+          python outils/test-outils-studio.py
+          python outils/test-retours-musicaux.py
+          python outils/test-gestes-musicaux.py
+          python outils/test-automations-machines.py
+          python outils/test-ecrans-performance.py
+          python outils/test-onde-smpltrek.py
+          python outils/test-retours-frappe.py --rapport app/build/reports/retours-frappe.json
+          python outils/test-reperes-kaoss.py --rapport app/build/reports/reperes-kaoss.json
+          python outils/test-focus-mixage.py --rapport app/build/reports/focus-mixage.json
+          python outils/test-editeur-sons.py --rapport app/build/reports/editeur-sons.json
+          python outils/test-vue-ensemble.py --rapport app/build/reports/vue-ensemble.json
+          python outils/test-ensembles-eurorack.py --rapport app/build/reports/ensembles-eurorack.json
+          python outils/test-drum32.py --rapport app/build/reports/drum32.json
+          python outils/test-melo32.py --rapport app/build/reports/melo32.json
+          python outils/test-scenes8.py --rapport app/build/reports/scenes8.json
+          python outils/test-rave.py --rapport app/build/reports/rave.json
+          python outils/test-break32-bibliotheque.py --rapport app/build/reports/break32-bibliotheque.json
+          python outils/test-performance-eurorack.py --rapport app/build/reports/performance-eurorack.json
+          python outils/test-variations-rythmiques.py --rapport app/build/reports/variations-rythmiques.json
+          python outils/test-atelier-kick-basse.py --rapport app/build/reports/atelier-kick-basse.json
+          python outils/test-harmonie8.py --rapport app/build/reports/harmonie8.json
+          python outils/test-stutter-live.py --rapport app/build/reports/stutter-live.json
+          python outils/test-couleurs-eurorack.py --rapport app/build/reports/couleurs-eurorack.json
+          python outils/test-freeze-granulaire.py --rapport app/build/reports/freeze-granulaire.json
+          python outils/test-cycles-libres.py --rapport app/build/reports/cycles-libres.json
+          python outils/test-voix-mutantes.py --rapport app/build/reports/voix-mutantes.json
+          python outils/test-poly4.py --rapport app/build/reports/poly4.json
+          python outils/test-looper.py --rapport app/build/reports/looper.json
+          python outils/test-dialogue.py --rapport app/build/reports/dialogue.json
+          python outils/test-accordages.py --rapport app/build/reports/accordages.json
+          python outils/test-cc0-github.py --rapport app/build/reports/cc0-github.json
 
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: '8.10.2'
-
-      - name: Rétablir la clé de signature
-        env:
-          CLE: ${{ secrets.KEYSTORE_BASE64 }}
-        run: |
-          if [ -n "$CLE" ]; then
-            echo "$CLE" | base64 -d > "$RUNNER_TEMP/cle.jks"
-            echo "KEYSTORE_FILE=$RUNNER_TEMP/cle.jks" >> "$GITHUB_ENV"
-            echo "Clé de publication en place."
-          else
-            echo "::warning::Aucune clé de publication (secret KEYSTORE_BASE64 absent)."
-            echo "::warning::L'APK sera signé avec la clé de debug : les mises à jour futures"
-            echo "::warning::ne pourront pas s'installer par-dessus. Voir PUBLIER.md."
-          fi
 
       # Le transfert vers une vraie volca a besoin du Syro de Korg, compilé en
       # WebAssembly. Emscripten est installé à la main plutôt que par une action
@@ -102,10 +189,28 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: gradle assembleRelease --stacktrace --no-daemon
 
+      # Deuxième ceinture v301 : la signature est contrôlée sur l'APK réellement
+      # produit, et une identité « Android Debug » fait échouer la publication.
+      - name: Vérifier la signature de l'APK
+        run: |
+          set -euo pipefail
+          APK=$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print -quit)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner -print | sort -V | tail -n 1)
+          if [ -z "$APK" ] || [ -z "$APKSIGNER" ]; then
+            echo "::error::Impossible de contrôler la signature de l'APK."
+            exit 1
+          fi
+          mkdir -p app/build/reports
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee app/build/reports/signature-publication.txt
+          if grep -qi 'Android Debug' app/build/reports/signature-publication.txt; then
+            echo "::error::APK de publication signé avec une identité de debug : publication refusée."
+            exit 1
+          fi
+
       - name: Relever la version et nommer le fichier
         id: version
         run: |
-          V=$(grep -oP "versionName\s+'\K[^']+" app/build.gradle)
+          V="$VERSION"
           echo "v=$V" >> "$GITHUB_OUTPUT"
           mkdir -p publication
           # Deux noms : l'un daté pour l'archive, l'autre FIXE pour que le lien
@@ -123,8 +228,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           V: ${{ steps.version.outputs.v }}
         run: |
-          ETIQ="${GITHUB_REF_NAME}"
-          [ "$ETIQ" = "main" ] && ETIQ="v$V"     # déclenchement à la main
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            ETIQ="v$V"
+          else
+            ETIQ="$GITHUB_REF_NAME"
+          fi
           cat > notes.md <<FIN
           **Boîtes à rythmes autonomes — version $V**
 
@@ -256,10 +364,11 @@ jobs:
                  Select-Object -First 1
           if (-not $exe) { throw "Aucun installeur produit." }
           Copy-Item $exe.FullName "DRM16-installeur.exe"
-          $etiq = "${{ github.ref_name }}"
-          if ($etiq -eq "main") {
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
             $v = (Select-String -Path app/build.gradle -Pattern "versionName\s+'([^']+)'").Matches[0].Groups[1].Value
             $etiq = "v$v"
+          } else {
+            $etiq = "${{ github.ref_name }}"
           }
           gh release upload $etiq "DRM16-installeur.exe" --clobber
 

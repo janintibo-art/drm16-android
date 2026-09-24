@@ -8,8 +8,8 @@ android {
         applicationId 'fr.tibo.drm16'
         minSdk 24
         targetSdk 34
-        versionCode 300
-        versionName '300'
+        versionCode 301
+        versionName '301'
     }
 
     /* Une version publiée doit être signée par une clé STABLE : Android refuse
@@ -17,7 +17,8 @@ android {
        l'application — donc perdre tous les motifs. La clé arrive par variables
        d'environnement (secrets GitHub), jamais par le dépôt.
        Sans clé, on retombe sur celle de debug : la compilation locale et
-       l'intégration continue ordinaire continuent de fonctionner. */
+       l'intégration continue ordinaire continuent de fonctionner. Le workflow
+       Publication v301, lui, refuse explicitement de continuer sans clé stable. */
     signingConfigs {
         publication {
             def fichier = System.getenv('KEYSTORE_FILE')
