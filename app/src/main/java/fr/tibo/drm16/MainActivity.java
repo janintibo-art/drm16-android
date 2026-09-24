@@ -145,7 +145,8 @@ public class MainActivity extends Activity implements Midi.Ecoute {
 
         /** Autorisation du micro : demande si besoin, renvoie l'etat courant. */
         @JavascriptInterface public boolean micro() {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true;
+            /* minSdk 24 : toutes les versions prises en charge utilisent déjà
+               les permissions d'exécution introduites en API 23. */
             if (checkSelfPermission(Manifest.permission.RECORD_AUDIO)
                     == PackageManager.PERMISSION_GRANTED) return true;
             runOnUiThread(new Runnable() {
@@ -553,9 +554,8 @@ public class MainActivity extends Activity implements Midi.Ecoute {
                                 && "file".equalsIgnoreCase(origine.getScheme())
                                 && pageCourante != null
                                 && pageCourante.startsWith("file:///android_asset/");
-                        boolean microAutorise = Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-                                || checkSelfPermission(Manifest.permission.RECORD_AUDIO)
-                                   == PackageManager.PERMISSION_GRANTED;
+                        boolean microAutorise = checkSelfPermission(Manifest.permission.RECORD_AUDIO)
+                                == PackageManager.PERMISSION_GRANTED;
                         if (!locale || !microAutorise) {
                             demande.deny();
                             return;

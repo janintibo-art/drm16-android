@@ -38,10 +38,8 @@ public class PlaybackService extends Service {
             }
         }
 
-        int drapeaux = PendingIntent.FLAG_UPDATE_CURRENT;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            drapeaux |= PendingIntent.FLAG_IMMUTABLE;
-        }
+        /* minSdk 24 : FLAG_IMMUTABLE (API 23) existe sur tous les appareils pris en charge. */
+        int drapeaux = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         Intent retour = new Intent(this, MainActivity.class);
         retour.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pi = PendingIntent.getActivity(this, 0, retour, drapeaux);
