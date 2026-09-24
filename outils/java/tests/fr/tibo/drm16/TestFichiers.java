@@ -42,6 +42,16 @@ public class TestFichiers {
     ok(Fichiers.nomTechnique("a.wav.part-kz1-3") && Fichiers.nomTechnique("a.syx.bak") && !Fichiers.nomTechnique("a.syx"), "filtre");
     System.out.println("7. temporaire absent");
     ok(!Fichiers.remplacer(new File(d,"rien"), c) && lire(c).equals("TROISIEME"), "refus sans degat");
+
+    System.out.println("8. suppression : aucun .bak ne peut ressusciter");
+    File s = new File(d, "suppr.syx"); ecrire(s, "ACTUEL"); ecrire(Fichiers.sauvegarde(s), "ANCIEN");
+    ok(Fichiers.supprimer(s), "cible et secours effaces ensemble");
+    ok(!s.exists() && !Fichiers.sauvegarde(s).exists(), "aucun fichier a restaurer");
+    File garde = new File(d, "garde.syx"); ecrire(garde, "A GARDER");
+    File gardeBak = Fichiers.sauvegarde(garde); gardeBak.mkdir(); ecrire(new File(gardeBak, "verrou"), "x");
+    ok(!Fichiers.supprimer(garde), "secours impossible a effacer : suppression refusee");
+    ok(garde.exists() && lire(garde).equals("A GARDER"), "la cible reste intacte si le secours resiste");
+
     System.out.println(fautes == 0 ? "TOUT EST BON" : fautes + " FAUTE(S)");
     System.exit(fautes);
   }

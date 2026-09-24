@@ -3,7 +3,6 @@
 # Lances par GitHub Actions AVANT la compilation de l'APK ; utilisables aussi
 # dans Termux si python, node, Rust et un JDK sont installes :
 #     pkg install python nodejs rust openjdk-17
-#     bash ~/drm16_android/outils/controles.sh
 set -e
 cd "$(dirname "$0")/.."
 
@@ -99,6 +98,7 @@ java -cp "$SORTIE" fr.tibo.drm16.TestLectures
 java -cp "$SORTIE" fr.tibo.drm16.TestDossierDocuments
 java -cp "$SORTIE" fr.tibo.drm16.TestMidi
 java -cp "$SORTIE" fr.tibo.drm16.TestMidiOuverture
+java -cp "$SORTIE" fr.tibo.drm16.TestSecuriteV300
 rm -rf "$SORTIE"
 fin
 
@@ -111,8 +111,9 @@ etape "8. MIDI bureau : commandes concurrentes et ports simules"
 python3 outils/test-midi-bureau.py
 fin
 
-etape "9. Fichiers bureau : lectures, listes et recuperations refusees"
+etape "9. Fichiers bureau : lectures, listes, recuperations et securite v300"
 python3 outils/test-fichiers-bureau.py
+python3 outils/test-securite-fichiers-v300.py
 fin
 
 echo

@@ -26,37 +26,51 @@ const MAX_ECRITURES: usize = 4;
 // ---------- emplacements ----------
 
 fn racine_essai() -> Option<PathBuf> {
-    std::env::var_os("DRM16_DOSSIER").map(PathBuf::from)
+    std::env::var_os("DRM16_DOSSIER")
+        .filter(|v| !v.is_empty())
+        .map(PathBuf::from)
 }
 
+/** v300 : si Windows ne fournit pas son dossier Documents, on renvoie un
+    chemin vide et les opérations échouent proprement. Surtout aucun repli vers
+    TEMP : un projet ne doit jamais sembler sauvé dans un emplacement jetable. */
 pub fn dossier_doc() -> PathBuf {
     let d = match racine_essai() {
         Some(r) => r.join("documents"),
-        None => dirs::document_dir().unwrap_or_else(std::env::temp_dir).join("DRM16"),
+        None => match dirs::document_dir() {
+            Some(r) => r.join("DRM16"),
+            None => return PathBuf::new(),
+        },
     };
-    let _ = fs::create_dir_all(&d);
-    d
+    if fs::create_dir_all(&d).is_err() || !d.is_dir() { PathBuf::new() } else { d }
 }
 
+/** Même règle pour les échantillons : pas de repli silencieux vers TEMP. */
 pub fn dossier_ech() -> PathBuf {
     let d = match racine_essai() {
         Some(r) => r.join("ech"),
-        None => dirs::data_dir().unwrap_or_else(std::env::temp_dir).join("DRM16").join("ech"),
+        None => match dirs::data_dir() {
+            Some(r) => r.join("DRM16").join("ech"),
+            None => return PathBuf::new(),
+        },
     };
-    let _ = fs::create_dir_all(&d);
-    d
+    if fs::create_dir_all(&d).is_err() || !d.is_dir() { PathBuf::new() } else { d }
+}
+
+fn dossier_pret(d: &Path) -> bool {
+    !d.as_os_str().is_empty() && d.is_dir()
 }
 
 // ---------- noms ----------
 
 /// Comme propre() en Java : tout ce qui n'est pas lettre ASCII, chiffre, _ . -
-/// devient _. En plus : « . » et « .. » sont refusés (ils désignent un dossier).
-fn propre(n: &str) -> String {
+/// devient _. v300 : « », « . » et « .. » sont refusés au lieu de devenir « x ».
+fn propre(n: &str) -> Option<String> {
     let p: String = n
         .chars()
         .map(|c| if c.is_ascii_alphanumeric() || c == '_' || c == '.' || c == '-' { c } else { '_' })
         .collect();
-    if p.is_empty() || p == "." || p == ".." { "x".to_string() } else { p }
+    if p.is_empty() || p == "." || p == ".." { None } else { Some(p) }
 }
 
 fn plafond_document(nom: &str) -> u64 {
@@ -188,6 +202,33 @@ fn recuperer_dossier(d: &Path) -> io::Result<()> {
     Ok(())
 }
 
+/** v300 : effacer le secours avant la cible. Si le .bak ne peut pas être
+    supprimé, la cible reste présente et aucune restauration fantôme n'est
+    possible au prochain démarrage. */
+fn supprimer_fichier(cible: &Path) -> bool {
+    let bak = sauvegarde(cible);
+    match present(&bak) {
+        Ok(true) => {
+            match fs::symlink_metadata(&bak) {
+                Ok(m) if m.is_file() => {}
+                _ => return false,
+            }
+            if fs::remove_file(&bak).is_err() { return false; }
+        }
+        Ok(false) => {}
+        Err(_) => return false,
+    }
+    match present(cible) {
+        Ok(true) => {
+            match fs::symlink_metadata(cible) {
+                Ok(m) if m.is_file() => fs::remove_file(cible).is_ok(),
+                _ => false,
+            }
+        }
+        _ => false,
+    }
+}
+
 fn ecrire_atomique(cible: &Path, octets: &[u8]) -> bool {
     let tmp = avec_suffixe(cible, &format!(".part-{}", jeton_unique()));
     let ok = (|| -> std::io::Result<()> {
@@ -237,13 +278,15 @@ fn trier(l: &mut [String]) {
 // ---------- documents ----------
 
 pub fn sauver(nom: &str, b64: &str) -> String {
-    let p = propre(nom);
+    let Some(p) = propre(nom) else { return String::new() };
     let max = plafond_document(&p);
     if depasse_base64(b64, max) {
         return String::new();
     }
+    let d = dossier_doc();
+    if !dossier_pret(&d) { return String::new(); }
     let Some(o) = decoder(b64) else { return String::new() };
-    let cible = dossier_doc().join(&p);
+    let cible = d.join(&p);
     if (o.len() as u64) > max || !ecrire_atomique(&cible, &o) {
         return String::new();
     }
@@ -264,8 +307,10 @@ fn ecritures() -> std::sync::MutexGuard<'static, HashMap<String, Ecriture>> {
 }
 
 pub fn ouvrir(nom: &str) -> String {
-    let p = propre(nom);
-    let cible = dossier_doc().join(&p);
+    let Some(p) = propre(nom) else { return String::new() };
+    let d = dossier_doc();
+    if !dossier_pret(&d) { return String::new(); }
+    let cible = d.join(&p);
     let mut table = ecritures();
     if table.len() >= MAX_ECRITURES {
         return String::new();
@@ -327,6 +372,7 @@ pub fn fermer(jeton: &str, valider: bool) -> String {
 
 pub fn liste(ext: &str) -> Option<String> {
     let d = dossier_doc();
+    if !dossier_pret(&d) { return None; }
     recuperer_dossier(&d).ok()?;
     let entrees: Vec<_> = fs::read_dir(&d).ok()?.collect::<io::Result<_>>().ok()?;
     let mut noms: Vec<String> = entrees.iter()
@@ -348,37 +394,42 @@ pub fn liste(ext: &str) -> Option<String> {
 }
 
 pub fn charger(nom: &str) -> Option<String> {
-    let p = propre(nom);
-    match lisible(&dossier_doc().join(&p)).ok()? {
+    let Some(p) = propre(nom) else { return Some(String::new()) };
+    let d = dossier_doc();
+    if !dossier_pret(&d) { return None; }
+    match lisible(&d.join(&p)).ok()? {
         None => Some(String::new()),
         Some(f) => lire_complet(&f, plafond_lecture(&p)).map(|o| STANDARD.encode(o)),
     }
 }
 
 pub fn supprimer(nom: &str) -> bool {
-    let f = dossier_doc().join(propre(nom));
-    let _ = fs::remove_file(sauvegarde(&f));
-    f.is_file() && fs::remove_file(&f).is_ok()
+    let Some(p) = propre(nom) else { return false };
+    let d = dossier_doc();
+    if !dossier_pret(&d) { return false; }
+    supprimer_fichier(&d.join(p))
 }
 
 // ---------- échantillons ----------
 
-fn fichier_ech(nom: &str) -> PathBuf {
-    dossier_ech().join(format!("{}.wav", propre(nom)))
-}
-
 pub fn ech_sauver(nom: &str, b64: &str) -> bool {
+    let Some(p) = propre(nom) else { return false };
     if depasse_base64(b64, MAX_SAMPLE) {
         return false;
     }
+    let d = dossier_ech();
+    if !dossier_pret(&d) { return false; }
     match decoder(b64) {
-        Some(o) if (o.len() as u64) <= MAX_SAMPLE => ecrire_atomique(&fichier_ech(nom), &o),
+        Some(o) if (o.len() as u64) <= MAX_SAMPLE => ecrire_atomique(&d.join(format!("{}.wav", p)), &o),
         _ => false,
     }
 }
 
 pub fn ech_charger(nom: &str) -> Option<String> {
-    match lisible(&fichier_ech(nom)).ok()? {
+    let Some(p) = propre(nom) else { return Some(String::new()) };
+    let d = dossier_ech();
+    if !dossier_pret(&d) { return None; }
+    match lisible(&d.join(format!("{}.wav", p))).ok()? {
         None => Some(String::new()),
         Some(f) => lire_complet(&f, MAX_SAMPLE).map(|o| STANDARD.encode(o)),
     }
@@ -386,6 +437,7 @@ pub fn ech_charger(nom: &str) -> Option<String> {
 
 pub fn ech_liste() -> Option<String> {
     let d = dossier_ech();
+    if !dossier_pret(&d) { return None; }
     recuperer_dossier(&d).ok()?;
     let entrees: Vec<_> = fs::read_dir(&d).ok()?.collect::<io::Result<_>>().ok()?;
     let mut noms = Vec::new();
@@ -403,7 +455,8 @@ pub fn ech_liste() -> Option<String> {
 }
 
 pub fn ech_supprimer(nom: &str) {
-    let f = fichier_ech(nom);
-    let _ = fs::remove_file(sauvegarde(&f));
-    let _ = fs::remove_file(&f);
+    let Some(p) = propre(nom) else { return };
+    let d = dossier_ech();
+    if !dossier_pret(&d) { return; }
+    let _ = supprimer_fichier(&d.join(format!("{}.wav", p)));
 }

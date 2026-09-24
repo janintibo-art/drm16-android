@@ -162,6 +162,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         @JavascriptInterface public String fichierSauver(String nom, String b64) {
             try {
                 String p = propre(nom);
+                if (p == null) return "";
                 long max = plafondDocument(p);
                 if (b64 == null || depasseBase64(b64, max)) return "";
                 File cible = new File(dossierDoc(), p);
@@ -175,6 +176,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         @JavascriptInterface public String fichierOuvrir(String nom) {
             try {
                 String p = propre(nom);
+                if (p == null) return "";
                 File cible = new File(dossierDoc(), p);
                 Ecriture e = new Ecriture();
                 String jeton;
@@ -315,6 +317,7 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         @JavascriptInterface public String fichierCharger(String nom) {
             try {
                 String p = propre(nom);
+                if (p == null) return "";
                 File f = Fichiers.lisible(new File(dossierDoc(), p));
                 if (f == null) return "";
                 /* un .wav n'est jamais relu par l'application : il garde le plafond des documents */
@@ -327,9 +330,9 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         }
         @JavascriptInterface public boolean fichierSupprimer(String nom) {
             try {
-                File f = new File(dossierDoc(), propre(nom));
-                Fichiers.sauvegarde(f).delete();
-                return f.delete();
+                String p = propre(nom);
+                if (p == null) return false;
+                return Fichiers.supprimer(new File(dossierDoc(), p));
             } catch (Exception e) { return false; }
         }
         @JavascriptInterface public String fichierDossier() {
@@ -342,18 +345,21 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         }
         @JavascriptInterface public boolean echSauver(String nom, String b64) {
             try {
-                if (b64 == null || depasseBase64(b64, MAX_SAMPLE_BYTES)) return false;
+                String p = propre(nom);
+                if (p == null || b64 == null || depasseBase64(b64, MAX_SAMPLE_BYTES)) return false;
                 File d = dossierEch();
                 if (!d.exists() && !d.mkdirs()) return false;
                 byte[] o = Base64.decode(b64, Base64.DEFAULT);
                 if (o.length > MAX_SAMPLE_BYTES) return false;
-                File cible = new File(d, propre(nom) + ".wav");
+                File cible = new File(d, p + ".wav");
                 return ecrireAtomique(cible, o);
             } catch (Exception e) { return false; }
         }
         @JavascriptInterface public String echCharger(String nom) {
             try {
-                File f = Fichiers.lisible(new File(dossierEch(), propre(nom) + ".wav"));
+                String p = propre(nom);
+                if (p == null) return "";
+                File f = Fichiers.lisible(new File(dossierEch(), p + ".wav"));
                 if (f == null) return "";
                 byte[] o = lireFichierComplet(f, MAX_SAMPLE_BYTES);
                 return Base64.encodeToString(o, Base64.NO_WRAP);
@@ -378,9 +384,9 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         }
         @JavascriptInterface public void echSupprimer(String nom) {
             try {
-                File f = new File(dossierEch(), propre(nom) + ".wav");
-                Fichiers.sauvegarde(f).delete();
-                f.delete();
+                String p = propre(nom);
+                if (p == null) return;
+                Fichiers.supprimer(new File(dossierEch(), p + ".wav"));
             } catch (Exception ignored) {}
         }
     }
@@ -448,11 +454,12 @@ public class MainActivity extends Activity implements Midi.Ecoute {
         return b64.length() > maxChars;
     }
 
+    /** v300 : un nom vide, « . » ou « .. » est invalide. Il n'est plus
+        transforme en « x », ce qui pouvait viser par erreur un vrai fichier x. */
     private String propre(String n) {
-        if (n == null) return "x";
+        if (n == null) return null;
         String p = n.replaceAll("[^A-Za-z0-9_.-]", "_");
-        /* v139 : « . » et « .. » designent un dossier, jamais un fichier */
-        return (p.isEmpty() || p.equals(".") || p.equals("..")) ? "x" : p;
+        return (p.isEmpty() || p.equals(".") || p.equals("..")) ? null : p;
     }
 
     /** Message recu d'un appareil MIDI : transmis tel quel a la page. */

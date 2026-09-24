@@ -46,6 +46,23 @@ final class Fichiers {
         return false;
     }
 
+    /** v300 : une suppression ne doit jamais laisser un .bak capable de
+        ressusciter le fichier. Le secours est donc efface AVANT la cible ; si
+        cette premiere suppression echoue, la cible reste intacte. */
+    static boolean supprimer(File cible) {
+        if (cible == null) return false;
+        try {
+            File bak = sauvegarde(cible);
+            if (!absent(bak)) {
+                if (!bak.isFile() || !bak.delete()) return false;
+            }
+            if (absent(cible) || !cible.isFile()) return false;
+            return cible.delete();
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     /** L'absence n'est certaine qu'apres lecture du dossier parent.
         File.exists() renvoie aussi false si l'acces au stockage est refuse. */
     static boolean absent(File fichier) throws IOException {
